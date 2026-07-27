@@ -56,7 +56,7 @@ class SpbController extends Controller
             $deptIds = (array) $user->department_id;
         }
 
-        $isAdmin = $user->user_role === 'admin';
+        $isAdmin = $user->isAdmin();
 
         $all = TrSPB::whereIn('cpny_id', $cpnyIds)
                     ->whereIn('department_id', $deptIds)
@@ -139,7 +139,7 @@ class SpbController extends Controller
         $mode = (string) $request->input('mode', 'normal');
         $deptExtra = (string) $request->input('department_extra', '');
 
-        $isAdmin = $user->user_role === 'admin';
+        $isAdmin = $user->isAdmin();
         // ✅ Admin viewing the all-list sees every company; everyone else stays scoped to their own
         $bypassCpnyFilter = $isAdmin && $mode === 'all';
 

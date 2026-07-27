@@ -3,7 +3,7 @@
     @php
         $user = auth()->user();
 
-        $hasWoAllAccess = $user->user_role === 'admin';
+        $hasWoAllAccess = $user->isAdmin();
 
         $xlCols = 6;
 
@@ -105,7 +105,7 @@
                     <p class="shrink-0 text-base font-bold">{{ $all }}</p>
                 </div>
             </button>
-            @if (auth()->user()->user_role === 'admin')
+            @if (auth()->user()->isAdmin())
                 <button type="button" class="scope-filter group block h-full" data-scope="allactive">
                     <div
                         class="scope-card flex h-full items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-md active:scale-95">

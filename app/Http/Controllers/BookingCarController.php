@@ -245,7 +245,7 @@ class BookingCarController extends Controller
         $base->whereIn('bc.status', ['P', 'C', 'F', 'D', 'R', 'X']);
 
         $username  = strtolower(trim($user->username));
-        $isAdmin   = $user->user_role === 'admin';
+        $isAdmin   = $user->isAdmin();
         $showAll   = $isAdmin && $filter === 'ALL_TRANSACTIONS';
 
         if (!$showAll) {

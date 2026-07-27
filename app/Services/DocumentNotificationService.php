@@ -894,7 +894,7 @@ class DocumentNotificationService
             // Admin accounts sometimes pick up finance/treasury access roles for testing or
             // oversight — they're not real finance/treasury staff, so skip them here rather
             // than spamming an admin account on every document comment in these doctypes.
-            ->reject(fn($u) => strtolower(trim((string) $u->user_role)) === 'admin')
+            ->reject(fn($u) => $u->isAdmin())
             ->pluck('username')
             ->map(fn($u) => strtolower(trim($u)));
     }

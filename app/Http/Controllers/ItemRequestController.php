@@ -50,7 +50,7 @@ class ItemRequestController extends Controller
             ? array_map('trim', explode(',', $user->department_id))
             : (array) $user->department_id;
 
-        $isAdmin = $user->user_role === 'admin';
+        $isAdmin = $user->isAdmin();
 
         $q = TrItemRequest::query()
             ->whereIn('cpny_id', $cpnyIds)
@@ -90,7 +90,7 @@ class ItemRequestController extends Controller
         $status = (string) $request->query('status', '');
         $mode   = (string) $request->query('mode', 'normal');
 
-        $isAdmin = $user->user_role === 'admin';
+        $isAdmin = $user->isAdmin();
         // ✅ Admin viewing the all-list sees every company/department; everyone else stays scoped to their own
         $bypassScope = $isAdmin && $mode === 'all';
 

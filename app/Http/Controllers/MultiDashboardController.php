@@ -20,7 +20,7 @@ class MultiDashboardController extends Controller
                 ->exists()
             : false;
 
-        $isItStaff = $user && $user->user_role === 'admin';
+        $isItStaff = $user && $user->isAdmin();
 
         $dataFeed = new DataFeed();
 

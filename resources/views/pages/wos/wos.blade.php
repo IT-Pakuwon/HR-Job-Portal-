@@ -5,7 +5,7 @@
     @php
         $user = auth()->user();
 
-        $hasWoAllAccess = $user->user_role === 'admin';
+        $hasWoAllAccess = $user->isAdmin();
         $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS');
 
         $xlCols = 5;
@@ -96,7 +96,7 @@
             </a>
 
             {{-- WO ALL (Cost Control Only) --}}
-            @if (auth()->user()->user_role === 'admin')
+            @if (auth()->user()->isAdmin())
                 <a href="#" class="status-filter group block h-full" data-scope="wo_all">
                     <div
                         class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">

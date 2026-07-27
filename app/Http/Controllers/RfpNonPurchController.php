@@ -2817,7 +2817,7 @@ class RfpNonPurchController extends Controller
             ->get(['notification_email', 'user_role'])
             // Admin accounts sometimes pick up finance access roles for testing or
             // oversight — they're not real finance staff, so skip them here.
-            ->reject(fn ($u) => strtolower(trim((string) $u->user_role)) === 'admin')
+            ->reject(fn ($u) => $u->isAdmin())
             ->pluck('notification_email')
             ->filter(fn ($email) => trim((string) $email) !== '')
             ->unique()

@@ -73,4 +73,11 @@ class User extends Authenticatable
         return $this->hasRole('ITHARDWARE')
             || $this->hasRole('ITSOFTWARE');
     }
+
+    public function isAdmin(): bool
+    {
+        $roles = array_map('trim', explode(',', strtolower((string) $this->user_role)));
+
+        return in_array('admin', $roles, true) || in_array('adminsby', $roles, true);
+    }
 }

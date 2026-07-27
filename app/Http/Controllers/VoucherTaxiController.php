@@ -156,7 +156,7 @@ class VoucherTaxiController extends Controller
         }
 
         $isGA      = $authUser->hasRole('GAACCESS');
-        $isAdmin   = $authUser->user_role === 'admin';
+        $isAdmin   = $authUser->isAdmin();
         $showAll   = $isAdmin && $request->input('all_transactions') === '1';
 
         $cpnyIds = is_string($authUser->cpny_id)

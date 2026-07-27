@@ -1,7 +1,7 @@
 <x-app-layout>
     @php
         $user = auth()->user();
-        $hasReceiptAllAccess = $user->user_role === 'admin';
+        $hasReceiptAllAccess = $user->isAdmin();
 
         $xlCols = 7;
 

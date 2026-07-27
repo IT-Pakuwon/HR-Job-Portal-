@@ -149,7 +149,7 @@
                         Teams / Zoom
                     </a>
 
-                    @if (auth()->check() && auth()->user()->user_role === 'admin')
+                    @if (auth()->check() && auth()->user()->isAdmin())
                         <a href="{{ route('meetingroom.setup.index') }}"
                             class="{{ request()->is('meetingroom/setup*')
                                 ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'

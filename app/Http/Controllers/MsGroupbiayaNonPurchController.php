@@ -38,7 +38,7 @@ class MsGroupbiayaNonPurchController extends Controller
 
         $nextGroupbiayaId = 'GB' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
 
-        $isAdmin    = $user->user_role === 'admin';
+        $isAdmin    = $user->isAdmin();
         $isCostCtrl = $this->hasCostCtrlRole($user->username ?? '');
 
         return view('pages.groupbiayanonpurch.groupbiayanonpurch', compact('nextGroupbiayaId', 'isAdmin', 'isCostCtrl'));
