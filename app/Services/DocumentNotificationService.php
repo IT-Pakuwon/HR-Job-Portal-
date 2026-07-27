@@ -491,6 +491,8 @@ class DocumentNotificationService
                 'TIC' => ['model' => TrTicket::class,       'idCol' => 'ticketid', 'url' => '/showticket'],
                 'ACR' => ['model' => TrAccess::class,        'idCol' => 'docid',    'url' => '/showaccessrequest'],
                 'ITR' => ['model' => TrItrecommend::class,   'idCol' => 'docid',    'url' => '/showitrecommendation'],
+                'PRJ' => ['model' => \App\Models\MsProject::class,     'idCol' => 'project_id', 'url' => '/projects'],
+                'TSK' => ['model' => \App\Models\TrProjectTask::class, 'idCol' => 'task_id',    'url' => '/projects'],
             ];
 
             foreach (self::extendedDocTypeConfig() as $extDoctype => $extCfg) {
@@ -524,6 +526,8 @@ class DocumentNotificationService
                         continue;
                     }
 
+                    $hid = self::commentDocHid($commentDoctype, $doc);
+
                     preg_match_all('/@([\w.]+)/', (string) $row->message, $m);
                     $tokens = collect($m[1] ?? [])->map(fn($t) => strtolower($t))->unique();
 
@@ -542,7 +546,7 @@ class DocumentNotificationService
 
                         $data->push([
                             'key'        => $key,
-                            'hid'        => Hashids::encode($doc->id),
+                            'hid'        => $hid,
                             'docid'      => $row->refnbr,
                             'status'     => 'MENTION',
                             'label'      => 'Mentioned',
@@ -563,7 +567,7 @@ class DocumentNotificationService
 
                     $data->push([
                         'key'        => $key,
-                        'hid'        => Hashids::encode($doc->id),
+                        'hid'        => $hid,
                         'docid'      => $row->refnbr,
                         'status'     => 'COMMENT',
                         'label'      => 'New Comment',
@@ -778,6 +782,25 @@ class DocumentNotificationService
         return now()->greaterThanOrEqualTo($expiry);
     }
 
+    // Most doctypes have their own dedicated "show" page keyed by a Hashids-
+    // encoded internal id (`{url}/{hid}`). Project/Task pages are instead
+    // keyed by their plain business-key string (`/projects/{project_id}`,
+    // no separate Task page — it's a tab within the parent Project page),
+    // so PRJ/TSK need their own hid resolution rather than the generic
+    // Hashids::encode($doc->id) used everywhere else.
+    private static function commentDocHid(string $doctype, $doc)
+    {
+        if ($doctype === 'PRJ') {
+            return $doc->project_id;
+        }
+
+        if ($doctype === 'TSK') {
+            return $doc->project_id;
+        }
+
+        return Hashids::encode($doc->id);
+    }
+
     // Creator + approval-line-equivalent audience for a plain (non-mention) comment.
     private static function resolveCommentRecipients(string $doctype, $doc): \Illuminate\Support\Collection
     {
@@ -787,6 +810,34 @@ class DocumentNotificationService
                     MsTicketCategoryDept::where('ticket_categoryid', $doc->ticket_categoryid)
                         ->where('status', 'A')
                         ->pluck('username')
+                )
+                ->filter()
+                ->map(fn($u) => strtolower(trim($u)))
+                ->unique();
+        }
+
+        if ($doctype === 'PRJ') {
+            $group = \App\Models\MsGroup::where('group_id', $doc->group_id)->first();
+
+            return collect([$doc->created_by, $group?->created_by])
+                ->merge(
+                    \App\Models\TrProjectTaskAssignee::whereIn(
+                        'task_id',
+                        \App\Models\TrProjectTask::where('project_id', $doc->project_id)->pluck('task_id')
+                    )->where('status', 'A')->pluck('username')
+                )
+                ->filter()
+                ->map(fn($u) => strtolower(trim($u)))
+                ->unique();
+        }
+
+        if ($doctype === 'TSK') {
+            $project = \App\Models\MsProject::where('project_id', $doc->project_id)->first();
+
+            return collect([$doc->created_by, $project?->created_by])
+                ->merge(
+                    \App\Models\TrProjectTaskAssignee::where('task_id', $doc->task_id)
+                        ->where('status', 'A')->pluck('username')
                 )
                 ->filter()
                 ->map(fn($u) => strtolower(trim($u)))

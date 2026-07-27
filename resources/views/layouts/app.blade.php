@@ -62,6 +62,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
 
+    <!-- Frappe Gantt (JS bundled via npm/app.js as window.FrappeGantt; only the
+         CSS is loaded here — the package's exports map doesn't expose a CSS
+         subpath for Vite to bundle) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@1.2.2/dist/frappe-gantt.css">
+
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
