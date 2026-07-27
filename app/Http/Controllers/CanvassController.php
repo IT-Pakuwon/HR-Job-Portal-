@@ -8294,23 +8294,7 @@ class CanvassController extends Controller
         return true;
     }
 
-    private function makeNoSk_xxx(string $cpnyId, Carbon $now): string
-    {
-        // contoh format (aku rapikan dikit): 024/SK/AW/II/2025
-        $roman = $this->monthToRoman((int) $now->format('n'));
-        $year = $now->format('Y');
-
-        // ✅ running 3 digit per BULAN
-        $seq = $this->nextAutoNumber('SK', (int) $now->format('Y'), (int) $now->format('n'), 3);
-
-        return str_pad((string) $seq, 3, '0', STR_PAD_LEFT)
-            .'/PROC'
-            .'/'.strtoupper(trim($cpnyId))
-            .'/SK'
-            .'/'.$roman
-            .'/'.$year;
-    }
-
+   
     private function monthToRoman(int $m): string
     {
         $map = [
@@ -8323,12 +8307,16 @@ class CanvassController extends Controller
 
     private function doctypeDescr(string $doctype): ?string
     {
+        $key = strtoupper(trim($doctype));
+
         $map = [
             'KO' => 'KONTRAK',
             'SK' => 'No SK',
         ];
 
-        $key = strtoupper(trim($doctype));
+        if (str_starts_with($key, 'SK')) {
+            return 'No SK';
+        }
 
         return $map[$key] ?? null;
     }
@@ -8336,57 +8324,9 @@ class CanvassController extends Controller
     /**
      * Ambil nomor berikutnya dari ms_autonbr_test (pgsql2) dengan lockForUpdate.
      * - KO: reset per YEAR+MONTH (pad 4 digit)
-     * - SK: reset per YEAR (pad 3 digit).
+     * - SK{CPNY}: reset per YEAR, month=0 (pad 3 digit).
      */
-    private function nextAutoNumber_xxx(string $doctype, int $year, int $month, int $pad): int
-    {
-        $doctype = strtoupper(trim($doctype));
-        $descr = $this->doctypeDescr($doctype);
-        $user = auth()->user()->username ?? 'system';
-        $month = (int) $month; // 1..12
-
-        return DB::connection('pgsql2')->transaction(function () use ($doctype, $descr, $year, $month) {
-            $row = Autonbr::on('pgsql2')
-                ->where('doctype', $doctype)
-                ->where('year', $year)
-                ->where('month', $month)
-                ->lockForUpdate()
-                ->first();
-
-            $next = ((int) ($row->number ?? 0)) + 1;
-
-            if (!$row) {
-                Autonbr::on('pgsql2')->create([
-                    'doctype' => $doctype,
-                    'doctype_descr' => $descr,
-                    'year' => $year,
-                    'month' => $month,
-                    'number' => $next,
-                    'status' => 'A',
-                    'created_by' => 'system',
-                    'updated_by' => 'system',
-                ]);
-            } else {
-                $row->update([
-                    'number' => $next,
-                    'updated_by' => 'system',
-                    'doctype_descr' => $row->doctype_descr ?: $descr,
-                ]);
-            }
-
-            return $next;
-        });
-    }    
-
-    private function makeKontrakId_xxx(Carbon $now): string
-    {
-        $yy = $now->format('y');
-        $mm = $now->format('m');
-
-        $seq = $this->nextAutoNumber('KO', (int) $now->format('Y'), (int) $now->format('n'), 4);
-
-        return 'KO'.$yy.$mm.str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
-    }
+  
 
     private function nextAutoNumber(string $doctype, int $year, int $month, int $pad = 4): int
     {
@@ -8451,44 +8391,7 @@ class CanvassController extends Controller
         return 'KO' . $yy . $mm . str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
     }
 
-    private function makeNoSk_zzz(string $cpnyId, Carbon $now, $details): string
-    {
-        $roman = $this->monthToRoman((int) $now->format('n'));
-        $year  = $now->format('Y');
-
-        $details = collect($details);
-
-        $businessUnits = $details
-            ->pluck('budget_business_unit_id')
-            ->filter(fn ($val) => !is_null($val) && trim((string) $val) !== '')
-            ->map(fn ($val) => strtoupper(trim((string) $val)))
-            ->unique()
-            ->values();
-
-        if ($businessUnits->count() > 1) {
-            Log::warning('Multiple budget_business_unit_id found when generating No SK', [
-                'cpny_id' => $cpnyId,
-                'business_units' => $businessUnits->toArray(),
-            ]);
-        }
-
-        $bussunit = $businessUnits->first() ?? '-';
-
-        $seq = $this->nextAutoNumber(
-            'SK',
-            (int) $now->format('Y'),
-            (int) $now->format('n'),
-            3
-        );
-
-        return str_pad((string) $seq, 3, '0', STR_PAD_LEFT)
-            . '/PROC'
-            . '/' . strtoupper(trim($cpnyId))
-            . '-' . $bussunit
-            . '/SK'
-            . '/' . $roman
-            . '/' . $year;
-    }
+   
 
     private function makeNoSk(string $cpnyId, Carbon $now, $details): string
     {
@@ -8545,10 +8448,15 @@ class CanvassController extends Controller
 
         $kontrakPrefix = strtoupper(trim($kontrakPrefix));
 
+        $cpnyCode = strtoupper(trim((string) $cpnyId));
+        if ($cpnyCode === '') {
+            throw new \RuntimeException('cpny_id kosong saat generate No SK.');
+        }
+
         $seq = $this->nextAutoNumber(
-            'SK',
+            'SK' . $cpnyCode,
             (int) $now->format('Y'),
-            (int) $now->format('n'),
+            0,
             3
         );
 

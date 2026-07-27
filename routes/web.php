@@ -39,6 +39,7 @@ use App\Http\Controllers\DepartmentsController;
 use App\Http\Controllers\DocumentNotificationController;
 use App\Http\Controllers\EngTicketController;
 use App\Http\Controllers\EventCalendarController;
+use App\Http\Controllers\FindingController;
 use App\Http\Controllers\FinanceDashboardController;
 use App\Http\Controllers\GADashboardController;
 use App\Http\Controllers\GlobalSearchController;
@@ -1211,6 +1212,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/perizinan/departments', [PerizinanController::class, 'departments'])->name('perizinan.departments');
         Route::get('/perizinan/sites', [PerizinanController::class, 'sites'])->name('perizinan.sites');
         Route::get('/perizinan/{perizinanId}', [PerizinanController::class, 'show'])->name('perizinan.show');     
+    });
+
+    Route::middleware('access:FINDING,VIEW')->group(function () {
+        Route::get('/finding', [FindingController::class, 'index'])->name('finding');
+        Route::get('/finding/json', [FindingController::class, 'json'])->name('finding.json');
     });
 
     Route::middleware('access:PERIZINAN,CREATE')->group(function () {

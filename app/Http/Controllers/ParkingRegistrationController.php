@@ -582,36 +582,62 @@ class ParkingRegistrationController extends Controller
         }
     }
 
-    private function uploadParkingFileToGcs(?UploadedFile $file, string $docid, string $folder, string $username): ?string
+    private function uploadParkingFileToGcs(?UploadedFile $file, string $docid, string $type, string $username, int $rowNo = 1): ?string
     {
-        if (!$file || !$file->isValid()) {
+        if (!$file instanceof UploadedFile || !$file->isValid()) {
             return null;
         }
 
         $bucket = $this->gcsBucket();
 
+        $doctype = 'PKR';
         $year = now()->year;
+        $baseFolder = 'att-parking-registration';
+        $folder = "{$baseFolder}/{$doctype}/{$year}";
+
+        $originalName = str_replace(['%', '\\', '/'], '', $file->getClientOriginalName());
         $ext = $file->getClientOriginalExtension();
-        $filename = md5(random_int(1, 99999999) . microtime(true)) . '.' . $ext;
+        $randomPrefix = md5(random_int(1, 99999999));
+        $filename = strtoupper($type) . '_' . $rowNo . '_' . $randomPrefix . '.' . $ext;
 
-        $gcsPath = "parking_registration/{$year}/{$docid}/{$folder}/{$filename}";
+        $gcsPath = "{$folder}/{$filename}";
 
-        $bucket->upload(
-            fopen($file->getPathname(), 'r'),
-            [
-                'name' => $gcsPath,
-                'predefinedAcl' => 'private',
-                'metadata' => [
-                    'contentType' => $file->getMimeType(),
-                    'metadata' => [
-                        'original-name' => $file->getClientOriginalName(),
-                        'uploaded-by' => $username,
+        try {
+            $bucket->upload(
+                fopen($file->getPathname(), 'r'),
+                [
+                    'name'          => $gcsPath,
+                    'predefinedAcl' => 'private',
+                    'metadata'      => [
+                        'contentType' => $file->getMimeType(),
+                        'metadata'    => [
+                            'original-name' => $originalName,
+                            'docid'         => $docid,
+                            'type'          => strtoupper($type),
+                            'row_no'        => (string) $rowNo,
+                            'created_by'    => $username,
+                        ],
                     ],
-                ],
-            ]
-        );
+                ]
+            );
 
-        return $gcsPath;
+            Log::info('Upload parking attachment sukses', [
+                'docid'   => $docid,
+                'type'    => $type,
+                'gcsPath' => $gcsPath,
+            ]);
+
+            return $gcsPath;
+        } catch (\Throwable $e) {
+            Log::error('Upload parking attachment gagal', [
+                'docid'   => $docid,
+                'type'    => $type,
+                'gcsPath' => $gcsPath,
+                'error'   => $e->getMessage(),
+            ]);
+
+            throw $e;
+        }
     }
             
     public function createParkingRegistration()
@@ -1940,22 +1966,25 @@ class ParkingRegistrationController extends Controller
                 $stnkPath = $this->uploadParkingFileToGcs(
                     $request->file("detail_attach_stnk.$i"),
                     $parking->docid,
-                    'stnk',
-                    $username
+                    'STNK',
+                    $username,
+                    $rowNo
                 ) ?: $oldStnk;
 
                 $idCardPath = $this->uploadParkingFileToGcs(
                     $request->file("detail_attach_idcard.$i"),
                     $parking->docid,
-                    'idcard',
-                    $username
+                    'IDCARD',
+                    $username,
+                    $rowNo
                 ) ?: $oldIdcard;
 
                 $buktiBayarPath = $this->uploadParkingFileToGcs(
                     $request->file("detail_attach_bukti_bayar.$i"),
                     $parking->docid,
-                    'bukti_bayar',
-                    $username
+                    'BUKTIBAYAR',
+                    $username,
+                    $rowNo
                 ) ?: $oldBuktiBayar;
 
                 TrParkingRegistrationDetail::create([
