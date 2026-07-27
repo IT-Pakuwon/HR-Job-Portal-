@@ -620,7 +620,7 @@
                     @if (in_array('adminsby', $userRoles))
                         {{-- Admin Surabaya: only Users and Manage Approval under Setting --}}
                         <li class="mt-4"
-                            x-data="{ open: {{ in_array(Request::segment(1), ['users', 'manage-approvals']) ? 'true' : 'false' }} }">
+                            x-data="{ open: {{ in_array(Request::segment(1), ['users-sby', 'manage-approvals-sby']) ? 'true' : 'false' }} }">
 
                             <button @click="open = !open"
                                 class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
@@ -637,14 +637,14 @@
 
                             <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-2">
                                 <li>
-                                    <a href="{{ route('users') }}"
-                                        class="{{ Request::segment(1) === 'users' ? 'text-indigo-600' : '' }} sidebar-link text-sm">
+                                    <a href="{{ route('users-sby') }}"
+                                        class="{{ Request::segment(1) === 'users-sby' ? 'text-indigo-600' : '' }} sidebar-link text-sm">
                                         Users
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('manage-approvals') }}"
-                                        class="{{ Request::segment(1) === 'manage-approvals' ? 'text-indigo-600' : '' }} sidebar-link text-sm">
+                                    <a href="{{ route('manage-approvals-sby') }}"
+                                        class="{{ Request::segment(1) === 'manage-approvals-sby' ? 'text-indigo-600' : '' }} sidebar-link text-sm">
                                         Master Approval
                                     </a>
                                 </li>

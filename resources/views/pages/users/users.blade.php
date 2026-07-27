@@ -775,7 +775,7 @@
             }
 
             // Preload the inactive count badge even before the tab is opened
-            $.getJSON("{{ route('users.inactive.json') }}", function(json) {
+            $.getJSON("{{ $usersSby ? route('users-sby.inactive.json') : route('users.inactive.json') }}", function(json) {
                 updateInactiveBadge(json.data ? json.data.length : 0);
             });
 
