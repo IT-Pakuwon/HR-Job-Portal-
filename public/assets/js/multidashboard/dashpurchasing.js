@@ -428,14 +428,16 @@
         $("#nextPage").prop("disabled", currentPage >= totalPages - 1);
     }
 
-    function renderCardList(rows, tab) {
+    function renderCardList(rows, tab, resetPage = true) {
         allRows = rows;
-        currentPage = 0;
+        if (resetPage) {
+            currentPage = 0;
+        }
         draw(tab);
     }
 
     // ── Load tab data ──
-    function loadTab(tab) {
+    function loadTab(tab, resetPage = true) {
         if (dataRequest) dataRequest.abort();
         dataRequest = new AbortController();
 
