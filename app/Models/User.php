@@ -31,18 +31,25 @@ class User extends Authenticatable
         'phonenumber',
         'password',
         'cpny_id',
-        'department_id',
         'business_unit_id',
-        'homepage',
         'division_id',
+        'department_id',
         'user_role',
+        'group_cpny_id',
+        'origin_cpny_id',
+        'origin_department_id',
+        'homepage',
         'notification_email',
         'npk',
         'approval_line',
         'jabatan',
+        'last_login_at',
+        'last_login_ip',
+        'login_count',
         'status',
         'created_by',
         'updated_by',
+        'deleted_by',
     ];
 
     protected $hidden = [
@@ -54,6 +61,7 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'last_login_at' => 'datetime',
     ];
 
     public function roleIds()

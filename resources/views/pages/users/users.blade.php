@@ -43,12 +43,6 @@
                 <span id="dupCountBadge"
                     class="ml-1 hidden rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white"></span>
             </button>
-            <button type="button" id="tabBtnInactive"
-                class="user-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
-                🚫 Inactive Users
-                <span id="inactiveCountBadge"
-                    class="ml-1 hidden rounded-full bg-gray-500 px-2 py-0.5 text-xs font-bold text-white"></span>
-            </button>
         </div>
 
         <div id="tabPanelList"
@@ -184,37 +178,6 @@
             </div>
         </div>
 
-        <div id="tabPanelInactive"
-            class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div class="border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🚫 Inactive Users</h2>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Users currently deactivated. Toggle the switch to reactivate an account.
-                </p>
-            </div>
-
-            <div class="relative overflow-hidden">
-                <table id="inactiveUsersTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
-                    <thead>
-                        <tr
-                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
-                            <th class="w-10 px-4 py-3"></th>
-                            <th class="w-48 px-4 py-3 text-left font-medium">Actions</th>
-                            <th class="px-4 py-3 text-left font-medium">Name</th>
-                            <th class="px-4 py-3 text-left font-medium">Username</th>
-                            <th class="px-4 py-3 text-left font-medium">Email</th>
-                            <th class="px-4 py-3 text-left font-medium">Company</th>
-                            <th class="px-4 py-3 text-left font-medium">Departement</th>
-                            <th class="px-4 py-3 text-left font-medium">BusinessUnit</th>
-                            <th class="px-4 py-3 text-left font-medium">Jabatan</th>
-                            <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-
         <!-- Modal -->
         <div id="appModal" class="fixed inset-0 z-50 hidden">
             <div class="absolute inset-0 bg-slate-900/50"></div>
@@ -313,6 +276,32 @@
                                             </select>
                                         </div>
 
+                                        <div>
+                                            <label class="mb-2 block text-sm font-medium">Origin Company</label>
+                                            <select id="origin_cpny_id" name="origin_cpny_id" class="w-full"
+                                                data-placeholder="Select origin company">
+                                                <option value="">-- Select Origin Company --</option>
+                                                @foreach ($company as $c)
+                                                    <option value="{{ $c->cpny_id }}">
+                                                        {{ $c->cpny_id }} - {{ $c->cpny_name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label class="mb-2 block text-sm font-medium">Origin Department</label>
+                                            <select id="origin_department_id" name="origin_department_id" class="w-full"
+                                                data-placeholder="Select origin department">
+                                                <option value="">-- Select Origin Department --</option>
+                                                @foreach ($department as $d)
+                                                    <option value="{{ $d->department_id }}">
+                                                        {{ $d->department_id }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
                                     </div>
                                 </div>
 
@@ -331,15 +320,20 @@
                                     <div class="grid gap-5 p-6 md:grid-cols-2">
 
                                         <div>
+                                            <label class="mb-2 block text-sm font-medium">Company Group</label>
+                                            <select id="group_cpny_id" name="group_cpny_id" class="w-full" required
+                                                data-placeholder="Select company group">
+                                                <option value="">-- Select Company Group --</option>
+                                                <option value="Jakarta">Jakarta</option>
+                                                <option value="Surabaya">Surabaya</option>
+                                            </select>
+                                        </div>
+
+                                        <div>
                                             <label class="mb-2 block text-sm font-medium">Company</label>
                                             <select name="cpny_id[]" class="select2 w-full" multiple
-                                                data-placeholder="Search and select company access" required>
+                                                data-placeholder="Select a company group first" required>
                                                 <option></option>
-                                                @foreach ($company as $c)
-                                                    <option value="{{ $c->cpny_id }}">
-                                                        {{ $c->cpny_id }} - {{ $c->cpny_name }}
-                                                    </option>
-                                                @endforeach
                                             </select>
                                         </div>
 
@@ -424,12 +418,11 @@
                                                 User Type
                                             </label>
 
-                                            <select name="role[]" class="select2 w-full" multiple
-                                                data-placeholder="Search and select user type" required>
-                                                <option></option>
+                                            <select name="role" required
+                                                class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                                                <option value="">Select Type</option>
                                                 <option value="user">User</option>
                                                 <option value="admin">Admin</option>
-                                                <option value="adminsby">Admin Surabaya</option>
                                             </select>
                                         </div>
 
@@ -496,6 +489,24 @@
     </style>
 
     <script>
+        const companiesData = {!! $company->toJson() !!};
+        const isSbyUser = @json($usersSby);
+
+        // Rebuild the Company multi-select options, scoped to the chosen company group.
+        function renderCompanyOptions(group, selectedIds = []) {
+            const $select = $('select[name="cpny_id[]"]');
+            $select.empty();
+
+            companiesData
+                .filter(c => !group || c.group_cpny_id === group)
+                .forEach(c => {
+                    const isSelected = selectedIds.includes(c.cpny_id);
+                    $select.append(new Option(`${c.cpny_id} - ${c.cpny_name}`, c.cpny_id, isSelected, isSelected));
+                });
+
+            $select.trigger('change');
+        }
+
         $(document).ready(function() {
 
             // ===== Tabs =====
@@ -781,31 +792,21 @@
 
             function activateTab(tab) {
                 const isList = tab === 'list';
-                const isDuplicates = tab === 'duplicates';
-                const isInactive = tab === 'inactive';
-
                 $('#tabPanelList').toggleClass('hidden', !isList);
-                $('#tabPanelDuplicates').toggleClass('hidden', !isDuplicates);
-                $('#tabPanelInactive').toggleClass('hidden', !isInactive);
+                $('#tabPanelDuplicates').toggleClass('hidden', isList).toggleClass('flex', !isList);
 
                 $('#tabBtnList')
                     .toggleClass('bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400', isList)
                     .toggleClass('bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400', !isList);
                 $('#tabBtnDuplicates')
-                    .toggleClass('bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400', isDuplicates)
-                    .toggleClass('bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400', !isDuplicates);
-                $('#tabBtnInactive')
-                    .toggleClass('bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400', isInactive)
-                    .toggleClass('bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400', !isInactive);
+                    .toggleClass('bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400', !isList)
+                    .toggleClass('bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400', isList);
 
                 if (isList) {
                     table.columns.adjust().draw(false);
-                } else if (isDuplicates) {
+                } else {
                     initDupTable();
                     if (dupTable) dupTable.columns.adjust().draw(false);
-                } else if (isInactive) {
-                    initInactiveTable();
-                    if (inactiveTable) inactiveTable.columns.adjust().draw(false);
                 }
             }
 
@@ -814,9 +815,6 @@
             });
             $('#tabBtnDuplicates').on('click', function() {
                 activateTab('duplicates');
-            });
-            $('#tabBtnInactive').on('click', function() {
-                activateTab('inactive');
             });
 
             let table = $('#usersTable').DataTable({
@@ -1019,14 +1017,24 @@
 
                 $('#homepage').val(null).trigger('change');
 
-                $('select[name="role[]"]').val(null).trigger('change');
+                $('select[name="role"]').val('').trigger('change');
                 $('select[name="jabatan"]').val('').trigger('change');
 
-                $('select[name="cpny_id[]"]').val(null).trigger('change');
+                $('#group_cpny_id').prop('disabled', isSbyUser);
+                if (isSbyUser) {
+                    $('#group_cpny_id').val('Surabaya').trigger('change');
+                    renderCompanyOptions('Surabaya', []);
+                } else {
+                    $('#group_cpny_id').val('').trigger('change');
+                    renderCompanyOptions(null, []);
+                }
                 $('select[name="department_id[]"]').val(null).trigger('change');
                 $('select[name="division_id[]"]').val(null).trigger('change');
                 $('select[name="business_unit_id[]"]').val(null).trigger('change');
                 $('select[name="role_ids[]"]').val(null).trigger('change');
+
+                $('#origin_cpny_id').val('').trigger('change');
+                $('#origin_department_id').val('').trigger('change');
 
                 const $submitBtn = $('#appForm').find('button[type="submit"]');
 
@@ -1062,15 +1070,20 @@
                     $('#homepage').val(app.homepage).trigger('change');
 
                     $('select[name="jabatan"]').val(app.jabatan).trigger('change');
-                    $('select[name="role[]"]').val(app.role).trigger('change');
+                    $('select[name="role"]').val(app.role).trigger('change');
 
-                    $('select[name="cpny_id[]"]').val(app.cpny_id).trigger('change');
+                    $('#group_cpny_id').prop('disabled', isSbyUser);
+                    $('#group_cpny_id').val(isSbyUser ? 'Surabaya' : app.group_cpny_id).trigger('change');
+                    renderCompanyOptions(isSbyUser ? 'Surabaya' : app.group_cpny_id, app.cpny_id);
                     $('select[name="department_id[]"]').val(app.department_id).trigger('change');
                     $('select[name="division_id[]"]').val(app.division_id).trigger('change');
                     $('select[name="business_unit_id[]"]').val(app.business_unit_id).trigger(
                         'change');
 
                     $('select[name="role_ids[]"]').val(app.role_ids).trigger('change');
+
+                    $('#origin_cpny_id').val(app.origin_cpny_id).trigger('change');
+                    $('#origin_department_id').val(app.origin_department_id).trigger('change');
 
                     $('#appModal').removeClass('hidden');
                 });
@@ -1094,8 +1107,6 @@
                     },
                     success: function() {
                         table.ajax.reload(null, false);
-                        if (inactiveTable) inactiveTable.ajax.reload(null, false);
-                        if (dupTable) dupTable.ajax.reload(null, false);
                     }
                 });
             });
@@ -1219,6 +1230,32 @@
                 allowClear: true,
                 dropdownParent: $('#appModal'),
                 placeholder: 'Search and select homepage'
+            });
+
+            $('#group_cpny_id').select2({
+                width: '100%',
+                allowClear: true,
+                dropdownParent: $('#appModal'),
+                placeholder: 'Select company group'
+            });
+
+            // Company options are scoped to the selected group — re-filter on every manual change.
+            $(document).on('change', '#group_cpny_id', function() {
+                renderCompanyOptions($(this).val(), []);
+            });
+
+            $('#origin_cpny_id').select2({
+                width: '100%',
+                allowClear: true,
+                dropdownParent: $('#appModal'),
+                placeholder: 'Select origin company'
+            });
+
+            $('#origin_department_id').select2({
+                width: '100%',
+                allowClear: true,
+                dropdownParent: $('#appModal'),
+                placeholder: 'Select origin department'
             });
 
             $('#filterCompany').select2({
@@ -1391,9 +1428,6 @@
                             }
                             if ($.fn.DataTable.isDataTable('#usersTable')) {
                                 $('#usersTable').DataTable().ajax.reload(null, false);
-                            }
-                            if ($.fn.DataTable.isDataTable('#inactiveUsersTable')) {
-                                $('#inactiveUsersTable').DataTable().ajax.reload(null, false);
                             }
                         },
                         error: function(xhr) {
