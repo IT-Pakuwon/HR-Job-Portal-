@@ -19,7 +19,6 @@ use App\Models\MsDivision;
 use App\Models\Userdivision;
 use App\Models\UserDas;
 use App\Models\SysScreen;
-use Illuminate\Validation\Rule;
 
 class UsersController extends Controller
 {
@@ -91,7 +90,7 @@ class UsersController extends Controller
             'status'
         ])
             ->where('status', 'A')
-            ->when($this->isSbyContext(), fn ($q) => $q->where('group_cpny_id', 'Surabaya'))
+            ->when($this->isSbyContext(), fn ($q) => $q->where('group_cpny_id', 'SBY'))
             ->orderByDesc('id')
             ->get();
 
@@ -116,7 +115,7 @@ class UsersController extends Controller
             'status'
         ])
             ->where('status', '!=', 'A')
-            ->when($this->isSbyContext(), fn ($q) => $q->where('group_cpny_id', 'Surabaya'))
+            ->when($this->isSbyContext(), fn ($q) => $q->where('group_cpny_id', 'SBY'))
             ->orderByDesc('id')
             ->get();
 
@@ -179,7 +178,7 @@ class UsersController extends Controller
                     $q->orWhereIn('npk', $npkKeys);
                 }
             })
-            ->when($this->isSbyContext(), fn ($q) => $q->where('group_cpny_id', 'Surabaya'))
+            ->when($this->isSbyContext(), fn ($q) => $q->where('group_cpny_id', 'SBY'))
             ->orderByRaw('LOWER(TRIM(email)) ASC NULLS LAST, LOWER(TRIM(username)) ASC NULLS LAST')
             ->get();
 
@@ -215,7 +214,7 @@ class UsersController extends Controller
         $request->validate([
             'name' => 'required',
             'email' => 'required',
-            'group_cpny_id' => [Rule::requiredIf(!$isSby), 'nullable', 'string'],
+            'group_cpny_id' => 'nullable|string',
             'cpny_id' => 'required|array',
             'department_id' => 'required|array',
             'division_id' => 'nullable|array',
@@ -232,7 +231,7 @@ class UsersController extends Controller
 
             $loginUser = Auth::user();
 
-            $groupCpnyId = $isSby ? 'Surabaya' : $request->group_cpny_id;
+            $groupCpnyId = $isSby ? 'SBY' : $request->group_cpny_id;
 
             $companyIdsString = implode(',', $request->cpny_id);
             $deptIdsString    = implode(',', $request->department_id);
@@ -346,7 +345,7 @@ class UsersController extends Controller
     {
         $user = User::findOrFail($id);
 
-        if ($this->isSbyContext() && $user->group_cpny_id !== 'Surabaya') {
+        if ($this->isSbyContext() && $user->group_cpny_id !== 'SBY') {
             abort(403);
         }
 
@@ -384,7 +383,7 @@ class UsersController extends Controller
         $request->validate([
             'name'          => 'required',
             'email'         => 'required',
-            'group_cpny_id' => [Rule::requiredIf(!$isSby), 'nullable', 'string'],
+            'group_cpny_id' => 'nullable|string',
             'cpny_id'       => 'required|array',
             'department_id' => 'required|array',
             'division_id'   => 'nullable|array',
@@ -404,11 +403,11 @@ class UsersController extends Controller
 
             $user = User::findOrFail($id);
 
-            if ($isSby && $user->group_cpny_id !== 'Surabaya') {
+            if ($isSby && $user->group_cpny_id !== 'SBY') {
                 abort(403);
             }
 
-            $groupCpnyId = $isSby ? 'Surabaya' : $request->group_cpny_id;
+            $groupCpnyId = $isSby ? 'SBY' : $request->group_cpny_id;
 
             $oldUsername = $user->username;
             $newUsername = $request->filled('username')

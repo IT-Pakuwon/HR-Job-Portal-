@@ -225,33 +225,35 @@
 
                                     <div class="grid gap-5 p-6 md:grid-cols-2">
 
-                                        <div>
-                                            <label
-                                                class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                                Full Name
-                                            </label>
-                                            <input id="name" name="name" type="text" placeholder="John Doe"
-                                                required
-                                                class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-700 dark:text-white">
-                                        </div>
+                                        <div class="grid gap-5 md:col-span-2 md:grid-cols-3">
+                                            <div>
+                                                <label
+                                                    class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                    Full Name
+                                                </label>
+                                                <input id="name" name="name" type="text" placeholder="John Doe"
+                                                    required
+                                                    class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                                            </div>
 
-                                        <div>
-                                            <label
-                                                class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                                Username
-                                            </label>
-                                            <input id="username" name="username" type="text" placeholder="Auto-filled from email (or type manually)"
-                                                class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-700 dark:text-white">
-                                        </div>
+                                            <div>
+                                                <label
+                                                    class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                    Username
+                                                </label>
+                                                <input id="username" name="username" type="text" placeholder="Auto-filled from email (or type manually)"
+                                                    class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                                            </div>
 
-                                        <div>
-                                            <label
-                                                class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                                Email Address
-                                            </label>
-                                            <input id="email" name="email" type="email"
-                                                placeholder="john.doe@example.com" required
-                                                class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                                            <div>
+                                                <label
+                                                    class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                    Email Address
+                                                </label>
+                                                <input id="email" name="email" type="email"
+                                                    placeholder="john.doe@example.com" required
+                                                    class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                                            </div>
                                         </div>
 
                                         <div>
@@ -321,18 +323,18 @@
 
                                         <div>
                                             <label class="mb-2 block text-sm font-medium">Company Group</label>
-                                            <select id="group_cpny_id" name="group_cpny_id" class="w-full" required
-                                                data-placeholder="Select company group">
-                                                <option value="">-- Select Company Group --</option>
-                                                <option value="Jakarta">Jakarta</option>
-                                                <option value="Surabaya">Surabaya</option>
+                                            <select id="group_cpny_id" name="group_cpny_id" class="w-full"
+                                                data-placeholder="Select company group (optional)">
+                                                <option value="">-- All Groups --</option>
+                                                <option value="JKT">JKT</option>
+                                                <option value="SBY">SBY</option>
                                             </select>
                                         </div>
 
                                         <div>
                                             <label class="mb-2 block text-sm font-medium">Company</label>
                                             <select name="cpny_id[]" class="select2 w-full" multiple
-                                                data-placeholder="Select a company group first" required>
+                                                data-placeholder="Search and select company access" required>
                                                 <option></option>
                                             </select>
                                         </div>
@@ -418,11 +420,12 @@
                                                 User Type
                                             </label>
 
-                                            <select name="role" required
-                                                class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white">
-                                                <option value="">Select Type</option>
+                                            <select name="role[]" class="select2 w-full" multiple required
+                                                data-placeholder="Select user type">
+                                                <option></option>
                                                 <option value="user">User</option>
                                                 <option value="admin">Admin</option>
+                                                <option value="adminsby">Adminsby</option>
                                             </select>
                                         </div>
 
@@ -1017,13 +1020,13 @@
 
                 $('#homepage').val(null).trigger('change');
 
-                $('select[name="role"]').val('').trigger('change');
+                $('select[name="role[]"]').val(null).trigger('change');
                 $('select[name="jabatan"]').val('').trigger('change');
 
                 $('#group_cpny_id').prop('disabled', isSbyUser);
                 if (isSbyUser) {
-                    $('#group_cpny_id').val('Surabaya').trigger('change');
-                    renderCompanyOptions('Surabaya', []);
+                    $('#group_cpny_id').val('SBY').trigger('change');
+                    renderCompanyOptions('SBY', []);
                 } else {
                     $('#group_cpny_id').val('').trigger('change');
                     renderCompanyOptions(null, []);
@@ -1070,11 +1073,11 @@
                     $('#homepage').val(app.homepage).trigger('change');
 
                     $('select[name="jabatan"]').val(app.jabatan).trigger('change');
-                    $('select[name="role"]').val(app.role).trigger('change');
+                    $('select[name="role[]"]').val(app.role).trigger('change');
 
                     $('#group_cpny_id').prop('disabled', isSbyUser);
-                    $('#group_cpny_id').val(isSbyUser ? 'Surabaya' : app.group_cpny_id).trigger('change');
-                    renderCompanyOptions(isSbyUser ? 'Surabaya' : app.group_cpny_id, app.cpny_id);
+                    $('#group_cpny_id').val(isSbyUser ? 'SBY' : app.group_cpny_id).trigger('change');
+                    renderCompanyOptions(isSbyUser ? 'SBY' : app.group_cpny_id, app.cpny_id);
                     $('select[name="department_id[]"]').val(app.department_id).trigger('change');
                     $('select[name="division_id[]"]').val(app.division_id).trigger('change');
                     $('select[name="business_unit_id[]"]').val(app.business_unit_id).trigger(

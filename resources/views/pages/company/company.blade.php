@@ -159,8 +159,8 @@
                             <label class="block text-gray-700 dark:text-white">Company Group</label>
                             <select id="group_cpny_id" name="group_cpny_id" class="company-select2 w-full">
                                 <option value="">-- Select Company Group --</option>
-                                <option value="Jakarta">Jakarta</option>
-                                <option value="Surabaya">Surabaya</option>
+                                <option value="JKT">JKT</option>
+                                <option value="SBY">SBY</option>
                             </select>
                         </div>
 
