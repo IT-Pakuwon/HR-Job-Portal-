@@ -16,21 +16,19 @@
         </a>
     @else
 
-        <button class="group inline-flex items-center justify-center" aria-haspopup="true"
+        <button class="group flex h-11 min-w-11 items-center justify-center gap-1" aria-haspopup="true"
                 @click.prevent="open = !open" :aria-expanded="open">
-            <img class="h-8 w-8 rounded-full"
+            <img class="h-8 w-8 shrink-0 rounded-full"
                  src="{{ $user->profile_photo_url ?? asset('images/avatar-default.png') }}"
                  width="32" height="32"
                  alt="{{ $user->name ?? 'User' }}" />
-            <div class="flex items-center truncate">
-                <span
-                    class="ml-2 truncate text-xs font-medium text-gray-600 group-hover:text-gray-800 dark:text-gray-100 dark:group-hover:text-white">
-                    {{ $user->name }}
-                </span>
-                <svg class="ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500" viewBox="0 0 12 12">
-                    <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
-                </svg>
-            </div>
+            <span
+                class="ml-1 hidden max-w-28 truncate text-xs font-medium text-gray-600 group-hover:text-gray-800 sm:inline-block dark:text-gray-100 dark:group-hover:text-white">
+                {{ $user->name }}
+            </span>
+            <svg class="h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500" viewBox="0 0 12 12">
+                <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+            </svg>
         </button>
 
         <div class="{{ $align === 'right' ? 'right-0' : 'left-0' }} absolute top-full z-10 mt-1 min-w-44 origin-top-right overflow-hidden rounded-lg border border-gray-200 bg-white py-1.5 dark:border-gray-700/60 dark:bg-gray-800"

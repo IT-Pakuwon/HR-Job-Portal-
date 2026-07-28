@@ -6,7 +6,7 @@
     'color'          => 'violet',
     'series'         => [],
     'labels'         => [],
-    'legendPosition' => 'bottom', {{-- bottom | top | left --}}
+    'legendPosition' => 'bottom', {{-- bottom | top | left | right --}}
 ])
 
 @php
@@ -29,6 +29,15 @@
         <div id="{{ $chartId }}" data-chart-type="donut" data-config="{{ json_encode($config) }}"></div>
     </div>
 </div>
+
+@if($legendPosition === 'right')
+    <style>
+        #{{ $chartId }} .apx-legend-position-right {
+            top: 50% !important;
+            transform: translateY(-50%);
+        }
+    </style>
+@endif
 
 @once
     @push('scripts')

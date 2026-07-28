@@ -124,26 +124,10 @@
     <x-app.header_new />
 
     <!-- ================= OFF-CANVAS SIDEBAR ================= -->
-    <div x-cloak>
-
-        <!-- BACKDROP -->
-        <div x-show="sidebarOpen" x-transition.opacity @click="sidebarOpen = false"
-            class="fixed inset-0 z-40 bg-black/40"></div>
-
-        <!-- SIDEBAR -->
-        <aside x-show="sidebarOpen" x-transition:enter="transform transition ease-out duration-300"
-            x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
-            x-transition:leave="transform transition ease-in duration-200" x-transition:leave-start="translate-x-0"
-            x-transition:leave-end="-translate-x-full" @keydown.escape.window="sidebarOpen = false"
-            class="fixed left-0 top-0 z-50 h-[100dvh] w-72 overflow-y-auto bg-white shadow-xl dark:bg-gray-800">
-
-            <!-- ONLY CONTENT -->
-            <div class="p-4">
-                <x-app.sidebar_menu />
-            </div>
-
-        </aside>
-    </div>
+    {{-- Backdrop, aside shell, Esc-to-close, and the sidebar content itself all live
+         together in sidebar_menu.blade.php — do not re-wrap it here, it was previously
+         nested inside a duplicate backdrop/aside pair which rendered the drawer twice. --}}
+    <x-app.sidebar_menu />
 
 
     <!-- ================= MAIN CONTENT ================= -->

@@ -11,7 +11,7 @@
         x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
         x-transition:leave="transform transition ease-in duration-200" x-transition:leave-start="translate-x-0"
         x-transition:leave-end="-translate-x-full" @keydown.escape.window="sidebarOpen = false"
-        class="fixed left-0 top-0 z-50 h-[100dvh] w-72 overflow-y-auto bg-white shadow-xl dark:bg-gray-800">
+        class="fixed left-0 top-0 z-50 h-[100dvh] w-72 max-w-[85vw] overflow-y-auto bg-white shadow-xl dark:bg-gray-800">
 
 
         <!-- SIDEBAR HEADER -->
@@ -73,7 +73,7 @@
                     <input type="text" x-model="query" @input="open = query.length > 0"
                         @focus="open = query.length > 0" @keydown.escape="query = ''; open = false"
                         placeholder="Search menu..."
-                        class="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-8 text-sm text-gray-700 placeholder-gray-400 focus:border-indigo-400 focus:bg-white focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-500 dark:focus:bg-gray-900">
+                        class="min-h-11 w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-8 text-sm text-gray-700 placeholder-gray-400 focus:border-indigo-400 focus:bg-white focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-500 dark:focus:bg-gray-900">
 
                     <button type="button" x-show="query.length > 0" @click="query = ''; open = false"
                         class="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
@@ -111,7 +111,7 @@
                 <li class="mt-0" x-data="sidebarFavourites()" x-init="init()" x-show="items.length > 0" x-cloak>
 
                     <button @click="open = !open"
-                        class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-amber-700 bg-amber-50 transition-all duration-200 hover:bg-amber-100 dark:text-amber-300 dark:bg-amber-900/20 dark:hover:bg-amber-900/30">
+                        class="flex w-full items-center justify-between min-h-11 rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-amber-700 bg-amber-50 transition-all duration-200 hover:bg-amber-100 dark:text-amber-300 dark:bg-amber-900/20 dark:hover:bg-amber-900/30">
                         <div class="flex items-center gap-2.5">
                             <svg class="h-4 w-4 shrink-0 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
                                 <path d="M10 2.5l2.29 4.64 5.12.74-3.7 3.61.87 5.1L10 14.9l-4.58 2.4.87-5.1-3.7-3.61 5.12-.74L10 2.5z" />
@@ -128,7 +128,7 @@
                     <ul x-show="open" x-collapse class="mt-1 space-y-1">
                         <template x-for="item in items" :key="item.id">
                             <li class="flex items-center justify-between rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
-                                <a :href="item.url" class="flex min-w-0 flex-1 items-center gap-3 px-3 py-2 text-sm">
+                                <a :href="item.url" class="flex min-h-11 min-w-0 flex-1 items-center gap-3 px-3 py-2 text-sm">
                                     <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" :d="item.menu_icon" />
                                     </svg>
@@ -136,7 +136,7 @@
                                 </a>
 
                                 <button type="button" @click.prevent.stop="removeItem(item)"
-                                    class="mr-2 shrink-0 rounded p-1 text-amber-400 transition-colors hover:text-amber-500"
+                                    class="mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded p-1 text-amber-400 transition-colors hover:text-amber-500"
                                     title="Remove from favourites">
                                     <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                         <path d="M10 2.5l2.29 4.64 5.12.74-3.7 3.61.87 5.1L10 14.9l-4.58 2.4.87-5.1-3.7-3.61 5.12-.74L10 2.5z" />
@@ -170,7 +170,7 @@
                         <li class="mt-4" x-data="{ open: true }">
 
                             <button @click="open = !open"
-                                class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
+                                class="flex w-full items-center justify-between min-h-11 rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
                                 <div class="flex items-center gap-2.5"><svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $rootMenu->menu_icon }}" /></svg><span class="whitespace-normal wrap-break-word leading-snug">{{ $rootMenu->menu_name }}</span></div>
                                 <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
@@ -197,7 +197,7 @@
                                         : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} flex items-center justify-between rounded-lg">
 
                                     <a href="{{ route($menu->menu_route) }}"
-                                        class="flex min-w-0 flex-1 items-center gap-3 px-3 py-2 text-sm">
+                                        class="flex min-h-11 min-w-0 flex-1 items-center gap-3 px-3 py-2 text-sm">
 
                                         <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round"
@@ -228,7 +228,7 @@
                                         class="{{ $isActive
                                             ? 'bg-indigo-500/10 text-indigo-600'
                                             : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}
-                                        flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm">
+                                        flex min-h-11 w-full items-center justify-between rounded-lg px-3 py-2 text-sm">
 
                                         <div class="flex items-center gap-3">
 
@@ -270,7 +270,7 @@
                                                     class="{{ Route::is([$child->menu_route, $child->menu_route . '.*'])
                                                         ? 'text-indigo-600'
                                                         : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}
-                                                    block min-w-0 flex-1 truncate px-3 py-1.5 text-sm">
+                                                    flex min-h-11 min-w-0 flex-1 items-center truncate px-3 py-1.5 text-sm">
 
                                                     {{ $child->menu_name }}
 
@@ -302,7 +302,7 @@
                 <!-- ================= MODUL SETTING ================= -->
                 @auth
                     @php
-                        $userRoles = array_map('trim', explode(',', auth()->user()->user_role ?? ''));
+                        $userRoles = auth()->user()->roles();
                     @endphp
                     @if (in_array('admin', $userRoles))
                         @php
@@ -339,7 +339,7 @@
                         <li class="mt-4" x-data="{ open: true }">
 
                             <button @click="open = !open"
-                                class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
+                                class="flex w-full items-center justify-between min-h-11 rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
                                 <div class="flex items-center gap-2.5"><svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.32.22.66.22 1H21a2 2 0 0 1 0 4h-.09c-.34 0-.68.08-1 .22z"/></svg><span class="whitespace-normal wrap-break-word leading-snug">GLOBAL SETTINGS</span></div>
                                 <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
@@ -355,7 +355,7 @@
                                 <!-- ================================================= -->
                                 <li>
                                     <a href="{{ route('access_control_studio') }}"
-                                        class="{{ Request::segment(1) === 'access_control_studio' ? 'text-white bg-indigo-600 dark:bg-indigo-500' : 'text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20' }} mb-2 flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors duration-200 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-500">
+                                        class="{{ Request::segment(1) === 'access_control_studio' ? 'text-white bg-indigo-600 dark:bg-indigo-500' : 'text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20' }} mb-2 flex min-h-11 items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors duration-200 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-500">
                                         <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none"
                                             stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                             stroke-linejoin="round">
@@ -372,7 +372,7 @@
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $ua) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
-                                        class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
+                                        class="flex w-full items-center justify-between min-h-11 rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
 
                                         <span class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">User &
                                             Access</span>
@@ -411,7 +411,7 @@
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $app) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
-                                        class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
+                                        class="flex w-full items-center justify-between min-h-11 rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
 
                                         <span
                                             class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">Application</span>
@@ -443,7 +443,7 @@
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $org) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
-                                        class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
+                                        class="flex w-full items-center justify-between min-h-11 rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
 
                                         <span
                                             class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">Organization</span>
@@ -483,7 +483,7 @@
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $md) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
-                                        class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
+                                        class="flex w-full items-center justify-between min-h-11 rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
 
                                         <span class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">Master
                                             Data</span>
@@ -531,7 +531,7 @@
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $workflowSegments) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
-                                        class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
+                                        class="flex w-full items-center justify-between min-h-11 rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
 
                                         <span
                                             class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">Workflow</span>
@@ -594,7 +594,7 @@
                             x-data="{ open: {{ Request::segment(1) === 'groupbiayanonpurch' ? 'true' : 'false' }} }">
 
                             <button @click="open = !open"
-                                class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
+                                class="flex w-full items-center justify-between min-h-11 rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
                                 <div class="flex items-center gap-2.5">
                                     <svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.32.22.66.22 1H21a2 2 0 0 1 0 4h-.09c-.34 0-.68.08-1 .22z"/></svg>
                                     <span class="whitespace-normal wrap-break-word leading-snug">GLOBAL SETTINGS</span>
@@ -623,7 +623,7 @@
                             x-data="{ open: {{ in_array(Request::segment(1), ['users-sby', 'approvals-sby']) ? 'true' : 'false' }} }">
 
                             <button @click="open = !open"
-                                class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
+                                class="flex w-full items-center justify-between min-h-11 rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
                                 <div class="flex items-center gap-2.5">
                                     <svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.32.22.66.22 1H21a2 2 0 0 1 0 4h-.09c-.34 0-.68.08-1 .22z"/></svg>
                                     <span class="whitespace-normal wrap-break-word leading-snug">SETTING</span>

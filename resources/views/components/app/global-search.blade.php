@@ -15,7 +15,7 @@
             @keydown.enter="goToFirst()"
             type="text"
             placeholder="Search by document ID or purpose..."
-            class="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-16 text-sm text-gray-800 placeholder-gray-400 transition-colors focus:border-indigo-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-100 dark:placeholder-gray-500 dark:focus:bg-gray-900 dark:focus:ring-indigo-900/40" />
+            class="min-h-11 w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-8 text-sm text-gray-800 placeholder-gray-400 transition-colors focus:border-indigo-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 sm:pr-16 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-100 dark:placeholder-gray-500 dark:focus:bg-gray-900 dark:focus:ring-indigo-900/40" />
 
         <button x-show="q.length > 0" @click="clear()" type="button"
             class="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-200">
@@ -34,7 +34,7 @@
         x-transition:leave="transition ease-in duration-100"
         x-transition:leave-start="opacity-100 scale-100 translate-y-0"
         x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
-        class="absolute left-0 z-50 mt-2 w-full min-w-88 origin-top-left overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800"
+        class="absolute left-0 z-50 mt-2 w-full min-w-88 max-w-[calc(100vw-1rem)] origin-top-left overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800"
         style="display: none;">
 
         <ul class="max-h-105 overflow-y-auto divide-y divide-gray-50 dark:divide-gray-700/50">

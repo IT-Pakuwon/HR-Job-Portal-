@@ -4,6 +4,7 @@
         display: flex;
         align-items: center;
         gap: 0.5rem;
+        min-height: 44px;
         padding: 6px 12px;
         border-radius: 0.5rem;
         color: rgb(75 85 99);

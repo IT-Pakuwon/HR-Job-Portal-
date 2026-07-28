@@ -1,6 +1,15 @@
 <x-app-layout>
     <div class="max-w-9xl mx-auto flex flex-col gap-3 p-2" x-data="tabsComponent()" x-init="initializeComponent()">
 
+        {{-- ── Back navigation ──────────────────────────────────────── --}}
+        <a href="{{ route('jobapplicant') }}"
+            class="inline-flex w-fit items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors duration-150 hover:bg-gray-200/60 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-white">
+            <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to Job Applicants
+        </a>
+
         {{-- ── Tab bar ───────────────────────────────────────────────── --}}
         <nav class="grid w-full grid-cols-3 gap-1 rounded-lg bg-gray-200/60 p-1 dark:bg-gray-700/50">
             <button @click="tab = 'tab1'"

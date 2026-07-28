@@ -51,7 +51,13 @@
                     borderRadius: 5, borderRadiusApplication: 'end',
                 },
             },
-            dataLabels: { enabled: false },
+            dataLabels: {
+                enabled: true,
+                formatter: function(val) { return parseInt(val).toLocaleString(); },
+                style: { fontSize: '11px', fontWeight: 600, colors: [dark ? '#F1F5F9' : '#1E293B'] },
+                background: { enabled: true, foreColor: dark ? '#0F172A' : '#fff', opacity: 0.85, borderWidth: 0, padding: 4 },
+                dropShadow: { enabled: false },
+            },
             xaxis: {
                 categories: categories,
                 axisBorder: { show: false }, axisTicks: { show: false },
@@ -73,6 +79,10 @@
                 chart: { foreColor: d ? '#94A3B8' : '#64748B' },
                 grid:  { borderColor: d ? '#1E293B' : '#F1F5F9' },
                 tooltip: { theme: d ? 'dark' : 'light' },
+                dataLabels: {
+                    style: { colors: [d ? '#F1F5F9' : '#1E293B'] },
+                    background: { foreColor: d ? '#0F172A' : '#fff' },
+                },
             });
         }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     }

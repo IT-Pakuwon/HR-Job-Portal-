@@ -77,6 +77,11 @@
                 fontSize: '12px',
                 markers: { radius: 6 },
                 itemMargin: { horizontal: 8, vertical: 4 },
+                formatter: function(seriesName, opts) {
+                    var val = opts.w.globals.series[opts.seriesIndex];
+                    var pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                    return seriesName + ':  ' + val.toLocaleString() + ' (' + pct + '%)';
+                },
             },
         });
         chart.render();
@@ -86,6 +91,16 @@
             chart.updateOptions({
                 chart: { foreColor: d ? '#94A3B8' : '#64748B' },
                 tooltip: { theme: d ? 'dark' : 'light' },
+                plotOptions: {
+                    pie: {
+                        donut: {
+                            labels: {
+                                total: { color: d ? '#94A3B8' : '#64748B' },
+                                value: { color: d ? '#F8FAFC' : '#0F172A' },
+                            },
+                        },
+                    },
+                },
             });
         }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     }

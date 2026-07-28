@@ -3,7 +3,7 @@
     {{-- Bell Button --}}
     <button
         @click.prevent="open = !open; if (open) load()"
-        class="relative rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
+        class="relative flex h-11 w-11 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
         :class="{ 'bg-gray-100 dark:bg-gray-700': open }"
         title="Document Notifications">
 
@@ -25,7 +25,7 @@
         x-transition:leave="transition ease-in duration-100"
         x-transition:leave-start="opacity-100 scale-100 translate-y-0"
         x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
-        class="absolute right-0 z-50 mt-2 w-96 origin-top-right overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800"
+        class="absolute right-0 z-50 mt-2 w-96 max-w-[calc(100vw-1rem)] origin-top-right overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800"
         style="display: none;">
 
         {{-- Header --}}
@@ -201,7 +201,7 @@
             x-transition:leave="transition ease-in duration-200"
             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
             x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-            class="fixed top-16 right-4 z-9999 w-80 overflow-hidden rounded-2xl border bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800"
+            class="fixed top-16 right-4 z-9999 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800"
             style="display: none;">
 
             {{-- Colored top bar --}}

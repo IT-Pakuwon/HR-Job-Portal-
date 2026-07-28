@@ -352,7 +352,7 @@
                         columns: [{
                                 data: 'docid',
                                 render: function(data, type, row) {
-                                    return `<a href="/showcareers/${row.id}" target="_blank" class="px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700">${data}</a>`;
+                                    return `<a href="/showcareers/${row.id}" class="px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700">${data}</a>`;
                                 }
                             },
                             {
@@ -725,7 +725,7 @@
                         data: 'docid',
                         name: 'docid',
                         render: function(data, type, row) {
-                            return `<a href="/showcareers/${row.eid}" target="_blank" class= 'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 '>${data}</a>`;
+                            return `<a href="/showcareers/${row.eid}" class= 'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 '>${data}</a>`;
                         }
                     },
                     {
@@ -1040,7 +1040,7 @@
 
                             return `<tr class="${isThisRow ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}">
                                 <td class="px-4 py-3">
-                                    <a href="/showcareers/${r.eid}" target="_blank" class="inline-flex justify-center items-center px-3 py-1.5 text-xs font-semibold text-white rounded bg-gray-600 hover:bg-gray-700">View</a>
+                                    <a href="/showcareers/${r.eid}" class="inline-flex justify-center items-center px-3 py-1.5 text-xs font-semibold text-white rounded bg-gray-600 hover:bg-gray-700">View</a>
                                 </td>
                                 <td class="px-4 py-3">${matchedByBadge}</td>
                                 <td class="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">${r.docid}${isThisRow ? ' <span class="ml-1 text-[10px] font-bold text-indigo-500">(this)</span>' : ''}</td>
@@ -1117,7 +1117,7 @@
                             orderable: false,
                             searchable: false,
                             render: function(data) {
-                                return `<a href="/showcareers/${data}" target="_blank" class="inline-flex justify-center items-center px-3 py-1.5 text-xs font-semibold text-white rounded bg-gray-600 hover:bg-gray-700">View</a>`;
+                                return `<a href="/showcareers/${data}" class="inline-flex justify-center items-center px-3 py-1.5 text-xs font-semibold text-white rounded bg-gray-600 hover:bg-gray-700">View</a>`;
                             }
                         },
                         {

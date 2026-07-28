@@ -86,7 +86,10 @@
                 enabled: true,
                 formatter: function(val, opt) {
                     var actual = opt.w.config.series[opt.seriesIndex].data[opt.dataPointIndex].actual;
-                    return opt.w.globals.labels[opt.dataPointIndex] + ':  ' + actual.toLocaleString();
+                    var series = opt.w.config.series[opt.seriesIndex].data;
+                    var firstVal = series.length > 0 ? series[0].actual : 0;
+                    var pct = firstVal > 0 ? ((actual / firstVal) * 100).toFixed(1) : 0;
+                    return opt.w.globals.labels[opt.dataPointIndex] + ':  ' + actual.toLocaleString() + ' (' + pct + '%)';
                 },
                 style: { fontSize: '12px', fontWeight: 600, colors: [dark ? '#F1F5F9' : '#1E293B'] },
                 dropShadow: { enabled: false },
@@ -116,6 +119,10 @@
             chart.updateOptions({
                 chart: { foreColor: d ? '#94A3B8' : '#64748B' },
                 tooltip: { theme: d ? 'dark' : 'light' },
+                dataLabels: {
+                    style: { colors: [d ? '#F1F5F9' : '#1E293B'] },
+                    background: { foreColor: d ? '#0F172A' : '#fff' },
+                },
             });
         }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     }

@@ -1,9 +1,9 @@
 <header
-    class="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-gray-200 bg-white px-4 dark:border-gray-700 dark:bg-gray-800">
+    class="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-gray-200 bg-white px-2 sm:gap-3 sm:px-4 dark:border-gray-700 dark:bg-gray-800">
 
     <!-- SIDEBAR BUTTON -->
     <button @click="sidebarOpen = true"
-        class="rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
         <span class="sr-only">Open menu</span>
         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -11,16 +11,16 @@
     </button>
 
     <!-- Global document search (jump to a document by ID or name) -->
-    <div class="w-48 sm:w-72">
+    <div class="min-w-0 flex-1 sm:w-72 sm:flex-none">
         <x-app.global-search />
     </div>
 
-    <div class="ml-auto flex items-center gap-3">
+    <div class="ml-auto flex shrink-0 items-center gap-1 sm:gap-3">
         <!-- Document status notifications (revised / rejected) -->
         <x-app.document-notifications />
 
         <a href="{{ route('manual', ['root' => 'faq']) }}"
-            class="relative rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+            class="relative hidden rounded-lg p-2 text-gray-600 hover:bg-gray-100 sm:block dark:text-gray-300 dark:hover:bg-gray-700"
             title="Manual Book"
             x-data="{ seen: localStorage.getItem('manualBookSeen') === 'true' }"
             @click="seen = true; localStorage.setItem('manualBookSeen', 'true')">
@@ -35,7 +35,7 @@
             <x-theme-toggle />
         </div>
 
-        <hr class="h-6 w-px border-none bg-gray-200 dark:bg-gray-700/60" />
+        <hr class="hidden h-6 w-px border-none bg-gray-200 sm:block dark:bg-gray-700/60" />
 
         <x-dropdown-profile align="right" />
 

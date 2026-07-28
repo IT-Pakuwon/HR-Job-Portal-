@@ -6,7 +6,7 @@
 
 @if ($screenId)
     <button type="button"
-        class="favourite-star mr-2 shrink-0 rounded p-1 transition-colors {{ $isFavourited ? 'text-amber-400 hover:text-amber-500' : 'text-gray-300 hover:text-amber-400 dark:text-gray-600' }}"
+        class="favourite-star mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded transition-colors {{ $isFavourited ? 'text-amber-400 hover:text-amber-500' : 'text-gray-300 hover:text-amber-400 dark:text-gray-600' }}"
         data-screen-id="{{ $screenId }}"
         data-application-id="{{ $applicationId }}"
         data-favourited="{{ $isFavourited ? '1' : '0' }}"

@@ -82,10 +82,18 @@ class User extends Authenticatable
             || $this->hasRole('ITSOFTWARE');
     }
 
+    /**
+     * Parsed, lowercased user_role string (e.g. "Admin, AdminSby" -> ['admin', 'adminsby']).
+     * Single source of truth so every consumer (middleware, Blade, policies) agrees on
+     * what roles a user has, regardless of casing/whitespace in the stored value.
+     */
+    public function roles(): array
+    {
+        return array_values(array_filter(array_map('trim', explode(',', strtolower((string) $this->user_role)))));
+    }
+
     public function isAdmin(): bool
     {
-        $roles = array_map('trim', explode(',', strtolower((string) $this->user_role)));
-
-        return in_array('admin', $roles, true) || in_array('adminsby', $roles, true);
+        return in_array('admin', $this->roles(), true) || in_array('adminsby', $this->roles(), true);
     }
 }

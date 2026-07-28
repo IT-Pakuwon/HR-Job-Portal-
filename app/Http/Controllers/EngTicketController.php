@@ -46,6 +46,8 @@ class EngTicketController extends Controller
 
     protected const ENG_TICKET_TYPE = 'ENGSUPPORTTICKET';
 
+    protected const BA_TICKET_TYPE = 'BERITAACARA';
+
     protected const ENG_ROLE_ID = 'OPRTEKNIKENG';
 
     protected const BSFO_ROLE_ID = 'OPRTEKNIKBS';
@@ -122,6 +124,7 @@ class EngTicketController extends Controller
             ->whereIn('ticket_type', [
                 self::ENG_TICKET_TYPE,
                 self::BSFO_TICKET_TYPE,
+                self::BA_TICKET_TYPE,
             ])
             ->where('status', 'A')
             ->pluck('ticket_type')
@@ -130,6 +133,12 @@ class EngTicketController extends Controller
 
     protected function approvalConditionFor(TrTicket $ticket): string
     {
+        if ($ticket->ticket_type === self::BA_TICKET_TYPE) {
+            $category = MsTicketCategory::find($ticket->ticket_categoryid);
+            $catName = $category?->ticket_category_name ?? '';
+            return 'BA ' . strtoupper($catName);
+        }
+
         return $ticket->ticket_type === self::BSFO_TICKET_TYPE
             ? 'BSFO'
             : 'Engineering';
@@ -195,6 +204,11 @@ class EngTicketController extends Controller
             return $this->isBSFO() || $this->isBSFORole();
         }
 
+        if ($ticketType === self::BA_TICKET_TYPE) {
+            return $this->isEng() || $this->isENGRole()
+                || $this->isBSFO() || $this->isBSFORole();
+        }
+
         return $this->isEng() || $this->isENGRole();
     }
 
@@ -205,20 +219,22 @@ class EngTicketController extends Controller
     protected function broadAccessTicketTypes(): array
     {
         if ($this->isMgrOprTeknik()) {
-            return [self::ENG_TICKET_TYPE, self::BSFO_TICKET_TYPE];
+            return [self::ENG_TICKET_TYPE, self::BSFO_TICKET_TYPE, self::BA_TICKET_TYPE];
         }
 
         $types = [];
 
         if ($this->isEng() || $this->isENGRole()) {
             $types[] = self::ENG_TICKET_TYPE;
+            $types[] = self::BA_TICKET_TYPE;
         }
 
         if ($this->isBSFO() || $this->isBSFORole()) {
             $types[] = self::BSFO_TICKET_TYPE;
+            $types[] = self::BA_TICKET_TYPE;
         }
 
-        return $types;
+        return array_values(array_unique($types));
     }
 
     public function index(Request $request, $eid = null)
@@ -523,10 +539,7 @@ class EngTicketController extends Controller
 
         $tickets = TrTicket::query()
             ->whereIn('ticketid', $refnbrs)
-            ->whereIn('ticket_type', [
-                self::ENG_TICKET_TYPE,
-                self::BSFO_TICKET_TYPE,
-            ])
+            ->whereIn('ticket_type', $this->engTicketTypes())
             ->orderBy('ticketdate')
             ->get();
 
@@ -2716,10 +2729,7 @@ class EngTicketController extends Controller
             ]);
 
         $types = MsTicketType::query()
-            ->whereIn('ticket_type', [
-                self::ENG_TICKET_TYPE,
-                self::BSFO_TICKET_TYPE,
-            ])
+            ->whereIn('ticket_type', $this->engTicketTypes())
             ->where('status', 'A')
             ->orderBy('ticket_type_name')
             ->get([
