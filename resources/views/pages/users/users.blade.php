@@ -278,31 +278,33 @@
                                             </select>
                                         </div>
 
-                                        <div>
-                                            <label class="mb-2 block text-sm font-medium">Origin Company</label>
-                                            <select id="origin_cpny_id" name="origin_cpny_id" class="w-full"
-                                                data-placeholder="Select origin company">
-                                                <option value="">-- Select Origin Company --</option>
-                                                @foreach ($company as $c)
-                                                    <option value="{{ $c->cpny_id }}">
-                                                        {{ $c->cpny_id }} - {{ $c->cpny_name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
+                                        @unless ($usersSby)
+                                            <div>
+                                                <label class="mb-2 block text-sm font-medium">Origin Company</label>
+                                                <select id="origin_cpny_id" name="origin_cpny_id" class="w-full"
+                                                    data-placeholder="Select origin company">
+                                                    <option value="">-- Select Origin Company --</option>
+                                                    @foreach ($company as $c)
+                                                        <option value="{{ $c->cpny_id }}">
+                                                            {{ $c->cpny_id }} - {{ $c->cpny_name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
 
-                                        <div>
-                                            <label class="mb-2 block text-sm font-medium">Origin Department</label>
-                                            <select id="origin_department_id" name="origin_department_id" class="w-full"
-                                                data-placeholder="Select origin department">
-                                                <option value="">-- Select Origin Department --</option>
-                                                @foreach ($department as $d)
-                                                    <option value="{{ $d->department_id }}">
-                                                        {{ $d->department_id }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
+                                            <div>
+                                                <label class="mb-2 block text-sm font-medium">Origin Department</label>
+                                                <select id="origin_department_id" name="origin_department_id" class="w-full"
+                                                    data-placeholder="Select origin department">
+                                                    <option value="">-- Select Origin Department --</option>
+                                                    @foreach ($department as $d)
+                                                        <option value="{{ $d->department_id }}">
+                                                            {{ $d->department_id }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        @endunless
 
                                     </div>
                                 </div>
@@ -424,7 +426,9 @@
                                                 data-placeholder="Select user type">
                                                 <option></option>
                                                 <option value="user">User</option>
-                                                <option value="admin">Admin</option>
+                                                @unless ($usersSby)
+                                                    <option value="admin">Admin</option>
+                                                @endunless
                                                 <option value="adminsby">Adminsby</option>
                                             </select>
                                         </div>
@@ -579,11 +583,6 @@
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <button type="button"
-                                                class="impersonateBtn bg-yellow-500 text-white px-2 py-1 rounded cursor-pointer"
-                                                data-id="${data}" title="Login As">
-                                            <i class="fas fa-key"></i>
-                                        </button>
-                                        <button type="button"
                                                 class="resetPwdBtn bg-red-500 text-white px-2 py-1 rounded cursor-pointer"
                                                 data-id="${data}" title="Reset Password">
                                             <i class="fas fa-undo"></i>
@@ -724,11 +723,6 @@
                                                 class="editAppBtn bg-blue-500 text-white px-2 py-1 rounded cursor-pointer"
                                                 data-id="${data}" title="Edit User">
                                             <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button type="button"
-                                                class="impersonateBtn bg-yellow-500 text-white px-2 py-1 rounded cursor-pointer"
-                                                data-id="${data}" title="Login As">
-                                            <i class="fas fa-key"></i>
                                         </button>
                                         <button type="button"
                                                 class="resetPwdBtn bg-red-500 text-white px-2 py-1 rounded cursor-pointer"
@@ -886,13 +880,6 @@
                                                     class="editAppBtn bg-blue-500 text-white px-2 py-1 rounded cursor-pointer"
                                                     data-id="${data}" title="Edit User">
                                                 <i class="fas fa-edit"></i>
-                                            </button>
-
-                                            <!-- 🔑 Login As -->
-                                            <button type="button"
-                                                    class="impersonateBtn bg-yellow-500 text-white px-2 py-1 rounded cursor-pointer"
-                                                    data-id="${data}" title="Login As">
-                                                <i class="fas fa-key"></i>
                                             </button>
 
                                             <!-- 🔁 Reset Password -->
@@ -1287,58 +1274,6 @@
 
         });
 
-        // 🔑 Login As (SweetAlert)
-        $(document).on('click', '.impersonateBtn', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            let userId = $(this).data('id');
-
-            Swal.fire({
-                title: "Login As User?",
-                text: "You will be logged in as this user.",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#3085d6",
-                cancelButtonColor: "#d33",
-                confirmButtonText: "Yes, Continue",
-                cancelButtonText: "Cancel"
-            }).then((result) => {
-
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: `/users/${userId}/impersonate`,
-                        type: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        },
-                        success: function(res) {
-
-                            Swal.fire({
-                                title: "Sucessfully!",
-                                text: res.message || "Login Sucessfully.",
-                                icon: "success",
-                                timer: 1500,
-                                showConfirmButton: false
-                            }).then(() => {
-                                window.location.href = res.redirect ?? window.location
-                                    .href;
-                            });
-
-                        },
-                        error: function(xhr) {
-                            Swal.fire({
-                                title: "Failed!",
-                                text: xhr.responseJSON?.message ||
-                                    'Failed to log in as user.',
-                                icon: "error"
-                            });
-                        }
-                    });
-                }
-
-            });
-        });
         // 🔁 Reset Password ke default: pakuwon1234#
         $(document).on('click', '.resetPwdBtn', function(e) {
             e.preventDefault();

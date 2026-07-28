@@ -1,4 +1,9 @@
 <x-app-layout>
+    @php
+        $apvSby = Route::is('approvals-sby') || Route::is('approvals-sby.*');
+        $apvBase = $apvSby ? '/approvals-sby' : '/approvals';
+        $gbBase = $apvSby ? '/approvals-groupbiaya-sby' : '/approvals-groupbiaya';
+    @endphp
     <div class="max-w-9xl mx-auto w-full p-2">
         <div>
             {{-- Tab nav --}}
@@ -754,7 +759,7 @@
             // ===== DataTable =====
             let table = $('#approvalTable').DataTable({
                 ajax: {
-                    url: "{{ route('approvals.json') }}",
+                    url: "{{ $apvSby ? route('approvals-sby.json') : route('approvals.json') }}",
                     type: "GET",
                     dataSrc: 'data'
                 },
@@ -920,7 +925,7 @@
 
             // Filter Department list, by source (Finance / HR), independent from Doc Type filter
             function loadFilterDepartmentsBySource(source) {
-                const url = "{{ route('approvals.departments_by_source') }}" + "?source=" + encodeURIComponent(
+                const url = "{{ $apvSby ? route('approvals-sby.departments_by_source') : route('approvals.departments_by_source') }}" + "?source=" + encodeURIComponent(
                     source || '');
                 const $fDept = $('#filterDept');
                 const prev = $fDept.val();
@@ -971,7 +976,7 @@
             }
 
             function loadDepartmentsInto($dep, doctype, selectedValue = null) {
-                const url = "{{ route('approvals.departments') }}" + "?doctype=" + encodeURIComponent(doctype ||
+                const url = "{{ $apvSby ? route('approvals-sby.departments') : route('approvals.departments') }}" + "?doctype=" + encodeURIComponent(doctype ||
                     '');
 
                 $dep.empty().append('<option value="">Loading...</option>').val('').trigger('change');
@@ -1141,7 +1146,7 @@
             });
 
             function loadConditionsByDoctype(doctype, formCtx, callback) {
-                const url = "{{ route('approvals.conditions') }}" + "?doctype=" + encodeURIComponent(doctype ||
+                const url = "{{ $apvSby ? route('approvals-sby.conditions') : route('approvals.conditions') }}" + "?doctype=" + encodeURIComponent(doctype ||
                     '');
                 $.get(url, function(items) {
                     formCtx.setConditionOptions(items);
@@ -1247,7 +1252,7 @@
 
                 $('#editApprovalModal').removeClass('hidden');
 
-                $.get(`/approvals/${id}/edit`, function(data) {
+                $.get(`{{ $apvBase }}/${id}/edit`, function(data) {
                     $('#editApprovalModalTitle').text('Edit Approval');
 
                     $('#edit_aprv_doctype').val(data.aprv_doctype).trigger('change.select2');
@@ -1274,7 +1279,7 @@
 
             // Load approval lines from an existing Doctype+Company+Department into the Add/Duplicate form
             function fetchAndApplyGroupLines(doctype, cpnyid, deptid, onDone) {
-                $.get("{{ route('approvals.group') }}", {
+                $.get("{{ $apvSby ? route('approvals-sby.group') : route('approvals.group') }}", {
                     doctype: doctype,
                     cpnyid: cpnyid,
                     departementid: deptid
@@ -1427,7 +1432,7 @@
                 let newStatus = $(this).is(':checked') ? 'A' : 'X';
 
                 $.ajax({
-                    url: `/approvals/${id}/toggle-status`,
+                    url: `{{ $apvBase }}/${id}/toggle-status`,
                     type: 'PUT',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -1513,7 +1518,7 @@
                 $overlay.removeClass('hidden').addClass('flex');
 
                 $.ajax({
-                    url: "{{ route('approvals.store') }}",
+                    url: "{{ $apvSby ? route('approvals-sby.store') : route('approvals.store') }}",
                     type: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -1637,7 +1642,7 @@
                 $overlay.removeClass('hidden').addClass('flex');
 
                 $.ajax({
-                    url: `/approvals/${id}`,
+                    url: `{{ $apvBase }}/${id}`,
                     type: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -1751,7 +1756,7 @@
             // ===== DataTable =====
             let gbTable = $('#gbApprovalTable').DataTable({
                 ajax: {
-                    url: "{{ route('approvalsgroupbiaya.json') }}",
+                    url: "{{ $apvSby ? route('approvalsgroupbiaya-sby.json') : route('approvalsgroupbiaya.json') }}",
                     type: "GET",
                     cache: false,
                     data: function(d) {
@@ -1989,7 +1994,7 @@
             });
 
             function gbLoadDepartmentsByDoctype(doctype, selectedValue = null) {
-                const url = "{{ route('approvalsgroupbiaya.departments') }}" + "?doctype=" + encodeURIComponent(
+                const url = "{{ $apvSby ? route('approvalsgroupbiaya-sby.departments') : route('approvalsgroupbiaya.departments') }}" + "?doctype=" + encodeURIComponent(
                     doctype || '');
                 const $dep = $('#gb_aprv_departementid');
 
@@ -2018,7 +2023,7 @@
             });
 
             function gbLoadFilterDepartmentsByDoctype(doctype) {
-                const url = "{{ route('approvalsgroupbiaya.departments') }}" + "?doctype=" + encodeURIComponent(
+                const url = "{{ $apvSby ? route('approvalsgroupbiaya-sby.departments') : route('approvalsgroupbiaya.departments') }}" + "?doctype=" + encodeURIComponent(
                     doctype || '');
                 const $fDept = $('#gbFilterDept');
 
@@ -2094,7 +2099,7 @@
 
                 $('#gbApprovalModal').removeClass('hidden');
 
-                $.get(`/approvals-groupbiaya/${id}/edit`, function(data) {
+                $.get(`{{ $gbBase }}/${id}/edit`, function(data) {
                     $('#gbApprovalModalTitle').text("Edit Approval");
 
                     $('#gb_aprv_doctype').val(data.aprv_doctype).trigger('change');
@@ -2117,7 +2122,7 @@
                 let newStatus = $(this).is(':checked') ? 'A' : 'X';
 
                 $.ajax({
-                    url: `/approvals-groupbiaya/${id}/toggle-status`,
+                    url: `{{ $gbBase }}/${id}/toggle-status`,
                     type: 'PUT',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -2178,7 +2183,7 @@
                 }
 
                 let id = $('#gb_id').val();
-                let url = id ? `/approvals-groupbiaya/${id}` : "{{ route('approvalsgroupbiaya.store') }}";
+                let url = id ? `{{ $gbBase }}/${id}` : "{{ $apvSby ? route('approvalsgroupbiaya-sby.store') : route('approvalsgroupbiaya.store') }}";
                 let method = 'POST';
                 let formEl = document.getElementById('gbApprovalForm');
                 let formData = new FormData(formEl);

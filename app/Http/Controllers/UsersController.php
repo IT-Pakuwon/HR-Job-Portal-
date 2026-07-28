@@ -12,6 +12,7 @@ use App\Models\Usercpny;
 use App\Models\Userdept;
 use App\Models\Userbusinessunit;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use App\Models\SysRole;
 use App\Models\SysUserRole;
 use App\Models\BusinessUnit;
@@ -237,7 +238,8 @@ class UsersController extends Controller
             $deptIdsString    = implode(',', $request->department_id);
             $businessUnitIdsString = implode(',', $request->business_unit_id ?? []);
             $divisionIdsString = implode(',', $request->division_id ?? []);
-            $roleString = implode(',', $request->role);
+            $roles = $isSby ? array_values(array_intersect($request->role, ['user', 'adminsby'])) : $request->role;
+            $roleString = implode(',', $roles);
 
             $email    = $request->email;
             $username = $request->filled('username')
@@ -418,7 +420,8 @@ class UsersController extends Controller
             $deptIdsString    = implode(',', $request->department_id);
             $divisionIdsString = implode(',', $request->division_id ?? []);
             $businessUnitIdsString = implode(',', $request->business_unit_id ?? []);
-            $roleString = implode(',', $request->role);
+            $roles = $isSby ? array_values(array_intersect($request->role, ['user', 'adminsby'])) : $request->role;
+            $roleString = implode(',', $roles);
 
             $updateData = [
                 'name' => strtoupper($request->name),
@@ -604,30 +607,6 @@ class UsersController extends Controller
         $user->save();
 
         return response()->json(['message' => 'Password updated successfully']);
-    }
-
-    /**
-     * 🔑 Login as user yang dipilih
-     */
-    public function impersonate($id)
-    {
-        $currentUser = Auth::user();
-
-        if (!$currentUser || !in_array('admin', array_map('trim', explode(',', $currentUser->user_role ?? '')), true)) {
-            abort(403, 'Unauthorized');
-        }
-
-        $targetUser = User::findOrFail($id);
-
-        session(['impersonate_original_id' => $currentUser->id]);
-
-        Auth::login($targetUser);
-
-        return response()->json([
-            'success'  => true,
-            'message'  => 'Now logged in as ' . $targetUser->username,
-            'redirect' => route('dashboard'),
-        ]);
     }
 
 

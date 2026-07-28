@@ -187,7 +187,15 @@
         </tr>
         <tr>
             <td colspan="2">
-                <strong>7. Lain-lain</strong><br>
+                <strong>7. Pph Pasal 21</strong><br>
+                Jika terdapat imbalance (kurang / lebih bayar) pada perhitungan Pph 21 (SPT Tahunan) yang terjadi
+                dikarenakan karyawan bekerja di lebih dari satu tempat atau pindah kerja dalam periode satu tahun
+                (Diluar Pakuwon Group Jakarta) menjadi tanggung jawab karyawan masing-masing.
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <strong>8. Lain-lain</strong><br>
                 Hal-hal lain yang belum diatur di dalam Surat Penawaran Kerja ini akan diatur kemudian sesuai dengan
                 Peraturan Perusahaan.
             </td>
@@ -204,12 +212,14 @@
                     <strong>Hormat Kami,</strong><br><br><br><br>
                     <strong>_______________</strong><br>
                     Christie Natali Dewi<br>
+                    <strong>HC Dev Sr. Manager</strong><br>
                     Tgl: ........................
                 </td>
                 <td style="text-align:right">
                     <strong>Menyetujui,</strong><br><br><br><br>
                     <strong>_______________</strong><br>
                     {{ $full_name }}<br>
+                    <strong>Karyawan</strong><br>
                     Tgl: ........................
                 </td>
             </tr>

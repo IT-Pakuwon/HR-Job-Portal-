@@ -2331,7 +2331,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/settings/password', [UsersController::class, 'updatePassword'])->name('password.update.custom');
 
         Route::post('/users/{id}/reset-password', [UsersController::class, 'resetPassword'])->name('users.reset-password');
-        Route::post('/users/{id}/impersonate', [UsersController::class, 'impersonate'])->name('users.impersonate');
         Route::delete('/users/{id}', [UsersController::class, 'destroy'])->name('users.destroy');
 
         // === APPLICATION MASTER ===
@@ -2566,6 +2565,25 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/manage-approvals-sby/{id}/update-line', [ManageApprovalController::class, 'updateLine'])->name('manage-approvals-sby.update-line');
         Route::post('/manage-approvals-sby/transfer/preview', [ManageApprovalController::class, 'transferPreview'])->name('manage-approvals-sby.transfer.preview');
         Route::post('/manage-approvals-sby/transfer/confirm', [ManageApprovalController::class, 'transferConfirm'])->name('manage-approvals-sby.transfer.confirm');
+
+        Route::get('/approvals-sby', [MsApprovalController::class, 'index'])->name('approvals-sby');
+        Route::get('/approvals-sby/json', [MsApprovalController::class, 'json'])->name('approvals-sby.json');
+        Route::post('/approvals-sby', [MsApprovalController::class, 'store'])->name('approvals-sby.store');
+        Route::get('/approvals-sby/{id}/edit', [MsApprovalController::class, 'edit'])->name('approvals-sby.edit');
+        Route::put('/approvals-sby/{id}', [MsApprovalController::class, 'update'])->name('approvals-sby.update');
+        Route::put('/approvals-sby/{id}/toggle-status', [MsApprovalController::class, 'toggleStatus'])->name('approvals-sby.toggle-status');
+        Route::get('/approvals-sby/departments', [MsApprovalController::class, 'departmentHR'])->name('approvals-sby.departments');
+        Route::get('/approvals-sby/conditions', [MsApprovalController::class, 'conditions'])->name('approvals-sby.conditions');
+        Route::get('/approvals-sby/group', [MsApprovalController::class, 'groupLines'])->name('approvals-sby.group');
+        Route::get('/approvals-sby/departments-by-source', [MsApprovalController::class, 'departmentsBySource'])->name('approvals-sby.departments_by_source');
+
+        Route::get('/approvals-groupbiaya-sby', [MsApprovalGroupBiayaController::class, 'index'])->name('approvalsgroupbiaya-sby');
+        Route::get('/approvals-groupbiaya-sby/json', [MsApprovalGroupBiayaController::class, 'json'])->name('approvalsgroupbiaya-sby.json');
+        Route::post('/approvals-groupbiaya-sby', [MsApprovalGroupBiayaController::class, 'store'])->name('approvalsgroupbiaya-sby.store');
+        Route::get('/approvals-groupbiaya-sby/{id}/edit', [MsApprovalGroupBiayaController::class, 'edit'])->name('approvalsgroupbiaya-sby.edit');
+        Route::put('/approvals-groupbiaya-sby/{id}', [MsApprovalGroupBiayaController::class, 'update'])->name('approvalsgroupbiaya-sby.update');
+        Route::put('/approvals-groupbiaya-sby/{id}/toggle-status', [MsApprovalGroupBiayaController::class, 'toggleStatus'])->name('approvalsgroupbiaya-sby.toggle');
+        Route::get('/approvals-groupbiaya-sby/departments/list', [MsApprovalGroupBiayaController::class, 'departments'])->name('approvalsgroupbiaya-sby.departments');
     });
 
     // ── Group Biaya Non Purch (admin + cost control) ──────────────────────────
