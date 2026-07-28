@@ -78,7 +78,9 @@
     function performRefresh() {
         resetCountdown();
         loadSummary();
-        loadTab(activeTab);
+        // Preserve the user's current page — this refresh fires on a timer,
+        // not from a user action, so it shouldn't yank them back to page 1.
+        loadTab(activeTab, false);
     }
 
     function startCountdown() {
@@ -132,7 +134,7 @@
             if (pendingRows) {
                 const rows = pendingRows;
                 pendingRows = null;
-                renderCardList(rows);
+                renderCardList(rows, false);
                 filterDoctypeOptions(rows);
             }
 
@@ -376,13 +378,15 @@
         $("#approvalNextPage").prop("disabled", currentPage >= totalPages - 1);
     }
 
-    function renderCardList(rows) {
+    function renderCardList(rows, resetPage = true) {
         allRows = rows;
-        currentPage = 0;
+        if (resetPage) {
+            currentPage = 0;
+        }
         draw();
     }
 
-    function loadTab(tab) {
+    function loadTab(tab, resetPage = true) {
 
         if (dataRequest) {
             dataRequest.abort();
@@ -428,7 +432,7 @@
                     return;
                 }
 
-                renderCardList(rows);
+                renderCardList(rows, resetPage);
 
                 filterDoctypeOptions(rows);
 

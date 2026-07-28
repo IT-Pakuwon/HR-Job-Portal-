@@ -412,6 +412,8 @@ class VoucherTaxiController extends Controller
 
             'origin' => ['required'],
             'destination' => ['required'],
+
+            'cpny_id_expense' => ['required'],
         ]);
 
         if (!$user->hasRole('GAACCESS')) {
@@ -483,7 +485,7 @@ class VoucherTaxiController extends Controller
                 'department_id' => $validated['department_id'],
                 'user_peminta' => $validated['user_peminta'],
 
-                'cpny_id_expense' => $validated['cpny_id'],
+                'cpny_id_expense' => $validated['cpny_id_expense'],
                 'department_id_expense' => $validated['department_id'],
                 'user_peminta_expense' => $validated['user_peminta'],
 
@@ -586,6 +588,8 @@ class VoucherTaxiController extends Controller
 
             'origin' => ['required'],
             'destination' => ['required'],
+
+            'cpny_id_expense' => ['required'],
         ]);
 
         DB::connection('pgsql5')->beginTransaction();
@@ -622,7 +626,7 @@ class VoucherTaxiController extends Controller
             $voucher->department_id = $validated['department_id'];
             $voucher->user_peminta = $validated['user_peminta'];
 
-            $voucher->cpny_id_expense = $validated['cpny_id'];
+            $voucher->cpny_id_expense = $validated['cpny_id_expense'];
             $voucher->department_id_expense = $validated['department_id'];
             $voucher->user_peminta_expense = $validated['user_peminta'];
 

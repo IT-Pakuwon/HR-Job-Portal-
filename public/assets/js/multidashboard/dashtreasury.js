@@ -50,7 +50,7 @@
                 el.innerText = fmt(0);
                 if (!document.hidden) {
                     loadSummary();
-                    loadTab(activeTab);
+                    loadTab(activeTab, false);
                 } else {
                     startCountdown(seconds);
                 }
@@ -80,7 +80,7 @@
             if (refreshPending) {
                 refreshPending = false;
                 loadSummary();
-                loadTab(activeTab);
+                loadTab(activeTab, false);
             }
         });
     }
@@ -392,9 +392,11 @@
         $("#nextPage").prop("disabled", currentPage >= totalPages - 1);
     }
 
-    function renderCardList(rows, tab) {
+    function renderCardList(rows, tab, resetPage = true) {
         allRows = rows;
-        currentPage = 0;
+        if (resetPage) {
+            currentPage = 0;
+        }
         draw(tab);
     }
 
@@ -416,7 +418,7 @@
             .catch(console.error);
     }
 
-    function loadTab(tab) {
+    function loadTab(tab, resetPage = true) {
         if (dataRequest) dataRequest.abort();
         dataRequest = new AbortController();
 
@@ -546,7 +548,7 @@
 
         $("#refreshDashboard").on("click", () => {
             loadSummary();
-            loadTab(activeTab);
+            loadTab(activeTab, false);
         });
 
         $("#openAllDocument").on("click", function () {
