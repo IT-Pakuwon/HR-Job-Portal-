@@ -44,6 +44,8 @@
                                 <th class="px-4 py-3 text-left font-medium">Company Name</th>
                                 <th class="px-4 py-3 text-left font-medium">City</th>
                                 <th class="px-4 py-3 text-left font-medium">Province</th>
+                                <th class="px-4 py-3 text-left font-medium">Area</th>
+                                <th class="px-4 py-3 text-left font-medium">Company Group</th>
                                 <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
                             </tr>
                         </thead>
@@ -137,6 +139,29 @@
                             <label class="block text-gray-700 dark:text-white">Phone</label>
                             <input type="text" id="phone" name="phone"
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Area</label>
+                            <select id="area_id" name="area_id" class="company-select2 w-full">
+                                <option value="">-- Select Area --</option>
+                                <option value="Yogyakarta">Yogyakarta</option>
+                                <option value="Solo">Solo</option>
+                                <option value="Surabaya">Surabaya</option>
+                                <option value="Batam">Batam</option>
+                                <option value="Semarang">Semarang</option>
+                                <option value="Bali">Bali</option>
+                                <option value="Jakarta">Jakarta</option>
+                                <option value="Bekasi">Bekasi</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Company Group</label>
+                            <select id="group_cpny_id" name="group_cpny_id" class="company-select2 w-full">
+                                <option value="">-- Select Company Group --</option>
+                                <option value="Jakarta">Jakarta</option>
+                                <option value="Surabaya">Surabaya</option>
+                            </select>
                         </div>
 
                         <div class="mb-3">
@@ -403,6 +428,14 @@
                             className: 'no-pointer'
                         },
                         {
+                            data: 'area_id',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'group_cpny_id',
+                            className: 'no-pointer'
+                        },
+                        {
                             data: 'status',
                             className: 'no-pointer',
                             render: function(data) {
@@ -415,11 +448,21 @@
                 });
             };
 
+            // Init select2 for area / company group (single-select, inside modal)
+            $('.company-select2').each(function() {
+                $(this).select2({
+                    width: '100%',
+                    allowClear: true,
+                    dropdownParent: $('#companyModal')
+                });
+            });
+
             // Add
             $('#addCompanyBtn').click(function() {
                 $('#modalTitle').text("Add Company");
                 $('#companyForm')[0].reset();
                 $('#id').val('');
+                $('.company-select2').val('').trigger('change');
                 $('#companyModal').removeClass('hidden');
             });
 
@@ -439,6 +482,8 @@
                     $('#city').val(c.city);
                     $('#province').val(c.province);
                     $('#postalcode').val(c.postalcode);
+                    $('#area_id').val(c.area_id).trigger('change');
+                    $('#group_cpny_id').val(c.group_cpny_id).trigger('change');
                     $('#phone').val(c.phone);
                     $('#fax').val(c.fax);
                     $('#tax_registration').val(c.tax_registration);
@@ -538,6 +583,7 @@
             $('#closeModal').click(function() {
                 $('#companyForm')[0].reset();
                 $('#id').val('');
+                $('.company-select2').val('').trigger('change');
                 $('#companyModal').addClass('hidden');
             });
 

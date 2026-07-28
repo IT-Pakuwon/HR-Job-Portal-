@@ -19,16 +19,21 @@ use App\Models\MsDivision;
 use App\Models\Userdivision;
 use App\Models\UserDas;
 use App\Models\SysScreen;
+use Illuminate\Validation\Rule;
 
 class UsersController extends Controller
 {
+    private function isSbyContext(): bool
+    {
+        return request()->routeIs('users-sby*');
+    }
 
     public function index()
     {
         $user = Auth::user();
         if (!$user) return redirect()->route('login');
 
-        $company = MsCompany::select(['cpny_id', 'cpny_name'])->where('status', 'A')->get();
+        $company = MsCompany::select(['cpny_id', 'cpny_name', 'group_cpny_id'])->where('status', 'A')->get();
         $department = MsDepartment::select(['department_id', 'department_name'])->where('status', 'A')->get();
         // $businessUnits = BusinessUnit::select('business_unit_id')->where('status', 'A')->get();
         $businessUnits = BusinessUnit::select(['business_unit_id', 'business_unit_name'])
@@ -86,6 +91,7 @@ class UsersController extends Controller
             'status'
         ])
             ->where('status', 'A')
+            ->when($this->isSbyContext(), fn ($q) => $q->where('group_cpny_id', 'Surabaya'))
             ->orderByDesc('id')
             ->get();
 
@@ -110,6 +116,7 @@ class UsersController extends Controller
             'status'
         ])
             ->where('status', '!=', 'A')
+            ->when($this->isSbyContext(), fn ($q) => $q->where('group_cpny_id', 'Surabaya'))
             ->orderByDesc('id')
             ->get();
 
@@ -172,6 +179,7 @@ class UsersController extends Controller
                     $q->orWhereIn('npk', $npkKeys);
                 }
             })
+            ->when($this->isSbyContext(), fn ($q) => $q->where('group_cpny_id', 'Surabaya'))
             ->orderByRaw('LOWER(TRIM(email)) ASC NULLS LAST, LOWER(TRIM(username)) ASC NULLS LAST')
             ->get();
 
@@ -202,9 +210,12 @@ class UsersController extends Controller
 
     public function store(Request $request)
     {
+        $isSby = $this->isSbyContext();
+
         $request->validate([
             'name' => 'required',
             'email' => 'required',
+            'group_cpny_id' => [Rule::requiredIf(!$isSby), 'nullable', 'string'],
             'cpny_id' => 'required|array',
             'department_id' => 'required|array',
             'division_id' => 'nullable|array',
@@ -213,11 +224,15 @@ class UsersController extends Controller
             'jabatan' => 'required',
             'role' => 'required|array',
             'role_ids' => 'nullable|array',
+            'origin_cpny_id' => 'nullable|string',
+            'origin_department_id' => 'nullable|string',
         ]);
         DB::beginTransaction();
         try {
 
             $loginUser = Auth::user();
+
+            $groupCpnyId = $isSby ? 'Surabaya' : $request->group_cpny_id;
 
             $companyIdsString = implode(',', $request->cpny_id);
             $deptIdsString    = implode(',', $request->department_id);
@@ -237,6 +252,7 @@ class UsersController extends Controller
                 'email'              => $email,
                 'username'           => $username,
                 'cpny_id'            => $companyIdsString,
+                'group_cpny_id'      => $groupCpnyId,
                 'department_id'      => $deptIdsString,
                 'division_id'        => $divisionIdsString,
                 'business_unit_id'   => $businessUnitIdsString,
@@ -246,6 +262,8 @@ class UsersController extends Controller
                 'user_role'          => $roleString, // user/admin (level UI)
                 'notification_email' => $email,
                 'npk'                => $request->npk,
+                'origin_cpny_id'     => $request->origin_cpny_id,
+                'origin_department_id' => $request->origin_department_id,
                 'created_by'         => $loginUser->username,
                 'status'             => 'A',
             ]);
@@ -328,6 +346,10 @@ class UsersController extends Controller
     {
         $user = User::findOrFail($id);
 
+        if ($this->isSbyContext() && $user->group_cpny_id !== 'Surabaya') {
+            abort(403);
+        }
+
         // ambil semua role user ini dari sys_user_role
         $userRoles = SysUserRole::where('username', $user->username)
             ->where('status', 'A')
@@ -344,6 +366,9 @@ class UsersController extends Controller
             'role' => array_values(array_filter(explode(',', $user->user_role ?? ''), fn($v) => $v !== '')),
             'homepage' => $user->homepage,
             'cpny_id' => array_values(array_filter(explode(',', $user->cpny_id ?? ''), fn($v) => $v !== '')),
+            'group_cpny_id' => $user->group_cpny_id,
+            'origin_cpny_id' => $user->origin_cpny_id,
+            'origin_department_id' => $user->origin_department_id,
             'department_id' => array_values(array_filter(explode(',', $user->department_id ?? ''), fn($v) => $v !== '')),
             'division_id' => array_values(array_filter(explode(',', (string) ($user->division_id ?? '')), fn($v) => $v !== '')),
             'business_unit_id' => array_values(array_filter(explode(',', $user->business_unit_id ?? ''), fn($v) => $v !== '')),
@@ -354,9 +379,12 @@ class UsersController extends Controller
 
     public function update(Request $request, $id)
     {
+        $isSby = $this->isSbyContext();
+
         $request->validate([
             'name'          => 'required',
             'email'         => 'required',
+            'group_cpny_id' => [Rule::requiredIf(!$isSby), 'nullable', 'string'],
             'cpny_id'       => 'required|array',
             'department_id' => 'required|array',
             'division_id'   => 'nullable|array',
@@ -365,6 +393,8 @@ class UsersController extends Controller
             'jabatan'       => 'required',
             'role'          => 'required|array',
             'role_ids'      => 'nullable|array',
+            'origin_cpny_id' => 'nullable|string',
+            'origin_department_id' => 'nullable|string',
         ]);
 
         DB::beginTransaction();
@@ -373,6 +403,12 @@ class UsersController extends Controller
             $loginUser = Auth::user();
 
             $user = User::findOrFail($id);
+
+            if ($isSby && $user->group_cpny_id !== 'Surabaya') {
+                abort(403);
+            }
+
+            $groupCpnyId = $isSby ? 'Surabaya' : $request->group_cpny_id;
 
             $oldUsername = $user->username;
             $newUsername = $request->filled('username')
@@ -389,6 +425,7 @@ class UsersController extends Controller
                 'name' => strtoupper($request->name),
                 'email' => $request->email,
                 'cpny_id' => $companyIdsString,
+                'group_cpny_id' => $groupCpnyId,
                 'department_id' => $deptIdsString,
                 'division_id' => $divisionIdsString,
                 'business_unit_id' => $businessUnitIdsString,
@@ -396,6 +433,8 @@ class UsersController extends Controller
                 'user_role' => $roleString,
                 'npk' => $request->npk,
                 'jabatan' => $request->jabatan,
+                'origin_cpny_id' => $request->origin_cpny_id,
+                'origin_department_id' => $request->origin_department_id,
                 'updated_by' => $loginUser->username,
             ];
 
