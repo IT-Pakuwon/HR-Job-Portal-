@@ -40,6 +40,7 @@ use App\Http\Controllers\DocumentNotificationController;
 use App\Http\Controllers\EngTicketController;
 use App\Http\Controllers\EventCalendarController;
 use App\Http\Controllers\FindingController;
+use App\Http\Controllers\WeeklyMeetingController;
 use App\Http\Controllers\FinanceDashboardController;
 use App\Http\Controllers\GADashboardController;
 use App\Http\Controllers\GlobalSearchController;
@@ -1217,7 +1218,18 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('access:FINDING,VIEW')->group(function () {
         Route::get('/finding', [FindingController::class, 'index'])->name('finding');
         Route::get('/finding/json', [FindingController::class, 'json'])->name('finding.json');
+        Route::get('/finding/{findingId}', [FindingController::class, 'show'])->name('finding.show');
+        Route::post('/finding/{findingId}/comments', [FindingController::class, 'storeComment'])->name('finding.comments.store');
     });
+
+    // Route::middleware('access:WEEKLYMEETING,VIEW')->group(function () {
+        Route::get('/weekly-meeting', [WeeklyMeetingController::class, 'index'])->name('weekly-meeting');
+        Route::get('/weekly-meeting/json', [WeeklyMeetingController::class, 'json'])->name('weekly-meeting.json');
+        Route::get('/weekly-meeting/create', [WeeklyMeetingController::class, 'createWeeklyMeeting'])->name('weekly-meeting.create');
+        Route::post('/weekly-meeting', [WeeklyMeetingController::class, 'storeWeeklyMeeting'])->name('weekly-meeting.store');
+        Route::get('/weekly-meeting/{weeklyMeetingId}/findings', [WeeklyMeetingController::class, 'findings'])->name('weekly-meeting.findings');
+        Route::get('/weekly-meeting/{weeklyMeetingId}', [WeeklyMeetingController::class, 'show'])->name('weekly-meeting.show');
+    // });
 
     Route::middleware('access:PERIZINAN,CREATE')->group(function () {
         Route::get('/perizinan', [PerizinanController::class, 'index'])->name('perizinan');       
