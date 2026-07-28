@@ -1479,7 +1479,7 @@ class CareerController extends Controller
         $templateProcessor->setValue('datebirth', $applicant->date_of_birth);
         $templateProcessor->setValue('religion', $applicant->religion);
         $templateProcessor->setValue('ktp_id', $applicant->ktp_id);
-        $templateProcessor->setValue('cpnyid', $company->cpnyname);
+        $templateProcessor->setValue('cpnyid', $company->cpny_name);
         $templateProcessor->setValue('departementid', $request->departementid);
         $templateProcessor->setValue('job_title', $request->job_title);
         $templateProcessor->setValue('job_level', $request->job_level);
@@ -1519,7 +1519,7 @@ class CareerController extends Controller
         $templateProcessor->setValue('datebirth', $datebirth);
         $templateProcessor->setValue('religion', $applicant->religion);
         $templateProcessor->setValue('ktp_id', $applicant->ktp_id);
-        $templateProcessor->setValue('cpnyid', $company->cpnyname);
+        $templateProcessor->setValue('cpnyid', $company->cpny_name);
         $templateProcessor->setValue('departementid', $request->departementid);
         $templateProcessor->setValue('job_title', $request->job_title);
         $templateProcessor->setValue('job_level', $request->job_level);
@@ -1544,9 +1544,9 @@ class CareerController extends Controller
     {
         // dd($request->all());
         $applicant = Applicant::where('applicant_id', $request->applicant_id)->first();
-        $company = MsCompany::select(['cpny_id', 'cpnyname'])->where('cpny_id', $request->cpnyid)->first();
+        $company = MsCompany::select(['cpny_id', 'cpny_name'])->where('cpny_id', $request->cpnyid)->first();
         $payrollconfirm = Payrollconfirm::where('applicant_id', $request->applicant_id)->first();
-        $dept = MsDepartment::where('deptname', $request->departementid)->first();
+        $dept = MsDepartment::where('department_id', $request->departementid)->first();
         $t_approval = SignPayroll::where('docid', $request->jobapply_id)
             ->orderby('aprvid','ASC')
             ->get();
@@ -1560,8 +1560,8 @@ class CareerController extends Controller
         }
 
         $data = [
-            'cpnyid' => $company->cpnyname,
-            'departementid' => ucwords(strtolower($dept->dept_fullname)) ?? ucwords(strtolower($request->departementid)),
+            'cpnyid' => $company->cpny_name,
+            'departementid' => $dept ? ucwords(strtolower($dept->department_name)) : ucwords(strtolower($request->departementid)),
             'full_name' => $applicant->full_name,
             'gender' => $applicant->gender,
             'birth_place' => $applicant->birth_place,
@@ -1610,7 +1610,7 @@ class CareerController extends Controller
         $companyaddress = CompanyAddress::where('cpnyid', $request->cpnyid)->first();
 
         $data = [
-            'cpnyid' => $company->cpnyname,
+            'cpnyid' => $company->cpny_name,
             'departementid' => $request->departementid,
             'full_name' => $applicant->full_name,
             'gender' => $applicant->gender,
@@ -1676,7 +1676,7 @@ class CareerController extends Controller
         $datebirth = Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y');
 
         $data = [
-            'cpnyid' => $company->cpnyname,
+            'cpnyid' => $company->cpny_name,
             'departementid' => $request->departementid,
             'full_name' => $applicant->full_name,
             'job_title' => $request->job_title,
@@ -1697,7 +1697,7 @@ class CareerController extends Controller
         $datebirth = Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y');
 
         $data = [
-            'cpnyid' => $company->cpnyname,
+            'cpnyid' => $company->cpny_name,
             'full_name' => $applicant->full_name,
             'ktp_id' => $applicant->ktp_id,
             'id_address' => $applicant->id_address,
@@ -2141,7 +2141,7 @@ class CareerController extends Controller
         $applicant_reference = ApplicantReference::where('applicant_id', $applicant->applicant_id)->get();
 
         $data = [
-            'cpnyid' => $company->cpnyname,
+            'cpnyid' => $company->cpny_name,
             'departementid' => $request->departementid,
             'full_name' => $applicant->full_name,
             'job_title' => $request->job_title,
