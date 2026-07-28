@@ -23,6 +23,11 @@ use App\Models\SysScreen;
 
 class UsersController extends Controller
 {
+    /**
+     * adminsby may only assign these RBAC roles to a user.
+     */
+    private const SBY_ALLOWED_ROLE_IDS = ['RECACCALLDEPT', 'RECACCESS', 'RECDIRACCESS'];
+
     private function isSbyContext(): bool
     {
         return request()->routeIs('users-sby*');
@@ -47,6 +52,7 @@ class UsersController extends Controller
             ->get();
 
         $roles = SysRole::where('status', 'A')
+            ->when($this->isSbyContext(), fn ($q) => $q->whereIn('role_id', self::SBY_ALLOWED_ROLE_IDS))
             ->orderBy('role_id')
             ->get();
 
@@ -323,15 +329,17 @@ class UsersController extends Controller
 
 
             // ✅ SYS_USER_ROLE – simpan roles RBAC
-            if ($request->filled('role_ids')) {
-                foreach ($request->role_ids as $roleId) {
-                    SysUserRole::create([
-                        'username'   => $username,
-                        'role_id'    => $roleId,
-                        'status'     => 'A',
-                        'created_by' => $loginUser->username,
-                    ]);
-                }
+            $roleIds = $isSby
+                ? array_values(array_intersect($request->role_ids ?? [], self::SBY_ALLOWED_ROLE_IDS))
+                : ($request->role_ids ?? []);
+
+            foreach ($roleIds as $roleId) {
+                SysUserRole::create([
+                    'username'   => $username,
+                    'role_id'    => $roleId,
+                    'status'     => 'A',
+                    'created_by' => $loginUser->username,
+                ]);
             }
 
             DB::commit();
@@ -505,15 +513,17 @@ class UsersController extends Controller
             // ✅ RESET + INSERT ULANG SYS_USER_ROLE
             SysUserRole::where('username', $newUsername)->delete();
 
-            if ($request->filled('role_ids')) {
-                foreach ($request->role_ids as $roleId) {
-                    SysUserRole::create([
-                        'username'   => $newUsername,
-                        'role_id'    => $roleId,
-                        'status'     => 'A',
-                        'created_by' => $loginUser->username,
-                    ]);
-                }
+            $roleIds = $isSby
+                ? array_values(array_intersect($request->role_ids ?? [], self::SBY_ALLOWED_ROLE_IDS))
+                : ($request->role_ids ?? []);
+
+            foreach ($roleIds as $roleId) {
+                SysUserRole::create([
+                    'username'   => $newUsername,
+                    'role_id'    => $roleId,
+                    'status'     => 'A',
+                    'created_by' => $loginUser->username,
+                ]);
             }
 
             DB::commit();
@@ -609,6 +619,68 @@ class UsersController extends Controller
         return response()->json(['message' => 'Password updated successfully']);
     }
 
+    /**
+     * 🔑 Login as user yang dipilih
+     */
+    public function impersonate($id)
+    {
+        $currentUser = Auth::user();
+
+        if (!$currentUser || !in_array('admin', array_map('trim', explode(',', $currentUser->user_role ?? '')), true)) {
+            abort(403, 'Unauthorized');
+        }
+
+        if (session()->has('impersonate_original_id')) {
+            abort(403, 'Already impersonating a user. Return to your account first.');
+        }
+
+        $targetUser = User::findOrFail($id);
+
+        session(['impersonate_original_id' => $currentUser->id]);
+
+        Auth::login($targetUser);
+
+        Log::info('User impersonation started', [
+            'admin_id'  => $currentUser->id,
+            'admin'     => $currentUser->username,
+            'target_id' => $targetUser->id,
+            'target'    => $targetUser->username,
+        ]);
+
+        return response()->json([
+            'success'  => true,
+            'message'  => 'Now logged in as ' . $targetUser->username,
+            'redirect' => route('dashboard'),
+        ]);
+    }
+
+    /**
+     * 🔙 Kembali ke akun admin setelah Login As
+     */
+    public function stopImpersonate()
+    {
+        $originalId = session('impersonate_original_id');
+
+        if (!$originalId) {
+            abort(403, 'Not currently impersonating a user.');
+        }
+
+        $impersonatedUser = Auth::user();
+        $originalUser = User::findOrFail($originalId);
+
+        session()->forget('impersonate_original_id');
+
+        Auth::login($originalUser);
+
+        Log::info('User impersonation ended', [
+            'admin_id'  => $originalUser->id,
+            'admin'     => $originalUser->username,
+            'target_id' => $impersonatedUser?->id,
+            'target'    => $impersonatedUser?->username,
+        ]);
+
+        return redirect()->route('dashboard')->with('success', 'Returned to your account.');
+    }
 
     /**
      * 🔁 Reset password user ke default: pakuwon1234#

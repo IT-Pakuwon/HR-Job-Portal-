@@ -35,7 +35,14 @@ class SysMenuController extends Controller
             ->orderBy('application_id')
             ->get(['application_id', 'application_name']);
 
-        return view('pages.menus.menus', compact('parentMenus', 'screens', 'applications'));
+        // Daftar role aktif, untuk pilih siapa yang langsung dapat akses saat menu dibuat
+        $roles = DB::connection('pgsql2')
+            ->table('sys_role')
+            ->where('status', 'A')
+            ->orderBy('role_id')
+            ->get(['role_id', 'role_name']);
+
+        return view('pages.menus.menus', compact('parentMenus', 'screens', 'applications', 'roles'));
     }
 
     public function json()
@@ -73,6 +80,8 @@ class SysMenuController extends Controller
             'menu_sort_order'=> 'nullable|integer',
             'screen_id'      => 'nullable|string|max:100',
             'application_id' => 'nullable|string|max:100',
+            'role_ids'       => 'nullable|array',
+            'role_ids.*'     => 'string|max:50',
         ]);
 
         DB::beginTransaction();
@@ -97,18 +106,20 @@ class SysMenuController extends Controller
             ]);
 
             // 2) AUTO-GENERATE BARIS DI sys_role_menu UNTUK SEMUA ROLE AKTIF ✨ NEW
-            //    (status awal dibuat X = non-aktif, nanti di-maintain dari layar Role Menu)
+            //    (default non-aktif, kecuali role yang dipilih di form langsung diaktifkan)
             $roleIds = DB::connection('pgsql2')
                 ->table('sys_role')
                 ->where('status', 'A')
                 ->pluck('role_id');
+
+            $selectedRoleIds = collect($request->input('role_ids', []));
 
             foreach ($roleIds as $roleId) {
                 SysRoleMenu::create([
                     'role_id'        => $roleId,
                     'menu_id'        => $menu->menu_id,
                     'parent_menu_id' => $menu->parent_menu_id,
-                    'status'         => 'A',        // default non-aktif
+                    'status'         => $selectedRoleIds->contains($roleId) ? 'A' : 'X',
                     'created_by'     => $username,
                 ]);
             }

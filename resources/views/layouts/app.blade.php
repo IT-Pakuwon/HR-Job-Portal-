@@ -108,6 +108,18 @@
     }">
 
 
+    @if(session('impersonate_original_id'))
+        <div class="sticky top-0 z-60 flex flex-wrap items-center justify-center gap-3 bg-black px-4 py-2 text-center text-sm font-semibold text-white">
+            <span>🔑 You are logged in as <strong>{{ auth()->user()->name ?? auth()->user()->username }}</strong>.</span>
+            <form action="{{ route('users.stop-impersonate') }}" method="POST" class="inline">
+                @csrf
+                <button type="submit" class="rounded bg-white/20 px-3 py-1 transition hover:bg-white/30">
+                    Return to my account
+                </button>
+            </form>
+        </div>
+    @endif
+
     <!-- HEADER -->
     <x-app.header_new />
 

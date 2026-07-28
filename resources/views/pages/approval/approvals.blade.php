@@ -16,10 +16,12 @@
                     class="approval-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
                     ➕ Add / Duplicate Approval
                 </button>
-                <button type="button" id="tabBtnGroupBiaya"
-                    class="approval-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
-                    💰 Approval Group Biaya
-                </button>
+                @unless($restrictAdmin)
+                    <button type="button" id="tabBtnGroupBiaya"
+                        class="approval-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
+                        💰 Approval Group Biaya
+                    </button>
+                @endunless
             </div>
 
             {{-- ===================== TAB: Approval List ===================== --}}
@@ -40,11 +42,16 @@
                         <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
                             Filter Doc Type
                         </label>
-                        <select id="filterDoctype"
+                        <select id="filterDoctype" @if($restrictAdmin) disabled @endif
                             class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
-                            <option value="">All Document Type</option>
+                            @unless($restrictAdmin)
+                                <option value="">All Document Type</option>
+                            @endunless
                             @foreach ($doctypes as $dt)
-                                <option value="{{ $dt->doctype }}">{{ $dt->doctype }} - {{ $dt->doctype_descr }}
+                                @continue($restrictAdmin && $dt->doctype !== 'PRF')
+                                <option value="{{ $dt->doctype }}"
+                                    @if($restrictAdmin) selected @endif>
+                                    {{ $dt->doctype }} - {{ $dt->doctype_descr }}
                                 </option>
                             @endforeach
                         </select>
@@ -80,11 +87,13 @@
                         <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
                             Dept Type
                         </label>
-                        <select id="filterDeptType"
+                        <select id="filterDeptType" @if($restrictAdmin) disabled @endif
                             class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
-                            <option value="">All (Finance + HR)</option>
-                            <option value="FIN">Finance Departments</option>
-                            <option value="HR">HR Departments</option>
+                            @unless($restrictAdmin)
+                                <option value="">All (Finance + HR)</option>
+                                <option value="FIN">Finance Departments</option>
+                            @endunless
+                            <option value="HR" @if($restrictAdmin) selected @endif>HR Departments</option>
                         </select>
                     </div>
 
@@ -161,11 +170,16 @@
                                         class="mb-1 block text-xs font-semibold uppercase tracking-wide text-indigo-700/70 dark:text-indigo-300/70">
                                         Source Doctype
                                     </label>
-                                    <select id="copySrcDoctype"
+                                    <select id="copySrcDoctype" @if($restrictAdmin) disabled @endif
                                         class="w-full rounded-lg border px-2 py-1 text-sm dark:bg-gray-700">
-                                        <option value="">choose </option>
+                                        @unless($restrictAdmin)
+                                            <option value="">choose </option>
+                                        @endunless
                                         @foreach ($doctypes as $dt)
-                                            <option value="{{ $dt->doctype }}">{{ $dt->doctype }} -
+                                            @continue($restrictAdmin && $dt->doctype !== 'PRF')
+                                            <option value="{{ $dt->doctype }}"
+                                                @if($restrictAdmin) selected @endif>
+                                                {{ $dt->doctype }} -
                                                 {{ $dt->doctype_descr }}</option>
                                         @endforeach
                                     </select>
@@ -250,9 +264,14 @@
                                             class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Doctype</label>
                                         <select id="aprv_doctype" name="aprv_doctype"
                                             class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                                            <option value="">choose </option>
+                                            @unless($restrictAdmin)
+                                                <option value="">choose </option>
+                                            @endunless
                                             @foreach ($doctypes as $dt)
-                                                <option value="{{ $dt->doctype }}">{{ $dt->doctype }} -
+                                                @continue($restrictAdmin && $dt->doctype !== 'PRF')
+                                                <option value="{{ $dt->doctype }}"
+                                                    @if($restrictAdmin) selected @endif>
+                                                    {{ $dt->doctype }} -
                                                     {{ $dt->doctype_descr }}
                                                 </option>
                                             @endforeach
@@ -335,6 +354,7 @@
             </div>
 
             {{-- ===================== TAB: Approval Group Biaya ===================== --}}
+            @unless($restrictAdmin)
             <div id="tabPanelGroupBiaya"
                 class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
                 <div
@@ -432,10 +452,12 @@
                     </table>
                 </div>
             </div>
+            @endunless
         </div>
     </div>
 
     {{-- Approval Group Biaya modal --}}
+    @unless($restrictAdmin)
     <div id="gbApprovalModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
         <div class="relative w-full max-w-6xl rounded-lg bg-white p-4 dark:bg-gray-700">
             <h2 id="gbApprovalModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">
@@ -529,6 +551,7 @@
             </form>
         </div>
     </div>
+    @endunless
 
     {{-- template options username (hidden, shared by Add/Duplicate tab and Edit modal) --}}
     <select id="usernameOptionsTemplate" class="hidden">
@@ -553,9 +576,13 @@
                         <label class="mb-1 block text-gray-700 dark:text-white">Doctype</label>
                         <select id="edit_aprv_doctype" name="aprv_doctype"
                             class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                            <option value="">choose </option>
+                            @unless($restrictAdmin)
+                                <option value="">choose </option>
+                            @endunless
                             @foreach ($doctypes as $dt)
-                                <option value="{{ $dt->doctype }}">{{ $dt->doctype }} - {{ $dt->doctype_descr }}
+                                @continue($restrictAdmin && $dt->doctype !== 'PRF')
+                                <option value="{{ $dt->doctype }}">
+                                    {{ $dt->doctype }} - {{ $dt->doctype_descr }}
                                 </option>
                             @endforeach
                         </select>
@@ -630,6 +657,10 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         const TYPE_OPTIONS = @json($type->pluck('category_name')->values());
+        // Restricted admin (non-adminsby): doctype/dept-type filters and forms are
+        // locked to PRF / HR — resets must land back on the locked value, not blank.
+        const LOCKED_DOCTYPE = @json($restrictAdmin ? 'PRF' : '');
+        const LOCKED_DEPTTYPE = @json($restrictAdmin ? 'HR' : '');
     </script>
 
     {{-- Select2 "Name" multi-select: theme the stock chip layout (Select2 already
@@ -957,9 +988,9 @@
             loadFilterDepartmentsBySource('');
 
             $('#clearUserFilters').on('click', function() {
-                $('#filterDoctype').val('').trigger('change');
+                $('#filterDoctype').val(LOCKED_DOCTYPE).trigger('change');
                 $('#filterCompany').val('').trigger('change');
-                $('#filterDeptType').val('').trigger('change');
+                $('#filterDeptType').val(LOCKED_DEPTTYPE).trigger('change');
                 $('#filterDept').val('').trigger('change');
 
                 table.search('').columns().search('').draw();
@@ -1210,10 +1241,10 @@
                 $('#closeApprovalModal').prop('disabled', false);
 
                 $('#aprv_cpnyid_select').val('').trigger('change');
-                $('#aprv_doctype').val('').trigger('change');
+                $('#aprv_doctype').val(LOCKED_DOCTYPE).trigger('change');
 
                 $('#copyTemplateSection').removeClass('hidden');
-                $('#copySrcDoctype').val('').trigger('change');
+                $('#copySrcDoctype').val(LOCKED_DOCTYPE).trigger('change');
                 $('#copySrcCompany').val('').trigger('change');
                 $('#copySrcDepartment').empty().append('<option value="">choose </option>').val('').trigger(
                     'change');
@@ -1362,7 +1393,11 @@
                     return;
                 }
 
-                const targetEmpty = !$('#aprv_doctype').val() && !$('#aprv_cpnyid_select').val();
+                // With a locked doctype, aprv_doctype is never blank — only the company
+                // needs to be empty for the target to count as "not chosen yet".
+                const targetEmpty = LOCKED_DOCTYPE ?
+                    !$('#aprv_cpnyid_select').val() :
+                    (!$('#aprv_doctype').val() && !$('#aprv_cpnyid_select').val());
 
                 const applyLines = function() {
                     fetchAndApplyGroupLines(srcDoctype, srcCpny, srcDept, function(count) {
@@ -1725,6 +1760,7 @@
     </script>
 
     {{-- ===================== Approval Group Biaya tab logic ===================== --}}
+    @unless($restrictAdmin)
     <script>
         $(document).ready(function() {
             const TYPECONDITION_OPTIONS = ['ADD', 'DEL'];
@@ -2269,4 +2305,5 @@
             });
         });
     </script>
+    @endunless
 </x-app-layout>

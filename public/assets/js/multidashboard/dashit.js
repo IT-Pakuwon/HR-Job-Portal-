@@ -895,7 +895,8 @@
                     loadSummary();
 
                     loadTab(
-                        activeTab
+                        activeTab,
+                        false
                     );
 
                 }

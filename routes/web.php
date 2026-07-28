@@ -2319,6 +2319,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Route::get('/test', [DashboardController::class, 'test'])->name('test');
 
+    // Must live outside the 'admin' middleware group: once impersonating, the
+    // current user is the target (often non-admin), so this route needs to stay reachable.
+    Route::post('/users/stop-impersonate', [UsersController::class, 'stopImpersonate'])->name('users.stop-impersonate');
+
     Route::middleware('admin')->group(function () {
         // Route::get('/test-email', [TestEmailController::class, 'index'])->name('test-email.index');
         // Route::post('/test-email/send', [TestEmailController::class, 'send'])->name('test-email.send');
@@ -2343,6 +2347,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/settings/password', [UsersController::class, 'updatePassword'])->name('password.update.custom');
 
         Route::post('/users/{id}/reset-password', [UsersController::class, 'resetPassword'])->name('users.reset-password');
+        Route::post('/users/{id}/impersonate', [UsersController::class, 'impersonate'])->name('users.impersonate');
         Route::delete('/users/{id}', [UsersController::class, 'destroy'])->name('users.destroy');
 
         // === APPLICATION MASTER ===

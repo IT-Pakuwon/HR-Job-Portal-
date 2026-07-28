@@ -44,7 +44,7 @@
                     rawCsData = [];
                     rawPoData = [];
                     loadSummary();
-                    loadTab(activeTab);
+                    loadTab(activeTab, false);
                 } else {
                     startCountdown(seconds);
                 }
@@ -68,7 +68,7 @@
                 const tab = pendingTab;
                 pendingRows = null;
                 pendingTab = null;
-                renderCardList(rows, tab);
+                renderCardList(rows, tab, false);
             }
 
             if (refreshPending) {
@@ -76,7 +76,7 @@
                 rawCsData = [];
                 rawPoData = [];
                 loadSummary();
-                loadTab(activeTab);
+                loadTab(activeTab, false);
             }
         });
     }
@@ -482,7 +482,7 @@
                     return;
                 }
 
-                renderCardList(rows, tab);
+                renderCardList(rows, tab, resetPage);
             })
             .catch((err) => { if (err.name !== "AbortError") console.error(err); });
     }
@@ -574,7 +574,7 @@
             rawCsData = [];
             rawPoData = [];
             loadSummary();
-            loadTab(activeTab);
+            loadTab(activeTab, false);
         });
 
         $("#openAllDocument").on("click", function () {

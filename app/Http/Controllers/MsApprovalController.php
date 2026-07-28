@@ -17,11 +17,28 @@ use Yajra\DataTables\Facades\DataTables;
 
 class MsApprovalController extends Controller
 {
+    /**
+     * The plain "admin" role (routes without the -sby suffix) is locked down to
+     * doctype PRF / HR departments only. The "adminsby" role (routes named
+     * *-sby*) keeps unrestricted access.
+     */
+    private function isRestrictedAdmin(): bool
+    {
+        return !request()->routeIs('*-sby*');
+    }
+
+    private function isHrDepartment(?string $deptId): bool
+    {
+        if (!$deptId) return false;
+
+        return DepartmentHR::where('department_id', $deptId)->exists();
+    }
+
     public function index()
     {
         $user = Auth::user();
         if (!$user) return redirect()->route('login');
-        
+
         $doctypes = Autonbr::select('doctype','doctype_descr')
             ->distinct()
             ->orderBy('doctype')
@@ -68,6 +85,7 @@ class MsApprovalController extends Controller
             'type' => $type,
             'condition' => $condition,
             'groupbiaya' => $groupbiaya,
+            'restrictAdmin' => $this->isRestrictedAdmin(),
         ]);
     }
 
@@ -88,6 +106,11 @@ class MsApprovalController extends Controller
                 'aprv_end_nominal',
                 'status',
             ]);
+
+        if ($this->isRestrictedAdmin()) {
+            $query->where('aprv_doctype', 'PRF')
+                ->whereIn('aprv_departementid', DepartmentHR::pluck('department_id'));
+        }
 
         if (!$request->has('order')) {
             $query->orderBy('aprv_doctype')
@@ -133,6 +156,15 @@ class MsApprovalController extends Controller
             'aprv_end_nominal'      => 'nullable|array',
             'aprv_end_nominal.*'    => 'nullable|numeric',
         ]);
+
+        if ($this->isRestrictedAdmin()) {
+            if (strtoupper($request->aprv_doctype) !== 'PRF') {
+                abort(403, 'This account can only manage PRF approvals.');
+            }
+            if (!$this->isHrDepartment($request->aprv_departementid)) {
+                abort(403, 'This account can only manage HR department approvals.');
+            }
+        }
 
         DB::beginTransaction();
 
@@ -213,6 +245,10 @@ class MsApprovalController extends Controller
     {
         $row = MsApproval::findOrFail($id);
 
+        if ($this->isRestrictedAdmin() && strtoupper($row->aprv_doctype) !== 'PRF') {
+            abort(403);
+        }
+
         return response()->json([
             'id'                 => $row->id,
             'aprv_leveling'      => $row->aprv_leveling,
@@ -253,6 +289,15 @@ class MsApprovalController extends Controller
             'aprv_start_nominal.0' => 'nullable|numeric',
             'aprv_end_nominal.0'   => 'nullable|numeric',
         ]);
+
+        if ($this->isRestrictedAdmin()) {
+            if (strtoupper($row->aprv_doctype) !== 'PRF' || strtoupper($request->aprv_doctype) !== 'PRF') {
+                abort(403, 'This account can only manage PRF approvals.');
+            }
+            if (!$this->isHrDepartment($request->aprv_departementid)) {
+                abort(403, 'This account can only manage HR department approvals.');
+            }
+        }
 
         DB::beginTransaction();
 
@@ -322,6 +367,11 @@ class MsApprovalController extends Controller
     public function toggleStatus($id)
     {
         $row = MsApproval::findOrFail($id);
+
+        if ($this->isRestrictedAdmin() && strtoupper($row->aprv_doctype) !== 'PRF') {
+            abort(403);
+        }
+
         $newStatus = request('status');
         $username  = Auth::check() ? Auth::user()->username : 'system';
 
@@ -342,7 +392,7 @@ class MsApprovalController extends Controller
      */
     public function groupLines(Request $request)
     {
-        $doctype = $request->query('doctype');
+        $doctype = $this->isRestrictedAdmin() ? 'PRF' : $request->query('doctype');
         $cpnyId  = $request->query('cpnyid');
         $deptId  = $request->query('departementid');
 
@@ -388,7 +438,7 @@ class MsApprovalController extends Controller
      */
     public function departmentsBySource(Request $request)
     {
-        $source = strtoupper(trim((string) $request->query('source', '')));
+        $source = $this->isRestrictedAdmin() ? 'HR' : strtoupper(trim((string) $request->query('source', '')));
 
         $finance = fn() => MsDepartment::query()
             ->selectRaw("department_id as value, department_name as text")
@@ -418,7 +468,7 @@ class MsApprovalController extends Controller
 
     public function departmentHR(Request $request)
     {
-        $doctype = strtoupper(trim((string) $request->query('doctype', '')));
+        $doctype = $this->isRestrictedAdmin() ? 'PRF' : strtoupper(trim((string) $request->query('doctype', '')));
 
         if ($doctype === 'PRF') {
             $items = DepartmentHR::query()

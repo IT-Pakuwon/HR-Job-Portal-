@@ -74,7 +74,7 @@
                 const tab = pendingTab;
                 pendingRows = null;
                 pendingTab = null;
-                renderCardList(rows, tab);
+                renderCardList(rows, tab, false);
             }
 
             if (refreshPending) {
@@ -453,7 +453,7 @@
                     return;
                 }
 
-                renderCardList(rows, tab);
+                renderCardList(rows, tab, resetPage);
             })
             .catch((err) => { if (err.name !== "AbortError") console.error(err); });
     }

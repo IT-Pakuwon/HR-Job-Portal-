@@ -133,6 +133,29 @@
                                 placeholder="isi dengan nilai atribut d untuk <path> SVG">
                                 </textarea>
                         </div>
+
+                        <div id="roleAccessField" class="mb-3 md:col-span-2">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-gray-700 dark:text-white">
+                                    Show this menu to (roles)
+                                </label>
+                                <label class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-300">
+                                    <input type="checkbox" id="roleSelectAll">
+                                    Select all
+                                </label>
+                            </div>
+                            <div class="mt-1 grid max-h-40 grid-cols-2 gap-1 overflow-y-auto rounded-lg border p-2 dark:border-gray-600 sm:grid-cols-3">
+                                @foreach ($roles as $role)
+                                    <label class="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-200">
+                                        <input type="checkbox" name="role_ids[]" value="{{ $role->role_id }}" class="roleCheckbox">
+                                        {{ $role->role_name }}
+                                    </label>
+                                @endforeach
+                            </div>
+                            <p class="mt-1 text-xs text-gray-400">
+                                Leave unchecked and enable later from the Role Menu screen. Unselected roles won't see this menu.
+                            </p>
+                        </div>
                     </div>
 
                     <div class="mt-4 flex justify-end space-x-2">
@@ -336,6 +359,7 @@
                 $('#menuForm')[0].reset();
                 $('#id').val('');
                 $('#parent_menu_id').val('');
+                $('#roleAccessField').removeClass('hidden');
                 $('#menuModal').removeClass('hidden');
             });
 
@@ -348,6 +372,7 @@
                 $('#menuForm')[0].reset();
                 $('#id').val('');
                 $('#parent_menu_id').val(parentMenuId);
+                $('#roleAccessField').removeClass('hidden');
                 $('#menuModal').removeClass('hidden');
             });
 
@@ -356,6 +381,7 @@
                 let id = $(this).data('id');
 
                 $('#menuModalTitle').text("Loading...");
+                $('#roleAccessField').addClass('hidden'); // role access sudah diatur dari layar Role Menu
                 $('#menuModal').removeClass('hidden');
 
                 $.get(`/menus/${id}/edit`, function(data) {
@@ -375,6 +401,19 @@
 
             $('#closeMenuModal').click(function() {
                 $('#menuModal').addClass('hidden');
+            });
+
+            // ==========================
+            //  ROLE ACCESS "SELECT ALL"
+            // ==========================
+            $('#roleSelectAll').change(function() {
+                $('.roleCheckbox').prop('checked', $(this).is(':checked'));
+            });
+
+            $(document).on('change', '.roleCheckbox', function() {
+                const total = $('.roleCheckbox').length;
+                const checked = $('.roleCheckbox:checked').length;
+                $('#roleSelectAll').prop('checked', total === checked);
             });
 
             // ==========================

@@ -591,7 +591,7 @@
                     return;
                 }
 
-                renderCardList(rows, tab);
+                renderCardList(rows, tab, resetPage);
                 startCountdown(20);
             })
             .catch((err) => {
