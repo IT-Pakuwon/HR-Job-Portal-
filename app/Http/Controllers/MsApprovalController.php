@@ -18,13 +18,13 @@ use Yajra\DataTables\Facades\DataTables;
 class MsApprovalController extends Controller
 {
     /**
-     * The plain "admin" role (routes without the -sby suffix) is locked down to
-     * doctype PRF / HR departments only. The "adminsby" role (routes named
-     * *-sby*) keeps unrestricted access.
+     * The "adminsby" role (routes named *-sby*) is locked down to doctype PRF /
+     * HR departments only. The plain "admin" role (routes without the -sby
+     * suffix) keeps unrestricted access.
      */
     private function isRestrictedAdmin(): bool
     {
-        return !request()->routeIs('*-sby*');
+        return request()->routeIs('*-sby*');
     }
 
     private function isHrDepartment(?string $deptId): bool
