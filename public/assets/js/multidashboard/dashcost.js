@@ -260,7 +260,12 @@
                     );
                 });
 
-                select.val(current).trigger("change");
+                // Namespaced: refresh Select2's rendered label only — the
+                // plain "change" would also fire the filter's reload handler,
+                // which is redundant since activateTab() already calls
+                // loadTab() directly, and would reset pagination if this
+                // ever ran from a background refresh path.
+                select.val(current).trigger("change.select2");
             })
             .catch(console.error);
     }
@@ -273,7 +278,7 @@
         select.append(`<option value="H">On Hold</option>`);
         select.append(`<option value="P">On Progress</option>`);
         select.append(`<option value="C">Completed</option>`);
-        select.val(current).trigger("change");
+        select.val(current).trigger("change.select2");
     }
 
     function applyImBudgetFilter(data) {

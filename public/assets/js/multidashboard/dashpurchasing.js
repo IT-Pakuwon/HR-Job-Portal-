@@ -186,7 +186,10 @@
                 (res.data || []).forEach((row) => {
                     select.append(`<option value="${row.doctype}">${row.doctype} - ${row.doctype_descr ?? ""}</option>`);
                 });
-                select.val(current).trigger("change");
+                // Namespaced: refresh Select2's label only, not the app's
+                // "change" reload handler (redundant here — activateTab()
+                // already calls loadTab() directly).
+                select.val(current).trigger("change.select2");
             });
     }
 
@@ -196,7 +199,7 @@
         select.append(`<option value="ALL">All Status</option>`);
         select.append(`<option value="DRAFT">Draft</option>`);
         select.append(`<option value="PROGRESS">On Progress</option>`);
-        select.trigger("change");
+        select.trigger("change.select2");
     }
 
     function loadPoStatusFilter() {
@@ -206,7 +209,7 @@
         select.append(`<option value="UNSEND">Unsend</option>`);
         select.append(`<option value="UNSEND_EMAIL">Purchase - Unsend Email</option>`);
         select.append(`<option value="ON_PROGRESS">On Progress</option>`);
-        select.trigger("change");
+        select.trigger("change.select2");
     }
 
     // ── Per-tab card field mapping ──

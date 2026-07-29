@@ -108,7 +108,7 @@
     }">
 
 
-    @if(session('impersonate_original_id'))
+    @if(session('impersonate_original_username'))
         <div class="sticky top-0 z-60 flex flex-wrap items-center justify-center gap-3 bg-black px-4 py-2 text-center text-sm font-semibold text-white">
             <span>🔑 You are logged in as <strong>{{ auth()->user()->name ?? auth()->user()->username }}</strong>.</span>
             <form action="{{ route('users.stop-impersonate') }}" method="POST" class="inline">

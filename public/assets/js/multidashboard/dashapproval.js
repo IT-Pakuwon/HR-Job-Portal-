@@ -52,7 +52,11 @@
             }
         });
 
-        $sel.val(present.has(current) ? current : "ALL").trigger("change");
+        // ── Namespaced trigger: refreshes Select2's own rendered label only.
+        // A plain "change" here would also fire bindDoctype's handler below
+        // and reload the tab with resetPage defaulting to true, yanking the
+        // user back to page 1 on every background refresh. ──
+        $sel.val(present.has(current) ? current : "ALL").trigger("change.select2");
     }
 
     function updateCountdown() {

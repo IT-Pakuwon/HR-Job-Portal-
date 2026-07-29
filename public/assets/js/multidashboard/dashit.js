@@ -496,7 +496,10 @@
                 );
             });
 
-            select.val(current).trigger("change");
+            // Namespaced: refresh Select2's label only, not the app's
+            // "change" reload handler (redundant here — activateTab()
+            // already calls loadTab() directly).
+            select.val(current).trigger("change.select2");
 
         });
     }
@@ -711,7 +714,7 @@
             loadDocTypes();
             $("#dashboardFilterWrap").show();
             $("#statusFilterWrap").hide();
-            $("#statusFilter").val("ALL").trigger("change");
+            $("#statusFilter").val("ALL").trigger("change.select2");
 
         } else {
 
@@ -732,7 +735,7 @@
                 )
             );
 
-            sel.val("ALL").trigger("change");
+            sel.val("ALL").trigger("change.select2");
 
         }
 

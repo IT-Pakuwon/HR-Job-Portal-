@@ -630,13 +630,13 @@ class UsersController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        if (session()->has('impersonate_original_id')) {
+        if (session()->has('impersonate_original_username')) {
             abort(403, 'Already impersonating a user. Return to your account first.');
         }
 
         $targetUser = User::findOrFail($id);
 
-        session(['impersonate_original_id' => $currentUser->id]);
+        session(['impersonate_original_username' => $currentUser->username]);
 
         Auth::login($targetUser);
 
@@ -659,16 +659,16 @@ class UsersController extends Controller
      */
     public function stopImpersonate()
     {
-        $originalId = session('impersonate_original_id');
+        $originalUsername = session('impersonate_original_username');
 
-        if (!$originalId) {
+        if (!$originalUsername) {
             abort(403, 'Not currently impersonating a user.');
         }
 
         $impersonatedUser = Auth::user();
-        $originalUser = User::findOrFail($originalId);
+        $originalUser = User::where('username', $originalUsername)->firstOrFail();
 
-        session()->forget('impersonate_original_id');
+        session()->forget('impersonate_original_username');
 
         Auth::login($originalUser);
 

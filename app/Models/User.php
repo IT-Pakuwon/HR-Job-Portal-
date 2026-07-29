@@ -96,4 +96,16 @@ class User extends Authenticatable
     {
         return in_array('admin', $this->roles(), true) || in_array('adminsby', $this->roles(), true);
     }
+
+    /**
+     * Auth (session, remember-me, Auth::id()) identifies users by username instead of
+     * the auto-increment id, because `id` is a pgsql2 surrogate key that can drift or be
+     * reused across environments/DB copies while `username` stays stable — see other
+     * models (Usercpny, Userdept, Userdivision, Userbusinessunit, SysUserRole) which
+     * already key off username for the same reason.
+     */
+    public function getAuthIdentifierName()
+    {
+        return 'username';
+    }
 }

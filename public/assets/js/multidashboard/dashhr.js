@@ -147,7 +147,10 @@
                     select.append(`<option value="${row.doctype}">${row.doctype} - ${row.doctype_descr ?? ""}</option>`);
                 });
 
-                select.val(current).trigger("change");
+                // Namespaced: refresh Select2's label only, not the app's
+                // "change" reload handler (redundant here — activateTab()
+                // already calls loadTab() directly).
+                select.val(current).trigger("change.select2");
             });
     }
 

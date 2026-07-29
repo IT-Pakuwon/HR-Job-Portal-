@@ -125,10 +125,10 @@
                         </svg>
                     </button>
 
-                    <ul x-show="open" x-collapse class="mt-1 space-y-1">
+                    <ul x-show="open" x-collapse class="mt-1 space-y-0.5">
                         <template x-for="item in items" :key="item.id">
                             <li class="flex items-center justify-between rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
-                                <a :href="item.url" class="flex min-h-11 min-w-0 flex-1 items-center gap-3 px-3 py-2 text-sm">
+                                <a :href="item.url" class="flex min-h-9 min-w-0 flex-1 items-center gap-3 px-3 py-1.5 text-sm">
                                     <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" :d="item.menu_icon" />
                                     </svg>
@@ -179,7 +179,7 @@
                                 </svg>
                             </button>
 
-                            <ul x-show="open" x-collapse class="mt-1 space-y-1">
+                            <ul x-show="open" x-collapse class="mt-1 space-y-0.5">
 
                         @foreach ($visibleMenus as $menu)
 
@@ -197,7 +197,7 @@
                                         : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} flex items-center justify-between rounded-lg">
 
                                     <a href="{{ route($menu->menu_route) }}"
-                                        class="flex min-h-11 min-w-0 flex-1 items-center gap-3 px-3 py-2 text-sm">
+                                        class="flex min-h-9 min-w-0 flex-1 items-center gap-3 px-3 py-1.5 text-sm">
 
                                         <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round"
@@ -228,7 +228,7 @@
                                         class="{{ $isActive
                                             ? 'bg-indigo-500/10 text-indigo-600'
                                             : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}
-                                        flex min-h-11 w-full items-center justify-between rounded-lg px-3 py-2 text-sm">
+                                        flex min-h-9 w-full items-center justify-between rounded-lg px-3 py-1.5 text-sm">
 
                                         <div class="flex items-center gap-3">
 
@@ -260,7 +260,7 @@
 
                                     </button>
 
-                                    <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-9">
+                                    <ul x-show="open" x-collapse class="mt-1 space-y-0.5 pl-9">
 
                                         @foreach ($children as $child)
 
@@ -270,7 +270,7 @@
                                                     class="{{ Route::is([$child->menu_route, $child->menu_route . '.*'])
                                                         ? 'text-indigo-600'
                                                         : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}
-                                                    flex min-h-11 min-w-0 flex-1 items-center truncate px-3 py-1.5 text-sm">
+                                                    flex min-h-8 min-w-0 flex-1 items-center truncate px-3 py-1 text-sm">
 
                                                     {{ $child->menu_name }}
 
@@ -348,14 +348,14 @@
                                 </svg>
                             </button>
 
-                            <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-2">
+                            <ul x-show="open" x-collapse class="mt-1 space-y-0.5 pl-2">
 
                                 <!-- ================================================= -->
                                 <!-- ACCESS CONTROL STUDIO (guided one-page console) -->
                                 <!-- ================================================= -->
                                 <li>
                                     <a href="{{ route('access_control_studio') }}"
-                                        class="{{ Request::segment(1) === 'access_control_studio' ? 'text-white bg-indigo-600 dark:bg-indigo-500' : 'text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20' }} mb-2 flex min-h-11 items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors duration-200 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-500">
+                                        class="{{ Request::segment(1) === 'access_control_studio' ? 'text-white bg-indigo-600 dark:bg-indigo-500' : 'text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20' }} mb-1.5 flex min-h-9 items-center gap-2 rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors duration-200 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-500">
                                         <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none"
                                             stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                             stroke-linejoin="round">
@@ -372,7 +372,7 @@
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $ua) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
-                                        class="flex w-full items-center justify-between min-h-11 rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
+                                        class="flex w-full items-center justify-between min-h-9 rounded-lg px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
 
                                         <span class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">User &
                                             Access</span>
@@ -384,7 +384,7 @@
                                         </svg>
                                     </button>
 
-                                    <ul x-show="open" x-collapse class="space-y-1 pl-4">
+                                    <ul x-show="open" x-collapse class="space-y-0.5 pl-4">
                                         <li><a href="{{ route('users') }}"
                                                 class="{{ Request::segment(1) === 'users' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Users</a>
                                         </li>
@@ -411,7 +411,7 @@
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $app) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
-                                        class="flex w-full items-center justify-between min-h-11 rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
+                                        class="flex w-full items-center justify-between min-h-9 rounded-lg px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
 
                                         <span
                                             class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">Application</span>
@@ -423,7 +423,7 @@
                                         </svg>
                                     </button>
 
-                                    <ul x-show="open" x-collapse class="space-y-1 pl-4">
+                                    <ul x-show="open" x-collapse class="space-y-0.5 pl-4">
                                         <li><a href="{{ route('applications') }}"
                                                 class="{{ Request::segment(1) === 'applications' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Applications</a>
                                         </li>
@@ -443,7 +443,7 @@
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $org) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
-                                        class="flex w-full items-center justify-between min-h-11 rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
+                                        class="flex w-full items-center justify-between min-h-9 rounded-lg px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
 
                                         <span
                                             class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">Organization</span>
@@ -455,7 +455,7 @@
                                         </svg>
                                     </button>
 
-                                    <ul x-show="open" x-collapse class="space-y-1 pl-4">
+                                    <ul x-show="open" x-collapse class="space-y-0.5 pl-4">
                                         <li><a href="{{ route('companies') }}"
                                                 class="{{ Request::segment(1) === 'companies' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Companies</a>
                                         </li>
@@ -483,7 +483,7 @@
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $md) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
-                                        class="flex w-full items-center justify-between min-h-11 rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
+                                        class="flex w-full items-center justify-between min-h-9 rounded-lg px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
 
                                         <span class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">Master
                                             Data</span>
@@ -495,7 +495,7 @@
                                         </svg>
                                     </button>
 
-                                    <ul x-show="open" x-collapse class="space-y-1 pl-4">
+                                    <ul x-show="open" x-collapse class="space-y-0.5 pl-4">
                                         <li><a href="{{ route('categories') }}"
                                                 class="{{ Request::segment(1) === 'categories' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Categories</a>
                                         </li>
@@ -531,7 +531,7 @@
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $workflowSegments) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
-                                        class="flex w-full items-center justify-between min-h-11 rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
+                                        class="flex w-full items-center justify-between min-h-9 rounded-lg px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
 
                                         <span
                                             class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">Workflow</span>
@@ -543,7 +543,7 @@
                                         </svg>
                                     </button>
 
-                                    <ul x-show="open" x-collapse class="space-y-1 pl-4">
+                                    <ul x-show="open" x-collapse class="space-y-0.5 pl-4">
                                         <li><a href="{{ route('approvals') }}"
                                                 class="{{ Request::segment(1) === 'approvals' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Approvals</a>
                                         </li>
@@ -606,7 +606,7 @@
                                 </svg>
                             </button>
 
-                            <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-2">
+                            <ul x-show="open" x-collapse class="mt-1 space-y-0.5 pl-2">
                                 <li>
                                     <a href="{{ route('groupbiayanonpurch') }}"
                                         class="{{ Request::segment(1) === 'groupbiayanonpurch' ? 'text-indigo-600' : '' }} sidebar-link text-sm">
@@ -635,7 +635,7 @@
                                 </svg>
                             </button>
 
-                            <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-2">
+                            <ul x-show="open" x-collapse class="mt-1 space-y-0.5 pl-2">
                                 <li>
                                     <a href="{{ route('users-sby') }}"
                                         class="{{ Request::segment(1) === 'users-sby' ? 'text-indigo-600' : '' }} sidebar-link text-sm">
