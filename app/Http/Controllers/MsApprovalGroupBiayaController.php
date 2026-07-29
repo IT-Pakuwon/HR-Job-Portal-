@@ -14,12 +14,13 @@ use Illuminate\Support\Facades\DB;
 class MsApprovalGroupBiayaController extends Controller
 {
     /**
-     * Approval Group Biaya is off-limits to the plain "admin" role (routes
-     * without the -sby suffix); only "adminsby" (routes named *-sby*) may use it.
+     * Approval Group Biaya is off-limits to the "adminsby" role (routes named
+     * *-sby*); only the plain "admin" role (routes without the -sby suffix)
+     * may use it.
      */
     private function isRestrictedAdmin(): bool
     {
-        return !request()->routeIs('*-sby*');
+        return request()->routeIs('*-sby*');
     }
 
     public function index()
