@@ -227,6 +227,8 @@ class TicketController extends Controller
 
         $isIT = $this->isITRole();
 
+        $isITByRole = $this->isITByRole();
+
         $itTypes = $this->itTicketTypes();
 
         $query = TrTicket::with([
@@ -374,8 +376,8 @@ class TicketController extends Controller
                 return $ws ? $ws->toISOString() : null;
             })
 
-            ->addColumn('actions', function ($row) {
-                return $this->buildActions($row);
+            ->addColumn('actions', function ($row) use ($isIT, $isITByRole) {
+                return $this->buildActions($row, $isIT, $isITByRole);
             })
 
             ->rawColumns([
@@ -973,7 +975,7 @@ class TicketController extends Controller
 
                 'tracking' => $tracking,
 
-                'actions' => $this->buildActions($ticket),
+                'actions' => $this->buildActions($ticket, $this->isITRole(), $this->isITByRole()),
             ],
         ]);
     }
@@ -2759,7 +2761,7 @@ class TicketController extends Controller
             ->values();
     }
 
-    protected function buildActions($ticket)
+    protected function buildActions($ticket, $isIT, $isITByRole)
     {
         $user = auth()->user();
 
@@ -2768,9 +2770,6 @@ class TicketController extends Controller
 
         $isPIC =
             $ticket->pic_ticket === $user->username;
-
-        $isIT       = $this->isITRole();
-        $isITByRole = $this->isITByRole();
 
         return [
             'can_edit' => $isRequester

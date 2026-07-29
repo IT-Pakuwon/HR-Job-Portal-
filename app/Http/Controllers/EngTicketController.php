@@ -1991,11 +1991,25 @@ class EngTicketController extends Controller
 
         $ticket = TrTicket::findOrFail($id);
 
-        abort_if(
-            !$this->canActOnTicketType($ticket->ticket_type)
-                && $ticket->pic_ticket !== auth()->user()->username,
-            403
-        );
+        /*
+        |--------------------------------------------------------------------------
+        | Once a PIC is assigned, only that PIC may transfer the ticket — broad
+        | department/manager access no longer applies. Before a PIC is assigned,
+        | fall back to the usual ticket-type access check.
+        |--------------------------------------------------------------------------
+        */
+
+        if ($ticket->pic_ticket) {
+            abort_if(
+                $ticket->pic_ticket !== auth()->user()->username,
+                403
+            );
+        } else {
+            abort_unless(
+                $this->canActOnTicketType($ticket->ticket_type),
+                403
+            );
+        }
 
         abort_if(
             !$this->canTransition(
@@ -2081,13 +2095,14 @@ class EngTicketController extends Controller
 
             /*
         |--------------------------------------------------------------------------
-        | Reset Workflow Schedule
+        | Preserve Workflow Schedule — keep the original response's working
+        | window if one was already set, otherwise leave it empty.
         |--------------------------------------------------------------------------
         */
 
-            $workingStart = null;
+            $workingStart = optional($ticket->responseActivity)->working_start_date;
 
-            $workingEnd = null;
+            $workingEnd = optional($ticket->responseActivity)->working_end_date;
 
             /*
         |--------------------------------------------------------------------------

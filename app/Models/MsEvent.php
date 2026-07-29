@@ -16,12 +16,12 @@ class MsEvent extends Model
         'event_id',
         'event_create_date',
         'cpnyid',
+        'department_id',
         'event_name',
         'event_company_name',
         'event_type',
         'event_status',
-        'location_id',
-        'sub_location_id',
+        'event_location_id',
         'event_start_date',
         'event_end_date',
         'event_total_area',
@@ -44,13 +44,13 @@ class MsEvent extends Model
         return $this->belongsTo(MsCompany::class, 'cpnyid', 'cpny_id');
     }
 
-    public function location()
+    public function department()
     {
-        return $this->belongsTo(MsLocation::class, 'location_id', 'location_id');
+        return $this->belongsTo(MsDepartment::class, 'department_id', 'department_id');
     }
 
-    public function subLocation()
+    public function eventLocation()
     {
-        return $this->belongsTo(MsSubLocation::class, 'sub_location_id', 'sub_location_id');
+        return $this->belongsTo(MsEventLocation::class, 'event_location_id', 'event_location_id');
     }
 }
