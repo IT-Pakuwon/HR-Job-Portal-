@@ -1,16 +1,23 @@
 <x-app-layout>
-    <div class="mx-auto w-full max-w-7xl p-3">
+    <div class="mx-auto w-full max-w-9xl p-3">
         <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <div class="border-b px-6 py-5 dark:border-gray-700">
-                <h1 class="text-xl font-extrabold text-gray-800 dark:text-white">{{ $meeting->weeklymeeting_id }}</h1>
+            <div class="relative overflow-hidden border-b bg-gradient-to-br from-indigo-50 via-white to-violet-50 px-6 py-6 dark:border-gray-700 dark:from-indigo-950/40 dark:via-gray-800 dark:to-violet-950/30">
+                <div class="pointer-events-none absolute -right-12 -top-16 h-44 w-44 rounded-full bg-indigo-200/30 blur-2xl dark:bg-indigo-500/10"></div>
+                <div class="relative flex flex-wrap items-center gap-3">
+                    <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-none">
+                        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V4a2 2 0 0 1 2-2h12v20H6a2 2 0 0 1-2-2.5Z"/><path d="M8 7h6M8 11h6M8 15h4"/></svg>
+                    </span>
+                    <h1 class="text-xl font-extrabold text-gray-900 dark:text-white">{{ $meeting->weeklymeeting_id }}</h1>
+                    <span class="rounded-full bg-indigo-100 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300">Weekly Meeting</span>
+                </div>
                 <p class="mt-1 text-sm text-gray-500">{{ $meeting->weeklymeeting_topic }} · {{ $meeting->weeklymeeting_date->format('d M Y') }}</p>
                 <p class="mt-1 text-xs text-gray-400">Finding period: {{ $fromDate->format('d M Y') }} – {{ $toDate->format('d M Y') }}</p>
-                <div class="mt-4">
-                    <p class="mb-2 text-xs font-bold uppercase tracking-wide text-gray-400">Attendance</p>
+                <div class="relative mt-5 rounded-xl border border-white/80 bg-white/70 p-4 shadow-sm backdrop-blur dark:border-gray-600/60 dark:bg-gray-800/50">
+                    <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.12em] text-gray-500">Attendance · {{ $participants->count() }}</p>
                     <div class="flex flex-wrap gap-2">
                         @forelse ($participants as $participant)
-                            <span class="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700">
-                                <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white">
+                            <span class="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300">
+                                <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white">
                                     {{ strtoupper(substr($participant->name_participant ?: $participant->user_participant, 0, 1)) }}
                                 </span>
                                 {{ $participant->name_participant ?: $participant->user_participant }}
@@ -22,6 +29,8 @@
                 </div>
             </div>
 
+            <div class="grid min-h-[650px] grid-cols-1 lg:grid-cols-3">
+            <div class="min-w-0 border-b dark:border-gray-700 lg:col-span-2 lg:border-b-0 lg:border-r">
             <div class="flex overflow-x-auto border-b px-5 dark:border-gray-700">
                 <button type="button" class="meeting-finding-tab shrink-0 border-b-2 border-indigo-600 px-4 py-3 text-sm font-bold text-indigo-600" data-tab="open">
                     <span class="inline-flex items-center gap-2"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2h8l4 4v16H4V2h4Z"/><path d="M8 2v5h8V2M8 13h8M8 17h5"/></svg>Open Finding ({{ $openFindings->count() }})</span>
@@ -34,15 +43,16 @@
                 </button>
             </div>
 
-            @foreach (['open' => [$openFindings, $openDepartments], 'close' => [$closeFindings, $closeDepartments]] as $tab => [$findings, $departments])
+            @foreach (['open' => [$openFindings, $openDepartmentCards], 'close' => [$closeFindings, $closeDepartmentCards]] as $tab => [$findings, $departmentCards])
                 <div id="{{ $tab }}FindingPanel" class="finding-tab-panel {{ $tab !== 'open' ? 'hidden' : '' }} p-5">
-                    <div class="mb-4 flex justify-end">
-                        <select class="department-filter rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700" data-tab="{{ $tab }}">
-                            <option value="">All Departments</option>
-                            @foreach ($departments as $department)
-                                <option value="{{ $department }}">{{ $department }}</option>
-                            @endforeach
-                        </select>
+                    <div class="mb-4 flex flex-wrap gap-2">
+                        @foreach ($departmentCards as $department)
+                            <button type="button"
+                                class="department-filter-button rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-bold text-gray-600 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 hover:shadow dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
+                                data-tab="{{ $tab }}" data-department="{{ $department['id'] }}">
+                                {{ $department['name'] }} ({{ $department['count'] }})
+                            </button>
+                        @endforeach
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full min-w-[950px] text-sm">
@@ -86,6 +96,25 @@
             @endforeach
 
             <div id="projectFindingPanel" class="finding-tab-panel hidden p-10 text-center text-gray-500">Project Finding table is not available yet.</div>
+            </div>
+            <aside class="min-w-0 bg-gray-50/50 p-5 dark:bg-white/[0.02] lg:col-span-1">
+                <div class="mb-4">
+                    <div class="flex items-center gap-2">
+                        <svg class="h-5 w-5 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V4a2 2 0 0 1 2-2h12v20H6a2 2 0 0 1-2-2.5Z"/><path d="M8 7h6M8 11h6M8 15h4"/></svg>
+                        <h2 class="font-extrabold text-gray-800 dark:text-white">Minute of Meeting</h2>
+                    </div>
+                    <p class="mt-1 text-sm text-gray-500">Text and pasted images are saved in one MOM document.</p>
+                </div>
+                <form id="momEditorForm" method="POST" action="{{ route('weekly-meeting.mom.store', $meeting->weeklymeeting_id) }}">
+                @csrf
+                    <input type="hidden" name="mom_descr" id="momEditorInput">
+                    <div id="momEditor" class="bg-white dark:bg-gray-800">{!! $momContent !!}</div>
+                    <div class="mt-4 flex justify-end">
+                        <button type="submit" id="btnSaveMomEditor" class="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-bold text-white hover:bg-indigo-700">Save MOM</button>
+                    </div>
+                </form>
+            </aside>
+            </div>
         </div>
     </div>
 
@@ -126,6 +155,29 @@
         </div>
     </div>
 
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+
+    @push('styles')
+        <style>
+            #momEditor .ql-editor {
+                min-height: 520px;
+            }
+
+            .dark #momEditor,
+            .dark #momEditor .ql-editor,
+            .dark .ql-toolbar {
+                color: #e5e7eb;
+                border-color: #4b5563;
+            }
+
+            #momEditor .ql-editor img {
+                max-width: 100%;
+                height: auto;
+            }
+        </style>
+    @endpush
+
     @push('scripts')
         <script>
             $(function () {
@@ -133,6 +185,30 @@
                 const detailUrl = @json(url('/finding'));
                 let currentFindingId = null;
                 const detailFields = [['Company','cpny_id'],['Department','department_id'],['Location','location_name'],['Sub Location','sub_location_name'],['Category','category_name'],['Item','item_name'],['Sub Item','subitem_name'],['Created By','created_by'],['Status','status_label'],['Completed By','completed_by']];
+                const momEditor = new Quill('#momEditor', {
+                    theme: 'snow',
+                    placeholder: 'Write minute of meeting or paste an image here...',
+                    modules: {
+                        toolbar: [
+                            [{ header: [1, 2, 3, false] }],
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{ list: 'ordered' }, { list: 'bullet' }],
+                            [{ color: [] }, { background: [] }],
+                            ['blockquote', 'link', 'image'],
+                            ['clean']
+                        ]
+                    }
+                });
+                $('#momEditorForm').on('submit', function (event) {
+                    const html = momEditor.root.innerHTML;
+                    if (momEditor.getText().trim() === '' && !momEditor.root.querySelector('img')) {
+                        event.preventDefault();
+                        Swal.fire('Validation', 'MOM content is required.', 'warning');
+                        return;
+                    }
+                    $('#momEditorInput').val(html);
+                    $('#btnSaveMomEditor').prop('disabled', true).text('Saving...');
+                });
 
                 $('.meeting-finding-tab').on('click', function () {
                     const tab = $(this).data('tab');
@@ -141,16 +217,25 @@
                     $('.finding-tab-panel').addClass('hidden');
                     $(`#${tab}FindingPanel`).removeClass('hidden');
                 });
-                $('.department-filter').on('change', function () {
+                $('.department-filter-button').on('click', function () {
                     const panel = $(`#${$(this).data('tab')}FindingPanel`);
-                    const selected = $(this).val();
+                    const selected = String($(this).data('department') || '');
+                    panel.find('.department-filter-button')
+                        .removeClass('active border-indigo-300 bg-indigo-600 text-white')
+                        .addClass('border-gray-200 bg-white text-gray-600');
+                    $(this)
+                        .removeClass('border-gray-200 bg-white text-gray-600')
+                        .addClass('active border-indigo-300 bg-indigo-600 text-white');
                     let visible = 0;
                     panel.find('.finding-row').each(function () {
-                        const show = !selected || $(this).data('department') === selected;
+                        const show = !selected || String($(this).data('department')) === selected;
                         $(this).toggle(show);
                         if (show) visible++;
                     });
                     panel.find('.no-filter-result').toggleClass('hidden', visible > 0);
+                });
+                $('.finding-tab-panel').each(function () {
+                    $(this).find('.department-filter-button').first().trigger('click');
                 });
 
                 function switchDetailTab(tab) {

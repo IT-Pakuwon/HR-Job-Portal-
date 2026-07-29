@@ -472,16 +472,20 @@
             // Minimal 1 baris "aktif" (punya COA) dan budget_requested >= 0
             let anyActive = false;
             let anyInvalid = false;
+            let hasRequestedBelowNeeded = false;
+            let requestedBelowNeededMessage = '';
 
             $('#imbudgetTable tr.imbudget-row').each(function() {
                 const $tr = $(this);
                 const $coa = $tr.find('input[name="budget_account_id[]"]');
                 const $reqVis = $tr.find('input[name="budget_requested[]"]');
+                const $neededVis = $tr.find('.budgetNeededField');
 
                 const hasCoa = ($coa.val() || '').trim() !== '';
 
                 // normalisasi input req (ganti tampilan -> hidden numeric)
                 const reqNum = toNumber($reqVis.val());
+                const neededNum = toNumber($neededVis.val());
                 $reqVis.val($reqVis.val().replace(/\./g, '').replace(/,/g,
                     ',')); // biar tampilan tetap id (opsional)
 
@@ -491,11 +495,37 @@
                     $reqVis.addClass('is-invalid').after(
                         '<small class="error-feedback">Budget Requested tidak boleh negatif.</small>');
                     anyInvalid = true;
+                } else if (hasCoa && reqNum < neededNum) {
+                    const rowNo = $.trim($tr.find('td:first').text()) || '-';
+                    $reqVis.addClass('is-invalid').after(
+                        '<small class="error-feedback">Budget Requested tidak boleh lebih kecil dari Budget Needed.</small>');
+                    anyInvalid = true;
+                    hasRequestedBelowNeeded = true;
+
+                    if (!requestedBelowNeededMessage) {
+                        requestedBelowNeededMessage =
+                            `Baris ${rowNo}: Budget Requested (${formatID(reqNum)}) harus minimal sama dengan Budget Needed (${formatID(neededNum)}).`;
+                    }
                 }
             });
 
             if (!anyActive) {
                 toastr.error('Minimal ada 1 baris detail dengan COA terisi.');
+                return;
+            }
+            if (hasRequestedBelowNeeded) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Budget Requested tidak valid',
+                    text: requestedBelowNeededMessage || 'Budget Requested tidak boleh lebih kecil dari Budget Needed.',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#2563eb',
+                });
+
+                const $first = $('#imbudgetTable .is-invalid').first();
+                if ($first.length) $('html,body').animate({
+                    scrollTop: $first.offset().top - 120
+                }, 300);
                 return;
             }
             if (anyInvalid) {

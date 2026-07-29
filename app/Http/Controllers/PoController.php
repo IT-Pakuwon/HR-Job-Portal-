@@ -760,6 +760,14 @@ class PoController extends Controller
 
             $po->save();
 
+            TrPOterm::where('cpny_id', $po->cpny_id)
+                ->where('ponbr', $po->ponbr)
+                ->update([
+                    'status' => 'X',
+                    'updated_by' => $po->updated_by,
+                    'updated_at' => $po->updated_at,
+                ]);
+
             // ✅ Kirim comment
             $fakeReq = new \Illuminate\Http\Request([
                 'docid'  => $po->ponbr,

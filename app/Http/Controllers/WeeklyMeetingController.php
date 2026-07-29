@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\TrFinding;
 use App\Models\TrFindingActivity;
+use App\Models\MsDepartmentOpr;
 use App\Models\TrMessage;
 use App\Models\TrWeeklyMeeting;
 use App\Models\TrWeeklyMeetingFinding;
+use App\Models\TrWeeklyMeetingMom;
 use App\Models\TrWeeklyMeetingParticipant;
 use App\Models\User;
 use App\Models\Usercpny;
@@ -62,7 +64,7 @@ class WeeklyMeetingController extends Controller
             ->get([
                 'id', 'weeklymeeting_id', 'weeklymeeting_date', 'cpny_id',
                 'weeklymeeting_startdate', 'weeklymeeting_enddate',
-                'weeklymeeting_topic', 'status', 'created_by', 'completed_at',
+                'weeklymeeting_topic', 'status', 'created_by', 'created_at', 'completed_at',
             ]);
         $commentCounts = TrMessage::query()
             ->where('doctype', 'WOM')
@@ -80,7 +82,9 @@ class WeeklyMeetingController extends Controller
         $data = $meetings->map(function (TrWeeklyMeeting $meeting) use ($commentCounts) {
             return [
                 'weeklymeeting_id' => $meeting->weeklymeeting_id,
-                'weeklymeeting_date' => $meeting->weeklymeeting_date?->format('d M Y'),
+                'weeklymeeting_date' => $meeting->created_at
+                    ? Carbon::parse($meeting->created_at)->locale('id')->translatedFormat('l, d F Y H:i')
+                    : '-',
                 'weeklymeeting_topic' => $meeting->weeklymeeting_topic,
                 'comments_count' => (int) ($commentCounts[$meeting->weeklymeeting_id] ?? 0),
                 'status' => $meeting->status,
@@ -174,6 +178,7 @@ class WeeklyMeetingController extends Controller
                 'weeklymeeting_id' => $meetingId,
                 'weeklymeeting_date' => $meetingDate->toDateString(),
                 'cpny_id' => $validated['cpny_id'],
+                'department_id' => 'OPERATION',
                 'weeklymeeting_startdate' => $periodStart,
                 'weeklymeeting_enddate' => $periodEnd,
                 'weeklymeeting_topic' => $validated['weeklymeeting_topic'],
@@ -215,7 +220,7 @@ class WeeklyMeetingController extends Controller
             }
         });
 
-        return redirect()->route('weekly-meeting.findings', $meetingId);
+        return redirect()->route('weekly-meeting.show', $meetingId);
     }
 
     public function findings(Request $request, string $weeklyMeetingId)
@@ -251,32 +256,135 @@ class WeeklyMeetingController extends Controller
         };
         $openFindings->transform($addCommentInformation);
         $closeFindings->transform($addCommentInformation);
-        $openDepartments = $openFindings->pluck('department_id')->filter()->unique()->sort()->values();
-        $closeDepartments = $closeFindings->pluck('department_id')->filter()->unique()->sort()->values();
+        $masterDepartments = MsDepartmentOpr::query()
+            ->where('cpny_id', $meeting->cpny_id)
+            ->where(fn (Builder $query) => $query->whereNull('status')->orWhere('status', 'A'))
+            ->orderBy('department_name')
+            ->get(['department_opr_id', 'department_name']);
+        $buildDepartmentCards = function ($findings) use ($masterDepartments) {
+            $counts = $findings->countBy('department_id');
+
+            return $masterDepartments
+                ->map(fn ($department) => [
+                    'id' => $department->department_opr_id,
+                    'name' => $department->department_name ?: $department->department_opr_id,
+                    'count' => (int) ($counts->get($department->department_opr_id) ?? 0),
+                ])
+                ->values();
+        };
+        $openDepartmentCards = $buildDepartmentCards($openFindings);
+        $closeDepartmentCards = $buildDepartmentCards($closeFindings);
         $participants = TrWeeklyMeetingParticipant::query()
             ->where('weeklymeeting_id', $weeklyMeetingId)
             ->where(fn (Builder $query) => $query->whereNull('status')->orWhere('status', '<>', 'X'))
             ->orderBy('order_participant')
             ->get(['order_participant', 'user_participant', 'name_participant']);
+        $minutes = TrWeeklyMeetingMom::query()
+            ->where('weeklymeeting_id', $weeklyMeetingId)
+            ->where('cpny_id', $meeting->cpny_id)
+            ->where(fn (Builder $query) => $query->whereNull('status')->orWhere('status', '<>', 'X'))
+            ->orderBy('order_mom')
+            ->orderBy('id')
+            ->get();
+        $momContent = $minutes->pluck('mom_descr')->filter()->implode('<hr>');
 
         return view('pages.weekly-meeting.findingweekly', compact(
             'meeting',
             'openFindings',
             'closeFindings',
-            'openDepartments',
-            'closeDepartments',
+            'openDepartmentCards',
+            'closeDepartmentCards',
             'participants',
+            'minutes',
+            'momContent',
             'fromDate',
             'toDate'
         ));
     }
 
+    public function storeMom(Request $request, string $weeklyMeetingId)
+    {
+        $meeting = $this->accessibleMeeting($request, $weeklyMeetingId);
+        $validated = $request->validate([
+            'mom_descr' => ['required', 'string', 'max:15000000'],
+        ]);
+        $minutes = TrWeeklyMeetingMom::query()
+            ->where('weeklymeeting_id', $weeklyMeetingId)
+            ->where('cpny_id', $meeting->cpny_id)
+            ->where(fn (Builder $query) => $query->whereNull('status')->orWhere('status', '<>', 'X'))
+            ->orderBy('order_mom')
+            ->orderBy('id')
+            ->get();
+        $minute = $minutes->first();
+
+        if ($minute) {
+            $minute->update([
+                'mom_descr' => $validated['mom_descr'],
+                'updated_by' => $request->user()->username,
+            ]);
+            TrWeeklyMeetingMom::query()
+                ->whereIn('id', $minutes->skip(1)->pluck('id'))
+                ->update([
+                    'status' => 'X',
+                    'deleted_by' => $request->user()->username,
+                    'deleted_at' => now(),
+                    'updated_by' => $request->user()->username,
+                    'updated_at' => now(),
+                ]);
+        } else {
+            TrWeeklyMeetingMom::query()->create([
+                'weeklymeeting_id' => $weeklyMeetingId,
+                'cpny_id' => $meeting->cpny_id,
+                'order_mom' => 1,
+                'mom_descr' => $validated['mom_descr'],
+                'status' => 'A',
+                'created_by' => $request->user()->username,
+                'updated_by' => $request->user()->username,
+            ]);
+        }
+
+        return redirect()->route('weekly-meeting.show', $weeklyMeetingId)
+            ->with('success', 'Minute of Meeting saved.');
+    }
+
+    public function mom(Request $request, string $weeklyMeetingId)
+    {
+        $meeting = $this->accessibleMeeting($request, $weeklyMeetingId);
+        $minutes = TrWeeklyMeetingMom::query()
+            ->where('weeklymeeting_id', $weeklyMeetingId)
+            ->where('cpny_id', $meeting->cpny_id)
+            ->where(fn (Builder $query) => $query->whereNull('status')->orWhere('status', '<>', 'X'))
+            ->orderBy('order_mom')
+            ->orderBy('id')
+            ->get(['mom_descr']);
+
+        return response()->json([
+            'weeklymeeting_id' => $meeting->weeklymeeting_id,
+            'topic' => $meeting->weeklymeeting_topic,
+            'date' => $meeting->weeklymeeting_date?->format('d M Y'),
+            'content' => $minutes->pluck('mom_descr')->filter()->implode('<hr>'),
+        ]);
+    }
+
     public function show(Request $request, string $weeklyMeetingId)
     {
+        if (!$request->boolean('export') && $request->query('view') !== 'mom') {
+            return $this->findings($request, $weeklyMeetingId);
+        }
+
         $meeting = $this->accessibleMeeting($request, $weeklyMeetingId)
             ->load(['participants', 'findings.finding']);
+        $momContent = TrWeeklyMeetingMom::query()
+            ->where('weeklymeeting_id', $weeklyMeetingId)
+            ->where('cpny_id', $meeting->cpny_id)
+            ->where(fn (Builder $query) => $query->whereNull('status')->orWhere('status', '<>', 'X'))
+            ->orderBy('order_mom')
+            ->orderBy('id')
+            ->pluck('mom_descr')
+            ->filter()
+            ->implode('<hr>');
 
-        return view('pages.weekly-meeting.showweekly', compact('meeting'));
+        return view('pages.weekly-meeting.showweekly', compact('meeting', 'momContent'));
     }
 
     private function accessibleMeeting(Request $request, string $weeklyMeetingId): TrWeeklyMeeting

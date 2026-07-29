@@ -14,6 +14,7 @@ class TrWeeklyMeeting extends Model
         'weeklymeeting_id',
         'weeklymeeting_date',
         'cpny_id',
+        'department_id',
         'weeklymeeting_startdate',
         'weeklymeeting_enddate',
         'weeklymeeting_topic',
@@ -54,6 +55,15 @@ class TrWeeklyMeeting extends Model
     {
         return $this->hasMany(
             TrWeeklyMeetingParticipant::class,
+            'weeklymeeting_id',
+            'weeklymeeting_id'
+        );
+    }
+
+    public function minutes(): HasMany
+    {
+        return $this->hasMany(
+            TrWeeklyMeetingMom::class,
             'weeklymeeting_id',
             'weeklymeeting_id'
         );

@@ -1222,14 +1222,19 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/finding/{findingId}/comments', [FindingController::class, 'storeComment'])->name('finding.comments.store');
     });
 
-    // Route::middleware('access:WEEKLYMEETING,VIEW')->group(function () {
+    Route::middleware('access:WEEKLYMEETING,VIEW')->group(function () {
         Route::get('/weekly-meeting', [WeeklyMeetingController::class, 'index'])->name('weekly-meeting');
-        Route::get('/weekly-meeting/json', [WeeklyMeetingController::class, 'json'])->name('weekly-meeting.json');
-        Route::get('/weekly-meeting/create', [WeeklyMeetingController::class, 'createWeeklyMeeting'])->name('weekly-meeting.create');
-        Route::post('/weekly-meeting', [WeeklyMeetingController::class, 'storeWeeklyMeeting'])->name('weekly-meeting.store');
+        Route::get('/weekly-meeting/json', [WeeklyMeetingController::class, 'json'])->name('weekly-meeting.json');       
         Route::get('/weekly-meeting/{weeklyMeetingId}/findings', [WeeklyMeetingController::class, 'findings'])->name('weekly-meeting.findings');
+        Route::get('/weekly-meeting/{weeklyMeetingId}/mom', [WeeklyMeetingController::class, 'mom'])->name('weekly-meeting.mom');      
         Route::get('/weekly-meeting/{weeklyMeetingId}', [WeeklyMeetingController::class, 'show'])->name('weekly-meeting.show');
-    // });
+    });
+
+    Route::middleware('access:WEEKLYMEETING,CREATE')->group(function () {       
+        Route::get('/weekly-meeting/create', [WeeklyMeetingController::class, 'createWeeklyMeeting'])->name('weekly-meeting.create');
+        Route::post('/weekly-meeting', [WeeklyMeetingController::class, 'storeWeeklyMeeting'])->name('weekly-meeting.store');       
+        Route::post('/weekly-meeting/{weeklyMeetingId}/mom', [WeeklyMeetingController::class, 'storeMom'])->name('weekly-meeting.mom.store');        
+    });
 
     Route::middleware('access:PERIZINAN,CREATE')->group(function () {
         Route::get('/perizinan', [PerizinanController::class, 'index'])->name('perizinan');       
