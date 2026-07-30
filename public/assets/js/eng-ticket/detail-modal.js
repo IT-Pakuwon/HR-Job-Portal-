@@ -136,6 +136,14 @@ function renderTicketInformation(ticket) {
         ticket.ticket_type_name || ticket.ticket_type || "-",
     );
 
+    if (ticket.ba_auto_number) {
+        $("#detail_ba_auto_number").text(ticket.ba_auto_number);
+        $("#detail_ba_auto_number_wrap").removeClass("hidden");
+    } else {
+        $("#detail_ba_auto_number").text("-");
+        $("#detail_ba_auto_number_wrap").addClass("hidden");
+    }
+
     $("#detail_category").html(`
 
             <div class="
@@ -1799,6 +1807,10 @@ function resetTicketDetailModal() {
     $("#detail_ticketdate").text("-");
 
     $("#detail_type").text("-");
+
+    $("#detail_ba_auto_number").text("-");
+
+    $("#detail_ba_auto_number_wrap").addClass("hidden");
 
     $("#detail_category").html("-");
 

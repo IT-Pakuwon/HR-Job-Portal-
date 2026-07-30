@@ -39,6 +39,7 @@ use App\Http\Controllers\DepartmentsController;
 use App\Http\Controllers\DocumentNotificationController;
 use App\Http\Controllers\EngTicketController;
 use App\Http\Controllers\EventCalendarController;
+use App\Http\Controllers\EventLocationSetupController;
 use App\Http\Controllers\FindingController;
 use App\Http\Controllers\WeeklyMeetingController;
 use App\Http\Controllers\FinanceDashboardController;
@@ -1616,6 +1617,14 @@ Route::middleware(['auth'])->group(function () {
                     Route::delete('/destroy/{id}', 'destroy')->name('destroy');
                 });
             });
+        });
+
+        Route::controller(EventLocationSetupController::class)->prefix('event-calendar/setup')->name('event-calendar.setup.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/json', 'json')->name('json');
+            Route::post('/store', 'store')->name('store');
+            Route::put('/update/{id}', 'update')->name('update');
+            Route::delete('/destroy/{id}', 'destroy')->name('destroy');
         });
 
         Route::controller(BookingCarSetupController::class)

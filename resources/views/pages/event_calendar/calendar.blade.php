@@ -26,15 +26,23 @@
 
                 <div class="flex flex-wrap items-center gap-x-4 gap-y-2 px-1">
                     <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                        <span class="h-2.5 w-2.5 rounded-full bg-[#3D8C8C]"></span> Casual Leasing
+                        <span class="h-2.5 w-2.5 rounded-full bg-[#E0A800]"></span> Booked
                     </span>
                     <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                        <span class="h-2.5 w-2.5 rounded-full bg-[#F2A73B]"></span> Promotion Event
+                        <span class="h-2.5 w-2.5 rounded-full bg-[#2E9E5B]"></span> Confirmed
                     </span>
                     <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                        <span class="h-2.5 w-2.5 rounded-full bg-[#D65A4A]"></span> Operation/Internal Event
+                        <span class="h-2.5 w-2.5 rounded-full bg-[#2F6FED]"></span> Paid
                     </span>
                 </div>
+
+                @if (auth()->check() && in_array('admin', auth()->user()->roles(), true))
+                    <a href="{{ route('event-calendar.setup.index') }}"
+                        class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                        <i class="fa-solid fa-gear text-xs"></i>
+                        Setup
+                    </a>
+                @endif
 
                 <button type="button" id="openCreateEventModal"
                     class="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
@@ -50,62 +58,26 @@
 
     <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
         <div class="p-4">
-            <div id="calendar"></div>
+            @if ($locations->isEmpty())
+                <div class="flex flex-col items-center justify-center gap-2 py-16 text-center">
+                    <span class="text-3xl">📍</span>
+                    <p class="text-sm font-medium text-slate-600 dark:text-slate-300">No event locations available to you yet</p>
+                    <p class="text-xs text-slate-400">Ask an admin to set up a location for your company and department.</p>
+                </div>
+            @else
+                <div id="calendar"></div>
+            @endif
         </div>
     </div>
 
     <style>
-        /* Linear-style event banners: full-width, square, aligned to day columns */
-        #calendar .fc-daygrid-day-frame {
-            padding-left: 0;
-            padding-right: 0;
-            min-height: 90px;
-        }
-
-        #calendar .fc-daygrid-body tr {
-            height: auto;
-        }
-
-        #calendar .fc-daygrid-day-top {
-            padding: 6px 8px 0;
-        }
-
-        #calendar .fc-daygrid-day-events {
-            padding: 0;
-            margin-top: 2px;
-        }
-
-        #calendar .fc-daygrid-event-harness {
-            margin: 0 !important;
-        }
-
-        #calendar .fc-daygrid-event-harness + .fc-daygrid-event-harness {
-            margin-top: 1px !important;
-        }
-
+        /* Event bar content: ID badge + title + creator avatar */
         #calendar .fc-event {
-            border-radius: 0 !important;
-            margin: 0 !important;
-            padding: 4px 8px !important;
+            border-radius: 6px !important;
+            padding: 2px 8px !important;
             font-weight: 600;
         }
 
-        #calendar .fc-daygrid-more-link {
-            margin: 2px 8px 0 !important;
-        }
-
-        /* Keep month-grid bars flat pastel; the colored border is only
-           meant to drive the list view's dot indicator */
-        #calendar .fc-daygrid-event {
-            border-color: transparent !important;
-        }
-
-        /* Tentative events render at half opacity; finalized events stay solid */
-        #calendar .fc-event.fc-event-tentative {
-            opacity: 0.55 !important;
-        }
-
-        /* Event bar content: ID badge + title + location meta + creator avatar */
         #calendar .fc-event-main-frame {
             display: flex;
             align-items: center;
@@ -126,14 +98,6 @@
             white-space: nowrap;
         }
 
-        #calendar .fc-event-main-frame .fc-event-meta {
-            flex-shrink: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            opacity: 0.75;
-        }
-
         #calendar .fc-event-creator-avatar {
             flex-shrink: 0;
             margin-left: auto;
@@ -149,15 +113,22 @@
             line-height: 1;
         }
 
-        /* List view: badges sit right next to the title instead of
-           being pushed to the far edge of the wide title cell */
-        #calendar .fc-list-event-title .fc-event-main-frame {
-            display: inline-flex;
-            width: auto;
+        /* Weekend (Sat/Sun) date columns: header label + body lane, both tinted red */
+        #calendar .fc-weekend-slot {
+            background: rgba(220, 38, 38, 0.08) !important;
         }
 
-        #calendar .fc-list-event-title .fc-event-creator-avatar {
-            margin-left: 6px;
+        #calendar .fc-timeline-header .fc-weekend-slot .fc-timeline-slot-cushion {
+            color: #dc2626;
+            font-weight: 700;
+        }
+
+        .dark #calendar .fc-weekend-slot {
+            background: rgba(248, 113, 113, 0.12) !important;
+        }
+
+        .dark #calendar .fc-timeline-header .fc-weekend-slot .fc-timeline-slot-cushion {
+            color: #f87171;
         }
     </style>
 
@@ -220,34 +191,14 @@
 
                         <div>
                             <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                Company *
-                            </label>
-                            <select id="cpnyid" name="cpnyid" required
-                                class="select2 h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
-                                <option value="">Select Company</option>
-                                @foreach ($companies as $c)
-                                    <option value="{{ $c->cpny_id }}">{{ $c->cpny_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
                                 Location *
                             </label>
-                            <select id="location_id" name="location_id" required
-                                class="select2 h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
-                                <option value="">Select Company first</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                Sub Location
-                            </label>
-                            <select id="sub_location_id" name="sub_location_id"
-                                class="select2 h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
-                                <option value="">Select Location first</option>
+                            <select id="location_row_id" name="location_row_id" required
+                                class="h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
+                                <option value=""></option>
+                                @foreach ($locations as $l)
+                                    <option value="{{ $l->id }}">{{ $l->event_location_name }}</option>
+                                @endforeach
                             </select>
                         </div>
 
@@ -290,15 +241,6 @@
                                 End Date *
                             </label>
                             <input type="date" id="event_end_date" name="event_end_date" required
-                                class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
-                        </div>
-
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                Total Area (m²)
-                            </label>
-                            <input type="number" step="0.01" min="0" id="event_total_area" name="event_total_area"
-                                placeholder="0.00"
                                 class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
                         </div>
 
@@ -367,19 +309,125 @@
 
     </div>
 
-    <script>
-        window.EventCalendarLocations = {!! json_encode($locations->map(fn($l) => [
-            'cpny_id' => $l->cpny_id,
-            'location_id' => $l->location_id,
-            'location_name' => $l->location_name,
-        ])) !!};
+    {{-- VIEW MODAL --}}
+    <div id="eventViewModal" class="fixed inset-0 z-[50] hidden items-center justify-center p-4">
 
-        window.EventCalendarSubLocations = {!! json_encode($subLocations->map(fn($s) => [
-            'cpny_id' => $s->cpny_id,
-            'location_id' => $s->location_id,
-            'sub_location_id' => $s->sub_location_id,
-            'sub_location_name' => $s->sub_location_name,
-        ])) !!};
+        <div
+            class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70">
+        </div>
+
+        <div
+            class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-2xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+
+            <div
+                class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
+
+                <div>
+                    <h2 id="eventViewTitle" class="text-sm font-bold text-slate-900 dark:text-white">
+                        Event Details
+                    </h2>
+                    <p id="eventViewSubtitle" class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                    </p>
+                </div>
+
+                <button type="button" id="closeEventViewModal"
+                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+
+            </div>
+
+            <div class="space-y-4 bg-slate-50 p-5 dark:bg-[#0b1220]">
+
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+                    <div>
+                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Event Name</p>
+                        <p id="view_event_name" class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">-</p>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Tenant / Event Company Name</p>
+                        <p id="view_event_company_name" class="mt-1 text-sm text-slate-700 dark:text-slate-200">-</p>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Location</p>
+                        <p id="view_event_location" class="mt-1 text-sm text-slate-700 dark:text-slate-200">-</p>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Event Type</p>
+                        <p id="view_event_type" class="mt-1 text-sm text-slate-700 dark:text-slate-200">-</p>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Event Status</p>
+                        <p id="view_event_status" class="mt-1 text-sm text-slate-700 dark:text-slate-200">-</p>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Status</p>
+                        <p id="view_status" class="mt-1 text-sm text-slate-700 dark:text-slate-200">-</p>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Start Date</p>
+                        <p id="view_event_start_date" class="mt-1 text-sm text-slate-700 dark:text-slate-200">-</p>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">End Date</p>
+                        <p id="view_event_end_date" class="mt-1 text-sm text-slate-700 dark:text-slate-200">-</p>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Location Total Area (m²)</p>
+                        <p id="view_event_total_area" class="mt-1 text-sm text-slate-700 dark:text-slate-200">-</p>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Created By</p>
+                        <p id="view_created_by" class="mt-1 text-sm text-slate-700 dark:text-slate-200">-</p>
+                    </div>
+
+                </div>
+
+                <div>
+                    <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Description</p>
+                    <p id="view_event_description" class="mt-1 whitespace-pre-line text-sm text-slate-700 dark:text-slate-200">-</p>
+                </div>
+
+            </div>
+
+            <div
+                class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
+
+                <div class="flex items-center justify-end gap-3">
+                    <button type="button" id="closeEventViewBtn"
+                        class="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                        Close
+                    </button>
+
+                    <button type="button" id="editEventFromViewBtn"
+                        class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
+                        <i class="fa-solid fa-pen text-xs"></i>
+                        Edit
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        window.EventCalendarResources = {!! json_encode($locations->map(fn($l) => [
+            'id' => $l->id,
+            'title' => $l->event_total_area ? "{$l->event_location_name} - {$l->event_total_area} m²" : $l->event_location_name,
+            'cpny_name' => optional($l->company)->cpny_name,
+        ])->values()) !!};
 
         window.EventCalendarRoutes = {
             json: '{{ route('event-calendar.json') }}',
@@ -390,6 +438,11 @@
         };
     </script>
 
-    <script src="{{ asset('assets/js/event_calendar/calendar.js') }}"></script>
-
 </x-app-layout>
+
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar-scheduler@6.1.11/index.global.min.js"></script>
+
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+
+<script src="{{ asset('assets/js/event_calendar/calendar.js') }}?v={{ filemtime(public_path('assets/js/event_calendar/calendar.js')) }}"></script>

@@ -2,7 +2,12 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>{{ $ticket->ticketid }} — {{ $ticket->ticket_type === 'BSFOSUPPORTTICKET' ? 'BS&FO Support Ticket' : 'Engineering Support Ticket' }}</title>
+    <title>{{ $ticket->ticketid }} — {{ match($ticket->ticket_type) {
+        'BA_BSFO' => 'Berita Acara BSFO',
+        'BA_ENG' => 'Berita Acara ENG',
+        'BSFOSUPPORTTICKET' => 'BS&FO Support Ticket',
+        default => 'Engineering Support Ticket',
+    } }}</title>
 
     <style>
         body {
@@ -251,7 +256,12 @@
         $pName  = optional($ticket->priority)->ticket_priority_name ?? $ticket->ticket_priority ?? '-';
         $pLower = strtolower($pName);
 
-        $moduleLabel = $ticket->ticket_type === 'BSFOSUPPORTTICKET' ? 'BS&FO SUPPORT TICKET' : 'ENGINEERING SUPPORT TICKET';
+        $moduleLabel = match($ticket->ticket_type) {
+            'BA_BSFO' => 'BERITA ACARA BSFO',
+            'BA_ENG' => 'BERITA ACARA ENG',
+            'BSFOSUPPORTTICKET' => 'BS&FO SUPPORT TICKET',
+            default => 'ENGINEERING SUPPORT TICKET',
+        };
     @endphp
 
     <div class="page">
@@ -264,7 +274,10 @@
                     <div class="company">{{ $ticket->cpny_id ?? '-' }} &nbsp;·&nbsp; {{ $ticket->department_id ?? '-' }}</div>
                 </td>
                 <td style="text-align:right;">
-                    <div class="doc-number">{{ $ticket->ticketid }}</div>
+                    <div class="doc-number">{{ $baAutoNumber ?? $ticket->ticketid }}</div>
+                    @if ($baAutoNumber)
+                        <div style="font-size:10px; color:#888; margin-top:2px;">{{ $ticket->ticketid }}</div>
+                    @endif
                     <div class="doc-date">{{ optional($ticket->ticketdate)->format('d F Y') ?? '-' }}</div>
                     <div class="doc-status">{{ $statusLabel }}</div>
                 </td>

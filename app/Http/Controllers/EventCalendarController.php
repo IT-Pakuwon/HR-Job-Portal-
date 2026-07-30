@@ -2,10 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MsCompany;
 use App\Models\MsEvent;
-use App\Models\MsLocation;
-use App\Models\MsSubLocation;
+use App\Models\MsEventLocation;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,9 +17,17 @@ class EventCalendarController extends Controller
     ];
 
     public const EVENT_STATUSES = [
-        'Final Event' => 'Final Event',
-        'Tentative Event' => 'Tentative Event',
+        'Booked' => 'Booked',
+        'Confirmed' => 'Confirmed',
+        'Paid' => 'Paid',
     ];
+
+    private function isAdmin(): bool
+    {
+        $user = auth()->user();
+
+        return $user && in_array('admin', $user->roles(), true);
+    }
 
     private function userCpnyIds(): array
     {
@@ -32,46 +38,106 @@ class EventCalendarController extends Controller
             : (array) $user->cpny_id;
     }
 
+    private function userDepartmentIds(): array
+    {
+        $user = auth()->user();
+
+        return is_string($user->department_id)
+            ? array_filter(array_map('trim', explode(',', $user->department_id)))
+            : (array) $user->department_id;
+    }
+
+    private function firstUserDepartmentId(): ?string
+    {
+        return $this->userDepartmentIds()[0] ?? null;
+    }
+
+    /**
+     * Locations the current user is allowed to see/book.
+     * Admins see every active location; everyone else is scoped to their
+     * own company AND a department overlap with the location's allowed list.
+     */
+    private function visibleLocations(): \Illuminate\Support\Collection
+    {
+        $query = MsEventLocation::query()
+            ->whereNull('deleted_at')
+            ->where('status', 'A')
+            ->with('company');
+
+        if ($this->isAdmin()) {
+            return $query->get()->sortBy('event_location_name')->values();
+        }
+
+        $cpnyIds = $this->userCpnyIds();
+        $userDeptIds = $this->userDepartmentIds();
+
+        if (!empty($cpnyIds)) {
+            $query->whereIn('cpny_id', $cpnyIds);
+        }
+
+        return $query->get()
+            ->filter(fn (MsEventLocation $location) => array_intersect($location->departmentIds(), $userDeptIds) !== [])
+            ->sortBy('event_location_name')
+            ->values();
+    }
+
+    private function visibleLocationIds(): array
+    {
+        return $this->visibleLocations()->pluck('id')->all();
+    }
+
+    /**
+     * ms_event.event_location_id is only unique per company (the same business
+     * code can exist under multiple companies), so matching events/locations
+     * for the timeline must always key on the (cpnyid, event_location_id) pair,
+     * never event_location_id alone.
+     */
+    private function locationsByKey(): \Illuminate\Support\Collection
+    {
+        return MsEventLocation::query()
+            ->whereNull('deleted_at')
+            ->get()
+            ->keyBy(fn (MsEventLocation $l) => $l->cpny_id.'|'.$l->event_location_id);
+    }
+
     public function index()
     {
-        $cpnyIds = $this->userCpnyIds();
-
-        $companies = MsCompany::query()
-            ->where('status', 'A')
-            ->when(!empty($cpnyIds), fn ($query) => $query->whereIn('cpny_id', $cpnyIds))
-            ->orderBy('cpny_name')
-            ->get(['cpny_id', 'cpny_name']);
-
-        $locations = MsLocation::query()
-            ->where('status', 'A')
-            ->orderBy('location_name')
-            ->get(['cpny_id', 'location_id', 'location_name']);
-
-        $subLocations = MsSubLocation::query()
-            ->where('status', 'A')
-            ->orderBy('sub_location_name')
-            ->get(['cpny_id', 'sub_location_id', 'location_id', 'sub_location_name']);
-
-        return view('pages.event_calendar.calendar', [
-            'companies' => $companies,
-            'locations' => $locations,
-            'subLocations' => $subLocations,
-            'eventTypes' => self::EVENT_TYPES,
-            'eventStatuses' => self::EVENT_STATUSES,
-        ]);
+        return response()
+            ->view('pages.event_calendar.calendar', [
+                'locations' => $this->visibleLocations(),
+                'eventTypes' => self::EVENT_TYPES,
+                'eventStatuses' => self::EVENT_STATUSES,
+                'isAdmin' => $this->isAdmin(),
+            ])
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache');
     }
 
     public function json(Request $request)
     {
-        $cpnyIds = $this->userCpnyIds();
+        $isAdmin = $this->isAdmin();
 
         $query = MsEvent::query()->whereNull('deleted_at');
 
-        if (!empty($cpnyIds)) {
-            $query->whereIn('cpnyid', $cpnyIds);
+        if (!$isAdmin) {
+            // Coarse SQL-level pre-filter (cpnyid alone is never ambiguous); the
+            // precise (cpnyid, event_location_id) pair check happens below.
+            $query->whereIn('cpnyid', $this->userCpnyIds());
         }
 
-        $events = $query->with(['location', 'subLocation'])->get();
+        $events = $query->get();
+
+        $locationsByKey = $this->locationsByKey();
+
+        if (!$isAdmin) {
+            $visibleKeys = $this->visibleLocations()
+                ->map(fn (MsEventLocation $l) => $l->cpny_id.'|'.$l->event_location_id)
+                ->all();
+
+            $events = $events->filter(
+                fn (MsEvent $event) => in_array($event->cpnyid.'|'.$event->event_location_id, $visibleKeys, true)
+            );
+        }
 
         $creatorNames = User::query()
             ->whereIn('username', $events->pluck('created_user')->filter()->unique())
@@ -79,9 +145,12 @@ class EventCalendarController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $events->map(function (MsEvent $event) use ($creatorNames) {
+            'data' => $events->values()->map(function (MsEvent $event) use ($creatorNames, $locationsByKey) {
+                $location = $locationsByKey->get($event->cpnyid.'|'.$event->event_location_id);
+
                 return [
                     'id' => $event->id,
+                    'resourceId' => optional($location)->id,
                     'event_id' => $event->event_id,
                     'title' => $event->event_name,
                     'start' => optional($event->event_start_date)->format('Y-m-d'),
@@ -93,13 +162,11 @@ class EventCalendarController extends Controller
                         'event_company_name' => $event->event_company_name,
                         'event_type' => $event->event_type,
                         'event_status' => $event->event_status,
-                        'location_id' => $event->location_id,
-                        'location_name' => optional($event->location)->location_name,
-                        'sub_location_id' => $event->sub_location_id,
-                        'sub_location_name' => optional($event->subLocation)->sub_location_name,
+                        'location_row_id' => optional($location)->id,
+                        'event_location_id' => $event->event_location_id,
                         'event_start_date' => optional($event->event_start_date)->format('Y-m-d'),
                         'event_end_date' => optional($event->event_end_date)->format('Y-m-d'),
-                        'event_total_area' => $event->event_total_area,
+                        'event_total_area' => optional($location)->event_total_area,
                         'event_description' => $event->event_description,
                         'product_check_exp' => $event->product_check_exp,
                         'status' => $event->status,
@@ -127,31 +194,48 @@ class EventCalendarController extends Controller
     private function rules(): array
     {
         return [
-            'cpnyid' => 'required|string|exists:pgsql2.ms_company,cpny_id',
-            'location_id' => 'required|string|exists:pgsql.ms_location,location_id',
-            'sub_location_id' => 'nullable|string',
+            // The client submits the location's row id (globally unique), not
+            // event_location_id, since that business code is only unique per
+            // company and a bare string match would be ambiguous.
+            'location_row_id' => 'required|integer|exists:pgsql5.ms_event_location,id',
             'event_name' => 'required|string|max:255',
             'event_company_name' => 'nullable|string|max:255',
             'event_type' => 'required|in:'.implode(',', array_keys(self::EVENT_TYPES)),
             'event_status' => 'required|in:'.implode(',', array_keys(self::EVENT_STATUSES)),
             'event_start_date' => 'required|date',
             'event_end_date' => 'required|date|after_or_equal:event_start_date',
-            'event_total_area' => 'nullable|numeric',
             'event_description' => 'nullable|string',
             'product_check_exp' => 'nullable|date',
             'status' => 'required|in:A,X',
         ];
     }
 
+    private function assertLocationVisible(int $locationRowId): void
+    {
+        abort_unless(
+            $this->isAdmin() || in_array($locationRowId, $this->visibleLocationIds(), true),
+            403,
+            'You are not allowed to book this location.'
+        );
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate($this->rules());
 
-        $event = DB::connection('pgsql5')->transaction(function () use ($data) {
+        $this->assertLocationVisible((int) $data['location_row_id']);
+
+        $location = MsEventLocation::query()->whereNull('deleted_at')->findOrFail($data['location_row_id']);
+        unset($data['location_row_id']);
+
+        $event = DB::connection('pgsql5')->transaction(function () use ($data, $location) {
             return MsEvent::create([
                 'event_id' => $this->nextEventId(),
                 'event_create_date' => now(),
                 ...$data,
+                'event_location_id' => $location->event_location_id,
+                'cpnyid' => $location->cpny_id,
+                'department_id' => $this->firstUserDepartmentId(),
                 'created_user' => auth()->user()->username,
             ]);
         });
@@ -169,9 +253,16 @@ class EventCalendarController extends Controller
 
         $data = $request->validate($this->rules());
 
-        DB::connection('pgsql5')->transaction(function () use ($data, $event) {
+        $this->assertLocationVisible((int) $data['location_row_id']);
+
+        $location = MsEventLocation::query()->whereNull('deleted_at')->findOrFail($data['location_row_id']);
+        unset($data['location_row_id']);
+
+        DB::connection('pgsql5')->transaction(function () use ($data, $event, $location) {
             $event->update([
                 ...$data,
+                'event_location_id' => $location->event_location_id,
+                'cpnyid' => $location->cpny_id,
                 'updated_user' => auth()->user()->username,
             ]);
         });

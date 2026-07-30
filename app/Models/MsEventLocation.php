@@ -14,11 +14,13 @@ class MsEventLocation extends Model
         'cpny_id',
         'event_location_id',
         'event_location_name',
+        'event_total_area',
         'event_department_id',
         'status',
         'created_by',
         'updated_by',
         'deleted_by',
+        'deleted_at',
     ];
 
     public function company()
@@ -26,8 +28,8 @@ class MsEventLocation extends Model
         return $this->belongsTo(MsCompany::class, 'cpny_id', 'cpny_id');
     }
 
-    public function department()
+    public function departmentIds(): array
     {
-        return $this->belongsTo(MsDepartment::class, 'event_department_id', 'department_id');
+        return array_values(array_filter(array_map('trim', explode(',', (string) $this->event_department_id))));
     }
 }

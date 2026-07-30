@@ -24,8 +24,8 @@ class MsEvent extends Model
         'event_location_id',
         'event_start_date',
         'event_end_date',
-        'event_total_area',
         'event_description',
+        'pic_event',
         'product_check_exp',
         'status',
         'created_user',
@@ -47,10 +47,5 @@ class MsEvent extends Model
     public function department()
     {
         return $this->belongsTo(MsDepartment::class, 'department_id', 'department_id');
-    }
-
-    public function eventLocation()
-    {
-        return $this->belongsTo(MsEventLocation::class, 'event_location_id', 'event_location_id');
     }
 }

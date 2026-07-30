@@ -48,6 +48,10 @@ class EngTicketController extends Controller
 
     protected const BA_TICKET_TYPE = 'BERITAACARA';
 
+    protected const BA_BSFO_TICKET_TYPE = 'BA_BSFO';
+
+    protected const BA_ENG_TICKET_TYPE = 'BA_ENG';
+
     protected const ENG_ROLE_ID = 'OPRTEKNIKENG';
 
     protected const BSFO_ROLE_ID = 'OPRTEKNIKBS';
@@ -125,6 +129,8 @@ class EngTicketController extends Controller
                 self::ENG_TICKET_TYPE,
                 self::BSFO_TICKET_TYPE,
                 self::BA_TICKET_TYPE,
+                self::BA_BSFO_TICKET_TYPE,
+                self::BA_ENG_TICKET_TYPE,
             ])
             ->where('status', 'A')
             ->pluck('ticket_type')
@@ -133,6 +139,14 @@ class EngTicketController extends Controller
 
     protected function approvalConditionFor(TrTicket $ticket): string
     {
+        if ($ticket->ticket_type === self::BA_BSFO_TICKET_TYPE) {
+            return 'BA BSFO';
+        }
+
+        if ($ticket->ticket_type === self::BA_ENG_TICKET_TYPE) {
+            return 'BA ENG';
+        }
+
         if ($ticket->ticket_type === self::BA_TICKET_TYPE) {
             $category = MsTicketCategory::find($ticket->ticket_categoryid);
             $catName = $category?->ticket_category_name ?? '';
@@ -142,6 +156,36 @@ class EngTicketController extends Controller
         return $ticket->ticket_type === self::BSFO_TICKET_TYPE
             ? 'BSFO'
             : 'Engineering';
+    }
+
+    protected function baTypePrefix(string $ticketType): string
+    {
+        return match ($ticketType) {
+            self::BA_BSFO_TICKET_TYPE => 'BA-BSFO',
+            self::BA_ENG_TICKET_TYPE  => 'BA-ENG',
+            default => 'BA',
+        };
+    }
+
+    protected function formatBaAutoNumber(string $ticketType, int $seq, string $deptOrCode, string $month, string $year): string
+    {
+        $prefix = $this->baTypePrefix($ticketType);
+        return sprintf('%03d', $seq) . '/' . $prefix . '/' . strtoupper($deptOrCode) . '/' . $month . '/' . $year;
+    }
+
+    protected function getBaAutoNumber(TrTicket $ticket): ?string
+    {
+        if (!in_array($ticket->ticket_type, [self::BA_BSFO_TICKET_TYPE, self::BA_ENG_TICKET_TYPE], true)) {
+            return null;
+        }
+
+        $seq = (int) substr($ticket->ticketid, -4);
+        $code = $ticket->cpny_id ?? $ticket->department_id ?? 'XX';
+        $dt = $ticket->ticketdate ? Carbon::parse($ticket->ticketdate) : now();
+        $month = $dt->format('m');
+        $year = $dt->format('Y');
+
+        return $this->formatBaAutoNumber($ticket->ticket_type, $seq, $code, $month, $year);
     }
 
     /*
@@ -204,7 +248,7 @@ class EngTicketController extends Controller
             return $this->isBSFO() || $this->isBSFORole();
         }
 
-        if ($ticketType === self::BA_TICKET_TYPE) {
+        if (in_array($ticketType, [self::BA_TICKET_TYPE, self::BA_BSFO_TICKET_TYPE, self::BA_ENG_TICKET_TYPE], true)) {
             return $this->isEng() || $this->isENGRole()
                 || $this->isBSFO() || $this->isBSFORole();
         }
@@ -219,19 +263,21 @@ class EngTicketController extends Controller
     protected function broadAccessTicketTypes(): array
     {
         if ($this->isMgrOprTeknik()) {
-            return [self::ENG_TICKET_TYPE, self::BSFO_TICKET_TYPE, self::BA_TICKET_TYPE];
+            return [self::ENG_TICKET_TYPE, self::BSFO_TICKET_TYPE, self::BA_TICKET_TYPE, self::BA_BSFO_TICKET_TYPE, self::BA_ENG_TICKET_TYPE];
         }
+
+        $baTypes = [self::BA_TICKET_TYPE, self::BA_BSFO_TICKET_TYPE, self::BA_ENG_TICKET_TYPE];
 
         $types = [];
 
         if ($this->isEng() || $this->isENGRole()) {
             $types[] = self::ENG_TICKET_TYPE;
-            $types[] = self::BA_TICKET_TYPE;
+            $types = array_merge($types, $baTypes);
         }
 
         if ($this->isBSFO() || $this->isBSFORole()) {
             $types[] = self::BSFO_TICKET_TYPE;
-            $types[] = self::BA_TICKET_TYPE;
+            $types = array_merge($types, $baTypes);
         }
 
         return array_values(array_unique($types));
@@ -1145,6 +1191,7 @@ class EngTicketController extends Controller
             'subcategory',
             'priority',
             'site',
+            'type',
         ])->findOrFail($id);
 
         /*
@@ -1241,6 +1288,10 @@ class EngTicketController extends Controller
                     'department_id' => $ticket->department_id,
 
                     'ticket_type' => $ticket->ticket_type,
+
+                    'ticket_type_name' => optional($ticket->type)->ticket_type_name,
+
+                    'ba_auto_number' => $this->getBaAutoNumber($ticket),
 
                     'ticket_categoryid' => $ticket->ticket_categoryid,
 
@@ -2708,8 +2759,69 @@ class EngTicketController extends Controller
         return response()->json($counts);
     }
 
+    protected function ensureBaMasterData(): void
+    {
+        $baTypes = [
+            self::BA_BSFO_TICKET_TYPE => 'Berita Acara BSFO',
+            self::BA_ENG_TICKET_TYPE  => 'Berita Acara ENG',
+        ];
+
+        foreach ($baTypes as $code => $name) {
+            MsTicketType::firstOrCreate(
+                ['ticket_type' => $code],
+                [
+                    'ticket_type_name' => $name,
+                    'status' => 'A',
+                    'created_by' => 'system',
+                ]
+            );
+
+            $existingCategories = MsTicketCategory::query()
+                ->where('ticket_type', self::BA_TICKET_TYPE)
+                ->where('status', 'A')
+                ->get();
+
+            foreach ($existingCategories as $cat) {
+                $newCatId = $code . '_' . $cat->ticket_categoryid;
+
+                MsTicketCategory::firstOrCreate(
+                    ['ticket_categoryid' => $newCatId],
+                    [
+                        'ticket_category_name' => $cat->ticket_category_name,
+                        'ticket_type' => $code,
+                        'status' => 'A',
+                        'created_by' => 'system',
+                    ]
+                );
+
+                $existingSubcategories = MsTicketSubcategory::query()
+                    ->where('ticket_categoryid', $cat->ticket_categoryid)
+                    ->where('ticket_type', self::BA_TICKET_TYPE)
+                    ->where('status', 'A')
+                    ->get();
+
+                foreach ($existingSubcategories as $sub) {
+                    $newSubId = $code . '_' . $sub->ticket_subcategoryid;
+
+                    MsTicketSubcategory::firstOrCreate(
+                        ['ticket_subcategoryid' => $newSubId],
+                        [
+                            'ticket_subcategory_name' => $sub->ticket_subcategory_name,
+                            'ticket_categoryid' => $newCatId,
+                            'ticket_type' => $code,
+                            'status' => 'A',
+                            'created_by' => 'system',
+                        ]
+                    );
+                }
+            }
+        }
+    }
+
     public function createDropdown()
     {
+        $this->ensureBaMasterData();
+
         $user = auth()->user();
 
         $companies = MsCompany::query()
@@ -3258,7 +3370,9 @@ class EngTicketController extends Controller
 
         $respondedBy = $responseActivity?->created_by ?? $ticket->pic_ticket;
 
-        $pdf = \PDF::loadView('pages.eng-ticket.print', compact('ticket', 'attachments', 'respondedBy'))
+        $baAutoNumber = $this->getBaAutoNumber($ticket);
+
+        $pdf = \PDF::loadView('pages.eng-ticket.print', compact('ticket', 'attachments', 'respondedBy', 'baAutoNumber'))
             ->setPaper('a4', 'portrait');
 
         return $pdf->stream("TICKET-{$ticket->ticketid}.pdf");

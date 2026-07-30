@@ -436,10 +436,10 @@
                                 <th class="w-20 border p-3 text-center">COA</th>
                                 <th class="w-24 border p-3 text-center">Activity</th>
                                 <th class="w-[16%] border p-3">Activity Descr</th>
-                                <th class="w-24 border p-3 text-right">Amount Expense</th>
-                                <th class="w-24 border p-3 text-right">Budget Remain</th>
-                                <th class="w-24 border p-3 text-right">Budget Needed</th>
-                                <th class="w-24 border p-3 text-right">Budget Requested</th>
+                                <th class="w-24 border p-3 text-left">Amount Expense</th>
+                                <th class="w-24 border p-3 text-left">Budget Remain</th>
+                                <th class="w-24 border p-3 text-left">Budget Needed</th>
+                                <th class="w-24 border p-3 text-left">Budget Requested</th>
                                 <th class="w-[14%] border p-3">Note</th>
                             </tr>
                         </thead>
@@ -450,10 +450,10 @@
                                     <td class="px-4 py-2">{{ $item->budget_account_id }}</td>
                                     <td class="px-4 py-2">{{ $item->budget_activity_id }}</td>
                                     <td class="px-4 py-2">{{ $item->budget_activity_descr }}</td>
-                                    <td class="px-4 py-2">{{ number_format((float) $item->amount_expense, 2) }}</td>
-                                    <td class="px-4 py-2">{{ number_format((float) $item->budget_remain, 2) }}</td>
-                                    <td class="px-4 py-2">{{ number_format((float) $item->budget_needed, 2) }}</td>
-                                    <td class="px-4 py-2">{{ number_format((float) $item->budget_requested, 2) }}</td>
+                                    <td class="px-4 py-2 text-left">{{ number_format((float) $item->amount_expense, 2) }}</td>
+                                    <td class="px-4 py-2 text-left">{{ number_format((float) $item->budget_remain, 2) }}</td>
+                                    <td class="px-4 py-2 text-left">{{ number_format((float) $item->budget_needed, 2) }}</td>
+                                    <td class="px-4 py-2 text-left">{{ number_format((float) $item->budget_requested, 2) }}</td>
                                     <td class="px-4 py-2">{{ $item->note }}</td>
                                 </tr>
                             @endforeach

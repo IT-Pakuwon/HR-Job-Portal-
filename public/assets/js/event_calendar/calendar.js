@@ -1,6 +1,6 @@
 // ============================================================
 // calendar.js — Event Calendar
-// FullCalendar view + drag-to-create + create/edit/delete modal
+// Resource timeline: locations as rows, days of month as columns
 // ============================================================
 
 const EventCalendarApp = {
@@ -8,12 +8,14 @@ const EventCalendarApp = {
     state: {
         calendar: null,
         modalMode: 'create', // 'create' | 'edit'
+        locationTom: null,
+        viewingEvent: null,
     },
 
-    typeColors: {
-        'Casual Leasing': { bg: '#E3F2F1', text: '#1F5C5C' },
-        'Promotion Event': { bg: '#FDF1DC', text: '#9A6314' },
-        'Operation/Internal Event': { bg: '#FBE7E4', text: '#9C3226' },
+    statusColors: {
+        'Booked': { bg: '#FFF6DB', text: '#8A6600' },
+        'Confirmed': { bg: '#E4F6EC', text: '#1B7A43' },
+        'Paid': { bg: '#E5EEFF', text: '#2149B3' },
     },
 
     csrf() {
@@ -29,6 +31,7 @@ const EventCalendarApp = {
 
     async request(url, options = {}) {
         const defaults = {
+            cache: 'no-store',
             headers: {
                 'X-CSRF-TOKEN': EventCalendarApp.csrf(),
                 'X-Requested-With': 'XMLHttpRequest',
@@ -66,13 +69,13 @@ const EventCalendarApp = {
     init() {
         EventCalendarApp.initCalendar();
         EventCalendarApp.initSelect2();
+        EventCalendarApp.initLocationTomSelect();
         EventCalendarApp.bindModalEvents();
-        EventCalendarApp.bindCascadingDropdowns();
         EventCalendarApp.bindStatusToggle();
     },
 
     // --------------------------------------------------------
-    // SELECT2
+    // SELECT2 (Event Type / Event Status)
     // --------------------------------------------------------
     initSelect2() {
         $('#eventModal .select2').select2({
@@ -82,26 +85,65 @@ const EventCalendarApp = {
     },
 
     // --------------------------------------------------------
-    // CALENDAR
+    // TOM SELECT (searchable Location field)
+    // --------------------------------------------------------
+    initLocationTomSelect() {
+        const el = document.getElementById('location_row_id');
+        if (!el) return;
+
+        EventCalendarApp.state.locationTom = new TomSelect(el, {
+            create: false,
+            persist: false,
+            placeholder: 'Select location',
+            maxOptions: 1000,
+        });
+    },
+
+    // --------------------------------------------------------
+    // CALENDAR (resource timeline: locations x days of month)
     // --------------------------------------------------------
     initCalendar() {
         const calendarEl = document.getElementById('calendar');
         if (!calendarEl) return;
 
         EventCalendarApp.state.calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
+            schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
+            initialView: 'resourceTimelineMonth',
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
-                right: 'dayGridMonth,timeGridWeek,listMonth',
+                right: '',
             },
             height: 'auto',
-            contentHeight: 'auto',
-            dayMaxEventRows: 3,
-            moreLinkClick: 'popover',
-            editable: false,
+            expandRows: true,
+            stickyHeaderDates: true,
+            longPressDelay: 0,
+            eventLongPressDelay: 0,
+            selectLongPressDelay: 0,
+            resources: window.EventCalendarResources || [],
+            resourceGroupField: 'cpny_name',
+            resourceOrder: 'cpny_name,title',
+            resourceAreaHeaderContent: 'Location',
             selectable: true,
+            selectMirror: true,
+            editable: false,
             eventDisplay: 'block',
+            slotLabelFormat: [
+                // Top tier: "Week 1", "Week 2"... grouped in 7-day chunks from the 1st of the month.
+                // Adjacent slots with identical text are auto-merged into one spanning header cell.
+                // FullCalendar only recognizes a bare function as a custom formatter (an object is
+                // passed straight to Intl.DateTimeFormat, which ignores unknown keys).
+                (arg) => 'Week ' + Math.ceil(arg.date.day / 7),
+                { day: 'numeric', weekday: 'narrow' },
+            ],
+            slotLabelClassNames(arg) {
+                const day = arg.date.getDay();
+                return (day === 0 || day === 6) ? ['fc-weekend-slot'] : [];
+            },
+            slotLaneClassNames(arg) {
+                const day = arg.date.getDay();
+                return (day === 0 || day === 6) ? ['fc-weekend-slot'] : [];
+            },
             eventContent(arg) {
                 const wrapper = document.createElement('div');
                 wrapper.classList.add('fc-event-main-frame');
@@ -117,16 +159,6 @@ const EventCalendarApp = {
                 wrapper.appendChild(idEl);
                 wrapper.appendChild(titleEl);
 
-                const locationName = arg.event.extendedProps.location_name;
-                const subLocationName = arg.event.extendedProps.sub_location_name;
-                const locationText = [locationName, subLocationName].filter(Boolean).join(' - ');
-                if (locationText) {
-                    const metaEl = document.createElement('span');
-                    metaEl.classList.add('fc-event-meta');
-                    metaEl.textContent = `| ${locationText}`;
-                    wrapper.appendChild(metaEl);
-                }
-
                 const creatorName = arg.event.extendedProps.created_by_name;
                 if (creatorName) {
                     const avatarEl = document.createElement('span');
@@ -138,19 +170,21 @@ const EventCalendarApp = {
 
                 return { domNodes: [wrapper] };
             },
-            dateClick(info) {
-                EventCalendarApp.openCreateModal({
-                    event_start_date: info.dateStr,
-                    event_end_date: info.dateStr,
-                });
-            },
             select(info) {
+                const resourceId = info.resource ? info.resource.id : null;
+
+                if (!resourceId) {
+                    EventCalendarApp.state.calendar.unselect();
+                    return;
+                }
+
                 const start = info.startStr;
                 const end = new Date(info.end);
                 end.setDate(end.getDate() - 1);
                 const endStr = end.toISOString().slice(0, 10);
 
                 EventCalendarApp.openCreateModal({
+                    location_row_id: resourceId,
                     event_start_date: start,
                     event_end_date: endStr < start ? start : endStr,
                 });
@@ -158,7 +192,7 @@ const EventCalendarApp = {
                 EventCalendarApp.state.calendar.unselect();
             },
             eventClick(info) {
-                EventCalendarApp.openEditModal(info.event);
+                EventCalendarApp.openViewModal(info.event);
             },
             events(info, successCallback, failureCallback) {
                 EventCalendarApp.request(window.EventCalendarRoutes.json)
@@ -178,14 +212,14 @@ const EventCalendarApp = {
 
     convertToEvents(items) {
         return items.map((item) => {
-            const colors = EventCalendarApp.typeColors[item.extendedProps.event_type]
+            const colors = EventCalendarApp.statusColors[item.extendedProps.event_status]
                 || { bg: '#eef0f2', text: '#475569' };
 
-            const isFinal = item.extendedProps.event_status === 'Final Event';
             const isCancelled = item.extendedProps.status === 'X';
 
             return {
                 id: item.id,
+                resourceId: item.resourceId,
                 title: item.title,
                 start: item.start,
                 end: item.end,
@@ -193,7 +227,6 @@ const EventCalendarApp = {
                 backgroundColor: isCancelled ? '#eceef1' : colors.bg,
                 borderColor: isCancelled ? '#9ca3af' : colors.text,
                 textColor: isCancelled ? '#9ca3af' : colors.text,
-                classNames: isFinal ? [] : ['fc-event-tentative'],
                 extendedProps: item.extendedProps,
             };
         });
@@ -216,6 +249,14 @@ const EventCalendarApp = {
 
         document.getElementById('eventForm')?.addEventListener('submit', EventCalendarApp.handleSubmit);
         document.getElementById('deleteEventBtn')?.addEventListener('click', EventCalendarApp.handleDelete);
+
+        document.getElementById('closeEventViewModal')?.addEventListener('click', EventCalendarApp.closeViewModal);
+        document.getElementById('closeEventViewBtn')?.addEventListener('click', EventCalendarApp.closeViewModal);
+        document.getElementById('editEventFromViewBtn')?.addEventListener('click', () => {
+            const event = EventCalendarApp.state.viewingEvent;
+            EventCalendarApp.closeViewModal();
+            if (event) EventCalendarApp.openEditModal(event);
+        });
     },
 
     showModal() {
@@ -240,6 +281,59 @@ const EventCalendarApp = {
         }, 200);
     },
 
+    // --------------------------------------------------------
+    // VIEW MODAL (read-only) — opened on eventClick, has an Edit button
+    // --------------------------------------------------------
+    locationName(id) {
+        const resource = (window.EventCalendarResources || []).find((r) => String(r.id) === String(id));
+        return resource ? resource.title : (id || '-');
+    },
+
+    showViewModal() {
+        const modal = document.getElementById('eventViewModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        requestAnimationFrame(() => {
+            modal.querySelector('.modal-backdrop').classList.remove('opacity-0');
+            const panel = modal.querySelector('.modal-panel');
+            panel.classList.remove('opacity-0', 'translate-y-4', 'scale-[0.98]');
+        });
+    },
+
+    closeViewModal() {
+        const modal = document.getElementById('eventViewModal');
+        modal.querySelector('.modal-backdrop').classList.add('opacity-0');
+        const panel = modal.querySelector('.modal-panel');
+        panel.classList.add('opacity-0', 'translate-y-4', 'scale-[0.98]');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 200);
+    },
+
+    openViewModal(event) {
+        EventCalendarApp.state.viewingEvent = event;
+
+        const props = event.extendedProps;
+
+        document.getElementById('eventViewTitle').textContent = event.title || 'Event Details';
+        document.getElementById('eventViewSubtitle').textContent = `Event ${props.event_id || ''}`;
+
+        document.getElementById('view_event_name').textContent = event.title || '-';
+        document.getElementById('view_event_company_name').textContent = props.event_company_name || '-';
+        document.getElementById('view_event_location').textContent = EventCalendarApp.locationName(props.location_row_id);
+        document.getElementById('view_event_type').textContent = props.event_type || '-';
+        document.getElementById('view_event_status').textContent = props.event_status || '-';
+        document.getElementById('view_status').textContent = props.status === 'X' ? 'Inactive' : 'Active';
+        document.getElementById('view_event_start_date').textContent = props.event_start_date || '-';
+        document.getElementById('view_event_end_date').textContent = props.event_end_date || '-';
+        document.getElementById('view_event_total_area').textContent = props.event_total_area || '-';
+        document.getElementById('view_created_by').textContent = props.created_by_name || props.created_by || '-';
+        document.getElementById('view_event_description').textContent = props.event_description || '-';
+
+        EventCalendarApp.showViewModal();
+    },
+
     resetForm() {
         const form = document.getElementById('eventForm');
         form.reset();
@@ -247,18 +341,8 @@ const EventCalendarApp = {
         document.getElementById('status').value = 'A';
         document.getElementById('status_active').checked = true;
         document.getElementById('deleteEventBtn').classList.add('hidden');
-        EventCalendarApp.populateLocations('');
-        EventCalendarApp.populateSubLocations('');
         $('#eventModal .select2').val('').trigger('change');
-    },
-
-    autoSelectCompany() {
-        const select = document.getElementById('cpnyid');
-        const options = Array.from(select.options).filter((o) => o.value !== '');
-
-        if (options.length === 1) {
-            $('#cpnyid').val(options[0].value).trigger('change');
-        }
+        EventCalendarApp.state.locationTom?.clear(true);
     },
 
     openCreateModal(prefill = {}) {
@@ -270,8 +354,7 @@ const EventCalendarApp = {
 
         if (prefill.event_start_date) document.getElementById('event_start_date').value = prefill.event_start_date;
         if (prefill.event_end_date) document.getElementById('event_end_date').value = prefill.event_end_date;
-
-        EventCalendarApp.autoSelectCompany();
+        if (prefill.location_row_id) EventCalendarApp.state.locationTom?.setValue(String(prefill.location_row_id), true);
 
         EventCalendarApp.showModal();
     },
@@ -288,19 +371,13 @@ const EventCalendarApp = {
         document.getElementById('event_row_id').value = event.id;
         document.getElementById('event_name').value = event.title || '';
         document.getElementById('event_company_name').value = props.event_company_name || '';
-        $('#cpnyid').val(props.cpnyid || '').trigger('change');
 
-        EventCalendarApp.populateLocations(props.cpnyid || '');
-        $('#location_id').val(props.location_id || '').trigger('change');
-
-        EventCalendarApp.populateSubLocations(props.location_id || '');
-        $('#sub_location_id').val(props.sub_location_id || '').trigger('change');
+        EventCalendarApp.state.locationTom?.setValue(props.location_row_id ? String(props.location_row_id) : '', true);
 
         $('#event_type').val(props.event_type || '').trigger('change');
         $('#event_status').val(props.event_status || '').trigger('change');
         document.getElementById('event_start_date').value = props.event_start_date || '';
         document.getElementById('event_end_date').value = props.event_end_date || '';
-        document.getElementById('event_total_area').value = props.event_total_area || '';
         document.getElementById('product_check_exp').value = props.product_check_exp || '';
         document.getElementById('event_description').value = props.event_description || '';
 
@@ -310,40 +387,6 @@ const EventCalendarApp = {
         document.getElementById('deleteEventBtn').classList.remove('hidden');
 
         EventCalendarApp.showModal();
-    },
-
-    // --------------------------------------------------------
-    // CASCADING DROPDOWNS (company -> location -> sub-location)
-    // --------------------------------------------------------
-    bindCascadingDropdowns() {
-        $('#cpnyid').on('change', (e) => {
-            EventCalendarApp.populateLocations(e.target.value);
-            EventCalendarApp.populateSubLocations('');
-            $('#location_id, #sub_location_id').val('').trigger('change.select2');
-        });
-
-        $('#location_id').on('change', (e) => {
-            EventCalendarApp.populateSubLocations(e.target.value);
-            $('#sub_location_id').val('').trigger('change.select2');
-        });
-    },
-
-    populateLocations(cpnyId) {
-        const select = document.getElementById('location_id');
-        const all = window.EventCalendarLocations || [];
-        const filtered = cpnyId ? all.filter((l) => l.cpny_id === cpnyId) : [];
-
-        select.innerHTML = '<option value="">' + (cpnyId ? 'Select Location' : 'Select Company first') + '</option>'
-            + filtered.map((l) => `<option value="${l.location_id}">${l.location_name}</option>`).join('');
-    },
-
-    populateSubLocations(locationId) {
-        const select = document.getElementById('sub_location_id');
-        const all = window.EventCalendarSubLocations || [];
-        const filtered = locationId ? all.filter((s) => s.location_id === locationId) : [];
-
-        select.innerHTML = '<option value="">' + (locationId ? 'Select Sub Location' : 'Select Location first') + '</option>'
-            + filtered.map((s) => `<option value="${s.sub_location_id}">${s.sub_location_name}</option>`).join('');
     },
 
     // --------------------------------------------------------

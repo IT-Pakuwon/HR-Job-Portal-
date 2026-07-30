@@ -1326,6 +1326,23 @@
 
                                         </div>
 
+                                        <div id="detail_ba_auto_number_wrap" class="hidden">
+
+                                            <label class="text-xs text-gray-400">
+
+                                                BA Document No
+
+                                            </label>
+
+                                            <p id="detail_ba_auto_number"
+                                                class="mt-1 text-sm font-medium text-gray-800 dark:text-white">
+
+                                                -
+
+                                            </p>
+
+                                        </div>
+
                                         <div>
 
                                             <label class="text-xs text-gray-400">
