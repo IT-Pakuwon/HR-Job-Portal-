@@ -125,6 +125,16 @@
     @push('scripts')
         <script>
             $(function () {
+                @if (session('approval_error'))
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Approval Belum Tersedia',
+                        text: @json(session('approval_error')),
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#4f46e5'
+                    });
+                @endif
+
                 const users = @json($users);
                 const initial = @json(old('participants', $participants->all()));
                 const options = selected => `<option value="">Select Participant</option>` + users.map(user =>

@@ -1,19 +1,36 @@
 <x-app-layout>
-    <div class="mx-auto w-full max-w-9xl p-3">
-        <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <div class="relative overflow-hidden border-b bg-gradient-to-br from-indigo-50 via-white to-violet-50 px-6 py-6 dark:border-gray-700 dark:from-indigo-950/40 dark:via-gray-800 dark:to-violet-950/30">
+    <div id="weeklyMeetingViewport" class="mx-auto w-full max-w-9xl p-3 lg:overflow-hidden">
+        <div class="flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <div class="relative shrink-0 overflow-hidden border-b bg-gradient-to-br from-indigo-50 via-white to-violet-50 px-5 py-3 dark:border-gray-700 dark:from-indigo-950/40 dark:via-gray-800 dark:to-violet-950/30">
                 <div class="pointer-events-none absolute -right-12 -top-16 h-44 w-44 rounded-full bg-indigo-200/30 blur-2xl dark:bg-indigo-500/10"></div>
-                <div class="relative flex flex-wrap items-center gap-3">
-                    <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-none">
-                        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V4a2 2 0 0 1 2-2h12v20H6a2 2 0 0 1-2-2.5Z"/><path d="M8 7h6M8 11h6M8 15h4"/></svg>
-                    </span>
-                    <h1 class="text-xl font-extrabold text-gray-900 dark:text-white">{{ $meeting->weeklymeeting_id }}</h1>
-                    <span class="rounded-full bg-indigo-100 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300">Weekly Meeting</span>
+                <div class="relative flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-none">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V4a2 2 0 0 1 2-2h12v20H6a2 2 0 0 1-2-2.5Z"/><path d="M8 7h6M8 11h6M8 15h4"/></svg>
+                        </span>
+                        <h1 class="text-xl font-extrabold text-gray-900 dark:text-white">{{ $meeting->weeklymeeting_id }}</h1>
+                        <span class="rounded-full bg-indigo-100 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300">Weekly Meeting</span>
+                    </div>
+                    @if ($canApprove)
+                        <button type="button" id="btnApproveWeeklyMeeting"
+                            class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"/></svg>
+                            Approval
+                        </button>
+                    @endif
                 </div>
                 <p class="mt-1 text-sm text-gray-500">{{ $meeting->weeklymeeting_topic }} · {{ $meeting->weeklymeeting_date->format('d M Y') }}</p>
                 <p class="mt-1 text-xs text-gray-400">Finding period: {{ $fromDate->format('d M Y') }} – {{ $toDate->format('d M Y') }}</p>
-                <div class="relative mt-5 rounded-xl border border-white/80 bg-white/70 p-4 shadow-sm backdrop-blur dark:border-gray-600/60 dark:bg-gray-800/50">
-                    <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.12em] text-gray-500">Attendance · {{ $participants->count() }}</p>
+                <div class="relative mt-3 rounded-xl border border-white/80 bg-white/70 px-4 py-2.5 shadow-sm backdrop-blur dark:border-gray-600/60 dark:bg-gray-800/50">
+                    <div class="mb-2 flex items-center gap-2">
+                        <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-gray-500">Attendance · {{ $participants->count() }}</p>
+                        @if (strtoupper((string) $meeting->status) !== 'C')
+                            <button type="button" id="btnEditWeeklyMeeting" title="Edit meeting and attendance"
+                                class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 transition hover:bg-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-300">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                            </button>
+                        @endif
+                    </div>
                     <div class="flex flex-wrap gap-2">
                         @forelse ($participants as $participant)
                             <span class="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300">
@@ -29,9 +46,9 @@
                 </div>
             </div>
 
-            <div class="grid min-h-[650px] grid-cols-1 lg:grid-cols-3">
-            <div class="min-w-0 border-b dark:border-gray-700 lg:col-span-2 lg:border-b-0 lg:border-r">
-            <div class="flex overflow-x-auto border-b px-5 dark:border-gray-700">
+            <div class="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-3">
+            <div class="flex min-h-0 min-w-0 flex-col border-b dark:border-gray-700 lg:col-span-2 lg:border-b-0 lg:border-r">
+            <div class="flex shrink-0 overflow-x-auto border-b px-5 dark:border-gray-700">
                 <button type="button" class="meeting-finding-tab shrink-0 border-b-2 border-indigo-600 px-4 py-3 text-sm font-bold text-indigo-600" data-tab="open">
                     <span class="inline-flex items-center gap-2"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2h8l4 4v16H4V2h4Z"/><path d="M8 2v5h8V2M8 13h8M8 17h5"/></svg>Open Finding ({{ $openFindings->count() }})</span>
                 </button>
@@ -44,7 +61,7 @@
             </div>
 
             @foreach (['open' => [$openFindings, $openDepartmentCards], 'close' => [$closeFindings, $closeDepartmentCards]] as $tab => [$findings, $departmentCards])
-                <div id="{{ $tab }}FindingPanel" class="finding-tab-panel {{ $tab !== 'open' ? 'hidden' : '' }} p-5">
+                <div id="{{ $tab }}FindingPanel" class="finding-tab-panel min-h-0 flex-1 overflow-auto {{ $tab !== 'open' ? 'hidden' : '' }} p-5">
                     <div class="mb-4 flex flex-wrap gap-2">
                         @foreach ($departmentCards as $department)
                             <button type="button"
@@ -56,7 +73,7 @@
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full min-w-[950px] text-sm">
-                            <thead class="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-gray-700">
+                            <thead class="sticky top-0 z-10 bg-gray-50 text-xs uppercase text-gray-500 dark:bg-gray-700">
                                 <tr>
                                     <th class="px-3 py-2 text-left">Finding ID</th>
                                     <th class="px-3 py-2 text-left">Date</th>
@@ -95,26 +112,82 @@
                 </div>
             @endforeach
 
-            <div id="projectFindingPanel" class="finding-tab-panel hidden p-10 text-center text-gray-500">Project Finding table is not available yet.</div>
+            <div id="projectFindingPanel" class="finding-tab-panel hidden min-h-0 flex-1 overflow-auto p-10 text-center text-gray-500">Project Finding table is not available yet.</div>
             </div>
-            <aside class="min-w-0 bg-gray-50/50 p-5 dark:bg-white/[0.02] lg:col-span-1">
-                <div class="mb-4">
+            <aside class="flex min-h-0 min-w-0 flex-col bg-gray-50/50 p-5 dark:bg-white/[0.02] lg:col-span-1">
+                <div class="mb-4 shrink-0">
                     <div class="flex items-center gap-2">
                         <svg class="h-5 w-5 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V4a2 2 0 0 1 2-2h12v20H6a2 2 0 0 1-2-2.5Z"/><path d="M8 7h6M8 11h6M8 15h4"/></svg>
                         <h2 class="font-extrabold text-gray-800 dark:text-white">Minute of Meeting</h2>
                     </div>
                     <p class="mt-1 text-sm text-gray-500">Text and pasted images are saved in one MOM document.</p>
                 </div>
-                <form id="momEditorForm" method="POST" action="{{ route('weekly-meeting.mom.store', $meeting->weeklymeeting_id) }}">
+                <form id="momEditorForm" method="POST" action="{{ route('weekly-meeting.mom.store', $meeting->weeklymeeting_id) }}" class="flex min-h-0 flex-1 flex-col">
                 @csrf
                     <input type="hidden" name="mom_descr" id="momEditorInput">
-                    <div id="momEditor" class="bg-white dark:bg-gray-800">{!! $momContent !!}</div>
-                    <div class="mt-4 flex justify-end">
-                        <button type="submit" id="btnSaveMomEditor" class="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-bold text-white hover:bg-indigo-700">Save MOM</button>
-                    </div>
+                    <div id="momEditor" class="min-h-0 flex-1 bg-white dark:bg-gray-800">{!! $momContent !!}</div>
+                    @if (strtoupper((string) $meeting->status) !== 'C')
+                        <div class="mt-4 flex justify-end">
+                            <button type="submit" id="btnSaveMomEditor" class="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-bold text-white hover:bg-indigo-700">Save MOM</button>
+                        </div>
+                    @endif
                 </form>
             </aside>
             </div>
+        </div>
+    </div>
+
+    <div id="editWeeklyMeetingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+        <div class="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-gray-50 shadow-2xl dark:bg-gray-900">
+            <div class="flex shrink-0 items-center justify-between border-b bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
+                <div><h2 class="text-lg font-extrabold">Edit Weekly Meeting</h2><p class="mt-1 text-xs text-gray-500">{{ $meeting->weeklymeeting_id }}</p></div>
+                <button type="button" class="btnCloseEditMeeting text-2xl text-gray-500">&times;</button>
+            </div>
+            <form id="editWeeklyMeetingForm" action="{{ route('weekly-meeting.update', $meeting->weeklymeeting_id) }}" class="min-h-0 overflow-y-auto">
+                @csrf
+                @method('PUT')
+                <div class="space-y-5 p-5">
+                    <section class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <div class="mb-5 flex items-center gap-3 border-b pb-4 dark:border-gray-700">
+                            <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10">
+                                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V4a2 2 0 0 1 2-2h12v20H6a2 2 0 0 1-2-2.5Z"/><path d="M8 7h6M8 11h6"/></svg>
+                            </span>
+                            <div><h3 class="font-extrabold">Meeting Information</h3><p class="text-xs text-gray-500">Topic, schedule, and meeting time.</p></div>
+                        </div>
+                        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                            <div class="md:col-span-2">
+                                <label class="mb-1.5 block text-sm font-bold">Topic <span class="text-red-500">*</span></label>
+                                <input type="text" name="weeklymeeting_topic" value="{{ $meeting->weeklymeeting_topic }}" required maxlength="500"
+                                    class="w-full rounded-xl border border-gray-200 px-4 py-3 dark:border-gray-600 dark:bg-gray-700">
+                            </div>
+                            <div>
+                                <label class="mb-1.5 block text-sm font-bold">Date <span class="text-red-500">*</span></label>
+                                <input type="date" name="weeklymeeting_date" value="{{ $meeting->weeklymeeting_date->format('Y-m-d') }}" required
+                                    class="w-full rounded-xl border border-gray-200 px-4 py-3 dark:border-gray-600 dark:bg-gray-700">
+                            </div>
+                            <div>
+                                <label class="mb-1.5 block text-sm font-bold">Time <span class="text-red-500">*</span></label>
+                                <input type="time" name="meeting_time" value="{{ $meeting->weeklymeeting_startdate->format('H:i') }}" required
+                                    class="w-full rounded-xl border border-gray-200 px-4 py-3 dark:border-gray-600 dark:bg-gray-700">
+                            </div>
+                        </div>
+                    </section>
+                    <section class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <div class="mb-4 flex items-center justify-between gap-3 border-b pb-4 dark:border-gray-700">
+                            <div>
+                                <div class="flex items-center gap-2"><h3 class="font-extrabold">Attendance</h3><span id="editParticipantCount" class="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">0</span></div>
+                                <p class="text-xs text-gray-500">Update the participant list for this meeting.</p>
+                            </div>
+                            <button type="button" id="btnAddEditParticipant" class="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700">+ Add Participant</button>
+                        </div>
+                        <div id="editParticipantRows" class="space-y-3"></div>
+                    </section>
+                </div>
+                <div class="sticky bottom-0 flex justify-end gap-3 border-t bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
+                    <button type="button" class="btnCloseEditMeeting rounded-xl border px-4 py-2.5 text-sm font-bold">Cancel</button>
+                    <button type="submit" id="btnUpdateWeeklyMeeting" class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-indigo-700">Update</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -160,8 +233,17 @@
 
     @push('styles')
         <style>
+            #momEditor.ql-container {
+                min-height: 0;
+                overflow: hidden;
+            }
+            #momEditorForm .ql-toolbar {
+                flex-shrink: 0;
+            }
             #momEditor .ql-editor {
-                min-height: 520px;
+                height: 100%;
+                min-height: 0;
+                overflow-y: auto;
             }
 
             .dark #momEditor,
@@ -175,21 +257,52 @@
                 max-width: 100%;
                 height: auto;
             }
+            #editParticipantRows .select2-container .select2-selection--single {
+                height: 44px;
+                border-color: #e2e8f0;
+                border-radius: .75rem;
+                padding: .45rem .75rem;
+            }
+            #editParticipantRows .select2-selection__rendered { line-height: 26px; }
+            #editParticipantRows .select2-selection__arrow { height: 42px; }
+            .select2-container--open { z-index: 60; }
         </style>
     @endpush
 
     @push('scripts')
         <script>
             $(function () {
+                const weeklyMeetingViewport = document.getElementById('weeklyMeetingViewport');
+                function lockWeeklyMeetingViewport() {
+                    if (window.matchMedia('(min-width: 1024px)').matches) {
+                        window.scrollTo(0, 0);
+                        const top = weeklyMeetingViewport.getBoundingClientRect().top;
+                        weeklyMeetingViewport.style.height = `${Math.max(500, window.innerHeight - top)}px`;
+                        document.documentElement.style.overflow = 'hidden';
+                        document.body.style.overflow = 'hidden';
+                    } else {
+                        weeklyMeetingViewport.style.height = '';
+                        document.documentElement.style.overflow = '';
+                        document.body.style.overflow = '';
+                    }
+                }
+                lockWeeklyMeetingViewport();
+                window.addEventListener('resize', lockWeeklyMeetingViewport);
+
                 const escapeHtml = value => $('<div>').text(value ?? '-').html();
                 const detailUrl = @json(url('/finding'));
+                const meetingUsers = @json($users);
+                const initialMeetingParticipants = @json($participants->pluck('user_participant')->values());
+                const approvalUrl = @json(route('weekly-meeting.approve', $meeting->weeklymeeting_id));
+                const meetingCompleted = @json(strtoupper((string) $meeting->status) === 'C');
                 let currentFindingId = null;
                 const detailFields = [['Company','cpny_id'],['Department','department_id'],['Location','location_name'],['Sub Location','sub_location_name'],['Category','category_name'],['Item','item_name'],['Sub Item','subitem_name'],['Created By','created_by'],['Status','status_label'],['Completed By','completed_by']];
                 const momEditor = new Quill('#momEditor', {
                     theme: 'snow',
+                    readOnly: meetingCompleted,
                     placeholder: 'Write minute of meeting or paste an image here...',
                     modules: {
-                        toolbar: [
+                        toolbar: meetingCompleted ? false : [
                             [{ header: [1, 2, 3, false] }],
                             ['bold', 'italic', 'underline', 'strike'],
                             [{ list: 'ordered' }, { list: 'bullet' }],
@@ -208,6 +321,86 @@
                     }
                     $('#momEditorInput').val(html);
                     $('#btnSaveMomEditor').prop('disabled', true).text('Saving...');
+                });
+
+                const participantOptions = selected => '<option value="">Select Participant</option>' + meetingUsers.map(user =>
+                    `<option value="${escapeHtml(user.username)}" ${user.username === selected ? 'selected' : ''}>${escapeHtml(user.name)} (${escapeHtml(user.username)})</option>`
+                ).join('');
+                function updateEditParticipantCount() {
+                    $('#editParticipantCount').text($('#editParticipantRows .edit-participant-row').length);
+                }
+                function addEditParticipant(selected = '') {
+                    const row = $(`
+                        <div class="edit-participant-row flex items-center gap-2 rounded-xl border border-gray-100 bg-gray-50/70 p-2 dark:border-gray-700 dark:bg-gray-700/30">
+                            <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-gray-400 shadow-sm dark:bg-gray-700">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+                            </span>
+                            <div class="min-w-0 flex-1"><select name="participants[]" class="edit-participant-select w-full">${participantOptions(selected)}</select></div>
+                            <button type="button" class="btnRemoveEditParticipant inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50 font-bold text-red-600 hover:bg-red-100">&times;</button>
+                        </div>
+                    `);
+                    $('#editParticipantRows').append(row);
+                    row.find('.edit-participant-select').select2({
+                        dropdownParent: $('#editWeeklyMeetingModal'),
+                        placeholder: 'Search participant...',
+                        allowClear: true,
+                        width: '100%'
+                    });
+                    updateEditParticipantCount();
+                }
+                initialMeetingParticipants.forEach(addEditParticipant);
+                updateEditParticipantCount();
+                $('#btnAddEditParticipant').on('click', () => addEditParticipant());
+                $('#editParticipantRows').on('click', '.btnRemoveEditParticipant', function () {
+                    const row = $(this).closest('.edit-participant-row');
+                    row.find('.edit-participant-select').select2('destroy');
+                    row.remove();
+                    updateEditParticipantCount();
+                });
+                $('#btnEditWeeklyMeeting').on('click', () => $('#editWeeklyMeetingModal').removeClass('hidden').addClass('flex'));
+                $('.btnCloseEditMeeting').on('click', () => $('#editWeeklyMeetingModal').addClass('hidden').removeClass('flex'));
+                $('#editWeeklyMeetingForm').on('submit', async function (event) {
+                    event.preventDefault();
+                    const button = $('#btnUpdateWeeklyMeeting').prop('disabled', true).text('Updating...');
+                    try {
+                        const response = await $.ajax({
+                            url: this.action,
+                            method: 'POST',
+                            data: new FormData(this),
+                            processData: false,
+                            contentType: false
+                        });
+                        await Swal.fire({icon: 'success', title: 'Updated', text: response.message, confirmButtonColor: '#4f46e5'});
+                        window.location.reload();
+                    } catch (xhr) {
+                        const errors = xhr.responseJSON?.errors;
+                        const message = errors ? Object.values(errors).flat().join('\n') : (xhr.responseJSON?.message || 'Failed to update Weekly Meeting.');
+                        Swal.fire({icon: 'error', title: 'Update Failed', text: message});
+                    } finally {
+                        button.prop('disabled', false).text('Update');
+                    }
+                });
+                $('#btnApproveWeeklyMeeting').on('click', async function () {
+                    const confirmation = await Swal.fire({
+                        icon: 'question',
+                        title: 'Approve Weekly Meeting?',
+                        text: 'This meeting will be processed to the next approval step.',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes, Approve',
+                        cancelButtonText: 'Cancel',
+                        confirmButtonColor: '#059669'
+                    });
+                    if (!confirmation.isConfirmed) return;
+
+                    const button = $(this).prop('disabled', true);
+                    try {
+                        const response = await $.post(approvalUrl, {_token: @json(csrf_token())});
+                        await Swal.fire({icon: 'success', title: 'Approved', text: response.message, confirmButtonColor: '#059669'});
+                        window.location.reload();
+                    } catch (xhr) {
+                        Swal.fire({icon: 'error', title: 'Approval Failed', text: xhr.responseJSON?.message || 'You cannot approve this meeting.'});
+                        button.prop('disabled', false);
+                    }
                 });
 
                 $('.meeting-finding-tab').on('click', function () {

@@ -514,6 +514,7 @@ class KontrakController extends Controller
 
         $kontrakBudgets = TrKontrakBudget::query()
             ->where('kontrakid', $kontrak->kontrakid)
+            ->where('cpny_id', $kontrak->cpny_id)
             ->where(function ($q) {
                 $q->whereNull('status')
                     ->orWhere('status', '<>', 'X');

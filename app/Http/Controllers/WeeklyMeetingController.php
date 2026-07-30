@@ -6,6 +6,7 @@ use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\TrFinding;
 use App\Models\TrFindingActivity;
 use App\Models\MsDepartmentOpr;
+use App\Models\TrApproval;
 use App\Models\TrMessage;
 use App\Models\TrWeeklyMeeting;
 use App\Models\TrWeeklyMeetingFinding;
@@ -156,6 +157,17 @@ class WeeklyMeetingController extends Controller
             abort_unless($allowedUsers->has($username), 422, "Participant {$username} is not available.");
         }
 
+        $doctype = 'WOM';
+        $departmentId = 'OPERATION';
+        $approvalCtl = app(ApprovalController::class);
+        try {
+            $approvalCtl->loadLines($doctype, $meetingCompanyId, $departmentId);
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $exception) {
+            return back()
+                ->withInput()
+                ->with('approval_error', $exception->getMessage());
+        }
+
         $meetingDate = Carbon::parse($validated['weeklymeeting_date']);
         $periodStart = $meetingDate->copy()->subWeek()->format('Y-m-d').' '.$validated['meeting_time'].':00';
         $periodEnd = $meetingDate->copy()->subDay()->format('Y-m-d').' '.$validated['meeting_time'].':00';
@@ -172,13 +184,14 @@ class WeeklyMeetingController extends Controller
         $meetingId = 'WOM'.$meetingDate->format('ym').sprintf('%04d', (int) $auto['next']);
 
         DB::connection('pgsql7')->transaction(function () use (
-            $validated, $user, $meetingDate, $meetingId, $allowedUsers, $periodStart, $periodEnd
+            $validated, $user, $meetingDate, $meetingId, $allowedUsers, $periodStart, $periodEnd,
+            $departmentId
         ) {
             $meeting = TrWeeklyMeeting::query()->create([
                 'weeklymeeting_id' => $meetingId,
                 'weeklymeeting_date' => $meetingDate->toDateString(),
                 'cpny_id' => $validated['cpny_id'],
-                'department_id' => 'OPERATION',
+                'department_id' => $departmentId,
                 'weeklymeeting_startdate' => $periodStart,
                 'weeklymeeting_enddate' => $periodEnd,
                 'weeklymeeting_topic' => $validated['weeklymeeting_topic'],
@@ -218,6 +231,35 @@ class WeeklyMeetingController extends Controller
                     'updated_by' => $user->username,
                 ]);
             }
+        });
+
+        $ctx = [
+            'is_urgent' => false,
+            'first_inventory_category' => null,
+            'has_fixed_asset_subtype' => false,
+            'ignore_nominal' => true,
+        ];
+        $dt = Carbon::now();
+
+        DB::connection('pgsql')->transaction(function () use (
+            $approvalCtl,
+            $meetingId,
+            $doctype,
+            $meetingCompanyId,
+            $departmentId,
+            $user,
+            $ctx,
+            $dt
+        ) {
+            $approvalCtl->generateForDocument(
+                $meetingId,
+                $doctype,
+                $meetingCompanyId,
+                $departmentId,
+                $user->username,
+                $ctx,
+                $dt
+            );
         });
 
         return redirect()->route('weekly-meeting.show', $meetingId);
@@ -279,6 +321,7 @@ class WeeklyMeetingController extends Controller
             ->where(fn (Builder $query) => $query->whereNull('status')->orWhere('status', '<>', 'X'))
             ->orderBy('order_participant')
             ->get(['order_participant', 'user_participant', 'name_participant']);
+        $users = $this->companyUsers($meeting->cpny_id);
         $minutes = TrWeeklyMeetingMom::query()
             ->where('weeklymeeting_id', $weeklyMeetingId)
             ->where('cpny_id', $meeting->cpny_id)
@@ -287,6 +330,17 @@ class WeeklyMeetingController extends Controller
             ->orderBy('id')
             ->get();
         $momContent = $minutes->pluck('mom_descr')->filter()->implode('<hr>');
+        $approvalUsernames = TrApproval::query()
+            ->where('refnbr', $weeklyMeetingId)
+            ->where('aprv_doctype', 'WOM')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->pluck('aprv_username')
+            ->flatMap(fn ($value) => preg_split('/\s*,\s*/', (string) $value, -1, PREG_SPLIT_NO_EMPTY))
+            ->map(fn ($username) => strtolower(trim($username)))
+            ->unique();
+        $canApprove = strtoupper((string) $meeting->status) !== 'C'
+            && $approvalUsernames->contains(strtolower($request->user()->username));
 
         return view('pages.weekly-meeting.findingweekly', compact(
             'meeting',
@@ -295,16 +349,169 @@ class WeeklyMeetingController extends Controller
             'openDepartmentCards',
             'closeDepartmentCards',
             'participants',
+            'users',
             'minutes',
             'momContent',
+            'canApprove',
             'fromDate',
             'toDate'
         ));
     }
 
+    public function updateWeeklyMeeting(Request $request, string $weeklyMeetingId)
+    {
+        $meeting = $this->accessibleMeeting($request, $weeklyMeetingId);
+        abort_if(
+            strtoupper((string) $meeting->status) === 'C',
+            403,
+            'Weekly Meeting cannot be changed because it is completed.'
+        );
+        $validated = $request->validate([
+            'weeklymeeting_topic' => ['required', 'string', 'max:500'],
+            'weeklymeeting_date' => ['required', 'date'],
+            'meeting_time' => ['required', 'date_format:H:i'],
+            'participants' => ['nullable', 'array'],
+            'participants.*' => ['required', 'string', 'distinct'],
+        ]);
+
+        $allowedUsers = $this->companyUsers($meeting->cpny_id)->keyBy('username');
+        foreach ($validated['participants'] ?? [] as $username) {
+            abort_unless($allowedUsers->has($username), 422, "Participant {$username} is not available.");
+        }
+
+        $meetingDate = Carbon::parse($validated['weeklymeeting_date']);
+        $periodStart = $meetingDate->copy()->subWeek()->format('Y-m-d').' '.$validated['meeting_time'].':00';
+        $periodEnd = $meetingDate->copy()->subDay()->format('Y-m-d').' '.$validated['meeting_time'].':00';
+        $username = $request->user()->username;
+
+        DB::connection('pgsql7')->transaction(function () use (
+            $meeting,
+            $validated,
+            $meetingDate,
+            $periodStart,
+            $periodEnd,
+            $allowedUsers,
+            $username
+        ) {
+            $meeting->update([
+                'weeklymeeting_topic' => $validated['weeklymeeting_topic'],
+                'weeklymeeting_date' => $meetingDate->toDateString(),
+                'weeklymeeting_startdate' => $periodStart,
+                'weeklymeeting_enddate' => $periodEnd,
+                'updated_by' => $username,
+            ]);
+
+            TrWeeklyMeetingParticipant::query()
+                ->where('weeklymeeting_id', $meeting->weeklymeeting_id)
+                ->where('cpny_id', $meeting->cpny_id)
+                ->update([
+                    'status' => 'X',
+                    'deleted_by' => $username,
+                    'deleted_at' => now(),
+                    'updated_by' => $username,
+                    'updated_at' => now(),
+                ]);
+
+            foreach (array_values($validated['participants'] ?? []) as $index => $participantUsername) {
+                TrWeeklyMeetingParticipant::query()->create([
+                    'weeklymeeting_id' => $meeting->weeklymeeting_id,
+                    'cpny_id' => $meeting->cpny_id,
+                    'order_participant' => $index + 1,
+                    'user_participant' => $participantUsername,
+                    'name_participant' => $allowedUsers[$participantUsername]->name,
+                    'status' => 'A',
+                    'created_by' => $username,
+                    'updated_by' => $username,
+                ]);
+            }
+
+            $findings = TrFinding::query()
+                ->where('cpny_id', $meeting->cpny_id)
+                ->whereDate('finding_date', '>=', $meetingDate->copy()->subWeek()->toDateString())
+                ->whereDate('finding_date', '<=', $meetingDate->copy()->subDay()->toDateString())
+                ->whereIn('status', ['O', 'P', 'C'])
+                ->get(['finding_id', 'status']);
+
+            TrWeeklyMeetingFinding::query()
+                ->where('weeklymeeting_id', $meeting->weeklymeeting_id)
+                ->where('cpny_id', $meeting->cpny_id)
+                ->update([
+                    'status' => 'X',
+                    'deleted_by' => $username,
+                    'deleted_at' => now(),
+                    'updated_by' => $username,
+                    'updated_at' => now(),
+                ]);
+
+            foreach ($findings as $finding) {
+                TrWeeklyMeetingFinding::query()->create([
+                    'weeklymeeting_id' => $meeting->weeklymeeting_id,
+                    'cpny_id' => $meeting->cpny_id,
+                    'finding_id' => $finding->finding_id,
+                    'finding_status' => $finding->status,
+                    'status' => 'A',
+                    'created_by' => $username,
+                    'updated_by' => $username,
+                ]);
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Weekly Meeting updated successfully.',
+        ]);
+    }
+
+    public function approveWeeklyMeeting(Request $request, string $weeklyMeetingId)
+    {
+        $meeting = $this->accessibleMeeting($request, $weeklyMeetingId);
+        $user = $request->user();
+
+        $result = app(ApprovalController::class)->approveStep(
+            $meeting->weeklymeeting_id,
+            'WOM',
+            $user->username,
+            $user->name ?: $user->username,
+            function (string $refnbr, \Carbon\Carbon $now) use ($meeting, $user) {
+                $meeting->update([
+                    'status' => 'C',
+                    'completed_by' => $user->username,
+                    'completed_at' => $now,
+                    'updated_by' => $user->username,
+                ]);
+            },
+            function ($next, \Carbon\Carbon $now) use ($meeting, $user) {
+                $meeting->update([
+                    'updated_by' => $user->username,
+                    'updated_at' => $now,
+                ]);
+            }
+        );
+
+        if (!$result['ok']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Approval failed.',
+            ], 403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'completed' => (bool) ($result['completed'] ?? false),
+            'message' => ($result['completed'] ?? false)
+                ? 'Weekly Meeting approval completed.'
+                : 'Weekly Meeting approved and forwarded to the next approver.',
+        ]);
+    }
+
     public function storeMom(Request $request, string $weeklyMeetingId)
     {
         $meeting = $this->accessibleMeeting($request, $weeklyMeetingId);
+        abort_if(
+            strtoupper((string) $meeting->status) === 'C',
+            403,
+            'Minute of Meeting cannot be changed because this meeting is completed.'
+        );
         $validated = $request->validate([
             'mom_descr' => ['required', 'string', 'max:15000000'],
         ]);
