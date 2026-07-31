@@ -9,6 +9,7 @@ const EventCalendarApp = {
         calendar: null,
         modalMode: 'create', // 'create' | 'edit'
         locationTom: null,
+        picTom: null,
         viewingEvent: null,
     },
 
@@ -70,6 +71,7 @@ const EventCalendarApp = {
         EventCalendarApp.initCalendar();
         EventCalendarApp.initSelect2();
         EventCalendarApp.initLocationTomSelect();
+        EventCalendarApp.initPicTomSelect();
         EventCalendarApp.bindModalEvents();
         EventCalendarApp.bindStatusToggle();
     },
@@ -95,6 +97,22 @@ const EventCalendarApp = {
             create: false,
             persist: false,
             placeholder: 'Select location',
+            maxOptions: 1000,
+        });
+    },
+
+    // --------------------------------------------------------
+    // TOM SELECT (PIC Event: pick from ms_user, or type a free-text name)
+    // --------------------------------------------------------
+    initPicTomSelect() {
+        const el = document.getElementById('pic_event');
+        if (!el) return;
+
+        EventCalendarApp.state.picTom = new TomSelect(el, {
+            plugins: ['remove_button'],
+            create: true,
+            persist: false,
+            placeholder: 'Select or type person(s) in charge',
             maxOptions: 1000,
         });
     },
@@ -164,11 +182,13 @@ const EventCalendarApp = {
                     const avatarEl = document.createElement('span');
                     avatarEl.classList.add('fc-event-creator-avatar');
                     avatarEl.textContent = EventCalendarApp.initials(creatorName);
-                    avatarEl.title = creatorName;
                     wrapper.appendChild(avatarEl);
                 }
 
                 return { domNodes: [wrapper] };
+            },
+            eventDidMount(arg) {
+                EventCalendarApp.attachEventTooltip(arg);
             },
             select(info) {
                 const resourceId = info.resource ? info.resource.id : null;
@@ -210,6 +230,46 @@ const EventCalendarApp = {
         EventCalendarApp.state.calendar.render();
     },
 
+    escapeHtml(value) {
+        const div = document.createElement('div');
+        div.textContent = value ?? '';
+        return div.innerHTML;
+    },
+
+    attachEventTooltip(arg) {
+        if (typeof tippy === 'undefined') return;
+
+        const props = arg.event.extendedProps;
+        const colors = EventCalendarApp.statusColors[props.event_status] || { bg: '#eef0f2', text: '#475569' };
+        const pics = (props.pic_event || '').split(',').map((v) => v.trim()).filter(Boolean);
+
+        const html = `
+            <div class="ecap-tip">
+                <div class="ecap-tip-title">${EventCalendarApp.escapeHtml(arg.event.title)}</div>
+                <div class="ecap-tip-row">
+                    <i class="fa-solid fa-building"></i>
+                    <span>${EventCalendarApp.escapeHtml(props.cpny_name || '-')}</span>
+                </div>
+                <div class="ecap-tip-row">
+                    <i class="fa-solid fa-user"></i>
+                    <span>${pics.length ? EventCalendarApp.escapeHtml(pics.join(', ')) : '-'}</span>
+                </div>
+                <span class="ecap-tip-status" style="background:${colors.bg};color:${colors.text}">
+                    ${EventCalendarApp.escapeHtml(props.event_status || '-')}
+                </span>
+            </div>
+        `;
+
+        tippy(arg.el, {
+            content: html,
+            allowHTML: true,
+            theme: 'light-border',
+            placement: 'top',
+            maxWidth: 260,
+            animation: 'shift-away',
+        });
+    },
+
     convertToEvents(items) {
         return items.map((item) => {
             const colors = EventCalendarApp.statusColors[item.extendedProps.event_status]
@@ -219,7 +279,10 @@ const EventCalendarApp = {
 
             return {
                 id: item.id,
-                resourceId: item.resourceId,
+                // FullCalendar stores resource ids as strings internally; the
+                // PHP side sends a raw integer PK, so it must be coerced here
+                // or the event silently fails to attach to any resource row.
+                resourceId: item.resourceId != null ? String(item.resourceId) : item.resourceId,
                 title: item.title,
                 start: item.start,
                 end: item.end,
@@ -234,6 +297,10 @@ const EventCalendarApp = {
 
     refresh() {
         EventCalendarApp.state.calendar?.refetchEvents();
+    },
+
+    reloadSoon() {
+        setTimeout(() => window.location.reload(), 600);
     },
 
     // --------------------------------------------------------
@@ -323,13 +390,33 @@ const EventCalendarApp = {
         document.getElementById('view_event_company_name').textContent = props.event_company_name || '-';
         document.getElementById('view_event_location').textContent = EventCalendarApp.locationName(props.location_row_id);
         document.getElementById('view_event_type').textContent = props.event_type || '-';
-        document.getElementById('view_event_status').textContent = props.event_status || '-';
-        document.getElementById('view_status').textContent = props.status === 'X' ? 'Inactive' : 'Active';
+
+        const statusColors = EventCalendarApp.statusColors[props.event_status] || { bg: '#eef0f2', text: '#475569' };
+        document.getElementById('view_event_status').innerHTML = props.event_status
+            ? `<span class="ecap-badge" style="background:${statusColors.bg};color:${statusColors.text}">${EventCalendarApp.escapeHtml(props.event_status)}</span>`
+            : '-';
+
+        const isActive = props.status !== 'X';
+        document.getElementById('view_status').innerHTML = `<span class="ecap-badge" style="background:${isActive ? '#dcfce7' : '#f1f5f9'};color:${isActive ? '#15803d' : '#64748b'}">${isActive ? 'Active' : 'Inactive'}</span>`;
+
         document.getElementById('view_event_start_date').textContent = props.event_start_date || '-';
         document.getElementById('view_event_end_date').textContent = props.event_end_date || '-';
         document.getElementById('view_event_total_area').textContent = props.event_total_area || '-';
         document.getElementById('view_created_by').textContent = props.created_by_name || props.created_by || '-';
+
+        const picNames = (props.pic_event || '').split(',').map((v) => v.trim()).filter(Boolean);
+        document.getElementById('view_pic_event').innerHTML = picNames.length
+            ? picNames.map((name) => `<span class="ecap-chip">${EventCalendarApp.escapeHtml(name)}</span>`).join('')
+            : '<span class="text-slate-400">-</span>';
+
         document.getElementById('view_event_description').textContent = props.event_description || '-';
+
+        const dot = document.getElementById('eventViewStatusDot');
+        if (dot) dot.style.background = statusColors.text;
+
+        const currentUser = window.EventCalendarCurrentUser || {};
+        const canModify = currentUser.isAdmin || (currentUser.username && currentUser.username === props.created_by);
+        document.getElementById('editEventFromViewBtn').classList.toggle('hidden', !canModify);
 
         EventCalendarApp.showViewModal();
     },
@@ -343,6 +430,7 @@ const EventCalendarApp = {
         document.getElementById('deleteEventBtn').classList.add('hidden');
         $('#eventModal .select2').val('').trigger('change');
         EventCalendarApp.state.locationTom?.clear(true);
+        EventCalendarApp.state.picTom?.clear(true);
     },
 
     openCreateModal(prefill = {}) {
@@ -381,6 +469,9 @@ const EventCalendarApp = {
         document.getElementById('product_check_exp').value = props.product_check_exp || '';
         document.getElementById('event_description').value = props.event_description || '';
 
+        const picNames = (props.pic_event || '').split(',').map((v) => v.trim()).filter(Boolean);
+        EventCalendarApp.state.picTom?.setValue(picNames, true);
+
         document.getElementById('status').value = props.status || 'A';
         document.getElementById('status_active').checked = props.status !== 'X';
 
@@ -408,6 +499,8 @@ const EventCalendarApp = {
         const formData = new FormData(form);
         const payload = Object.fromEntries(formData.entries());
         delete payload._token;
+        delete payload['pic_event[]'];
+        payload.pic_event = (EventCalendarApp.state.picTom?.getValue() || []).join(',');
 
         const id = document.getElementById('event_row_id').value;
         const isEdit = EventCalendarApp.state.modalMode === 'edit' && id;
@@ -424,7 +517,7 @@ const EventCalendarApp = {
 
             EventCalendarApp.toast('success', response.message || 'Saved successfully');
             EventCalendarApp.closeModal();
-            EventCalendarApp.refresh();
+            EventCalendarApp.reloadSoon();
         } catch (err) {
             const message = err?.data?.message
                 || Object.values(err?.data?.errors || {}).flat()[0]
@@ -461,7 +554,7 @@ const EventCalendarApp = {
 
             EventCalendarApp.toast('success', response.message || 'Event deleted');
             EventCalendarApp.closeModal();
-            EventCalendarApp.refresh();
+            EventCalendarApp.reloadSoon();
         } catch (err) {
             EventCalendarApp.toast('error', err?.data?.message || 'Failed to delete event');
         }

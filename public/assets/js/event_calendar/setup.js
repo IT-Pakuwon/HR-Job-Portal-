@@ -83,6 +83,10 @@ const EventLocationSetupApp = {
         });
     },
 
+    reloadSoon() {
+        setTimeout(() => window.location.reload(), 600);
+    },
+
     // --------------------------------------------------------
     // TABLE
     // --------------------------------------------------------
@@ -257,7 +261,7 @@ const EventLocationSetupApp = {
 
             EventLocationSetupApp.toast('success', response.message || 'Saved successfully');
             EventLocationSetupApp.closeModal();
-            EventLocationSetupApp.loadRows();
+            EventLocationSetupApp.reloadSoon();
         } catch (err) {
             const message = err?.data?.message
                 || Object.values(err?.data?.errors || {}).flat()[0]
@@ -294,7 +298,7 @@ const EventLocationSetupApp = {
 
             EventLocationSetupApp.toast('success', response.message || 'Event location deleted');
             EventLocationSetupApp.closeModal();
-            EventLocationSetupApp.loadRows();
+            EventLocationSetupApp.reloadSoon();
         } catch (err) {
             EventLocationSetupApp.toast('error', err?.data?.message || 'Failed to delete event location');
         }

@@ -130,6 +130,73 @@
         .dark #calendar .fc-timeline-header .fc-weekend-slot .fc-timeline-slot-cushion {
             color: #f87171;
         }
+
+        /* Event hover tooltip (tippy.js) */
+        .ecap-tip {
+            min-width: 180px;
+            padding: 2px;
+            text-align: left;
+        }
+
+        .ecap-tip-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 6px;
+        }
+
+        .ecap-tip-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #475569;
+            margin-bottom: 4px;
+        }
+
+        .ecap-tip-row i {
+            width: 12px;
+            flex-shrink: 0;
+            opacity: 0.6;
+        }
+
+        .ecap-tip-status {
+            display: inline-block;
+            margin-top: 4px;
+            padding: 2px 9px;
+            border-radius: 9999px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        /* View modal: status badges + PIC chips */
+        .ecap-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 10px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .ecap-chip {
+            display: inline-flex;
+            align-items: center;
+            margin: 0 6px 6px 0;
+            padding: 3px 10px;
+            border-radius: 9999px;
+            background: #eef2ff;
+            color: #4338ca;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .dark .ecap-chip {
+            background: rgba(99, 102, 241, 0.18);
+            color: #c7d2fe;
+        }
     </style>
 
     {{-- CREATE / EDIT MODAL --}}
@@ -140,7 +207,7 @@
         </div>
 
         <div
-            class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-3xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+            class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-5xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
             <form id="eventForm" class="flex flex-col">
 
@@ -169,7 +236,7 @@
 
                 <div class="space-y-4 bg-slate-50 p-5 dark:bg-[#0b1220]">
 
-                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
                         <div>
                             <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
@@ -198,6 +265,18 @@
                                 <option value=""></option>
                                 @foreach ($locations as $l)
                                     <option value="{{ $l->id }}">{{ $l->event_location_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                PIC Event
+                            </label>
+                            <select id="pic_event" name="pic_event[]" multiple
+                                class="w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
+                                @foreach ($users as $u)
+                                    <option value="{{ $u->name }}">{{ $u->name }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -322,12 +401,15 @@
             <div
                 class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
 
-                <div>
-                    <h2 id="eventViewTitle" class="text-sm font-bold text-slate-900 dark:text-white">
-                        Event Details
-                    </h2>
-                    <p id="eventViewSubtitle" class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                    </p>
+                <div class="flex items-center gap-3">
+                    <span id="eventViewStatusDot" class="h-2.5 w-2.5 shrink-0 rounded-full bg-slate-300"></span>
+                    <div>
+                        <h2 id="eventViewTitle" class="text-sm font-bold text-slate-900 dark:text-white">
+                            Event Details
+                        </h2>
+                        <p id="eventViewSubtitle" class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                        </p>
+                    </div>
                 </div>
 
                 <button type="button" id="closeEventViewModal"
@@ -391,6 +473,11 @@
                         <p id="view_created_by" class="mt-1 text-sm text-slate-700 dark:text-slate-200">-</p>
                     </div>
 
+                    <div>
+                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">PIC Event</p>
+                        <p id="view_pic_event" class="mt-1 text-sm text-slate-700 dark:text-slate-200">-</p>
+                    </div>
+
                 </div>
 
                 <div>
@@ -424,10 +511,15 @@
 
     <script>
         window.EventCalendarResources = {!! json_encode($locations->map(fn($l) => [
-            'id' => $l->id,
+            'id' => (string) $l->id,
             'title' => $l->event_total_area ? "{$l->event_location_name} - {$l->event_total_area} m²" : $l->event_location_name,
             'cpny_name' => optional($l->company)->cpny_name,
         ])->values()) !!};
+
+        window.EventCalendarCurrentUser = {
+            username: @json(auth()->user()->username),
+            isAdmin: @json($isAdmin),
+        };
 
         window.EventCalendarRoutes = {
             json: '{{ route('event-calendar.json') }}',
@@ -444,5 +536,9 @@
 
 <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+
+<link rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light-border.css" />
+<script src="https://unpkg.com/@popperjs/core@2"></script>
+<script src="https://unpkg.com/tippy.js@6"></script>
 
 <script src="{{ asset('assets/js/event_calendar/calendar.js') }}?v={{ filemtime(public_path('assets/js/event_calendar/calendar.js')) }}"></script>

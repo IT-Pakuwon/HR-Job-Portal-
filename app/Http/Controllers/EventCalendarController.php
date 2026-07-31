@@ -96,18 +96,25 @@ class EventCalendarController extends Controller
     {
         return MsEventLocation::query()
             ->whereNull('deleted_at')
+            ->with('company')
             ->get()
             ->keyBy(fn (MsEventLocation $l) => $l->cpny_id.'|'.$l->event_location_id);
     }
 
     public function index()
     {
+        $users = User::query()
+            ->where('status', 'A')
+            ->orderBy('name')
+            ->get(['username', 'name']);
+
         return response()
             ->view('pages.event_calendar.calendar', [
                 'locations' => $this->visibleLocations(),
                 'eventTypes' => self::EVENT_TYPES,
                 'eventStatuses' => self::EVENT_STATUSES,
                 'isAdmin' => $this->isAdmin(),
+                'users' => $users,
             ])
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
             ->header('Pragma', 'no-cache');
@@ -159,6 +166,7 @@ class EventCalendarController extends Controller
                     'extendedProps' => [
                         'event_id' => $event->event_id,
                         'cpnyid' => $event->cpnyid,
+                        'cpny_name' => optional(optional($location)->company)->cpny_name,
                         'event_company_name' => $event->event_company_name,
                         'event_type' => $event->event_type,
                         'event_status' => $event->event_status,
@@ -168,6 +176,7 @@ class EventCalendarController extends Controller
                         'event_end_date' => optional($event->event_end_date)->format('Y-m-d'),
                         'event_total_area' => optional($location)->event_total_area,
                         'event_description' => $event->event_description,
+                        'pic_event' => $event->pic_event,
                         'product_check_exp' => $event->product_check_exp,
                         'status' => $event->status,
                         'created_by' => $event->created_user,
@@ -205,6 +214,7 @@ class EventCalendarController extends Controller
             'event_start_date' => 'required|date',
             'event_end_date' => 'required|date|after_or_equal:event_start_date',
             'event_description' => 'nullable|string',
+            'pic_event' => 'nullable|string|max:255',
             'product_check_exp' => 'nullable|date',
             'status' => 'required|in:A,X',
         ];
@@ -216,6 +226,18 @@ class EventCalendarController extends Controller
             $this->isAdmin() || in_array($locationRowId, $this->visibleLocationIds(), true),
             403,
             'You are not allowed to book this location.'
+        );
+    }
+
+    /**
+     * Non-admins may only edit/delete events they created themselves.
+     */
+    private function assertCanModify(MsEvent $event): void
+    {
+        abort_unless(
+            $this->isAdmin() || $event->created_user === auth()->user()->username,
+            403,
+            'You can only edit or delete events you created.'
         );
     }
 
@@ -251,6 +273,8 @@ class EventCalendarController extends Controller
     {
         $event = MsEvent::query()->whereNull('deleted_at')->findOrFail($id);
 
+        $this->assertCanModify($event);
+
         $data = $request->validate($this->rules());
 
         $this->assertLocationVisible((int) $data['location_row_id']);
@@ -282,6 +306,8 @@ class EventCalendarController extends Controller
 
         $event = MsEvent::query()->whereNull('deleted_at')->findOrFail($id);
 
+        $this->assertCanModify($event);
+
         $event->update([
             'status' => $request->status,
             'updated_user' => auth()->user()->username,
@@ -296,6 +322,8 @@ class EventCalendarController extends Controller
     public function destroy($id)
     {
         $event = MsEvent::query()->whereNull('deleted_at')->findOrFail($id);
+
+        $this->assertCanModify($event);
 
         $event->update([
             'status' => 'X',

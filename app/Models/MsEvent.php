@@ -26,7 +26,6 @@ class MsEvent extends Model
         'event_end_date',
         'event_description',
         'pic_event',
-        'product_check_exp',
         'status',
         'created_user',
         'updated_user',
