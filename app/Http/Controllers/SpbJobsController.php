@@ -1122,8 +1122,8 @@ class SpbJobsController extends Controller
                 $detail->siteid = $siteToUse;
                 $detail->qty = $qty;
                 $detail->uom = $src->uom ?? null;
-                // $detail->note = $detailNote;
-                $detail->note = $src->note ?? null;
+                $detailNote = is_string($detailNote) ? trim($detailNote) : $detailNote;
+                $detail->note = ($detailNote !== null && $detailNote !== '') ? $detailNote : ($src->note ?? null);
 
                 // ✅ ambil dari MsInventory (fallback ke src jika ada)
                 $inv = $invMap->get($src->inventoryid);

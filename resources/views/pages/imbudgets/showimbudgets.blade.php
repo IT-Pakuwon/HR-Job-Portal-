@@ -433,14 +433,14 @@
                     <table class="w-full text-sm text-gray-700 dark:text-gray-200">
                         <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                             <tr>
-                                <th class="w-20 border p-3 text-center">COA</th>
-                                <th class="w-24 border p-3 text-center">Activity</th>
-                                <th class="w-[16%] border p-3">Activity Descr</th>
+                                <th class="w-20 border p-3 text-left">COA</th>
+                                <th class="w-24 border p-3 text-left">Activity</th>
+                                <th class="w-[16%] border p-3 text-left">Activity Descr</th>
                                 <th class="w-24 border p-3 text-left">Amount Expense</th>
                                 <th class="w-24 border p-3 text-left">Budget Remain</th>
                                 <th class="w-24 border p-3 text-left">Budget Needed</th>
                                 <th class="w-24 border p-3 text-left">Budget Requested</th>
-                                <th class="w-[14%] border p-3">Note</th>
+                                <th class="w-[14%] border p-3 text-left">Note</th>
                             </tr>
                         </thead>
                         <tbody>
