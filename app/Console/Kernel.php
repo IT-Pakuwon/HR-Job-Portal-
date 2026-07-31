@@ -51,6 +51,12 @@ class Kernel extends ConsoleKernel
             ->at('07:05')
             ->withoutOverlapping();
 
+        // Email reminder submit RFP Kontrak
+        $schedule->command('email:rfp-kontrak-submit-reminder')
+            ->days($days)
+            ->at('07:10')
+            ->withoutOverlapping();
+
         // Auto Process IFCA Supplier
         $schedule->command('ifca:supplier-auto-process')
             ->everySixHours()

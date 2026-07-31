@@ -129,6 +129,11 @@
 <div class="border-bottom" style="margin-top:8px;"></div>
 
 {{-- ================= AMOUNT ================= --}}
+@php
+    $irNote = trim((string) ($rfp->ir_note ?? ''));
+    $purpose = strlen($irNote) >= 5 ? $irNote : ($rfp->keperluan ?? '');
+@endphp
+
 <table style="margin-top:8px;">
     <tr>
         <td width="20%">Amount</td><td width="2%">:</td>
@@ -142,7 +147,7 @@
 
     <tr>
         <td>Purpose</td><td>:</td>
-        <td>{{ $rfp->keperluan }}</td>
+        <td>{{ $purpose }}</td>
     </tr>
 </table>
 

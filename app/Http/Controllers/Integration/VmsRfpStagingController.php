@@ -298,6 +298,7 @@ class VmsRfpStagingController extends Controller
                 if ($isKontrak) {
                     $kontrak = TrKontrak::query()
                         ->where('kontrakid', $row->kontrakid)
+                        ->where('cpny_id', $row->cpny_id)
                         ->first();
 
                     if (!$kontrak) {

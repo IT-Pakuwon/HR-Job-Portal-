@@ -23,24 +23,69 @@
 
         td, th {
             vertical-align: top;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+        }
+
+        .header-table {
+            table-layout: fixed;
+        }
+
+        .header-table td {
+            padding: 0 3px;
         }
 
         .header-title {
             font-size: 20px;
             font-weight: bold;
             text-align: center;
-            white-space: nowrap;
+            line-height: 1.15;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
         }
 
         .doc-no {
             font-size: 16px;
             font-weight: bold;
             white-space: nowrap;
+            line-height: 1.15;
         }
 
         .left-company {
             font-size: 15px;
             line-height: 1.15;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+        }
+
+        .left-title {
+            margin-top: 2px;
+            font-size: 15px;
+            font-weight: bold;
+            line-height: 1.15;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+        }
+
+        .info-table {
+            table-layout: fixed;
+        }
+
+        .info-table td {
+            font-size: 15px;
+            line-height: 1.25;
+            padding: 2px 3px;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+        }
+
+        .info-table .label {
+            white-space: normal;
+        }
+
+        .info-table .colon {
+            text-align: center;
+            white-space: nowrap;
         }
 
         .info-wrapper {
@@ -129,6 +174,8 @@
             border: 1px solid #000;
             padding: 7px;
             vertical-align: top;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
         }
 
         .approval-table th {
@@ -220,9 +267,9 @@
     @endphp
 
     {{-- HEADER --}}
-    <table>
+    <table class="header-table">
         <tr>
-            <td style="width: 31%;">
+            <td style="width: 24%;">
                 <div class="left-company">
                     {{ $cpny_name ?: $rfpnonpurch->cpny_id }}
                 </div>
@@ -233,13 +280,13 @@
                 </div>
             </td>
 
-            <td style="width: 44%; text-align: center;">
+            <td style="width: 54%; text-align: center;">
                 <div class="header-title">
                     {{ $cpny_name ?: $rfpnonpurch->cpny_id }}
                 </div>
             </td>
 
-            <td style="width: 25%; text-align: left;">
+            <td style="width: 22%; text-align: left;">
                 <div class="doc-no">
                     No. {{ $rfpnonpurch->rfpnonpurchaseid }}
                 </div>
