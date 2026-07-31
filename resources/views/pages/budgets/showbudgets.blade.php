@@ -231,7 +231,7 @@
                                 <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
                                     <div id="commentList"
                                         class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
-                                        <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                        <p class="py-4 text-center italic text-gray-500 dark:text-gray-400">Loading comments...</p>
                                     </div>
                                     <div
                                         class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
@@ -264,7 +264,7 @@
 
                     <div class="flex flex-row gap-6">
                         <div class="flex items-center gap-2">
-                            <span class="text-xs text-gray-500">View in:</span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400">View in:</span>
                             <button id="toggleUnitBtn"
                                 class="rounded-md bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-200">
                                 In Million
@@ -272,7 +272,7 @@
                         </div>
 
                         <button id="toggleViewBtn"
-                            class="rounded-md bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-200">
+                            class="rounded-md bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-200 dark:bg-gray-900 dark:hover:bg-gray-700 dark:text-gray-300">
                             View Full
                         </button>
 
@@ -475,7 +475,7 @@
                 placeholder="Enter rejection reason..."></textarea>
 
             <div class="mt-4 flex justify-between">
-                <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
                     Cancel
                 </button>
                 <button id="confirmRejectBtn" class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600">
@@ -491,7 +491,7 @@
                 placeholder="Enter revise reason..."></textarea>
 
             <div class="mt-4 flex justify-between">
-                <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
                     Cancel
                 </button>
                 <button id="confirmReviseBtn"
@@ -644,7 +644,7 @@
 
             function loadComments(refnbr, doctype) {
                 let commentList = $('#commentList');
-                commentList.html('<p class="italic text-gray-500">Loading comments...</p>');
+                commentList.html('<p class="italic text-gray-500 dark:text-gray-400">Loading comments...</p>');
 
                 $.ajax({
                     url: `/comments/${doctype}/${refnbr}`,
@@ -654,7 +654,7 @@
 
                         if (!response.comments || response.comments.length === 0) {
                             commentList.append(
-                                '<p class="italic text-gray-500">No comments yet. Be the first to comment!</p>'
+                                '<p class="italic text-gray-500 dark:text-gray-400">No comments yet. Be the first to comment!</p>'
                             );
                             return;
                         }
@@ -668,7 +668,7 @@
     <div class="mb-2 rounded-lg bg-gray-100 px-3 py-2 dark:bg-gray-800">
         <p class="text-xs font-semibold">
             ${comment.username}
-            <span class="text-xs text-gray-500">(${timeAgo})</span>
+            <span class="text-xs text-gray-500 dark:text-gray-400">(${timeAgo})</span>
         </p>
         <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
     </div>

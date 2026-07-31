@@ -131,7 +131,7 @@
                 <!-- ROW 1 : Job Title - Job Level -->
                 <div class="col-span-1 sm:col-span-6 lg:col-span-12">
                     <select id="filterJobTL"
-                        class="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        class="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-700">
                     </select>
                 </div>
                 @endif
@@ -139,7 +139,7 @@
                 <!-- ROW 2 : Reset -->
                 <div class="col-span-1 sm:col-span-2 lg:col-span-2">
                     <button id="btnResetFilters"
-                        class="w-full rounded-md border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50">
+                        class="w-full rounded-md border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-700">
                         Reset
                     </button>
                 </div>
@@ -267,11 +267,11 @@
 
     <!-- Remap Modal -->
     <div id="remapModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
-        <div class="w-full max-w-2xl transform rounded-2xl bg-white p-8 shadow-2xl transition-all duration-300 scale-95 opacity-0" id="remapModalContent">
+        <div class="w-full max-w-2xl transform rounded-2xl bg-white p-8 shadow-2xl transition-all duration-300 scale-95 opacity-0 dark:bg-gray-800" id="remapModalContent">
             <div class="mb-5 flex items-center justify-between">
                 <div>
-                    <h2 class="text-lg font-bold text-gray-800">Remap Applicant</h2>
-                    <p class="text-sm text-gray-500">Old mapping → <strong>Transfer Candidate</strong>. New job apply will be created.</p>
+                    <h2 class="text-lg font-bold text-gray-800 dark:text-gray-200">Remap Applicant</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Old mapping → <strong>Transfer Candidate</strong>. New job apply will be created.</p>
                 </div>
                 <button id="closeRemapModal" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
             </div>
@@ -285,37 +285,37 @@
                     <div class="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
                         <div>
                             <span class="text-xs text-gray-400">Job ID</span>
-                            <p class="font-medium text-gray-800" id="remapCurrentJobId">—</p>
+                            <p class="font-medium text-gray-800 dark:text-gray-200" id="remapCurrentJobId">—</p>
                         </div>
                         <div>
                             <span class="text-xs text-gray-400">Job Title</span>
-                            <p class="font-medium text-gray-800" id="remapCurrentJobTitle">—</p>
+                            <p class="font-medium text-gray-800 dark:text-gray-200" id="remapCurrentJobTitle">—</p>
                         </div>
                         <div>
                             <span class="text-xs text-gray-400">Company</span>
-                            <p class="text-gray-700" id="remapCurrentCompany">—</p>
+                            <p class="text-gray-700 dark:text-gray-300" id="remapCurrentCompany">—</p>
                         </div>
                         <div>
                             <span class="text-xs text-gray-400">Division</span>
-                            <p class="text-gray-700" id="remapCurrentDivision">—</p>
+                            <p class="text-gray-700 dark:text-gray-300" id="remapCurrentDivision">—</p>
                         </div>
                         <div class="col-span-2">
                             <span class="text-xs text-gray-400">Department</span>
-                            <p class="text-gray-700" id="remapCurrentDepartment">—</p>
+                            <p class="text-gray-700 dark:text-gray-300" id="remapCurrentDepartment">—</p>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Select New Job Posting</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">Select New Job Posting</label>
                 <select id="remapJobSelect" style="width:100%">
                     <option value="">Select Job Posting</option>
                 </select>
             </div>
 
             <div class="flex justify-end gap-3">
-                <button id="closeRemapModalBtn" class="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-50">Cancel</button>
+                <button id="closeRemapModalBtn" class="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-400 dark:border-gray-700">Cancel</button>
                 <button id="saveRemap" class="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700">Save Remap</button>
             </div>
         </div>
@@ -592,8 +592,7 @@
                 if (col.type === 'select') {
                     $el = $(`
         <select id="filterStep"
-            class="w-full rounded-md border border-gray-200 px-3 py-2 text-sm
-                   focus:border-blue-500 focus:ring-1 focus:ring-blue-500 truncate text-ellipsis">
+            class="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 truncate text-ellipsis dark:border-gray-700">
             <option value="">All Step</option >
         </select>
     `);
@@ -615,8 +614,7 @@
                 } else {
                     $el = $(`
             <input type="text"
-                 class="w-full rounded-md border border-gray-200 px-3 py-2  text-sm
-               focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                 class="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-700"
                 placeholder="Search ${col.placeholder}">
         `);
 
@@ -725,7 +723,7 @@
                         data: 'docid',
                         name: 'docid',
                         render: function(data, type, row) {
-                            return `<a href="/showcareers/${row.eid}" class= 'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 '>${data}</a>`;
+                            return `<a href="/showcareers/${row.eid}" class='inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 '>${data}</a>`;
                         }
                     },
                     {

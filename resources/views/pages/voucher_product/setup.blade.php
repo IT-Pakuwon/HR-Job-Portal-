@@ -209,7 +209,7 @@
 
                 <div class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
                     <button type="button" onclick="toggleModal('#createWhsModal', false)"
-                        class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">Cancel</button>
+                        class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">Cancel</button>
                     <button type="submit"
                         class="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-blue-600 dark:hover:bg-blue-500">Save Warehouse</button>
                 </div>
@@ -266,7 +266,7 @@
 
                 <div class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
                     <button type="button" onclick="toggleModal('#editWhsModal', false)"
-                        class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">Cancel</button>
+                        class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">Cancel</button>
                     <button type="submit"
                         class="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-blue-600 dark:hover:bg-blue-500">Update Warehouse</button>
                 </div>
@@ -346,7 +346,7 @@
 
                 <div class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
                     <button type="button" onclick="toggleModal('#createDeptModal', false)"
-                        class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">Cancel</button>
+                        class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">Cancel</button>
                     <button type="submit"
                         class="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-blue-600 dark:hover:bg-blue-500">Save</button>
                 </div>
@@ -426,7 +426,7 @@
 
                 <div class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
                     <button type="button" onclick="toggleModal('#editDeptModal', false)"
-                        class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">Cancel</button>
+                        class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">Cancel</button>
                     <button type="submit"
                         class="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-blue-600 dark:hover:bg-blue-500">Update</button>
                 </div>

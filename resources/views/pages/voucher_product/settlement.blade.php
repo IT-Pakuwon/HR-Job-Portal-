@@ -204,12 +204,12 @@
                         <table class="min-w-full text-sm" id="c_detailTable">
                             <thead class="bg-slate-50 dark:bg-white/[0.03]">
                                 <tr>
-                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600" style="width:18%">Product</th>
-                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600" style="width:20%">Remark</th>
-                                    <th class="px-3 py-2.5 text-right text-xs font-semibold text-slate-600" style="width:12%">Qty Usage</th>
-                                    <th class="px-3 py-2.5 text-right text-xs font-semibold text-slate-600" style="width:12%">Qty Return</th>
-                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600" style="width:14%">Qty Settlement <span class="text-red-500">*</span></th>
-                                    <th class="px-3 py-2.5 text-right text-xs font-semibold text-slate-600" style="width:12%">Sisa</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:18%">Product</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:20%">Remark</th>
+                                    <th class="px-3 py-2.5 text-right text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:12%">Qty Usage</th>
+                                    <th class="px-3 py-2.5 text-right text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:12%">Qty Return</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:14%">Qty Settlement <span class="text-red-500">*</span></th>
+                                    <th class="px-3 py-2.5 text-right text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:12%">Sisa</th>
                                 </tr>
                             </thead>
                             <tbody id="c_detailBody">
@@ -263,11 +263,11 @@
                         <table class="min-w-full text-sm">
                             <thead class="bg-slate-50 dark:bg-white/[0.03]">
                                 <tr>
-                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600">Product</th>
-                                    <th class="px-4 py-2 text-right text-xs font-semibold text-slate-600">Qty Usage</th>
-                                    <th class="px-4 py-2 text-right text-xs font-semibold text-slate-600">Qty Return</th>
-                                    <th class="px-4 py-2 text-right text-xs font-semibold text-slate-600">Qty Settlement</th>
-                                    <th class="px-4 py-2 text-right text-xs font-semibold text-slate-600">Sisa</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Product</th>
+                                    <th class="px-4 py-2 text-right text-xs font-semibold text-slate-600 dark:text-slate-400">Qty Usage</th>
+                                    <th class="px-4 py-2 text-right text-xs font-semibold text-slate-600 dark:text-slate-400">Qty Return</th>
+                                    <th class="px-4 py-2 text-right text-xs font-semibold text-slate-600 dark:text-slate-400">Qty Settlement</th>
+                                    <th class="px-4 py-2 text-right text-xs font-semibold text-slate-600 dark:text-slate-400">Sisa</th>
                                 </tr>
                             </thead>
                             <tbody id="c_previewDetailBody"></tbody>
@@ -341,21 +341,21 @@
                 <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
                     <div class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-white/10">
                         <div>
-                            <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Requested By</div>
+                            <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Requested By</div>
                             <div id="v_user" class="mt-2 text-base font-semibold text-slate-900 dark:text-white"></div>
                         </div>
                         <div id="v_status_badge"></div>
                     </div>
                     <div class="grid grid-cols-2 gap-4 p-4 md:grid-cols-3">
-                        <div><div class="text-xs text-slate-500">Doc No</div><div id="v_doc_no" class="mt-1 text-sm font-semibold text-indigo-600 dark:text-indigo-400"></div></div>
-                        <div><div class="text-xs text-slate-500">Date</div><div id="v_date" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
-                        <div><div class="text-xs text-slate-500">Company</div><div id="v_cpnyid" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
-                        <div><div class="text-xs text-slate-500">Department</div><div id="v_dept" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
-                        <div><div class="text-xs text-slate-500">V/P Type</div><div id="v_vp_type" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
-                        <div><div class="text-xs text-slate-500">Usage Doc</div><div id="v_usage_id" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
+                        <div><div class="text-xs text-slate-500 dark:text-slate-400">Doc No</div><div id="v_doc_no" class="mt-1 text-sm font-semibold text-indigo-600 dark:text-indigo-400"></div></div>
+                        <div><div class="text-xs text-slate-500 dark:text-slate-400">Date</div><div id="v_date" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
+                        <div><div class="text-xs text-slate-500 dark:text-slate-400">Company</div><div id="v_cpnyid" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
+                        <div><div class="text-xs text-slate-500 dark:text-slate-400">Department</div><div id="v_dept" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
+                        <div><div class="text-xs text-slate-500 dark:text-slate-400">V/P Type</div><div id="v_vp_type" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
+                        <div><div class="text-xs text-slate-500 dark:text-slate-400">Usage Doc</div><div id="v_usage_id" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
                     </div>
                     <div class="border-t border-slate-100 px-4 py-3 dark:border-white/10">
-                        <div class="text-xs text-slate-500">Remark</div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400">Remark</div>
                         <div id="v_remark" class="mt-1 text-sm text-slate-700 dark:text-slate-200"></div>
                     </div>
                 </div>
@@ -410,7 +410,7 @@
                                 <i class="fa-solid fa-check mr-1"></i> Approve
                             </button>
                             <button type="button" id="v_reviseBtn"
-                                class="flex-1 rounded-lg bg-yellow-400 px-4 py-2 text-xs font-semibold text-black transition hover:bg-yellow-300">
+                                class="flex-1 rounded-lg bg-yellow-400 px-4 py-2 text-xs font-semibold text-black transition hover:bg-yellow-300 dark:text-white">
                                 <i class="fa-solid fa-rotate-left mr-1"></i> Revise
                             </button>
                             <button type="button" id="v_rejectBtn"
@@ -526,12 +526,12 @@
                         <table class="min-w-full text-sm" id="e_detailTable">
                             <thead class="bg-slate-50 dark:bg-white/[0.03]">
                                 <tr>
-                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600" style="width:18%">Product</th>
-                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600" style="width:20%">Remark</th>
-                                    <th class="px-3 py-2.5 text-right text-xs font-semibold text-slate-600" style="width:12%">Qty Usage</th>
-                                    <th class="px-3 py-2.5 text-right text-xs font-semibold text-slate-600" style="width:12%">Qty Return</th>
-                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600" style="width:14%">Qty Settlement <span class="text-red-500">*</span></th>
-                                    <th class="px-3 py-2.5 text-right text-xs font-semibold text-slate-600" style="width:12%">Sisa</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:18%">Product</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:20%">Remark</th>
+                                    <th class="px-3 py-2.5 text-right text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:12%">Qty Usage</th>
+                                    <th class="px-3 py-2.5 text-right text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:12%">Qty Return</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:14%">Qty Settlement <span class="text-red-500">*</span></th>
+                                    <th class="px-3 py-2.5 text-right text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:12%">Sisa</th>
                                 </tr>
                             </thead>
                             <tbody id="e_detailBody"></tbody>
@@ -591,11 +591,11 @@
                         <table class="min-w-full text-sm">
                             <thead class="bg-slate-50 dark:bg-white/[0.03]">
                                 <tr>
-                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600">Product</th>
-                                    <th class="px-4 py-2 text-right text-xs font-semibold text-slate-600">Qty Usage</th>
-                                    <th class="px-4 py-2 text-right text-xs font-semibold text-slate-600">Qty Return</th>
-                                    <th class="px-4 py-2 text-right text-xs font-semibold text-slate-600">Qty Settlement</th>
-                                    <th class="px-4 py-2 text-right text-xs font-semibold text-slate-600">Sisa</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Product</th>
+                                    <th class="px-4 py-2 text-right text-xs font-semibold text-slate-600 dark:text-slate-400">Qty Usage</th>
+                                    <th class="px-4 py-2 text-right text-xs font-semibold text-slate-600 dark:text-slate-400">Qty Return</th>
+                                    <th class="px-4 py-2 text-right text-xs font-semibold text-slate-600 dark:text-slate-400">Qty Settlement</th>
+                                    <th class="px-4 py-2 text-right text-xs font-semibold text-slate-600 dark:text-slate-400">Sisa</th>
                                 </tr>
                             </thead>
                             <tbody id="e_previewDetailBody"></tbody>

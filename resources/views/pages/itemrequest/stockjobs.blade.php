@@ -753,7 +753,7 @@
                                 v = String(v || '').toUpperCase();
 
                                 if (v === 'D') {
-                                    return `<span class="inline-block w-24 rounded bg-gray-300/30 px-3 py-1.5 text-sm font-semibold text-gray-600">Draft</span>`;
+                                    return `<span class="inline-block w-24 rounded bg-gray-300/30 px-3 py-1.5 text-sm font-semibold text-gray-600 dark:text-gray-400">Draft</span>`;
                                 }
 
                                 if (v === 'P') {

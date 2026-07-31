@@ -46,12 +46,12 @@
                 <!-- Tabs -->
                 <div class="flex gap-2">
                     <button type="button" data-tab="assign"
-                        class="tab-btn rounded-xl border border-gray-300 bg-gray-900 px-4 py-2 text-sm font-semibold text-white">
+                        class="tab-btn rounded-xl border border-gray-300 bg-gray-900 px-4 py-2 text-sm font-semibold text-white dark:border-gray-700">
                         Assign List
                     </button>
 
                     <button type="button" data-tab="transfer"
-                        class="tab-btn rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 dark:bg-gray-800 dark:text-white">
+                        class="tab-btn rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 dark:bg-gray-800 dark:text-white dark:border-gray-700">
                         Transfer Jobs
                     </button>
                 </div>

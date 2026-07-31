@@ -28,7 +28,7 @@
                             </span>
                             <div>
                                 <h2 class="font-extrabold text-gray-800 dark:text-white">Meeting Information</h2>
-                                <p class="text-xs text-gray-500">Topic, schedule, and meeting time.</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Topic, schedule, and meeting time.</p>
                             </div>
                         </div>
                         <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -61,7 +61,7 @@
                                         <h2 class="font-extrabold text-gray-800 dark:text-white">Attendance</h2>
                                         <span id="participantCount" class="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">0</span>
                                     </div>
-                                    <p class="text-xs text-gray-500">Copied from the latest meeting when available.</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Copied from the latest meeting when available.</p>
                                 </div>
                             </div>
                             <button type="button" id="btnAddParticipant"
@@ -84,7 +84,7 @@
 
                 <div class="flex justify-end gap-3 border-t bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
                     <a href="{{ route('weekly-meeting') }}"
-                        class="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-600 transition hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200">
+                        class="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-600 transition hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
                         Cancel
                     </a>
                     <button type="submit"

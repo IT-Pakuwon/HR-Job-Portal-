@@ -18,7 +18,7 @@
                         Filter Doc Type
                     </label>
                     <select id="filterDoctype"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
                         <option value="">All Document Type</option>
                         @foreach ($doctypes as $dt)
                             <option value="{{ $dt->doctype }}">{{ $dt->doctype }} - {{ $dt->doctype_descr }}</option>
@@ -31,7 +31,7 @@
                         Filter Company
                     </label>
                     <select id="filterCompany"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
                         <option value="">All Company</option>
                         @foreach ($companies as $c)
                             <option value="{{ $c->cpny_id }}">{{ $c->cpny_id }} - {{ $c->cpny_name }}</option>
@@ -44,7 +44,7 @@
                         Filter Department
                     </label>
                     <select id="filterDept"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
                         <option value="">All Department</option>
                         @foreach ($departments as $d)
                             <option value="{{ $d->department_id }}">{{ $d->department_id }}</option>
@@ -57,7 +57,7 @@
                         Filter Group Biaya
                     </label>
                     <select id="filterGroupBiaya"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
                         <option value="">All Group Biaya</option>
                         @foreach ($groupbiaya as $g)
                             <option value="{{ $g->groupbiayadescr }}">

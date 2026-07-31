@@ -19,11 +19,11 @@
                         </button>
                     @endif
                 </div>
-                <p class="mt-1 text-sm text-gray-500">{{ $meeting->weeklymeeting_topic }} · {{ $meeting->weeklymeeting_date->format('d M Y') }}</p>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ $meeting->weeklymeeting_topic }} · {{ $meeting->weeklymeeting_date->format('d M Y') }}</p>
                 <p class="mt-1 text-xs text-gray-400">Finding period: {{ $fromDate->format('d M Y') }} – {{ $toDate->format('d M Y') }}</p>
                 <div class="relative mt-3 rounded-xl border border-white/80 bg-white/70 px-4 py-2.5 shadow-sm backdrop-blur dark:border-gray-600/60 dark:bg-gray-800/50">
                     <div class="mb-2 flex items-center gap-2">
-                        <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-gray-500">Attendance · {{ $participants->count() }}</p>
+                        <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">Attendance · {{ $participants->count() }}</p>
                         @if (strtoupper((string) $meeting->status) !== 'C')
                             <button type="button" id="btnEditWeeklyMeeting" title="Edit meeting and attendance"
                                 class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 transition hover:bg-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-300">
@@ -40,7 +40,7 @@
                                 {{ $participant->name_participant ?: $participant->user_participant }}
                             </span>
                         @empty
-                            <span class="text-sm text-gray-500">No attendance.</span>
+                            <span class="text-sm text-gray-500 dark:text-gray-400">No attendance.</span>
                         @endforelse
                     </div>
                 </div>
@@ -52,10 +52,10 @@
                 <button type="button" class="meeting-finding-tab shrink-0 border-b-2 border-indigo-600 px-4 py-3 text-sm font-bold text-indigo-600" data-tab="open">
                     <span class="inline-flex items-center gap-2"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2h8l4 4v16H4V2h4Z"/><path d="M8 2v5h8V2M8 13h8M8 17h5"/></svg>Open Finding ({{ $openFindings->count() }})</span>
                 </button>
-                <button type="button" class="meeting-finding-tab shrink-0 border-b-2 border-transparent px-4 py-3 text-sm font-bold text-gray-500" data-tab="close">
+                <button type="button" class="meeting-finding-tab shrink-0 border-b-2 border-transparent px-4 py-3 text-sm font-bold text-gray-500 dark:text-gray-400" data-tab="close">
                     <span class="inline-flex items-center gap-2"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>Close Finding ({{ $closeFindings->count() }})</span>
                 </button>
-                <button type="button" class="meeting-finding-tab shrink-0 border-b-2 border-transparent px-4 py-3 text-sm font-bold text-gray-500" data-tab="project">
+                <button type="button" class="meeting-finding-tab shrink-0 border-b-2 border-transparent px-4 py-3 text-sm font-bold text-gray-500 dark:text-gray-400" data-tab="project">
                     <span class="inline-flex items-center gap-2"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 10h6M9 14h6M9 18h6"/></svg>Project Finding</span>
                 </button>
             </div>
@@ -73,7 +73,7 @@
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full min-w-[950px] text-sm">
-                            <thead class="sticky top-0 z-10 bg-gray-50 text-xs uppercase text-gray-500 dark:bg-gray-700">
+                            <thead class="sticky top-0 z-10 bg-gray-50 text-xs uppercase text-gray-500 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
                                     <th class="px-3 py-2 text-left">Finding ID</th>
                                     <th class="px-3 py-2 text-left">Date</th>
@@ -103,16 +103,16 @@
                                         </td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="6" class="px-3 py-10 text-center text-gray-500">No findings in this period.</td></tr>
+                                    <tr><td colspan="6" class="px-3 py-10 text-center text-gray-500 dark:text-gray-400">No findings in this period.</td></tr>
                                 @endforelse
-                                <tr class="no-filter-result hidden"><td colspan="6" class="px-3 py-10 text-center text-gray-500">No findings for this department.</td></tr>
+                                <tr class="no-filter-result hidden"><td colspan="6" class="px-3 py-10 text-center text-gray-500 dark:text-gray-400">No findings for this department.</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
             @endforeach
 
-            <div id="projectFindingPanel" class="finding-tab-panel hidden min-h-0 flex-1 overflow-auto p-10 text-center text-gray-500">Project Finding table is not available yet.</div>
+            <div id="projectFindingPanel" class="finding-tab-panel hidden min-h-0 flex-1 overflow-auto p-10 text-center text-gray-500 dark:text-gray-400">Project Finding table is not available yet.</div>
             </div>
             <aside class="flex min-h-0 min-w-0 flex-col bg-gray-50/50 p-5 dark:bg-white/[0.02] lg:col-span-1">
                 <div class="mb-4 shrink-0">
@@ -120,7 +120,7 @@
                         <svg class="h-5 w-5 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V4a2 2 0 0 1 2-2h12v20H6a2 2 0 0 1-2-2.5Z"/><path d="M8 7h6M8 11h6M8 15h4"/></svg>
                         <h2 class="font-extrabold text-gray-800 dark:text-white">Minute of Meeting</h2>
                     </div>
-                    <p class="mt-1 text-sm text-gray-500">Text and pasted images are saved in one MOM document.</p>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Text and pasted images are saved in one MOM document.</p>
                 </div>
                 <form id="momEditorForm" method="POST" action="{{ route('weekly-meeting.mom.store', $meeting->weeklymeeting_id) }}" class="flex min-h-0 flex-1 flex-col">
                 @csrf
@@ -140,8 +140,8 @@
     <div id="editWeeklyMeetingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
         <div class="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-gray-50 shadow-2xl dark:bg-gray-900">
             <div class="flex shrink-0 items-center justify-between border-b bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
-                <div><h2 class="text-lg font-extrabold">Edit Weekly Meeting</h2><p class="mt-1 text-xs text-gray-500">{{ $meeting->weeklymeeting_id }}</p></div>
-                <button type="button" class="btnCloseEditMeeting text-2xl text-gray-500">&times;</button>
+                <div><h2 class="text-lg font-extrabold">Edit Weekly Meeting</h2><p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ $meeting->weeklymeeting_id }}</p></div>
+                <button type="button" class="btnCloseEditMeeting text-2xl text-gray-500 dark:text-gray-400">&times;</button>
             </div>
             <form id="editWeeklyMeetingForm" action="{{ route('weekly-meeting.update', $meeting->weeklymeeting_id) }}" class="min-h-0 overflow-y-auto">
                 @csrf
@@ -152,7 +152,7 @@
                             <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10">
                                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V4a2 2 0 0 1 2-2h12v20H6a2 2 0 0 1-2-2.5Z"/><path d="M8 7h6M8 11h6"/></svg>
                             </span>
-                            <div><h3 class="font-extrabold">Meeting Information</h3><p class="text-xs text-gray-500">Topic, schedule, and meeting time.</p></div>
+                            <div><h3 class="font-extrabold">Meeting Information</h3><p class="text-xs text-gray-500 dark:text-gray-400">Topic, schedule, and meeting time.</p></div>
                         </div>
                         <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
                             <div class="md:col-span-2">
@@ -176,7 +176,7 @@
                         <div class="mb-4 flex items-center justify-between gap-3 border-b pb-4 dark:border-gray-700">
                             <div>
                                 <div class="flex items-center gap-2"><h3 class="font-extrabold">Attendance</h3><span id="editParticipantCount" class="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">0</span></div>
-                                <p class="text-xs text-gray-500">Update the participant list for this meeting.</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Update the participant list for this meeting.</p>
                             </div>
                             <button type="button" id="btnAddEditParticipant" class="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700">+ Add Participant</button>
                         </div>
@@ -194,8 +194,8 @@
     <div id="findingDetailModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
         <div class="flex h-[92vh] max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white shadow-xl dark:bg-gray-800">
             <div class="flex shrink-0 items-center justify-between border-b px-5 py-4 dark:border-gray-700">
-                <div><h2 id="detailFindingId" class="text-lg font-extrabold">Finding Detail</h2><p id="detailFindingDate" class="mt-1 text-xs text-gray-500">-</p></div>
-                <button type="button" class="btnCloseFindingModal text-2xl text-gray-500">&times;</button>
+                <div><h2 id="detailFindingId" class="text-lg font-extrabold">Finding Detail</h2><p id="detailFindingDate" class="mt-1 text-xs text-gray-500 dark:text-gray-400">-</p></div>
+                <button type="button" class="btnCloseFindingModal text-2xl text-gray-500 dark:text-gray-400">&times;</button>
             </div>
             <div class="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto lg:grid-cols-2 lg:overflow-hidden">
                 <div class="overflow-y-auto border-b p-5 lg:border-b-0 lg:border-r dark:border-gray-700">
@@ -205,7 +205,7 @@
                 <div class="flex min-h-[70vh] flex-col lg:h-full lg:min-h-0 lg:overflow-hidden">
                     <div class="flex shrink-0 border-b px-5 dark:border-gray-700">
                         <button type="button" class="finding-detail-tab border-b-2 border-indigo-600 px-4 py-3 text-sm font-bold text-indigo-600" data-tab="issue">⚠ Issue</button>
-                        <button type="button" class="finding-detail-tab border-b-2 border-transparent px-4 py-3 text-sm font-bold text-gray-500" data-tab="comment">▢ Comment <span id="modalCommentCount" class="rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-700">0</span></button>
+                        <button type="button" class="finding-detail-tab border-b-2 border-transparent px-4 py-3 text-sm font-bold text-gray-500 dark:text-gray-400" data-tab="comment">▢ Comment <span id="modalCommentCount" class="rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-700">0</span></button>
                     </div>
                     <div id="findingIssuePanel" class="min-h-0 flex-1 overflow-y-auto p-5"><div id="findingInformation" class="grid grid-cols-1 gap-4 sm:grid-cols-2"></div></div>
                     <div id="findingCommentPanel" class="hidden min-h-0 flex-1 flex-col overflow-hidden">
@@ -217,7 +217,7 @@
                                 <div class="flex min-w-0 items-center gap-3">
                                     <input type="file" name="attachments[]" id="weeklyFindingCommentFiles" multiple class="hidden">
                                     <label for="weeklyFindingCommentFiles" class="cursor-pointer rounded-lg bg-gray-900 px-3 py-2 text-sm font-bold text-white">Choose Files</label>
-                                    <span id="weeklyFindingFileLabel" class="truncate text-sm text-gray-500">No file chosen</span>
+                                    <span id="weeklyFindingFileLabel" class="truncate text-sm text-gray-500 dark:text-gray-400">No file chosen</span>
                                 </div>
                                 <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white">Send Comment</button>
                             </div>
@@ -443,9 +443,9 @@
                 }
                 function renderPhotos(attachments) {
                     $('#findingPhotos').html(attachments.length ? attachments.map(a => a.is_image && a.url
-                        ? `<a href="${escapeHtml(a.url)}" target="_blank" class="overflow-hidden rounded-lg border"><img src="${escapeHtml(a.url)}" class="h-72 w-full bg-gray-100 object-contain"></a>`
+                        ? `<a href="${escapeHtml(a.url)}" target="_blank" class="overflow-hidden rounded-lg border"><img src="${escapeHtml(a.url)}" class="h-72 w-full bg-gray-100 object-contain dark:bg-gray-900"></a>`
                         : a.url ? `<a href="${escapeHtml(a.url)}" target="_blank" class="rounded-lg border p-4 text-indigo-600">📎 ${escapeHtml(a.name)}</a>` : '').join('')
-                        : '<div class="rounded-lg border border-dashed p-8 text-center text-sm text-gray-500">No photo found.</div>');
+                        : '<div class="rounded-lg border border-dashed p-8 text-center text-sm text-gray-500 dark:text-gray-400">No photo found.</div>');
                 }
                 function renderComments(comments) {
                     $('#modalCommentCount').text(comments.length);
@@ -454,7 +454,7 @@
                             ? `<a href="${escapeHtml(a.url)}" target="_blank" class="w-20 overflow-hidden rounded-lg border"><img src="${escapeHtml(a.url)}" class="h-14 w-20 object-cover"></a>`
                             : a.url ? `<a href="${escapeHtml(a.url)}" target="_blank" class="w-full truncate text-sm font-semibold text-indigo-600">📎 ${escapeHtml(a.name)}</a>` : '').join('');
                         return `<div class="rounded-lg border p-3 dark:border-gray-700"><div class="flex justify-between gap-3"><strong class="text-sm">${escapeHtml(c.created_by)}</strong><span class="text-xs text-gray-400">${escapeHtml(c.created_at)}</span></div><p class="mt-2 whitespace-pre-wrap text-sm">${escapeHtml(c.comment)}</p><div class="mt-3 flex flex-wrap gap-2">${files}</div></div>`;
-                    }).join('') : '<div class="p-8 text-center text-sm text-gray-500">No comments yet.</div>');
+                    }).join('') : '<div class="p-8 text-center text-sm text-gray-500 dark:text-gray-400">No comments yet.</div>');
                 }
                 async function openFinding(id, tab = 'issue') {
                     currentFindingId = id;

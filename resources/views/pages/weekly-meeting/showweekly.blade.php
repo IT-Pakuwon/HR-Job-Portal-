@@ -5,7 +5,7 @@
                 <div>
                     <p class="text-xs font-bold uppercase tracking-wider text-indigo-600">Minute of Meeting</p>
                     <h1 class="mt-1 text-2xl font-extrabold">{{ $meeting->weeklymeeting_topic }}</h1>
-                    <p class="mt-2 text-sm text-gray-500">{{ $meeting->weeklymeeting_id }}</p>
+                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ $meeting->weeklymeeting_id }}</p>
                 </div>
                 <button type="button" onclick="window.print()"
                     class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white print:hidden">
@@ -41,7 +41,7 @@
                             </div>
                         </div>
                     @empty
-                        <div class="p-5 text-sm text-gray-500">No participants.</div>
+                        <div class="p-5 text-sm text-gray-500 dark:text-gray-400">No participants.</div>
                     @endforelse
                 </div>
             </div>
@@ -52,7 +52,7 @@
                     @if ($momContent)
                         {!! $momContent !!}
                     @else
-                        <p class="text-gray-500">No MOM content available.</p>
+                        <p class="text-gray-500 dark:text-gray-400">No MOM content available.</p>
                     @endif
                 </div>
             </div>

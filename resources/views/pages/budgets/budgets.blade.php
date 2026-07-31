@@ -112,7 +112,7 @@
                             Business Unit
                         </label>
                         <select id="filterBusinessUnit"
-                            class="rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            class="rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700">
                             <option value="">All</option>
                             @foreach ($businessUnits as $bu)
                                 <option value="{{ $bu->business_unit_id }}">
@@ -128,7 +128,7 @@
                             Department
                         </label>
                         <select id="filterDepartment"
-                            class="rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            class="rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700">
                             <option value="">All</option>
                             @foreach ($departments as $dept)
                                 <option value="{{ $dept->department_fin_id }}">

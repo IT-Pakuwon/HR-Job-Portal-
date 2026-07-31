@@ -532,7 +532,7 @@
                                     Expired?</label>
                                 <label class="inline-flex h-11 cursor-pointer items-center gap-3">
                                     <input type="checkbox" id="f_has_expired" name="has_expired" value="1"
-                                        class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900 dark:border-white/20">
+                                        class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900 dark:border-white/20 dark:text-slate-100">
                                     <span class="text-sm text-slate-600 dark:text-slate-300">Warranty expired</span>
                                 </label>
                             </div>

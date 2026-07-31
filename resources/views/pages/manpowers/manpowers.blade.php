@@ -49,7 +49,7 @@
                 <button>
                     <a href="#" class="status-filter" data-status="D">
                         <div
-                            class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-4 text-gray-600 shadow-white">
+                            class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-4 text-gray-600 shadow-white dark:text-gray-400">
                             <span class="text-lg">✏️</span>
                             <div>
                                 <p class="text-sm font-medium">Revise</p>

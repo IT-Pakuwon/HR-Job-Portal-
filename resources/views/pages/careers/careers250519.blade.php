@@ -7,7 +7,7 @@
         <!-- Dashboard actions -->
         <div class="mb-4 sm:flex sm:items-center sm:justify-between"></div>
         <div class="mb-4 flex items-center justify-end">
-            {{-- <label for="cpnyidFilter" class="mr-2 font-semibold text-gray-700"></label> --}}
+            {{-- <label for="cpnyidFilter" class="mr-2 font-semibold text-gray-700 dark:text-gray-300"></label> --}}
             <select id="cpnyidFilter" class="rounded border px-3 py-1">
                 <option value="">All</option>
                 <option value="AW">AW</option>

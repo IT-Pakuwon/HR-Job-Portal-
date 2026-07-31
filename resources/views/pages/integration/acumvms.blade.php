@@ -164,7 +164,7 @@
                                 @foreach (($stagingModules ?? []) as $moduleKey => $moduleLabel)
                                     <label class="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700/60">
                                         <input type="checkbox" name="modules[]" value="{{ $moduleKey }}"
-                                            class="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                                            class="rounded border-gray-300 text-green-600 focus:ring-green-500 dark:border-gray-700"
                                             {{ in_array($moduleKey, $selectedModules, true) ? 'checked' : '' }}
                                             {{ (!$setting || $running) ? 'disabled' : '' }}>
                                         <span>{{ $moduleLabel }}</span>
@@ -287,7 +287,7 @@
                             @foreach ($vmsSteps as $stepKey => $stepLabel)
                                 <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 px-3 py-3 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700/60">
                                     <input type="checkbox" name="steps[]" value="{{ $stepKey }}"
-                                        class="vms-step rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                        class="vms-step rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-700"
                                         {{ in_array($stepKey, $selectedVmsSteps, true) ? 'checked' : '' }}
                                         {{ (!$vmsSetting || $vmsSetting->status !== 'A' || $vmsRunning) ? 'disabled' : '' }}>
                                     <span>{{ $stepLabel }}</span>

@@ -70,7 +70,7 @@
             {{-- Completed Jobs --}}
             <button type="button" class="w-full text-left">
                 <div id="btn-completed"
-                    class="filter-card flex h-full items-center gap-2 rounded-lg border border-slate-900 bg-slate-200/20 p-2 text-slate-900 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95">
+                    class="filter-card flex h-full items-center gap-2 rounded-lg border border-slate-900 bg-slate-200/20 p-2 text-slate-900 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95 dark:hover:bg-slate-700 dark:text-slate-100">
 
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
 

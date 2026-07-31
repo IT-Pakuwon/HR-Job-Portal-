@@ -56,7 +56,7 @@
         <div class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
             <div class="flex items-center justify-between">
                 <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         Waiting Approval
                     </div>
                     <div id="waitingApprovalCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">
@@ -73,7 +73,7 @@
         <div class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
             <div class="flex items-center justify-between">
                 <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         RFCA Purchase Waiting
                     </div>
                     <div id="rfcaPurchaseTpCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">
@@ -90,7 +90,7 @@
         <div class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
             <div class="flex items-center justify-between">
                 <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         CALR Purchase Waiting
                     </div>
                     <div id="calrPurchaseTpCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">
@@ -107,7 +107,7 @@
         <div class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
             <div class="flex items-center justify-between">
                 <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         RFP & RFCA Non-Purch Waiting
                     </div>
                     <div id="rfpNonPurchFrDoneCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">
@@ -124,7 +124,7 @@
         <div class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
             <div class="flex items-center justify-between">
                 <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         CALR Non-Purch Waiting
                     </div>
                     <div id="calrNonPurchFrDoneCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">

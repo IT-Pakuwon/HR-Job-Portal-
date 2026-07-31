@@ -7,65 +7,65 @@
 
             <!-- Date From -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">Date From</label>
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">Date From</label>
                 <input type="date" id="fa_date_from"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <!-- Date To -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">Date To</label>
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">Date To</label>
                 <input type="date" id="fa_date_to"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <!-- STTB / Receipt No -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">STTB</label>
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">STTB</label>
                 <input type="text" id="fa_receiptnbr" placeholder="GRxxxx"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <!-- PO No -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">PO</label>
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">PO</label>
                 <input type="text" id="fa_ponbr" placeholder="xxxxx"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <!-- SPPB -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">SPPB</label>
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">SPPB</label>
                 <input type="text" id="fa_sppb" placeholder="PBxxxx"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <!-- Department -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">Department</label>
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">Department</label>
                 <input type="text" id="fa_department"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <!-- Vendor -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">Vendor</label>
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">Vendor</label>
                 <input type="text" id="fa_vendor"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <!-- Inventory Code / Name -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">Inventory Code / Name</label>
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">Inventory Code / Name</label>
                 <input type="text" id="fa_inventory"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <!-- Status -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">Status</label>
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">Status</label>
                 <select id="fa_status"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
                     <option value="">All Status</option>
                     <option value="Full Received">Full Received</option>
                     <option value="Partial Received">Partial Received</option>
@@ -80,7 +80,7 @@
                 </button>
 
                 <button id="faReset"
-                    class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700">
+                    class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
                     Reset
                 </button>
 
@@ -96,23 +96,23 @@
     </div>
 
     <!-- TABLE -->
-    <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
+    <div class="rounded-2xl border border-gray-200 bg-white shadow-sm dark:bg-gray-800 dark:border-gray-700">
 
-        <div class="border-b border-gray-200 px-6 py-4">
-            <h2 class="text-sm font-semibold text-gray-800">
+        <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+            <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">
                 Fixed Asset Receipt Report
             </h2>
 
-            <p class="text-xs text-gray-500">
+            <p class="text-xs text-gray-500 dark:text-gray-400">
                 Fixed asset receipt detail & receiving status
             </p>
         </div>
 
         <div class="overflow-x-auto p-5">
 
-            <table id="faTable" class="min-w-full text-sm text-gray-700">
+            <table id="faTable" class="min-w-full text-sm text-gray-700 dark:text-gray-300">
 
-                <thead class="bg-gray-50 text-[11px] uppercase tracking-wider text-gray-500">
+                <thead class="bg-gray-50 text-[11px] uppercase tracking-wider text-gray-500 dark:bg-gray-900 dark:text-gray-400">
                     <tr>
                         <th class="px-3 py-3 text-left">STTB</th>
                         <th class="px-3 py-3 text-left">Date</th>

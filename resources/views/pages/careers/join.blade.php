@@ -203,7 +203,7 @@
 
         if (!docidOnboarding) {
             $('#checklistArea').html(
-                '<p class="text-gray-500 italic">Onboarding belum dibuat atau docid tidak tersedia.</p>'
+                '<p class="text-gray-500 italic dark:text-gray-400">Onboarding belum dibuat atau docid tidak tersedia.</p>'
             );
             return; // ⟵ stop supaya tidak nembak /onboarding tanpa docid
         }

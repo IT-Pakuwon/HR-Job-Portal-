@@ -238,7 +238,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="toggleModal('#createTypeModal', false)"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -363,7 +363,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="toggleModal('#editTypeModal', false)"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -546,7 +546,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="toggleModal('#createCategoryModal', false)"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -671,7 +671,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="toggleModal('#editCategoryModal', false)"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -873,7 +873,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="toggleModal('#createSubcategoryModal', false)"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -1015,7 +1015,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="toggleModal('#editSubcategoryModal', false)"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -1250,7 +1250,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="toggleModal('#createPriorityModal', false)"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -1423,7 +1423,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="toggleModal('#editPriorityModal', false)"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -1648,7 +1648,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="toggleModal('#createDeptModal', false)"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -1814,7 +1814,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="toggleModal('#editDeptModal', false)"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -2011,7 +2011,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="toggleModal('#createWaSettingModal', false)"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -2152,7 +2152,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="toggleModal('#editWaSettingModal', false)"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 

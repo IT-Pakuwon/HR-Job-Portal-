@@ -55,7 +55,7 @@
         <div class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
             <div class="flex items-center justify-between">
                 <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">Waiting Approval</div>
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">Waiting Approval</div>
                     <div id="whWaitingApprovalCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">0</div>
                 </div>
                 <div class="rounded-lg bg-emerald-500/10 p-2 text-base">📝</div>
@@ -68,7 +68,7 @@
         <div class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
             <div class="flex items-center justify-between">
                 <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">SPPB On Progress</div>
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">SPPB On Progress</div>
                     <div id="whSppbOnProgressCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">0</div>
                 </div>
                 <div class="rounded-lg bg-amber-500/10 p-2 text-base">📦</div>
@@ -81,7 +81,7 @@
         <div class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
             <div class="flex items-center justify-between">
                 <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">PO Solomon (P)</div>
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">PO Solomon (P)</div>
                     <div id="whPoSolomonCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">0</div>
                 </div>
                 <div class="rounded-lg bg-blue-500/10 p-2 text-base">🛒</div>
@@ -94,7 +94,7 @@
         <div class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
             <div class="flex items-center justify-between">
                 <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">GRN Solomon (P)</div>
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">GRN Solomon (P)</div>
                     <div id="whGrnSolomonCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">0</div>
                 </div>
                 <div class="rounded-lg bg-violet-500/10 p-2 text-base">📥</div>
@@ -107,7 +107,7 @@
         <div class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
             <div class="flex items-center justify-between">
                 <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">Issue Solomon (P)</div>
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">Issue Solomon (P)</div>
                     <div id="whIssueSolomonCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">0</div>
                 </div>
                 <div class="rounded-lg bg-rose-500/10 p-2 text-base">📤</div>

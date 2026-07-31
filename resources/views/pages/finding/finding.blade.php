@@ -88,7 +88,7 @@
             <div class="flex items-center justify-between border-b px-5 py-4 dark:border-gray-700">
                 <div>
                     <h2 id="detailFindingId" class="text-lg font-extrabold text-gray-900 dark:text-white">Finding Detail</h2>
-                    <p id="detailFindingDate" class="mt-1 text-xs text-gray-500">-</p>
+                    <p id="detailFindingDate" class="mt-1 text-xs text-gray-500 dark:text-gray-400">-</p>
                 </div>
                 <button type="button" class="btnCloseFindingModal text-2xl leading-none text-gray-500 hover:text-gray-800 dark:hover:text-white">&times;</button>
             </div>
@@ -106,7 +106,7 @@
                                 Issue
                             </span>
                         </button>
-                        <button type="button" class="finding-tab border-b-2 border-transparent px-4 py-3 text-sm font-bold text-gray-500" data-tab="comment">
+                        <button type="button" class="finding-tab border-b-2 border-transparent px-4 py-3 text-sm font-bold text-gray-500 dark:text-gray-400" data-tab="comment">
                             <span class="inline-flex items-center gap-2">
                                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"/></svg>
                                 Comment <span id="modalCommentCount" class="rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-700">0</span>
@@ -130,7 +130,7 @@
                                         class="shrink-0 cursor-pointer rounded-lg bg-gray-900 px-3 py-2 text-sm font-bold text-white transition hover:bg-gray-700">
                                         Choose Files
                                     </label>
-                                    <span id="findingCommentFileLabel" class="truncate text-sm text-gray-500">No file chosen</span>
+                                    <span id="findingCommentFileLabel" class="truncate text-sm text-gray-500 dark:text-gray-400">No file chosen</span>
                                 </div>
                                 <button type="submit" id="btnSaveFindingComment"
                                     class="shrink-0 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white hover:bg-indigo-700">
@@ -258,20 +258,20 @@
                 function renderFindingPhotos(attachments) {
                     const $photos = $('#findingPhotos');
                     if (!attachments.length) {
-                        $photos.html('<div class="rounded-lg border border-dashed p-8 text-center text-sm text-gray-500">No photo found.</div>');
+                        $photos.html('<div class="rounded-lg border border-dashed p-8 text-center text-sm text-gray-500 dark:text-gray-400">No photo found.</div>');
                         return;
                     }
 
                     $photos.html(attachments.map(attachment => {
                         if (attachment.is_image && attachment.url) {
                             return `<a href="${escapeHtml(attachment.url)}" target="_blank" rel="noopener noreferrer" class="group overflow-hidden rounded-lg border dark:border-gray-700">
-                                <img src="${escapeHtml(attachment.url)}" alt="${escapeHtml(attachment.name)}" class="h-72 w-full bg-gray-100 object-contain transition group-hover:scale-[1.02]">
+                                <img src="${escapeHtml(attachment.url)}" alt="${escapeHtml(attachment.name)}" class="h-72 w-full bg-gray-100 object-contain transition group-hover:scale-[1.02] dark:bg-gray-900">
                             </a>`;
                         }
 
                         return attachment.url
                             ? `<a href="${escapeHtml(attachment.url)}" target="_blank" rel="noopener noreferrer" class="rounded-lg border p-4 text-sm font-semibold text-indigo-600 hover:bg-indigo-50 dark:border-gray-700">📎 ${escapeHtml(attachment.name)}</a>`
-                            : `<div class="rounded-lg border p-4 text-sm text-gray-500 dark:border-gray-700">📎 ${escapeHtml(attachment.name)} (preview unavailable)</div>`;
+                            : `<div class="rounded-lg border p-4 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">📎 ${escapeHtml(attachment.name)} (preview unavailable)</div>`;
                     }).join(''));
                 }
 
@@ -285,12 +285,12 @@
                                     ${attachments.map(attachment => {
                                         if (attachment.is_image && attachment.url) {
                                             return `<a href="${escapeHtml(attachment.url)}" target="_blank" rel="noopener noreferrer" class="w-20 overflow-hidden rounded-lg border dark:border-gray-600 sm:w-24">
-                                                <img src="${escapeHtml(attachment.url)}" alt="${escapeHtml(attachment.name)}" class="h-14 w-20 bg-gray-100 object-cover sm:h-16 sm:w-24">
+                                                <img src="${escapeHtml(attachment.url)}" alt="${escapeHtml(attachment.name)}" class="h-14 w-20 bg-gray-100 object-cover sm:h-16 sm:w-24 dark:bg-gray-900">
                                             </a>`;
                                         }
                                         return attachment.url
                                             ? `<a href="${escapeHtml(attachment.url)}" target="_blank" rel="noopener noreferrer" class="w-full truncate rounded-lg bg-gray-50 px-3 py-2 text-sm font-semibold text-indigo-600 hover:bg-indigo-50 dark:bg-gray-700">📎 ${escapeHtml(attachment.name)}</a>`
-                                            : `<div class="w-full truncate rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-500 dark:bg-gray-700">📎 ${escapeHtml(attachment.name)}</div>`;
+                                            : `<div class="w-full truncate rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-500 dark:bg-gray-700 dark:text-gray-400">📎 ${escapeHtml(attachment.name)}</div>`;
                                     }).join('')}
                                 </div>`
                                 : '';
@@ -304,7 +304,7 @@
                                 ${attachmentHtml}
                             </div>
                         `}).join('')
-                        : '<div class="rounded-lg border border-dashed p-8 text-center text-sm text-gray-500">No comments yet.</div>';
+                        : '<div class="rounded-lg border border-dashed p-8 text-center text-sm text-gray-500 dark:text-gray-400">No comments yet.</div>';
                     $('#findingComments').html(commentHtml);
                 }
 
@@ -327,10 +327,10 @@
                     switchFindingTab(tab);
                     $('#detailFindingId').text(findingId);
                     $('#detailFindingDate').text('Loading...');
-                    $('#findingPhotos').html('<div class="p-8 text-center text-sm text-gray-500">Loading photos...</div>');
-                    $('#findingSummary').html('<div class="p-4 text-center text-sm text-gray-500 sm:col-span-2">Loading summary...</div>');
-                    $('#findingInformation').html('<div class="p-8 text-center text-sm text-gray-500">Loading information...</div>');
-                    $('#findingComments').html('<div class="p-8 text-center text-sm text-gray-500">Loading comments...</div>');
+                    $('#findingPhotos').html('<div class="p-8 text-center text-sm text-gray-500 dark:text-gray-400">Loading photos...</div>');
+                    $('#findingSummary').html('<div class="p-4 text-center text-sm text-gray-500 sm:col-span-2 dark:text-gray-400">Loading summary...</div>');
+                    $('#findingInformation').html('<div class="p-8 text-center text-sm text-gray-500 dark:text-gray-400">Loading information...</div>');
+                    $('#findingComments').html('<div class="p-8 text-center text-sm text-gray-500 dark:text-gray-400">Loading comments...</div>');
 
                     try {
                         const response = await $.get(`${detailUrl}/${encodeURIComponent(findingId)}`);

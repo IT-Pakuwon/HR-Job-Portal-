@@ -175,7 +175,7 @@
                         </h3>
 
                         <button type="button" id="closeNoKartuModal"
-                            class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-400">
                             ✕
                         </button>
                     </div>
@@ -193,7 +193,7 @@
 
                     <div class="flex justify-end gap-2">
                         <button type="button" id="cancelNoKartuModal"
-                            class="rounded bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-300">
+                            class="rounded bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-300 dark:text-gray-300">
                             Close
                         </button>
 
@@ -214,7 +214,7 @@
                         </h3>
 
                         <button type="button" id="closeCompanyDepartmentModal"
-                            class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-400">
                             X
                         </button>
                     </div>
@@ -249,7 +249,7 @@
 
                     <div class="flex justify-end gap-2">
                         <button type="button" id="cancelCompanyDepartmentModal"
-                            class="rounded bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-300">
+                            class="rounded bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-300 dark:text-gray-300">
                             Close
                         </button>
 
@@ -378,7 +378,7 @@
                     return `<span class="inline-block w-24 rounded bg-red-300/30 px-3 py-1.5 text-sm font-semibold text-red-600">Cancelled</span>`;
                 }
 
-                return `<span class="inline-block w-24 rounded bg-gray-300/30 px-3 py-1.5 text-sm font-semibold text-gray-600">${v || '-'}</span>`;
+                return `<span class="inline-block w-24 rounded bg-gray-300/30 px-3 py-1.5 text-sm font-semibold text-gray-600 dark:text-gray-400">${v || '-'}</span>`;
             }
 
             function fileBadge(url) {

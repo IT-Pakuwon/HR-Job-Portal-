@@ -7,7 +7,7 @@
 
             <!-- Date From -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Date From
                 </label>
                 <input type="date" id="date_from"
@@ -16,7 +16,7 @@
 
             <!-- Date To -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Date To
                 </label>
                 <input type="date" id="date_to"
@@ -25,7 +25,7 @@
 
             <!-- SPB -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     SPB Number
                 </label>
                 <input type="text" id="spbid" placeholder="RB-xxxx"
@@ -34,7 +34,7 @@
 
             <!-- Inventory -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Inventory ID
                 </label>
                 <input type="text" id="inventoryid" placeholder="Item code"
@@ -43,7 +43,7 @@
 
             <!-- SPB Status -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     SPB Status
                 </label>
                 <select id="spb_status"
@@ -57,7 +57,7 @@
 
             <!-- Issue Status -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Issue Status
                 </label>
                 <select id="issue_status"

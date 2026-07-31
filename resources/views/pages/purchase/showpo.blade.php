@@ -553,7 +553,7 @@
                                                             <label
                                                                 class="flex cursor-pointer items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                                                                 <input type="checkbox" id="work_day_type_toggle"
-                                                                    class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                                                    class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-700">
                                                                 Include weekends
                                                             </label>
 
@@ -569,7 +569,7 @@
 
                                                             <div>
                                                                 <label
-                                                                    class="mb-1 block text-xs text-gray-500">Start</label>
+                                                                    class="mb-1 block text-xs text-gray-500 dark:text-gray-400">Start</label>
                                                                 <input type="date" name="work_date_from"
                                                                     id="work_date_from"
                                                                     value="{{ old('work_date_from') }}"
@@ -578,7 +578,7 @@
 
                                                             <div>
                                                                 <label
-                                                                    class="mb-1 block text-xs text-gray-500">End</label>
+                                                                    class="mb-1 block text-xs text-gray-500 dark:text-gray-400">End</label>
                                                                 <input type="date" name="work_date_to"
                                                                     id="work_date_to"
                                                                     value="{{ old('work_date_to') }}"
@@ -587,7 +587,7 @@
 
                                                             <div>
                                                                 <label
-                                                                    class="mb-1 block text-xs text-gray-500">Days</label>
+                                                                    class="mb-1 block text-xs text-gray-500 dark:text-gray-400">Days</label>
                                                                 <input type="number" name="work_days" id="work_days"
                                                                     readonly
                                                                     class="w-full rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-700 focus:ring-0 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100">
@@ -601,7 +601,7 @@
                                                             {{-- LEFT : DAY RANGE --}}
                                                             <div class="flex flex-col gap-3">
 
-                                                                <label class="text-xs font-medium text-gray-500">
+                                                                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
                                                                     Working Days
                                                                 </label>
 
@@ -632,7 +632,7 @@
                                                             {{-- RIGHT : TIME RANGE --}}
                                                             <div class="flex flex-col gap-3">
 
-                                                                <label class="text-xs font-medium text-gray-500">
+                                                                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
                                                                     Working Time
                                                                 </label>
 
@@ -652,7 +652,7 @@
                                                                         <label
                                                                             class="flex cursor-pointer items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                                                                             <input type="checkbox" id="work_time_24"
-                                                                                class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-0">
+                                                                                class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-0 dark:border-gray-700">
                                                                             24h
                                                                         </label>
                                                                     </div>
@@ -667,7 +667,7 @@
                                                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 
                                                             <div>
-                                                                <label class="mb-1 block text-xs text-gray-500">Man
+                                                                <label class="mb-1 block text-xs text-gray-500 dark:text-gray-400">Man
                                                                     Power</label>
                                                                 <input type="number" name="manpower_total"
                                                                     id="manpower_total" min="0"
@@ -677,7 +677,7 @@
 
                                                             <div>
                                                                 <label
-                                                                    class="mb-1 block text-xs text-gray-500">Warranty</label>
+                                                                    class="mb-1 block text-xs text-gray-500 dark:text-gray-400">Warranty</label>
                                                                 <input type="text" name="warranty" id="warranty"
                                                                     value="{{ old('warranty') }}"
                                                                     class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm uppercase focus:border-indigo-500 focus:bg-white focus:ring-0 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100">
@@ -696,7 +696,7 @@
                                                                     <x-heroicon-o-building-office
                                                                         class="h-4 w-4 text-indigo-500" />
                                                                     <span
-                                                                        class="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                                        class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                                                         Internal Pakuwon PIC
                                                                     </span>
                                                                 </div>
@@ -707,7 +707,7 @@
 
                                                                         <div>
                                                                             <label
-                                                                                class="mb-1 block text-xs text-gray-500">Name</label>
+                                                                                class="mb-1 block text-xs text-gray-500 dark:text-gray-400">Name</label>
                                                                             <input type="text" id="spkpic"
                                                                                 name="spkpic" required
                                                                                 value="{{ old('spkpic', $po->spkpic) }}"
@@ -716,7 +716,7 @@
 
                                                                         <div>
                                                                             <label
-                                                                                class="mb-1 block text-xs text-gray-500">Position</label>
+                                                                                class="mb-1 block text-xs text-gray-500 dark:text-gray-400">Position</label>
                                                                             <input type="text" id="spkpicjabatan"
                                                                                 name="spkpicjabatan" required
                                                                                 value="{{ old('spkpicjabatan', $po->spkpicjabatan) }}"
@@ -729,7 +729,7 @@
 
                                                                         <div>
                                                                             <label
-                                                                                class="mb-1 block text-xs text-gray-500">Phone</label>
+                                                                                class="mb-1 block text-xs text-gray-500 dark:text-gray-400">Phone</label>
                                                                             <input type="text" id="spkpicphone"
                                                                                 name="spkpicphone" required
                                                                                 value="{{ old('spkpicphone', $po->spkpicphone) }}"
@@ -738,7 +738,7 @@
 
                                                                         <div>
                                                                             <label
-                                                                                class="mb-1 block text-xs text-gray-500">Email</label>
+                                                                                class="mb-1 block text-xs text-gray-500 dark:text-gray-400">Email</label>
                                                                             <input type="email" id="spkpicemail"
                                                                                 name="spkpicemail" required
                                                                                 value="{{ old('spkpicemail', $po->spkpicemail) }}"
@@ -759,7 +759,7 @@
                                                                     <x-heroicon-o-user
                                                                         class="h-4 w-4 text-indigo-500" />
                                                                     <span
-                                                                        class="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                                        class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                                                         Vendor PIC
                                                                     </span>
                                                                 </div>
@@ -770,7 +770,7 @@
 
                                                                         <div>
                                                                             <label
-                                                                                class="mb-1 block text-xs text-gray-500">Name</label>
+                                                                                class="mb-1 block text-xs text-gray-500 dark:text-gray-400">Name</label>
                                                                             <input type="text" id="spkvendor"
                                                                                 name="spkvendor" required
                                                                                 value="{{ old('spkvendor', $po->spkvendor) }}"
@@ -779,7 +779,7 @@
 
                                                                         <div>
                                                                             <label
-                                                                                class="mb-1 block text-xs text-gray-500">Position</label>
+                                                                                class="mb-1 block text-xs text-gray-500 dark:text-gray-400">Position</label>
                                                                             <input type="text"
                                                                                 id="spkvendorjabatan"
                                                                                 name="spkvendorjabatan" required
@@ -793,7 +793,7 @@
 
                                                                         <div>
                                                                             <label
-                                                                                class="mb-1 block text-xs text-gray-500">Phone</label>
+                                                                                class="mb-1 block text-xs text-gray-500 dark:text-gray-400">Phone</label>
                                                                             <input type="text" id="spkvendorphone"
                                                                                 name="spkvendorphone" required
                                                                                 value="{{ old('spkvendorphone', $po->spkvendorphone) }}"
@@ -802,7 +802,7 @@
 
                                                                         <div>
                                                                             <label
-                                                                                class="mb-1 block text-xs text-gray-500">Email</label>
+                                                                                class="mb-1 block text-xs text-gray-500 dark:text-gray-400">Email</label>
                                                                             <input type="email" id="spkvendoremail"
                                                                                 name="spkvendoremail" required
                                                                                 value="{{ old('spkvendoremail', $po->spkvendoremail) }}"
@@ -933,7 +933,7 @@
                                                                     <x-heroicon-o-building-office
                                                                         class="h-4 w-4 text-indigo-500" />
                                                                     <span
-                                                                        class="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                                        class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                                                         Internal Pakuwon PIC
                                                                     </span>
                                                                 </div>
@@ -943,14 +943,14 @@
                                                                     {{ $po->spkpic ?? '-' }}
 
                                                                     @if ($po->spkpicjabatan)
-                                                                        <span class="font-normal text-gray-500">
+                                                                        <span class="font-normal text-gray-500 dark:text-gray-400">
                                                                             — {{ $po->spkpicjabatan }}
                                                                         </span>
                                                                     @endif
                                                                 </p>
 
                                                                 <div
-                                                                    class="mt-2 flex flex-wrap items-center gap-4 text-xs text-gray-500">
+                                                                    class="mt-2 flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
 
                                                                     @if ($po->spkpicphone)
                                                                         <span class="flex items-center gap-1">
@@ -980,7 +980,7 @@
                                                                     <x-heroicon-o-user
                                                                         class="h-4 w-4 text-indigo-500" />
                                                                     <span
-                                                                        class="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                                        class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                                                         Vendor PIC
                                                                     </span>
                                                                 </div>
@@ -990,14 +990,14 @@
                                                                     {{ $po->spkvendor ?? '-' }}
 
                                                                     @if ($po->spkvendorjabatan)
-                                                                        <span class="font-normal text-gray-500">
+                                                                        <span class="font-normal text-gray-500 dark:text-gray-400">
                                                                             — {{ $po->spkvendorjabatan }}
                                                                         </span>
                                                                     @endif
                                                                 </p>
 
                                                                 <div
-                                                                    class="mt-2 flex flex-wrap items-center gap-4 text-xs text-gray-500">
+                                                                    class="mt-2 flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
 
                                                                     @if ($po->spkvendorphone)
                                                                         <span class="flex items-center gap-1">
@@ -1154,7 +1154,7 @@
                                 <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
                                     <div id="commentList"
                                         class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
-                                        <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                        <p class="py-4 text-center italic text-gray-500 dark:text-gray-400">Loading comments...</p>
                                     </div>
                                     <div
                                         class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
@@ -1391,7 +1391,7 @@
 
             <div class="mt-4 flex justify-between">
                 <button id="btnCloseCancelReuse"
-                    class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                    class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
                     Close
                 </button>
                 <button id="btnConfirmCancelReuse"
@@ -1410,7 +1410,7 @@
                 placeholder="Enter reason for cancel..."></textarea>
 
             <div class="mt-4 flex justify-between">
-                <button id="btnCloseCancel" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                <button id="btnCloseCancel" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
                     Close
                 </button>
                 <button id="btnConfirmCancel" class="rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700">
@@ -1484,7 +1484,7 @@
 
             function loadComments(refnbr, doctype) {
                 let commentList = $('#commentList');
-                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>');
+                commentList.html('<p class="text-gray-500 italic dark:text-gray-400">Loading comments...</p>');
 
                 $.ajax({
                     url: `/comments/${doctype}/${refnbr}`,
@@ -1494,7 +1494,7 @@
 
                         if (!response.comments || response.comments.length === 0) {
                             commentList.append(
-                                '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
+                                '<p class="text-gray-500 text-sm italic dark:text-gray-400">No comments yet. Be the first to comment!</p>'
                             );
                             return;
                         }
@@ -1508,7 +1508,7 @@
                                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
                                     <p class=" text-sm  font-semibold">
                                         ${comment.username}
-                                        <span class=" text-sm  text-gray-500">(${timeAgo})</span>
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">(${timeAgo})</span>
                                     </p>
                                     <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
                                 </div>
@@ -1580,7 +1580,7 @@
             function loadComments(ponbr) {
                 console.log("Loading comments for Doc ID:", ponbr);
                 let commentList = $('#commentList');
-                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>'); // Loader
+                commentList.html('<p class="text-gray-500 italic dark:text-gray-400">Loading comments...</p>'); // Loader
 
                 $.ajax({
                     url: `/po/${ponbr}/comments`,
@@ -1591,7 +1591,7 @@
 
                         if (response.comments.length === 0) {
                             commentList.append(
-                                '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
+                                '<p class="text-gray-500 text-sm italic dark:text-gray-400">No comments yet. Be the first to comment!</p>'
                             );
                         } else {
                             response.comments.forEach(comment => {
@@ -1601,7 +1601,7 @@
                                 commentList.append(`
                                         <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2        -gray-300 dark:   -gray-700">
                                             <p class=" text-sm  font-semibold">${comment.username}
-                                                <span class=" text-sm  text-gray-500">(${timeAgo})</span>
+                                                <span class="text-sm text-gray-500 dark:text-gray-400">(${timeAgo})</span>
                                             </p>
                                             <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
                                         </div>

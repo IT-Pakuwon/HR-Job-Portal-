@@ -442,7 +442,7 @@
                                     <div class="flex h-full flex-col">
                                         <div id="commentList"
                                             class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
-                                            <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                            <p class="py-4 text-center italic text-gray-500 dark:text-gray-400">Loading comments...</p>
                                         </div>
                                         <div
                                             class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
@@ -667,7 +667,7 @@
 
                             <button type="button"
                                 id="closeMatchingRfcaModal"
-                                class="rounded-md px-2 py-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700">
+                                class="rounded-md px-2 py-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:text-gray-400">
                                 ✕
                             </button>
                         </div>
@@ -705,7 +705,7 @@
                                     <tbody id="matchingRfcaTableBody"
                                         class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800">
                                         <tr>
-                                            <td colspan="11" class="px-3 py-4 text-center text-gray-500">
+                                            <td colspan="11" class="px-3 py-4 text-center text-gray-500 dark:text-gray-400">
                                                 Klik Search untuk menampilkan data.
                                             </td>
                                         </tr>
@@ -713,7 +713,7 @@
                                 </table>
                             </div>
 
-                            <div class="mt-3 text-xs text-gray-500">
+                            <div class="mt-3 text-xs text-gray-500 dark:text-gray-400">
                                 Data yang tampil hanya RFCA status <b>P</b> dan PO status <b>D</b>.
                             </div>
                         </div>
@@ -767,7 +767,7 @@
 
             function loadComments(refnbr, doctype) {
                 let commentList = $('#commentList');
-                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>');
+                commentList.html('<p class="text-gray-500 italic dark:text-gray-400">Loading comments...</p>');
 
                 $.ajax({
                     url: `/comments/${doctype}/${refnbr}`,
@@ -777,7 +777,7 @@
 
                         if (!response.comments || response.comments.length === 0) {
                             commentList.append(
-                                '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
+                                '<p class="text-gray-500 text-sm italic dark:text-gray-400">No comments yet. Be the first to comment!</p>'
                             );
                             return;
                         }
@@ -791,7 +791,7 @@
                                 <div class="px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
                                     <p class=" text-sm  font-semibold">
                                         ${comment.username}
-                                        <span class=" text-sm  text-gray-500">(${timeAgo})</span>
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">(${timeAgo})</span>
                                     </p>
                                     <p class="text-gray-800 dark:text-gray-200">${highlightMentions(comment.message)}</p>
                                 </div>
@@ -1182,7 +1182,7 @@
             function loadMatchingRfca(search = '') {
                 matchingRfcaTableBody.html(`
                     <tr>
-                        <td colspan="11" class="px-3 py-4 text-center text-gray-500">
+                        <td colspan="11" class="px-3 py-4 text-center text-gray-500 dark:text-gray-400">
                             Loading data...
                         </td>
                     </tr>
@@ -1202,7 +1202,7 @@
                         if (!res.success || !res.data || res.data.length === 0) {
                             matchingRfcaTableBody.html(`
                                 <tr>
-                                    <td colspan="11" class="px-3 py-4 text-center text-gray-500">
+                                    <td colspan="11" class="px-3 py-4 text-center text-gray-500 dark:text-gray-400">
                                         Data RFCA tidak ditemukan.
                                     </td>
                                 </tr>
@@ -1231,7 +1231,7 @@
                                     <td class="whitespace-nowrap px-3 py-2">${row.department_id ?? '-'}</td>
                                     <td class="whitespace-nowrap px-3 py-2">
                                         <div class="font-medium">${row.vendorname ?? '-'}</div>
-                                        <div class="text-xs text-gray-500">${row.vendorid ?? '-'}</div>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">${row.vendorid ?? '-'}</div>
                                     </td>
                                     <td class="whitespace-nowrap px-3 py-2 text-right">${formatNumber(row.po_amount)}</td>
                                     <td class="whitespace-nowrap px-3 py-2 text-right">${formatNumber(row.rfca_amount)}</td>

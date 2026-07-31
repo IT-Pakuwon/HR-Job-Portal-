@@ -509,7 +509,7 @@
                                 </thead>
                                 <tbody id="kontrakBudgetPickerTbody">
                                     <tr>
-                                        <td colspan="7" class="p-4 text-center italic text-gray-500">
+                                        <td colspan="7" class="p-4 text-center italic text-gray-500 dark:text-gray-400">
                                             Pilih filter lalu Apply
                                         </td>
                                     </tr>
@@ -614,7 +614,7 @@
                 function resetPickerTable(message = 'Pilih filter lalu Apply') {
                     $('#kontrakBudgetPickerTbody').html(`
                         <tr>
-                            <td colspan="7" class="p-4 text-center italic text-gray-500">${escapeHtml(message)}</td>
+                            <td colspan="7" class="p-4 text-center italic text-gray-500 dark:text-gray-400">${escapeHtml(message)}</td>
                         </tr>
                     `);
                     $('#kbInfo').text('0 rows');

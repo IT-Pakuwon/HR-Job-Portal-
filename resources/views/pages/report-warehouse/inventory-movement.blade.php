@@ -22,62 +22,62 @@
 <div class="space-y-4">
 
     <!-- FILTER PANEL -->
-    <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm">
+    <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm dark:border-gray-700">
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-7">
 
             <!-- Date From -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Date From
                 </label>
                 <input type="date" id="mv_date_from"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <!-- Date To -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Date To
                 </label>
                 <input type="date" id="mv_date_to"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <!-- Inventory -->
             {{-- <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Inventory ID
                 </label>
                 <input type="text" id="mv_inventoryid" placeholder="Item code"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700">
             </div> --}}
 
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Inventory ID
                 </label>
 
                 <select id="mv_inventoryid"
-                    class="w-full rounded-lg border border-gray-200 bg-white text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white text-sm dark:bg-gray-800 dark:border-gray-700">
                 </select>
             </div>
             <!-- Reference -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Reference No
                 </label>
                 <input type="text" id="mv_refnbr" placeholder="Ref number"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Transaction Type
                 </label>
 
                 <select id="mv_doctype"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
 
                     <option value="">All</option>
                     <option value="STTB">Receipt</option>
@@ -97,7 +97,7 @@
                 </button>
 
                 <button id="mvResetBtn"
-                    class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+                    class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
                     Reset
                 </button>
 
@@ -114,16 +114,16 @@
 
 
     <!-- REPORT TABLE -->
-    <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
+    <div class="rounded-2xl border border-gray-200 bg-white shadow-sm dark:bg-gray-800 dark:border-gray-700">
 
         <!-- Header -->
-        <div class="border-b border-gray-200 px-6 py-4">
+        <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
 
-            <h2 class="text-sm font-semibold text-gray-800">
+            <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">
                 Inventory Movement Tracking
             </h2>
 
-            <p class="text-xs text-gray-500">
+            <p class="text-xs text-gray-500 dark:text-gray-400">
                 Complete stock movement (IN / OUT / Balance)
             </p>
 
@@ -132,9 +132,9 @@
         <!-- Table -->
         <div class="overflow-x-auto p-5">
 
-            <table id="movementTable" class="min-w-full text-sm text-gray-700">
+            <table id="movementTable" class="min-w-full text-sm text-gray-700 dark:text-gray-300">
 
-                <thead class="bg-gray-50 text-[11px] uppercase tracking-wider text-gray-500">
+                <thead class="bg-gray-50 text-[11px] uppercase tracking-wider text-gray-500 dark:bg-gray-900 dark:text-gray-400">
 
                     <tr>
 

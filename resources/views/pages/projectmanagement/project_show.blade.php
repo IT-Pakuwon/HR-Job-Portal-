@@ -12,13 +12,13 @@
                         <span>{{ $project->project_id }}</span>
                     </div>
                     <h1 class="mt-1 text-xl font-semibold text-gray-800 dark:text-gray-100">{{ $project->project_name }}</h1>
-                    <p class="mt-1 text-sm text-gray-500">
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                         {{ optional($project->start_date)->format('d M Y') ?? '—' }} →
                         {{ optional($project->end_date)->format('d M Y') ?? '—' }}
                     </p>
                 </div>
                 <div class="w-48">
-                    <div class="flex items-center justify-between text-xs text-gray-500">
+                    <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                         <span>Progress</span>
                         <span>{{ round($project->progress_percent) }}%</span>
                     </div>
@@ -136,12 +136,12 @@
             <div class="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl dark:bg-slate-800">
                 <div class="flex items-start justify-between border-b border-slate-200 px-6 py-5 dark:border-slate-700">
                     <h2 id="taskModalTitle" class="text-xl font-semibold text-slate-900 dark:text-white">New Task</h2>
-                    <button id="closeTaskModal" type="button" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700"><i class="fas fa-times"></i></button>
+                    <button id="closeTaskModal" type="button" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 dark:text-slate-400"><i class="fas fa-times"></i></button>
                 </div>
                 <div class="flex items-center gap-1 border-b border-slate-200 px-6 dark:border-slate-700">
                     <button type="button" class="task-modal-tab-btn border-b-2 border-indigo-600 px-3 py-2 text-sm font-medium text-indigo-600" data-task-tab="details">Details</button>
-                    <button type="button" class="task-modal-tab-btn border-b-2 border-transparent px-3 py-2 text-sm font-medium text-slate-500" data-task-tab="attachments">Attachments</button>
-                    <button type="button" class="task-modal-tab-btn border-b-2 border-transparent px-3 py-2 text-sm font-medium text-slate-500" data-task-tab="chat">Chat</button>
+                    <button type="button" class="task-modal-tab-btn border-b-2 border-transparent px-3 py-2 text-sm font-medium text-slate-500 dark:text-slate-400" data-task-tab="attachments">Attachments</button>
+                    <button type="button" class="task-modal-tab-btn border-b-2 border-transparent px-3 py-2 text-sm font-medium text-slate-500 dark:text-slate-400" data-task-tab="chat">Chat</button>
                 </div>
 
                 <form id="taskForm" class="flex min-h-0 flex-1 flex-col">
@@ -429,7 +429,7 @@
                     const timeAgo = c.message_date ? dayjs(c.message_date).fromNow() : '';
                     $list.append(`
                         <div class="rounded-lg bg-gray-100 px-3 py-2 dark:bg-gray-800">
-                            <p class="text-sm font-semibold">${c.username} <span class="text-xs text-gray-500">(${timeAgo})</span></p>
+                            <p class="text-sm font-semibold">${c.username} <span class="text-xs text-gray-500 dark:text-gray-400">(${timeAgo})</span></p>
                             <p class="text-sm text-gray-800 dark:text-gray-200">${highlightMentions(c.message)}</p>
                         </div>
                     `);
@@ -658,7 +658,7 @@
                         const timeAgo = c.message_date ? dayjs(c.message_date).fromNow() : '';
                         $list.append(`
                             <div class="rounded-lg bg-gray-100 px-3 py-2 dark:bg-gray-800">
-                                <p class="text-sm font-semibold">${c.username} <span class="text-xs text-gray-500">(${timeAgo})</span></p>
+                                <p class="text-sm font-semibold">${c.username} <span class="text-xs text-gray-500 dark:text-gray-400">(${timeAgo})</span></p>
                                 <p class="text-sm text-gray-800 dark:text-gray-200">${highlightMentions(c.message)}</p>
                             </div>
                         `);

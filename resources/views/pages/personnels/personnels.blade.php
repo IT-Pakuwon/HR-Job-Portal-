@@ -512,7 +512,7 @@
 
                             return `
                                 <div class="jp-dropdown inline-block text-left">
-                                    <button class="jp-dropdown-toggle inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition border border-gray-300"
+                                    <button class="jp-dropdown-toggle inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition border border-gray-300 dark:bg-gray-900 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700"
                                         data-docid="${id}">
                                         Action ▾
                                     </button>
@@ -525,7 +525,7 @@
 
                 // Buat satu elemen menu fixed yang di-share semua baris
                 const $jpMenu = $(`
-                    <div id="jp-fixed-menu" class="hidden fixed z-[9999] w-40 rounded-md shadow-lg bg-white border border-gray-200 py-1">
+                    <div id="jp-fixed-menu" class="hidden fixed z-[9999] w-40 rounded-md shadow-lg bg-white border border-gray-200 py-1 dark:bg-gray-800 dark:border-gray-700">
                     </div>
                 `).appendTo('body');
 

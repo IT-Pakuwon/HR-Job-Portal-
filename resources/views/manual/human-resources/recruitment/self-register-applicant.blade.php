@@ -50,7 +50,7 @@
                         </thead>
                         <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                             <tr>
-                                <td class="px-4 py-2"><span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700">Hold</span></td>
+                                <td class="px-4 py-2"><span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700 dark:bg-gray-900 dark:text-gray-300">Hold</span></td>
                                 <td class="px-4 py-2"><span x-show="lang==='en'">Self-registered but not yet assigned to any job posting</span><span x-show="lang==='id'">Telah mendaftar sendiri tetapi belum ditugaskan ke lowongan kerja mana pun</span></td>
                             </tr>
                             <tr>
@@ -217,7 +217,7 @@
                         </thead>
                         <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                             <tr>
-                                <td class="px-4 py-2"><span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700">Hold</span></td>
+                                <td class="px-4 py-2"><span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700 dark:bg-gray-900 dark:text-gray-300">Hold</span></td>
                                 <td class="px-4 py-2 text-green-600 font-semibold"><span x-show="lang==='en'">Yes</span><span x-show="lang==='id'">Ya</span></td>
                             </tr>
                             <tr>

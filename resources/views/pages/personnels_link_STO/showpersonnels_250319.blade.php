@@ -173,7 +173,7 @@
                                         </header>
                                         <div x-show="isOpen" class="overflow-hidden transition-all duration-300">
                                             <div id="commentList" class="h-auto space-y-3 p-4">
-                                                <p class="animate-pulse italic text-gray-500">Loading comments...</p>
+                                                <p class="animate-pulse italic text-gray-500 dark:text-gray-400">Loading comments...</p>
                                             </div>
                                             <div
                                                 class="flex items-center gap-2 border-t border-gray-200 p-3 dark:border-gray-700">
@@ -377,7 +377,7 @@
 
                     <div class="mt-4 flex justify-between">
                         <button id="cancelRejectBtn"
-                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
                             Cancel
                         </button>
                         <button id="confirmRejectBtn"
@@ -396,7 +396,7 @@
 
                     <div class="mt-4 flex justify-between">
                         <button id="cancelReviseBtn"
-                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
                             Cancel
                         </button>
                         <button id="confirmReviseBtn"
@@ -421,7 +421,7 @@
                     function loadComments(docid) {
                         console.log("Loading comments for Doc ID:", docid);
                         let commentList = $('#commentList');
-                        commentList.html('<p class="text-gray-500 italic">Loading comments...</p>'); // Loader
+                        commentList.html('<p class="text-gray-500 italic dark:text-gray-400">Loading comments...</p>'); // Loader
 
                         $.ajax({
                             url: `/personnel/${docid}/comments`,
@@ -432,7 +432,7 @@
 
                                 if (response.comments.length === 0) {
                                     commentList.append(
-                                        '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
+                                        '<p class="text-gray-500 text-sm italic dark:text-gray-400">No comments yet. Be the first to comment!</p>'
                                     );
                                 } else {
                                     response.comments.forEach(comment => {
@@ -442,7 +442,7 @@
                                         commentList.append(`
                                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
                                     <p class="text-xs font-semibold">${comment.username} 
-                                        <span class="text-xs text-gray-500">(${timeAgo})</span>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">(${timeAgo})</span>
                                     </p>
                                     <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
                                 </div>

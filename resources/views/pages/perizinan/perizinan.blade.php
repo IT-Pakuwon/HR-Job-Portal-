@@ -82,7 +82,7 @@
         <div class="max-h-[95vh] w-full max-w-5xl overflow-y-auto rounded-xl bg-white shadow-xl dark:bg-gray-800">
             <div class="flex items-center justify-between border-b px-5 py-4 dark:border-gray-700">
                 <h2 id="modalTitle" class="text-lg font-bold text-gray-800 dark:text-white">Create Permit</h2>
-                <button type="button" class="btnCloseModal text-2xl text-gray-500 hover:text-gray-800">&times;</button>
+                <button type="button" class="btnCloseModal text-2xl text-gray-500 hover:text-gray-800 dark:text-gray-400">&times;</button>
             </div>
 
             <form id="perizinanForm" enctype="multipart/form-data">
@@ -131,7 +131,7 @@
                                 <option value="{{ $approver->username }}">{{ $approver->name }}</option>
                             @endforeach
                         </select>
-                        <p class="mt-1 text-xs text-gray-500">You can select more than one user.</p>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">You can select more than one user.</p>
                     </div>
                     <div class="md:col-span-2">
                         <label class="mb-1 block text-sm font-semibold">Permit Title <span class="text-red-500">*</span></label>
@@ -151,12 +151,12 @@
                             <label class="inline-flex cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                                 <input type="hidden" name="expired_date" value="0">
                                 <input type="checkbox" id="expired_date" name="expired_date" value="1"
-                                    class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" checked>
+                                    class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-700" checked>
                                 <span>Has an expiration date</span>
                             </label>
                         </div>
                         <input type="date" id="enddate" name="enddate" class="w-full rounded-lg border px-3 py-2" required>
-                        <p id="noExpiryHint" class="mt-1 hidden text-xs text-gray-500">This permit has no expiration date.</p>
+                        <p id="noExpiryHint" class="mt-1 hidden text-xs text-gray-500 dark:text-gray-400">This permit has no expiration date.</p>
                     </div>
                     <div>
                         <label class="mb-1 block text-sm font-semibold">Reminder Before End Date <span class="text-red-500">*</span></label>
@@ -218,7 +218,7 @@
                         <label class="mb-1 block text-sm font-semibold">Attachment</label>
                         <input type="file" id="attachments" name="attachments[]" multiple
                             class="w-full rounded-lg border px-3 py-2" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
-                        <p class="mt-1 text-xs text-gray-500">Maximum 5 MB per file. You can select multiple files. New files will be appended in edit mode.</p>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Maximum 5 MB per file. You can select multiple files. New files will be appended in edit mode.</p>
                     </div>
                     <div id="formErrors" class="mt-4 hidden rounded-lg bg-red-50 p-3 text-sm text-red-700"></div>
                 </div>
@@ -240,9 +240,9 @@
                 <div>
                     <div class="flex items-center gap-3">
                         <h2 id="detailPermitId" class="text-xl font-extrabold text-gray-900 dark:text-white">-</h2>
-                        <span id="detailStatus" class="rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-700">-</span>
+                        <span id="detailStatus" class="rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-700 dark:bg-gray-900 dark:text-gray-300">-</span>
                     </div>
-                    <p id="detailTitle" class="mt-1 text-sm text-gray-500">-</p>
+                    <p id="detailTitle" class="mt-1 text-sm text-gray-500 dark:text-gray-400">-</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <button type="button" id="btnDetailAction" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">⚡ Action</button>
@@ -307,7 +307,7 @@
         <div class="w-full max-w-lg rounded-xl bg-white shadow-xl dark:bg-gray-800">
             <div class="flex items-center justify-between border-b px-5 py-4 dark:border-gray-700">
                 <h2 class="text-lg font-bold">Permit Action</h2>
-                <button type="button" class="btnCloseActivity text-2xl text-gray-500">&times;</button>
+                <button type="button" class="btnCloseActivity text-2xl text-gray-500 dark:text-gray-400">&times;</button>
             </div>
             <form id="activityForm">
                 @csrf
@@ -551,7 +551,7 @@
             function loadPermitAttachments(permitId) {
                 const $tbody = $('#detailAttachments');
                 $('#detailAttachmentCount').text('0');
-                $tbody.html('<tr><td colspan="4" class="px-3 py-6 text-center text-gray-500">Loading attachments...</td></tr>');
+                $tbody.html('<tr><td colspan="4" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">Loading attachments...</td></tr>');
 
                 const listUrl = attachmentListUrlTemplate.replace('__REFNBR__', encodeURIComponent(permitId));
                 $.get(listUrl)
@@ -559,7 +559,7 @@
                         const rows = response.success ? (response.attachments || []) : [];
                         $('#detailAttachmentCount').text(rows.length);
                         if (!rows.length) {
-                            $tbody.html('<tr><td colspan="4" class="px-3 py-6 text-center text-gray-500">No attachments found.</td></tr>');
+                            $tbody.html('<tr><td colspan="4" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">No attachments found.</td></tr>');
                             return;
                         }
 
@@ -588,7 +588,7 @@
                 $('#editAttachmentCount').text(rows.length);
 
                 if (!rows.length) {
-                    $list.html('<div class="p-4 text-center text-sm text-gray-500">No existing attachments.</div>');
+                    $list.html('<div class="p-4 text-center text-sm text-gray-500 dark:text-gray-400">No existing attachments.</div>');
                     return;
                 }
 
@@ -617,7 +617,7 @@
             function loadEditAttachments(permitId) {
                 $('#editAttachmentSection').removeClass('hidden');
                 $('#editAttachmentCount').text('0');
-                $('#editAttachmentList').html('<div class="p-4 text-center text-sm text-gray-500">Loading attachments...</div>');
+                $('#editAttachmentList').html('<div class="p-4 text-center text-sm text-gray-500 dark:text-gray-400">Loading attachments...</div>');
                 const listUrl = attachmentListUrlTemplate.replace('__REFNBR__', encodeURIComponent(permitId));
 
                 $.get(listUrl)
@@ -661,7 +661,7 @@
                     <tr class="border-t dark:border-gray-700">
                         <td class="px-3 py-2">${escapeHtml(item.item_perizinan || '-')}</td>
                         <td class="px-3 py-2 text-right">${escapeHtml(item.qty_perizinan ?? '-')}</td>
-                    </tr>`).join('') : '<tr><td colspan="2" class="px-3 py-6 text-center text-gray-500">No permit items.</td></tr>');
+                    </tr>`).join('') : '<tr><td colspan="2" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">No permit items.</td></tr>');
 
                 const activities = permit.activities || [];
                 $('#activityTimeline').html(activities.length ? activities.map(activity => {
@@ -676,7 +676,7 @@
                             <p class="mt-2 text-xs text-gray-400">${escapeHtml(activity.pic_perizinan || '-')} · ${formatDateTime(activity.response_date)}</p>
                         </div>
                     </div>`;
-                }).join('') : '<div class="rounded-lg border border-dashed p-8 text-center text-sm text-gray-500">No tracking activity yet.</div>');
+                }).join('') : '<div class="rounded-lg border border-dashed p-8 text-center text-sm text-gray-500 dark:text-gray-400">No tracking activity yet.</div>');
 
                 $detailModal.removeClass('hidden').addClass('flex');
                 $('body').addClass('overflow-hidden');
@@ -824,7 +824,7 @@
                             const remaining = $('#editAttachmentList .attachment-row').length;
                             $('#editAttachmentCount').text(remaining);
                             if (!remaining) {
-                                $('#editAttachmentList').html('<div class="p-4 text-center text-sm text-gray-500">No existing attachments.</div>');
+                                $('#editAttachmentList').html('<div class="p-4 text-center text-sm text-gray-500 dark:text-gray-400">No existing attachments.</div>');
                             }
                         });
                         Swal.fire({

@@ -74,14 +74,14 @@
                 <div class="flex w-full flex-col">
                     <label>Location</label>
                     <input type="text" name="location" id="locationField" readonly
-                        class="form-control cursor-not-allowed bg-gray-100" style="width: 100%; margin-bottom: 10px;" />
+                        class="form-control cursor-not-allowed bg-gray-100 dark:bg-gray-900" style="width: 100%; margin-bottom: 10px;" />
                 </div>
             </div>
 
             <div class="flex w-full gap-8">
                 <div class="flex w-full flex-col">
                     <label>Address</label>
-                    <textarea name="location_address" id="addressField" readonly class="form-control cursor-not-allowed bg-gray-100"
+                    <textarea name="location_address" id="addressField" readonly class="form-control cursor-not-allowed bg-gray-100 dark:bg-gray-900"
                         style="width: 100%; margin-bottom: 10px;"></textarea>
                 </div>
             </div>

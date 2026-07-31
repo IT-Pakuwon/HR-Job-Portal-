@@ -5,7 +5,7 @@
         <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2 xl:grid-cols-4">
             <div>
                 <label class="text-xs font-semibold text-gray-700 dark:text-gray-200">Tahun</label>
-                <select id="fYear" class="mt-1 w-full rounded-lg border-gray-300 dark:bg-gray-700 dark:text-white">
+                <select id="fYear" class="mt-1 w-full rounded-lg border-gray-300 dark:bg-gray-700 dark:text-white dark:border-gray-700">
                     <option value="">Select</option>
                     @foreach ($years as $y)
                         <option value="{{ $y }}" {{ $y == ($defaultYear ?? '') ? 'selected' : '' }}>
@@ -16,7 +16,7 @@
 
             <div>
                 <label class="text-xs font-semibold text-gray-700 dark:text-gray-200">Company</label>
-                <select id="fCompany" class="mt-1 w-full rounded-lg border-gray-300 dark:bg-gray-700 dark:text-white">
+                <select id="fCompany" class="mt-1 w-full rounded-lg border-gray-300 dark:bg-gray-700 dark:text-white dark:border-gray-700">
                     <option value="">Select</option>
                     @foreach ($companies as $c)
                         <option value="{{ $c }}" {{ $c == ($defaultCpny ?? '') ? 'selected' : '' }}>
@@ -27,14 +27,14 @@
 
             <div>
                 <label class="text-xs font-semibold text-gray-700 dark:text-gray-200">Business Unit</label>
-                <select id="fBU" class="mt-1 w-full rounded-lg border-gray-300 dark:bg-gray-700 dark:text-white">
+                <select id="fBU" class="mt-1 w-full rounded-lg border-gray-300 dark:bg-gray-700 dark:text-white dark:border-gray-700">
                     <option value="">Select</option>
                 </select>
             </div>
 
             <div>
                 <label class="text-xs font-semibold text-gray-700 dark:text-gray-200">Department</label>
-                <select id="fDept" class="mt-1 w-full rounded-lg border-gray-300 dark:bg-gray-700 dark:text-white">
+                <select id="fDept" class="mt-1 w-full rounded-lg border-gray-300 dark:bg-gray-700 dark:text-white dark:border-gray-700">
                     <option value="">Select</option>
                 </select>
             </div>

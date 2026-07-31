@@ -9,7 +9,7 @@
                             class="flex flex-col gap-4 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                             <div class="flex flex-col rounded-xl bg-white shadow-sm dark:bg-gray-800">
                                 <header
-                                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600">
+                                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600 dark:bg-gray-900">
                                     <div class="flex max-w-5xl justify-end gap-10">
                                         <h1 class="text-base font-semibold text-gray-700 dark:text-gray-100">🆔
                                             {{ $sto->sto_id }}</h1>
@@ -377,7 +377,7 @@
                                                 <div x-show="isOpen"
                                                     class="overflow-hidden transition-all duration-300">
                                                     <div id="commentList" class="h-auto space-y-3 p-4">
-                                                        <p class="animate-pulse italic text-gray-500">Loading
+                                                        <p class="animate-pulse italic text-gray-500 dark:text-gray-400">Loading
                                                             comments...</p>
                                                     </div>
                                                     <div
@@ -403,7 +403,7 @@
                                     <div class="chart-container h-[80vh]" style="width: 100%;"></div>
                                     <div id="modalForm"
                                         class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50   ">
-                                        <div class="relative w-full max-w-xl rounded-lg bg-white p-4">
+                                        <div class="relative w-full max-w-xl rounded-lg bg-white p-4 dark:bg-gray-800">
                                             <div class="border-gray-200s mb-4 flex justify-between border-b">
                                                 <ul class="text-md flex flex-wrap text-center font-medium"
                                                     id="tabs">
@@ -414,7 +414,7 @@
                                                     </li>
                                                 </ul>
                                                 <button onclick="closeModal()"
-                                                    class="text-sm text-gray-500">close</button>
+                                                    class="text-sm text-gray-500 dark:text-gray-400">close</button>
 
                                             </div>
 
@@ -426,7 +426,7 @@
                                                     </h4>
                                                 </div>
 
-                                                <table class="w-full border bg-gray-300/10 text-sm text-black">
+                                                <table class="w-full border bg-gray-300/10 text-sm text-black dark:text-white">
                                                     <thead>
                                                         <tr class="text-left">
                                                             <th class="border px-2 py-1">No</th>
@@ -471,7 +471,7 @@
 
                     <div class="mt-4 flex justify-between">
                         <button id="cancelRejectBtn"
-                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
                             Cancel
                         </button>
                         <button id="confirmRejectBtn"
@@ -490,7 +490,7 @@
 
                     <div class="mt-4 flex justify-between">
                         <button id="cancelReviseBtn"
-                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
                             Cancel
                         </button>
                         <button id="confirmReviseBtn"
@@ -515,7 +515,7 @@
                     function loadComments(docid) {
                         console.log("Loading comments for Doc ID:", docid);
                         let commentList = $('#commentList');
-                        commentList.html('<p class="text-gray-500 italic">Loading comments...</p>'); // Loader
+                        commentList.html('<p class="text-gray-500 italic dark:text-gray-400">Loading comments...</p>'); // Loader
 
                         $.ajax({
                             url: `/sto/${docid}/comments`,
@@ -526,7 +526,7 @@
 
                                 if (response.comments.length === 0) {
                                     commentList.append(
-                                        '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
+                                        '<p class="text-gray-500 text-sm italic dark:text-gray-400">No comments yet. Be the first to comment!</p>'
                                     );
                                 } else {
                                     response.comments.forEach(comment => {
@@ -536,7 +536,7 @@
                                         commentList.append(`
                                     <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
                                         <p class=" text-sm  font-semibold">${comment.username}
-                                            <span class=" text-sm  text-gray-500">(${timeAgo})</span>
+                                            <span class="text-sm text-gray-500 dark:text-gray-400">(${timeAgo})</span>
                                         </p>
                                         <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
                                     </div>

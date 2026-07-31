@@ -50,7 +50,7 @@
                         </thead>
                         <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                             <tr>
-                                <td class="px-4 py-2"><span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700">Unchecked</span></td>
+                                <td class="px-4 py-2"><span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700 dark:bg-gray-900 dark:text-gray-300">Unchecked</span></td>
                                 <td class="px-4 py-2"><span x-show="lang==='en'">New application — not yet reviewed by HR</span><span x-show="lang==='id'">Lamaran baru — belum ditinjau oleh HR</span></td>
                             </tr>
                             <tr>

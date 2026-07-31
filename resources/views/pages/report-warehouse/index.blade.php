@@ -6,7 +6,7 @@
 
             {{-- SPB --}}
             <a href="#" data-report="spb"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700">
 
                 <div class="flex items-center gap-4">
 
@@ -15,10 +15,10 @@
                     </div>
 
                     <div class="flex flex-col">
-                        <p class="font-semibold text-gray-800">
+                        <p class="font-semibold text-gray-800 dark:text-gray-200">
                             SPB Detail
                         </p>
-                        <p class="text-xs text-gray-500">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
                             Inventory request monitoring
                         </p>
                     </div>
@@ -29,7 +29,7 @@
 
             {{-- ISSUE --}}
             <a href="#" data-report="issue"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700">
 
                 <div class="flex items-center gap-4">
 
@@ -38,10 +38,10 @@
                     </div>
 
                     <div class="flex flex-col">
-                        <p class="font-semibold text-gray-800">
+                        <p class="font-semibold text-gray-800 dark:text-gray-200">
                             Issue / BPG Detail
                         </p>
-                        <p class="text-xs text-gray-500">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
                             Inventory outgoing monitoring
                         </p>
                     </div>
@@ -52,7 +52,7 @@
 
             {{-- RECEIPT --}}
             <a href="#" data-report="receipt"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700">
 
                 <div class="flex items-center gap-4">
 
@@ -61,10 +61,10 @@
                     </div>
 
                     <div class="flex flex-col">
-                        <p class="font-semibold text-gray-800">
+                        <p class="font-semibold text-gray-800 dark:text-gray-200">
                             Receipt / STTB Detail
                         </p>
-                        <p class="text-xs text-gray-500">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
                             Inventory incoming monitoring
                         </p>
                     </div>
@@ -75,7 +75,7 @@
 
             {{-- INVENTORY MOVEMENT --}}
             <a href="#" data-report="movement"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700">
 
                 <div class="flex items-center gap-4">
 
@@ -84,10 +84,10 @@
                     </div>
 
                     <div class="flex flex-col">
-                        <p class="font-semibold text-gray-800">
+                        <p class="font-semibold text-gray-800 dark:text-gray-200">
                             Inventory Movement
                         </p>
-                        <p class="text-xs text-gray-500">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
                             Full tracking (IN / OUT / Balance)
                         </p>
                     </div>

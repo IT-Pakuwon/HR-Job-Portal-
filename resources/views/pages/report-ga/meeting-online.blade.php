@@ -1,31 +1,31 @@
 <div class="space-y-4">
 
     {{-- FILTER PANEL --}}
-    <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm">
+    <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm dark:border-gray-700">
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
 
             {{-- DATE FROM --}}
             <div class="space-y-1">
-                <label class="text-xs font-medium text-gray-500">Date From</label>
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">Date From</label>
                 <input type="date" id="date_from_online" class="form-input w-full">
             </div>
 
             {{-- DATE TO --}}
             <div class="space-y-1">
-                <label class="text-xs font-medium text-gray-500">Date To</label>
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">Date To</label>
                 <input type="date" id="date_to_online" class="form-input w-full">
             </div>
 
             {{-- REQUESTER --}}
             <div class="space-y-1">
-                <label class="text-xs font-medium text-gray-500">Requester</label>
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">Requester</label>
                 <input type="text" id="requester_online" placeholder="Search user..." class="form-input w-full">
             </div>
 
             {{-- PLATFORM --}}
             <div class="space-y-1">
-                <label class="text-xs font-medium text-gray-500">Platform</label>
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">Platform</label>
                 <select id="platform_online" class="form-input w-full">
                     <option value="">All</option>
                     <option value="zoom">Zoom</option>
@@ -35,7 +35,7 @@
 
             {{-- STATUS --}}
             <div class="space-y-1">
-                <label class="text-xs font-medium text-gray-500">Status</label>
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">Status</label>
                 <select id="status_online" class="form-input w-full">
                     <option value="">All Status</option>
                     <option value="A">Active</option>
@@ -51,7 +51,7 @@
                 </button>
 
                 <button id="resetBtnOnline"
-                    class="px-4 py-2 text-sm font-medium border border-gray-300 bg-white rounded-lg hover:bg-gray-50 transition">
+                    class="px-4 py-2 text-sm font-medium border border-gray-300 bg-white rounded-lg hover:bg-gray-50 transition dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-700">
                     Reset
                 </button>
 
@@ -66,10 +66,10 @@
     </div>
 
     {{-- TABLE --}}
-    <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
+    <div class="rounded-2xl border border-gray-200 bg-white shadow-sm dark:bg-gray-800 dark:border-gray-700">
 
         <div class="border-b px-6 py-4">
-            <h2 class="text-sm font-semibold text-gray-800">
+            <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">
                 Meeting Online Report
             </h2>
         </div>
@@ -77,7 +77,7 @@
         <div class="overflow-x-auto p-5">
             <table id="meetingOnlineTable" class="min-w-full text-sm">
 
-                <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+                <thead class="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-gray-900 dark:text-gray-400">
                     <tr>
                         <th>Doc ID</th>
                         <th>Date</th>

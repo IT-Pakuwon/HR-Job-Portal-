@@ -12,7 +12,7 @@
 
             {{-- CS DETAIL --}}
             <a href="#" data-report="cs"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700">
 
                 <div class="flex items-center gap-4">
 
@@ -21,10 +21,10 @@
                     </div>
 
                     <div class="flex flex-col">
-                        <p class="font-semibold text-gray-800">
+                        <p class="font-semibold text-gray-800 dark:text-gray-200">
                             Canvass Sheet Detail
                         </p>
-                        <p class="text-xs text-gray-500">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
                             Selected vendor items with PO / SPK
                         </p>
                     </div>
@@ -36,7 +36,7 @@
             @if($hasPurchAccess)
             {{-- CS TRACKING --}}
             <a href="#" data-report="cs-tracking"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700">
 
                 <div class="flex items-center gap-4">
 
@@ -45,10 +45,10 @@
                     </div>
 
                     <div class="flex flex-col">
-                        <p class="font-semibold text-gray-800">
+                        <p class="font-semibold text-gray-800 dark:text-gray-200">
                             Canvass Sheets Tracking
                         </p>
-                        <p class="text-xs text-gray-500">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
                             Monitor CS status & approval progress
                         </p>
                     </div>

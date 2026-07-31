@@ -157,7 +157,7 @@
 
                         {{-- Reason for Vacancy --}}
                         <div class="col-span-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                            <div class="flex items-center gap-2 text-gray-500">
+                            <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                                 <x-heroicon-o-question-mark-circle class="h-5 w-5 text-pink-400" />
                                 <span>Reason for Vacancy</span>
                             </div>
@@ -168,24 +168,24 @@
 
                         {{-- Job Numbers --}}
                         <div class="col-span-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                            <div class="flex items-center gap-2 text-gray-500">
+                            <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                                 <x-heroicon-o-chart-bar class="h-5 w-5 text-emerald-500" />
                                 <span>Job Numbers</span>
                             </div>
 
                             <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
                                 <div class="flex flex-col">
-                                    <span class="text-sm text-gray-500">Total Required</span>
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">Total Required</span>
                                     <span class="font-bold text-indigo-600">{{ $personnel->required }}</span>
                                 </div>
 
                                 <div class="flex flex-col">
-                                    <span class="text-sm text-gray-500">Actual</span>
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">Actual</span>
                                     <span class="font-bold text-indigo-600">{{ $personnel->actual }}</span>
                                 </div>
 
                                 <div class="flex flex-col">
-                                    <span class="text-sm text-gray-500">Actual Number</span>
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">Actual Number</span>
                                     <span class="font-bold text-indigo-600">{{ $personnel->total_actual }}</span>
                                 </div>
                             </div>
@@ -193,7 +193,7 @@
 
                         {{-- Tags --}}
                         <div class="col-span-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                            <div class="flex items-center gap-2 text-gray-500">
+                            <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                                 <x-heroicon-o-tag class="h-5 w-5 text-purple-500" />
                                 <span>Tags</span>
                             </div>
@@ -476,7 +476,7 @@
                             <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex w-full flex-col justify-center">
                                 <div id="commentList"
                                     class="custom-scrollbar flex max-h-60 flex-col space-y-4 overflow-y-auto p-4">
-                                    <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                    <p class="py-4 text-center italic text-gray-500 dark:text-gray-400">Loading comments...</p>
                                 </div>
                                 <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
                                     <input id="commentInput" x-model="newComment" type="text"
@@ -500,7 +500,7 @@
                             <div class="flex w-full flex-col justify-center">
                                 <div id="commentList"
                                     class="custom-scrollbar flex max-h-60 flex-col space-y-4 overflow-y-auto p-4">
-                                    <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                    <p class="py-4 text-center italic text-gray-500 dark:text-gray-400">Loading comments...</p>
                                 </div>
 
                                 <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
@@ -584,7 +584,7 @@
             function loadComments(docid) {
                 console.log("Loading comments for Doc ID:", docid);
                 let commentList = $('#commentList');
-                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>'); // Loader
+                commentList.html('<p class="text-gray-500 italic dark:text-gray-400">Loading comments...</p>'); // Loader
 
                 $.ajax({
                     url: `/personnel/${docid}/comments`,
@@ -595,7 +595,7 @@
 
                         if (response.comments.length === 0) {
                             commentList.append(
-                                '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
+                                '<p class="text-gray-500 text-sm italic dark:text-gray-400">No comments yet. Be the first to comment!</p>'
                             );
                         } else {
                             response.comments.forEach(comment => {
@@ -605,7 +605,7 @@
                                 commentList.append(`
                                     <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
                                         <p class=" text-sm  font-semibold">${comment.username}
-                                            <span class=" text-sm  text-gray-500">(${timeAgo})</span>
+                                            <span class="text-sm text-gray-500 dark:text-gray-400">(${timeAgo})</span>
                                         </p>
                                         <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
                                     </div>
@@ -710,7 +710,7 @@
                 $list.empty();
                 if (!comments || comments.length === 0) {
                     $list.append(
-                        '<p class="py-4 text-center italic text-gray-500">No comments yet. Be the first to comment!</p>'
+                        '<p class="py-4 text-center italic text-gray-500 dark:text-gray-400">No comments yet. Be the first to comment!</p>'
                     );
                     return;
                 }
@@ -721,7 +721,7 @@
                     $list.append(`
         <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
           <p class=" text-sm  font-semibold">${user}
-            <span class=" text-sm  text-gray-500">(${when})</span>
+            <span class="text-sm text-gray-500 dark:text-gray-400">(${when})</span>
           </p>
           <p class="text-gray-800 dark:text-gray-200">${msg}</p>
         </div>
@@ -730,7 +730,7 @@
             }
 
             function loadComments() {
-                $list.html('<p class="text-gray-500 italic">Loading comments...</p>');
+                $list.html('<p class="text-gray-500 italic dark:text-gray-400">Loading comments...</p>');
                 $.ajax({
                         url: `/personnel/${encodeURIComponent(docid)}/comments`,
                         type: 'GET',

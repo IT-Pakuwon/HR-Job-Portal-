@@ -179,10 +179,10 @@
                                 <summary
                                     class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                     <span>SPB Detail</span>
-                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
                                         details &rarr;</span>
                                     <span
-                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                                         details &darr;</span>
                                 </summary>
 
@@ -254,7 +254,7 @@
 
                                                         {{-- UoM --}}
                                                         {{-- <td class="border p-3">
-                                                        <input type="text" name="stock_unit[]" readonly class="stock_unitField w-full cursor-not-allowed border-none bg-gray-50 p-2 text-gray-600 focus:outline-none" value="{{ $d->uom ?? '-' }}">
+                                                        <input type="text" name="stock_unit[]" readonly class="stock_unitField w-full cursor-not-allowed border-none bg-gray-50 p-2 text-gray-600 focus:outline-none dark:bg-gray-900 dark:text-gray-400" value="{{ $d->uom ?? '-' }}">
                                                     </td> --}}
                                                         <td class="border p-3">
                                                             <div class="flex items-center gap-2">
@@ -396,7 +396,7 @@
                                                                 placeholder="0,00">
                                                         </td>
                                                         {{-- <td class="border p-3">
-                                                        <input type="text" name="stock_unit[]" readonly class="stock_unitField w-full cursor-not-allowed border-none bg-gray-50 p-2 text-gray-600 focus:outline-none" placeholder="-">
+                                                        <input type="text" name="stock_unit[]" readonly class="stock_unitField w-full cursor-not-allowed border-none bg-gray-50 p-2 text-gray-600 focus:outline-none dark:bg-gray-900 dark:text-gray-400" placeholder="-">
                                                     </td> --}}
                                                         <td class="border p-3">
                                                             <div class="flex items-center gap-2">
@@ -797,10 +797,10 @@
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
                                     details &rarr;</span>
                                 <span
-                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                                     details &darr;</span>
                             </summary>
 
@@ -879,7 +879,7 @@
                         <div
                             class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
                             <button id="backBtn" onclick="history.back()"
-                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-300">
 
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -1472,7 +1472,7 @@
                             <td class="border p-2">${item.siteid || ''}</td>
                             <td class="border p-2">${formatNumber(item.stock)}</td>
                             <td class="border p-2 text-center">
-                            <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100"
+                            <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                                 data-id="${item.inventoryid}"
                                 data-name="${$('<div>').text(item.inventory_descr).html().replace(/"/g, '&quot;')}"
                                 data-stock_unit="${item.stock_unit || ''}"
@@ -1833,7 +1833,7 @@
                 <td class="border p-2">${item.location_id}</td>
                 <td class="border p-2">${item.location_name || item.locationname || ''}</td>
                 <td class="border p-2 text-center">
-                    <button type="button" class="chooseLocation rounded border px-2 py-1 hover:bg-gray-100"
+                    <button type="button" class="chooseLocation rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                     data-id="${item.location_id}"
                     data-name="${$('<div>').text(item.location_name || item.locationname || '').html()}">Choose</button>
                 </td>
@@ -1996,7 +1996,7 @@
                     <td class="border p-2">${id}</td>
                     <td class="border p-2">${name}</td>
                     <td class="border p-2 text-center">
-                    <button type="button" class="chooseSubLocation rounded border px-2 py-1 hover:bg-gray-100"
+                    <button type="button" class="chooseSubLocation rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                         data-id="${id}" data-name="${$('<div>').text(name).html()}">Choose</button>
                     </td>
                 </tr>
@@ -2250,7 +2250,7 @@
                                             <div class="text-sm opacity-70">Used: ${used}</div>
                                         </td>
                                         <td class="border p-2 text-center">
-                                            <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
+                                            <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                                                 data-id="${esc(id)}"
                                                 data-activity_id="${esc(actId)}"
                                                 data-activity_descr="${esc(actDetail)}"
@@ -2424,7 +2424,7 @@
                     <td class="border p-2">${md}</td>
                     <td class="border p-2">${rate}</td>
                     <td class="border p-2 text-center">
-                    <button type="button" class="chooseUom rounded border px-2 py-1 hover:bg-gray-100"
+                    <button type="button" class="chooseUom rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                             data-from="${$('<div>').text(from).html()}"
                             data-to="${$('<div>').text(to).html()}"
                             data-md="${$('<div>').text(md).html()}"
@@ -2654,7 +2654,7 @@
                     <td class="border p-2">${worktype}</td>
                     <td class="border p-2">${created_by}</td>
                     <td class="border p-2 text-center">
-                    <button type="button" class="chooseWo rounded border px-2 py-1 hover:bg-gray-100"
+                    <button type="button" class="chooseWo rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                         data-woid="${$('<div>').text(woid).html()}">Choose</button>
                     </td>
                 </tr>
@@ -2798,7 +2798,7 @@
                     <td class="border p-2">${worktype}</td>
                     <td class="border p-2">${created_by}</td>
                     <td class="border p-2 text-center">
-                    <button type="button" class="chooseWo rounded border px-2 py-1 hover:bg-gray-100"
+                    <button type="button" class="chooseWo rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                         data-woid="${$('<div>').text(woid).html()}">Choose</button>
                     </td>
                 </tr>`;

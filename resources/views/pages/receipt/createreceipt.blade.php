@@ -184,7 +184,7 @@
                                                 <div class="font-semibold text-gray-800 dark:text-gray-100">
                                                     {{ $d->inventoryid }}
                                                 </div>
-                                                <div class="text-xs text-gray-500">
+                                                <div class="text-xs text-gray-500 dark:text-gray-400">
                                                     {{ $d->inventory_sub_type ?? '-' }} •
                                                     {{ $d->inventory_category ?? '-' }}
                                                 </div>
@@ -225,7 +225,7 @@
                                                     placeholder="0,00" inputmode="decimal"
                                                     data-max="{{ $remain }}">
 
-                                                <div class="mt-0.5 text-[10px] leading-tight text-gray-500">
+                                                <div class="mt-0.5 text-[10px] leading-tight text-gray-500 dark:text-gray-400">
                                                     max: {{ number_format($remain, 2) }}
                                                 </div>
                                             </td>
@@ -234,7 +234,7 @@
                                             <td class="px-2 py-2 align-top">
                                                 @if (!$isGI)
                                                     <input type="text" value="{{ $d->siteid }}" readonly
-                                                        class="w-20 rounded border border-gray-300 bg-gray-50 px-2 py-1 text-xs leading-tight">
+                                                        class="w-20 rounded border border-gray-300 bg-gray-50 px-2 py-1 text-xs leading-tight dark:bg-gray-900 dark:border-gray-700">
                                                     <input type="hidden" name="siteid[{{ $d->id }}]"
                                                         value="{{ $d->siteid }}">
                                                 @else
@@ -256,7 +256,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="11" class="px-4 py-6 text-center text-gray-500">
+                                            <td colspan="11" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
                                                 No PO detail
                                             </td>
                                         </tr>
@@ -273,10 +273,10 @@
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
                                     details →</span>
                                 <span
-                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                                     details ↓</span>
                             </summary>
 
@@ -299,7 +299,7 @@
 
                         <div class="mt-4 flex items-center justify-between gap-3">
                             <button type="button" onclick="history.back()"
-                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300">
+                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 dark:text-gray-300">
                                 ← Back
                             </button>
 

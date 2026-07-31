@@ -243,7 +243,7 @@
                         <div id="tlLoading"
                             class="hidden items-center gap-2 text-sm text-gray-500 dark:text-gray-300">
                             <span
-                                class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-transparent"></span>
+                                class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-transparent dark:border-gray-700"></span>
                             Loading...
                         </div>
 
@@ -256,7 +256,7 @@
                         <!-- CS -->
                         <div id="tab-cs" class="track-pane hidden">
                             <div class="mb-2">
-                                <label class="text-xs text-gray-500">Select CS</label>
+                                <label class="text-xs text-gray-500 dark:text-gray-400">Select CS</label>
                                 <select id="selCs"
                                     class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"></select>
                             </div>
@@ -267,7 +267,7 @@
                         <!-- PO -->
                         <div id="tab-po" class="track-pane hidden">
                             <div class="mb-2">
-                                <label class="text-xs text-gray-500">Select SPK</label>
+                                <label class="text-xs text-gray-500 dark:text-gray-400">Select SPK</label>
                                 <select id="selPo"
                                     class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"></select>
                             </div>
@@ -278,7 +278,7 @@
                         <!-- BAST -->
                         <div id="tab-bast" class="track-pane hidden">
                             <div class="mb-2">
-                                <label class="text-xs text-gray-500">Select BAST</label>
+                                <label class="text-xs text-gray-500 dark:text-gray-400">Select BAST</label>
                                 <select id="selBast"
                                     class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"></select>
                             </div>
@@ -298,7 +298,7 @@
             if (!list) return;
 
             if (!Array.isArray(steps) || steps.length === 0) {
-                list.innerHTML = `<p class=" text-sm  text-gray-500">No tracking history found.</p>`;
+                list.innerHTML = `<p class="text-sm text-gray-500 dark:text-gray-400">No tracking history found.</p>`;
                 return;
             }
 
@@ -346,9 +346,9 @@
 
                 // tampilkan jadi multi-line: status, nama, waktu
                 let detailHtml = '';
-                if (statusText) detailHtml += `<p class=" text-sm  text-gray-500">${statusText}</p>`;
-                if (by) detailHtml += `<p class=" text-sm  text-gray-500">${by}</p>`;
-                if (when) detailHtml += `<p class=" text-sm  text-gray-500">${when}</p>`;
+                if (statusText) detailHtml += `<p class="text-sm text-gray-500 dark:text-gray-400">${statusText}</p>`;
+                if (by) detailHtml += `<p class="text-sm text-gray-500 dark:text-gray-400">${by}</p>`;
+                if (when) detailHtml += `<p class="text-sm text-gray-500 dark:text-gray-400">${when}</p>`;
 
                 const isLast = i === steps.length - 1;
                 const connector = !isLast ?
@@ -458,7 +458,7 @@
                 return `<span class="inline-block rounded bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">Revise</span>`;
             if (st === 'H')
                 return `<span class="inline-block rounded bg-pink-100 px-2 py-0.5 text-xs font-semibold text-pink-700">Draft</span>`;
-            return `<span class="inline-block rounded bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700">${esc(st || '-')}</span>`;
+            return `<span class="inline-block rounded bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700 dark:bg-gray-900 dark:text-gray-300">${esc(st || '-')}</span>`;
         }
 
         function statusLabel2(st) {
@@ -526,9 +526,9 @@
             //                 </div>
             //             </div>
             //             <div class="mt-1 text-gray-700 dark:text-gray-200">
-            //                 <div><span class="text-gray-500">By:</span> <span class="font-semibold">${who}</span></div>
-            //                 ${dtb ? `<div><span class="text-gray-500">Start:</span> ${dtb}</div>` : ''}
-            //                 ${dta ? `<div><span class="text-gray-500">Finish:</span> ${dta}</div>` : ''}
+            //                 <div><span class="text-gray-500 dark:text-gray-400">By:</span> <span class="font-semibold">${who}</span></div>
+            //                 ${dtb ? `<div><span class="text-gray-500 dark:text-gray-400">Start:</span> ${dtb}</div>` : ''}
+            //                 ${dta ? `<div><span class="text-gray-500 dark:text-gray-400">Finish:</span> ${dta}</div>` : ''}
             //             </div>
             //         </div>
             //     `;
@@ -608,12 +608,12 @@
                 Lvl ${a.level} - ${esc(a.name || a.username || '-')}
             </div>
 
-            <div class="text-[10px] font-semibold px-2 py-0.5 rounded bg-white border">
+            <div class="text-[10px] font-semibold px-2 py-0.5 rounded bg-white border dark:bg-gray-800">
                 ${badge}
             </div>
         </div>
 
-        <div class="text-xs text-gray-500">
+        <div class="text-xs text-gray-500 dark:text-gray-400">
             ${a.date_before || ''}
             ${a.date_after ? ' → ' + a.date_after : ''}
         </div>
@@ -644,20 +644,20 @@
                     </div>
 
                     <div class="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
-                        <div><span class="text-gray-500">Company:</span>
+                        <div><span class="text-gray-500 dark:text-gray-400">Company:</span>
                             <span class="font-semibold text-gray-800 dark:text-white">${esc(header.cpny_id || '-')}</span>
                         </div>
-                        <div><span class="text-gray-500">Department:</span>
+                        <div><span class="text-gray-500 dark:text-gray-400">Department:</span>
                             <span class="font-semibold text-gray-800 dark:text-white">${esc(header.department_id || '-')}</span>
                         </div>
 
                         ${header.vendorname !== undefined ? `
-                                                                                            <div class="sm:col-span-2"><span class="text-gray-500">Vendor:</span>
+                                                                                            <div class="sm:col-span-2"><span class="text-gray-500 dark:text-gray-400">Vendor:</span>
                                                                                                 <span class="font-semibold text-gray-800 dark:text-white">${esc(header.vendorname || '-')}</span>
                                                                                             </div>` : ''}
 
                         ${header.keperluan !== undefined ? `
-                                                                                            <div class="sm:col-span-2"><span class="text-gray-500">Keperluan:</span>
+                                                                                            <div class="sm:col-span-2"><span class="text-gray-500 dark:text-gray-400">Keperluan:</span>
                                                                                                 <span class="font-semibold text-gray-800 dark:text-white">${esc(header.keperluan || '-')}</span>
                                                                                             </div>` : ''}
 
@@ -673,7 +673,7 @@
         render detail tables
         ========================= */
         function renderDetailSppj(rows) {
-            if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500">No detail.</div>`;
+            if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500 dark:text-gray-400">No detail.</div>`;
             const trs = rows.map(r => `
             <tr class="border-b dark:border-gray-700">
             <td class="px-3 py-2">${esc(r.inventoryid)}</td>
@@ -703,7 +703,7 @@
         }
 
         function renderDetailCs(rows) {
-            if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500">No detail.</div>`;
+            if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500 dark:text-gray-400">No detail.</div>`;
             const trs = rows.map(r => `
             <tr class="border-b dark:border-gray-700">
             <td class="px-3 py-2">${esc(r.inventoryid)}</td>
@@ -731,7 +731,7 @@
         }
 
         function renderDetailPo(rows) {
-            if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500">No detail.</div>`;
+            if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500 dark:text-gray-400">No detail.</div>`;
             const trs = rows.map(r => `
             <tr class="border-b dark:border-gray-700">
             <td class="px-3 py-2">${esc(r.inventoryid)}</td>
@@ -758,12 +758,12 @@
 
         function renderBastExtra(extra) {
             if (!extra) {
-                return `<div class="text-sm text-gray-500">No detail.</div>`;
+                return `<div class="text-sm text-gray-500 dark:text-gray-400">No detail.</div>`;
             }
 
             const row = (label, val) => `
                 <div class="flex justify-between gap-3 border-b py-2 dark:border-gray-700">
-                <div class="text-gray-500">${esc(label)}</div>
+                <div class="text-gray-500 dark:text-gray-400">${esc(label)}</div>
                 <div class="font-semibold text-gray-800 dark:text-white text-right">${esc(val ?? '-')}</div>
                 </div>
             `;

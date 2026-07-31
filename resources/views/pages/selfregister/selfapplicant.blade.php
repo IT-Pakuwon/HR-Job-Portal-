@@ -131,7 +131,7 @@
 
             {{-- Column Search Filters --}}
             <div id="applicantsFilters" class="grid grid-cols-1 gap-3 px-5 pt-4 sm:grid-cols-5 lg:grid-cols-9">
-                <button id="btnResetFilters" class="rounded-md border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50">
+                <button id="btnResetFilters" class="rounded-md border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-700">
                     Reset
                 </button>
             </div>
@@ -191,16 +191,16 @@
         </div>
         <!-- Tagging Modal -->
         <div id="taggingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
-            <div class="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
+            <div class="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl dark:bg-gray-800">
                 <div class="mb-5 flex items-center justify-between">
-                    <h2 class="text-lg font-bold text-gray-800">Tag Applicant</h2>
+                    <h2 class="text-lg font-bold text-gray-800 dark:text-gray-200">Tag Applicant</h2>
                     <button id="closeTaggingModal" class="text-gray-400 hover:text-gray-600 text-xl font-bold">✕</button>
                 </div>
 
                 <input type="hidden" id="tagApplicantId">
 
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Division</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">Division</label>
                     <select id="tagDivisionSelect" class="w-full" style="width:100%">
                         <option value="">-- Select Division --</option>
                         @foreach($divisions as $div)
@@ -210,14 +210,14 @@
                 </div>
 
                 <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">Department</label>
                     <select id="tagDeptSelect" class="w-full" style="width:100%">
                         <option value="">-- Select Division first --</option>
                     </select>
                 </div>
 
                 <div class="flex justify-end gap-3">
-                    <button id="closeTaggingModalBtn" class="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-50">Cancel</button>
+                    <button id="closeTaggingModalBtn" class="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-400 dark:border-gray-700">Cancel</button>
                     <button id="saveTagging" class="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700">Save Tag</button>
                 </div>
             </div>
@@ -228,16 +228,16 @@
             class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40  ">
 
             <div
-                class="w-full max-w-5xl transform rounded-2xl bg-white p-8 shadow-2xl transition-all duration-300 scale-95 opacity-0"
+                class="w-full max-w-5xl transform rounded-2xl bg-white p-8 shadow-2xl transition-all duration-300 scale-95 opacity-0 dark:bg-gray-800"
                 id="mappingModalContent">
 
                 <!-- Header -->
                 <div class="mb-5 flex items-center justify-between">
                     <div>
-                        <h2 class="text-lg font-bold text-gray-800">
+                        <h2 class="text-lg font-bold text-gray-800 dark:text-gray-200">
                             Mapping Applicant
                         </h2>
-                        <p class="text-sm text-gray-500">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">
                             Assign candidate to job posting
                         </p>
                     </div>
@@ -256,7 +256,7 @@
 
                     <!-- DOC ID -->
                     <div
-                        class="min-w-[200px] rounded-xl bg-gray-100 px-5 py-3 text-center text-base font-semibold text-gray-700 shadow-inner">
+                        class="min-w-[200px] rounded-xl bg-gray-100 px-5 py-3 text-center text-base font-semibold text-gray-700 shadow-inner dark:bg-gray-900 dark:text-gray-300">
                         <span id="mapDocId">DOCID</span>
                     </div>
 
@@ -266,9 +266,7 @@
                     <!-- Select -->
                     <div class="flex-1 min-w-0">
                         <select id="jobPostingSelect"
-                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm
-                                focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500
-                                hover:border-gray-400 transition">
+                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 hover:border-gray-400 transition dark:border-gray-700">
                         </select>
                     </div>
 
@@ -277,7 +275,7 @@
                 <!-- Actions -->
                 <div class="flex justify-end gap-2">
                     <button id="closeMappingModalBtn"
-                        class="rounded-lg px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700">
+                        class="rounded-lg px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-900 dark:hover:bg-gray-700 dark:text-gray-300">
                         Cancel
                     </button>
 
@@ -363,8 +361,7 @@
             columnFilters.forEach(col => {
                 const $el = $(`
                     <input type="text"
-                        class="w-full rounded-md border border-gray-200 px-3 py-2 text-sm
-                            focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        class="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-700"
                         placeholder="Search ${col.placeholder}">
                 `);
 
@@ -556,17 +553,17 @@
                             // ✅ SUDAH MAPPED → Re-map / Undo / Reject
                             if (row.jobposting_docid) {
                                 const items = [
-                                    `<button class="slf-action-item w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-indigo-600"
+                                    `<button class="slf-action-item w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-indigo-600 dark:hover:bg-gray-700"
                                         data-action="remap" data-id="${row.eid}" data-docid="${row.docid}">🔄 Re-map</button>`,
-                                    `<button class="slf-action-item w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-red-500"
+                                    `<button class="slf-action-item w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-red-500 dark:hover:bg-gray-700"
                                         data-action="undo" data-id="${row.eid}" data-job="${row.jobposting_docid}">↩ Undo Mapping</button>`,
-                                    `<button class="slf-action-item w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-red-600"
+                                    `<button class="slf-action-item w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-red-600 dark:hover:bg-gray-700"
                                         data-action="reject" data-id="${row.eid}">✕ Reject</button>`,
                                 ].join('');
 
                                 return `
                                     <div class="slf-dropdown relative inline-block">
-                                        <button class="slf-toggle inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
+                                        <button class="slf-toggle inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300 dark:bg-gray-900 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700"
                                             data-id="${row.eid}">Action ▾</button>
                                     </div>
                                     <div class="slf-menu-data" data-id="${row.eid}" style="display:none">${items}</div>`;
@@ -575,18 +572,18 @@
                             // 🔵 BELUM MAPPED → Tag / Map / Reject
                             const tagLabel = row.is_tagged ? '🏷 Re-tag' : '🏷 Tag';
                             const items = [
-                                `<button class="slf-action-item w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-purple-600"
+                                `<button class="slf-action-item w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-purple-600 dark:hover:bg-gray-700"
                                     data-action="tag" data-id="${row.eid}" data-docid="${row.docid}"
                                     data-division="${row.division_id || ''}" data-department="${row.department_id || ''}">${tagLabel}</button>`,
-                                `<button class="slf-action-item w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-indigo-600"
+                                `<button class="slf-action-item w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-indigo-600 dark:hover:bg-gray-700"
                                     data-action="map" data-id="${row.eid}" data-docid="${row.docid}">+ Map</button>`,
-                                `<button class="slf-action-item w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-red-500"
+                                `<button class="slf-action-item w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-red-500 dark:hover:bg-gray-700"
                                     data-action="reject" data-id="${row.eid}">✕ Reject</button>`,
                             ].join('');
 
                             return `
                                 <div class="slf-dropdown relative inline-block">
-                                    <button class="slf-toggle inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
+                                    <button class="slf-toggle inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300 dark:bg-gray-900 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700"
                                         data-id="${row.eid}">Action ▾</button>
                                 </div>
                                 <div class="slf-menu-data" data-id="${row.eid}" style="display:none">${items}</div>`;
@@ -607,7 +604,7 @@
 
             // ── FIXED DROPDOWN (self register) ───────────────────────
             const $slfMenu = $(`
-                <div id="slf-fixed-menu" class="hidden fixed z-[9999] w-44 rounded-md shadow-lg bg-white border border-gray-200 py-1"></div>
+                <div id="slf-fixed-menu" class="hidden fixed z-[9999] w-44 rounded-md shadow-lg bg-white border border-gray-200 py-1 dark:bg-gray-800 dark:border-gray-700"></div>
             `).appendTo('body');
 
             // Toggle

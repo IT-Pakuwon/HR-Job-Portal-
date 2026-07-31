@@ -37,7 +37,7 @@
 
             <div id="menuTreeContainer" class="mt-2">
                 <!-- Menu tree akan di-render via jQuery -->
-                <div class="text-sm text-gray-500">Loading menus...</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">Loading menus...</div>
             </div>
         </div>
 
@@ -205,7 +205,7 @@
             //  LOAD & BUILD TREE
             // ==========================
             function loadMenuTree() {
-                $('#menuTreeContainer').html('<div class="text-gray-500  text-sm ">Loading menus...</div>');
+                $('#menuTreeContainer').html('<div class="text-gray-500 text-sm dark:text-gray-400">Loading menus...</div>');
 
                 $.get("{{ route('menus.json') }}", function(res) {
                     menus = res.data || [];
@@ -259,7 +259,7 @@
                 const html = buildTree(null, term, visibleIds);
                 $('#menuTreeContainer').html(`
                         <div class="menu-tree">
-                            ${html || `<div class="text-gray-500 text-sm">${term ? 'Tidak ada menu yang cocok.' : 'Belum ada menu.'}</div>`}
+                            ${html || `<div class="text-gray-500 text-sm dark:text-gray-400">${term ? 'Tidak ada menu yang cocok.' : 'Belum ada menu.'}</div>`}
                         </div>
                     `);
 
@@ -300,7 +300,7 @@
                                 <div class="flex items-center">
                                     ${term ? '' : `<span class="drag-handle text-gray-400 px-1" draggable="true" title="Drag to reorder / move"><i class="fas fa-grip-vertical"></i></span>`}
                                     ${hasChildren
-                                        ? `<button type="button" class="tree-toggle text-gray-500" data-menu-id="${m.menu_id}">${isExpanded ? '▾' : '▸'}</button>`
+                                        ? `<button type="button" class="tree-toggle text-gray-500 dark:text-gray-400" data-menu-id="${m.menu_id}">${isExpanded ? '▾' : '▸'}</button>`
                                         : `<span class="inline-block w-3"></span>`
                                     }
                                 </div>
@@ -309,7 +309,7 @@
                                     <div>
                                         <span class="font-mono text-[11px] bg-gray-100 dark:bg-gray-700 px-1 rounded">${highlight(m.menu_id, term)}</span>
                                         <span class="ml-2 font-semibold  text-sm  text-gray-800 dark:text-gray-100">${highlight(m.menu_name, term)}</span>
-                                        <span class="ml-2  text-sm  text-gray-500">
+                                        <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">
                                             ${highlight(m.menu_route || m.menu_url || '-', term)}
                                         </span>
                                         <span class="ml-1 text-[10px] text-gray-400">

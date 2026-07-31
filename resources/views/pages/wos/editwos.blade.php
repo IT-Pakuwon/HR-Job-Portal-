@@ -369,10 +369,10 @@
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span class="req">Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
                                     details &rarr;</span>
                                 <span
-                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                                     details &darr;</span>
                             </summary>
 
@@ -1219,7 +1219,7 @@
 
             function renderRows(rows) {
                 if (!rows || !rows.length) {
-                    $tbody.html(`<tr><td colspan="4" class="border p-3 text-center text-gray-500">No data</td></tr>`);
+                    $tbody.html(`<tr><td colspan="4" class="border p-3 text-center text-gray-500 dark:text-gray-400">No data</td></tr>`);
                     return;
                 }
 
@@ -1282,7 +1282,7 @@
                 // jadi endpoint ini harus mengarah ke function itu
                 const url = "{{ route('coa.byDeptWo') }}"; // <-- sesuaikan nama route kamu
 
-                $tbody.html(`<tr><td colspan="4" class="border p-3 text-center text-gray-500">Loading...</td></tr>`);
+                $tbody.html(`<tr><td colspan="4" class="border p-3 text-center text-gray-500 dark:text-gray-400">Loading...</td></tr>`);
 
                 $.getJSON(url, {
                     cpnyid: p.cpnyid,

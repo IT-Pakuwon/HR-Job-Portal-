@@ -161,12 +161,12 @@
     </div>
 
     <div id="loadingOverlay" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
-        <div class="flex items-center gap-3 rounded-xl bg-white px-6 py-4 shadow-lg">
+        <div class="flex items-center gap-3 rounded-xl bg-white px-6 py-4 shadow-lg dark:bg-gray-800">
             <svg class="h-6 w-6 animate-spin text-gray-900 dark:text-white" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
             </svg>
-            <span class="text-sm font-semibold text-gray-700">Processing...</span>
+            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Processing...</span>
         </div>
     </div>
 
@@ -559,8 +559,8 @@
                         <tr class="border-b border-gray-100 dark:border-gray-700">
                             <td class="px-3 py-2 text-sm">${posterCell}</td>
                             <td class="px-3 py-2 text-sm font-mono text-xs">${s.docid || '-'}</td>
-                            <td class="px-3 py-2 text-sm">${s.schedule_date}<br><span class="text-xs text-gray-500">${s.start_time} - ${s.end_time}</span></td>
-                            <td class="px-3 py-2 text-sm">${s.mode}<br><span class="text-xs text-gray-500">${locationText}</span></td>
+                            <td class="px-3 py-2 text-sm">${s.schedule_date}<br><span class="text-xs text-gray-500 dark:text-gray-400">${s.start_time} - ${s.end_time}</span></td>
+                            <td class="px-3 py-2 text-sm">${s.mode}<br><span class="text-xs text-gray-500 dark:text-gray-400">${locationText}</span></td>
                             <td class="px-3 py-2 text-sm">${speakerText}</td>
                             <td class="px-3 py-2 text-sm">${s.quota_total}</td>
                             <td class="px-3 py-2 text-sm">${s.registration_deadline}</td>

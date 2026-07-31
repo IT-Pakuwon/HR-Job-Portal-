@@ -56,7 +56,7 @@
             class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
             <div class="flex items-center justify-between">
                 <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         Waiting Approval
                     </div>
                     <div id="approvalCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">
@@ -76,7 +76,7 @@
             class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
             <div class="flex items-center justify-between">
                 <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         Pending PO Mapping
                     </div>
                     <div id="poCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">
@@ -96,7 +96,7 @@
             class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
             <div class="flex items-center justify-between">
                 <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         Pending Issue Mapping
                     </div>
                     <div id="issueCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">
@@ -116,7 +116,7 @@
             class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
             <div class="flex items-center justify-between">
                 <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         Budget Monitoring
                     </div>
                     <div id="budgetCount" class="mt-0.5 truncate text-xl font-bold text-slate-900 dark:text-white">
@@ -133,7 +133,7 @@
             class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
             <div class="flex items-center justify-between">
                 <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         IM Budget
                     </div>
                     <div id="imBudgetCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">

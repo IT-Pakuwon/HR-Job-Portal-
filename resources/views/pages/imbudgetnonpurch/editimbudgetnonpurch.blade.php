@@ -84,8 +84,8 @@
                             <details class="group" open>
                                 <summary class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                     <span>IM Budget Detail</span>
-                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details &rarr;</span>
-                                    <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details &darr;</span>
+                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See details &rarr;</span>
+                                    <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide details &darr;</span>
                                 </summary>
 
                                 <div class="flex h-auto flex-col justify-start">
@@ -246,8 +246,8 @@
                             <details class="group" open>
                                 <summary class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                     <span>Budget Info</span>
-                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details &rarr;</span>
-                                    <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details &darr;</span>
+                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See details &rarr;</span>
+                                    <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide details &darr;</span>
                                 </summary>
 
                                 <div class="flex h-auto flex-col justify-start pt-4">
@@ -373,8 +373,8 @@
                         <details class="group" open>
                             <summary class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details &rarr;</span>
-                                <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details &darr;</span>
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See details &rarr;</span>
+                                <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide details &darr;</span>
                             </summary>
 
                             @if (!empty($attachments) && count($attachments))
@@ -394,7 +394,7 @@
                                                         <span>📎 {{ $att->display_name }}</span>
                                                     @endif
 
-                                                    <div class="text-xs text-gray-500">
+                                                    <div class="text-xs text-gray-500 dark:text-gray-400">
                                                         {{ $att->created_by }} | {{ $att->created_at }}
                                                     </div>
                                                 </div>
@@ -422,14 +422,14 @@
                             </div>
 
                             <button type="button" id="addAttachment"
-                                class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-100">
+                                class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
                                 + Add Attachment
                             </button>
                         </details>
 
                         <div class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
                             <button type="button" id="backBtn" onclick="history.back()"
-                                class="flex items-center justify-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300">
+                                class="flex items-center justify-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 dark:text-gray-300">
                                 Back
                             </button>
 
@@ -999,7 +999,7 @@
                                     </td>
                                     <td class="border p-2 text-center">
                                         <button type="button"
-                                            class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
+                                            class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                                             data-id="${id}"
                                             data-activity_id="${actId}"
                                             data-business_unit_id="${buId}"
@@ -1057,7 +1057,7 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
                     <div class="attachment-row mt-2 flex items-center gap-2">
-                        <input type="file" name="attachments[]" class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700">
+                        <input type="file" name="attachments[]" class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
                         <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200">🗑️</button>
                     </div>
                 `);

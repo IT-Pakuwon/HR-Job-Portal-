@@ -135,7 +135,7 @@
                                                     class="inline-flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-gray-300 text-[10px] font-bold">i</span>
 
                                                 <div
-                                                    class="absolute right-0 top-5 z-40 hidden w-56 rounded-md border bg-white p-3 text-sm shadow-lg group-hover:block">
+                                                    class="absolute right-0 top-5 z-40 hidden w-56 rounded-md border bg-white p-3 text-sm shadow-lg group-hover:block dark:bg-gray-800">
                                                     <div><strong>Contact:</strong> {{ $v['cp'] ?: '-' }}
                                                     </div>
                                                     <div><strong>Phone:</strong> {{ $v['telp'] ?: '-' }}
@@ -240,7 +240,7 @@
                                     @endforeach
                                     <td class="border px-4 py-2 text-center align-middle">
                                         <button type="button"
-                                            class="btn-remove-row h-9 w-9 cursor-not-allowed items-center justify-center rounded border border-gray-300 bg-gray-200/30 text-gray-400"
+                                            class="btn-remove-row h-9 w-9 cursor-not-allowed items-center justify-center rounded border border-gray-300 bg-gray-200/30 text-gray-400 dark:border-gray-700"
                                             disabled>
                                             🗑️
                                         </button>
@@ -280,7 +280,7 @@
                 <div
                     class="flex justify-end gap-3 rounded-b-xl border-t border-gray-200 p-4 dark:border-gray-700 dark:bg-gray-700/40">
                     <a href="{{ url()->previous() }}"
-                        class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                        class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-300">
                         Cancel
                     </a>
                     <button type="button" id="btnSaveBQ"
@@ -680,7 +680,7 @@
                 if (!removable) {
                     td.innerHTML = `
                         <button type="button"
-                          class="btn-remove-row h-9 w-9 cursor-not-allowed items-center justify-center rounded border border-gray-300 bg-gray-200/30 text-gray-400"
+                          class="btn-remove-row h-9 w-9 cursor-not-allowed items-center justify-center rounded border border-gray-300 bg-gray-200/30 text-gray-400 dark:border-gray-700"
                         disabled>🗑️</button>`;
                 } else {
                     td.innerHTML = `
@@ -902,7 +902,7 @@
                 } else {
                     actionTd.innerHTML = `
                         <button type="button"
-                            class="btn-remove-row h-9 w-9 cursor-not-allowed items-center justify-center rounded border border-gray-300 bg-gray-200/30 text-gray-400"
+                            class="btn-remove-row h-9 w-9 cursor-not-allowed items-center justify-center rounded border border-gray-300 bg-gray-200/30 text-gray-400 dark:border-gray-700"
                             disabled>
                             🗑️
                         </button>

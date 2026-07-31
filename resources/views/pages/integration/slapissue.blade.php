@@ -4,64 +4,64 @@
     <div class="absolute inset-0 bg-black/40 pointer-events-auto"></div>
 
     <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div class="pointer-events-auto rounded-xl bg-white px-5 py-4 shadow-lg border border-gray-200 flex items-center gap-3">
+        <div class="pointer-events-auto rounded-xl bg-white px-5 py-4 shadow-lg border border-gray-200 flex items-center gap-3 dark:bg-gray-800 dark:border-gray-700">
             <svg class="h-6 w-6 animate-spin text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
             </svg>
 
             <div>
-                <div id="slIssueBusyTitle" class="font-semibold text-gray-800">Processing...</div>
-                <div id="slIssueBusySub" class="text-sm text-gray-500">Mohon tunggu...</div>
+                <div id="slIssueBusyTitle" class="font-semibold text-gray-800 dark:text-gray-200">Processing...</div>
+                <div id="slIssueBusySub" class="text-sm text-gray-500 dark:text-gray-400">Mohon tunggu...</div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="rounded-xl border border-gray-200 bg-white p-4">
+<div class="rounded-xl border border-gray-200 bg-white p-4 dark:bg-gray-800 dark:border-gray-700">
     <div class="mb-3">
-        <div class="text-lg font-bold text-gray-800">📦 ISSUE Solomon (P-Solomon → C)</div>
-        <div class="text-sm text-gray-500">
+        <div class="text-lg font-bold text-gray-800 dark:text-gray-200">📦 ISSUE Solomon (P-Solomon → C)</div>
+        <div class="text-sm text-gray-500 dark:text-gray-400">
             Load data staging berdasarkan range tanggal, filter company/status, dan proses P → C
         </div>
     </div>
 
     <div id="slIssueInfo" class="hidden mt-3 rounded-md border px-4 py-3 text-sm"></div>
 
-    <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
+    <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:bg-gray-900 dark:border-gray-700">
         <div class="grid grid-cols-1 gap-4 md:grid-cols-12">
             <div class="md:col-span-2">
-                <label class="mb-1 block text-sm font-medium text-gray-700">Start Date</label>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
                 <input type="date" id="slIssueFrom"
-                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700">
             </div>
 
             <div class="md:col-span-2">
-                <label class="mb-1 block text-sm font-medium text-gray-700">End Date</label>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
                 <input type="date" id="slIssueTo"
-                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700">
             </div>
 
             <div class="md:col-span-2">
-                <label class="mb-1 block text-sm font-medium text-gray-700">Company</label>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                 <select id="slIssueCompany"
-                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700">
                     <option value="">All Company</option>
                 </select>
             </div>
 
             <div class="md:col-span-2">
-                <label class="mb-1 block text-sm font-medium text-gray-700">Status</label>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
                 <select id="slIssueStatus"
-                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700">
                     <option value="">All Status</option>
                 </select>
             </div>
 
             <div class="md:col-span-2">
-                <label class="mb-1 block text-sm font-medium text-gray-700">Show</label>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Show</label>
                 <select id="slIssuePerPage"
-                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700">
                     <option value="25">25</option>
                     <option value="50">50</option>
                     <option value="100">100</option>
@@ -82,13 +82,13 @@
         </div>
     </div>
 
-    <div class="mt-4 overflow-hidden rounded-xl border border-gray-200">
-        <div class="flex flex-col gap-2 border-b border-gray-200 bg-gray-50 px-4 py-3 md:flex-row md:items-center md:justify-between">
-            <div class="text-sm font-semibold text-gray-700">
+    <div class="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+        <div class="flex flex-col gap-2 border-b border-gray-200 bg-gray-50 px-4 py-3 md:flex-row md:items-center md:justify-between dark:bg-gray-900 dark:border-gray-700">
+            <div class="text-sm font-semibold text-gray-700 dark:text-gray-300">
                 Total: <span id="slIssueTotal">0</span>
             </div>
 
-            <div class="text-xs text-gray-600">
+            <div class="text-xs text-gray-600 dark:text-gray-400">
                 P: <span id="slIssueSumP">0</span> |
                 C: <span id="slIssueSumC">0</span>
             </div>
@@ -96,10 +96,10 @@
 
         <div class="overflow-x-auto">
             <table class="min-w-full text-sm">
-                <thead class="bg-gray-50 text-gray-700">
+                <thead class="bg-gray-50 text-gray-700 dark:bg-gray-900 dark:text-gray-300">
                     <tr>
                         <th class="w-10 px-4 py-2 text-left">
-                            <input type="checkbox" id="slIssueChkAll" class="rounded border-gray-300">
+                            <input type="checkbox" id="slIssueChkAll" class="rounded border-gray-300 dark:border-gray-700">
                         </th>
                         <th class="px-4 py-2 text-left">Integration Type</th>
                         <th class="px-4 py-2 text-left">Cpny</th>
@@ -118,20 +118,20 @@
 
                 <tbody id="slIssueTbody" class="divide-y divide-gray-100">
                     <tr>
-                        <td colspan="13" class="px-4 py-10 text-center text-gray-500">Belum ada data. Klik Load.</td>
+                        <td colspan="13" class="px-4 py-10 text-center text-gray-500 dark:text-gray-400">Belum ada data. Klik Load.</td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
-        <div class="flex flex-col gap-3 border-t border-gray-200 bg-white px-4 py-3 md:flex-row md:items-center md:justify-between">
-            <div id="slIssuePageInfo" class="text-xs text-gray-500">
+        <div class="flex flex-col gap-3 border-t border-gray-200 bg-white px-4 py-3 md:flex-row md:items-center md:justify-between dark:bg-gray-800 dark:border-gray-700">
+            <div id="slIssuePageInfo" class="text-xs text-gray-500 dark:text-gray-400">
                 Showing 0 to 0 of 0 entries
             </div>
             <div id="slIssuePagination" class="flex flex-wrap items-center gap-1"></div>
         </div>
 
-        <div class="px-4 py-3 text-xs text-gray-500 bg-white border-t border-gray-100">
+        <div class="px-4 py-3 text-xs text-gray-500 bg-white border-t border-gray-100 dark:bg-gray-800 dark:text-gray-400">
             Legend: P = ready process, C = completed.
         </div>
     </div>
@@ -292,7 +292,7 @@
         if (!rows || rows.length === 0) {
             el.tbody.innerHTML = `
                 <tr>
-                    <td colspan="13" class="px-4 py-10 text-center text-gray-500">No data.</td>
+                    <td colspan="13" class="px-4 py-10 text-center text-gray-500 dark:text-gray-400">No data.</td>
                 </tr>
             `;
             el.chkAll.checked = false;
@@ -313,7 +313,7 @@
                 <tr class="hover:bg-gray-50 ${rowClass}">
                     <td class="px-4 py-2">
                         <input type="checkbox"
-                            class="slIssueRowChk rounded border-gray-300"
+                            class="slIssueRowChk rounded border-gray-300 dark:border-gray-700"
                             value="${escapeHtml(key)}"
                             data-stage="${escapeHtml(stage)}"
                             ${disabled}>
@@ -467,7 +467,7 @@
 
         el.tbody.innerHTML = `
             <tr>
-                <td colspan="13" class="px-4 py-10 text-center text-gray-500">Loading...</td>
+                <td colspan="13" class="px-4 py-10 text-center text-gray-500 dark:text-gray-400">Loading...</td>
             </tr>
         `;
         el.chkAll.disabled = true;

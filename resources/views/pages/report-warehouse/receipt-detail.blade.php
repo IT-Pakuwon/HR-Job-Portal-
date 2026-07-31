@@ -7,7 +7,7 @@
 
             <!-- Date From -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Date From
                 </label>
                 <input type="date" id="receipt_date_from"
@@ -16,7 +16,7 @@
 
             <!-- Date To -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Date To
                 </label>
                 <input type="date" id="receipt_date_to"
@@ -25,7 +25,7 @@
 
             <!-- Receipt Number -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Receipt No
                 </label>
                 <input type="text" id="receiptnbr" placeholder="GR-xxxx"
@@ -34,7 +34,7 @@
 
             <!-- Inventory -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Inventory ID
                 </label>
                 <input type="text" id="receipt_inventoryid" placeholder="Item code"

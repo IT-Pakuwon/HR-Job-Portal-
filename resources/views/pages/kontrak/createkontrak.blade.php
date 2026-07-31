@@ -693,7 +693,7 @@
 
             function loadComments(refnbr, doctype) {
                 let commentList = $('#commentList');
-                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>');
+                commentList.html('<p class="text-gray-500 italic dark:text-gray-400">Loading comments...</p>');
 
                 $.ajax({
                     url: `/comments/${doctype}/${refnbr}`,
@@ -703,7 +703,7 @@
 
                         if (!response.comments || response.comments.length === 0) {
                             commentList.append(
-                                '<p class="text-gray-500 text-sm italic">No comments yet.</p>');
+                                '<p class="text-gray-500 text-sm italic dark:text-gray-400">No comments yet.</p>');
                             return;
                         }
 
@@ -714,7 +714,7 @@
                                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
                                     <p class="text-sm font-semibold">
                                         ${comment.username}
-                                        <span class="text-sm text-gray-500">(${timeAgo})</span>
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">(${timeAgo})</span>
                                     </p>
                                     <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
                                 </div>

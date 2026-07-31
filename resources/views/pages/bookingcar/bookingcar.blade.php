@@ -1,6 +1,6 @@
 <x-app-layout>
 
-    <div class="mb-4 rounded-lg border border-gray-200 bg-white px-5 py-4 shadow-sm">
+    <div class="mb-4 rounded-lg border border-gray-200 bg-white px-5 py-4 shadow-sm dark:bg-gray-800 dark:border-gray-700">
 
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
@@ -21,7 +21,7 @@
 
                     </h1>
 
-                    <p class="mt-0.5 text-sm text-gray-500">
+                    <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
 
                         Manage booking requests and vehicle schedules
 
@@ -690,7 +690,7 @@
 
                             <div>
 
-                                <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                                <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                                     Requester
                                 </div>
 
@@ -712,7 +712,7 @@
 
                             <div>
 
-                                <div class="text-xs text-slate-500">
+                                <div class="text-xs text-slate-500 dark:text-slate-400">
                                     Booking Date
                                 </div>
 
@@ -724,7 +724,7 @@
 
                             <div>
 
-                                <div class="text-xs text-slate-500">
+                                <div class="text-xs text-slate-500 dark:text-slate-400">
                                     Total Passenger
                                 </div>
 
@@ -736,7 +736,7 @@
 
                             <div>
 
-                                <div class="text-xs text-slate-500">
+                                <div class="text-xs text-slate-500 dark:text-slate-400">
                                     Start Time
                                 </div>
 
@@ -748,7 +748,7 @@
 
                             <div>
 
-                                <div class="text-xs text-slate-500">
+                                <div class="text-xs text-slate-500 dark:text-slate-400">
                                     End Time
                                 </div>
 
@@ -760,7 +760,7 @@
 
                             <div>
 
-                                <div class="text-xs text-slate-500">
+                                <div class="text-xs text-slate-500 dark:text-slate-400">
                                     Company - Company Request
                                 </div>
 
@@ -779,7 +779,7 @@
 
                             <div>
 
-                                <div class="text-xs text-slate-500">
+                                <div class="text-xs text-slate-500 dark:text-slate-400">
                                     Department
                                 </div>
 
@@ -984,7 +984,7 @@
                                 </button>
 
                                 <button type="button" id="reviseBookingBtn"
-                                    class="flex-1 rounded-lg bg-yellow-400 px-4 py-2 text-xs font-semibold text-black transition hover:bg-yellow-300">
+                                    class="flex-1 rounded-lg bg-yellow-400 px-4 py-2 text-xs font-semibold text-black transition hover:bg-yellow-300 dark:text-white">
 
                                     <i class="fa-solid fa-rotate-left mr-1"></i>
                                     Revise
@@ -1562,25 +1562,25 @@
                         <div class="grid grid-cols-2 gap-x-8 gap-y-3 p-4 md:grid-cols-4">
 
                             <div>
-                                <span class="text-xs text-slate-500">Requester</span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">Requester</span>
                                 <div id="ga_booking_requester"
                                     class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">-</div>
                             </div>
 
                             <div>
-                                <span class="text-xs text-slate-500">Booking Date</span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">Booking Date</span>
                                 <div id="ga_booking_date"
                                     class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">-</div>
                             </div>
 
                             <div>
-                                <span class="text-xs text-slate-500">Start Time</span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">Start Time</span>
                                 <div id="ga_booking_start"
                                     class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">-</div>
                             </div>
 
                             <div>
-                                <span class="text-xs text-slate-500">End Time</span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">End Time</span>
                                 <div id="ga_booking_end"
                                     class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">-</div>
                             </div>
@@ -1590,7 +1590,7 @@
                         <div class="border-t border-slate-200 px-4 py-3 dark:border-white/10">
 
                             <div class="mb-2 flex items-center justify-between">
-                                <span class="text-xs font-semibold text-slate-500">Route</span>
+                                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Route</span>
                                 <button type="button" id="gaProcessAddRouteBtn"
                                     class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-300 dark:hover:bg-emerald-500/20">
                                     <i class="fa-solid fa-plus text-[10px]"></i>
@@ -1602,9 +1602,9 @@
                                 <table class="w-full text-sm">
                                     <thead>
                                         <tr class="border-b border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/2">
-                                            <th class="w-10 px-4 py-2 text-left text-xs font-semibold text-slate-500">No</th>
-                                            <th class="px-4 py-2 text-left text-xs font-semibold text-slate-500">Pickup</th>
-                                            <th class="px-4 py-2 text-left text-xs font-semibold text-slate-500">Destination</th>
+                                            <th class="w-10 px-4 py-2 text-left text-xs font-semibold text-slate-500 dark:text-slate-400">No</th>
+                                            <th class="px-4 py-2 text-left text-xs font-semibold text-slate-500 dark:text-slate-400">Pickup</th>
+                                            <th class="px-4 py-2 text-left text-xs font-semibold text-slate-500 dark:text-slate-400">Destination</th>
                                             <th class="w-12 px-4 py-2"></th>
                                         </tr>
                                     </thead>
@@ -1616,7 +1616,7 @@
 
                         <div class="border-t border-slate-200 px-4 py-3 dark:border-white/10">
 
-                            <span class="text-xs text-slate-500">Purpose</span>
+                            <span class="text-xs text-slate-500 dark:text-slate-400">Purpose</span>
 
                             <div id="ga_booking_purpose" class="mt-1 text-sm text-slate-700 dark:text-slate-300">
                                 -

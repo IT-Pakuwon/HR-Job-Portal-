@@ -193,28 +193,28 @@
                         <div class="bg-white px-5 py-4 dark:bg-gray-800">
                             <div class="mb-1 flex items-center gap-2">
                                 <span class="flex h-5 w-5 items-center justify-center rounded bg-[#1877F2] text-[9px] font-black text-white">f</span>
-                                <span class="text-xs font-semibold text-gray-500">Facebook</span>
+                                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">Facebook</span>
                             </div>
                             <p class="break-all text-sm text-gray-800 dark:text-gray-200">{{ $applicant->sosmed_facebook_account ?: '—' }}</p>
                         </div>
                         <div class="bg-white px-5 py-4 dark:bg-gray-800">
                             <div class="mb-1 flex items-center gap-2">
                                 <span class="flex h-5 w-5 items-center justify-center rounded bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 text-[9px] font-black text-white">ig</span>
-                                <span class="text-xs font-semibold text-gray-500">Instagram</span>
+                                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">Instagram</span>
                             </div>
                             <p class="break-all text-sm text-gray-800 dark:text-gray-200">{{ $applicant->sosmed_instagram_account ?: '—' }}</p>
                         </div>
                         <div class="bg-white px-5 py-4 dark:bg-gray-800">
                             <div class="mb-1 flex items-center gap-2">
                                 <span class="flex h-5 w-5 items-center justify-center rounded bg-black text-[9px] font-black text-white">&#120143;</span>
-                                <span class="text-xs font-semibold text-gray-500">Twitter / X</span>
+                                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">Twitter / X</span>
                             </div>
                             <p class="break-all text-sm text-gray-800 dark:text-gray-200">{{ $applicant->sosmed_x_account ?: '—' }}</p>
                         </div>
                         <div class="bg-white px-5 py-4 dark:bg-gray-800">
                             <div class="mb-1 flex items-center gap-2">
                                 <span class="flex h-5 w-5 items-center justify-center rounded bg-[#0A66C2] text-[9px] font-black text-white">in</span>
-                                <span class="text-xs font-semibold text-gray-500">LinkedIn</span>
+                                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">LinkedIn</span>
                             </div>
                             <p class="break-all text-sm text-gray-800 dark:text-gray-200">{{ $applicant->sosmed_linkedin_account ?: '—' }}</p>
                         </div>
@@ -853,14 +853,14 @@
 
 <!-- Tagging Modal — same as selfapplicant -->
 <div id="taggingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
-    <div class="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
+    <div class="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl dark:bg-gray-800">
         <div class="mb-5 flex items-center justify-between">
-            <h2 class="text-lg font-bold text-gray-800">Tag Applicant</h2>
+            <h2 class="text-lg font-bold text-gray-800 dark:text-gray-200">Tag Applicant</h2>
             <button id="closeTaggingModal" class="text-gray-400 hover:text-gray-600 text-xl font-bold">✕</button>
         </div>
         <input type="hidden" id="tagApplicantId" value="{{ $hash }}">
         <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Division</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">Division</label>
             <select id="tagDivisionSelect" class="w-full" style="width:100%">
                 <option value="">-- Select Division --</option>
                 @php $showDivisions = \App\Models\Division::select('division_id','division_name')->where('status','A')->orderBy('division_name')->get(); @endphp
@@ -870,13 +870,13 @@
             </select>
         </div>
         <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Department</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">Department</label>
             <select id="tagDeptSelect" class="w-full" style="width:100%">
                 <option value="">-- Select Division first --</option>
             </select>
         </div>
         <div class="flex justify-end gap-3">
-            <button id="closeTaggingModalBtn" class="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-50">Cancel</button>
+            <button id="closeTaggingModalBtn" class="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-400 dark:border-gray-700">Cancel</button>
             <button id="saveTagging" class="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700">Save Tag</button>
         </div>
     </div>
@@ -884,26 +884,26 @@
 
 <!-- Mapping Modal — same as selfapplicant -->
 <div id="mappingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
-    <div class="w-full max-w-5xl transform rounded-2xl bg-white p-8 shadow-2xl transition-all duration-300 scale-95 opacity-0" id="mappingModalContent">
+    <div class="w-full max-w-5xl transform rounded-2xl bg-white p-8 shadow-2xl transition-all duration-300 scale-95 opacity-0 dark:bg-gray-800" id="mappingModalContent">
         <div class="mb-5 flex items-center justify-between">
             <div>
-                <h2 class="text-lg font-bold text-gray-800">Mapping Applicant</h2>
-                <p class="text-sm text-gray-500">Assign candidate to job posting</p>
+                <h2 class="text-lg font-bold text-gray-800 dark:text-gray-200">Mapping Applicant</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Assign candidate to job posting</p>
             </div>
             <button id="closeMappingModal" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
         </div>
         <input type="hidden" id="mapApplicantId" value="{{ $hash }}">
         <div class="mb-8 flex items-center gap-4 w-full">
-            <div class="min-w-[200px] rounded-xl bg-gray-100 px-5 py-3 text-center text-base font-semibold text-gray-700 shadow-inner">
+            <div class="min-w-[200px] rounded-xl bg-gray-100 px-5 py-3 text-center text-base font-semibold text-gray-700 shadow-inner dark:bg-gray-900 dark:text-gray-300">
                 <span id="mapDocId">{{ $career->docid ?? '' }}</span>
             </div>
             <div class="text-gray-400 text-2xl">→</div>
             <div class="flex-1 min-w-0">
-                <select id="jobPostingSelect" class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 hover:border-gray-400 transition"></select>
+                <select id="jobPostingSelect" class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 hover:border-gray-400 transition dark:border-gray-700"></select>
             </div>
         </div>
         <div class="flex justify-end gap-2">
-            <button id="closeMappingModalBtn" class="rounded-lg px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700">Cancel</button>
+            <button id="closeMappingModalBtn" class="rounded-lg px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-900 dark:hover:bg-gray-700 dark:text-gray-300">Cancel</button>
             <button id="saveMapping" class="rounded-xl px-5 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow">Save Mapping</button>
         </div>
     </div>

@@ -137,7 +137,7 @@
 
             <div class="flex justify-end gap-2 border-t border-gray-100 pt-4 dark:border-gray-700">
                 <button type="button" onclick="closeAgendaModal()"
-                    class="rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-500 transition hover:bg-gray-50 focus:outline-none dark:border-gray-600 dark:text-gray-400">
+                    class="rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-500 transition hover:bg-gray-50 focus:outline-none dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700">
                     Cancel
                 </button>
                 <button id="createAgendaSubmit" type="submit"
@@ -164,7 +164,7 @@
                 class="mt-1 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"></textarea>
             <div class="mt-4 flex justify-end gap-2">
                 <button type="button" onclick="closeCancelModal()"
-                    class="rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-500 transition hover:bg-gray-50 focus:outline-none dark:border-gray-600 dark:text-gray-400">
+                    class="rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-500 transition hover:bg-gray-50 focus:outline-none dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700">
                     Close
                 </button>
                 <button type="submit"

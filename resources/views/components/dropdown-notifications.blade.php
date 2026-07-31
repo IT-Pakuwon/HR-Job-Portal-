@@ -53,7 +53,7 @@ setInterval(load, 60000)" class="relative">
                             <span x-text="item.docid"></span>
                         </p>
 
-                        <p class="mt-0.5 text-xs text-gray-500">
+                        <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
                             <span x-text="item.cpnyid"></span>
                             •
                             <span x-text="item.docdate"></span>
@@ -93,7 +93,7 @@ setInterval(load, 60000)" class="relative">
         <p class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100" x-text="latestItem?.docid">
         </p>
 
-        <p class="mt-0.5 text-xs text-gray-500">
+        <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
             Waiting for your approval
         </p>
     </div>

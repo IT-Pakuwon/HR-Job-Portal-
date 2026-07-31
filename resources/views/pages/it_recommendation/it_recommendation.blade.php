@@ -826,7 +826,7 @@
                                     <div>
 
                                         <label
-                                            class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
+                                            class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
 
                                             Recommendation Type
 
@@ -858,7 +858,7 @@
                                     <div>
 
                                         <label
-                                            class="mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
+                                            class="mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
 
                                             Warranty
 
@@ -872,7 +872,7 @@
                                     <div class="md:col-span-2">
 
                                         <label
-                                            class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
+                                            class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
 
                                             Recommendation
 
@@ -1132,7 +1132,7 @@
                                         <div>
 
                                             <label
-                                                class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
+                                                class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
 
                                                 Recommendation Type
 
@@ -1160,7 +1160,7 @@
                                         <div>
 
                                             <label
-                                                class="mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
+                                                class="mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
 
                                                 Warranty
 
@@ -1174,7 +1174,7 @@
                                         <div class="md:col-span-2">
 
                                             <label
-                                                class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
+                                                class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
 
                                                 Recommendation
 
@@ -1343,7 +1343,7 @@
                     </div>
 
                     <button type="button"
-                        class="btn-close-attachment-modal inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-all duration-200 hover:bg-slate-100 dark:hover:bg-white/10">
+                        class="btn-close-attachment-modal inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-all duration-200 hover:bg-slate-100 dark:hover:bg-white/10 dark:text-slate-400">
 
                         <i class="fa-solid fa-xmark"></i>
 

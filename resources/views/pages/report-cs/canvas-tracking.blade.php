@@ -5,42 +5,42 @@
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-12">
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Date From
                 </label>
                 <input type="date" id="f_date_from"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Date To
                 </label>
                 <input type="date" id="f_date_to"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     CS ID
                 </label>
                 <input type="text" id="f_csid" placeholder="CS-xxxx"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     SPPBJKT
                 </label>
                 <input type="text" id="f_sppbjkt" placeholder="PB-xxxx"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Doc Type
                 </label>
-                <select id="f_doc_type" class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                <select id="f_doc_type" class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
                     <option value="">All</option>
                     <option value="SPPB">SPPB</option>
                     <option value="SPPJ">SPPJ</option>
@@ -50,10 +50,10 @@
             </div>
 
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Department
                 </label>
-                <select id="f_department" class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                <select id="f_department" class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
                     <option value="">All</option>
                     @foreach ($departments as $id => $name)
                         <option value="{{ $id }}">{{ $name }}</option>
@@ -62,19 +62,19 @@
             </div>
 
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Requester
                 </label>
                 <input type="text" id="f_requester" placeholder="username / name"
-                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700">
             </div>
 
             {{-- <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Status
                 </label>
                 <select id="f_status"
-                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700">
                     <option value="">All</option>
                     <option value="D">Revised</option>
                     <option value="A">Assigned</option>
@@ -109,14 +109,14 @@
     <div id="statusBar" class="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
 
         <!-- ALL -->
-        <div class="status-card group flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 bg-white p-2 shadow-sm transition hover:shadow-md"
+        <div class="status-card group flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 bg-white p-2 shadow-sm transition hover:shadow-md dark:bg-gray-800 dark:border-gray-700"
             data-key="total">
-            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 text-lg">
+            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 text-lg dark:bg-gray-900">
                 📄
             </div>
             <div class="flex w-full justify-between">
-                <div class="text-sm text-gray-500">All</div>
-                <div class="count text-lg font-bold text-gray-800">0</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">All</div>
+                <div class="count text-lg font-bold text-gray-800 dark:text-gray-200">0</div>
             </div>
         </div>
 
@@ -145,14 +145,14 @@
         </div>
 
         <!-- REVISED -->
-        <div class="status-card group flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 p-2 shadow-sm transition hover:shadow-md"
+        <div class="status-card group flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 p-2 shadow-sm transition hover:shadow-md dark:bg-gray-900 dark:border-gray-700"
             data-key="revised">
             <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-200 text-lg">
                 ✏️
             </div>
             <div class="flex w-full justify-between">
-                <div class="text-sm text-gray-600">Revised</div>
-                <div class="count text-lg font-bold text-gray-800">0</div>
+                <div class="text-sm text-gray-600 dark:text-gray-400">Revised</div>
+                <div class="count text-lg font-bold text-gray-800 dark:text-gray-200">0</div>
             </div>
         </div>
 
@@ -172,22 +172,22 @@
 
 
     <!-- TABLE -->
-    <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
+    <div class="rounded-2xl border border-gray-200 bg-white shadow-sm dark:bg-gray-800 dark:border-gray-700">
 
         <div class="border-b px-6 py-4">
-            <h2 class="text-sm font-semibold text-gray-800">
+            <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">
                 Canvass Sheets Tracking
             </h2>
-            <p class="text-xs text-gray-500">
+            <p class="text-xs text-gray-500 dark:text-gray-400">
                 Monitor CS progress, assignment & approval
             </p>
         </div>
 
         <div class="overflow-x-auto p-5">
 
-            <table id="trackingTable" class="min-w-full text-sm text-gray-700">
+            <table id="trackingTable" class="min-w-full text-sm text-gray-700 dark:text-gray-300">
 
-                <thead class="bg-gray-50 text-[11px] uppercase text-gray-500">
+                <thead class="bg-gray-50 text-[11px] uppercase text-gray-500 dark:bg-gray-900 dark:text-gray-400">
                     <tr>
                         {{-- <th></th> --}}
                         <th class="px-3 py-3">CS ID</th>
@@ -213,13 +213,13 @@
     <!-- TRACKING MODAL -->
     <div id="trackingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
 
-        <div class="w-full max-w-2xl rounded-2xl bg-white shadow-xl">
+        <div class="w-full max-w-2xl rounded-2xl bg-white shadow-xl dark:bg-gray-800">
 
             <div class="flex items-center justify-between border-b px-6 py-4">
                 <h3 id="trackingTitle" class="text-sm font-semibold text-gray-800 dark:text-white">
                     CS Tracking
                 </h3>
-                <button id="closeTracking" class="text-gray-500 hover:text-black">
+                <button id="closeTracking" class="text-gray-500 hover:text-black dark:text-gray-400">
                     ✕
                 </button>
             </div>

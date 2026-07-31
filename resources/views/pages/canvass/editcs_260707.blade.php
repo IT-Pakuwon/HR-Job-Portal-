@@ -260,8 +260,8 @@
                                 <summary
                                     class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                     <span>Attachments CS</span>
-                                    <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden">See details &rarr;</span>
-                                    <span class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline">Hide details &darr;</span>
+                                    <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See details &rarr;</span>
+                                    <span class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide details &darr;</span>
                                 </summary>
 
                                 <div class="flex h-auto flex-col justify-start">
@@ -299,7 +299,7 @@
 
                             <div class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
                                 <button type="button" id="backBtn" onclick="history.back()"
-                                    class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                    class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-300">
                                     <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -365,7 +365,7 @@
                     <div class="flex items-center justify-between border-b px-4 py-3 dark:border-gray-700">
                         <h3 class="text-xs font-semibold text-gray-800 dark:text-gray-100">Pilih Pajak</h3>
                         <button id="taxModalClose"
-                            class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
+                            class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-400">✖</button>
                     </div>
                     <div class="p-4">
                         <div class="mb-3 flex items-center gap-2">
@@ -396,7 +396,7 @@
                     <div class="mb-3 flex items-center justify-between border-b pb-2 dark:border-gray-700">
                         <h3 class="text-xs font-semibold text-gray-800 dark:text-gray-100">Tidak bisa Submit — Perbedaan Nilai BQ vs CS</h3>
                         <button id="bqcsMismatchClose"
-                            class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
+                            class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-400">✖</button>
                     </div>
                     <p class="mb-3 text-xs text-gray-700 dark:text-gray-300">
                         Terdapat vendor dengan nilai berbeda antara <b>(BQ: Total BQ)</b> dan <b>(CS: Total sebelum PPN/PPH)</b>.
@@ -879,7 +879,7 @@
                 const $total = $(`<small class="total-label text-right text-xs dark:text-gray-300 font-bold text-gray-600">0,00</small>`);
                 const $radio = $(`
                     <div class="flex justify-center mt-0.5">
-                        <input type="radio" name="selected_vendor_${rowIdx}" value="${colKey}" class="pick-vendor h-3 w-3 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                        <input type="radio" name="selected_vendor_${rowIdx}" value="${colKey}" class="pick-vendor h-3 w-3 text-indigo-600 border-gray-300 focus:ring-indigo-500 dark:border-gray-700">
                     </div>
                 `);
 

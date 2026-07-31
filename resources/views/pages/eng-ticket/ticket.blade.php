@@ -13,7 +13,7 @@
                 <a href="#" class="ticket-status-filter group block h-full" data-status="">
 
                     <div
-                        class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-slate-700 bg-slate-200/20 p-3 text-slate-700  dark:text-slate-400 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95">
+                        class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-slate-700 bg-slate-200/20 p-3 text-slate-700 dark:text-slate-400 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95 dark:hover:bg-slate-700">
 
                         <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
                             🎫
@@ -351,7 +351,7 @@
             class="mt-4 grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
 
             <button type="button" class="calendar-status-filter text-left" data-state="UNSCHEDULED">
-                <div class="calendar-status-card flex h-full items-center gap-3 rounded-lg border border-gray-500 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:text-gray-400">
+                <div class="calendar-status-card flex h-full items-center gap-3 rounded-lg border border-gray-500 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:text-gray-400 dark:hover:bg-gray-700">
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center">
                         <span class="h-3 w-3 rounded-full bg-gray-400"></span>
                     </div>
@@ -411,7 +411,7 @@
             </button>
 
             <button type="button" class="calendar-status-filter text-left" data-state="CANCELLED">
-                <div class="calendar-status-card flex h-full items-center gap-3 rounded-lg border border-slate-700 bg-slate-200/20 p-3 text-slate-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95 dark:text-slate-400">
+                <div class="calendar-status-card flex h-full items-center gap-3 rounded-lg border border-slate-700 bg-slate-200/20 p-3 text-slate-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95 dark:text-slate-400 dark:hover:bg-slate-700">
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center">
                         <span class="h-3 w-3 rounded-full bg-slate-600"></span>
                     </div>
@@ -813,7 +813,7 @@
                     </div>
 
                     <button type="button"
-                        class="btn-close-form-modal inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white">
+                        class="btn-close-form-modal inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white dark:bg-gray-800 dark:border-slate-700">
 
                         <i class="fa-solid fa-xmark text-lg"></i>
 
@@ -1139,7 +1139,7 @@
                             <div class="flex items-center justify-end gap-3">
 
                                 <button type="button"
-                                    class="btn-close-form-modal inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5">
+                                    class="btn-close-form-modal inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 dark:bg-gray-800 dark:border-slate-700">
 
                                     Cancel
 

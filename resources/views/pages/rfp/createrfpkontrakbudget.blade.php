@@ -150,7 +150,7 @@
                                     </div>                                    
                                 </a>
                             @empty
-                                <div class="rounded-lg border border-dashed border-gray-300 p-4 text-center text-sm text-gray-500 dark:border-gray-600">
+                                <div class="rounded-lg border border-dashed border-gray-300 p-4 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
                                     No vendor portal attachment.
                                 </div>
                             @endforelse
@@ -249,7 +249,7 @@
                                     </tr>
                                 @empty
                                     <tr id="emptyKontrakBudgetRow">
-                                        <td colspan="11" class="p-6 text-center text-sm italic text-gray-500">
+                                        <td colspan="11" class="p-6 text-center text-sm italic text-gray-500 dark:text-gray-400">
                                             Detail kontrak budget belum tersedia.
                                         </td>
                                     </tr>
@@ -448,7 +448,7 @@
                 if ($('#emptyKontrakBudgetRow').length === 0) {
                     $('#kontrakBudgetTableBody').append(`
                         <tr id="emptyKontrakBudgetRow">
-                            <td colspan="11" class="p-6 text-center text-sm italic text-gray-500">
+                            <td colspan="11" class="p-6 text-center text-sm italic text-gray-500 dark:text-gray-400">
                                 Detail kontrak budget belum tersedia.
                             </td>
                         </tr>

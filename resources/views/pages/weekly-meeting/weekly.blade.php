@@ -17,7 +17,7 @@
                     </div>
                 </div>
                 <a href="{{ route('weekly-meeting.create') }}" target="_blank" rel="noopener noreferrer"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-extrabold text-indigo-700 shadow-lg shadow-indigo-900/20 transition hover:-translate-y-0.5 hover:bg-indigo-50 hover:shadow-xl">
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-extrabold text-indigo-700 shadow-lg shadow-indigo-900/20 transition hover:-translate-y-0.5 hover:bg-indigo-50 hover:shadow-xl dark:bg-gray-800">
                     <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
                     Add Weekly Meeting
                 </a>
@@ -45,7 +45,7 @@
         <div class="flex max-h-[85vh] w-full max-w-xl flex-col overflow-hidden rounded-xl bg-white shadow-xl dark:bg-gray-800">
             <div class="flex items-center justify-between border-b px-5 py-4 dark:border-gray-700">
                 <h2 id="weeklyCommentTitle" class="font-extrabold">Comments</h2>
-                <button type="button" class="btnCloseWeeklyComment text-2xl text-gray-500">&times;</button>
+                <button type="button" class="btnCloseWeeklyComment text-2xl text-gray-500 dark:text-gray-400">&times;</button>
             </div>
             <div id="weeklyComments" class="min-h-0 flex-1 space-y-3 overflow-y-auto p-5"></div>
             <form id="weeklyCommentForm" class="shrink-0 border-t p-4 dark:border-gray-700">
@@ -79,7 +79,7 @@
                 <button type="button" class="btnCloseWeeklyMom inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-2xl text-white transition hover:bg-white/20">&times;</button>
             </div>
             <div class="min-h-0 flex-1 overflow-y-auto bg-gray-50 p-6 dark:bg-gray-900/40">
-                <div id="weeklyMomLoading" class="p-10 text-center text-sm text-gray-500">Loading MOM...</div>
+                <div id="weeklyMomLoading" class="p-10 text-center text-sm text-gray-500 dark:text-gray-400">Loading MOM...</div>
                 <div id="weeklyMomContent" class="ql-editor hidden min-h-48 rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"></div>
             </div>
         </div>
@@ -205,7 +205,7 @@
                 });
 
                 async function loadComments() {
-                    $('#weeklyComments').html('<div class="p-8 text-center text-sm text-gray-500">Loading...</div>');
+                    $('#weeklyComments').html('<div class="p-8 text-center text-sm text-gray-500 dark:text-gray-400">Loading...</div>');
                     const response = await $.get(`/comments/WOM/${encodeURIComponent(activeMeetingId)}`);
                     const comments = response.comments || [];
                     $('#weeklyComments').html(comments.length ? comments.map(comment => `
@@ -216,7 +216,7 @@
                             </div>
                             <p class="mt-2 whitespace-pre-wrap text-sm">${escapeHtml(comment.message)}</p>
                         </div>
-                    `).join('') : '<div class="p-8 text-center text-sm text-gray-500">No comments yet.</div>');
+                    `).join('') : '<div class="p-8 text-center text-sm text-gray-500 dark:text-gray-400">No comments yet.</div>');
                 }
 
                 $('#weeklyMeetingTable').on('click', '.btnWeeklyComment', async function () {

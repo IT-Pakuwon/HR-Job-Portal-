@@ -55,7 +55,7 @@
             class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
             <div class="flex items-center justify-between">
                 <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         Open Ticket
                     </div>
                     <div id="openTicketCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">
@@ -75,7 +75,7 @@
             class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
             <div class="flex items-center justify-between">
                 <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         Access Request
                     </div>
                     <div id="accessCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">
@@ -95,7 +95,7 @@
             class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
             <div class="flex items-center justify-between">
                 <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         IT Recommendation
                     </div>
                     <div id="recommendationCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">
@@ -115,7 +115,7 @@
             class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
             <div class="flex items-center justify-between">
                 <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         Waiting Approval
                     </div>
                     <div id="waitingApprovalCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">

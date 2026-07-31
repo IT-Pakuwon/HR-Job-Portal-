@@ -142,20 +142,20 @@
         <div class="space-y-4 p-5">
             <div class="flex items-end gap-3">
                 <div class="flex-1">
-                    <label class="mb-1.5 block text-xs font-medium text-slate-500">Product</label>
+                    <label class="mb-1.5 block text-xs font-medium text-slate-500 dark:text-slate-400">Product</label>
                     <select id="c_picker_product" class="w-full select2-create" disabled>
                         <option value="">Select warehouse first...</option>
                     </select>
                 </div>
                 <div class="w-28">
-                    <label class="mb-1.5 block text-xs font-medium text-slate-500">Qty</label>
+                    <label class="mb-1.5 block text-xs font-medium text-slate-500 dark:text-slate-400">Qty</label>
                     <input type="number" id="c_picker_qty" min="1" placeholder="0"
                         class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm dark:border-white/10 dark:bg-[#0b1220] dark:text-white">
                 </div>
             </div>
 
             <div id="c_picker_preview_wrap" class="hidden">
-                <div class="mb-1.5 text-xs font-medium text-slate-500">Batch Breakdown</div>
+                <div class="mb-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">Batch Breakdown</div>
                 <div class="overflow-hidden rounded-lg border border-slate-200 dark:border-white/10">
                     <table class="min-w-full text-xs">
                         <thead class="bg-slate-50 dark:bg-white/[0.04]">
@@ -211,20 +211,20 @@
         <div class="space-y-4 p-5">
             <div class="flex items-end gap-3">
                 <div class="flex-1">
-                    <label class="mb-1.5 block text-xs font-medium text-slate-500">Product</label>
+                    <label class="mb-1.5 block text-xs font-medium text-slate-500 dark:text-slate-400">Product</label>
                     <select id="e_picker_product" class="w-full select2-create" disabled>
                         <option value="">Select warehouse first...</option>
                     </select>
                 </div>
                 <div class="w-28">
-                    <label class="mb-1.5 block text-xs font-medium text-slate-500">Qty</label>
+                    <label class="mb-1.5 block text-xs font-medium text-slate-500 dark:text-slate-400">Qty</label>
                     <input type="number" id="e_picker_qty" min="1" placeholder="0"
                         class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm dark:border-white/10 dark:bg-[#0b1220] dark:text-white">
                 </div>
             </div>
 
             <div id="e_picker_preview_wrap" class="hidden">
-                <div class="mb-1.5 text-xs font-medium text-slate-500">Batch Breakdown</div>
+                <div class="mb-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">Batch Breakdown</div>
                 <div class="overflow-hidden rounded-lg border border-slate-200 dark:border-white/10">
                     <table class="min-w-full text-xs">
                         <thead class="bg-slate-50 dark:bg-white/[0.04]">
@@ -368,14 +368,14 @@
                         <table class="min-w-full text-sm" id="c_detailTable">
                             <thead class="bg-slate-50 dark:bg-white/[0.03]">
                                 <tr>
-                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600" style="width:20%">Product <span class="text-red-500">*</span></th>
-                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600" style="width:12%">WHS</th>
-                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600" style="width:10%">Avail. Qty</th>
-                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600" style="width:12%">Expired Date</th>
-                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600" style="width:10%">Qty <span class="text-red-500">*</span></th>
-                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600" style="width:14%">Purpose</th>
-                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600" style="width:14%">Purpose Remark</th>
-                                    <th class="px-3 py-2.5 text-center text-xs font-semibold text-slate-600" style="width:8%">Action</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:20%">Product <span class="text-red-500">*</span></th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:12%">WHS</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:10%">Avail. Qty</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:12%">Expired Date</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:10%">Qty <span class="text-red-500">*</span></th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:14%">Purpose</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:14%">Purpose Remark</th>
+                                    <th class="px-3 py-2.5 text-center text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:8%">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="c_detailBody">
@@ -429,11 +429,11 @@
                         <table class="min-w-full text-sm">
                             <thead class="bg-slate-50 dark:bg-white/[0.03]">
                                 <tr>
-                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600">Product</th>
-                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600">WHS</th>
-                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600">Expired</th>
-                                    <th class="px-4 py-2 text-right text-xs font-semibold text-slate-600">Qty</th>
-                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600">Purpose</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Product</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">WHS</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Expired</th>
+                                    <th class="px-4 py-2 text-right text-xs font-semibold text-slate-600 dark:text-slate-400">Qty</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Purpose</th>
                                 </tr>
                             </thead>
                             <tbody id="c_previewDetailBody"></tbody>
@@ -507,22 +507,22 @@
                 <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
                     <div class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-white/10">
                         <div>
-                            <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Requested By</div>
+                            <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Requested By</div>
                             <div id="v_user" class="mt-2 text-base font-semibold text-slate-900 dark:text-white"></div>
                         </div>
                         <div id="v_status_badge"></div>
                     </div>
                     <div class="grid grid-cols-2 gap-4 p-4 md:grid-cols-3">
-                        <div><div class="text-xs text-slate-500">Doc No</div><div id="v_doc_no" class="mt-1 text-sm font-semibold text-indigo-600 dark:text-indigo-400"></div></div>
-                        <div><div class="text-xs text-slate-500">Date</div><div id="v_date" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
-                        <div><div class="text-xs text-slate-500">Company</div><div id="v_cpnyid" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
-                        <div><div class="text-xs text-slate-500">Department</div><div id="v_dept" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
-                        <div><div class="text-xs text-slate-500">V/P Type</div><div id="v_vp_type" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
-                        <div><div class="text-xs text-slate-500">Usage Type</div><div id="v_usagetype" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
-                        <div id="v_ref_wrapper" class="hidden"><div class="text-xs text-slate-500">Reference ID</div><div id="v_ref_id" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
+                        <div><div class="text-xs text-slate-500 dark:text-slate-400">Doc No</div><div id="v_doc_no" class="mt-1 text-sm font-semibold text-indigo-600 dark:text-indigo-400"></div></div>
+                        <div><div class="text-xs text-slate-500 dark:text-slate-400">Date</div><div id="v_date" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
+                        <div><div class="text-xs text-slate-500 dark:text-slate-400">Company</div><div id="v_cpnyid" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
+                        <div><div class="text-xs text-slate-500 dark:text-slate-400">Department</div><div id="v_dept" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
+                        <div><div class="text-xs text-slate-500 dark:text-slate-400">V/P Type</div><div id="v_vp_type" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
+                        <div><div class="text-xs text-slate-500 dark:text-slate-400">Usage Type</div><div id="v_usagetype" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
+                        <div id="v_ref_wrapper" class="hidden"><div class="text-xs text-slate-500 dark:text-slate-400">Reference ID</div><div id="v_ref_id" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
                     </div>
                     <div class="border-t border-slate-100 px-4 py-3 dark:border-white/10">
-                        <div class="text-xs text-slate-500">Remark</div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400">Remark</div>
                         <div id="v_remark" class="mt-1 text-sm text-slate-700 dark:text-slate-200"></div>
                     </div>
                 </div>
@@ -577,7 +577,7 @@
                                 <i class="fa-solid fa-check mr-1"></i> Approve
                             </button>
                             <button type="button" id="v_reviseBtn"
-                                class="flex-1 rounded-lg bg-yellow-400 px-4 py-2 text-xs font-semibold text-black transition hover:bg-yellow-300">
+                                class="flex-1 rounded-lg bg-yellow-400 px-4 py-2 text-xs font-semibold text-black transition hover:bg-yellow-300 dark:text-white">
                                 <i class="fa-solid fa-rotate-left mr-1"></i> Revise
                             </button>
                             <button type="button" id="v_rejectBtn"
@@ -704,11 +704,11 @@
                         <table class="min-w-full text-sm">
                             <thead class="bg-slate-50 dark:bg-white/[0.03]">
                                 <tr>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600">Product</th>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600">WHS</th>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600">Expired</th>
-                                    <th class="px-4 py-2.5 text-right text-xs font-semibold text-slate-600">Qty</th>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600">Purpose</th>
+                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Product</th>
+                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">WHS</th>
+                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Expired</th>
+                                    <th class="px-4 py-2.5 text-right text-xs font-semibold text-slate-600 dark:text-slate-400">Qty</th>
+                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Purpose</th>
                                     <th class="w-16 px-4 py-2.5"></th>
                                 </tr>
                             </thead>
@@ -736,14 +736,14 @@
                         <table class="min-w-full text-sm" id="e_detailTable">
                             <thead class="bg-slate-50 dark:bg-white/[0.03]">
                                 <tr>
-                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600" style="width:20%">Product</th>
-                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600" style="width:12%">WHS</th>
-                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600" style="width:10%">Avail. Qty</th>
-                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600" style="width:12%">Expired Date</th>
-                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600" style="width:10%">Qty</th>
-                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600" style="width:14%">Purpose</th>
-                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600" style="width:14%">Purpose Remark</th>
-                                    <th class="px-3 py-2.5 text-center text-xs font-semibold text-slate-600" style="width:8%">Action</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:20%">Product</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:12%">WHS</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:10%">Avail. Qty</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:12%">Expired Date</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:10%">Qty</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:14%">Purpose</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:14%">Purpose Remark</th>
+                                    <th class="px-3 py-2.5 text-center text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:8%">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="e_detailBody">
@@ -805,11 +805,11 @@
                         <table class="min-w-full text-sm">
                             <thead class="bg-slate-50 dark:bg-white/[0.03]">
                                 <tr>
-                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600">Product</th>
-                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600">WHS</th>
-                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600">Expired</th>
-                                    <th class="px-4 py-2 text-right text-xs font-semibold text-slate-600">Qty</th>
-                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600">Purpose</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Product</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">WHS</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Expired</th>
+                                    <th class="px-4 py-2 text-right text-xs font-semibold text-slate-600 dark:text-slate-400">Qty</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Purpose</th>
                                 </tr>
                             </thead>
                             <tbody id="e_previewDetailBody"></tbody>

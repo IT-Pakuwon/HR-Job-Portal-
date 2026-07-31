@@ -7,10 +7,10 @@
                         class="flex w-full flex-col gap-2 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-row">
                         <div
                             class="flex flex-col gap-4 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
-                            <div class="rounded-xl bg-white">
+                            <div class="rounded-xl bg-white dark:bg-gray-800">
                                 <div class="flex flex-col rounded-xl bg-white shadow-sm dark:bg-gray-800">
                                     <header
-                                        class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-600">
+                                        class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-600 dark:bg-gray-900">
                                         <div class="flex max-w-5xl justify-end gap-10">
                                             <h1 class="text-base font-semibold text-gray-700 dark:text-gray-100">🆔
                                                 {{ $agenda->docid }}</h1>
@@ -116,11 +116,11 @@
                             </div>
                             <div class="flex max-h-96 min-h-[12rem] flex-col rounded-xl dark:bg-gray-800">
                                 <header
-                                    class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-600">
+                                    class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-600 dark:bg-gray-900">
                                     <h2 class="text-base font-semibold text-gray-600 dark:text-gray-100">📂
                                         Attachment</h2>
                                 </header>
-                                <div class="flex-grow overflow-y-auto rounded-b-2xl bg-white p-4 px-4">
+                                <div class="flex-grow overflow-y-auto rounded-b-2xl bg-white p-4 px-4 dark:bg-gray-800">
                                     <table class="mb-4 w-full text-sm">
                                         <thead class="text-gray-600 dark:text-gray-300">
                                             <tr>
@@ -156,7 +156,7 @@
                             class="flex flex-col gap-4 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                             <div class="flex max-h-96 min-h-[12rem] flex-col rounded-xl dark:bg-gray-800">
                                 <header
-                                    class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-600">
+                                    class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-600 dark:bg-gray-900">
                                     <h2 class="text-base font-semibold text-gray-600 dark:text-gray-100"> 🚀
                                         Approval</h2>
                                     <div class="flex gap-2">
@@ -189,7 +189,7 @@
                                         </div>
                                     </div>
                                 </header>
-                                <div class="flex-grow overflow-y-auto rounded-b-2xl bg-white p-4 px-4">
+                                <div class="flex-grow overflow-y-auto rounded-b-2xl bg-white p-4 px-4 dark:bg-gray-800">
                                     <table class="mb-4 w-full text-sm">
                                         <thead>
                                             <tr class="text-gray-700 dark:text-gray-300">
@@ -244,15 +244,15 @@
                                 <div
                                     class="col-span-full flex flex-col border-b sm:col-span-6 xl:col-span-12 dark:border-gray-200/10">
                                     <header
-                                        class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-600">
+                                        class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-600 dark:bg-gray-900">
                                         <h2
                                             class="flex items-center gap-2 text-base font-semibold text-gray-700 dark:text-gray-100">
                                             💬 Comments
                                         </h2>
                                     </header>
-                                    <div class="flex flex-col overflow-hidden bg-white transition-all duration-300">
+                                    <div class="flex flex-col overflow-hidden bg-white transition-all duration-300 dark:bg-gray-800">
                                         <div id="commentList" class="h-auto space-y-3 p-4">
-                                            <p class="animate-pulse italic text-gray-500">Loading comments...</p>
+                                            <p class="animate-pulse italic text-gray-500 dark:text-gray-400">Loading comments...</p>
                                         </div>
                                         <div
                                             class="flex items-center gap-2 border-t border-gray-200 p-3 dark:border-gray-700">
@@ -289,7 +289,7 @@
 
                     <div class="mt-4 flex justify-between">
                         <button id="cancelRejectBtn"
-                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
                             Cancel
                         </button>
                         <button id="confirmRejectBtn"
@@ -309,7 +309,7 @@
 
                     <div class="mt-4 flex justify-between">
                         <button id="cancelReviseBtn"
-                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
                             Cancel
                         </button>
                         <button id="confirmReviseBtn"
@@ -334,7 +334,7 @@
                     function loadComments(docid) {
                         console.log("Loading comments for Doc ID:", docid);
                         let commentList = $('#commentList');
-                        commentList.html('<p class="text-gray-500 italic">Loading comments...</p>'); // Loader
+                        commentList.html('<p class="text-gray-500 italic dark:text-gray-400">Loading comments...</p>'); // Loader
 
                         $.ajax({
                             url: `/agenda/${docid}/comments`,
@@ -345,7 +345,7 @@
 
                                 if (response.comments.length === 0) {
                                     commentList.append(
-                                        '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
+                                        '<p class="text-gray-500 text-sm italic dark:text-gray-400">No comments yet. Be the first to comment!</p>'
                                     );
                                 } else {
                                     response.comments.forEach(comment => {
@@ -355,7 +355,7 @@
                                         commentList.append(`
                                     <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
                                         <p class=" text-sm  font-semibold">${comment.username} 
-                                            <span class=" text-sm  text-gray-500">(${timeAgo})</span>
+                                            <span class="text-sm text-gray-500 dark:text-gray-400">(${timeAgo})</span>
                                         </p>
                                         <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
                                     </div>

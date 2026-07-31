@@ -202,7 +202,7 @@
                                     class="inline-flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition-all duration-200 hover:border-slate-300 hover:bg-slate-100 dark:border-white/[0.06] dark:bg-white/[0.04] dark:text-slate-300 dark:hover:border-white/[0.12] dark:hover:bg-white/[0.06]">
 
                                     <input type="checkbox" id="response_use_schedule"
-                                        class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-400">
+                                        class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-400 dark:text-slate-100 dark:border-slate-700">
 
                                     <span>
                                         Define Schedule
@@ -272,7 +272,7 @@
                     class="sticky bottom-0 z-20 flex flex-col-reverse gap-3 border-t border-slate-200 bg-white/95 px-4 py-4     dark:border-white/[0.06] dark:bg-[#0f172a]/95 sm:flex-row sm:items-center sm:justify-end sm:px-6 sm:py-5">
 
                     <button type="button"
-                        class="btn-close-form-modal inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5">
+                        class="btn-close-form-modal inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 dark:bg-gray-800 dark:border-slate-700">
                         Cancel
                     </button>
 

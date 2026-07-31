@@ -139,14 +139,14 @@
     </div>
     <div id="loadingOverlay"
         class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
-        <div class="flex items-center gap-3 rounded-xl bg-white px-6 py-4 shadow-lg">
+        <div class="flex items-center gap-3 rounded-xl bg-white px-6 py-4 shadow-lg dark:bg-gray-800">
             <svg class="h-6 w-6 animate-spin text-indigo-600" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10"
                     stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor"
                     d="M4 12a8 8 0 018-8v8H4z"></path>
             </svg>
-            <span class="text-sm font-semibold text-gray-700">Processing...</span>
+            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Processing...</span>
         </div>
     </div>
 

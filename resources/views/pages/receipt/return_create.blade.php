@@ -73,10 +73,10 @@
                                 <summary
                                     class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                     <span>Return Detail</span>
-                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
                                         details →</span>
                                     <span
-                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                                         details ↓</span>
                                 </summary>
 
@@ -142,13 +142,13 @@
                                                             inputmode="decimal" autocomplete="off"
                                                             placeholder="0,00 (max {{ number_format($sisa, 2) }})"
                                                             data-max="{{ $sisa }}" />
-                                                        <div class="mt-1 text-xs text-gray-500">Max:
+                                                        <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">Max:
                                                             {{ number_format($sisa, 2) }}</div>
                                                     </td>
                                                 </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="7" class="px-4 py-4 text-center text-gray-500">No
+                                                    <td colspan="7" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">No
                                                         receipt detail</td>
                                                 </tr>
                                             @endforelse
@@ -166,10 +166,10 @@
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
                                     details →</span>
                                 <span
-                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                                     details ↓</span>
                             </summary>
 

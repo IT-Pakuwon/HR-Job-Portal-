@@ -65,7 +65,7 @@
 
                 <div class="min-w-0">
 
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         Waiting Approval
                     </div>
 
@@ -93,7 +93,7 @@
 
                 <div class="min-w-0">
 
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         Waiting PRF
                     </div>
 
@@ -121,7 +121,7 @@
 
                 <div class="min-w-0">
 
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         Unchecked Applicant
                     </div>
 
@@ -149,7 +149,7 @@
 
                 <div class="min-w-0">
 
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         Self Applicant
                     </div>
 

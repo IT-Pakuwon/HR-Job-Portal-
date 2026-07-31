@@ -144,8 +144,8 @@
                         <summary
                             class="flex cursor-pointer items-center justify-between text-base font-semibold text-gray-800 dark:text-gray-100">
                             <span>📸 Photo Before</span>
-                            <span class="text-xs text-gray-500 group-open:hidden">See details</span>
-                            <span class="hidden text-xs text-gray-500 group-open:inline">Hide details</span>
+                            <span class="text-xs text-gray-500 group-open:hidden dark:text-gray-400">See details</span>
+                            <span class="hidden text-xs text-gray-500 group-open:inline dark:text-gray-400">Hide details</span>
                         </summary>
 
                         <!-- Existing Attachments -->
@@ -171,7 +171,7 @@
                                     class="group relative flex aspect-square h-28 items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 transition-all duration-200 hover:-translate-y-1 hover:border-blue-400 hover:bg-blue-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-500 dark:hover:bg-gray-700">
 
                                     <div
-                                        class="flex flex-col items-center gap-2 text-gray-500 transition group-hover:text-blue-600">
+                                        class="flex flex-col items-center gap-2 text-gray-500 transition group-hover:text-blue-600 dark:text-gray-400">
 
                                         <div
                                             class="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm transition group-hover:bg-blue-600 group-hover:text-white dark:bg-gray-700">
@@ -193,7 +193,7 @@
 
                             </div>
 
-                            <p class="mt-3 text-xs text-gray-500">
+                            <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">
                                 JPG / PNG · Max 5 MB per photo
                             </p>
                         </div>
@@ -487,9 +487,7 @@
     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition"></div>
 
     <button type="button"
-        class="absolute top-2 right-2 flex h-7 w-7 items-center justify-center
-               rounded-full bg-white/90 text-gray-700 shadow
-               hover:bg-red-500 hover:text-white transition">
+        class="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow hover:bg-red-500 hover:text-white transition dark:text-gray-300">
         ✕
     </button>
 `;

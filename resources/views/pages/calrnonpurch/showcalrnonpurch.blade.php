@@ -365,7 +365,7 @@
                                     <div class="flex h-full flex-col">
                                         <div id="commentList"
                                             class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
-                                            <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                            <p class="py-4 text-center italic text-gray-500 dark:text-gray-400">Loading comments...</p>
                                         </div>
 
                                         <div
@@ -418,7 +418,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="3" class="px-3 py-4 text-center text-gray-500">
+                                        <td colspan="3" class="px-3 py-4 text-center text-gray-500 dark:text-gray-400">
                                             No detail found.
                                         </td>
                                     </tr>
@@ -490,7 +490,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="p-3 text-center italic text-gray-500">
+                                        <td colspan="5" class="p-3 text-center italic text-gray-500 dark:text-gray-400">
                                             No progress yet
                                         </td>
                                     </tr>
@@ -513,7 +513,7 @@
                 placeholder="Enter rejection reason..."></textarea>
 
             <div class="mt-4 flex justify-between">
-                <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
                     Cancel
                 </button>
 
@@ -534,7 +534,7 @@
                 placeholder="Enter revise reason..."></textarea>
 
             <div class="mt-4 flex justify-between">
-                <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
                     Cancel
                 </button>
 
@@ -645,7 +645,7 @@
             function loadComments(refnbr, doctype) {
                 const commentList = $('#commentList');
 
-                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>');
+                commentList.html('<p class="text-gray-500 italic dark:text-gray-400">Loading comments...</p>');
 
                 $.ajax({
                     url: `/comments/${doctype}/${refnbr}`,
@@ -655,7 +655,7 @@
 
                         if (!response.comments || response.comments.length === 0) {
                             commentList.append(
-                                '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
+                                '<p class="text-gray-500 text-sm italic dark:text-gray-400">No comments yet. Be the first to comment!</p>'
                             );
                             return;
                         }
@@ -668,7 +668,7 @@
                                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
                                     <p class="text-sm font-semibold">
                                         ${comment.username}
-                                        <span class="text-sm text-gray-500">(${timeAgo})</span>
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">(${timeAgo})</span>
                                     </p>
                                     <p class="text-gray-800 dark:text-gray-200">${highlightMentions(comment.message)}</p>
                                 </div>
@@ -742,7 +742,7 @@
                         if (!res.data || !res.data.length) {
                             tbody.innerHTML = `
                                 <tr>
-                                    <td colspan="4" class="px-3 py-4 text-center text-gray-500">
+                                    <td colspan="4" class="px-3 py-4 text-center text-gray-500 dark:text-gray-400">
                                         No approval data.
                                     </td>
                                 </tr>

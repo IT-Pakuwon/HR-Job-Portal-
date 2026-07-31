@@ -55,7 +55,7 @@
         <div class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
             <div class="flex items-center justify-between">
                 <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         Waiting Approval
                     </div>
                     <div id="waitingApprovalCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">
@@ -74,7 +74,7 @@
         <div class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
             <div class="flex items-center justify-between">
                 <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         Waiting Voucher Taxi
                     </div>
                     <div id="voucherTaxiCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">
@@ -93,7 +93,7 @@
         <div class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
             <div class="flex items-center justify-between">
                 <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         Waiting Booking Car
                     </div>
                     <div id="bookingCarCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">
@@ -112,7 +112,7 @@
         <div class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
             <div class="flex items-center justify-between">
                 <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         Free Parking
                     </div>
                     <div id="freeParkingCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">

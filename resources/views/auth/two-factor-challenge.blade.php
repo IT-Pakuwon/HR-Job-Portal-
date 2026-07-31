@@ -34,7 +34,7 @@
                     {{ __('Use a recovery code') }}
                 </button>
 
-                <button type="button" class="cursor-pointer text-xs text-gray-600 underline hover:text-gray-900"
+                <button type="button" class="cursor-pointer text-xs text-gray-600 underline hover:text-gray-900 dark:text-gray-400"
                     x-show="recovery"
                     x-on:click="
                         recovery = false;

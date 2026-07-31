@@ -133,7 +133,7 @@
                                 <div class="flex items-start gap-3 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                                     <x-heroicon-o-wrench-screwdriver class="mt-0.5 h-5 w-5 text-gray-400" />
                                     <div class="flex flex-col">
-                                        <span class="text-gray-500">Jenis Pekerjaan</span>
+                                        <span class="text-gray-500 dark:text-gray-400">Jenis Pekerjaan</span>
                                         <span class="font-medium text-gray-900 dark:text-gray-300">
                                             {{ $worktypeText }}
                                         </span>
@@ -147,7 +147,7 @@
 
                                     <div class="flex flex-col">
 
-                                        <span class="text-gray-500">Description</span>
+                                        <span class="text-gray-500 dark:text-gray-400">Description</span>
 
                                         <span class="font-medium text-gray-900 dark:text-gray-300">
                                             {{ $spb->keperluan }}
@@ -168,7 +168,7 @@
 
                                         <div class="flex flex-col">
 
-                                            <span class="text-gray-500">WO Purpose</span>
+                                            <span class="text-gray-500 dark:text-gray-400">WO Purpose</span>
 
                                             <span class="font-medium text-gray-900 dark:text-gray-300">
                                                 {{ $woData->keperluan }}
@@ -299,7 +299,7 @@
                                 <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
                                     <div id="commentList"
                                         class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
-                                        <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                        <p class="py-4 text-center italic text-gray-500 dark:text-gray-400">Loading comments...</p>
                                     </div>
                                     <div
                                         class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
@@ -411,7 +411,7 @@
                                             {{ number_format($item->qty, 2, ',', '.') }}
                                         </div>
 
-                                        <div class="text-xs text-gray-500">
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">
                                             {{ $item->uom }}
                                         </div>
                                     </td>
@@ -422,7 +422,7 @@
                                             {{ optional($item->location)->location_name }}
                                         </div>
 
-                                        <div class="text-xs text-gray-500">
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">
                                             {{ optional($item->subLocation)->sub_location_name }}
                                         </div>
                                     </td>
@@ -452,7 +452,7 @@
                                             <span class="text-gray-400">•</span>
 
                                             <!-- Activity -->
-                                            <span class="truncate text-gray-500">
+                                            <span class="truncate text-gray-500 dark:text-gray-400">
                                                 {{ $item->budget_activity_descr }}
                                             </span>
 
@@ -526,15 +526,15 @@
                                         data-perpost="{{ $row->budget_perpost }}">
 
                                         <td>{{ $row->inventory_descr }}<br>
-                                            <span class="text-sm text-gray-500">Note : {{ $row->note }}</span><br>
-                                            <span class="text-sm text-gray-500">Location :
+                                            <span class="text-sm text-gray-500 dark:text-gray-400">Note : {{ $row->note }}</span><br>
+                                            <span class="text-sm text-gray-500 dark:text-gray-400">Location :
                                                 {{ optional($row->location)->location_name }} -
                                                 {{ optional($row->subLocation)->sub_location_name }}</span>
                                         </td>
 
                                         <td class="text-center">
                                             {{ number_format($row->qty, 2, ',', '.') }} <br>
-                                            <span class="text-sm text-gray-500">{{ $row->uom }}</span>
+                                            <span class="text-sm text-gray-500 dark:text-gray-400">{{ $row->uom }}</span>
                                         </td>
 
                                         <td>{{ $row->budget_activity_descr }}</td>
@@ -690,7 +690,7 @@
                             </thead>
                             <tbody id="coaPickerTbody">
                                 <tr>
-                                    <td colspan="7" class="p-4 text-center italic text-gray-500">Pilih filter lalu
+                                    <td colspan="7" class="p-4 text-center italic text-gray-500 dark:text-gray-400">Pilih filter lalu
                                         Apply</td>
                                 </tr>
                             </tbody>
@@ -744,7 +744,7 @@
                 placeholder="Enter rejection reason..."></textarea>
 
             <div class="mt-4 flex justify-between">
-                <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
                     Cancel
                 </button>
                 <button id="confirmRejectBtn" class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600">
@@ -760,7 +760,7 @@
                 placeholder="Enter revise reason..."></textarea>
 
             <div class="mt-4 flex justify-between">
-                <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
                     Cancel
                 </button>
                 <button id="confirmReviseBtn"
@@ -792,7 +792,7 @@
 
             function loadComments(refnbr, doctype) {
                 let commentList = $('#commentList');
-                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>');
+                commentList.html('<p class="text-gray-500 italic dark:text-gray-400">Loading comments...</p>');
 
                 $.ajax({
                     url: `/comments/${doctype}/${refnbr}`,
@@ -802,7 +802,7 @@
 
                         if (!response.comments || response.comments.length === 0) {
                             commentList.append(
-                                '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
+                                '<p class="text-gray-500 text-sm italic dark:text-gray-400">No comments yet. Be the first to comment!</p>'
                             );
                             return;
                         }
@@ -816,7 +816,7 @@
                                 <div class="px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
                                     <p class=" text-sm  font-semibold">
                                         ${comment.username}
-                                        <span class=" text-sm  text-gray-500">(${timeAgo})</span>
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">(${timeAgo})</span>
                                     </p>
                                     <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
                                 </div>
@@ -1228,7 +1228,7 @@
 
                 if (!merged.length) {
                     $tb.append(`<tr>
-                        <td colspan="4" class="p-4 text-center italic text-gray-500">
+                        <td colspan="4" class="p-4 text-center italic text-gray-500 dark:text-gray-400">
                             No attachments found.
                         </td>
                     </tr>`);
@@ -1246,7 +1246,7 @@
                                 class="font-medium text-indigo-600 hover:underline">
                                 📎 ${fileName}
                         </a>` :
-                        `<span class="font-medium text-gray-700">
+                        `<span class="font-medium text-gray-700 dark:text-gray-300">
                                 📎 ${fileName}
                         </span>
                         <span class="ml-2 text-sm text-red-500">
@@ -1254,7 +1254,7 @@
                         </span>`;
 
                     $tb.append(`
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                        <tr class="border-b border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-700">
                             <td class="px-3 py-2">${linkHtml}</td>
                             <td class="px-3 py-2">${at.type || '-'}</td>
                             <td class="px-3 py-2">${at.created_by || '-'}</td>
@@ -1686,7 +1686,7 @@
 
                 // reset table/info
                 $('#coaPickerTbody').html(
-                    '<tr><td colspan="7" class="p-4 text-center text-gray-500 italic">Klik Apply untuk load</td></tr>'
+                    '<tr><td colspan="7" class="p-4 text-center text-gray-500 italic dark:text-gray-400">Klik Apply untuk load</td></tr>'
                 );
                 $('#coaPickerInfo').text('0 rows');
                 $('#coaPickerPage').text('1');
@@ -1756,7 +1756,7 @@
                 const $tb = $('#coaPickerTbody').empty();
                 if (!rows || !rows.length) {
                     $tb.append(
-                        '<tr><td colspan="7" class="p-4 text-center text-gray-500 italic">No data</td></tr>');
+                        '<tr><td colspan="7" class="p-4 text-center text-gray-500 italic dark:text-gray-400">No data</td></tr>');
                     return;
                 }
 
@@ -1859,7 +1859,7 @@
                 $('#fDeptFin').val('').trigger('change');
                 $('#fSearch').val('');
                 $('#coaPickerTbody').html(
-                    '<tr><td colspan="7" class="p-4 text-center text-gray-500 italic">Pilih filter lalu Apply</td></tr>'
+                    '<tr><td colspan="7" class="p-4 text-center text-gray-500 italic dark:text-gray-400">Pilih filter lalu Apply</td></tr>'
                 );
                 $('#coaPickerInfo').text('0 rows');
                 pickerState.page = 1;

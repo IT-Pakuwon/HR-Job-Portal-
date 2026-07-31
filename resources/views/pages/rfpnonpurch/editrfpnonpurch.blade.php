@@ -27,7 +27,7 @@
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                                 <select name="cpnyid" id="cpnyid"
-                                    class="req headerCpnySelect w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    class="req headerCpnySelect w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                                     required>
                                     @foreach ($usercpny as $p)
                                         <option value="{{ $p->cpny_id }}" {{ $p->cpny_id == $rfpnonpurch->cpny_id ? 'selected' : '' }}>
@@ -41,7 +41,7 @@
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
                                 <select name="departementid" id="departementid"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                                     required>
                                     @foreach ($userdept as $p)
                                         <option value="{{ $p->department_id }}" {{ $p->department_id == $rfpnonpurch->department_id ? 'selected' : '' }}>
@@ -55,7 +55,7 @@
                             <div class="flex flex-col gap-2" id="businessUnitBox">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
                                 <select name="business_unit_id" id="business_unit_id"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                                     required>
                                     <option value="" disabled selected>Loading...</option>
                                 </select>
@@ -65,7 +65,7 @@
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Type Payment</label>
                                 <select name="rfpnonpurchase_type" id="rfpnonpurchase_type"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                                     required>
                                     <option value="">Select Type</option>
                                     <option value="RFP" {{ $rfpnonpurch->rfpnonpurchase_type == 'RFP' ? 'selected' : '' }}>RFP</option>
@@ -77,7 +77,7 @@
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Group Biaya</label>
                                 <select name="groupbiaya_id" id="groupbiaya_id"
-                                    class="select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    class="select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                                     required>
                                     <option value="">Select Group</option>
                                     @foreach ($groupbiaya as $g)
@@ -97,7 +97,7 @@
                                 </label>
                                 <input type="date" name="datediperlukan" id="datediperlukan" required
                                     value="{{ $rfpnonpurch->datediperlukan ? \Carbon\Carbon::parse($rfpnonpurch->datediperlukan)->format('Y-m-d') : '' }}"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
                             </div>
 
                             {{-- Row 2: conditional + Kepada + Tembusan --}}
@@ -109,7 +109,7 @@
                                 </label>
                                 <input type="text" name="amountrequestpayment" id="amountrequestpayment"
                                     value="{{ number_format((float) $rfpnonpurch->amountrequestpayment, 2, ',', '.') }}"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-right text-gray-700 shadow-sm"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-right text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                                     placeholder="0,00">
                             </div>
 
@@ -120,7 +120,7 @@
                                 </label>
                                 <input type="date" name="datepenyelesaian" id="datepenyelesaian"
                                     value="{{ $rfpnonpurch->datepenyelesaian ? \Carbon\Carbon::parse($rfpnonpurch->datepenyelesaian)->format('Y-m-d') : '' }}"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
                             </div>
 
                             {{-- Kepada (always, dynamic col-span) --}}
@@ -129,7 +129,7 @@
                                     Kepada
                                 </label>
                                 <select name="rfpnonpurchase_kepada[]" id="rfpnonpurchase_kepada"
-                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                                     multiple>
                                     @foreach ($kepada as $u)
                                         <option value="{{ $u->username }}" {{ in_array($u->username, $selectedKepada) ? 'selected' : '' }}>
@@ -145,7 +145,7 @@
                                     Tembusan
                                 </label>
                                 <select name="rfpnonpurchase_tembusan[]" id="rfpnonpurchase_tembusan"
-                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                                     multiple>
                                     @foreach ($tembusan as $u)
                                         <option value="{{ $u->username }}" {{ in_array($u->username, $selectedTembusan) ? 'selected' : '' }}>
@@ -164,42 +164,42 @@
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Customer Name</label>
                                 <input type="text" name="customername" id="customername"
                                     value="{{ $rfpnonpurch->customername }}"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
                             </div>
 
                             <div class="flex flex-col gap-2">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Store Name</label>
                                 <input type="text" name="storename" id="storename"
                                     value="{{ $rfpnonpurch->storename }}"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
                             </div>
 
                             <div class="flex flex-col gap-2">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Unit ID</label>
                                 <input type="text" name="unitid" id="unitid"
                                     value="{{ $rfpnonpurch->unitid }}"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
                             </div>
 
                             <div class="flex flex-col gap-2">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Transfer To</label>
                                 <input type="text" name="transferto" id="transferto"
                                     value="{{ $rfpnonpurch->transferto }}"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
                             </div>
 
                             <div class="flex flex-col gap-2">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Bank Name</label>
                                 <input type="text" name="bankname" id="bankname"
                                     value="{{ $rfpnonpurch->bankname }}"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
                             </div>
 
                             <div class="flex flex-col gap-2">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Bank Account</label>
                                 <input type="text" name="bankacct" id="bankacct"
                                     value="{{ $rfpnonpurch->bankacct }}"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
                             </div>
                         </div>
 
@@ -212,7 +212,7 @@
                                     Dibayarkan Kepada
                                 </label>
                                 <textarea name="pleasepayto" id="pleasepayto" rows="2" required
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                                     placeholder="Input nama / detail penerima pembayaran...">{{ $rfpnonpurch->pleasepayto }}</textarea>
                             </div>
 
@@ -222,7 +222,7 @@
                                     Keperluan
                                 </label>
                                 <textarea name="keperluan" id="keperluan" rows="2" required
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                                     placeholder="Input keperluan...">{{ $rfpnonpurch->keperluan }}</textarea>
                             </div>
                         </div>
@@ -231,7 +231,7 @@
                     <div id="detailSection" class="flex w-full flex-col gap-2 rounded-xl border-b bg-white dark:bg-gray-800">
                         <div class="flex w-full flex-col rounded-xl p-4">
                             <details class="group" open>
-                                <summary class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800">
+                                <summary class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:text-gray-200 dark:border-gray-700">
                                     <span>Detail</span>
                                 </summary>
 
@@ -284,11 +284,11 @@
 
                                                                 <input type="text" name="coa[]"
                                                                     value="{{ $d->budget_account_id }}"
-                                                                    class="coaNameField w-full border-none bg-gray-100 p-2 focus:outline-none focus:ring-0"
+                                                                    class="coaNameField w-full border-none bg-gray-100 p-2 focus:outline-none focus:ring-0 dark:bg-gray-900"
                                                                     placeholder="Select Budget..." readonly>
 
                                                                 <button type="button"
-                                                                    class="openCoaModal shrink-0 rounded border border-gray-500 px-2 py-2 hover:bg-gray-100"
+                                                                    class="openCoaModal shrink-0 rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
                                                                     title="Lookup">🔎</button>
                                                             </div>
                                                         </td>
@@ -325,11 +325,11 @@
                                                                 <input type="hidden" name="coa_id[]" class="coaIdField">
 
                                                                 <input type="text" name="coa[]"
-                                                                    class="coaNameField w-full border-none bg-gray-100 p-2 focus:outline-none focus:ring-0"
+                                                                    class="coaNameField w-full border-none bg-gray-100 p-2 focus:outline-none focus:ring-0 dark:bg-gray-900"
                                                                     placeholder="Select Budget..." readonly>
 
                                                                 <button type="button"
-                                                                    class="openCoaModal shrink-0 rounded border border-gray-500 px-2 py-2 hover:bg-gray-100"
+                                                                    class="openCoaModal shrink-0 rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
                                                                     title="Lookup">🔎</button>
                                                             </div>
                                                         </td>
@@ -361,7 +361,7 @@
                                     </div>
 
                                     <button type="button" id="addImBudgetNonPurch"
-                                        class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-100">
+                                        class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
                                         + Add Row
                                     </button>
                                 </div>
@@ -370,16 +370,16 @@
                     </div>
 
                     <div id="coaModal" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md">
+                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                             <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-sm font-bold text-gray-800">Select Budget</h3>
-                                <button type="button" id="closeCoaModal" class="rounded px-3 py-1 hover:bg-gray-100">✖</button>
+                                <h3 class="text-sm font-bold text-gray-800 dark:text-gray-200">Select Budget</h3>
+                                <button type="button" id="closeCoaModal" class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                             </div>
 
                             <div class="mb-3 flex items-center gap-2 text-sm">
                                 <input id="coaSearch" type="text" placeholder="Search code/name..."
-                                    class="rounded border border-gray-300 bg-white px-3 py-1">
-                                <button id="coaRefresh" type="button" class="rounded border px-3 py-1 hover:bg-gray-100">↻</button>
+                                    class="rounded border border-gray-300 bg-white px-3 py-1 dark:bg-gray-800 dark:border-gray-700">
+                                <button id="coaRefresh" type="button" class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
                                 <div class="ml-auto flex items-center gap-3">
                                     <span>Company: <b id="coaCpnyBadge"></b></span>
                                     <span>Dept: <b id="coaDeptBadge"></b></span>
@@ -389,7 +389,7 @@
 
                             <div class="max-h-[60vh] overflow-auto">
                                 <table class="w-full text-left">
-                                    <thead class="sticky top-0 bg-gray-50 text-sm">
+                                    <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
                                         <tr>
                                             <th class="border p-2">Account ID</th>
                                             <th class="border p-2">Account Descr</th>
@@ -415,14 +415,14 @@
 
                     <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
                         <details class="group" open>
-                            <summary class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800">
+                            <summary class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:text-gray-200 dark:border-gray-700">
                                 <span class="req">Attachments</span>
                             </summary>
 
                             <div class="flex flex-col pt-6">
                                 @if($attachments->count())
-                                    <div class="mb-4 rounded-lg border border-gray-200 p-4">
-                                        <div class="mb-2 text-sm font-semibold text-gray-700">Existing Attachments</div>
+                                    <div class="mb-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                                        <div class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Existing Attachments</div>
                                         <div class="space-y-2">
                                             @foreach ($attachments as $att)
                                             <div class="attachment-row flex items-center justify-between rounded border px-3 py-2 text-sm"
@@ -437,7 +437,7 @@
                                                         <span>📎 {{ $att->display_name }}</span>
                                                     @endif
 
-                                                    <div class="text-xs text-gray-500">
+                                                    <div class="text-xs text-gray-500 dark:text-gray-400">
                                                         {{ $att->created_by }} | {{ $att->created_at }}
                                                     </div>
                                                 </div>
@@ -456,7 +456,7 @@
                                 <div id="attachmentsContainer">
                                     <div class="attachment-row flex items-center gap-2">
                                         <input type="file" name="attachments[]"
-                                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200">
+                                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
                                         <button type="button"
                                             class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 hover:bg-red-200">🗑️</button>
                                     </div>
@@ -464,14 +464,14 @@
                             </div>
 
                             <button type="button" id="addAttachment"
-                                class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-100">
+                                class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
                                 + Add Attachment
                             </button>
                         </details>
 
                         <div class="mt-4 flex flex-row justify-between gap-4 md:items-center md:justify-between">
                             <button type="button" id="backBtn" onclick="history.back()"
-                                class="flex items-center justify-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300">
+                                class="flex items-center justify-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 dark:text-gray-300">
                                 Back
                             </button>
 
@@ -610,11 +610,11 @@
                             <input type="hidden" name="coa_id[]" class="coaIdField">
 
                             <input type="text" name="coa[]"
-                                class="coaNameField w-full border-none bg-gray-100 p-2 focus:outline-none focus:ring-0"
+                                class="coaNameField w-full border-none bg-gray-100 p-2 focus:outline-none focus:ring-0 dark:bg-gray-900"
                                 placeholder="Select Budget..." readonly>
 
                             <button type="button"
-                                class="openCoaModal shrink-0 rounded border border-gray-500 px-2 py-2 hover:bg-gray-100"
+                                class="openCoaModal shrink-0 rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
                                 title="Lookup">🔎</button>
                         </div>
                     </td>
@@ -1104,7 +1104,7 @@
                                 </td>
                                 <td class="border p-2 text-center">
                                     <button type="button"
-                                        class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
+                                        class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                                         data-id="${escapeHtml(id)}"
                                         data-activity_id="${escapeHtml(actId)}"
                                         data-business_unit_id="${escapeHtml(buId)}"
@@ -1364,7 +1364,7 @@
                 $('#attachmentsContainer').append(`
                     <div class="attachment-row mt-2 flex items-center gap-2">
                         <input type="file" name="attachments[]"
-                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200">
+                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
                         <button type="button"
                             class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 hover:bg-red-200">🗑️</button>
                     </div>

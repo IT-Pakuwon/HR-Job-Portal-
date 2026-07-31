@@ -1,50 +1,50 @@
 <div class="space-y-4">
   <!-- FILTER PANEL -->
-  <div class="p-6 bg-gray-50/60 rounded-2xl border border-gray-200 shadow-sm">
+  <div class="p-6 bg-gray-50/60 rounded-2xl border border-gray-200 shadow-sm dark:border-gray-700">
     <div class="grid grid-cols-1 gap-4 md:grid-cols-7">
       <div>
-        <label class="text-xs text-gray-500">Date From</label>
+        <label class="text-xs text-gray-500 dark:text-gray-400">Date From</label>
         <input
           type="date"
           id="sppt_date_from"
-          class="w-full px-3 py-2 text-sm bg-white rounded-lg border border-gray-200 transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+          class="w-full px-3 py-2 text-sm bg-white rounded-lg border border-gray-200 transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700"
         />
       </div>
 
       <div>
-        <label class="text-xs text-gray-500">Date To</label>
+        <label class="text-xs text-gray-500 dark:text-gray-400">Date To</label>
         <input
           type="date"
           id="sppt_date_to"
-          class="w-full px-3 py-2 text-sm bg-white rounded-lg border border-gray-200 transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+          class="w-full px-3 py-2 text-sm bg-white rounded-lg border border-gray-200 transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700"
         />
       </div>
 
       <div>
-        <label class="text-xs text-gray-500">SPPT No</label>
+        <label class="text-xs text-gray-500 dark:text-gray-400">SPPT No</label>
         <input
           type="text"
           id="spptid"
           placeholder="PT-xxxx"
-          class="w-full px-3 py-2 text-sm bg-white rounded-lg border border-gray-200 transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+          class="w-full px-3 py-2 text-sm bg-white rounded-lg border border-gray-200 transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700"
         />
       </div>
 
       <div>
-        <label class="text-xs text-gray-500">Inventory ID</label>
+        <label class="text-xs text-gray-500 dark:text-gray-400">Inventory ID</label>
         <input
           type="text"
           id="inventoryid_sppt"
           placeholder="Item code"
-          class="w-full px-3 py-2 text-sm bg-white rounded-lg border border-gray-200 transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+          class="w-full px-3 py-2 text-sm bg-white rounded-lg border border-gray-200 transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700"
         />
       </div>
 
       <div>
-        <label class="text-xs text-gray-500">Status</label>
+        <label class="text-xs text-gray-500 dark:text-gray-400">Status</label>
         <select
           id="status"
-          class="w-full px-3 py-2 text-sm bg-white rounded-lg border border-gray-200"
+          class="w-full px-3 py-2 text-sm bg-white rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700"
         >
           <option value="">All</option>
           <option value="P">On Progress</option>
@@ -65,7 +65,7 @@
 
         <button
           id="resetSppt"
-          class="px-4 py-2 text-sm bg-white rounded-lg border border-gray-200"
+          class="px-4 py-2 text-sm bg-white rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700"
         >
           Reset
         </button>
@@ -81,14 +81,14 @@
   </div>
 
   <!-- TABLE -->
-  <div class="bg-white rounded-2xl border border-gray-200 shadow-sm">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h2 class="text-sm font-semibold text-gray-800">SPPT Detail</h2>
+  <div class="bg-white rounded-2xl border border-gray-200 shadow-sm dark:bg-gray-800 dark:border-gray-700">
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+      <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">SPPT Detail</h2>
     </div>
 
     <div class="overflow-x-auto p-5">
       <table id="spptTable" class="min-w-full text-sm">
-        <thead class="text-xs text-gray-500 bg-gray-50 uppercase">
+        <thead class="text-xs text-gray-500 bg-gray-50 uppercase dark:bg-gray-900 dark:text-gray-400">
           <tr>
             <th>Date</th>
             <th>SPPT No</th>

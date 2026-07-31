@@ -214,8 +214,8 @@
                     <summary
                         class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                         <span>Detail</span>
-                        <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details →</span>
-                        <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details ↓</span>
+                        <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See details →</span>
+                        <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide details ↓</span>
                     </summary>
 
                     <div class="flex h-auto flex-col justify-start pt-4">
@@ -273,7 +273,7 @@
                                             <input type="hidden" name="detail_nopol_lama[]" class="oldNopolHidden">
 
                                             <div class="oldNopolWrapper mb-2 hidden">
-                                                <label class="mb-1 block text-xs font-semibold text-gray-500">
+                                                <label class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">
                                                     No Polisi Lama
                                                 </label>
                                                 <input type="text"
@@ -281,7 +281,7 @@
                                                     readonly>
                                             </div>
 
-                                            <label class="nopolFinalLabel mb-1 hidden text-xs font-semibold text-gray-500">
+                                            <label class="nopolFinalLabel mb-1 hidden text-xs font-semibold text-gray-500 dark:text-gray-400">
                                                 No Polisi Baru
                                             </label>
 
@@ -294,7 +294,7 @@
                                             <input type="hidden" name="detail_jenis_lama[]" class="oldJenisHidden">
 
                                             <div class="oldJenisWrapper mb-2 hidden">
-                                                <label class="mb-1 block text-xs font-semibold text-gray-500">
+                                                <label class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">
                                                     Jenis Kendaraan Lama
                                                 </label>
                                                 <input type="text"
@@ -302,7 +302,7 @@
                                                     readonly>
                                             </div>
 
-                                            <label class="jenisFinalLabel mb-1 hidden text-xs font-semibold text-gray-500">
+                                            <label class="jenisFinalLabel mb-1 hidden text-xs font-semibold text-gray-500 dark:text-gray-400">
                                                 Jenis Kendaraan Baru
                                             </label>
 
@@ -360,11 +360,11 @@
                 <details class="group" open>
                     <summary
                         class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                        <span>Attachments <span class="text-sm font-normal text-gray-500">(Optional)</span></span>
-                        <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">
+                        <span>Attachments <span class="text-sm font-normal text-gray-500 dark:text-gray-400">(Optional)</span></span>
+                        <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">
                             See details →
                         </span>
-                        <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">
+                        <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">
                             Hide details ↓
                         </span>
                     </summary>
@@ -396,7 +396,7 @@
 
                 <div class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
                     <button type="button" id="backBtn"
-                        class="flex items-center justify-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                        class="flex items-center justify-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-300">
                         <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -923,13 +923,13 @@
                         <input type="hidden" name="detail_nopol_lama[]" class="oldNopolHidden">
 
                         <div class="oldNopolWrapper mb-2 hidden">
-                            <label class="mb-1 block text-xs font-semibold text-gray-500">No Polisi Lama</label>
+                            <label class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">No Polisi Lama</label>
                             <input type="text"
                                 class="oldNopolDisplay w-full rounded border border-gray-300 bg-gray-100 p-2 text-sm uppercase text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                 readonly>
                         </div>
 
-                        <label class="nopolFinalLabel mb-1 hidden text-xs font-semibold text-gray-500">
+                        <label class="nopolFinalLabel mb-1 hidden text-xs font-semibold text-gray-500 dark:text-gray-400">
                             No Polisi Baru
                         </label>
 
@@ -942,13 +942,13 @@
                         <input type="hidden" name="detail_jenis_lama[]" class="oldJenisHidden">
 
                         <div class="oldJenisWrapper mb-2 hidden">
-                            <label class="mb-1 block text-xs font-semibold text-gray-500">Jenis Kendaraan Lama</label>
+                            <label class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">Jenis Kendaraan Lama</label>
                             <input type="text"
                                 class="oldJenisDisplay w-full rounded border border-gray-300 bg-gray-100 p-2 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                 readonly>
                         </div>
 
-                        <label class="jenisFinalLabel mb-1 hidden text-xs font-semibold text-gray-500">
+                        <label class="jenisFinalLabel mb-1 hidden text-xs font-semibold text-gray-500 dark:text-gray-400">
                             Jenis Kendaraan Baru
                         </label>
 

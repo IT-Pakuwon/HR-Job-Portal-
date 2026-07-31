@@ -174,7 +174,7 @@
                         <div class="p-4">
                             <div id="commentList"
                                 class="h-35 space-y-2 overflow-y-auto border-b bg-white p-4 dark:bg-gray-200/5">
-                                <p class="italic text-gray-500">Loading comments...</p>
+                                <p class="italic text-gray-500 dark:text-gray-400">Loading comments...</p>
                             </div>
 
                             <div
@@ -203,7 +203,7 @@
                 placeholder="Enter rejection reason..."></textarea>
 
             <div class="mt-4 flex justify-between">
-                <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
                     Cancel
                 </button>
                 <button id="confirmRejectBtn" class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600">
@@ -222,7 +222,7 @@
                 placeholder="Enter revise reason..."></textarea>
 
             <div class="mt-4 flex justify-between">
-                <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
                     Cancel
                 </button>
                 <button id="confirmReviseBtn" class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600">
@@ -241,7 +241,7 @@
             function loadComments(docid) {
                 console.log("Loading comments for Doc ID:", docid);
                 let commentList = $('#commentList');
-                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>'); // Loader
+                commentList.html('<p class="text-gray-500 italic dark:text-gray-400">Loading comments...</p>'); // Loader
 
                 $.ajax({
                     url: `/task/${docid}/comments`,
@@ -252,7 +252,7 @@
 
                         if (response.comments.length === 0) {
                             commentList.append(
-                                '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
+                                '<p class="text-gray-500 text-sm italic dark:text-gray-400">No comments yet. Be the first to comment!</p>'
                             );
                         } else {
                             response.comments.forEach(comment => {
@@ -262,7 +262,7 @@
                                 commentList.append(`
                                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
                                     <p class=" text-sm  font-semibold">${comment.username} 
-                                        <span class=" text-sm  text-gray-500">(${timeAgo})</span>
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">(${timeAgo})</span>
                                     </p>
                                     <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
                                 </div>

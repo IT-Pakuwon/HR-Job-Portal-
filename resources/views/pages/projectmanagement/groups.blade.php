@@ -37,12 +37,12 @@
                     <div>
                         <h2 id="groupModalTitle" class="text-xl font-semibold text-slate-900 dark:text-white">New
                             Team</h2>
-                        <p class="mt-1 text-sm text-slate-500">Pick departments to narrow the candidate pool, then
+                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Pick departments to narrow the candidate pool, then
                             check off specific people on the right to add as Members — only Members become
                             assignable to this Team's Projects.</p>
                     </div>
                     <button id="closeGroupModal" type="button"
-                        class="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 dark:hover:bg-slate-700">
+                        class="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 dark:hover:bg-slate-700 dark:text-slate-400">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>

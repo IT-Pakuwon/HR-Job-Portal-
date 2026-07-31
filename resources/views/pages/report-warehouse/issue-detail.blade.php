@@ -7,7 +7,7 @@
 
             <!-- Date From -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Date From
                 </label>
                 <input type="date" id="issue_date_from"
@@ -16,7 +16,7 @@
 
             <!-- Date To -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Date To
                 </label>
                 <input type="date" id="issue_date_to"
@@ -25,7 +25,7 @@
 
             <!-- Issue Number -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Issue Number
                 </label>
                 <input type="text" id="issueid" placeholder="IS-xxxx"
@@ -33,7 +33,7 @@
             </div>
 
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     WO ID
                 </label>
 
@@ -43,7 +43,7 @@
 
             <!-- Inventory -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Inventory ID
                 </label>
                 <input type="text" id="issue_inventoryid" placeholder="Item code"

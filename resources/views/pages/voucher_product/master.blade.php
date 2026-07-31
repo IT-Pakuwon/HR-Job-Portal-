@@ -548,7 +548,7 @@
                             class="dark:border-white/05 flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 px-4 py-3 dark:bg-white/[0.02]">
                             <input type="hidden" name="product_check_exp" value="0">
                             <input type="checkbox" id="product_check_exp" name="product_check_exp" value="1"
-                                class="h-4 w-4 rounded border-slate-300 text-indigo-600">
+                                class="h-4 w-4 rounded border-slate-300 text-indigo-600 dark:border-slate-700">
                             <div>
                                 <label for="product_check_exp"
                                     class="text-sm font-medium text-slate-700 dark:text-slate-200">Check Expired
@@ -637,15 +637,15 @@
                             </div>
                             <div class="grid grid-cols-3 gap-x-6 gap-y-4 p-5">
                                 <div>
-                                    <div class="text-xs text-slate-500">Site</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Site</div>
                                     <div id="viewModal_cpnyid" class="mt-1 wrap-break-word text-sm font-medium text-slate-900 dark:text-slate-100">-</div>
                                 </div>
                                 <div>
-                                    <div class="text-xs text-slate-500">Nama PT</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Nama PT</div>
                                     <div id="viewModal_sourcePT" class="mt-1 wrap-break-word text-sm font-medium text-slate-900 dark:text-slate-100">-</div>
                                 </div>
                                 <div>
-                                    <div class="text-xs text-slate-500">Nama Tenant / Event</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Nama Tenant / Event</div>
                                     <div id="viewModal_tenant" class="mt-1 wrap-break-word text-sm font-medium text-slate-900 dark:text-slate-100">-</div>
                                 </div>
                             </div>
@@ -662,35 +662,35 @@
                                         class="hidden h-28 w-28 rounded-lg border border-slate-200 object-cover dark:border-white/10">
                                 </div>
                                 <div class="col-span-2">
-                                    <div class="text-xs text-slate-500">Product Name</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Product Name</div>
                                     <div id="viewModal_productName" class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">-</div>
                                 </div>
                                 <div>
-                                    <div class="text-xs text-slate-500">Type</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Type</div>
                                     <div id="viewModal_type" class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">-</div>
                                 </div>
                                 <div>
-                                    <div class="text-xs text-slate-500">Category</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Category</div>
                                     <div id="viewModal_category" class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">-</div>
                                 </div>
                                 <div>
-                                    <div class="text-xs text-slate-500">Product Source</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Product Source</div>
                                     <div id="viewModal_sourceType" class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">-</div>
                                 </div>
                                 <div>
-                                    <div class="text-xs text-slate-500">UOM</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">UOM</div>
                                     <div id="viewModal_uom" class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">-</div>
                                 </div>
                                 <div>
-                                    <div class="text-xs text-slate-500">Value</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Value</div>
                                     <div id="viewModal_value" class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">-</div>
                                 </div>
                                 <div>
-                                    <div class="text-xs text-slate-500">Check Expired Date</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Check Expired Date</div>
                                     <div id="viewModal_checkExp" class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">-</div>
                                 </div>
                                 <div class="col-span-2">
-                                    <div class="text-xs text-slate-500">Remarks</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Remarks</div>
                                     <div id="viewModal_remarks" class="mt-1 text-sm leading-relaxed text-slate-700 dark:text-slate-300">-</div>
                                 </div>
                             </div>

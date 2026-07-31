@@ -60,7 +60,7 @@
             <div class="flex w-full max-w-lg flex-col overflow-hidden rounded-lg bg-white shadow-2xl dark:bg-slate-800">
                 <div class="flex items-start justify-between border-b border-slate-200 px-6 py-5 dark:border-slate-700">
                     <h2 class="text-xl font-semibold text-slate-900 dark:text-white">New Project</h2>
-                    <button id="closeProjectModal" type="button" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700"><i class="fas fa-times"></i></button>
+                    <button id="closeProjectModal" type="button" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 dark:text-slate-400"><i class="fas fa-times"></i></button>
                 </div>
                 <form id="projectForm" class="flex flex-col">
                     <div class="space-y-4 p-6">
@@ -250,7 +250,7 @@
                                     <span class="text-xs text-gray-400">${p.progress_percent}%</span>
                                 </div>
                                 <p class="mt-2 font-semibold text-gray-800 dark:text-gray-100">${p.project_name}</p>
-                                <p class="mt-1 text-xs text-gray-500 line-clamp-2">${p.project_description || ''}</p>
+                                <p class="mt-1 text-xs text-gray-500 line-clamp-2 dark:text-gray-400">${p.project_description || ''}</p>
                                 <p class="mt-2 text-xs text-gray-400">${p.start_date || '—'} → ${p.end_date || '—'}</p>
                             </a>
                         `);

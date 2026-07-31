@@ -7,63 +7,63 @@
 
             <!-- Date From -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Date From
                 </label>
                 <input type="date" id="date_from"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <!-- Date To -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Date To
                 </label>
                 <input type="date" id="date_to"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <!-- CS Number -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     CS Number
                 </label>
                 <input type="text" id="csid" placeholder="CS-xxxx"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <!-- PO / SPK -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     PO / SPK
                 </label>
                 <input type="text" id="ponbr" placeholder="PO-xxxx"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     SPPBJKT No
                 </label>
                 <input type="text" id="sppbjktid" placeholder="PB-xxxx"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Inventory ID
                 </label>
                 <input type="text" id="inventoryid" placeholder="Item code"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Status
                 </label>
 
                 <select id="status"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
 
                     <option value="">All Status</option>
                     <option value="P">On Process</option>
@@ -83,7 +83,7 @@
                 </button>
 
                 <button id="resetBtn"
-                    class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700">
+                    class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
                     Reset
                 </button>
 
@@ -100,15 +100,15 @@
 
 
     <!-- REPORT TABLE -->
-    <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
+    <div class="rounded-2xl border border-gray-200 bg-white shadow-sm dark:bg-gray-800 dark:border-gray-700">
 
-        <div class="border-b border-gray-200 px-6 py-4">
+        <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
 
-            <h2 class="text-sm font-semibold text-gray-800">
+            <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">
                 Canvass Sheet Detail
             </h2>
 
-            <p class="text-xs text-gray-500">
+            <p class="text-xs text-gray-500 dark:text-gray-400">
                 Selected vendor items that generate PO / SPK
             </p>
 
@@ -116,9 +116,9 @@
 
         <div class="overflow-x-auto p-5">
 
-            <table id="reportTable" class="min-w-full text-sm text-gray-700">
+            <table id="reportTable" class="min-w-full text-sm text-gray-700 dark:text-gray-300">
 
-                <thead class="bg-gray-50 text-[11px] uppercase tracking-wider text-gray-500">
+                <thead class="bg-gray-50 text-[11px] uppercase tracking-wider text-gray-500 dark:bg-gray-900 dark:text-gray-400">
 
                     {{-- <tr>
                         <th></th>

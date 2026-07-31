@@ -165,7 +165,7 @@
                                 <div class="w-full overflow-x-auto">
                                     <table
                                         class="w-full min-w-[1100px] table-auto whitespace-nowrap border text-left text-sm">
-                                        <thead class="bg-gray-100 font-bold text-gray-700">
+                                        <thead class="bg-gray-100 font-bold text-gray-700 dark:bg-gray-900 dark:text-gray-300">
                                             <tr>
                                                 <th class="px-4 py-2">Line No</th>
                                                 <th class="px-4 py-2">Description</th>
@@ -179,7 +179,7 @@
                                         </thead>
                                         <tbody>
                                             @foreach ($tempData as $item)
-                                                <tr class="border-t hover:bg-gray-50">
+                                                <tr class="border-t hover:bg-gray-50 dark:hover:bg-gray-700">
                                                     <td class="px-4 py-2">{{ $item->bq_line_no }}</td>
                                                     <td class="px-4 py-2">{{ $item->bq_descr }}</td>
                                                     <td class="px-4 py-2 text-right">
@@ -233,7 +233,7 @@
                                                         class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                                                         <!-- tile add photo -->
                                                         <button type="button" id="addAttachmentTile"
-                                                            class="flex aspect-[2/1] items-center justify-center rounded-xl border-2 border-dashed border-gray-300 text-gray-500 hover:border-blue-500 hover:text-blue-600">
+                                                            class="flex aspect-[2/1] items-center justify-center rounded-xl border-2 border-dashed border-gray-300 text-gray-500 hover:border-blue-500 hover:text-blue-600 dark:text-gray-400 dark:border-gray-700">
                                                             <div class="flex flex-col items-center gap-1">
                                                                 <svg xmlns="http://www.w3.org/2000/svg"
                                                                     class="h-7 w-7" viewBox="0 0 20 20"
@@ -247,7 +247,7 @@
                                                         </button>
                                                     </div>
 
-                                                    <p class="mt-2 text-sm text-gray-500">Accepted: JPG/PNG, maks 5 MB
+                                                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Accepted: JPG/PNG, maks 5 MB
                                                         per foto.</p>
                                                 </div>
                                             </details>

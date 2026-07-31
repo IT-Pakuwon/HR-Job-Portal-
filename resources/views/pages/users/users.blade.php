@@ -69,7 +69,7 @@
                         Filter Company
                     </label>
                     <select id="filterCompany"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
                         <option value="">All Company</option>
                         @foreach ($company as $c)
                             <option value="{{ $c->cpny_id }}">{{ $c->cpny_id }} - {{ $c->cpny_name }}</option>
@@ -82,7 +82,7 @@
                         Filter Department
                     </label>
                     <select id="filterDepartment"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
                         <option value="">All Department</option>
                         @foreach ($department as $d)
                             <option value="{{ $d->department_id }}">{{ $d->department_id }}</option>
@@ -95,7 +95,7 @@
                         Filter Business Unit
                     </label>
                     <select id="filterBusinessUnit"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
                         <option value="">All Business Unit</option>
                         @foreach ($businessUnits as $bu)
                             <option value="{{ $bu->business_unit_id }}">{{ $bu->business_unit_id }} -
@@ -109,7 +109,7 @@
                         Filter Jabatan
                     </label>
                     <select id="filterJabatan"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
                         <option value="">All Jabatan</option>
                         <option value="staff">staff</option>
                         <option value="manager">manager</option>
@@ -230,13 +230,13 @@
                             <h2 id="modalTitle" class="text-2xl font-semibold text-slate-900 dark:text-white">
                                 Add User
                             </h2>
-                            <p class="mt-1 text-sm text-slate-500">
+                            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
                                 Create and manage user permissions and access scopes.
                             </p>
                         </div>
 
                         <button id="closeModal" type="button"
-                            class="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 dark:hover:bg-slate-700">
+                            class="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 dark:hover:bg-slate-700 dark:text-slate-400">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -255,7 +255,7 @@
                                         <h3 class="font-semibold text-slate-900 dark:text-white">
                                             User Information
                                         </h3>
-                                        <p class="mt-1 text-sm text-slate-500">
+                                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
                                             Basic profile information.
                                         </p>
                                     </div>
@@ -353,7 +353,7 @@
                                         <h3 class="font-semibold text-slate-900 dark:text-white">
                                             Access Scope
                                         </h3>
-                                        <p class="mt-1 text-sm text-slate-500">
+                                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
                                             Configure organization access.
                                         </p>
                                     </div>
@@ -427,7 +427,7 @@
                                         <h3 class="font-semibold text-slate-900 dark:text-white">
                                             Security & Permissions
                                         </h3>
-                                        <p class="mt-1 text-sm text-slate-500">
+                                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
                                             Configure roles and dashboard access.
                                         </p>
                                     </div>

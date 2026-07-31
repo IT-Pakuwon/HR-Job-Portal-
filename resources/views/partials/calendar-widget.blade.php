@@ -36,7 +36,7 @@
                 <template x-if="!googleConnected">
                     <div class="flex items-center gap-2">
                         <div
-                            class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-medium text-gray-600">
+                            class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-medium text-gray-600 dark:bg-gray-900 dark:text-gray-400">
                             <span class="h-1.5 w-1.5 rounded-full bg-gray-400"></span>
                             Google disconnected
                         </div>
@@ -87,7 +87,7 @@
 
                 <!-- TITLE -->
                 <div>
-                    <label class="mb-1 block text-xs font-medium text-gray-500">
+                    <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
                         Title
                     </label>
                     <input x-model="newTask.title"
@@ -96,7 +96,7 @@
 
                 <!-- DATE -->
                 <div>
-                    <label class="mb-1 block text-xs font-medium text-gray-500">
+                    <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
                         Date
                     </label>
                     <input type="date" x-model="newTask.deadline"
@@ -106,14 +106,14 @@
                 <!-- TIME -->
                 <div class="flex items-center gap-2">
                     <input type="checkbox" x-model="newTask.all_day" id="allDay"
-                        class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-700">
 
                     <label for="allDay" class="text-xs text-gray-600 dark:text-gray-400">
                         All-day event
                     </label>
                 </div>
                 <div>
-                    <label class="mb-2 block text-xs font-medium text-gray-500">
+                    <label class="mb-2 block text-xs font-medium text-gray-500 dark:text-gray-400">
                         Time
                     </label>
 
@@ -146,7 +146,7 @@
 
                 <!-- DESCRIPTION -->
                 <div>
-                    <label class="mb-1 block text-xs font-medium text-gray-500">
+                    <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
                         Description
                     </label>
                     <textarea x-model="newTask.description" rows="3" placeholder="Optional details…"
@@ -158,7 +158,7 @@
             <!-- FOOTER -->
             <div class="mt-6 flex justify-end gap-3 border-t pt-4 dark:border-gray-700">
                 <button @click="showModal=false"
-                    class="rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
+                    class="rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-400">
                     Cancel
                 </button>
                 <button @click="submitTask()" :disabled="!newTask.title || !newTask.deadline || !newTask.description"
@@ -182,7 +182,7 @@
                 <div class="space-y-1">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white"
                         x-text="selectedEvent?.title || 'Untitled event'"></h3>
-                    <p class="text-xs text-gray-500">Event details</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Event details</p>
                 </div>
 
                 <button @click="selectedEvent = null"
@@ -282,7 +282,7 @@
                             </template>
 
                             <template x-if="!selectedEvent?.extendedProps?.meeting_link">
-                                <p class="mt-1 text-sm text-gray-500">Empty</p>
+                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Empty</p>
                             </template>
                         </div>
                     </div>

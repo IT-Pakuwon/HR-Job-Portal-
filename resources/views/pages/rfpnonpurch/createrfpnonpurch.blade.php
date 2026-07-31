@@ -20,7 +20,7 @@
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                                 <select name="cpnyid" id="cpnyid"
-                                    class="req headerCpnySelect w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    class="req headerCpnySelect w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                                     required>
                                     @foreach ($usercpny as $p)
                                         <option value="{{ $p->cpny_id }}"
@@ -35,7 +35,7 @@
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
                                 <select name="departementid" id="departementid"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                                     required>
                                     @foreach ($userdept as $p)
                                         <option value="{{ $p->department_id }}"
@@ -50,7 +50,7 @@
                             <div class="flex flex-col gap-2" id="businessUnitBox">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
                                 <select name="business_unit_id" id="business_unit_id"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                                     required>
                                     <option value="" disabled selected>Loading...</option>
                                 </select>
@@ -60,7 +60,7 @@
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Type Payment</label>
                                 <select name="rfpnonpurchase_type" id="rfpnonpurchase_type"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                                     required>
                                     <option value="">Select Type</option>
                                     <option value="RFP">RFP</option>
@@ -73,7 +73,7 @@
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Group Biaya</label>
                                 <select name="groupbiaya_id"
                                     id="groupbiaya_id"
-                                    class="select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    class="select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                                     required>
                                     <option value="">Select Group</option>
                                     @foreach ($groupbiaya as $g)
@@ -123,7 +123,7 @@
                                     Kepada
                                 </label>
                                 <select name="rfpnonpurchase_kepada[]" id="rfpnonpurchase_kepada"
-                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                                     multiple>
                                     @foreach ($kepada as $u)
                                         <option value="{{ $u->username }}">
@@ -139,7 +139,7 @@
                                     Tembusan
                                 </label>
                                 <select name="rfpnonpurchase_tembusan[]" id="rfpnonpurchase_tembusan"
-                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                                     multiple>
                                     @foreach ($tembusan as $u)
                                         <option value="{{ $u->username }}">
@@ -266,8 +266,8 @@
                                 <summary
                                     class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                     <span>Detail</span>
-                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details &rarr;</span>
-                                    <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details &darr;</span>
+                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See details &rarr;</span>
+                                    <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide details &darr;</span>
                                 </summary>
 
                                 <div class="flex h-auto flex-col justify-start">
@@ -316,7 +316,7 @@
                                                             <input type="hidden" name="coa_id[]" class="coaIdField">
 
                                                             <input type="text" name="coa[]"
-                                                                class="coaNameField w-full border-none bg-gray-100 p-2 focus:outline-none focus:ring-0"
+                                                                class="coaNameField w-full border-none bg-gray-100 p-2 focus:outline-none focus:ring-0 dark:bg-gray-900"
                                                                 placeholder="Select Budget..." readonly>
 
                                                             <button type="button"
@@ -421,10 +421,10 @@
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span class="req">Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
                                     details &rarr;</span>
                                 <span
-                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                                     details &darr;</span>
                             </summary>
                             <div class="flex flex-col pt-6">
@@ -451,7 +451,7 @@
                         <div
                             class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
                             <button id="backBtn" onclick="history.back()"
-                                class="flex items-center justify-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                class="flex items-center justify-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-300">
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -703,7 +703,7 @@
                             <input type="hidden" name="coa_id[]" class="coaIdField">
 
                             <input type="text" name="coa[]"
-                                class="coaNameField w-full border-none bg-gray-100 p-2 focus:outline-none focus:ring-0"
+                                class="coaNameField w-full border-none bg-gray-100 p-2 focus:outline-none focus:ring-0 dark:bg-gray-900"
                                 placeholder="Select Budget..." readonly>
 
                             <button type="button"
@@ -1307,7 +1307,7 @@
                                     </td>
                                     <td class="border p-2 text-center">
                                         <button type="button"
-                                            class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
+                                            class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                                             data-id="${escapeHtml(id)}"
                                             data-activity_id="${escapeHtml(actId)}"
                                             data-business_unit_id="${escapeHtml(buId)}"

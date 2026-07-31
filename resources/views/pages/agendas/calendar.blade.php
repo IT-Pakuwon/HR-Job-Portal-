@@ -128,7 +128,7 @@
                                     <template x-for="event in eventsForDayHour(day, hour)" :key="event.id">
                                         <div class="mb-1 w-full rounded bg-indigo-300 px-1 py-0.5 text-[11px] shadow">
                                             <div x-text="event.title"></div>
-                                            <div class="text-[10px] text-gray-600"
+                                            <div class="text-[10px] text-gray-600 dark:text-gray-400"
                                                 x-text="formatEventTime(event.startdate, event.enddate)"></div>
                                         </div>
                                     </template>
@@ -151,7 +151,7 @@
                                 <template x-for="event in eventsForHour(hour)" :key="event.id">
                                     <div class="mb-1 w-fit rounded bg-indigo-300 px-2 py-1 text-sm shadow">
                                         <div x-text="event.title"></div>
-                                        <div class="text-[9px] text-gray-700"
+                                        <div class="text-[9px] text-gray-700 dark:text-gray-300"
                                             x-text="formatEventTime(event.startdate, event.enddate)"></div>
                                     </div>
                                 </template>

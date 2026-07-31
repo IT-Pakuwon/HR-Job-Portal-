@@ -175,7 +175,7 @@
         </div>
                 {{-- CALENDAR --}}
         <div
-            class="dark:border-white/1 flex h-full flex-1 flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm min-h-0">
+            class="dark:border-white/1 flex h-full flex-1 flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm min-h-0 dark:bg-gray-800">
 
             <div class="relative flex-1 min-h-0 overflow-hidden">
 
@@ -224,13 +224,13 @@
 
                                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                                         <div>
-                                            <label class="req text-xs text-gray-500">Start</label>
+                                            <label class="req text-xs text-gray-500 dark:text-gray-400">Start</label>
                                             <input type="text" id="start_datetime" name="start_datetime"
                                                 class="mt-1 w-full rounded-md border px-3 py-2 text-sm" required>
                                         </div>
 
                                         <div>
-                                            <label class="req text-xs text-gray-500">End</label>
+                                            <label class="req text-xs text-gray-500 dark:text-gray-400">End</label>
                                             <input type="text" id="end_datetime" name="end_datetime"
                                                 class="mt-1 w-full rounded-md border px-3 py-2 text-sm" required>
                                         </div>
@@ -309,16 +309,16 @@
                                 </div>
                                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div class='flex-1'>
-                                        <label class="req text-xs font-medium text-gray-500">
+                                        <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
                                             Internal PIC Name
                                         </label>
                                         <input type="text" id="internal_pic" name="internal_pic"
                                             value="{{ auth()->user()->name }}" readonly
-                                            class="mt-1 w-full rounded-md border bg-gray-100 px-3 py-2 text-sm"
+                                            class="mt-1 w-full rounded-md border bg-gray-100 px-3 py-2 text-sm dark:bg-gray-900"
                                             required>
                                     </div>
                                     <div class="flex-1">
-                                        <label class="req mt-3 block text-xs font-medium text-gray-500">
+                                        <label class="req mt-3 block text-xs font-medium text-gray-500 dark:text-gray-400">
                                             Email To
                                         </label>
                                         <select id="username" name="username[]" multiple>
@@ -337,7 +337,7 @@
                             {{-- EXTERNAL TOGGLE --}}
                             <div class="flex items-center gap-2">
                                 <input type="checkbox" id="is_external_participant" name="external_participant"
-                                    value="1" class="h-4 w-4 rounded border-gray-300">
+                                    value="1" class="h-4 w-4 rounded border-gray-300 dark:border-gray-700">
                                 <label class="text-sm text-gray-600 dark:text-gray-300">
                                     External Participant
                                 </label>
@@ -347,7 +347,7 @@
                             <div id="externalParticipantSection" class="hidden space-y-4">
 
                                 <table class="w-full overflow-hidden rounded-lg border text-sm">
-                                    <thead class="bg-gray-100">
+                                    <thead class="bg-gray-100 dark:bg-gray-900">
                                         <tr>
                                             <th class="p-2 text-left">Name</th>
                                             <th class="p-2 text-left">Email</th>
@@ -411,7 +411,7 @@
                             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
                                 Meeting Detail
                             </h2>
-                            <p class="text-xs text-gray-500">Full meeting information</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Full meeting information</p>
                         </div>
 
                         <!-- STATUS BADGE -->
@@ -524,10 +524,10 @@
                 </div>
 
                 <!-- FOOTER -->
-                <div class="flex items-center justify-between border-t bg-gray-50 px-6 py-4">
+                <div class="flex items-center justify-between border-t bg-gray-50 px-6 py-4 dark:bg-gray-900">
 
                     <button id="closeEventModal2"
-                        class="rounded-md border px-4 py-2 text-sm text-gray-600 hover:bg-gray-100">
+                        class="rounded-md border px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-400">
                         Close
                     </button>
 
@@ -769,18 +769,18 @@
                 const html = `
                 <div class="text-xs space-y-2">
 
-                    <div class="font-semibold text-gray-900">
+                    <div class="font-semibold text-gray-900 dark:text-gray-100">
                         ${info.event.title}
                     </div>
 
-                    <div class="text-gray-500">
+                    <div class="text-gray-500 dark:text-gray-400">
                         ${start} → ${end}
                     </div>
 
                     <div>📍 ${p.room || '-'}</div>
                     <div>👤 ${p.user || '-'}</div>
 
-                    <div class="text-[11px] px-2 py-1 rounded bg-gray-100 inline-block">
+                    <div class="text-[11px] px-2 py-1 rounded bg-gray-100 inline-block dark:bg-gray-900">
                         ${status}
                     </div>
 
@@ -967,7 +967,7 @@
                 } else if (props.accessories && props.accessories.length) {
 
                     teamsText.innerHTML = `
-                        <span class="flex items-center gap-2 text-sm text-gray-700 font-medium">
+                        <span class="flex items-center gap-2 text-sm text-gray-700 font-medium dark:text-gray-300">
                             🎧 ${props.accessories.map(a => a.name).join(', ')}
                         </span>
                     `;
@@ -1023,7 +1023,7 @@
 
                         const badge = p.type === 'external' ?
                             `<span class="text-[10px] px-2 py-0.5 rounded bg-blue-100 text-blue-600">External</span>` :
-                            `<span class="text-[10px] px-2 py-0.5 rounded bg-gray-200 text-gray-700">Internal</span>`;
+                            `<span class="text-[10px] px-2 py-0.5 rounded bg-gray-200 text-gray-700 dark:text-gray-300">Internal</span>`;
 
                         container.innerHTML += `
                 <div class="flex items-center gap-3 bg-white dark:bg-gray-900 p-2 rounded-lg border">
@@ -1041,7 +1041,7 @@
                             ${badge}
                         </div>
 
-                        ${p.email ? `<p class="text-xs text-gray-500">${p.email}</p>` : ''}
+                        ${p.email ? `<p class="text-xs text-gray-500 dark:text-gray-400">${p.email}</p>` : ''}
                         ${p.company ? `<p class="text-xs text-gray-400">${p.company}</p>` : ''}
 
                     </div>
@@ -2025,7 +2025,7 @@
             <td class="p-3">
                 <input name="external_name[]" value="${name}"
                     placeholder="Full name"
-                    class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm dark:bg-gray-900 dark:border-gray-700">
             </td>
 
             <td class="p-3">
@@ -2036,14 +2036,14 @@
                     placeholder="example@gmail.com"
                     required
                     pattern="^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"
-                    class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm"
+                    class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm dark:bg-gray-900 dark:border-gray-700"
                 >
             </td>
 
             <td class="p-3">
                 <input name="external_company[]" value="${company}"
                     placeholder="Company"
-                    class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm dark:bg-gray-900 dark:border-gray-700">
             </td>
 
             <td class="p-3 text-center">

@@ -216,7 +216,7 @@
                                         @elseif ($step->status === 'R')
                                             <span class="rounded-full bg-red-100 px-2.5 py-1 text-[11px] font-semibold text-red-500">Rejected</span>
                                         @elseif ($step->status === 'X')
-                                            <span class="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-semibold text-gray-400">Cancelled</span>
+                                            <span class="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-semibold text-gray-400 dark:bg-gray-900">Cancelled</span>
                                         @endif
                                     @else
                                         @if ($step->status === 'P')
@@ -358,11 +358,11 @@
 
     <!-- Remap Modal — same as jobapplicant list -->
     <div id="remapModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
-        <div class="w-full max-w-2xl transform rounded-2xl bg-white p-8 shadow-2xl transition-all duration-300 scale-95 opacity-0" id="remapModalContent">
+        <div class="w-full max-w-2xl transform rounded-2xl bg-white p-8 shadow-2xl transition-all duration-300 scale-95 opacity-0 dark:bg-gray-800" id="remapModalContent">
             <div class="mb-5 flex items-center justify-between">
                 <div>
-                    <h2 class="text-lg font-bold text-gray-800">Remap Applicant</h2>
-                    <p class="text-sm text-gray-500">Old mapping → <strong>Transfer Candidate</strong>. New job apply will be created.</p>
+                    <h2 class="text-lg font-bold text-gray-800 dark:text-gray-200">Remap Applicant</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Old mapping → <strong>Transfer Candidate</strong>. New job apply will be created.</p>
                 </div>
                 <button id="closeRemapModal" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
             </div>
@@ -371,20 +371,20 @@
                 <div class="flex-1">
                     <p class="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">Current Job Applied</p>
                     <div class="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
-                        <div><span class="text-xs text-gray-400">Job ID</span><p class="font-medium text-gray-800">{{ $career->docidposting ?? '—' }}</p></div>
-                        <div><span class="text-xs text-gray-400">Job Title</span><p class="font-medium text-gray-800">{{ $career->job_title ?? '—' }}</p></div>
-                        <div><span class="text-xs text-gray-400">Company</span><p class="text-gray-700">{{ $career->cpnyid ?? '—' }}</p></div>
-                        <div><span class="text-xs text-gray-400">Division</span><p class="text-gray-700">{{ $career->division_name ?? $career->division_id ?? '—' }}</p></div>
-                        <div class="col-span-2"><span class="text-xs text-gray-400">Department</span><p class="text-gray-700">{{ $career->departementid ?? '—' }}</p></div>
+                        <div><span class="text-xs text-gray-400">Job ID</span><p class="font-medium text-gray-800 dark:text-gray-200">{{ $career->docidposting ?? '—' }}</p></div>
+                        <div><span class="text-xs text-gray-400">Job Title</span><p class="font-medium text-gray-800 dark:text-gray-200">{{ $career->job_title ?? '—' }}</p></div>
+                        <div><span class="text-xs text-gray-400">Company</span><p class="text-gray-700 dark:text-gray-300">{{ $career->cpnyid ?? '—' }}</p></div>
+                        <div><span class="text-xs text-gray-400">Division</span><p class="text-gray-700 dark:text-gray-300">{{ $career->division_name ?? $career->division_id ?? '—' }}</p></div>
+                        <div class="col-span-2"><span class="text-xs text-gray-400">Department</span><p class="text-gray-700 dark:text-gray-300">{{ $career->departementid ?? '—' }}</p></div>
                     </div>
                 </div>
             </div>
             <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Select New Job Posting</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">Select New Job Posting</label>
                 <select id="remapJobSelect" style="width:100%"><option value="">Select Job Posting</option></select>
             </div>
             <div class="flex justify-end gap-3">
-                <button id="closeRemapModalBtn" class="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-50">Cancel</button>
+                <button id="closeRemapModalBtn" class="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-400 dark:border-gray-700">Cancel</button>
                 <button id="saveRemap" class="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700">Save Remap</button>
             </div>
         </div>
@@ -411,7 +411,7 @@
         function loadComments(docid) {
             console.log("Loading comments for Doc ID:", docid);
             let commentList = $('#commentList');
-            commentList.html('<p class="text-gray-500 italic">Loading comments...</p>');
+            commentList.html('<p class="text-gray-500 italic dark:text-gray-400">Loading comments...</p>');
 
             $.ajax({
                 url: `/career/${docid}/comments`,
@@ -422,7 +422,7 @@
 
                     if (!response.comments || response.comments.length === 0) {
                         commentList.append(
-                            '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
+                            '<p class="text-gray-500 text-sm italic dark:text-gray-400">No comments yet. Be the first to comment!</p>'
                         );
                     } else {
                         response.comments.forEach(comment => {
@@ -431,7 +431,7 @@
                             commentList.append(`
                                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
                                     <p class=" text-sm  font-semibold">${comment.username}
-                                        <span class=" text-sm  text-gray-500">(${timeAgo})</span>
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">(${timeAgo})</span>
                                     </p>
                                     <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
                                 </div>

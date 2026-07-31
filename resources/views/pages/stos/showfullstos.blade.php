@@ -13,7 +13,7 @@
                                     <div class="chart-container"></div>
                                     <div id="modalForm"
                                         class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50   ">
-                                        <div class="relative w-[95vw] max-w-6xl rounded-lg bg-white p-4 md:w-auto">
+                                        <div class="relative w-[95vw] max-w-6xl rounded-lg bg-white p-4 md:w-auto dark:bg-gray-800">
                                             <div class="border-gray-200s mb-4 flex justify-between border-b">
                                                 <ul class="text-md flex flex-wrap text-center font-medium"
                                                     id="tabs">
@@ -24,7 +24,7 @@
                                                     </li>
                                                 </ul>
                                                 <button onclick="closeModal()"
-                                                    class="text-sm text-gray-500">close</button>
+                                                    class="text-sm text-gray-500 dark:text-gray-400">close</button>
 
                                             </div>
 
@@ -35,7 +35,7 @@
                                                     </h4>
                                                 </div>
                                                 <div class="overflow-y-auto" style="max-height: 500px;">
-                                                    <table class="w-full border bg-gray-300/10 text-xs text-black">
+                                                    <table class="w-full border bg-gray-300/10 text-xs text-black dark:text-white">
                                                         <thead>
                                                             <tr class="text-left">
                                                                 <th class="border px-2 py-1">No</th>
@@ -82,7 +82,7 @@
 
                     <div class="mt-4 flex justify-between">
                         <button id="cancelRejectBtn"
-                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
                             Cancel
                         </button>
                         <button id="confirmRejectBtn"
@@ -101,7 +101,7 @@
 
                     <div class="mt-4 flex justify-between">
                         <button id="cancelReviseBtn"
-                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
                             Cancel
                         </button>
                         <button id="confirmReviseBtn"

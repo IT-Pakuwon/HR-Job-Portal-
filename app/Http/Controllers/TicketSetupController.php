@@ -491,7 +491,7 @@ class TicketSetupController extends Controller
     {
         $request->validate([
             'ticket_type' => 'required',
-            'ticket_categoryid' => 'required',
+            'ticket_categoryid' => 'nullable',
             'department_id' => 'required',
             'username' => 'required',
             'status' => 'required|in:A,I',
@@ -525,7 +525,7 @@ class TicketSetupController extends Controller
 
         $request->validate([
             'ticket_type' => 'required',
-            'ticket_categoryid' => 'required',
+            'ticket_categoryid' => 'nullable',
             'department_id' => 'required',
             'username' => 'required',
             'status' => 'required|in:A,I',

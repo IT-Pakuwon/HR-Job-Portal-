@@ -433,7 +433,7 @@
                                                                             Yes
                                                                         </span>
                                                                     @else
-                                                                        <span class="px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded">
+                                                                        <span class="px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded dark:bg-gray-900 dark:text-gray-400">
                                                                             No
                                                                         </span>
                                                                     @endif

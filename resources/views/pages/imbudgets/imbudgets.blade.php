@@ -185,7 +185,7 @@
             if (!list) return;
 
             if (!Array.isArray(steps) || steps.length === 0) {
-                list.innerHTML = `<p class="text-sm text-gray-500">No tracking history found.</p>`;
+                list.innerHTML = `<p class="text-sm text-gray-500 dark:text-gray-400">No tracking history found.</p>`;
                 return;
             }
 
@@ -198,14 +198,14 @@
             list.className = "px-2 py-3";
 
             list.innerHTML = `
-                <div class="rounded-xl border border-gray-200 bg-white p-4">
+                <div class="rounded-xl border border-gray-200 bg-white p-4 dark:bg-gray-800 dark:border-gray-700">
 
                     <!-- HEADER -->
                     <div class="flex justify-between items-center mb-4">
-                        <div class="text-sm font-semibold text-gray-700">
+                        <div class="text-sm font-semibold text-gray-700 dark:text-gray-300">
                         Approval Tracking
                         </div>
-                        <div class="text-xs text-gray-500">
+                        <div class="text-xs text-gray-500 dark:text-gray-400">
                             ${approvedCount}/${total} Approved
                         </div>
                     </div>
@@ -275,15 +275,15 @@
 
                                     <div class="h-2 w-2 rounded-full ${dot}"></div>
 
-                                    <div class="h-8 w-8 flex items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-600">
+                                    <div class="h-8 w-8 flex items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-600 dark:bg-gray-900 dark:text-gray-400">
                                         ${initials}
                                     </div>
 
                                     <div>
-                                        <div class="text-sm font-medium text-gray-800">
+                                        <div class="text-sm font-medium text-gray-800 dark:text-gray-200">
                                             ${s.title}
                                         </div>
-                                        <div class="text-xs text-gray-500">
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">
                                             ${name}
                                         </div>
                                     </div>
@@ -311,8 +311,8 @@
         function renderApprovalTable(steps) {
             return `
             <div class="w-full overflow-x-auto">
-                <table class="min-w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
-                    <thead class="bg-gray-100 text-gray-700">
+                <table class="min-w-full text-sm border border-gray-200 rounded-lg overflow-hidden dark:border-gray-700">
+                    <thead class="bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300">
                         <tr>
                             <th class="px-3 py-2 text-left">Level</th>
                             <th class="px-3 py-2 text-left">Name</th>
@@ -337,7 +337,7 @@
                                 <td class="px-3 py-2 font-semibold ${color}">
                                     ${s.status_label}
                                 </td>
-                                <td class="px-3 py-2 text-gray-500">
+                                <td class="px-3 py-2 text-gray-500 dark:text-gray-400">
                                     ${s.at || '-'}
                                 </td>
                             </tr>`;

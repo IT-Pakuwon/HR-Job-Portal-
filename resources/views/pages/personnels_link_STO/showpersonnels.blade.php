@@ -84,7 +84,7 @@
                             {{-- Company --}}
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Company</span>
+                                <span class="min-w-32 max-w-32 text-gray-500 dark:text-gray-400">Company</span>
                                 <span
                                     class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $personnel->cpnyid }}</span>
                             </div>
@@ -92,7 +92,7 @@
                             {{-- Department --}}
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Department</span>
+                                <span class="min-w-32 max-w-32 text-gray-500 dark:text-gray-400">Department</span>
                                 <span
                                     class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $personnel->departementid }}</span>
                             </div>
@@ -100,7 +100,7 @@
                             {{-- Date --}}
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Date</span>
+                                <span class="min-w-32 max-w-32 text-gray-500 dark:text-gray-400">Date</span>
                                 <span class="break-words font-medium text-gray-900 dark:text-gray-300">
                                     {{ date('j F Y', strtotime($personnel->spptdate)) }}
                                 </span>
@@ -109,7 +109,7 @@
                             {{-- Job Title --}}
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Job Title</span>
+                                <span class="min-w-32 max-w-32 text-gray-500 dark:text-gray-400">Job Title</span>
                                 <span class="break-words font-medium text-gray-900 dark:text-gray-300">
                                     {{ ucwords(strtolower(optional($personnel)->job_title)) }}
                                 </span>
@@ -118,7 +118,7 @@
                             {{-- Job Type --}}
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Job Type</span>
+                                <span class="min-w-32 max-w-32 text-gray-500 dark:text-gray-400">Job Type</span>
                                 <span class="break-words font-medium text-gray-900 dark:text-gray-300">
                                     {{ ucwords(strtolower(optional($personnel)->job_type)) }}
                                 </span>
@@ -127,7 +127,7 @@
                             {{-- Immediate Superior --}}
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Immediate Superior</span>
+                                <span class="min-w-32 max-w-32 text-gray-500 dark:text-gray-400">Immediate Superior</span>
                                 <span class="break-words font-medium text-gray-900 dark:text-gray-300">
                                     {{ ucwords(strtolower(optional($personnel)->immediate_superior)) }}
                                 </span>
@@ -136,7 +136,7 @@
                             {{-- Job Level --}}
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Job Level</span>
+                                <span class="min-w-32 max-w-32 text-gray-500 dark:text-gray-400">Job Level</span>
                                 <span class="break-words font-medium text-gray-900 dark:text-gray-300">
                                     {{ ucwords(strtolower(optional($personnel)->job_level)) }}
                                 </span>
@@ -145,7 +145,7 @@
                             {{-- State Position --}}
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">State Position</span>
+                                <span class="min-w-32 max-w-32 text-gray-500 dark:text-gray-400">State Position</span>
                                 <span class="break-words font-medium text-gray-900 dark:text-gray-300">
                                     {{ ucwords(strtolower(optional($personnel)->state_position)) }}
 
@@ -157,7 +157,7 @@
                                 class="col-span-2 flex flex-1 items-start gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                                 <x-heroicon-o-question-mark-circle class="h-5 w-5 text-pink-400" />
                                 <div class="flex flex-col">
-                                    <span class="text-gray-500">Reason for Vacancy</span>
+                                    <span class="text-gray-500 dark:text-gray-400">Reason for Vacancy</span>
                                     <span class="break-words font-medium text-gray-900 dark:text-gray-300">
                                         {{ $personnel->reason_vacancy ?: '-' }}
                                     </span>
@@ -169,15 +169,15 @@
                                 <x-heroicon-o-chart-bar class="h-5 w-5 text-emerald-500" />
                                 <div class="grid w-full grid-cols-3 gap-4">
                                     <div class="flex">
-                                        <span class="min-w-32 max-w-32 text-sm text-gray-500">Total Required</span>
+                                        <span class="min-w-32 max-w-32 text-sm text-gray-500 dark:text-gray-400">Total Required</span>
                                         <span class="font-bold text-indigo-600">{{ $personnel->required }}</span>
                                     </div>
                                     <div class="flex">
-                                        <span class="min-w-32 max-w-32 text-sm text-gray-500">Actual</span>
+                                        <span class="min-w-32 max-w-32 text-sm text-gray-500 dark:text-gray-400">Actual</span>
                                         <span class="font-bold text-indigo-600">{{ $personnel->actual }}</span>
                                     </div>
                                     <div class="flex">
-                                        <span class="min-w-32 max-w-32 text-sm text-gray-500">Actual Number</span>
+                                        <span class="min-w-32 max-w-32 text-sm text-gray-500 dark:text-gray-400">Actual Number</span>
                                         <span class="font-bold text-indigo-600">{{ $personnel->total_actual }}</span>
                                     </div>
                                 </div>
@@ -188,7 +188,7 @@
                                 class="col-span-2 flex flex-1 items-start gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                                 <x-heroicon-o-tag class="h-5 w-5 text-purple-500" />
                                 <div class="flex flex-col">
-                                    <span class="text-gray-500">🏷️ Tags</span>
+                                    <span class="text-gray-500 dark:text-gray-400">🏷️ Tags</span>
                                     <div class="mt-1 flex flex-wrap gap-2">
                                         @forelse ($jobtag as $jt)
                                             <span
@@ -458,7 +458,7 @@
                             <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex w-full flex-col justify-center">
                                 <div id="commentList"
                                     class="custom-scrollbar flex max-h-60 flex-col space-y-4 overflow-y-auto p-4">
-                                    <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                    <p class="py-4 text-center italic text-gray-500 dark:text-gray-400">Loading comments...</p>
                                 </div>
                                 <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
                                     <input id="commentInput" x-model="newComment" type="text"
@@ -539,7 +539,7 @@
             function loadComments(docid) {
                 console.log("Loading comments for Doc ID:", docid);
                 let commentList = $('#commentList');
-                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>'); // Loader
+                commentList.html('<p class="text-gray-500 italic dark:text-gray-400">Loading comments...</p>'); // Loader
 
                 $.ajax({
                     url: `/personnel/${docid}/comments`,
@@ -550,7 +550,7 @@
 
                         if (response.comments.length === 0) {
                             commentList.append(
-                                '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
+                                '<p class="text-gray-500 text-sm italic dark:text-gray-400">No comments yet. Be the first to comment!</p>'
                             );
                         } else {
                             response.comments.forEach(comment => {
@@ -560,7 +560,7 @@
                                 commentList.append(`
                                     <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
                                         <p class=" text-sm  font-semibold">${comment.username}
-                                            <span class=" text-sm  text-gray-500">(${timeAgo})</span>
+                                            <span class="text-sm text-gray-500 dark:text-gray-400">(${timeAgo})</span>
                                         </p>
                                         <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
                                     </div>

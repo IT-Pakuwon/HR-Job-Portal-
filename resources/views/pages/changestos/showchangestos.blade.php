@@ -145,11 +145,11 @@
 
                             {{-- Note --}}
                             <div class="col-span-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                                <div class="flex items-center gap-2 text-gray-500">
+                                <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                                     <x-heroicon-o-question-mark-circle class="h-5 w-5 text-pink-400" />
                                     <span>Note</span>
                                 </div>
-                                <span class="font-medium text-gray-900">
+                                <span class="font-medium text-gray-900 dark:text-gray-100">
                                     {{ $changesto->changerequest_note ?: '-' }}
                                 </span>
                             </div>
@@ -308,7 +308,7 @@
                             <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex w-full flex-col justify-center">
                                 <div id="commentList"
                                     class="custom-scrollbar flex max-h-60 flex-col space-y-4 overflow-y-auto p-4">
-                                    <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                    <p class="py-4 text-center italic text-gray-500 dark:text-gray-400">Loading comments...</p>
                                 </div>
                                 <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
                                     <input id="commentInput" x-model="newComment" type="text"
@@ -392,7 +392,7 @@
             function loadComments(docid) {
                 console.log("Loading comments for Doc ID:", docid);
                 let commentList = $('#commentList');
-                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>'); // Loader
+                commentList.html('<p class="text-gray-500 italic dark:text-gray-400">Loading comments...</p>'); // Loader
 
                 $.ajax({
                     url: `/changesto/${docid}/comments`,
@@ -403,7 +403,7 @@
 
                         if (response.comments.length === 0) {
                             commentList.append(
-                                '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
+                                '<p class="text-gray-500 text-sm italic dark:text-gray-400">No comments yet. Be the first to comment!</p>'
                             );
                         } else {
                             response.comments.forEach(comment => {
@@ -413,7 +413,7 @@
                                 commentList.append(`
                                     <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
                                         <p class=" text-sm  font-semibold">${comment.username} 
-                                            <span class=" text-sm  text-gray-500">(${timeAgo})</span>
+                                            <span class="text-sm text-gray-500 dark:text-gray-400">(${timeAgo})</span>
                                         </p>
                                         <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
                                     </div>

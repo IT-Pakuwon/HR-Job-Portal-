@@ -12,7 +12,7 @@
             </li>
         </ul>
     </nav>
-    <div class="text-center text-xs text-gray-500 sm:text-left">
+    <div class="text-center text-xs text-gray-500 sm:text-left dark:text-gray-400">
         Showing <span class="font-medium text-gray-600 dark:text-gray-300">1</span> to <span
             class="font-medium text-gray-600 dark:text-gray-300">10</span> of <span
             class="font-medium text-gray-600 dark:text-gray-300">467</span> results

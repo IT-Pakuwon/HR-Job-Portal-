@@ -164,12 +164,12 @@
                 <!-- Modal dengan Tab -->
                 <div id="modalForm"
                     class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black bg-opacity-30">
-                    <div class="relative w-full max-w-xl rounded-lg bg-white p-4">
+                    <div class="relative w-full max-w-xl rounded-lg bg-white p-4 dark:bg-gray-800">
                         <button onclick="closeModal()"
-                            class="absolute right-2 top-2 text-lg text-gray-500">&times;</button>
+                            class="absolute right-2 top-2 text-lg text-gray-500 dark:text-gray-400">&times;</button>
 
                         <!-- Tab -->
-                        <div class="mb-4 border-b border-gray-200">
+                        <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
                             <ul class="flex flex-wrap text-center text-sm font-medium" id="tabs">
                                 <li class="mr-2">
                                     <button type="button"
@@ -178,12 +178,12 @@
                                 </li>
                                 <li class="mr-2">
                                     <button type="button"
-                                        class="tab-button px-4 py-2 text-gray-600 hover:border-blue-600 hover:text-blue-600"
+                                        class="tab-button px-4 py-2 text-gray-600 hover:border-blue-600 hover:text-blue-600 dark:text-gray-400"
                                         onclick="switchTab('employee')">Add Employee</button>
                                 </li>
                                 <li class="mr-2">
                                     <button type="button"
-                                        class="tab-button px-4 py-2 text-gray-600 hover:border-blue-600 hover:text-blue-600"
+                                        class="tab-button px-4 py-2 text-gray-600 hover:border-blue-600 hover:text-blue-600 dark:text-gray-400"
                                         onclick="switchTab('departement')">Add Departement</button>
                                 </li>
                             </ul>
@@ -192,14 +192,14 @@
                         <!-- Tab Content: View Employee -->
                         <div id="tab-view" class="tab-content hidden">
                             <h3 class="mb-4 text-sm font-semibold">Employee List</h3>
-                            <table class="w-full border border-gray-200 bg-blue-300 text-sm text-black">
+                            <table class="w-full border border-gray-200 bg-blue-300 text-sm text-black dark:text-white dark:border-gray-700">
                                 <thead>
                                     <tr class="text-left">
-                                        <th class="border border-gray-200 px-2 py-1">No</th>
-                                        <th class="border border-gray-200 px-2 py-1">Name</th>
-                                        <th class="border border-gray-200 px-2 py-1">Company</th>
-                                        <th class="border border-gray-200 px-2 py-1">Jabatan</th>
-                                        <th class="border border-gray-200 px-2 py-1">Foto</th>
+                                        <th class="border border-gray-200 px-2 py-1 dark:border-gray-700">No</th>
+                                        <th class="border border-gray-200 px-2 py-1 dark:border-gray-700">Name</th>
+                                        <th class="border border-gray-200 px-2 py-1 dark:border-gray-700">Company</th>
+                                        <th class="border border-gray-200 px-2 py-1 dark:border-gray-700">Jabatan</th>
+                                        <th class="border border-gray-200 px-2 py-1 dark:border-gray-700">Foto</th>
                                     </tr>
                                 </thead>
                                 <tbody id="employeeTableBody">
@@ -216,7 +216,7 @@
                                 <input type="hidden" name="approval_line" id="modalApprovalLine">
                                 <input type="hidden" name="full_name" value="Vacant">
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700">Company</label>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                                     <select
                                         class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
                                         name="cpnyid" required>
@@ -226,7 +226,7 @@
                                     </select>
                                 </div>
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700">Position</label>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Position</label>
                                     <select
                                         class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
                                         name="job_position" required>
@@ -236,14 +236,14 @@
                                     </select>
                                 </div>
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700">Qty</label>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Qty</label>
                                     <input type="number" name="qty"
-                                        class="mt-1 block w-full rounded-md border border-gray-300 p-2" value="1"
+                                        class="mt-1 block w-full rounded-md border border-gray-300 p-2 dark:border-gray-700" value="1"
                                         required>
                                 </div>
                                 {{-- <div class="mb-4">
-                                    <label class="block  text-sm  font-medium text-gray-700">URL Foto</label>
-                                    <input type="url" name="avatar_local" placeholder="https://..." class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">URL Foto</label>
+                                    <input type="url" name="avatar_local" placeholder="https://..." class="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:border-gray-700">
                                 </div> --}}
                                 <input type="hidden" name="status_talenta" value="Active">
                                 <div class="mt-4">
@@ -260,13 +260,13 @@
                                 @csrf
                                 <input type="hidden" name="approval_line" id="modalApprovalLine">
                                 {{-- <div class="mb-4">
-                                    <label class="block  text-sm  font-medium text-gray-700">Departement</label>
-                                    <input type="text" name="departement_name" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Departement</label>
+                                    <input type="text" name="departement_name" class="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:border-gray-700" required>
                                 </div> --}}
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700">Departement</label>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Departement</label>
                                     <select id="departement_name_select" name="departement_name"
-                                        class="mt-1 block w-full rounded-md border border-gray-300 p-2" required>
+                                        class="mt-1 block w-full rounded-md border border-gray-300 p-2 dark:border-gray-700" required>
                                         @foreach ($departements as $dept)
                                             <option value="{{ $dept->deptname }}">{{ $dept->deptname }}</option>
                                         @endforeach
@@ -283,32 +283,32 @@
                 </div>
             </div>
             <div class="col-span-12 lg:col-span-3">
-                <div class="rounded bg-white p-4 shadow">
+                <div class="rounded bg-white p-4 shadow dark:bg-gray-800">
                     <h3 class="mb-4 text-sm font-semibold">Header Info</h3>
                     <form id="headerForm" method="POST" action="#">
                         @csrf
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700">STO ID</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">STO ID</label>
                             <input type="text" name="sto_id"
-                                class="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 p-2"
+                                class="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 p-2 dark:bg-gray-900 dark:border-gray-700"
                                 placeholder="STO ID" readonly>
                         </div>
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700">Date</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date</label>
                             <input type="date" name="sto_date"
-                                class="mt-1 block w-full rounded-md border border-gray-300 p-2"
+                                class="mt-1 block w-full rounded-md border border-gray-300 p-2 dark:border-gray-700"
                                 value="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" required>
                         </div>
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700">Created</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Created</label>
                             <input type="text" name="user"
-                                class="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 p-2"
+                                class="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 p-2 dark:bg-gray-900 dark:border-gray-700"
                                 placeholder="Created" readonly>
                         </div>
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700">Status</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
                             <input type="text" name="status"
-                                class="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 p-2"
+                                class="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 p-2 dark:bg-gray-900 dark:border-gray-700"
                                 placeholder="Status" readonly>
                         </div>
                         <div class="mt-6 flex justify-between gap-2">
@@ -424,11 +424,11 @@
                             response.forEach((emp, index) => {
                                 html += `
                                 <tr>
-                                    <td class="border border-gray-200 px-2 py-1">${index + 1}</td>
-                                    <td class="border border-gray-200 px-2 py-1">${emp.employee_name}</td>
-                                    <td class="border border-gray-200 px-2 py-1">${emp.employee_company}</td>
-                                    <td class="border border-gray-200 px-2 py-1">${emp.employee_position}</td>
-                                    <td class="border border-gray-200 px-2 py-1 text-center">
+                                    <td class="border border-gray-200 px-2 py-1 dark:border-gray-700">${index + 1}</td>
+                                    <td class="border border-gray-200 px-2 py-1 dark:border-gray-700">${emp.employee_name}</td>
+                                    <td class="border border-gray-200 px-2 py-1 dark:border-gray-700">${emp.employee_company}</td>
+                                    <td class="border border-gray-200 px-2 py-1 dark:border-gray-700">${emp.employee_position}</td>
+                                    <td class="border border-gray-200 px-2 py-1 text-center dark:border-gray-700">
                                         ${emp.image ? `<img src="${emp.image}" class="w-15 h-15 rounded-full mx-auto">` : '-'}
                                     </td>
                                 </tr>

@@ -487,10 +487,13 @@ class DocumentNotificationService
         // ── 8. Comment activity: @mention notifies only the mentioned user(s); a plain
         //      comment (no valid mention) notifies the creator + approval line instead ──
         try {
+            // 'terminalStatuses' (checked against 'statusCol', default 'status') marks a document
+            // as fully approved/completed — once it's there, new comments on it no longer notify
+            // anyone (see the terminal-status check in the row loop below).
             $commentDocTypes = [
-                'TIC' => ['model' => TrTicket::class,       'idCol' => 'ticketid', 'url' => '/showticket'],
-                'ACR' => ['model' => TrAccess::class,        'idCol' => 'docid',    'url' => '/showaccessrequest'],
-                'ITR' => ['model' => TrItrecommend::class,   'idCol' => 'docid',    'url' => '/showitrecommendation'],
+                'TIC' => ['model' => TrTicket::class,       'idCol' => 'ticketid', 'url' => '/showticket',           'statusCol' => 'status_pekerjaan', 'terminalStatuses' => ['COMPLETED', 'CANCEL', 'ENVISION CHECKED / SOLVED']],
+                'ACR' => ['model' => TrAccess::class,        'idCol' => 'docid',    'url' => '/showaccessrequest',    'terminalStatuses' => ['F']],
+                'ITR' => ['model' => TrItrecommend::class,   'idCol' => 'docid',    'url' => '/showitrecommendation', 'terminalStatuses' => ['C']],
                 'PRJ' => ['model' => \App\Models\MsProject::class,     'idCol' => 'project_id', 'url' => '/projects'],
                 'TSK' => ['model' => \App\Models\TrProjectTask::class, 'idCol' => 'task_id',    'url' => '/projects'],
             ];
@@ -500,6 +503,10 @@ class DocumentNotificationService
                     'model' => $extCfg['model'],
                     'idCol' => $extCfg['idCol'],
                     'url'   => $extCfg['url'],
+                    // All extended doctypes reach 'C' on final approval via ApprovalController's
+                    // onComplete closures, except RC (TrRfca), which has no reliable header-status
+                    // terminal value yet — leave it unfiltered rather than guess wrong.
+                    'terminalStatuses' => $extDoctype === 'RC' ? [] : ['C'],
                 ];
             }
 
@@ -524,6 +531,16 @@ class DocumentNotificationService
                     $doc = $cfg['model']::where($cfg['idCol'], $row->refnbr)->first();
                     if (!$doc) {
                         continue;
+                    }
+
+                    // Document has reached its terminal/completed status — stop surfacing
+                    // comment & mention notifications for it, regardless of when they were posted.
+                    if (!empty($cfg['terminalStatuses'])) {
+                        $statusCol = $cfg['statusCol'] ?? 'status';
+                        $docStatus = strtoupper(trim((string) ($doc->{$statusCol} ?? '')));
+                        if (in_array($docStatus, $cfg['terminalStatuses'], true)) {
+                            continue;
+                        }
                     }
 
                     $hid = self::commentDocHid($commentDoctype, $doc);

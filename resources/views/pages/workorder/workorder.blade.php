@@ -219,13 +219,13 @@
     <!-- Modal Create WI -->
     <div id="createWiModal" class="fixed inset-0 z-10 hidden overflow-y-auto">
         <div class="flex min-h-screen items-center justify-center px-4">
-            <div class="w-full max-w-4xl overflow-hidden rounded-lg bg-white">
+            <div class="w-full max-w-4xl overflow-hidden rounded-lg bg-white dark:bg-gray-800">
                 <div class="border-b p-4">
                     <h2 class="text-base font-semibold">Create Work Instruction</h2>
                 </div>
                 <div class="space-y-4 p-4">
                     <!-- Top Info Section -->
-                    <div class="grid grid-cols-2 gap-4 rounded bg-gray-100 p-4 text-sm">
+                    <div class="grid grid-cols-2 gap-4 rounded bg-gray-100 p-4 text-sm dark:bg-gray-900">
                         <div><strong>DocID:</strong> <span id="wi_docid"></span></div>
                         <div><strong>Task Date:</strong> <span id="wi_taskdate"></span></div>
                         <div><strong>Company:</strong> <span id="wi_cpnyid"></span></div>

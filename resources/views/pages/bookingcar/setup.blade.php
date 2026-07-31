@@ -3,7 +3,7 @@
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- HEADER TAB --}}
-        <div class="mb-4 rounded-2xl border border-gray-200 bg-white p-2 shadow-sm">
+        <div class="mb-4 rounded-2xl border border-gray-200 bg-white p-2 shadow-sm dark:bg-gray-800 dark:border-gray-700">
 
             <div class="flex flex-wrap gap-2">
 
@@ -295,7 +295,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="closeCreateVehicleModal()"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -383,7 +383,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="closeCreateDriverModal()"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -409,7 +409,7 @@
 
             <div class="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
 
-                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
                     <h2 class="text-lg font-semibold">
                         Add Category
                     </h2>
@@ -426,35 +426,35 @@
                     <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
 
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-gray-700">
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Category ID
                             </label>
                             <input type="text" name="categoryid"
-                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm" required>
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm dark:border-gray-700" required>
                         </div>
 
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-gray-700">
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Category Name
                             </label>
                             <input type="text" name="category_name"
-                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm" required>
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm dark:border-gray-700" required>
                         </div>
 
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-gray-700">
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Group
                             </label>
                             <input type="text" name="groups"
-                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm">
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm dark:border-gray-700">
                         </div>
 
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-gray-700">
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Type
                             </label>
                             <input type="text" name="type"
-                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm">
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm dark:border-gray-700">
                         </div>
 
                     </div>
@@ -463,7 +463,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="closeCreateCategoryModal()"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -553,7 +553,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="closeEditVehicleModal()"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -642,7 +642,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="closeEditDriverModal()"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -741,7 +741,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="closeEditCategoryModal()"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 

@@ -154,7 +154,7 @@
 
                     <div class="mt-6 flex justify-end gap-2">
                         <button type="button" id="closeModal"
-                            class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-50 focus:outline-none dark:border-gray-600 dark:text-gray-300">
+                            class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-50 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
                             Batal
                         </button>
                         <button type="submit"
@@ -257,7 +257,7 @@
 
                     <div class="mt-6 flex justify-end gap-2">
                         <button type="button" id="closeModalsign"
-                            class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-50 focus:outline-none dark:border-gray-600 dark:text-gray-300">
+                            class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-50 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
                             Batal
                         </button>
                         <button type="submit"
@@ -355,7 +355,7 @@
                     </div>
                     <div class="flex justify-end gap-2">
                         <button type="button" id="salaryModalCancel"
-                            class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-50 focus:outline-none dark:border-gray-600 dark:text-gray-300">
+                            class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-50 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
                             Batal
                         </button>
                         <button type="submit"

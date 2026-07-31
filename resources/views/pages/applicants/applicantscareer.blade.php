@@ -162,28 +162,28 @@
                             <div class="bg-white px-5 py-4 dark:bg-gray-800">
                                 <div class="mb-1 flex items-center gap-2">
                                     <span class="flex h-5 w-5 items-center justify-center rounded bg-[#1877F2] text-[9px] font-black text-white">f</span>
-                                    <span class="text-xs font-semibold text-gray-500">Facebook</span>
+                                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">Facebook</span>
                                 </div>
                                 <p class="break-all text-sm text-gray-800 dark:text-gray-200">{{ $applicant->sosmed_facebook_account ?: '—' }}</p>
                             </div>
                             <div class="bg-white px-5 py-4 dark:bg-gray-800">
                                 <div class="mb-1 flex items-center gap-2">
                                     <span class="flex h-5 w-5 items-center justify-center rounded bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 text-[9px] font-black text-white">ig</span>
-                                    <span class="text-xs font-semibold text-gray-500">Instagram</span>
+                                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">Instagram</span>
                                 </div>
                                 <p class="break-all text-sm text-gray-800 dark:text-gray-200">{{ $applicant->sosmed_instagram_account ?: '—' }}</p>
                             </div>
                             <div class="bg-white px-5 py-4 dark:bg-gray-800">
                                 <div class="mb-1 flex items-center gap-2">
                                     <span class="flex h-5 w-5 items-center justify-center rounded bg-black text-[9px] font-black text-white">&#120143;</span>
-                                    <span class="text-xs font-semibold text-gray-500">Twitter / X</span>
+                                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">Twitter / X</span>
                                 </div>
                                 <p class="break-all text-sm text-gray-800 dark:text-gray-200">{{ $applicant->sosmed_x_account ?: '—' }}</p>
                             </div>
                             <div class="bg-white px-5 py-4 dark:bg-gray-800">
                                 <div class="mb-1 flex items-center gap-2">
                                     <span class="flex h-5 w-5 items-center justify-center rounded bg-[#0A66C2] text-[9px] font-black text-white">in</span>
-                                    <span class="text-xs font-semibold text-gray-500">LinkedIn</span>
+                                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">LinkedIn</span>
                                 </div>
                                 <p class="break-all text-sm text-gray-800 dark:text-gray-200">{{ $applicant->sosmed_linkedin_account ?: '—' }}</p>
                             </div>

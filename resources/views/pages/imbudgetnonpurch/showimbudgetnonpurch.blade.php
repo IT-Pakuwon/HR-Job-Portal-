@@ -126,7 +126,7 @@
 
                             <div class="col-span-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                                 <div class="flex flex-col">
-                                    <span class="text-gray-500">Purpose / Description</span>
+                                    <span class="text-gray-500 dark:text-gray-400">Purpose / Description</span>
                                     <span class="font-medium text-gray-900 dark:text-gray-300">
                                         {{ $header->imbudgetkeperluan ?? '-' }}
                                     </span>
@@ -156,21 +156,21 @@
                                 @if ($type === 'Budget Reallocation')
                                     <div class="grid grid-cols-1 gap-3 text-sm md:grid-cols-3">
                                         <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
-                                            <span class="text-gray-500">Request Budget</span>
+                                            <span class="text-gray-500 dark:text-gray-400">Request Budget</span>
                                             <div class="mt-1 font-semibold text-indigo-600">
                                                 {{ $money($header->request_budget) }}
                                             </div>
                                         </div>
 
                                         <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
-                                            <span class="text-gray-500">Budget From</span>
+                                            <span class="text-gray-500 dark:text-gray-400">Budget From</span>
                                             <div class="mt-1 font-semibold text-gray-900 dark:text-gray-200">
                                                 {{ $money($header->budget_from) }}
                                             </div>
                                         </div>
 
                                         <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
-                                            <span class="text-gray-500">Budget To</span>
+                                            <span class="text-gray-500 dark:text-gray-400">Budget To</span>
                                             <div class="mt-1 font-semibold text-green-600">
                                                 {{ $money($header->budget_to) }}
                                             </div>
@@ -179,14 +179,14 @@
                                 @elseif ($type === 'Unbudgeted')
                                     <div class="grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
                                         <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
-                                            <span class="text-gray-500">Request Budget</span>
+                                            <span class="text-gray-500 dark:text-gray-400">Request Budget</span>
                                             <div class="mt-1 font-semibold text-indigo-600">
                                                 {{ $money($header->request_budget) }}
                                             </div>
                                         </div>
 
                                         <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
-                                            <span class="text-gray-500">Expenditure</span>
+                                            <span class="text-gray-500 dark:text-gray-400">Expenditure</span>
                                             <div class="mt-1 font-semibold text-gray-900 dark:text-gray-200">
                                                 {{ $header->expenditure_type ?? '-' }}
                                             </div>
@@ -195,21 +195,21 @@
                                 @elseif ($type === 'Over Budget')
                                     <div class="grid grid-cols-1 gap-3 text-sm md:grid-cols-3">
                                         <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
-                                            <span class="text-gray-500">Request Budget</span>
+                                            <span class="text-gray-500 dark:text-gray-400">Request Budget</span>
                                             <div class="mt-1 font-semibold text-indigo-600">
                                                 {{ $money($header->request_budget) }}
                                             </div>
                                         </div>
 
                                         <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
-                                            <span class="text-gray-500">Existing Budget</span>
+                                            <span class="text-gray-500 dark:text-gray-400">Existing Budget</span>
                                             <div class="mt-1 font-semibold text-gray-900 dark:text-gray-200">
                                                 {{ $money($header->existing_budget) }}
                                             </div>
                                         </div>
 
                                         <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
-                                            <span class="text-gray-500">Over Budget</span>
+                                            <span class="text-gray-500 dark:text-gray-400">Over Budget</span>
                                             <div class="mt-1 font-semibold {{ (float) $header->over_budget < 0 ? 'text-red-600' : 'text-green-600' }}">
                                                 {{ $money($header->over_budget) }}
                                             </div>
@@ -218,42 +218,42 @@
                                 @else
                                     <div class="grid grid-cols-1 gap-3 text-sm md:grid-cols-3">
                                         <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
-                                            <span class="text-gray-500">Request Budget</span>
+                                            <span class="text-gray-500 dark:text-gray-400">Request Budget</span>
                                             <div class="mt-1 font-semibold text-indigo-600">
                                                 {{ $money($header->request_budget) }}
                                             </div>
                                         </div>
 
                                         <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
-                                            <span class="text-gray-500">Budget From</span>
+                                            <span class="text-gray-500 dark:text-gray-400">Budget From</span>
                                             <div class="mt-1 font-semibold">
                                                 {{ $money($header->budget_from) }}
                                             </div>
                                         </div>
 
                                         <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
-                                            <span class="text-gray-500">Budget To</span>
+                                            <span class="text-gray-500 dark:text-gray-400">Budget To</span>
                                             <div class="mt-1 font-semibold">
                                                 {{ $money($header->budget_to) }}
                                             </div>
                                         </div>
 
                                         <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
-                                            <span class="text-gray-500">Expenditure</span>
+                                            <span class="text-gray-500 dark:text-gray-400">Expenditure</span>
                                             <div class="mt-1 font-semibold">
                                                 {{ $header->expenditure_type ?? '-' }}
                                             </div>
                                         </div>
 
                                         <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
-                                            <span class="text-gray-500">Existing Budget</span>
+                                            <span class="text-gray-500 dark:text-gray-400">Existing Budget</span>
                                             <div class="mt-1 font-semibold">
                                                 {{ $money($header->existing_budget) }}
                                             </div>
                                         </div>
 
                                         <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
-                                            <span class="text-gray-500">Over Budget</span>
+                                            <span class="text-gray-500 dark:text-gray-400">Over Budget</span>
                                             <div class="mt-1 font-semibold text-red-600">
                                                 {{ $money($header->over_budget) }}
                                             </div>
@@ -316,7 +316,7 @@
 
                                             <div class="flex items-center gap-3">
                                                 <input type="file" id="attachFiles" name="attachments[]" multiple
-                                                    class="block w-full rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm">
+                                                    class="block w-full rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm dark:bg-gray-800 dark:border-gray-700">
 
                                                 <button type="button" id="btnUploadAttachment"
                                                     class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-xs font-semibold text-white">
@@ -324,7 +324,7 @@
                                                 </button>
 
                                                 <button type="button" id="btnResetAttachment"
-                                                    class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700">
+                                                    class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
                                                     Reset
                                                 </button>
                                             </div>
@@ -337,7 +337,7 @@
                             <div x-show="activeTab === 'approval'" class="flex-1 overflow-y-auto px-4">
                                 <table class="w-full text-sm">
                                     <thead>
-                                        <tr class="border-b border-gray-200 text-gray-600">
+                                        <tr class="border-b border-gray-200 text-gray-600 dark:text-gray-400 dark:border-gray-700">
                                             <th class="p-3 text-left font-semibold">Level</th>
                                             <th class="p-3 text-left font-semibold">Name</th>
                                             <th class="p-3 text-left font-semibold">Date</th>
@@ -352,12 +352,12 @@
                             <div x-show="activeTab === 'comments'" class="flex-1 overflow-y-auto px-4">
                                 <div class="flex h-full flex-col">
                                     <div id="commentList" class="custom-scrollbar flex-1 space-y-4 overflow-y-auto p-4">
-                                        <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                        <p class="py-4 text-center italic text-gray-500 dark:text-gray-400">Loading comments...</p>
                                     </div>
 
-                                    <div class="flex items-center gap-3 border-t border-gray-200 p-4">
+                                    <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
                                         <input id="commentInput" type="text" placeholder="Write a comment..."
-                                            class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none">
+                                            class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none dark:bg-gray-900 dark:text-gray-200">
 
                                         <button id="postCommentBtn" type="button"
                                             class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white">
@@ -423,7 +423,7 @@
                                         <div class="font-semibold">
                                             {{ number_format((float) $item->qty, 2, ',', '.') }}
                                         </div>
-                                        <div class="text-xs text-gray-500">
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">
                                             {{ $item->uom }}
                                         </div>
                                     </td>
@@ -476,7 +476,7 @@
 
                                                 <span class="text-gray-400">•</span>
 
-                                                <span class="max-w-[240px] truncate text-gray-500">
+                                                <span class="max-w-[240px] truncate text-gray-500 dark:text-gray-400">
                                                     {{ $item->budget_activity_descr ?? '-' }}
                                                 </span>
                                             </div>
@@ -499,14 +499,14 @@
                             Edit COA
                         </h3>
                         <button id="btnCloseEditCoa"
-                            class="inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-500 hover:bg-gray-200">
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-gray-400">
                             ✕
                         </button>
                     </div>
 
                     <div class="max-h-[60vh] overflow-y-auto px-4 py-3">
                         <table class="w-full min-w-max border-separate border-spacing-0 text-sm">
-                            <thead class="bg-gray-100 text-sm font-semibold uppercase tracking-wide text-gray-600">
+                            <thead class="bg-gray-100 text-sm font-semibold uppercase tracking-wide text-gray-600 dark:bg-gray-900 dark:text-gray-400">
                                 <tr>
                                     <th class="w-64 px-3 py-2 text-left">Description / Note</th>
                                     <th class="w-24 px-3 py-2 text-center">Qty / UOM</th>
@@ -526,14 +526,14 @@
 
                                         <td class="px-3 py-2">
                                             {{ $rowDetail->imnonpurchase_descr }}<br>
-                                            <span class="text-sm text-gray-500">
+                                            <span class="text-sm text-gray-500 dark:text-gray-400">
                                                 Note: {{ $rowDetail->imnonpurchase_note }}
                                             </span>
                                         </td>
 
                                         <td class="px-3 py-2 text-center">
                                             {{ number_format((float) $rowDetail->qty, 2, ',', '.') }}<br>
-                                            <span class="text-sm text-gray-500">{{ $rowDetail->uom }}</span>
+                                            <span class="text-sm text-gray-500 dark:text-gray-400">{{ $rowDetail->uom }}</span>
                                         </td>
 
                                         <td class="px-3 py-2">
@@ -542,7 +542,7 @@
 
                                         <td class="space-y-2 px-3 py-2">
                                             <div class="flex items-center justify-between gap-2">
-                                                <div class="text-xs text-gray-600">
+                                                <div class="text-xs text-gray-600 dark:text-gray-400">
                                                     <span class="font-semibold">Selected:</span>
                                                     <span class="picked-coa-text">
                                                         @if ($rowDetail->budget_account_id)
@@ -572,9 +572,9 @@
                         </table>
                     </div>
 
-                    <div class="flex items-center justify-end gap-2 border-t border-gray-200 px-4 py-3">
+                    <div class="flex items-center justify-end gap-2 border-t border-gray-200 px-4 py-3 dark:border-gray-700">
                         <button id="btnCancelEditCoa"
-                            class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+                            class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
                             Cancel
                         </button>
                         <button id="btnSaveEditCoa"
@@ -588,49 +588,49 @@
             {{-- COA PICKER MODAL --}}
             <div id="coaPickerModal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/50">
                 <div class="w-full max-w-6xl rounded-xl bg-white shadow-lg dark:bg-gray-800">
-                    <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+                    <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
                         <div>
-                            <h3 class="text-sm font-semibold text-gray-800">Pick COA</h3>
-                            <p class="text-xs text-gray-500">
+                            <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-200">Pick COA</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">
                                 Filter: Company, Business Unit, Dept Fin lalu pilih COA.
                             </p>
                         </div>
                         <button id="btnCloseCoaPicker"
-                            class="inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-500 hover:bg-gray-200">
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-gray-400">
                             ✕
                         </button>
                     </div>
 
-                    <div class="grid grid-cols-1 gap-3 border-b border-gray-200 p-4 sm:grid-cols-4">
+                    <div class="grid grid-cols-1 gap-3 border-b border-gray-200 p-4 sm:grid-cols-4 dark:border-gray-700">
                         <div>
-                            <label class="mb-1 block text-xs font-semibold text-gray-700">Company</label>
-                            <select id="fCpny" class="w-full rounded-md border border-gray-300 px-2 py-2 text-sm">
+                            <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-300">Company</label>
+                            <select id="fCpny" class="w-full rounded-md border border-gray-300 px-2 py-2 text-sm dark:border-gray-700">
                                 <option value="">-- pilih --</option>
                             </select>
                         </div>
 
                         <div>
-                            <label class="mb-1 block text-xs font-semibold text-gray-700">Business Unit</label>
-                            <select id="fBu" class="w-full rounded-md border border-gray-300 px-2 py-2 text-sm">
+                            <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-300">Business Unit</label>
+                            <select id="fBu" class="w-full rounded-md border border-gray-300 px-2 py-2 text-sm dark:border-gray-700">
                                 <option value="">-- pilih --</option>
                             </select>
                         </div>
 
                         <div>
-                            <label class="mb-1 block text-xs font-semibold text-gray-700">Department Fin</label>
-                            <select id="fDeptFin" class="w-full rounded-md border border-gray-300 px-2 py-2 text-sm">
+                            <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-300">Department Fin</label>
+                            <select id="fDeptFin" class="w-full rounded-md border border-gray-300 px-2 py-2 text-sm dark:border-gray-700">
                                 <option value="">-- pilih --</option>
                             </select>
                         </div>
 
                         <div>
-                            <label class="mb-1 block text-xs font-semibold text-gray-700">Search</label>
+                            <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-300">Search</label>
                             <input id="fSearch" type="text" placeholder="account / activity..."
-                                class="w-full rounded-md border border-gray-300 px-2 py-2 text-sm">
+                                class="w-full rounded-md border border-gray-300 px-2 py-2 text-sm dark:border-gray-700">
                         </div>
 
                         <div class="flex items-center justify-between gap-2 sm:col-span-4">
-                            <div class="text-xs text-gray-500">
+                            <div class="text-xs text-gray-500 dark:text-gray-400">
                                 <span id="coaPickerInfo">0 rows</span>
                             </div>
 
@@ -640,7 +640,7 @@
                                     Apply
                                 </button>
                                 <button id="btnCoaPickerReset"
-                                    class="rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100">
+                                    class="rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
                                     Reset
                                 </button>
                             </div>
@@ -649,7 +649,7 @@
 
                     <div class="max-h-[60vh] overflow-y-auto p-4">
                         <table class="w-full text-sm">
-                            <thead class="sticky top-0 bg-gray-100 text-gray-700">
+                            <thead class="sticky top-0 bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300">
                                 <tr>
                                     <th class="p-2 text-left">Account</th>
                                     <th class="p-2 text-left">Account Descr</th>
@@ -662,7 +662,7 @@
                             </thead>
                             <tbody id="coaPickerTbody">
                                 <tr>
-                                    <td colspan="7" class="p-4 text-center italic text-gray-500">
+                                    <td colspan="7" class="p-4 text-center italic text-gray-500 dark:text-gray-400">
                                         Pilih filter lalu Apply
                                     </td>
                                 </tr>
@@ -670,18 +670,18 @@
                         </table>
                     </div>
 
-                    <div class="flex items-center justify-between border-t border-gray-200 px-4 py-3">
-                        <div class="text-xs text-gray-500">
+                    <div class="flex items-center justify-between border-t border-gray-200 px-4 py-3 dark:border-gray-700">
+                        <div class="text-xs text-gray-500 dark:text-gray-400">
                             Page: <span id="coaPickerPage">1</span>
                         </div>
 
                         <div class="flex gap-2">
                             <button id="coaPickerPrev"
-                                class="rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100">
+                                class="rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
                                 Prev
                             </button>
                             <button id="coaPickerNext"
-                                class="rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100">
+                                class="rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
                                 Next
                             </button>
                         </div>
@@ -691,10 +691,10 @@
 
             {{-- TOOLTIP --}}
             <div id="budgetTooltip"
-                class="fixed z-[9999] hidden w-72 rounded-xl border border-gray-200 bg-white p-4 text-sm shadow-sm">
+                class="fixed z-[9999] hidden w-72 rounded-xl border border-gray-200 bg-white p-4 text-sm shadow-sm dark:bg-gray-800 dark:border-gray-700">
                 <div class="space-y-1">
-                    <div id="ttDesc" class="font-semibold text-gray-900"></div>
-                    <div class="text-xs text-gray-500">
+                    <div id="ttDesc" class="font-semibold text-gray-900 dark:text-gray-100"></div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">
                         <span id="ttAccount"></span>
                         <span class="mx-1 text-gray-300">|</span>
                         <span id="ttCoa"></span>
@@ -703,7 +703,7 @@
                     </div>
                 </div>
 
-                <div class="my-3 border-t border-gray-200"></div>
+                <div class="my-3 border-t border-gray-200 dark:border-gray-700"></div>
 
                 <div class="space-y-1.5">
                     <div class="flex justify-between">
@@ -726,7 +726,7 @@
                         <span id="ttUsed" class="text-red-500"></span>
                     </div>
 
-                    <div class="my-2 border-t border-gray-200"></div>
+                    <div class="my-2 border-t border-gray-200 dark:border-gray-700"></div>
 
                     <div class="flex justify-between font-semibold">
                         <span>Available</span>
@@ -757,7 +757,7 @@
                 placeholder="Enter rejection reason..."></textarea>
 
             <div class="mt-4 flex justify-between">
-                <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
                     Cancel
                 </button>
                 <button id="confirmRejectBtn" class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600">
@@ -777,7 +777,7 @@
                 placeholder="Enter revise reason..."></textarea>
 
             <div class="mt-4 flex justify-between">
-                <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
                     Cancel
                 </button>
                 <button id="confirmReviseBtn" class="rounded-lg bg-gray-500 px-4 py-2 text-white hover:bg-gray-600">
@@ -811,7 +811,7 @@
 
             function loadComments() {
                 let commentList = $('#commentList');
-                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>');
+                commentList.html('<p class="text-gray-500 italic dark:text-gray-400">Loading comments...</p>');
 
                 $.ajax({
                     url: `/comments/${DOC_TYPE}/${DOC_ID}`,
@@ -821,7 +821,7 @@
 
                         if (!response.comments || response.comments.length === 0) {
                             commentList.append(
-                                '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
+                                '<p class="text-gray-500 text-sm italic dark:text-gray-400">No comments yet. Be the first to comment!</p>'
                             );
                             return;
                         }
@@ -834,7 +834,7 @@
                                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
                                     <p class="text-sm font-semibold">
                                         ${comment.username}
-                                        <span class="text-sm text-gray-500">(${timeAgo})</span>
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">(${timeAgo})</span>
                                     </p>
                                     <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
                                 </div>
@@ -908,7 +908,7 @@
 
                     (res.data || []).forEach(row => {
                         tbody.innerHTML += `
-                            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <tr class="border-b border-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700">
                                 <td class="px-3 py-2">${row.aprv_leveling}</td>
                                 <td class="px-3 py-2">${row.aprv_name}</td>
                                 <td class="px-3 py-2">
@@ -1102,7 +1102,7 @@
                 if (!rows || !rows.length) {
                     $tb.append(`
                         <tr>
-                            <td colspan="4" class="p-4 text-center italic text-gray-500">
+                            <td colspan="4" class="p-4 text-center italic text-gray-500 dark:text-gray-400">
                                 No attachments found.
                             </td>
                         </tr>
@@ -1116,10 +1116,10 @@
 
                     const linkHtml = at.url
                         ? `<a href="${at.url}" target="_blank" class="font-medium text-indigo-600 hover:underline">📎 ${fileName}</a>`
-                        : `<span class="font-medium text-gray-700">📎 ${fileName}</span>`;
+                        : `<span class="font-medium text-gray-700 dark:text-gray-300">📎 ${fileName}</span>`;
 
                     $tb.append(`
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                        <tr class="border-b border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-700">
                             <td class="px-3 py-2">${linkHtml}</td>
                             <td class="px-3 py-2">${at.type || '-'}</td>
                             <td class="px-3 py-2">${at.created_by || '-'}</td>
@@ -1269,7 +1269,7 @@
 
                 $('#coaPickerTbody').html(`
                     <tr>
-                        <td colspan="7" class="p-4 text-center text-gray-500 italic">
+                        <td colspan="7" class="p-4 text-center text-gray-500 italic dark:text-gray-400">
                             Klik Apply untuk load
                         </td>
                     </tr>
@@ -1298,13 +1298,13 @@
                 const $tb = $('#coaPickerTbody').empty();
 
                 if (!rows || !rows.length) {
-                    $tb.append('<tr><td colspan="7" class="p-4 text-center text-gray-500 italic">No data</td></tr>');
+                    $tb.append('<tr><td colspan="7" class="p-4 text-center text-gray-500 italic dark:text-gray-400">No data</td></tr>');
                     return;
                 }
 
                 rows.forEach(r => {
                     $tb.append(`
-                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                        <tr class="border-b border-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700">
                             <td class="p-2">${escapeHtml(r.account_id ?? '')}</td>
                             <td class="p-2">${escapeHtml(r.account_descr ?? '')}</td>
                             <td class="p-2">${escapeHtml(r.activity_id ?? '')}</td>
@@ -1391,7 +1391,7 @@
                 $('#fSearch').val('');
                 $('#coaPickerTbody').html(`
                     <tr>
-                        <td colspan="7" class="p-4 text-center text-gray-500 italic">
+                        <td colspan="7" class="p-4 text-center text-gray-500 italic dark:text-gray-400">
                             Pilih filter lalu Apply
                         </td>
                     </tr>

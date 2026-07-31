@@ -359,7 +359,7 @@
                             <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
                                 <div id="commentList"
                                     class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
-                                    <p class="py-4 text-center text-sm italic text-gray-500">Loading comments...</p>
+                                    <p class="py-4 text-center text-sm italic text-gray-500 dark:text-gray-400">Loading comments...</p>
                                 </div>
                                 <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
                                     <input id="commentInput" x-model="newComment" type="text"
@@ -434,7 +434,7 @@
                                                     class="inline-flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-gray-300 text-[10px] font-bold">i</span>
 
                                                 <div
-                                                    class="absolute right-0 top-5 z-40 hidden w-56 rounded-md border bg-white p-3 text-sm shadow-lg group-hover:block">
+                                                    class="absolute right-0 top-5 z-40 hidden w-56 rounded-md border bg-white p-3 text-sm shadow-lg group-hover:block dark:bg-gray-800">
                                                     <div><strong>Contact:</strong> {{ $v['vendorcp'] ?: '-' }}</div>
                                                     <div><strong>Phone:</strong> {{ $v['vendortelp'] ?: '-' }}</div>
                                                     <div><strong>Address:</strong> {{ $v['vendoralamat'] ?: '-' }}
@@ -578,7 +578,7 @@
                                                                         @endif
 
                                                                         {{-- Account --}}
-                                                                        <span class="font-semibold text-gray-700">
+                                                                        <span class="font-semibold text-gray-700 dark:text-gray-300">
                                                                             {{ $row->budget_account_id ?? '-' }}
                                                                         </span>
 
@@ -586,7 +586,7 @@
 
                                                                         {{-- Activity --}}
                                                                         <span
-                                                                            class="max-w-[200px] whitespace-normal break-words text-gray-500">
+                                                                            class="max-w-[200px] whitespace-normal break-words text-gray-500 dark:text-gray-400">
                                                                             {{ $row->budget_activity_descr ?? '-' }}
                                                                         </span>
 
@@ -594,13 +594,13 @@
                                                                 </div>
 
                                                                 <div id="budgetTooltip"
-                                                                    class="fixed z-[9999] hidden w-80 rounded-lg border border-gray-200 bg-white p-4 text-sm shadow-xl">
+                                                                    class="fixed z-[9999] hidden w-80 rounded-lg border border-gray-200 bg-white p-4 text-sm shadow-xl dark:bg-gray-800 dark:border-gray-700">
 
                                                                     <!-- HEADER -->
                                                                     <div class="mb-2 border-b pb-2">
                                                                         <div id="ttDesc"
-                                                                            class="font-semibold text-gray-800"></div>
-                                                                        <div class="text-xs text-gray-500">
+                                                                            class="font-semibold text-gray-800 dark:text-gray-200"></div>
+                                                                        <div class="text-xs text-gray-500 dark:text-gray-400">
                                                                             <span id="ttAccount"></span> •
                                                                             <span id="ttCoa"></span>
                                                                         </div>
@@ -833,12 +833,12 @@
                                         data-perpost="{{ $row->budget_perpost }}">
 
                                         <td>{{ $row->inventory_descr }}<br>
-                                            <span class="text-sm text-gray-500">{{ $row->csnote_detail }}</span>
+                                            <span class="text-sm text-gray-500 dark:text-gray-400">{{ $row->csnote_detail }}</span>
                                         </td>
 
                                         <td class="text-center">
                                             {{ number_format($row->qty, 2, ',', '.') }} <br>
-                                            <span class="text-sm text-gray-500">{{ $row->uom }}</span>
+                                            <span class="text-sm text-gray-500 dark:text-gray-400">{{ $row->uom }}</span>
                                         </td>
 
                                         <td>{{ $row->location_id }} - {{ $row->sub_location_id }}</td>
@@ -910,7 +910,7 @@
                 placeholder="Enter rejection reason..."></textarea>
 
             <div class="mt-4 flex justify-between">
-                <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
                     Cancel
                 </button>
                 <button id="confirmRejectBtn" class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600">
@@ -941,7 +941,7 @@
                 placeholder="Enter revise reason..."></textarea>
 
             <div class="mt-4 flex justify-between">
-                <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
                     Cancel
                 </button>
                 <button id="confirmReviseBtn"
@@ -980,7 +980,7 @@
 
             function loadComments(refnbr, doctype) {
                 let commentList = $('#commentList');
-                commentList.html('<p class="text-gray-500 text-sm italic">Loading comments...</p>');
+                commentList.html('<p class="text-gray-500 text-sm italic dark:text-gray-400">Loading comments...</p>');
 
                 $.ajax({
                     url: `/comments/${doctype}/${refnbr}`,
@@ -990,7 +990,7 @@
 
                         if (!response.comments || response.comments.length === 0) {
                             commentList.append(
-                                '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
+                                '<p class="text-gray-500 text-sm italic dark:text-gray-400">No comments yet. Be the first to comment!</p>'
                             );
                             return;
                         }
@@ -1004,7 +1004,7 @@
                                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
                                     <p class=" text-sm  font-semibold">
                                         ${comment.username}
-                                        <span class=" text-sm  text-gray-500">(${timeAgo})</span>
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">(${timeAgo})</span>
                                     </p>
                                     <p class="text-gray-800 text-sm dark:text-gray-200">${highlightMentions(comment.message)}</p>
                                 </div>

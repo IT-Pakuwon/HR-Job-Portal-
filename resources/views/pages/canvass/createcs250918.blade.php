@@ -174,17 +174,17 @@
                                 <summary
                                     class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                     <span>CS Detail</span>
-                                    <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden">See
+                                    <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
                                         details &rarr;</span>
                                     <span
-                                        class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline">Hide
+                                        class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                                         details &darr;</span>
                                 </summary>
                                 <div class="flex h-auto flex-col justify-start">
                                     <div class="overflow-x-auto">
                                         <table id="cvTable" class="w-max table-auto whitespace-nowrap border">
                                             <thead>
-                                                <tr class="bg-gray-100 align-top">
+                                                <tr class="bg-gray-100 align-top dark:bg-gray-900">
                                                     <th class="w-64 border px-3 py-2">Inventory Descr</th>
                                                     <th class="w-16 border px-3 py-2 text-center">Qty</th>
                                                     <th class="w-16 border px-3 py-2 text-center">UOM</th>
@@ -211,7 +211,7 @@
                                             </tbody>
 
                                             <tfoot>
-                                                <tr id="summaryRow" class="bg-gray-50 align-top">
+                                                <tr id="summaryRow" class="bg-gray-50 align-top dark:bg-gray-900">
                                                     <td colspan="4"
                                                         class="border px-3 py-2 text-right font-semibold">
                                                         Ringkasan
@@ -233,10 +233,10 @@
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Attachments</span>
-                                <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
                                     details &rarr;</span>
                                 <span
-                                    class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                                     details &darr;</span>
                             </summary>
                             <div class="flex flex-col pt-6">
@@ -425,7 +425,7 @@
                 const $th = $(`
                     <th id="th-vendor-${id}" class="border relative px-3 py-2" style="width:${colWidth}; max-width:${colWidth};">
                         <div class="font-semibold text-center">${v.vendor_name}</div>
-                        <div class="text-xs text-gray-500 leading-4 mt-0.5 whitespace-normal break-words">
+                        <div class="text-xs text-gray-500 leading-4 mt-0.5 whitespace-normal break-words dark:text-gray-400">
                             <div>✉️ ${v.contact_person ?? '-'}</div>
                             <div>☎️ ${v.phone_number ?? '-'}</div>
                             <div>🏠 ${v.vendor_addr1 ?? '-'}</div>
@@ -482,12 +482,12 @@
                     `);
 
                     const $total = $(
-                        `<small class="total-label text-right text-xs font-bold text-gray-600">0</small>`
+                        `<small class="total-label text-right text-xs font-bold text-gray-600 dark:text-gray-400">0</small>`
                     );
                     const $radio = $(`
                     <div class="flex justify-center mt-0.5">
                         <input type="radio" name="selected_vendor_${rowIdx}" value="${id}"
-                            class="pick-vendor h-3 w-3 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                            class="pick-vendor h-3 w-3 text-indigo-600 border-gray-300 focus:ring-indigo-500 dark:border-gray-700">
                     </div>
                     `);
 

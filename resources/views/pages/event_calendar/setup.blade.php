@@ -15,7 +15,7 @@
                     <h1 class="text-lg font-semibold tracking-tight text-gray-900 dark:text-gray-200">
                         Event Location Setup
                     </h1>
-                    <p class="mt-0.5 text-sm text-gray-500">
+                    <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
                         Manage the locations available for calendar events
                     </p>
                 </div>

@@ -36,7 +36,7 @@
                             Filter Role
                         </label>
                         <select id="filterRole"
-                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
                             <option value="">All Role</option>
                             @foreach ($roles as $r)
                                 <option value="{{ $r->role_id }}">{{ $r->role_name }}</option>
@@ -49,7 +49,7 @@
                             Filter Screen
                         </label>
                         <select id="filterScreen"
-                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
                             <option value="">All Screen</option>
                             @foreach ($screens as $s)
                                 <option value="{{ $s->menu_id }}">{{ $s->menu_name }}</option>
@@ -94,7 +94,7 @@
                 <div class="flex flex-wrap items-end gap-3">
                     <div class="min-w-[240px] flex-1">
                         <select id="matrixRole"
-                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
                             <option value="">-- Select a Role to manage its access rights --</option>
                             @foreach ($roles as $r)
                                 <option value="{{ $r->role_id }}">{{ $r->role_name }}</option>
@@ -103,7 +103,7 @@
                     </div>
                     <div id="matrixActions" class="hidden flex flex-wrap items-center gap-2">
                         <input id="matrixSearch" type="text" placeholder="Search screen..."
-                            class="rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                            class="rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
                         <button type="button" id="matrixSave"
                             class="rounded-lg bg-indigo-600 px-4 py-1 text-sm font-semibold text-white hover:bg-indigo-700">
                             Save Changes
@@ -228,7 +228,7 @@
                                     ADD
                                 </button>
                             </div>
-                            <p class="mt-1 text-sm text-gray-500">
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                 Ketik satu nama lalu klik ADD. Untuk beberapa nama, klik ADD berkali-kali.
                             </p>
                             <div id="customAccessContainer" class="mt-2 flex flex-wrap gap-3">
@@ -248,14 +248,14 @@
     </div>
     <div id="loadingOverlay"
         class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
-        <div class="flex items-center gap-3 rounded-xl bg-white px-6 py-4 shadow-lg">
+        <div class="flex items-center gap-3 rounded-xl bg-white px-6 py-4 shadow-lg dark:bg-gray-800">
             <svg class="h-6 w-6 animate-spin text-indigo-600" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10"
                     stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor"
                     d="M4 12a8 8 0 018-8v8H4z"></path>
             </svg>
-            <span class="text-sm font-semibold text-gray-700">Processing...</span>
+            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Processing...</span>
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

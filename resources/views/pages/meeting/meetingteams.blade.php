@@ -166,7 +166,7 @@
         </div>
 
         <div
-            class="dark:border-white/1 flex h-full flex-1 flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm min-h-0">
+            class="dark:border-white/1 flex h-full flex-1 flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm min-h-0 dark:bg-gray-800">
 
             <div class="relative flex-1 min-h-0 overflow-hidden">
 
@@ -196,7 +196,7 @@
                             </div>
 
                             <button type="button" id="closeScheduleModal"
-                                class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 dark:hover:bg-gray-800">
+                                class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-400">
                                 ✕
                             </button>
                         </div>
@@ -308,11 +308,11 @@
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
                             Meeting Details
                         </h2>
-                        <p class="text-xs text-gray-500">Teams / Zoom Booking</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Teams / Zoom Booking</p>
                     </div>
 
                     <button onclick="closeViewModal()"
-                        class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
+                        class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-400">
                         ✕
                     </button>
                 </div>
@@ -323,7 +323,7 @@
                     <!-- TITLE -->
                     <div>
                         <h2 id="view_title" class="text-xl font-semibold text-gray-900 dark:text-white"></h2>
-                        <p id="view_time" class="mt-1 text-sm text-gray-500"></p>
+                        <p id="view_time" class="mt-1 text-sm text-gray-500 dark:text-gray-400"></p>
                     </div>
 
                     <!-- META GRID (NOTION STYLE) -->
@@ -354,7 +354,7 @@
                     </div>
 
                     <!-- MEETING LINK (🔥 CLEAN NOTION STYLE) -->
-                    <div class="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:bg-gray-800">
+                    <div class="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:bg-gray-800 dark:border-gray-700">
 
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-medium uppercase tracking-wide text-gray-400">
@@ -795,7 +795,7 @@
                             </div>
 
                             ${isLongText ? `
-                                <pre class="whitespace-pre-wrap text-xs bg-white border rounded-lg p-3 overflow-auto max-h-64">${safeMeetingText}</pre>
+                                <pre class="whitespace-pre-wrap text-xs bg-white border rounded-lg p-3 overflow-auto max-h-64 dark:bg-gray-800">${safeMeetingText}</pre>
                             ` : ''}
 
                         </div>
@@ -810,7 +810,7 @@
                     if (isAdmin) {
                         action.innerHTML = `
                             <button onclick="enableEdit()"
-                                class="mt-2 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded">
+                                class="mt-2 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded dark:bg-gray-900 dark:hover:bg-gray-700">
                                 Edit
                             </button>
                         `;
@@ -851,7 +851,7 @@
                 <div class="space-y-3">
 
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">
+                        <label class="block text-xs text-gray-500 mb-1 dark:text-gray-400">
                             Zoom Meeting Link
                         </label>
 
@@ -901,7 +901,7 @@
                 <div class="space-y-4">
 
                     <div>
-                        <label class="block mb-1 text-xs text-gray-500">
+                        <label class="block mb-1 text-xs text-gray-500 dark:text-gray-400">
                             Meeting Title
                         </label>
 
@@ -917,7 +917,7 @@
                     <div class="grid grid-cols-2 gap-4">
 
                         <div>
-                            <label class="block mb-1 text-xs text-gray-500">
+                            <label class="block mb-1 text-xs text-gray-500 dark:text-gray-400">
                                 Start Time
                             </label>
 
@@ -930,7 +930,7 @@
                         </div>
 
                         <div>
-                            <label class="block mb-1 text-xs text-gray-500">
+                            <label class="block mb-1 text-xs text-gray-500 dark:text-gray-400">
                                 End Time
                             </label>
 
@@ -945,7 +945,7 @@
                     </div>
 
                     <div>
-                        <label class="block mb-1 text-xs text-gray-500">
+                        <label class="block mb-1 text-xs text-gray-500 dark:text-gray-400">
                             Description
                         </label>
 

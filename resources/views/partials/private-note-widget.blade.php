@@ -17,7 +17,7 @@
                 Only visible to you.
             </p>
             <div id="privateNoteList" class="custom-scrollbar flex-1 space-y-3 overflow-y-auto p-3">
-                <p class="py-4 text-center text-sm italic text-gray-500">Select a document to view notes.</p>
+                <p class="py-4 text-center text-sm italic text-gray-500 dark:text-gray-400">Select a document to view notes.</p>
             </div>
             <div class="flex items-center gap-2 border-t border-gray-200 p-3 dark:border-gray-700">
                 <input id="privateNoteInput" type="text" placeholder="Write a private note..."

@@ -6,7 +6,7 @@
         <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-1 md:grid-cols-1">
 
             <a href="#" data-report="fa"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700">
 
                 <div class="flex items-center gap-4">
 
@@ -15,10 +15,10 @@
                     </div>
 
                     <div class="flex flex-col">
-                        <p class="font-semibold text-gray-800">
+                        <p class="font-semibold text-gray-800 dark:text-gray-200">
                             Fixed Asset Receipt
                         </p>
-                        <p class="text-xs text-gray-500">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
                             Fixed asset receipt detail & receiving status
                         </p>
                     </div>

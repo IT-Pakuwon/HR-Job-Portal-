@@ -121,7 +121,7 @@
                             <div class="w-full overflow-x-auto">
                                 <table
                                     class="w-full min-w-[1500px] table-auto whitespace-nowrap border text-left text-sm">
-                                    <thead class="bg-gray-100 font-bold text-gray-700">
+                                    <thead class="bg-gray-100 font-bold text-gray-700 dark:bg-gray-900 dark:text-gray-300">
                                         <tr>
                                             <th class="px-4 py-2">Perpost</th>
                                             <th class="px-4 py-2">Cpny&nbsp;ID</th>
@@ -143,7 +143,7 @@
                                     </thead>
                                     <tbody>
                                         @foreach ($rows as $item)
-                                            <tr class="border-t hover:bg-gray-50">
+                                            <tr class="border-t hover:bg-gray-50 dark:hover:bg-gray-700">
                                                 <td class="px-4 py-2">{{ $item->perpost }}</td>
                                                 <td class="px-4 py-2">{{ $item->cpny_id }}</td>
                                                 <td class="px-4 py-2">{{ $item->business_unit_id }}</td>
@@ -185,7 +185,7 @@
                                                 <span class="text-sm font-semibold">Attachments</span>
                                                 <span class="transition-all group-open:hidden">See
                                                     details &rarr;</span>
-                                                <span class= "hidden transition-all group-open:inline">Hide
+                                                <span class="hidden transition-all group-open:inline">Hide
                                                     details &darr;</span>
                                             </summary>
 
@@ -265,7 +265,7 @@
                                     <div
                                         class="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                                         <button id="backBtn" onclick="history.back()"
-                                            class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                            class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-300">
 
                                             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                                 viewBox="0 0 24 24" stroke="currentColor">

@@ -43,7 +43,7 @@
                             Filter Doc Type
                         </label>
                         <select id="filterDoctype" @if($restrictAdmin) disabled @endif
-                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
                             @unless($restrictAdmin)
                                 <option value="">All Document Type</option>
                             @endunless
@@ -62,7 +62,7 @@
                             Filter Company
                         </label>
                         <select id="filterCompany"
-                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
                             <option value="">All Company</option>
                             @foreach ($companies as $c)
                                 <option value="{{ $c->cpny_id }}">{{ $c->cpny_id }} - {{ $c->cpny_name }}</option>
@@ -75,7 +75,7 @@
                             Filter Department
                         </label>
                         <select id="filterDept"
-                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
                             <option value="">All Department</option>
                             @foreach ($departments as $d)
                                 <option value="{{ $d->department_id }}">{{ $d->department_id }}</option>
@@ -88,7 +88,7 @@
                             Dept Type
                         </label>
                         <select id="filterDeptType" @if($restrictAdmin) disabled @endif
-                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
                             @unless($restrictAdmin)
                                 <option value="">All (Finance + HR)</option>
                                 <option value="FIN">Finance Departments</option>
@@ -373,7 +373,7 @@
                             Filter Doc Type
                         </label>
                         <select id="gbFilterDoctype"
-                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
                             <option value="">All Document Type</option>
                             @foreach ($doctypes as $dt)
                                 <option value="{{ $dt->doctype }}">{{ $dt->doctype }} - {{ $dt->doctype_descr }}
@@ -387,7 +387,7 @@
                             Filter Company
                         </label>
                         <select id="gbFilterCompany"
-                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
                             <option value="">All Company</option>
                             @foreach ($companies as $c)
                                 <option value="{{ $c->cpny_id }}">{{ $c->cpny_id }} - {{ $c->cpny_name }}</option>
@@ -400,7 +400,7 @@
                             Filter Department
                         </label>
                         <select id="gbFilterDept"
-                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
                             <option value="">All Department</option>
                             @foreach ($departments as $d)
                                 <option value="{{ $d->department_id }}">{{ $d->department_id }}</option>
@@ -413,7 +413,7 @@
                             Filter Group Biaya
                         </label>
                         <select id="gbFilterGroupBiaya"
-                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
                             <option value="">All Group Biaya</option>
                             @foreach ($groupbiaya as $g)
                                 <option value="{{ $g->groupbiayadescr }}">

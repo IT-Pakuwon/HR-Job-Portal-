@@ -1,52 +1,52 @@
 <div class="space-y-4">
 
     <!-- FILTER PANEL -->
-    <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm">
+    <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm dark:border-gray-700">
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-8">
 
             <!-- Date From -->
             <div>
-                <label class="text-xs text-gray-500">Date From</label>
+                <label class="text-xs text-gray-500 dark:text-gray-400">Date From</label>
                 <input type="date" id="bast_date_from"
-                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700">
             </div>
 
             <!-- Date To -->
             <div>
-                <label class="text-xs text-gray-500">Date To</label>
+                <label class="text-xs text-gray-500 dark:text-gray-400">Date To</label>
                 <input type="date" id="bast_date_to"
-                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700">
             </div>
 
             <!-- BAST ID -->
             <div>
-                <label class="text-xs text-gray-500">BAST No</label>
+                <label class="text-xs text-gray-500 dark:text-gray-400">BAST No</label>
                 <input type="text" id="bast_id" placeholder="BAST-xxxx"
-                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700">
             </div>
 
             <!-- Vendor -->
             <div>
-                <label class="text-xs text-gray-500">Vendor</label>
+                <label class="text-xs text-gray-500 dark:text-gray-400">Vendor</label>
                 <input type="text" id="bast_vendor"
-                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700">
             </div>
 
             <!-- CS No -->
             <div>
-                <label class="text-xs text-gray-500">CS No</label>
+                <label class="text-xs text-gray-500 dark:text-gray-400">CS No</label>
                 <input type="text" id="bast_csid"
                     placeholder="CSxxxx"
-                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700">
             </div>
 
             <!-- SPPBJKT No -->
             <div>
-                <label class="text-xs text-gray-500">SPPBJKT No</label>
+                <label class="text-xs text-gray-500 dark:text-gray-400">SPPBJKT No</label>
                 <input type="text" id="bast_sppbjktid"
                     placeholder="SPPBJKTxxxx"
-                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700">
             </div>
 
             <!-- ACTION -->
@@ -56,7 +56,7 @@
                     Apply
                 </button>
 
-                <button id="bastReset" class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm">
+                <button id="bastReset" class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
                     Reset
                 </button>
 
@@ -72,23 +72,23 @@
     </div>
 
     <!-- TABLE -->
-    <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
+    <div class="rounded-2xl border border-gray-200 bg-white shadow-sm dark:bg-gray-800 dark:border-gray-700">
 
         <div class="border-b px-6 py-4">
-            <h2 class="text-sm font-semibold text-gray-800">
+            <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">
                 BAST Detail Report
             </h2>
 
-            <p class="text-xs text-gray-500">
+            <p class="text-xs text-gray-500 dark:text-gray-400">
                 Work completion tracking, vendor performance & rating
             </p>
         </div>
 
         <div class="overflow-x-auto p-5">
 
-            <table id="bastTable" class="min-w-full text-sm text-gray-700">
+            <table id="bastTable" class="min-w-full text-sm text-gray-700 dark:text-gray-300">
 
-                <thead class="bg-gray-50 text-[11px] uppercase text-gray-500">
+                <thead class="bg-gray-50 text-[11px] uppercase text-gray-500 dark:bg-gray-900 dark:text-gray-400">
                     <tr>
                         <th>Date</th>
                         <th>CS No</th>
@@ -192,12 +192,12 @@
                         return `
             <div class="flex flex-col leading-tight text-left w-full text-left">
 
-                <div class="text-xs font-semibold text-gray-800 text-left">
+                <div class="text-xs font-semibold text-gray-800 text-left dark:text-gray-200">
                     📍 ${data.main}
                 </div>
 
                 ${data.sub ? `
-                    <div class="text-[11px] text-gray-500 text-left">
+                    <div class="text-[11px] text-gray-500 text-left dark:text-gray-400">
                         ${data.sub}
                     </div>
                 ` : ''}

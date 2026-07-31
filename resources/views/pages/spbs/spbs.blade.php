@@ -274,7 +274,7 @@
                         <div id="tlLoadingSppb"
                             class="hidden items-center gap-2 text-sm text-gray-500 dark:text-gray-300">
                             <span
-                                class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-transparent"></span>
+                                class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-transparent dark:border-gray-700"></span>
                             Loading...
                         </div>
 
@@ -285,7 +285,7 @@
 
                         <div id="tab-cs-sppb" class="track-pane-sppb hidden">
                             <div class="mb-2">
-                                <label class="text-xs text-gray-500">Select CS</label>
+                                <label class="text-xs text-gray-500 dark:text-gray-400">Select CS</label>
                                 <select id="selCsSppb"
                                     class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"></select>
                             </div>
@@ -295,7 +295,7 @@
 
                         <div id="tab-po-sppb" class="track-pane-sppb hidden">
                             <div class="mb-2">
-                                <label class="text-xs text-gray-500">Select PO</label>
+                                <label class="text-xs text-gray-500 dark:text-gray-400">Select PO</label>
                                 <select id="selPoSppb"
                                     class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"></select>
                             </div>
@@ -305,7 +305,7 @@
 
                         <div id="tab-receipt-sppb" class="track-pane-sppb hidden">
                             <div class="mb-2">
-                                <label class="text-xs text-gray-500">Select Receipt</label>
+                                <label class="text-xs text-gray-500 dark:text-gray-400">Select Receipt</label>
                                 <select id="selReceiptSppb"
                                     class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"></select>
                             </div>
@@ -332,21 +332,21 @@
             if (!list) return;
 
             if (!Array.isArray(steps) || steps.length === 0) {
-                list.innerHTML = `<p class="text-sm text-gray-500">No tracking history found.</p>`;
+                list.innerHTML = `<p class="text-sm text-gray-500 dark:text-gray-400">No tracking history found.</p>`;
                 return;
             }
 
             list.className = "px-2 py-3";
 
             list.innerHTML = `
-                <div class="rounded-xl border border-gray-200 bg-white p-4">
+                <div class="rounded-xl border border-gray-200 bg-white p-4 dark:bg-gray-800 dark:border-gray-700">
 
                     <!-- HEADER -->
                     <div class="flex justify-between items-center mb-4">
-                        <div class="text-sm font-semibold text-gray-700">
+                        <div class="text-sm font-semibold text-gray-700 dark:text-gray-300">
                             Approval Tracking
                         </div>
-                        <div class="text-xs text-gray-500">
+                        <div class="text-xs text-gray-500 dark:text-gray-400">
                             ${steps[steps.length - 1]?.status_label || ''}
                         </div>
                     </div>
@@ -417,15 +417,15 @@
 
                                     <div class="h-2 w-2 rounded-full ${dot}"></div>
 
-                                    <div class="h-8 w-8 flex items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-600">
+                                    <div class="h-8 w-8 flex items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-600 dark:bg-gray-900 dark:text-gray-400">
                                         ${initials}
                                     </div>
 
                                     <div>
-                                        <div class="text-sm font-medium text-gray-800">
+                                        <div class="text-sm font-medium text-gray-800 dark:text-gray-200">
                                             ${s.title}
                                         </div>
-                                        <div class="text-xs text-gray-500">
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">
                                             ${name}
                                         </div>
                                     </div>
@@ -1267,9 +1267,9 @@ error: function(err) {
                                 </div>
                             </div>
                             <div class="mt-1 text-gray-700 dark:text-gray-200">
-                                <div><span class="text-gray-500">By:</span> <span class="font-semibold">${who}</span></div>
-                                ${dtb ? `<div><span class="text-gray-500">Start:</span> ${dtb}</div>` : ''}
-                                ${dta ? `<div><span class="text-gray-500">Finish:</span> ${dta}</div>` : ''}
+                                <div><span class="text-gray-500 dark:text-gray-400">By:</span> <span class="font-semibold">${who}</span></div>
+                                ${dtb ? `<div><span class="text-gray-500 dark:text-gray-400">Start:</span> ${dtb}</div>` : ''}
+                                ${dta ? `<div><span class="text-gray-500 dark:text-gray-400">Finish:</span> ${dta}</div>` : ''}
                             </div>
                         </div>
                     `;
@@ -1288,24 +1288,24 @@ error: function(err) {
                         </div>
 
                         <div class="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
-                            <div><span class="text-gray-500">Company:</span>
+                            <div><span class="text-gray-500 dark:text-gray-400">Company:</span>
                                 <span class="font-semibold text-gray-800 dark:text-white">${esc(header.cpny_id || '-')}</span>
                             </div>
-                            <div><span class="text-gray-500">Department:</span>
+                            <div><span class="text-gray-500 dark:text-gray-400">Department:</span>
                                 <span class="font-semibold text-gray-800 dark:text-white">${esc(header.department_id || '-')}</span>
                             </div>
-                            <div><span class="text-gray-500">Created By:</span>
+                            <div><span class="text-gray-500 dark:text-gray-400">Created By:</span>
                                 <span class="font-semibold text-gray-800 dark:text-white">${esc(header.created_by || '-')}</span>
                             </div>
 
                             ${header.vendorname !== undefined
-                                ? `<div class="sm:col-span-2"><span class="text-gray-500">Vendor:</span>
+                                ? `<div class="sm:col-span-2"><span class="text-gray-500 dark:text-gray-400">Vendor:</span>
                                                                                                                                                                                                                                                                                                                                                                                         <span class="font-semibold text-gray-800 dark:text-white">${esc(header.vendorname || '-')}</span></div>`
                                 : ''
                             }
 
                             ${header.keperluan !== undefined
-                                ? `<div class="sm:col-span-2"><span class="text-gray-500">Keperluan:</span>
+                                ? `<div class="sm:col-span-2"><span class="text-gray-500 dark:text-gray-400">Keperluan:</span>
                                                                                                                                                                                                                                                                                                                                                                                         <span class="font-semibold text-gray-800 dark:text-white">${esc(header.keperluan || '-')}</span></div>`
                                 : ''
                             }
@@ -1319,7 +1319,7 @@ error: function(err) {
             // ---------- Detail renderers ----------
             function renderDetailSppb(rows) {
                 if (!Array.isArray(rows) || rows.length === 0)
-                    return `<div class="text-sm text-gray-500">No detail.</div>`;
+                    return `<div class="text-sm text-gray-500 dark:text-gray-400">No detail.</div>`;
                 const trs = rows.map(r => `
             <tr class="border-b dark:border-gray-700">
                 <td class="px-3 py-2">${esc(r.inventoryid)}</td>
@@ -1349,7 +1349,7 @@ error: function(err) {
 
             function renderDetailCs(rows) {
                 if (!Array.isArray(rows) || rows.length === 0)
-                    return `<div class="text-sm text-gray-500">No detail.</div>`;
+                    return `<div class="text-sm text-gray-500 dark:text-gray-400">No detail.</div>`;
 
                 const trs = rows.map(r => `
                 <tr class="border-b dark:border-gray-700">
@@ -1381,7 +1381,7 @@ error: function(err) {
 
             function renderDetailPo(rows) {
                 if (!Array.isArray(rows) || rows.length === 0)
-                    return `<div class="text-sm text-gray-500">No detail.</div>`;
+                    return `<div class="text-sm text-gray-500 dark:text-gray-400">No detail.</div>`;
                 const trs = rows.map(r => `
             <tr class="border-b dark:border-gray-700">
                 <td class="px-3 py-2">${esc(r.inventoryid)}</td>
@@ -1407,7 +1407,7 @@ error: function(err) {
 
             function renderDetailReceipt(rows) {
                 if (!Array.isArray(rows) || rows.length === 0)
-                    return `<div class="text-sm text-gray-500">No detail.</div>`;
+                    return `<div class="text-sm text-gray-500 dark:text-gray-400">No detail.</div>`;
                 const trs = rows.map(r => `
             <tr class="border-b dark:border-gray-700">
                 <td class="px-3 py-2">${esc(r.inventoryid)}</td>
@@ -1522,7 +1522,7 @@ error: function(err) {
                 } else {
                     renderHeader('receiptHeaderBoxSppb', null, 'Receipt');
                     document.getElementById('receiptDetailBoxSppb').innerHTML =
-                        `<div class="text-sm text-gray-500">No detail.</div>`;
+                        `<div class="text-sm text-gray-500 dark:text-gray-400">No detail.</div>`;
                 }
             });
 

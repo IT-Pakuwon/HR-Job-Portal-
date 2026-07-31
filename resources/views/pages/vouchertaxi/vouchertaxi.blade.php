@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="mb-4 rounded-lg border border-gray-200 bg-white px-5 py-4 shadow-sm">
+    <div class="mb-4 rounded-lg border border-gray-200 bg-white px-5 py-4 shadow-sm dark:bg-gray-800 dark:border-gray-700">
 
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
@@ -20,7 +20,7 @@
                         Taxi Booking
                     </h1>
 
-                    <p class="mt-0.5 text-sm text-gray-500">
+                    <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
                         Manage booking requests and taxi vouchers
                     </p>
 
@@ -915,7 +915,7 @@
 
                             <div>
 
-                                <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                                <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                                     Requester
                                 </div>
 
@@ -934,31 +934,31 @@
                         <div class="grid grid-cols-2 gap-5 p-5">
 
                             <div>
-                                <div class="text-xs text-slate-500">Date Used</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400">Date Used</div>
                                 <div id="view_date"
                                     class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100"></div>
                             </div>
 
                             <div>
-                                <div class="text-xs text-slate-500">Trip Type</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400">Trip Type</div>
                                 <div id="view_type_trip"
                                     class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100"></div>
                             </div>
 
                             <div>
-                                <div class="text-xs text-slate-500">Origin</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400">Origin</div>
                                 <div id="view_origin"
                                     class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100"></div>
                             </div>
 
                             <div>
-                                <div class="text-xs text-slate-500">Destination</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400">Destination</div>
                                 <div id="view_destination"
                                     class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100"></div>
                             </div>
 
                             <div>
-                                <div class="text-xs text-slate-500">Company — Company Expense</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400">Company — Company Expense</div>
                                 <div
                                     class="mt-1 flex items-center gap-1 text-sm font-medium text-slate-900 dark:text-slate-100">
                                     <span id="view_cpny"></span>
@@ -968,13 +968,13 @@
                             </div>
 
                             <div>
-                                <div class="text-xs text-slate-500">Department</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400">Department</div>
                                 <div id="view_dept"
                                     class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100"></div>
                             </div>
 
                             <div>
-                                <div class="text-xs text-slate-500">Top Up User</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400">Top Up User</div>
                                 <div id="view_topup_user"
                                     class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100"></div>
                             </div>
@@ -1094,7 +1094,7 @@
                                 </button>
 
                                 <button type="button" id="reviseBtn"
-                                    class="flex-1 rounded-lg bg-yellow-400 px-4 py-2 text-xs font-semibold text-black transition hover:bg-yellow-300">
+                                    class="flex-1 rounded-lg bg-yellow-400 px-4 py-2 text-xs font-semibold text-black transition hover:bg-yellow-300 dark:text-white">
                                     <i class="fa-solid fa-rotate-left mr-1"></i>
                                     Revise
                                 </button>
@@ -1247,42 +1247,42 @@
                         <div class="grid grid-cols-2 gap-x-8 gap-y-3 p-4">
 
                             <div>
-                                <span class="text-xs text-slate-500">Requester</span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">Requester</span>
                                 <div id="process_requester" class="text-sm font-semibold">
                                     -
                                 </div>
                             </div>
 
                             <div>
-                                <span class="text-xs text-slate-500">Date Used</span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">Date Used</span>
                                 <div id="process_date" class="text-sm font-semibold">
                                     -
                                 </div>
                             </div>
 
                             <div>
-                                <span class="text-xs text-slate-500">Company</span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">Company</span>
                                 <div id="process_company" class="text-sm font-semibold">
                                     -
                                 </div>
                             </div>
 
                             <div>
-                                <span class="text-xs text-slate-500">Department</span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">Department</span>
                                 <div id="process_department" class="text-sm font-semibold">
                                     -
                                 </div>
                             </div>
 
                             <div>
-                                <span class="text-xs text-slate-500">Trip Type</span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">Trip Type</span>
                                 <div id="process_trip" class="text-sm font-semibold">
                                     -
                                 </div>
                             </div>
 
                             <div>
-                                <span class="text-xs text-slate-500">Route</span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">Route</span>
                                 <div id="process_route" class="text-sm font-bold text-emerald-600">
                                     -
                                 </div>
@@ -1290,13 +1290,13 @@
 
                         </div>
 
-                        <div class="border-t border-slate-200 px-4 py-3">
+                        <div class="border-t border-slate-200 px-4 py-3 dark:border-slate-700">
 
-                            <div class="text-xs text-slate-500">
+                            <div class="text-xs text-slate-500 dark:text-slate-400">
                                 Purpose
                             </div>
 
-                            <div id="process_purpose" class="mt-1 text-sm text-slate-700">
+                            <div id="process_purpose" class="mt-1 text-sm text-slate-700 dark:text-slate-300">
                                 -
                             </div>
 
@@ -1351,7 +1351,7 @@
 
                                 </div>
 
-                                <p class="mt-2 text-xs text-slate-500">
+                                <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
                                     Actual amount paid for this transportation voucher.
                                 </p>
 
@@ -1364,7 +1364,7 @@
                                 <label class="flex cursor-pointer items-start gap-3">
 
                                     <input type="checkbox" id="changeExpenseOwner" name="change_expense_owner"
-                                        value="1" class="mt-1 rounded border-slate-300">
+                                        value="1" class="mt-1 rounded border-slate-300 dark:border-slate-700">
 
                                     <div>
 
@@ -1412,7 +1412,7 @@
                                         </label>
 
                                         <select id="process_cpny_id_expense" name="cpny_id_expense"
-                                            class="select2-process h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm">
+                                            class="select2-process h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:bg-gray-800 dark:border-slate-700">
 
                                             <option value="">
                                                 Select Company
@@ -1440,7 +1440,7 @@
                                         </label>
 
                                         <select id="process_department_id_expense" name="department_id_expense"
-                                            class="select2-process h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm">
+                                            class="select2-process h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:bg-gray-800 dark:border-slate-700">
 
                                             <option value="">
                                                 Select Department
@@ -1468,7 +1468,7 @@
                                         </label>
 
                                         <select id="process_user_peminta_expense" name="user_peminta_expense"
-                                            class="select2-process h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm">
+                                            class="select2-process h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:bg-gray-800 dark:border-slate-700">
                                             <option value="">Select Employee</option>
                                         </select>
 

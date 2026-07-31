@@ -58,7 +58,7 @@
                         </button>
 
                         <button type="button"
-                            class="typeFilterBtn whitespace-nowrap rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700"
+                            class="typeFilterBtn whitespace-nowrap rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700 dark:bg-gray-900 dark:text-gray-300"
                             data-type="NONSTOCK">
                             NonStock
                         </button>
@@ -81,7 +81,7 @@
                     </select>
 
                     <!-- HINT -->
-                    <span id="hintStockOnly" class="hidden whitespace-nowrap text-xs text-gray-500">
+                    <span id="hintStockOnly" class="hidden whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
                         Filter Company/BU hanya dipakai saat tab Stock.
                     </span>
 

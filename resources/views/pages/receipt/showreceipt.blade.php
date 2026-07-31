@@ -80,21 +80,21 @@
 
                                 {{-- Dropdown --}}
                                 <div
-                                    class="absolute right-0 z-50 mt-2 hidden w-56 rounded-lg bg-white shadow-lg ring-1 ring-black/5">
-                                    <div class="py-1 text-sm text-gray-700">
+                                    class="absolute right-0 z-50 mt-2 hidden w-56 rounded-lg bg-white shadow-lg ring-1 ring-black/5 dark:bg-gray-800">
+                                    <div class="py-1 text-sm text-gray-700 dark:text-gray-300">
 
                                         @if ($isNonStock)
                                             <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=bpg"
-                                                target="_blank" class="block px-4 py-2 hover:bg-gray-100">
+                                                target="_blank" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">
                                                 Print BPG Non Stock
                                             </a>
                                         @endif
 
                                         {{-- <a href="{{ route('receipts.print', ['hash' => $hash]) }}" ?type=sttb"
-                                            target="_blank" class="block px-4 py-2 hover:bg-gray-100">
+                                            target="_blank" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">
                                             Print STTB/SPB --}}
                                         <a href="{{ route('receipts.print', ['hash' => $hash]) }}" target="_blank"
-                                            class="block px-4 py-2 hover:bg-gray-100">
+                                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">
                                             Print STTB/SPB
                                         </a>
 
@@ -246,7 +246,7 @@
                             {{-- Note (if exists) --}}
                             @if (!empty($rcp->receiptnote))
                                 <div class="col-span-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                                    <div class="flex items-center gap-2 text-gray-500">
+                                    <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                                         <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
                                         <span>Note</span>
                                     </div>
@@ -429,7 +429,7 @@
                                 <div class="flex h-full flex-col">
                                     <div id="commentList"
                                         class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
-                                        <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                        <p class="py-4 text-center italic text-gray-500 dark:text-gray-400">Loading comments...</p>
                                     </div>
                                     <div
                                         class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
@@ -511,7 +511,7 @@
                 placeholder="Enter rejection reason..."></textarea>
 
             <div class="mt-4 flex justify-between">
-                <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
                     Cancel
                 </button>
                 <button id="confirmRejectBtn" class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600">
@@ -527,7 +527,7 @@
                 placeholder="Enter revise reason..."></textarea>
 
             <div class="mt-4 flex justify-between">
-                <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
                     Cancel
                 </button>
                 <button id="confirmReviseBtn"
@@ -574,7 +574,7 @@
 
             function loadComments(refnbr, doctype) {
                 let commentList = $('#commentList');
-                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>');
+                commentList.html('<p class="text-gray-500 italic dark:text-gray-400">Loading comments...</p>');
 
                 $.ajax({
                     url: `/comments/${doctype}/${refnbr}`,
@@ -584,7 +584,7 @@
 
                         if (!response.comments || response.comments.length === 0) {
                             commentList.append(
-                                '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
+                                '<p class="text-gray-500 text-sm italic dark:text-gray-400">No comments yet. Be the first to comment!</p>'
                             );
                             return;
                         }
@@ -598,7 +598,7 @@
                                 <div class="px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
                                     <p class=" text-sm  font-semibold">
                                         ${comment.username}
-                                        <span class=" text-sm  text-gray-500">(${timeAgo})</span>
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">(${timeAgo})</span>
                                     </p>
                                     <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
                                 </div>

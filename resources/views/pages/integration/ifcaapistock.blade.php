@@ -4,7 +4,7 @@
     <div class="absolute inset-0 bg-black/40 pointer-events-auto"></div>
 
     <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div class="pointer-events-auto rounded-xl bg-white px-5 py-4 shadow-lg border border-gray-200 flex items-center gap-3">
+        <div class="pointer-events-auto rounded-xl bg-white px-5 py-4 shadow-lg border border-gray-200 flex items-center gap-3 dark:bg-gray-800 dark:border-gray-700">
             <svg class="h-6 w-6 animate-spin text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none"
                  viewBox="0 0 24 24" aria-hidden="true">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -12,8 +12,8 @@
                       d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
             </svg>
             <div class="text-sm">
-                <div class="font-semibold text-gray-800" id="stockBusyTitle">Processing...</div>
-                <div class="text-gray-500" id="stockBusySub">Mohon tunggu, jangan klik menu/tab.</div>
+                <div class="font-semibold text-gray-800 dark:text-gray-200" id="stockBusyTitle">Processing...</div>
+                <div class="text-gray-500 dark:text-gray-400" id="stockBusySub">Mohon tunggu, jangan klik menu/tab.</div>
             </div>
         </div>
     </div>
@@ -21,21 +21,21 @@
 
 <div class="mb-4 grid grid-cols-1 gap-3 md:grid-cols-6">
     <div>
-        <label class="text-sm font-medium text-gray-600">Start Date</label>
+        <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Start Date</label>
         <input type="date" id="st_from"
-               class="mt-1 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+               class="mt-1 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700">
     </div>
 
     <div>
-        <label class="text-sm font-medium text-gray-600">End Date</label>
+        <label class="text-sm font-medium text-gray-600 dark:text-gray-400">End Date</label>
         <input type="date" id="st_to"
-               class="mt-1 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+               class="mt-1 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700">
     </div>
 
     <div>
-        <label class="text-sm font-medium text-gray-600">Status</label>
+        <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Status</label>
         <select id="st_status"
-                class="mt-1 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                class="mt-1 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700">
             <option value="">All Status</option>
             <option value="H">H</option>
             <option value="P">P</option>
@@ -44,9 +44,9 @@
     </div>
 
     <div>
-        <label class="text-sm font-medium text-gray-600">Show</label>
+        <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Show</label>
         <select id="st_per_page"
-                class="mt-1 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                class="mt-1 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700">
             <option value="25" selected>25</option>
             <option value="50">50</option>
             <option value="100">100</option>
@@ -55,7 +55,7 @@
 
     <div class="flex items-end">
         <button type="button" id="btnLoadStock"
-                class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60">
+                class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-700">
             Load
         </button>
     </div>
@@ -70,21 +70,21 @@
 
 <div id="stInfo" class="mb-3 hidden rounded-lg border px-4 py-3 text-sm"></div>
 
-<div class="overflow-hidden rounded-xl border border-gray-200">
-    <div class="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-3">
-        <div class="text-sm text-gray-600">
+<div class="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+    <div class="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-3 dark:bg-gray-900 dark:border-gray-700">
+        <div class="text-sm text-gray-600 dark:text-gray-400">
             Total: <span class="font-semibold" id="stTotal">0</span>
-            <span class="ml-2 text-gray-500" id="stShowingText"></span>
+            <span class="ml-2 text-gray-500 dark:text-gray-400" id="stShowingText"></span>
         </div>
-        <div class="text-sm text-gray-500">Pagination enabled</div>
+        <div class="text-sm text-gray-500 dark:text-gray-400">Pagination enabled</div>
     </div>
 
     <div class="overflow-x-auto">
         <table class="min-w-full table-fixed text-sm">
-            <thead class="bg-white">
-            <tr class="border-b border-gray-200 text-left text-gray-600">
+            <thead class="bg-white dark:bg-gray-800">
+            <tr class="border-b border-gray-200 text-left text-gray-600 dark:text-gray-400 dark:border-gray-700">
                 <th class="w-10 px-3 py-2 align-middle">
-                    <input type="checkbox" id="stChkAll" class="rounded border-gray-300">
+                    <input type="checkbox" id="stChkAll" class="rounded border-gray-300 dark:border-gray-700">
                 </th>
                 <th class="w-48 px-3 py-2 align-middle">Stock Code</th>
                 <th class="w-[420px] px-3 py-2 align-middle">Description</th>
@@ -96,7 +96,7 @@
             </thead>
             <tbody id="stTbody" class="divide-y divide-gray-100">
             <tr>
-                <td colspan="7" class="px-4 py-10 text-center text-gray-500">
+                <td colspan="7" class="px-4 py-10 text-center text-gray-500 dark:text-gray-400">
                     Belum ada data. Klik Load.
                 </td>
             </tr>
@@ -104,8 +104,8 @@
         </table>
     </div>
 
-    <div class="flex flex-col gap-3 border-t border-gray-200 bg-white px-4 py-3 md:flex-row md:items-center md:justify-between">
-        <div class="text-xs text-gray-500">
+    <div class="flex flex-col gap-3 border-t border-gray-200 bg-white px-4 py-3 md:flex-row md:items-center md:justify-between dark:bg-gray-800 dark:border-gray-700">
+        <div class="text-xs text-gray-500 dark:text-gray-400">
             <span class="font-semibold">Legend:</span>
             H = belum ada di staging,
             P = di staging belum terkirim,
@@ -197,7 +197,7 @@
 
     function renderRowsStock(rows) {
         if (!rows.length) {
-            stTbodyStock.innerHTML = `<tr><td colspan="7" class="px-4 py-10 text-center text-gray-500">No data.</td></tr>`;
+            stTbodyStock.innerHTML = `<tr><td colspan="7" class="px-4 py-10 text-center text-gray-500 dark:text-gray-400">No data.</td></tr>`;
             stChkAllStock.checked = false;
             stChkAllStock.indeterminate = false;
             stChkAllStock.disabled = true;
@@ -223,18 +223,18 @@
                     </td>
                     <td class="px-3 py-2 align-top font-medium">${r.inventoryid ?? ''}</td>
                     <td class="px-3 py-2 align-top break-words">${r.inventory_descr ?? ''}</td>
-                    <td class="px-3 py-2 align-top whitespace-nowrap text-gray-700">${r.stock_unit ?? ''}</td>
+                    <td class="px-3 py-2 align-top whitespace-nowrap text-gray-700 dark:text-gray-300">${r.stock_unit ?? ''}</td>
                     <td class="px-3 py-2 align-top">
                         <span class="inline-flex items-center whitespace-nowrap px-2 py-1 rounded text-xs font-semibold ${getStatusBadgeClassStock(stage)}">
                             ${stage}
                         </span>
                     </td>
-                    <td class="px-3 py-2 align-top text-gray-600">
+                    <td class="px-3 py-2 align-top text-gray-600 dark:text-gray-400">
                         <div class="whitespace-normal break-words leading-5 max-w-full">
                             ${r.payload_response ?? ''}
                         </div>
                     </td>
-                    <td class="px-3 py-2 align-top whitespace-nowrap text-gray-600">${r.last_update ?? ''}</td>
+                    <td class="px-3 py-2 align-top whitespace-nowrap text-gray-600 dark:text-gray-400">${r.last_update ?? ''}</td>
                 </tr>
             `;
         }).join('');
@@ -372,7 +372,7 @@
 
         setBusyStock(true, 'Loading Stock...', 'Sedang mengambil data Stock.');
 
-        stTbodyStock.innerHTML = `<tr><td colspan="7" class="px-4 py-10 text-center text-gray-500">Loading...</td></tr>`;
+        stTbodyStock.innerHTML = `<tr><td colspan="7" class="px-4 py-10 text-center text-gray-500 dark:text-gray-400">Loading...</td></tr>`;
         stChkAllStock.disabled = true;
         stChkAllStock.checked = false;
         stChkAllStock.indeterminate = false;

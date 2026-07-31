@@ -15,7 +15,7 @@
         @click.outside="sidebarOpen = false" @keydown.escape.window="sidebarOpen = false">
         <!-- Sidebar header -->
         <div class="flex items-center justify-start gap-4 py-4 pr-3 sm:px-2">
-            <button class="text-gray-500 hover:text-gray-400 lg:hidden" @click.stop="sidebarOpen = !sidebarOpen"
+            <button class="text-gray-500 hover:text-gray-400 lg:hidden dark:text-gray-400" @click.stop="sidebarOpen = !sidebarOpen"
                 aria-controls="sidebar" :aria-expanded="sidebarOpen">
                 <span class="sr-only">Toggle sidebar</span>
                 <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"

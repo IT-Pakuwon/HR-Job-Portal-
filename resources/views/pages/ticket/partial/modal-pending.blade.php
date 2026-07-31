@@ -201,7 +201,7 @@
 
                                 <input type="checkbox"
                                     id="pending_use_schedule"
-                                    class="rounded border-slate-300 text-slate-900 focus:ring-slate-400">
+                                    class="rounded border-slate-300 text-slate-900 focus:ring-slate-400 dark:text-slate-100 dark:border-slate-700">
 
                                 <span
                                     class="text-sm text-slate-600 dark:text-slate-300">
@@ -324,7 +324,7 @@
                     class="sticky bottom-0 z-20 flex items-center justify-end gap-3 border-t border-slate-200 bg-white/95 px-5 py-4     dark:border-white/[0.06] dark:bg-[#0f172a]/95">
 
                     <button type="button"
-                        class="btn-close-form-modal inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5">
+                        class="btn-close-form-modal inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 dark:bg-gray-800 dark:border-slate-700">
                         Cancel
 
                     </button>

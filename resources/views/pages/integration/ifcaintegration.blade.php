@@ -1,17 +1,17 @@
 <x-app-layout>
     <div class="mx-auto max-w-9xl px-4 py-6">
-        <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <div class="rounded-2xl border border-gray-200 bg-white shadow-sm dark:bg-gray-800 dark:border-gray-700">
             {{-- Header utama --}}
-            <div class="border-b border-gray-200 px-6 py-5">
-                <h1 class="text-2xl font-bold text-gray-800">IFCA Integration</h1>
-                <p class="mt-1 text-sm text-gray-500">Scheduler & Integration Master & Transaction Data</p>
+            <div class="border-b border-gray-200 px-6 py-5 dark:border-gray-700">
+                <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">IFCA Integration</h1>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Scheduler & Integration Master & Transaction Data</p>
             </div>
 
             <div class="p-6">
                 {{-- ===================== --}}
                 {{-- SECTION : IFCA        --}}
                 {{-- ===================== --}}
-                <div class="mb-4 rounded-xl border border-slate-200 bg-slate-50/60">
+                <div class="mb-4 rounded-xl border border-slate-200 bg-slate-50/60 dark:border-slate-700">
                     <div class="px-4 py-2.5">
                         <div class="flex flex-col gap-2 lg:flex-row lg:items-center">
                             {{-- title kiri --}}
@@ -24,7 +24,7 @@
                                     </svg>
                                 </div>
 
-                                <h2 class="text-sm font-semibold text-gray-800">
+                                <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">
                                     IFCA Integration
                                 </h2>
                             </div>
@@ -32,47 +32,47 @@
                             {{-- tab kanan --}}
                             <div class="flex flex-wrap gap-1.5 lg:pl-1">
                                 <button type="button" data-tab="tab-nonstock"
-                                    class="tab-btn rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50">
+                                    class="tab-btn rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
                                     Non Stock
                                 </button>
 
                                 <button type="button" data-tab="tab-stock"
-                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white">
+                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white dark:text-gray-400">
                                     Stock
                                 </button>
 
                                 <button type="button" data-tab="tab-supplier"
-                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white">
+                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white dark:text-gray-400">
                                     Supplier
                                 </button>
 
                                 <button type="button" data-tab="tab-po"
-                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white">
+                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white dark:text-gray-400">
                                     PO
                                 </button>
 
                                 <button type="button" data-tab="tab-sttb"
-                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white">
+                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white dark:text-gray-400">
                                     GRN
                                 </button>
 
                                 <button type="button" data-tab="tab-grn-return"
-                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white">
+                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white dark:text-gray-400">
                                     GRN Return
                                 </button>
 
                                 <button type="button" data-tab="tab-bast"
-                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white">
+                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white dark:text-gray-400">
                                     BAST
                                 </button>
 
                                 <button type="button" data-tab="tab-issue"
-                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white">
+                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white dark:text-gray-400">
                                     Issue
                                 </button>
 
                                 <button type="button" data-tab="tab-issue-return"
-                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white">
+                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white dark:text-gray-400">
                                     Issue Return
                                 </button>
 
@@ -97,7 +97,7 @@
                                     </svg>
                                 </div>
 
-                                <h2 class="text-sm font-semibold text-gray-800">
+                                <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">
                                     Solomon Integration
                                 </h2>
                             </div>
@@ -105,17 +105,17 @@
                             {{-- tab kanan --}}
                             <div class="flex flex-wrap gap-1.5 lg:pl-1">
                                 <button type="button" data-tab="tab-po-sl"
-                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white">
+                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white dark:text-gray-400">
                                     PO Solomon
                                 </button>
 
                                 <button type="button" data-tab="tab-grn-sl"
-                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white">
+                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white dark:text-gray-400">
                                     GRN Solomon
                                 </button>
 
                                 <button type="button" data-tab="tab-issue-sl"
-                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white">
+                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white dark:text-gray-400">
                                     Issue Solomon
                                 </button>
                             </div>
@@ -124,7 +124,7 @@
                 </div>
 
                 {{-- Empty State --}}
-                <div id="emptyState" class="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-5 text-sm text-gray-500">
+                <div id="emptyState" class="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-5 text-sm text-gray-500 dark:bg-gray-900 dark:text-gray-400 dark:border-gray-700">
                     Klik tab untuk menampilkan data.
                 </div>
 
@@ -179,7 +179,7 @@
                     @include('pages.integration.slapissue')
                 </div>
 
-                <div id="tab-receipt" class="hidden rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-5 text-sm text-gray-500">
+                <div id="tab-receipt" class="hidden rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-5 text-sm text-gray-500 dark:bg-gray-900 dark:text-gray-400 dark:border-gray-700">
                     Receipt tab (soon)
                 </div>
             </div>

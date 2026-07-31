@@ -76,7 +76,7 @@
             <figure class="manual-figure">
                 <img src="{{ asset('images/manual/budget-monitor/filter-section.png') }}"
                     class="rounded-lg border shadow dark:border-gray-800">
-                <figcaption class="mt-2 text-center text-xs text-gray-500">
+                <figcaption class="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
                     Figure 1.1 – Filter Section
                 </figcaption>
             </figure>
@@ -156,7 +156,7 @@
             <figure class="manual-figure">
                 <img src="{{ asset('images/manual/budget-monitor/master-budget.png') }}"
                     class="rounded-lg border shadow dark:border-gray-800">
-                <figcaption class="mt-2 text-center text-xs text-gray-500">
+                <figcaption class="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
                     Figure 2.1 – Master Budget Table
                     </>
             </figure>
@@ -183,7 +183,7 @@
             <figure class="manual-figure">
                 <img src="{{ asset('images/manual/budget-monitor/master-summary.png') }}"
                     class="rounded-lg border shadow dark:border-gray-800">
-                <figcaption class="mt-2 text-center text-xs text-gray-500">
+                <figcaption class="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
                     Figure 2.2 – Master Budget Summary
                 </figcaption>
             </figure>
@@ -222,7 +222,7 @@
             <figure class="manual-figure">
                 <img src="{{ asset('images/manual/budget-monitor/trx-budget.png') }}"
                     class="rounded-lg border shadow dark:border-gray-800">
-                <figcaption class="mt-2 text-center text-xs text-gray-500">
+                <figcaption class="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
                     Figure 3.1 – Trx Budget Table
                 </figcaption>
             </figure>
@@ -249,7 +249,7 @@
             <figure class="manual-figure">
                 <img src="{{ asset('images/manual/budget-monitor/trx-summary.png') }}"
                     class="rounded-lg border shadow dark:border-gray-800">
-                <figcaption class="mt-2 text-center text-xs text-gray-500">
+                <figcaption class="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
                     Figure 3.2 – Trx Budget Summary
                     </>
             </figure>
