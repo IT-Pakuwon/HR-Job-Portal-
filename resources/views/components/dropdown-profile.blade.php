@@ -18,7 +18,7 @@
 
         <button class="group flex h-11 min-w-11 items-center justify-center gap-1" aria-haspopup="true"
                 @click.prevent="open = !open" :aria-expanded="open">
-            <img class="h-8 w-8 shrink-0 rounded-full"
+            <img id="headerAvatarImg" class="h-8 w-8 shrink-0 rounded-full"
                  src="{{ $user->profile_photo_url ?? asset('images/avatar-default.png') }}"
                  width="32" height="32"
                  alt="{{ $user->name ?? 'User' }}" />

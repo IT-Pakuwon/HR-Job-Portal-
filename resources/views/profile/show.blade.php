@@ -16,10 +16,19 @@
                     <div class="-mt-16 md:col-span-1">
                         <div
                             class="rounded-xl border border-gray-100 bg-white p-6 text-center shadow-md dark:border-gray-700 dark:bg-gray-900">
-                            <img class="mx-auto h-28 w-28 rounded-full border-4 border-white object-cover shadow-lg dark:border-gray-900"
-                                src="{{ asset('avatar/' . Auth::user()->npk . '.jpg') }}"
-                                onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png';"
-                                alt="User avatar">
+                            <div class="relative mx-auto h-28 w-28">
+                                <img id="profilePhotoPreview"
+                                    class="h-28 w-28 rounded-full border-4 border-white object-cover shadow-lg dark:border-gray-900"
+                                    src="{{ Auth::user()->profile_photo_url }}" alt="User avatar">
+
+                                <button type="button" id="btnChangePhoto"
+                                    class="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-blue-600 text-white shadow-sm transition hover:bg-blue-700 dark:border-gray-900"
+                                    title="Change photo">
+                                    <i class="fa-solid fa-camera text-xs"></i>
+                                </button>
+                                <input type="file" id="profilePhotoInput" name="photo" accept="image/png,image/jpeg,image/webp"
+                                    class="hidden">
+                            </div>
 
                             <h3 class="mt-4 text-base font-semibold text-gray-800 dark:text-white">
                                 {{ Auth::user()->name }}
@@ -34,6 +43,30 @@
                                     <i class="fa-solid fa-key text-xs"></i>
                                     Change Password
                                 </button>
+                            </div>
+                        </div>
+
+                        <!-- Appearance -->
+                        <div
+                            class="mt-6 rounded-xl border border-gray-100 bg-white p-6 shadow-md dark:border-gray-700 dark:bg-gray-900">
+                            <h4
+                                class="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-gray-100">
+                                <i class="fa-solid fa-moon text-blue-500"></i>
+                                Appearance
+                            </h4>
+                            <div class="flex items-center justify-between gap-4">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-800 dark:text-gray-100">Dark Mode</p>
+                                    <p class="text-xs text-gray-400">Use dark mode by default whenever you sign in
+                                    </p>
+                                </div>
+                                <label class="relative inline-flex cursor-pointer items-center">
+                                    <input type="checkbox" id="darkmodeDefaultSwitch" class="peer sr-only"
+                                        {{ Auth::user()->is_darkmode ? 'checked' : '' }}>
+                                    <div
+                                        class="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none dark:border-gray-600 dark:bg-gray-700">
+                                    </div>
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -205,6 +238,70 @@
             const isPassword = input.attr('type') === 'password';
             input.attr('type', isPassword ? 'text' : 'password');
             icon.toggleClass('fa-eye', !isPassword).toggleClass('fa-eye-slash', isPassword);
+        });
+
+        $('#btnChangePhoto').on('click', function() {
+            $('#profilePhotoInput').trigger('click');
+        });
+
+        $('#profilePhotoInput').on('change', function() {
+            const file = this.files[0];
+            if (!file) return;
+
+            const previewUrl = URL.createObjectURL(file);
+            $('#profilePhotoPreview').attr('src', previewUrl);
+
+            const formData = new FormData();
+            formData.append('photo', file);
+
+            $.ajax({
+                url: '{{ route('profile.photo.update') }}',
+                type: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    toastr.success('Profile photo updated');
+                    $('#profilePhotoPreview').attr('src', response.url);
+                    $('#headerAvatarImg').attr('src', response.url);
+                },
+                error: function(xhr) {
+                    const res = xhr.responseJSON;
+                    toastr.error(res && res.message ? res.message : 'Failed to update profile photo');
+                }
+            });
+        });
+
+        $('#darkmodeDefaultSwitch').on('change', function() {
+            const isDark = $(this).is(':checked');
+
+            // apply immediately to this session so the toggle previews live
+            document.documentElement.classList.add('**:transition-none!');
+            document.documentElement.classList.toggle('dark', isDark);
+            document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
+            localStorage.setItem('dark-mode', isDark ? 'true' : 'false');
+            document.querySelectorAll('.light-switch').forEach(el => el.checked = isDark);
+            setTimeout(() => document.documentElement.classList.remove('**:transition-none!'), 1);
+
+            $.ajax({
+                url: '{{ route('darkmode.update.custom') }}',
+                type: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                data: {
+                    is_darkmode: isDark ? 1 : 0
+                },
+                success: function() {
+                    toastr.success('Theme preference saved');
+                },
+                error: function() {
+                    toastr.error('Failed to save theme preference');
+                }
+            });
         });
 
         $('#changePasswordForm').submit(function(e) {

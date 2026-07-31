@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Google\Cloud\Storage\StorageClient;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -46,6 +48,7 @@ class User extends Authenticatable
         'last_login_at',
         'last_login_ip',
         'login_count',
+        'is_darkmode',
         'status',
         'created_by',
         'updated_by',
@@ -62,6 +65,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'last_login_at' => 'datetime',
+        'is_darkmode' => 'boolean',
     ];
 
     public function roleIds()
@@ -107,5 +111,50 @@ class User extends Authenticatable
     public function getAuthIdentifierName()
     {
         return 'username';
+    }
+
+    /**
+     * Overrides Jetstream's HasProfilePhoto::profilePhotoUrl(). ms_user has no
+     * profile_photo_path column / local disk storage; photos are uploaded through the
+     * app's generic GCS attachment pipeline (TrAttachment, doctype=AVATAR — tr_attachment.doctype
+     * is varchar(10), so "USERPROFILE" doesn't fit — keyed by username) — see
+     * ProfileController::updatePhoto(). The bucket is private, so the URL is a freshly-signed
+     * link generated on every access rather than a stored path.
+     */
+    protected function profilePhotoUrl(): Attribute
+    {
+        return Attribute::get(function (): string {
+            $attachment = TrAttachment::where('refnbr', $this->username)
+                ->where('doctype', 'AVATAR')
+                ->where('status', 'A')
+                ->latest('id')
+                ->first();
+
+            if (!$attachment) {
+                return $this->defaultProfilePhotoUrl();
+            }
+
+            try {
+                $config = config('filesystems.disks.gcs');
+                $keyFilePath = $config['key_file'];
+                if (!str_starts_with($keyFilePath, '/') && !preg_match('/^[A-Za-z]:\\\\/', $keyFilePath)) {
+                    $keyFilePath = base_path($keyFilePath);
+                }
+
+                $storage = new StorageClient([
+                    'projectId' => $config['project_id'],
+                    'keyFilePath' => $keyFilePath,
+                ]);
+
+                $objectPath = rtrim($attachment->folder, '/').'/'.$attachment->filename;
+
+                return $storage->bucket($config['bucket'])->object($objectPath)->signedUrl(
+                    new \DateTimeImmutable('+10 minutes'),
+                    ['version' => 'v4']
+                );
+            } catch (\Throwable $e) {
+                return $this->defaultProfilePhotoUrl();
+            }
+        });
     }
 }

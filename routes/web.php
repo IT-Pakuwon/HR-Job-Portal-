@@ -2154,6 +2154,10 @@ Route::middleware(['auth'])->group(function () {
             });
 
         Route::get('/settings/account', [ProfileController::class, 'show'])->name('profile.showx');
+        // Every authenticated user (not just admins) sets their own theme default / photo,
+        // so these stay outside the 'admin' middleware group below.
+        Route::post('/settings/darkmode', [UsersController::class, 'updateDarkmode'])->name('darkmode.update.custom');
+        Route::post('/settings/profile-photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo.update');
 
         Route::prefix('approval-dashboard')->controller(ApprovalDashboardController::class)->group(function () {
             Route::get('/summary-json', 'summaryJson');

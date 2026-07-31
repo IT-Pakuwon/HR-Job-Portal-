@@ -544,6 +544,25 @@ class UsersController extends Controller
         return response()->json(['message' => 'Status updated']);
     }
 
+    public function updateDarkmode(Request $request)
+    {
+        $request->validate([
+            'is_darkmode' => ['required', 'boolean'],
+        ]);
+
+        $authUser = Auth::user();
+        if (!$authUser) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+
+        $authUser->update(['is_darkmode' => $request->boolean('is_darkmode')]);
+
+        return response()->json([
+            'message' => 'Theme preference updated',
+            'is_darkmode' => $authUser->is_darkmode,
+        ]);
+    }
+
     public function updatePassword(Request $request)
     {
         $request->validate([

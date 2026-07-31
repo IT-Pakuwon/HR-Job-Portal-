@@ -89,7 +89,18 @@
 
     <!-- ================= DARK MODE INIT ================= -->
     <script>
-        const isDark = localStorage.getItem('dark-mode') === 'true';
+        // localStorage is the per-browser session override (set by the header toggle).
+        // When it's empty (first visit, or cache/localStorage was cleared), fall back to
+        // the account default saved in ms_user.is_darkmode via Settings/Account.
+        const storedDarkMode = localStorage.getItem('dark-mode');
+        const isDark = storedDarkMode !== null
+            ? storedDarkMode === 'true'
+            : @json((bool) (auth()->check() && auth()->user()->is_darkmode));
+
+        if (storedDarkMode === null) {
+            localStorage.setItem('dark-mode', isDark ? 'true' : 'false');
+        }
+
         if (isDark) {
             document.documentElement.classList.add('dark');
             document.documentElement.style.colorScheme = 'dark';
