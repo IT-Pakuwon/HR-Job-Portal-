@@ -403,6 +403,7 @@ class MsApprovalController extends Controller
         $rows = MsApproval::where('aprv_doctype', $doctype)
             ->where('aprv_cpnyid', $cpnyId)
             ->where('aprv_departementid', $deptId)
+            ->where('status', 'A')
             ->orderBy('aprv_leveling')
             ->get([
                 'aprv_leveling',

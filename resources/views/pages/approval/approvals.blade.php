@@ -97,6 +97,18 @@
                         </select>
                     </div>
 
+                    <div class="min-w-40 flex-1">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                            Filter Status
+                        </label>
+                        <select id="filterStatus"
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
+                            <option value="">All Status</option>
+                            <option value="A">Active</option>
+                            <option value="X">Inactive</option>
+                        </select>
+                    </div>
+
                     <div class="mt-6">
                         <button id="clearUserFilters" type="button"
                             class="rounded-lg border px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-600">
@@ -796,6 +808,9 @@
                 },
                 processing: true,
                 serverSide: true,
+                order: [
+                    [2, 'asc']
+                ],
                 lengthMenu: [
                     [10, 25, 50, 100, 250, -1],
                     [10, 25, 50, 100, 250, 'All']
@@ -933,7 +948,7 @@
                 dropdownParent: $('#editApprovalModal')
             });
 
-            $('#filterDoctype, #filterCompany, #filterDept, #filterDeptType').select2({
+            $('#filterDoctype, #filterCompany, #filterDept, #filterDeptType, #filterStatus').select2({
                 width: '100%'
             });
 
@@ -949,10 +964,11 @@
                 });
             }
 
-            // kolom: 3 = doctype, 4 = company, 5 = department
+            // kolom: 3 = doctype, 4 = company, 5 = department, 11 = status
             applyColumnFilter('#filterDoctype', 3);
             applyColumnFilter('#filterCompany', 4);
             applyColumnFilter('#filterDept', 5);
+            applyColumnFilter('#filterStatus', 11);
 
             // Filter Department list, by source (Finance / HR), independent from Doc Type filter
             function loadFilterDepartmentsBySource(source) {
@@ -992,6 +1008,7 @@
                 $('#filterCompany').val('').trigger('change');
                 $('#filterDeptType').val(LOCKED_DEPTTYPE).trigger('change');
                 $('#filterDept').val('').trigger('change');
+                $('#filterStatus').val('').trigger('change');
 
                 table.search('').columns().search('').draw();
             });
@@ -1069,7 +1086,7 @@
                         <div class="line-row group grid grid-cols-1 items-start gap-3 rounded-lg border border-gray-200 bg-gray-50/70 p-3 transition md:grid-cols-12 md:gap-2 md:hover:border-indigo-200 md:hover:bg-indigo-50/40 dark:border-white/10 dark:bg-white/2 md:dark:hover:border-indigo-500/30 md:dark:hover:bg-indigo-500/5" data-row="${idx}">
                         <div class="md:col-span-1">
                             <label class="${labelClass}">Level</label>
-                            <input type="text" name="aprv_leveling[]"
+                            <input type="text" name="aprv_leveling[${idx}]"
                             class="level-input ${fieldClass}"
                             value="${level}" placeholder="0.00" inputmode="decimal" autocomplete="off" required>
                         </div>
@@ -1083,7 +1100,7 @@
 
                         <div class="md:col-span-2">
                             <label class="${labelClass}">Type</label>
-                            <select name="aprv_type[]"
+                            <select name="aprv_type[${idx}]"
                             class="sel-type ${fieldClass}">
                             ${buildOptions(TYPE_OPTIONS, typeVal)}
                             </select>
@@ -1091,7 +1108,7 @@
 
                         <div class="md:col-span-2">
                             <label class="${labelClass}">Condition</label>
-                            <select name="aprv_condition[]"
+                            <select name="aprv_condition[${idx}]"
                             class="sel-condition ${fieldClass}">
                             ${buildOptions(condOptions, condVal)}
                             </select>
@@ -1099,7 +1116,7 @@
 
                         <div class="md:col-span-2">
                             <label class="${labelClass}">Start Nominal</label>
-                            <input type="text" name="aprv_start_nominal[]"
+                            <input type="text" name="aprv_start_nominal[${idx}]"
                             class="nominal-input ${fieldClass}"
                             value="${startNom}" inputmode="decimal" autocomplete="off">
                         </div>
@@ -1107,7 +1124,7 @@
                         <div class="flex items-end gap-2 md:col-span-2">
                             <div class="flex-1">
                             <label class="${labelClass}">End Nominal</label>
-                            <input type="text" name="aprv_end_nominal[]"
+                            <input type="text" name="aprv_end_nominal[${idx}]"
                                 class="nominal-input ${fieldClass}"
                                 value="${endNom}" inputmode="decimal" autocomplete="off">
                             </div>
@@ -1961,7 +1978,7 @@
                     <div class="grid grid-cols-1 items-start gap-2 md:grid-cols-3 line-row" data-row="${idx}">
                         <div>
                             <label class="md:hidden text-sm text-gray-500 dark:text-gray-300">Level</label>
-                            <input type="text" name="aprv_leveling[]"
+                            <input type="text" name="aprv_leveling[${idx}]"
                                 class="level-input w-full rounded-lg border px-2 py-1 text-sm dark:bg-gray-700"
                                 value="${level}" placeholder="0.00" inputmode="decimal" autocomplete="off" required>
                         </div>
@@ -1976,7 +1993,7 @@
                         <div class="flex gap-2">
                             <div class="flex-1">
                                 <label class="md:hidden text-sm text-gray-500 dark:text-gray-300">Type Condition</label>
-                                <select name="aprv_typecondition[]"
+                                <select name="aprv_typecondition[${idx}]"
                                     class="w-full rounded-lg border px-2 py-1 text-sm sel-typecondition dark:bg-gray-700"
                                     required>
                                     ${buildOptions(TYPECONDITION_OPTIONS, typeConditionVal)}

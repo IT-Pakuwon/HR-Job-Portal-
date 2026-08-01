@@ -46,8 +46,6 @@ class EngTicketController extends Controller
 
     protected const ENG_TICKET_TYPE = 'ENGSUPPORTTICKET';
 
-    protected const BA_TICKET_TYPE = 'BERITAACARA';
-
     protected const BA_BSFO_TICKET_TYPE = 'BA_BSFO';
 
     protected const BA_ENG_TICKET_TYPE = 'BA_ENG';
@@ -128,7 +126,6 @@ class EngTicketController extends Controller
             ->whereIn('ticket_type', [
                 self::ENG_TICKET_TYPE,
                 self::BSFO_TICKET_TYPE,
-                self::BA_TICKET_TYPE,
                 self::BA_BSFO_TICKET_TYPE,
                 self::BA_ENG_TICKET_TYPE,
             ])
@@ -145,12 +142,6 @@ class EngTicketController extends Controller
 
         if ($ticket->ticket_type === self::BA_ENG_TICKET_TYPE) {
             return 'BA ENG';
-        }
-
-        if ($ticket->ticket_type === self::BA_TICKET_TYPE) {
-            $category = MsTicketCategory::find($ticket->ticket_categoryid);
-            $catName = $category?->ticket_category_name ?? '';
-            return 'BA ' . strtoupper($catName);
         }
 
         return $ticket->ticket_type === self::BSFO_TICKET_TYPE
@@ -244,16 +235,15 @@ class EngTicketController extends Controller
             return true;
         }
 
-        if ($ticketType === self::BSFO_TICKET_TYPE) {
-            return $this->isBSFO() || $this->isBSFORole();
+        if (in_array($ticketType, [self::BSFO_TICKET_TYPE, self::BA_BSFO_TICKET_TYPE], true)) {
+            return $this->isBSFORole();
         }
 
-        if (in_array($ticketType, [self::BA_TICKET_TYPE, self::BA_BSFO_TICKET_TYPE, self::BA_ENG_TICKET_TYPE], true)) {
-            return $this->isEng() || $this->isENGRole()
-                || $this->isBSFO() || $this->isBSFORole();
+        if (in_array($ticketType, [self::ENG_TICKET_TYPE, self::BA_ENG_TICKET_TYPE], true)) {
+            return $this->isENGRole();
         }
 
-        return $this->isEng() || $this->isENGRole();
+        return false;
     }
 
     /**
@@ -263,10 +253,10 @@ class EngTicketController extends Controller
     protected function broadAccessTicketTypes(): array
     {
         if ($this->isMgrOprTeknik()) {
-            return [self::ENG_TICKET_TYPE, self::BSFO_TICKET_TYPE, self::BA_TICKET_TYPE, self::BA_BSFO_TICKET_TYPE, self::BA_ENG_TICKET_TYPE];
+            return [self::ENG_TICKET_TYPE, self::BSFO_TICKET_TYPE, self::BA_BSFO_TICKET_TYPE, self::BA_ENG_TICKET_TYPE];
         }
 
-        $baTypes = [self::BA_TICKET_TYPE, self::BA_BSFO_TICKET_TYPE, self::BA_ENG_TICKET_TYPE];
+        $baTypes = [self::BA_BSFO_TICKET_TYPE, self::BA_ENG_TICKET_TYPE];
 
         $types = [];
 
@@ -1436,8 +1426,7 @@ class EngTicketController extends Controller
         abort_if(
             !$this->validatePIC(
                 $request->pic_ticket,
-                $ticket->ticket_type,
-                $ticket->ticket_categoryid
+                $ticket->ticket_type
             ),
             422,
             'Selected PIC is invalid.'
@@ -2090,8 +2079,7 @@ class EngTicketController extends Controller
             abort_if(
                 !$this->validatePIC(
                     $request->pic_ticket,
-                    $request->ticket_type,
-                    $request->ticket_categoryid
+                    $request->ticket_type
                 ),
                 422,
                 'Selected PIC is invalid.'
@@ -2775,46 +2763,6 @@ class EngTicketController extends Controller
                     'created_by' => 'system',
                 ]
             );
-
-            $existingCategories = MsTicketCategory::query()
-                ->where('ticket_type', self::BA_TICKET_TYPE)
-                ->where('status', 'A')
-                ->get();
-
-            foreach ($existingCategories as $cat) {
-                $newCatId = $code . '_' . $cat->ticket_categoryid;
-
-                MsTicketCategory::firstOrCreate(
-                    ['ticket_categoryid' => $newCatId],
-                    [
-                        'ticket_category_name' => $cat->ticket_category_name,
-                        'ticket_type' => $code,
-                        'status' => 'A',
-                        'created_by' => 'system',
-                    ]
-                );
-
-                $existingSubcategories = MsTicketSubcategory::query()
-                    ->where('ticket_categoryid', $cat->ticket_categoryid)
-                    ->where('ticket_type', self::BA_TICKET_TYPE)
-                    ->where('status', 'A')
-                    ->get();
-
-                foreach ($existingSubcategories as $sub) {
-                    $newSubId = $code . '_' . $sub->ticket_subcategoryid;
-
-                    MsTicketSubcategory::firstOrCreate(
-                        ['ticket_subcategoryid' => $newSubId],
-                        [
-                            'ticket_subcategory_name' => $sub->ticket_subcategory_name,
-                            'ticket_categoryid' => $newCatId,
-                            'ticket_type' => $code,
-                            'status' => 'A',
-                            'created_by' => 'system',
-                        ]
-                    );
-                }
-            }
         }
     }
 
@@ -3030,13 +2978,6 @@ class EngTicketController extends Controller
             $query->where(
                 'ticket_type',
                 $request->ticket_type
-            );
-        }
-
-        if ($request->filled('ticket_categoryid')) {
-            $query->where(
-                'ticket_categoryid',
-                $request->ticket_categoryid
             );
         }
 
@@ -3290,13 +3231,11 @@ class EngTicketController extends Controller
 
     protected function validatePIC(
         $username,
-        $ticketType,
-        $categoryId
+        $ticketType
     ) {
         return MsTicketCategoryDept::query()
             ->where('username', $username)
             ->where('ticket_type', $ticketType)
-            ->where('ticket_categoryid', $categoryId)
             ->where('status', 'A')
             ->exists();
     }
