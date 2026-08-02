@@ -4,20 +4,27 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Traits\HasAttendanceWindow;
 use App\Http\Controllers\Traits\HasAutonbr;
+use App\Models\CompanyAddress;
 use App\Models\MsCategory;
 use App\Models\MsCompany;
 use App\Models\MsDepartment;
+use App\Models\MsLndPlaces;
+use App\Models\MsLndTrainingSchedule;
+use App\Models\MsLndTrainingQuota;
 use App\Models\MsTrainingEvent;
 use App\Models\StoGrading;
-use App\Models\TrTrainingRegistration;
-use App\Models\TrTrainingScheduleDetail;
-use App\Models\TrTrainingScheduleQuota;
+use App\Models\TrLndTrainingFeedbackAnswer;
+use App\Models\TrLndTrainingRegistration;
+use App\Models\TrMessage;
 use App\Models\User;
 use App\Services\TrainingRegistrationService;
+use App\Services\TrainingWaitlistNotifier;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Picqer\Barcode\BarcodeGeneratorPNG;
 use Vinkla\Hashids\Facades\Hashids;
@@ -28,6 +35,16 @@ class TrainingRegistrationController extends Controller
     use HasAttendanceWindow;
 
     protected const DOCTYPE = 'TRN';
+
+    /**
+     * ms_lnd_training_schedule.status is varchar(1) — single-letter codes
+     * (DRAFT/PUBLISHED/CLOSED/CANCELLED). The legacy registration code
+     * compared against full words, which never matched anything.
+     */
+    protected const SCHEDULE_DRAFT = 'D';
+    protected const SCHEDULE_PUBLISHED = 'P';
+    protected const SCHEDULE_CLOSED = 'C';
+    protected const SCHEDULE_CANCELLED = 'X';
 
     public function index()
     {
@@ -52,14 +69,12 @@ class TrainingRegistrationController extends Controller
 
     /**
      * Open (PUBLISHED, not-yet-deadline) schedules with per-company quota
-     * availability, grouped one row per training — a training with several
-     * open dates/levels is a single card, and the specific date is picked at
-     * register time rather than showing one duplicate-looking card per date.
+     * availability, grouped one row per training batch (training_detail_id).
      *
-     * ms_user.cpny_id/department_id can each hold a comma-separated list (a
-     * person can belong to several companies and/or departments) — every
-     * matching company's quota is surfaced so the frontend can offer a
-     * picker instead of silently guessing one.
+     * Company/department for the whole registration flow come from the
+     * participant's origin org (ms_user.origin_cpny_id / origin_department_id),
+     * so every published schedule's quota pool is filtered to the caller's own
+     * origin company(s).
      *
      * Optional ?training_id= narrows to a single training (used by the
      * dedicated event page instead of the full browse list).
@@ -67,13 +82,13 @@ class TrainingRegistrationController extends Controller
     public function json(Request $request)
     {
         $user = Auth::user();
-        $userCpnyIds = $this->splitMulti($user->cpny_id);
-        $userDeptIds = $this->splitMulti($user->department_id);
+        $userCpnyIds = $this->splitMulti($user->origin_cpny_id);
+        $userDeptIds = $this->splitMulti($user->origin_department_id);
         $onlyTrainingId = $request->query('training_id');
 
-        $details = TrTrainingScheduleDetail::query()
-            ->where('status', 'PUBLISHED')
-            ->when($onlyTrainingId, fn ($q) => $q->whereHas('schedule', fn ($q2) => $q2->where('training_id', $onlyTrainingId)))
+        $details = MsLndTrainingSchedule::query()
+            ->where('status', self::SCHEDULE_PUBLISHED)
+            ->when($onlyTrainingId, fn ($q) => $q->where('training_id', $onlyTrainingId))
             ->with([
                 'schedule.training',
                 'quota' => fn ($q) => $q->whereIn('cpny_id', $userCpnyIds),
@@ -81,73 +96,78 @@ class TrainingRegistrationController extends Controller
             ->orderBy('schedule_date')
             ->get();
 
-        $detailIds = $details->pluck('id');
+        $scheduleIds = $details->pluck('schedule_id');
 
-        $myRegs = TrTrainingRegistration::whereIn('schedule_detail_id', $detailIds)
-            ->where('username', $user->username)
-            ->whereIn('status', [
-                TrTrainingRegistration::STATUS_PENDING,
-                TrTrainingRegistration::STATUS_APPROVED,
-                TrTrainingRegistration::STATUS_WAITLISTED,
-                TrTrainingRegistration::STATUS_OFFERED,
-            ])
+        $myRegs = TrLndTrainingRegistration::whereIn('schedule_id', $scheduleIds)
+            ->where('user_registration', $user->username)
+            ->where(function ($q) {
+                $q->where(fn ($q2) => $q2->whereNull('status_registration')->whereNotNull('status'))
+                    ->orWhereIn('status_registration', [
+                        TrLndTrainingRegistration::REG_STATUS_WAITLISTED,
+                        TrLndTrainingRegistration::REG_STATUS_OFFERED,
+                    ]);
+            })
+            ->orderBy('created_at')
             ->get()
-            ->keyBy('schedule_detail_id');
+            ->keyBy('schedule_id');
 
-        $counts = TrTrainingRegistration::whereIn('schedule_detail_id', $detailIds)
-            ->whereIn('status', [TrTrainingRegistration::STATUS_PENDING, TrTrainingRegistration::STATUS_APPROVED])
-            ->select('schedule_detail_id', 'cpny_id', 'status', DB::raw('count(*) as cnt'))
-            ->groupBy('schedule_detail_id', 'cpny_id', 'status')
+        $usage = TrLndTrainingRegistration::whereIn('schedule_id', $scheduleIds)
+            ->where(function ($q) {
+                $q->whereNull('status_registration')
+                    ->orWhere('status_registration', TrLndTrainingRegistration::REG_STATUS_OFFERED);
+            })
+            ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
+            ->select('schedule_id', 'cpny_id', DB::raw('count(*) as cnt'))
+            ->groupBy('schedule_id', 'cpny_id')
             ->get()
-            ->groupBy('schedule_detail_id');
+            ->groupBy('schedule_id');
 
         $companyNames = MsCompany::whereIn('cpny_id', $userCpnyIds)->pluck('cpny_name', 'cpny_id');
-        $gradeNames = StoGrading::whereIn('grade_id', $details->pluck('schedule.grade_id')->filter()->unique())
+        $gradeNames = StoGrading::whereIn('grade_id', $details->pluck('schedule.job_level')->filter()->unique())
             ->pluck('grade_name', 'grade_id');
-        $speakerNames = User::whereIn('username', $details->pluck('schedule.speaker_username')->filter()->unique())
+        $speakerNames = User::whereIn('username', $details->pluck('training_speaker_username')->filter()->unique())
             ->pluck('name', 'username');
+        $placeNames = MsLndPlaces::whereIn('places_id', $details->pluck('places_id')->filter()->unique())
+            ->pluck('places_name', 'places_id');
 
-        $scheduleOptions = $details->map(function ($d) use ($myRegs, $counts, $companyNames, $gradeNames, $speakerNames) {
-            $grouped = $counts->get($d->id, collect());
+        $scheduleOptions = $details->map(function ($d) use ($myRegs, $usage, $companyNames, $gradeNames, $speakerNames, $placeNames) {
+            $grouped = $usage->get($d->schedule_id, collect());
 
             $eligibleCompanies = $d->quota->map(function ($q) use ($grouped, $companyNames) {
-                $reserved = (int) $grouped->where('cpny_id', $q->cpny_id)->where('status', 'P')->sum('cnt');
-                $used = (int) $grouped->where('cpny_id', $q->cpny_id)->where('status', TrTrainingRegistration::STATUS_APPROVED)->sum('cnt');
+                $seatCount = (int) $grouped->where('cpny_id', $q->cpny_id)->sum('cnt');
 
                 return [
                     'cpny_id' => $q->cpny_id,
                     'cpny_name' => $companyNames[$q->cpny_id] ?? $q->cpny_id,
                     'quota_pax' => $q->quota_pax,
-                    'reserved' => $reserved,
-                    'used' => $used,
-                    'available' => max(0, $q->quota_pax - $reserved - $used),
+                    'reserved' => 0,
+                    'used' => $seatCount,
+                    'available' => max(0, $q->quota_pax - $seatCount),
                 ];
             })->values();
 
-            $mine = $myRegs->get($d->id);
+            $mine = $myRegs->get($d->schedule_id);
 
             return [
-                'id' => $d->id,
-                'training_id' => $d->schedule->training_id,
+                'id' => $d->schedule_id,
+                'training_id' => $d->training_id,
                 'training_name' => $d->schedule->training->training_name ?? null,
-                'docid' => $d->docid,
+                'docid' => $d->training_detail_id,
                 'schedule_date' => $d->schedule_date,
-                'start_time' => $d->start_time,
-                'end_time' => $d->end_time,
-                'mode' => $d->mode,
-                'location' => $d->location,
-                'platform' => $d->platform,
-                'meeting_link' => $d->meeting_link,
-                'poster_url' => $d->schedule->poster ? asset($d->schedule->poster) : null,
-                'grade_id' => $d->schedule->grade_id,
-                'grade_name' => $gradeNames[$d->schedule->grade_id] ?? $d->schedule->grade_id,
-                'speaker_name' => $d->schedule->speaker_username
-                    ? ($speakerNames[$d->schedule->speaker_username] ?? $d->schedule->speaker_username)
-                    : null,
+                'start_time' => $d->schedule_start_time,
+                'end_time' => $d->schedule_end_time,
+                'mode' => $d->training_mode,
+                'location' => $d->places_id ? ($placeNames[$d->places_id] ?? $d->places_id) : null,
+                'platform' => $d->training_platform,
+                'meeting_link' => $d->training_meeting_link,
+                'poster_url' => $d->schedule->training_poster ? Storage::disk('public')->url($d->schedule->training_poster) : null,
+                'grade_id' => $d->schedule->job_level,
+                'grade_name' => $gradeNames[$d->schedule->job_level] ?? $d->schedule->job_level,
+                'speaker_name' => $d->training_speaker_name ?: $d->training_ext_speaker_name,
                 'registration_deadline' => $d->registration_deadline,
-                'is_open' => !$d->registration_deadline || Carbon::parse($d->registration_deadline)->isFuture() || Carbon::parse($d->registration_deadline)->isToday(),
+                'is_open' => !$d->registration_deadline || !Carbon::parse($d->registration_deadline)->isPast(),
                 'eligible_companies' => $eligibleCompanies,
-                'my_status' => $mine->status ?? null,
+                'my_status' => $mine ? $mine->effective_status : null,
                 'my_registration_id' => $mine->id ?? null,
             ];
         });
@@ -157,10 +177,9 @@ class TrainingRegistrationController extends Controller
             ->whereIn('categoryid', $trainingsById->pluck('category_id')->filter()->unique())
             ->pluck('category_name', 'categoryid');
 
-        // One card per docid — a distinct HR "Add Schedule" batch (one level,
-        // one speaker/poster). Different levels are different batches even
-        // when they share a training name, so they must NOT be merged into
-        // one card; only same-docid dates (already one batch) consolidate.
+        // One card per batch (training_detail_id — a distinct HR "Add
+        // Schedule" batch with one level/speaker/poster). Different batches
+        // are different cards even when they share a training name.
         $rows = $scheduleOptions->groupBy('docid')->map(function ($schedules) use ($trainingsById, $categoryNames) {
             $first = $schedules->first();
             $training = $trainingsById->get($first['training_id']);
@@ -171,7 +190,7 @@ class TrainingRegistrationController extends Controller
                 'eid' => $training ? Hashids::encode($training->id) : null,
                 'training_name' => $first['training_name'],
                 'poster_url' => $first['poster_url'],
-                'description' => $training->description ?? null,
+                'description' => $training->training_description ?? null,
                 'category_name' => $categoryNames[$training->category_id ?? null] ?? null,
                 'training_type' => $training->training_type ?? null,
                 'is_mandatory' => (bool) ($training->is_mandatory ?? false),
@@ -184,6 +203,7 @@ class TrainingRegistrationController extends Controller
         })->values();
 
         $departmentNames = MsDepartment::whereIn('department_id', $userDeptIds)->pluck('department_name', 'department_id');
+        $companyNamesAll = MsCompany::whereIn('cpny_id', $userCpnyIds)->pluck('cpny_name', 'cpny_id');
 
         return response()->json([
             'data' => $rows,
@@ -191,6 +211,8 @@ class TrainingRegistrationController extends Controller
                 'id' => $id,
                 'name' => $departmentNames[$id] ?? $id,
             ])->values(),
+            'my_company_name' => $companyNamesAll[$user->origin_cpny_id] ?? $user->origin_cpny_id,
+            'my_department_name' => $departmentNames[$user->origin_department_id] ?? $user->origin_department_id,
         ]);
     }
 
@@ -202,50 +224,170 @@ class TrainingRegistrationController extends Controller
             ->values();
     }
 
+    /**
+     * Colleagues eligible for batch registration: active ms_user rows sharing
+     * the caller's exact origin company AND origin department.
+     */
+    public function colleagues(Request $request)
+    {
+        $user = Auth::user();
+        $originCpnyId = trim((string) $user->origin_cpny_id);
+        $originDeptId = trim((string) $user->origin_department_id);
+
+        if ($originCpnyId === '' || $originDeptId === '') {
+            return response()->json(['data' => []]);
+        }
+
+        $query = User::query()
+            ->where('status', 'A')
+            ->where('origin_cpny_id', $originCpnyId)
+            ->where('origin_department_id', $originDeptId);
+
+        $search = trim((string) $request->get('q', ''));
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'ilike', "%{$search}%")
+                    ->orWhere('username', 'ilike', "%{$search}%");
+            });
+        }
+
+        $rows = $query->orderBy('name')->limit(50)->get(['username', 'name', 'origin_cpny_id', 'origin_department_id']);
+
+        return response()->json([
+            'data' => $rows->map(fn ($u) => [
+                'username' => $u->username,
+                'name' => $u->name ?: $u->username,
+                'cpny_id' => $u->origin_cpny_id,
+                'department_id' => $u->origin_department_id,
+            ])->values(),
+        ]);
+    }
+
     public function myRegistrations()
     {
         $user = Auth::user();
 
-        $rows = TrTrainingRegistration::where('username', $user->username)
-            ->with('scheduleDetail.schedule.training')
+        $registrations = TrLndTrainingRegistration::where('user_registration', $user->username)
+            ->with('schedule.schedule.training')
             ->orderByDesc('created_at')
-            ->get()
-            ->map(fn ($r) => [
+            ->get();
+
+        $answeredDocIds = TrLndTrainingFeedbackAnswer::whereIn('training_regist_id', $registrations->pluck('training_regist_id'))
+            ->pluck('training_regist_id')
+            ->unique();
+
+        $rows = $registrations->map(function ($r) use ($answeredDocIds) {
+            $hasAttended = (bool) $r->completed_at;
+            $feedbackOpen = (bool) $r->schedule?->is_feedback_open;
+            $feedbackSubmitted = $answeredDocIds->contains($r->training_regist_id);
+            $isApproved = $r->status === TrLndTrainingRegistration::STATUS_APPROVED;
+            $certificateReady = (bool) $r->schedule?->is_certificate_ready;
+
+            return [
                 'id' => $r->id,
                 'eid' => Hashids::encode($r->id),
-                'docid' => $r->docid,
-                'training_name' => $r->scheduleDetail->schedule->training->training_name ?? null,
-                'schedule_date' => $r->scheduleDetail->schedule_date ?? null,
-                'status' => $r->status,
-                'offer_expires_at' => $r->offer_expires_at,
+                'schedule_id' => $r->schedule_id,
+                'docid' => $r->training_regist_id,
+                'training_name' => $r->schedule?->schedule?->training?->training_name ?? null,
+                'schedule_date' => $r->schedule_date ?? $r->schedule?->schedule_date,
+                'status' => $r->effective_status,
+                'offer_expires_at' => $r->status_registration === TrLndTrainingRegistration::REG_STATUS_OFFERED
+                    ? $r->offer_expires_at
+                    : null,
+                'has_attended' => $hasAttended,
+                'feedback_open' => $feedbackOpen,
+                'feedback_submitted' => $feedbackSubmitted,
+                'can_fill_feedback' => $hasAttended && $feedbackOpen,
+                'can_view_certificate' => $hasAttended && $isApproved && $certificateReady,
                 'created_at' => $r->created_at,
-            ]);
+            ];
+        });
 
         return response()->json(['data' => $rows]);
     }
 
     /**
+     * Streams a certificate PDF rendered fresh from this registration's own
+     * data (no stored file/row) — available once the registration is
+     * Approved, the participant actually attended, and the event is at
+     * least a day past (is_certificate_ready; H+1, so a same-day mis-scan
+     * can still be corrected via unmarkAttend before a certificate could be
+     * pulled for it). Self-service only: scoped to the caller's own row.
+     */
+    public function myCertificate($id)
+    {
+        $user = Auth::user();
+
+        $registration = TrLndTrainingRegistration::where('user_registration', $user->username)
+            ->with('schedule.schedule.training')
+            ->findOrFail($id);
+
+        abort_unless($registration->status === TrLndTrainingRegistration::STATUS_APPROVED, 422, 'Registrasi ini belum disetujui');
+        abort_unless((bool) $registration->completed_at, 422, 'Anda belum tercatat hadir pada training ini');
+
+        $schedule = $registration->schedule;
+        abort_unless($schedule && $schedule->is_certificate_ready, 422, 'Sertifikat untuk training ini belum tersedia');
+
+        $trainingDetail = $schedule->schedule;
+        $training = $trainingDetail?->training;
+        abort_unless($trainingDetail && $training, 422, 'Data training tidak lengkap');
+
+        $gradeName = $trainingDetail->job_level;
+        if ($trainingDetail->job_level) {
+            $grade = StoGrading::where('grade_id', $trainingDetail->job_level)->first();
+            $gradeName = $grade->grade_name ?? $trainingDetail->job_level;
+        }
+
+        $company = MsCompany::where('cpny_id', $registration->cpny_id)->first();
+        $companyAddress = CompanyAddress::where('cpnyid', $registration->cpny_id)->first();
+        $certificateNo = $registration->attendance_code ?: ('CERT-' . $registration->id);
+
+        $pdf = Pdf::loadView('pages.training_attendance.certificate-pdf', [
+            'participantName' => $user->name ?? $user->username,
+            'trainingName' => $training->training_name,
+            'gradeName' => $gradeName,
+            'scheduleDate' => $schedule->schedule_date,
+            'certificateNo' => $certificateNo,
+            'issueDate' => now(),
+            'logo' => $company->cpny_id ?? null,
+            'companyName' => $companyAddress->cpnyname ?? $company->cpny_name ?? '-',
+        ])->setPaper('a4', 'landscape');
+
+        return $pdf->stream("certificate-{$certificateNo}.pdf");
+    }
+
+    /**
      * Whether/when the caller can see their own check-in barcode for one of
-     * their Approved registrations — generates the code lazily on first
-     * request rather than at approval time, so approving a registration
-     * doesn't need to know anything about attendance.
+     * their Approved registrations. The unique attendance_code is generated
+     * by the model observer at approval time; this endpoint only reports it.
      */
     public function barcodeStatus($id)
     {
-        $registration = TrTrainingRegistration::findOrFail($id);
+        $registration = TrLndTrainingRegistration::findOrFail($id);
         $user = Auth::user();
 
-        abort_unless($registration->username === $user->username, 403);
+        abort_unless(strcasecmp((string) $registration->user_registration, (string) $user->username) === 0, 403);
 
-        if ($registration->status !== TrTrainingRegistration::STATUS_APPROVED) {
+        if ($registration->status !== TrLndTrainingRegistration::STATUS_APPROVED) {
             return response()->json(['available' => false, 'message' => 'Registrasi belum disetujui']);
         }
 
-        if (!$registration->attendance_code) {
-            $registration->update(['attendance_code' => strtoupper(Str::random(20))]);
+        if ($registration->status_registration) {
+            return response()->json(['available' => false, 'message' => 'Anda belum memiliki slot pada event ini']);
         }
 
-        $detail = TrTrainingScheduleDetail::findOrFail($registration->schedule_detail_id);
+        if (!$registration->attendance_code) {
+            $registration->attendance_code = 'TRN-' . strtoupper(Str::random(10));
+            $registration->updated_by = $user->username;
+            $registration->save();
+        }
+
+        $detail = MsLndTrainingSchedule::where('schedule_id', $registration->schedule_id)->first();
+
+        if (!$detail) {
+            return response()->json(['available' => false, 'message' => 'Schedule tidak ditemukan']);
+        }
+
         $window = $this->attendanceWindow($detail);
         $now = now();
 
@@ -269,14 +411,15 @@ class TrainingRegistrationController extends Controller
 
     public function barcodeImage($id)
     {
-        $registration = TrTrainingRegistration::findOrFail($id);
+        $registration = TrLndTrainingRegistration::findOrFail($id);
         $user = Auth::user();
 
-        abort_unless($registration->username === $user->username, 403);
-        abort_unless($registration->status === TrTrainingRegistration::STATUS_APPROVED, 403);
+        abort_unless(strcasecmp((string) $registration->user_registration, (string) $user->username) === 0, 403);
+        abort_unless($registration->status === TrLndTrainingRegistration::STATUS_APPROVED, 403);
+        abort_unless(!$registration->status_registration, 403);
         abort_unless($registration->attendance_code, 404);
 
-        $detail = TrTrainingScheduleDetail::findOrFail($registration->schedule_detail_id);
+        $detail = MsLndTrainingSchedule::where('schedule_id', $registration->schedule_id)->firstOrFail();
         abort_unless($this->isWithinAttendanceWindow($detail), 403);
 
         $generator = new BarcodeGeneratorPNG();
@@ -285,12 +428,21 @@ class TrainingRegistrationController extends Controller
         return response($png, 200)->header('Content-Type', 'image/png');
     }
 
-    public function register(Request $request, $id)
+    /**
+     * Multi-participant registration. $scheduleId is the TSDxxxxx schedule
+     * code. Defaults to self-registration; a non-empty `participants[]` list
+     * registers that exact set of colleagues (submitter may include
+     * themselves). Each participant gets their own row AND their own
+     * training_regist_id/approval chain — they are submitted together
+     * (one seat-availability check for the whole set) but approved
+     * independently, not as a shared batch document.
+     */
+    public function register(Request $request, string $scheduleId)
     {
-        $detail = TrTrainingScheduleDetail::findOrFail($id);
+        $detail = MsLndTrainingSchedule::where('schedule_id', $scheduleId)->firstOrFail();
         $user = Auth::user();
 
-        if ($detail->status !== 'PUBLISHED') {
+        if ($detail->status !== self::SCHEDULE_PUBLISHED) {
             return response()->json(['success' => false, 'message' => 'Registrasi untuk jadwal ini sudah ditutup'], 422);
         }
 
@@ -298,51 +450,92 @@ class TrainingRegistrationController extends Controller
             return response()->json(['success' => false, 'message' => 'Batas waktu registrasi sudah lewat'], 422);
         }
 
-        $existing = TrTrainingRegistration::where('schedule_detail_id', $id)
-            ->where('username', $user->username)
-            ->whereIn('status', [
-                TrTrainingRegistration::STATUS_PENDING,
-                TrTrainingRegistration::STATUS_APPROVED,
-                TrTrainingRegistration::STATUS_WAITLISTED,
-                TrTrainingRegistration::STATUS_OFFERED,
-            ])
-            ->exists();
+        $originCpnyId = trim((string) $user->origin_cpny_id);
+        $originDeptId = trim((string) $user->origin_department_id);
 
-        if ($existing) {
-            return response()->json(['success' => false, 'message' => 'Anda sudah terdaftar pada jadwal ini'], 422);
+        $requested = $request->input('participants', []);
+        if (!is_array($requested) || empty($requested)) {
+            $requested = [$user->username];
         }
 
-        // A person can belong to several companies and/or departments
-        // (ms_user.cpny_id/department_id are comma-separated) — company
-        // decides which quota pool they draw from, department decides which
-        // ms_approval chain reviews them. Both must be picked explicitly
-        // whenever more than one option exists; never guessed.
-        $userCpnyIds = $this->splitMulti($user->cpny_id);
-        $userDeptIds = $this->splitMulti($user->department_id);
+        $requested = collect($requested)
+            ->map(fn ($v) => trim((string) $v))
+            ->filter()
+            ->unique()
+            ->values();
 
-        $requestedCpnyId = trim((string) $request->input('cpny_id', ''));
-        $requestedDeptId = trim((string) $request->input('department_id', ''));
+        $participants = collect();
+        foreach ($requested as $username) {
+            $participant = User::where('username', $username)->where('status', 'A')->first();
 
-        if ($requestedCpnyId !== '' && !$userCpnyIds->contains($requestedCpnyId)) {
-            return response()->json(['success' => false, 'message' => 'Perusahaan tidak valid untuk akun Anda'], 422);
+            if (!$participant) {
+                return response()->json(['success' => false, 'message' => "Peserta {$username} tidak ditemukan"], 422);
+            }
+
+            // Colleagues must belong to the exact same origin org as the submitter.
+            if (strcasecmp($username, $user->username) !== 0) {
+                $pCpny = trim((string) $participant->origin_cpny_id);
+                $pDept = trim((string) $participant->origin_department_id);
+
+                if ($pCpny !== $originCpnyId || $pDept !== $originDeptId) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Peserta {$username} bukan rekan sekantor Anda",
+                    ], 422);
+                }
+            }
+
+            $participants->push($participant);
         }
 
-        if ($userDeptIds->count() > 1 && $requestedDeptId === '') {
-            return response()->json(['success' => false, 'message' => 'Pilih departemen terlebih dahulu', 'require_department' => true], 422);
+        // Duplicate prevention guardrail: no active (non-cancelled, non-rejected)
+        // registration for any selected participant on this schedule.
+        $duplicates = TrLndTrainingRegistration::where('schedule_id', $scheduleId)
+            ->whereIn('user_registration', $participants->pluck('username'))
+            ->where(function ($q) {
+                $q->whereNull('status_registration')
+                    ->orWhere('status_registration', '!=', TrLndTrainingRegistration::REG_STATUS_CANCELLED);
+            })
+            ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
+            ->pluck('user_registration');
+
+        if ($duplicates->isNotEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sudah terdaftar pada jadwal ini: ' . $duplicates->implode(', '),
+            ], 422);
         }
 
-        if ($requestedDeptId !== '' && !$userDeptIds->contains($requestedDeptId)) {
-            return response()->json(['success' => false, 'message' => 'Departemen tidak valid untuk akun Anda'], 422);
-        }
+        // Mandatory trainings only allow one schedule per participant: block if
+        // any selected participant already has an active (non-cancelled,
+        // non-rejected) registration on a *different* schedule of this same
+        // training_id.
+        $isMandatory = (bool) MsTrainingEvent::where('training_id', $detail->training_id)->value('is_mandatory');
 
-        $departmentId = $requestedDeptId !== '' ? $requestedDeptId : ($userDeptIds->first() ?? null);
-        $cpnyIdsToTry = $requestedCpnyId !== '' ? collect([$requestedCpnyId]) : $userCpnyIds;
+        if ($isMandatory) {
+            $mandatoryDuplicates = TrLndTrainingRegistration::where('training_id', $detail->training_id)
+                ->where('schedule_id', '!=', $scheduleId)
+                ->whereIn('user_registration', $participants->pluck('username'))
+                ->where(function ($q) {
+                    $q->whereNull('status_registration')
+                        ->orWhere('status_registration', '!=', TrLndTrainingRegistration::REG_STATUS_CANCELLED);
+                })
+                ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
+                ->pluck('user_registration');
+
+            if ($mandatoryDuplicates->isNotEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Training ini wajib (mandatory) — sudah terdaftar di jadwal lain: ' . $mandatoryDuplicates->implode(', '),
+                ], 422);
+            }
+        }
 
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-            $quotas = TrTrainingScheduleQuota::where('schedule_detail_id', $id)
-                ->whereIn('cpny_id', $cpnyIdsToTry)
+            $quotas = MsLndTrainingQuota::where('schedule_id', $scheduleId)
+                ->where('cpny_id', $originCpnyId)
                 ->lockForUpdate()
                 ->get();
 
@@ -352,50 +545,72 @@ class TrainingRegistrationController extends Controller
                 return response()->json(['success' => false, 'message' => 'Training ini tidak tersedia untuk perusahaan Anda'], 422);
             }
 
-            if ($quotas->count() > 1) {
-                DB::connection('pgsql5')->rollBack();
+            $quotaPax = $quotas->sum('quota_pax');
+            $seatCount = $this->activeSeatCount($scheduleId, $originCpnyId);
+            $available = $quotaPax - $seatCount;
+            $batchCount = $participants->count();
 
-                return response()->json(['success' => false, 'message' => 'Pilih perusahaan terlebih dahulu', 'require_company' => true], 422);
-            }
-
-            $quota = $quotas->first();
-            $cpnyId = $quota->cpny_id;
-
-            $reserved = TrTrainingRegistration::where('schedule_detail_id', $id)
-                ->where('cpny_id', $cpnyId)
-                ->whereIn('status', [TrTrainingRegistration::STATUS_PENDING, TrTrainingRegistration::STATUS_APPROVED])
-                ->count();
+            // Approval always starts at registration time, whether or not
+            // there's a seat free. status_registration is the SEATING flag on
+            // top of it: waitlisted people are still pending/approved in the
+            // approval pipeline while they wait. Seat availability is still
+            // evaluated once for the whole submitted set (all-or-nothing: a
+            // colleague batch is either fully seated or fully waitlisted
+            // together), even though each participant now gets their own
+            // independent document/approval chain below.
+            $status = TrLndTrainingRegistration::STATUS_PENDING;
+            $statusReg = $available >= $batchCount
+                ? null
+                : TrLndTrainingRegistration::REG_STATUS_WAITLISTED;
 
             $now = now();
-            $docid = $this->generateRegistrationCode($user->username);
+            $docIds = collect();
 
-            $status = $reserved < $quota->quota_pax
-                ? TrTrainingRegistration::STATUS_PENDING
-                : TrTrainingRegistration::STATUS_WAITLISTED;
+            // Each participant gets their OWN training_regist_id and their own
+            // independent approval chain — a colleague batch is no longer one
+            // shared document. This means the approver acts on each person
+            // individually instead of approving the whole batch in one click,
+            // but it makes training_regist_id a true 1:1 key for every row
+            // (needed so attendance logging can unambiguously tell participants
+            // in the same submission apart).
+            foreach ($participants as $participant) {
+                $docId = $this->generateRegistrationCode($user->username);
+                $docIds->push($docId);
 
-            $registration = TrTrainingRegistration::create([
-                'docid' => $docid,
-                'schedule_detail_id' => $id,
-                'username' => $user->username,
-                'cpny_id' => $cpnyId,
-                'department_id' => $departmentId,
-                'status' => $status,
-                'created_by' => $user->username,
-                'created_at' => $now,
-            ]);
+                TrLndTrainingRegistration::create([
+                    'training_regist_id' => $docId,
+                    'training_regist_date' => $now->toDateString(),
+                    'training_id' => $detail->training_id,
+                    'training_detail_id' => $detail->training_detail_id,
+                    'schedule_id' => $detail->schedule_id,
+                    'schedule_date' => $detail->schedule_date,
+                    'cpny_id' => trim((string) $participant->origin_cpny_id),
+                    'department_id' => trim((string) $participant->origin_department_id),
+                    'user_registration' => $participant->username,
+                    'qty_registration' => 1,
+                    'status' => $status,
+                    'status_registration' => $statusReg,
+                    'process_registration_user' => $statusReg ? $user->username : null,
+                    'process_registration_date' => $statusReg ? $now : null,
+                    'created_by' => $user->username,
+                    'created_at' => $now,
+                ]);
 
-            if ($status === TrTrainingRegistration::STATUS_PENDING) {
-                $this->submitForApproval($registration, $user, $now);
+                $this->submitForApproval($docId, $originCpnyId, $originDeptId, $user, $now);
             }
 
             DB::connection('pgsql5')->commit();
 
             return response()->json([
                 'success' => true,
-                'status' => $registration->status,
-                'message' => $status === TrTrainingRegistration::STATUS_PENDING
-                    ? 'Registrasi berhasil, menunggu approval'
-                    : 'Kuota penuh, Anda dimasukkan ke waiting list',
+                'training_regist_id' => $docIds->first(),
+                'training_regist_ids' => $docIds->values(),
+                'status' => $statusReg ?: $status,
+                'message' => $statusReg
+                    ? 'Kuota penuh, seluruh peserta masuk waiting list — approval tetap berjalan'
+                    : ($docIds->count() > 1
+                        ? 'Registrasi berhasil (' . $docIds->count() . ' dokumen: ' . $docIds->implode(', ') . '), menunggu approval'
+                        : 'Registrasi berhasil, menunggu approval'),
             ]);
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
@@ -410,26 +625,32 @@ class TrainingRegistrationController extends Controller
 
     public function cancel(Request $request, $id)
     {
-        $registration = TrTrainingRegistration::findOrFail($id);
+        $registration = TrLndTrainingRegistration::findOrFail($id);
         $user = Auth::user();
 
-        if (strcasecmp((string) $registration->username, (string) $user->username) !== 0) {
+        if (strcasecmp((string) $registration->user_registration, (string) $user->username) !== 0) {
             abort(403);
         }
 
-        if ($registration->status !== TrTrainingRegistration::STATUS_APPROVED) {
+        if ($registration->status !== TrLndTrainingRegistration::STATUS_APPROVED) {
             return response()->json(['success' => false, 'message' => 'Hanya registrasi berstatus Approved yang dapat dibatalkan'], 422);
         }
 
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-            $registration->status = TrTrainingRegistration::STATUS_CANCELLED;
+            $heldSeat = !$registration->status_registration;
+
+            $registration->status_registration = TrLndTrainingRegistration::REG_STATUS_CANCELLED;
+            $registration->process_registration_user = $user->username;
+            $registration->process_registration_date = now();
             $registration->updated_by = $user->username;
             $registration->updated_at = now();
             $registration->save();
 
-            TrainingRegistrationService::promoteWaitlistIfOpen($registration);
+            if ($heldSeat) {
+                TrainingRegistrationService::promoteWaitlistIfOpen($registration);
+            }
 
             DB::connection('pgsql5')->commit();
 
@@ -447,10 +668,10 @@ class TrainingRegistrationController extends Controller
 
     public function acceptOffer(Request $request, $id)
     {
-        $registration = TrTrainingRegistration::findOrFail($id);
+        $registration = TrLndTrainingRegistration::findOrFail($id);
         $user = Auth::user();
 
-        if (strcasecmp((string) $registration->username, (string) $user->username) !== 0) {
+        if (strcasecmp((string) $registration->user_registration, (string) $user->username) !== 0) {
             abort(403);
         }
 
@@ -463,18 +684,28 @@ class TrainingRegistrationController extends Controller
         try {
             $now = now();
 
-            $registration->status = TrTrainingRegistration::STATUS_PENDING;
-            $registration->offered_at = null;
-            $registration->offer_expires_at = null;
+            // Approval was already started at registration time, so accepting
+            // the offer only removes the seating flag — the approval chain
+            // keeps running to completion on its own.
+            $registration->status_registration = null;
+            $registration->process_registration_user = null;
+            $registration->process_registration_date = null;
             $registration->updated_by = $user->username;
             $registration->updated_at = $now;
             $registration->save();
 
-            $this->submitForApproval($registration, $user, $now);
+            TrainingWaitlistNotifier::notifyHcdevOfferResponse($registration, true);
 
             DB::connection('pgsql5')->commit();
 
-            return response()->json(['success' => true, 'message' => 'Slot diterima, menunggu approval']);
+            $approvalPending = $registration->status === TrLndTrainingRegistration::STATUS_PENDING;
+
+            return response()->json([
+                'success' => true,
+                'message' => $approvalPending
+                    ? 'Slot diterima, menunggu approval selesai'
+                    : 'Slot diterima',
+            ]);
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
 
@@ -488,24 +719,28 @@ class TrainingRegistrationController extends Controller
 
     public function declineOffer(Request $request, $id)
     {
-        $registration = TrTrainingRegistration::findOrFail($id);
+        $registration = TrLndTrainingRegistration::findOrFail($id);
         $user = Auth::user();
 
-        if (strcasecmp((string) $registration->username, (string) $user->username) !== 0) {
+        if (strcasecmp((string) $registration->user_registration, (string) $user->username) !== 0) {
             abort(403);
         }
 
-        if ($registration->status !== TrTrainingRegistration::STATUS_OFFERED) {
+        if ($registration->status_registration !== TrLndTrainingRegistration::REG_STATUS_OFFERED) {
             return response()->json(['success' => false, 'message' => 'Offer ini sudah tidak berlaku'], 422);
         }
 
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-            $registration->status = TrTrainingRegistration::STATUS_CANCELLED;
+            $registration->status_registration = TrLndTrainingRegistration::REG_STATUS_CANCELLED;
+            $registration->process_registration_user = $user->username;
+            $registration->process_registration_date = now();
             $registration->updated_by = $user->username;
             $registration->updated_at = now();
             $registration->save();
+
+            TrainingWaitlistNotifier::notifyHcdevOfferResponse($registration, false);
 
             TrainingRegistrationService::cascadeToNextWaitlist($registration);
 
@@ -523,29 +758,42 @@ class TrainingRegistrationController extends Controller
         }
     }
 
+    /**
+     * Approve a single participant's registration document (training_regist_id
+     * is a 1:1 key per row now, not a shared batch code — the model observer
+     * mints that row's unique barcode once status hits 'C').
+     */
     public function approve(Request $request, $id)
     {
-        $registration = TrTrainingRegistration::findOrFail($id);
+        $registration = TrLndTrainingRegistration::findOrFail($id);
         $user = Auth::user();
+
         $docUrl = url('/training-list/my/' . Hashids::encode($registration->id));
 
         $result = app(ApprovalController::class)->approveStep(
-            $registration->docid,
+            $registration->training_regist_id,
             self::DOCTYPE,
             $user->username,
             $user->name,
             function (string $refnbr, Carbon $now) use ($registration, $docUrl) {
-                $registration->status = TrTrainingRegistration::STATUS_APPROVED;
+                $registration->status = TrLndTrainingRegistration::STATUS_APPROVED;
                 $registration->updated_by = Auth::user()->username;
                 $registration->updated_at = $now;
                 $registration->save();
 
                 app(ApprovalController::class)->notifyRequesterOnStatus(
-                    $registration->docid,
+                    $refnbr,
                     'Training Registration',
                     'C',
-                    $registration->username,
+                    $registration->created_by,
                     $docUrl
+                );
+
+                $this->notifyDocSystem(
+                    $refnbr,
+                    $registration->cpny_id,
+                    $registration->department_id,
+                    'Registrasi training Anda telah disetujui sepenuhnya.'
                 );
             },
             function ($next, Carbon $now) use ($registration, $docUrl) {
@@ -554,12 +802,19 @@ class TrainingRegistrationController extends Controller
                 }
 
                 app(ApprovalController::class)->notifyFirstApprover(
-                    $registration->docid,
+                    $registration->training_regist_id,
                     self::DOCTYPE,
                     'P',
                     'Training Registration',
                     $docUrl,
-                    ['createdby' => $registration->username, 'date' => $now->toDateTimeString()]
+                    ['createdby' => $registration->created_by, 'date' => $now->toDateTimeString()]
+                );
+
+                $this->notifyDocSystem(
+                    $registration->training_regist_id,
+                    $registration->cpny_id,
+                    $registration->department_id,
+                    'Registrasi training menunggu persetujuan Anda.'
                 );
             }
         );
@@ -569,27 +824,35 @@ class TrainingRegistrationController extends Controller
 
     public function reject(Request $request, $id)
     {
-        $registration = TrTrainingRegistration::findOrFail($id);
+        $registration = TrLndTrainingRegistration::findOrFail($id);
         $user = Auth::user();
+
         $docUrl = url('/training-list/my/' . Hashids::encode($registration->id));
 
         $result = app(ApprovalController::class)->rejectStep(
-            $registration->docid,
+            $registration->training_regist_id,
             self::DOCTYPE,
             $user->username,
             $user->name,
             function (string $refnbr, Carbon $now) use ($registration, $docUrl) {
-                $registration->status = TrTrainingRegistration::STATUS_REJECTED;
+                $registration->status = TrLndTrainingRegistration::STATUS_REJECTED;
                 $registration->updated_by = Auth::user()->username;
                 $registration->updated_at = $now;
                 $registration->save();
 
                 app(ApprovalController::class)->notifyRequesterOnStatus(
-                    $registration->docid,
+                    $refnbr,
                     'Training Registration',
                     'R',
-                    $registration->username,
+                    $registration->created_by,
                     $docUrl
+                );
+
+                $this->notifyDocSystem(
+                    $refnbr,
+                    $registration->cpny_id,
+                    $registration->department_id,
+                    'Registrasi training Anda ditolak.'
                 );
             }
         );
@@ -598,8 +861,9 @@ class TrainingRegistrationController extends Controller
     }
 
     /**
-     * HCDEVACCESS-only: pick a specific waitlisted person to offer a slot that
-     * was forfeited by a post-D-3 (CLOSED schedule) cancellation.
+     * HCDEVACCESS-only: waitlisted people, with every company quota row for
+     * their schedule (available seats) so HR can also reassign which
+     * company's quota a person consumes when accepting post-close.
      */
     public function waitlistForOffer(Request $request)
     {
@@ -609,30 +873,82 @@ class TrainingRegistrationController extends Controller
             abort(403, 'Anda tidak memiliki akses HCDEVACCESS');
         }
 
-        $scheduleDetailId = $request->query('schedule_detail_id');
+        $scheduleId = $request->query('schedule_id');
 
-        $query = TrTrainingRegistration::where('status', TrTrainingRegistration::STATUS_WAITLISTED)
-            ->with('scheduleDetail.schedule.training');
+        $query = TrLndTrainingRegistration::where('status_registration', TrLndTrainingRegistration::REG_STATUS_WAITLISTED)
+            ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
+            ->with('schedule.schedule.training');
 
-        if ($scheduleDetailId) {
-            $query->where('schedule_detail_id', $scheduleDetailId);
+        if ($scheduleId) {
+            $query->where('schedule_id', $scheduleId);
         }
 
-        $rows = $query->orderBy('created_at')->get()->map(fn ($r) => [
-            'id' => $r->id,
-            'docid' => $r->docid,
-            'username' => $r->username,
-            'cpny_id' => $r->cpny_id,
-            'training_name' => $r->scheduleDetail->schedule->training->training_name ?? null,
-            'schedule_date' => $r->scheduleDetail->schedule_date ?? null,
-            'schedule_status' => $r->scheduleDetail->status ?? null,
-            'created_at' => $r->created_at,
-        ]);
+        $rows = $query->orderBy('created_at')->get();
 
-        return response()->json(['data' => $rows]);
+        $scheduleIds = $rows->pluck('schedule_id')->unique();
+
+        $quotas = MsLndTrainingQuota::whereIn('schedule_id', $scheduleIds)->get();
+
+        $usage = TrLndTrainingRegistration::whereIn('schedule_id', $scheduleIds)
+            ->where(function ($q) {
+                $q->whereNull('status_registration')
+                    ->orWhere('status_registration', TrLndTrainingRegistration::REG_STATUS_OFFERED);
+            })
+            ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
+            ->select('schedule_id', 'cpny_id', DB::raw('count(*) as cnt'))
+            ->groupBy('schedule_id', 'cpny_id')
+            ->get()
+            ->groupBy('schedule_id');
+
+        $companyNames = MsCompany::whereIn('cpny_id', $quotas->pluck('cpny_id')->unique())
+            ->pluck('cpny_name', 'cpny_id');
+
+        $usernames = $rows->pluck('user_registration')->unique();
+        $names = $usernames->isEmpty() ? collect() : User::whereIn('username', $usernames)->pluck('name', 'username');
+
+        return response()->json([
+            'data' => $rows->map(function ($r) use ($quotas, $usage, $companyNames, $names) {
+                $usedByCpny = collect($usage->get($r->schedule_id, collect()));
+
+                return [
+                    'id' => $r->id,
+                    'docid' => $r->training_regist_id,
+                    'username' => $r->user_registration,
+                    'name' => $names[$r->user_registration] ?? $r->user_registration,
+                    'cpny_id' => $r->cpny_id,
+                    'approval_status' => $r->status,
+                    'training_name' => $r->schedule?->schedule?->training?->training_name ?? null,
+                    'schedule_date' => $r->schedule_date ?? $r->schedule?->schedule_date,
+                    'schedule_status' => $r->schedule?->status ?? null,
+                    'quota_options' => $quotas
+                        ->where('schedule_id', $r->schedule_id)
+                        ->map(function ($q) use ($usedByCpny, $companyNames) {
+                            $used = (int) $usedByCpny->where('cpny_id', $q->cpny_id)->sum('cnt');
+
+                            return [
+                                'cpny_id' => $q->cpny_id,
+                                'cpny_name' => $companyNames[$q->cpny_id] ?? $q->cpny_id,
+                                'quota_pax' => $q->quota_pax,
+                                'used' => $used,
+                                'available' => max(0, $q->quota_pax - $used),
+                            ];
+                        })
+                        ->values(),
+                    'created_at' => $r->created_at,
+                ];
+            }),
+        ]);
     }
 
-    public function manualOffer(Request $request, $id)
+    /**
+     * HCDEVACCESS-only: seat a waitlisted person on a closed schedule. The
+     * person's approval chain already ran at registration time, so HR can
+     * only accept people whose approval has COMPLETED (status 'C'). HR may
+     * pick a different company's quota than the person's origin company —
+     * that reassigns the row's cpny_id (the seat is then counted against the
+     * chosen company's quota).
+     */
+    public function manualAccept(Request $request, $id)
     {
         $user = Auth::user();
 
@@ -640,86 +956,150 @@ class TrainingRegistrationController extends Controller
             abort(403, 'Anda tidak memiliki akses HCDEVACCESS');
         }
 
-        $registration = TrTrainingRegistration::findOrFail($id);
+        $registration = TrLndTrainingRegistration::findOrFail($id);
 
-        if ($registration->status !== TrTrainingRegistration::STATUS_WAITLISTED) {
+        if ($registration->status_registration !== TrLndTrainingRegistration::REG_STATUS_WAITLISTED) {
             return response()->json(['success' => false, 'message' => 'Registrasi ini bukan waiting list'], 422);
         }
 
-        $detail = TrTrainingScheduleDetail::find($registration->schedule_detail_id);
-
-        if (!$detail || $detail->status !== 'CLOSED') {
-            return response()->json(['success' => false, 'message' => 'Manual offer hanya untuk jadwal yang sudah closed'], 422);
+        if ($registration->status !== TrLndTrainingRegistration::STATUS_APPROVED) {
+            return response()->json(['success' => false, 'message' => 'Approval untuk peserta ini belum selesai — tunggu hingga approval selesai'], 422);
         }
+
+        $detail = MsLndTrainingSchedule::where('schedule_id', $registration->schedule_id)->first();
+
+        if (!$detail || $detail->status !== self::SCHEDULE_CLOSED) {
+            return response()->json(['success' => false, 'message' => 'Penerimaan manual hanya untuk jadwal yang sudah closed'], 422);
+        }
+
+        $cpnyId = trim((string) ($request->input('cpny_id') ?: $registration->cpny_id));
 
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-            $quota = TrTrainingScheduleQuota::where('schedule_detail_id', $registration->schedule_detail_id)
-                ->where('cpny_id', $registration->cpny_id)
+            $quota = MsLndTrainingQuota::where('schedule_id', $registration->schedule_id)
+                ->where('cpny_id', $cpnyId)
                 ->lockForUpdate()
                 ->first();
 
-            $reserved = TrTrainingRegistration::where('schedule_detail_id', $registration->schedule_detail_id)
-                ->where('cpny_id', $registration->cpny_id)
-                ->whereIn('status', [TrTrainingRegistration::STATUS_PENDING, TrTrainingRegistration::STATUS_APPROVED, TrTrainingRegistration::STATUS_OFFERED])
-                ->count();
-
-            if (!$quota || $reserved >= $quota->quota_pax) {
+            if (!$quota) {
                 DB::connection('pgsql5')->rollBack();
 
-                return response()->json(['success' => false, 'message' => 'Kuota sudah penuh, tidak ada slot yang tersedia untuk ditawarkan'], 422);
+                return response()->json(['success' => false, 'message' => 'Kuota untuk perusahaan terpilih tidak ditemukan pada jadwal ini'], 422);
             }
 
-            TrainingRegistrationService::offerSlot($registration);
+            $seatCount = $this->activeSeatCount($registration->schedule_id, $cpnyId);
+
+            if ($seatCount >= $quota->quota_pax) {
+                DB::connection('pgsql5')->rollBack();
+
+                return response()->json(['success' => false, 'message' => 'Kuota sudah penuh, tidak ada slot yang tersedia untuk perusahaan ini'], 422);
+            }
+
+            $companyName = MsCompany::where('cpny_id', $cpnyId)->value('cpny_name') ?? $cpnyId;
+            $now = now();
+
+            $registration->cpny_id = $cpnyId;
+            $registration->status_registration = null;
+            $registration->process_registration_user = $user->username;
+            $registration->process_registration_date = $now;
+            $registration->updated_by = $user->username;
+            $registration->updated_at = $now;
+            $registration->save();
+
+            TrainingWaitlistNotifier::notifyCreatorManualAccept($registration, $user->name ?: $user->username);
 
             DB::connection('pgsql5')->commit();
 
-            return response()->json(['success' => true, 'message' => 'Slot berhasil ditawarkan ke ' . $registration->username]);
+            return response()->json([
+                'success' => true,
+                'message' => $registration->user_registration . ' diterima (kuota ' . $companyName . ')',
+            ]);
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menawarkan slot',
+                'message' => 'Gagal menerima peserta',
                 'error' => $e->getMessage(),
             ], 500);
         }
     }
 
-    private function offerStillValid(TrTrainingRegistration $registration): bool
+    /**
+     * Rows currently holding a seat on a schedule+company pool: pending
+     * approval, approved, or offered (waitlisted/cancelled/rejected don't).
+     */
+    private function activeSeatCount(string $scheduleId, string $cpnyId): int
     {
-        if ($registration->status !== TrTrainingRegistration::STATUS_OFFERED) {
+        return TrLndTrainingRegistration::where('schedule_id', $scheduleId)
+            ->where('cpny_id', $cpnyId)
+            ->where(function ($q) {
+                $q->whereNull('status_registration')
+                    ->orWhere('status_registration', TrLndTrainingRegistration::REG_STATUS_OFFERED);
+            })
+            ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
+            ->count();
+    }
+
+    private function offerStillValid(TrLndTrainingRegistration $registration): bool
+    {
+        if ($registration->status_registration !== TrLndTrainingRegistration::REG_STATUS_OFFERED) {
             return false;
         }
 
-        if ($registration->offer_expires_at && Carbon::parse($registration->offer_expires_at)->isPast()) {
+        $expiresAt = $registration->offer_expires_at;
+
+        if ($expiresAt && $expiresAt->isPast()) {
             return false;
         }
 
         return true;
     }
 
-    private function submitForApproval(TrTrainingRegistration $registration, User $user, Carbon $now): void
+    /**
+     * TrMessage doctype 'TRN' is registered in DocumentNotificationService's
+     * extendedDocTypeConfig(), so writing this row also surfaces in the bell
+     * for the creator, current approval line, and HCDEVACCESS holders —
+     * alongside whatever targeted email already went out for the same event.
+     */
+    private function notifyDocSystem(string $docId, string $cpnyId, string $deptId, string $message): void
+    {
+        TrMessage::create([
+            'refnbr' => $docId,
+            'doctype' => self::DOCTYPE,
+            'message_date' => now(),
+            'message_type' => 'SYSTEM',
+            'cpny_id' => $cpnyId,
+            'department_id' => $deptId,
+            'username' => 'system',
+            'name' => 'System',
+            'message' => $message,
+            'status' => 'A',
+            'created_by' => 'system',
+        ]);
+    }
+
+    private function submitForApproval(string $docId, string $cpnyId, string $deptId, User $user, Carbon $now): void
     {
         $approvalCtl = app(ApprovalController::class);
 
-        $approvalCtl->loadLines(self::DOCTYPE, $registration->cpny_id, $registration->department_id);
+        $approvalCtl->loadLines(self::DOCTYPE, $cpnyId, $deptId);
 
         $approvalCtl->generateForDocument(
-            $registration->docid,
+            $docId,
             self::DOCTYPE,
-            $registration->cpny_id,
-            $registration->department_id,
+            $cpnyId,
+            $deptId,
             $user->username,
             [],
             $now
         );
 
-        $docUrl = url('/training-list/my/' . Hashids::encode($registration->id));
+        $docUrl = url('/training-list/my');
 
         $approvalCtl->notifyFirstApprover(
-            $registration->docid,
+            $docId,
             self::DOCTYPE,
             'P',
             'Training Registration',
@@ -729,6 +1109,8 @@ class TrainingRegistrationController extends Controller
                 'date' => $now->toDateTimeString(),
             ]
         );
+
+        $this->notifyDocSystem($docId, $cpnyId, $deptId, 'Registrasi training baru menunggu persetujuan Anda.');
     }
 
     private function generateRegistrationCode(string $username): string

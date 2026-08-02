@@ -4,7 +4,7 @@ namespace App\Exports;
 
 use App\Models\MsCompany;
 use App\Models\MsDepartment;
-use App\Models\TrTrainingRegistration;
+use App\Models\TrLndTrainingRegistration;
 use App\Models\User;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -16,11 +16,11 @@ class TrainingAttendanceExport implements
     WithHeadings,
     ShouldAutoSize
 {
-    protected int $scheduleDetailId;
+    protected string $scheduleId;
 
-    public function __construct(int $scheduleDetailId)
+    public function __construct(string $scheduleId)
     {
-        $this->scheduleDetailId = $scheduleDetailId;
+        $this->scheduleId = $scheduleId;
     }
 
     public function headings(): array
@@ -30,13 +30,14 @@ class TrainingAttendanceExport implements
 
     public function collection()
     {
-        $registrations = TrTrainingRegistration::where('schedule_detail_id', $this->scheduleDetailId)
-            ->where('status', TrTrainingRegistration::STATUS_APPROVED)
-            ->whereNotNull('attended_at')
-            ->orderBy('attended_at')
+        $registrations = TrLndTrainingRegistration::where('schedule_id', $this->scheduleId)
+            ->where('status', TrLndTrainingRegistration::STATUS_APPROVED)
+            ->seated()
+            ->whereNotNull('completed_at')
+            ->orderBy('completed_at')
             ->get();
 
-        $usernames = $registrations->pluck('username')->unique();
+        $usernames = $registrations->pluck('user_registration')->unique();
         $names = $usernames->isEmpty() ? collect() : User::whereIn('username', $usernames)->pluck('name', 'username');
 
         $cpnyIds = $registrations->pluck('cpny_id')->filter()->unique();
@@ -46,11 +47,11 @@ class TrainingAttendanceExport implements
         $deptNames = $deptIds->isEmpty() ? collect() : MsDepartment::whereIn('department_id', $deptIds)->pluck('department_name', 'department_id');
 
         return $registrations->map(fn ($r) => [
-            'docid' => $r->docid,
-            'name' => $names[$r->username] ?? $r->username,
+            'docid' => $r->training_regist_id,
+            'name' => $names[$r->user_registration] ?? $r->user_registration,
             'company' => $cpnyNames[$r->cpny_id] ?? $r->cpny_id,
             'department' => $deptNames[$r->department_id] ?? $r->department_id,
-            'attended_at' => $r->attended_at ? Carbon::parse($r->attended_at)->format('d-M-Y H:i') : '-',
+            'attended_at' => $r->completed_at ? Carbon::parse($r->completed_at)->format('d-M-Y H:i') : '-',
         ])->values();
     }
 }

@@ -78,30 +78,48 @@
                         <div class="step-panel space-y-5" data-step-panel="1">
                             <div>
                                 <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Level</label>
-                                <select id="grade_id" name="grade_id" class="w-full" required></select>
+                                <select id="job_level" name="job_level" class="w-full" required></select>
                             </div>
 
-                            @if ($training->training_type === 'INTERNAL')
-                                <div>
-                                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Speaker</label>
-                                    <select id="speaker_username" name="speaker_username" class="w-full"></select>
-                                </div>
-                            @else
-                                <div class="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3 text-sm text-gray-600 dark:border-gray-600 dark:bg-gray-900/40 dark:text-gray-300">
-                                    Speaker: <strong>{{ $training->speaker_external ?: '-' }}</strong> (external, set on the master training)
-                                </div>
-                            @endif
+                            <div>
+                                <label for="training_detail_name" class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                    Batch Name
+                                </label>
+                                <input type="text" id="training_detail_name" name="training_detail_name"
+                                    placeholder="e.g. Batch 1 - Jakarta"
+                                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:focus:border-white dark:focus:ring-white"
+                                    required>
+                            </div>
 
                             <div>
-                                <label for="poster" class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    Poster <span class="text-red-500">*</span>
+                                <label for="training_poster" class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                    Poster
                                 </label>
-                                <div id="posterPreviewWrapper" class="mb-2 hidden">
+                                <input type="file" id="training_poster" name="training_poster" accept="image/*"
+                                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm transition file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-gray-700 hover:file:bg-gray-200 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:file:bg-gray-700 dark:file:text-gray-200">
+                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Optional. One image, max 5MB.</p>
+                                <div id="posterPreviewWrapper" class="mt-2 hidden">
                                     <img id="posterPreview" src="" alt="Current poster" class="h-24 w-auto rounded-lg border border-gray-200 object-cover dark:border-gray-700">
                                 </div>
-                                <input type="file" id="poster" name="poster" accept=".jpg,.jpeg,.png" required
-                                    class="block w-full text-sm text-gray-700 file:mr-3 file:rounded-lg file:border-0 file:bg-gray-900 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-gray-700 dark:text-gray-300 dark:file:bg-white dark:file:text-gray-900 dark:hover:file:bg-gray-100">
-                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">JPG, JPEG or PNG, max 5MB.</p>
+                            </div>
+
+                            <div>
+                                <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                    Speaker Source
+                                </label>
+                                <div class="inline-flex w-full rounded-lg border border-gray-300 p-1 dark:border-gray-600"
+                                    data-toggle-group="is_ext_speaker">
+                                    <button type="button" data-value="0"
+                                        class="toggle-pill flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition">
+                                        Internal (pick a user)
+                                    </button>
+                                    <button type="button" data-value="1"
+                                        class="toggle-pill flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition">
+                                        External (free text)
+                                    </button>
+                                </div>
+                                <input type="hidden" id="is_ext_speaker" name="is_ext_speaker" required>
+                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Speaker itself is set per date in the next step.</p>
                             </div>
                         </div>
 
@@ -204,6 +222,13 @@
         .dark #scheduleModal .step-circle.is-active, .dark #scheduleModal .step-circle.is-done { background-color: #ffffff; border-color: #ffffff; color: #111827; }
         .dark #scheduleModal .step-label.is-active { color: #ffffff; }
 
+        #scheduleModal .toggle-pill { color: #4b5563; }
+        #scheduleModal .toggle-pill:hover { background-color: #f3f4f6; }
+        #scheduleModal .toggle-pill.is-active { background-color: #111827; color: #ffffff; }
+        .dark #scheduleModal .toggle-pill { color: #d1d5db; }
+        .dark #scheduleModal .toggle-pill:hover { background-color: #374151; }
+        .dark #scheduleModal .toggle-pill.is-active { background-color: #ffffff; color: #111827; }
+
         .status-badge-DRAFT { background: rgba(156,163,175,.3); color: #4b5563; }
         .status-badge-PUBLISHED { background: rgba(34,197,94,.2); color: #16a34a; }
         .status-badge-CLOSED { background: rgba(59,130,246,.2); color: #2563eb; }
@@ -212,7 +237,6 @@
 
     <script>
         const trainingHash = "{{ $hash }}";
-        const trainingType = "{{ $training->training_type }}";
         const schedulesUrl = "{{ route('mastertraining.sessions.schedules', $hash) }}";
         const storeUrl = "{{ route('mastertraining.sessions.schedules.store', $hash) }}";
 
@@ -221,7 +245,7 @@
 
         function toggleModeFields($block) {
             let mode = $block.find('.date-mode').val();
-            $block.find('.date-locationWrapper').toggle(mode === 'OFFLINE' || mode === 'HYBRID');
+            $block.find('.date-placesWrapper').toggle(mode === 'OFFLINE' || mode === 'HYBRID');
             $block.find('.date-platformWrapper').toggle(mode === 'ONLINE' || mode === 'HYBRID');
         }
 
@@ -229,6 +253,31 @@
             $block.find('.date-mode').val(value);
             toggleModeFields($block);
         }
+
+        function toggleSpeakerFields($block) {
+            let isExt = $('#is_ext_speaker').val() === '1';
+            $block.find('.date-speakerWrapper').toggle(!isExt);
+            $block.find('.date-extSpeakerWrapper').toggle(isExt);
+        }
+
+        function setToggleGroup(group, value) {
+            $(`[data-toggle-group="${group}"] .toggle-pill`).each(function() {
+                $(this).toggleClass('is-active', $(this).data('value') == value);
+            });
+            $(`#${group}`).val(value);
+        }
+
+        $(document).on('click', '.toggle-pill', function() {
+            let group = $(this).closest('[data-toggle-group]').data('toggle-group');
+            let value = $(this).data('value');
+            setToggleGroup(group, value);
+
+            if (group === 'is_ext_speaker') {
+                $('#datesContainer .date-block').each(function() {
+                    toggleSpeakerFields($(this));
+                });
+            }
+        });
 
         let dateIndex = 0;
         let isEditMode = false;
@@ -265,9 +314,9 @@
                             </select>
                         </div>
                     </div>
-                    <div class="date-locationWrapper mt-3" style="display:none;">
-                        <label class="${labelClass}">Location</label>
-                        <input type="text" class="date-location ${inputClass}" placeholder="e.g. Training Room 2, Pakuwon Tower">
+                    <div class="date-placesWrapper mt-3" style="display:none;">
+                        <label class="${labelClass}">Place</label>
+                        <select class="date-places w-full"></select>
                     </div>
                     <div class="date-platformWrapper mt-3 grid grid-cols-1 gap-3 md:grid-cols-3" style="display:none;">
                         <div>
@@ -284,6 +333,15 @@
                         <input type="date" class="date-registration_deadline ${inputClass}" min="{{ now()->format('Y-m-d') }}">
                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Defaults to 3 days before this date &mdash; edit if needed.</p>
                     </div>
+                    <div class="date-speakerWrapper mt-3" style="display:none;">
+                        <label class="${labelClass}">Speaker</label>
+                        <select class="date-speaker w-full"></select>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Pick a user, or type a name that isn't in the list.</p>
+                    </div>
+                    <div class="date-extSpeakerWrapper mt-3" style="display:none;">
+                        <label class="${labelClass}">Speaker Name (External)</label>
+                        <input type="text" class="date-ext-speaker ${inputClass}" placeholder="Type speaker name">
+                    </div>
                 </div>`;
         }
 
@@ -298,10 +356,51 @@
             $('.removeDateBlock').toggle(count > 1 && !isEditMode);
         }
 
+        function initPlaceSelect2($el) {
+            $el.select2({
+                width: '100%',
+                dropdownParent: $('#scheduleModal'),
+                placeholder: 'Choose place',
+                ajax: {
+                    url: "{{ route('mastertraining.sessions.place-search') }}",
+                    dataType: 'json',
+                    delay: 250,
+                    data: params => ({ q: params.term }),
+                    processResults: data => ({ results: data.results }),
+                    cache: true
+                }
+            });
+        }
+
+        function initSpeakerSelect2($el) {
+            $el.select2({
+                width: '100%',
+                dropdownParent: $('#scheduleModal'),
+                placeholder: 'Pick a user or type a name',
+                tags: true,
+                ajax: {
+                    url: "{{ route('mastertraining.sessions.speaker-search') }}",
+                    dataType: 'json',
+                    delay: 250,
+                    data: params => ({ q: params.term }),
+                    processResults: data => ({ results: data.results }),
+                    cache: true
+                },
+                createTag: function(params) {
+                    let term = $.trim(params.term);
+                    if (term === '') return null;
+                    return { id: '__free__' + term, text: term, newTag: true };
+                }
+            });
+        }
+
         function addDateBlock() {
             $('#datesContainer').append(dateBlockHtml(dateIndex));
             let $block = $('#datesContainer .date-block').last();
             setMode($block, 'OFFLINE');
+            initPlaceSelect2($block.find('.date-places'));
+            initSpeakerSelect2($block.find('.date-speaker'));
+            toggleSpeakerFields($block);
             dateIndex++;
             renumberDateBlocks();
             updateRemoveDateVisibility();
@@ -382,39 +481,37 @@
             addQuotaRow();
         });
 
-        $(document).on('change', '#poster', function() {
-            let file = this.files[0];
+        const MAX_POSTER_BYTES = 5 * 1024 * 1024;
+
+        $(document).on('change', '#training_poster', function() {
+            let file = this.files && this.files[0];
             if (!file) return;
 
-            let allowedTypes = ['image/jpeg', 'image/png'];
-            let maxBytes = 5 * 1024 * 1024;
-
-            if (!allowedTypes.includes(file.type)) {
-                Swal.fire({ icon: 'error', title: 'Invalid file', text: 'Poster must be a JPG, JPEG or PNG image.' });
+            if (file.size > MAX_POSTER_BYTES) {
+                Swal.fire({ icon: 'warning', title: 'File too large', text: 'Poster must be 5MB or smaller.' });
                 $(this).val('');
+                $('#posterPreviewWrapper').addClass('hidden');
                 return;
             }
 
-            if (file.size > maxBytes) {
-                Swal.fire({ icon: 'error', title: 'File too large', text: 'Poster must be 5MB or smaller.' });
-                $(this).val('');
-                return;
-            }
+            let reader = new FileReader();
+            reader.onload = e => {
+                $('#posterPreview').attr('src', e.target.result);
+                $('#posterPreviewWrapper').removeClass('hidden');
+            };
+            reader.readAsDataURL(file);
         });
 
         function resetScheduleForm() {
             $('#scheduleForm')[0].reset();
             $('#schedule_id').val('');
-            $('#grade_id').val(null).trigger('change');
+            $('#job_level').val(null).trigger('change');
+            $('#training_detail_name').val('');
             $('#posterPreviewWrapper').addClass('hidden');
             $('#posterPreview').attr('src', '');
-            $('#poster').prop('required', true);
+            setToggleGroup('is_ext_speaker', '0');
             $('#quotaRows').empty();
             addQuotaRow();
-
-            if (trainingType === 'INTERNAL') {
-                $('#speaker_username').val(null).trigger('change');
-            }
 
             $('#datesContainer').empty();
             dateIndex = 0;
@@ -452,31 +549,39 @@
 
         function validateStep(step) {
             if (step === 1) {
-                if (!$('#grade_id').val()) {
+                if (!$('#job_level').val()) {
                     Swal.fire({ icon: 'warning', title: 'Level required', text: 'Choose a level before continuing.' });
                     return false;
                 }
-                // Poster's <input required> lives in a step panel that gets
-                // hidden once you move past it — hidden required fields don't
-                // reliably validate natively, and "Next" is a plain button
-                // (not submit) so native validation never fires anyway.
-                if ($('#poster').prop('required') && !$('#poster')[0].files.length) {
-                    Swal.fire({ icon: 'warning', title: 'Poster required', text: 'Upload a poster before continuing.' });
+                if (!$('#training_detail_name').val().trim()) {
+                    Swal.fire({ icon: 'warning', title: 'Batch name required', text: 'Enter a batch name before continuing.' });
                     return false;
                 }
             }
 
             if (step === 2) {
                 let incomplete = false;
+                let isExt = $('#is_ext_speaker').val() === '1';
+
                 $('#datesContainer .date-block').each(function() {
                     let $b = $(this);
                     if (!$b.find('.date-schedule_date').val() || !$b.find('.date-start_time').val()
                         || !$b.find('.date-end_time').val() || !$b.find('.date-mode').val()) {
                         incomplete = true;
                     }
+
+                    let mode = $b.find('.date-mode').val();
+                    if ((mode === 'OFFLINE' || mode === 'HYBRID') && !$b.find('.date-places').val()) {
+                        incomplete = true;
+                    }
+
+                    if (isExt && !$b.find('.date-ext-speaker').val().trim()) {
+                        incomplete = true;
+                    }
                 });
+
                 if (incomplete) {
-                    Swal.fire({ icon: 'warning', title: 'Incomplete dates', text: 'Fill in date, start/end time and mode for every date.' });
+                    Swal.fire({ icon: 'warning', title: 'Incomplete dates', text: 'Fill in date, start/end time, mode, place and speaker for every date.' });
                     return false;
                 }
             }
@@ -506,18 +611,18 @@
 
             let groups = {};
             schedules.forEach(function(s) {
-                if (!groups[s.grade_id]) {
-                    groups[s.grade_id] = { grade_name: s.grade_name, rows: [] };
+                if (!groups[s.job_level]) {
+                    groups[s.job_level] = { grade_name: s.grade_name, rows: [] };
                 }
-                groups[s.grade_id].rows.push(s);
+                groups[s.job_level].rows.push(s);
             });
 
-            Object.keys(groups).forEach(function(gradeId) {
-                let group = groups[gradeId];
+            Object.keys(groups).forEach(function(jobLevel) {
+                let group = groups[jobLevel];
 
                 let rowsHtml = group.rows.map(function(s) {
-                    let locationText = (s.mode === 'ONLINE') ? (s.platform || '-') : (s.location || '-');
-                    let speakerText = trainingType === 'INTERNAL' ? (s.speaker_name || '-') : '{{ $training->speaker_external ?: "-" }}';
+                    let locationText = (s.mode === 'ONLINE') ? (s.platform || '-') : (s.places_name || '-');
+                    let speakerText = s.is_ext_speaker ? (s.training_ext_speaker_name || '-') : (s.training_speaker_name || '-');
 
                     let menuItems = '';
                     if (s.status === 'DRAFT') {
@@ -551,14 +656,9 @@
                             </template>
                         </div>` : '<span class="text-xs text-gray-400">-</span>';
 
-                    let posterCell = s.poster_url
-                        ? `<img src="${s.poster_url}" alt="Poster" class="h-10 w-10 rounded object-cover">`
-                        : '<span class="text-xs text-gray-400">-</span>';
-
                     return `
                         <tr class="border-b border-gray-100 dark:border-gray-700">
-                            <td class="px-3 py-2 text-sm">${posterCell}</td>
-                            <td class="px-3 py-2 text-sm font-mono text-xs">${s.docid || '-'}</td>
+                            <td class="px-3 py-2 text-sm font-mono text-xs">${s.schedule_id || '-'}</td>
                             <td class="px-3 py-2 text-sm">${s.schedule_date}<br><span class="text-xs text-gray-500 dark:text-gray-400">${s.start_time} - ${s.end_time}</span></td>
                             <td class="px-3 py-2 text-sm">${s.mode}<br><span class="text-xs text-gray-500 dark:text-gray-400">${locationText}</span></td>
                             <td class="px-3 py-2 text-sm">${speakerText}</td>
@@ -580,7 +680,6 @@
                             <table class="w-full text-left">
                                 <thead class="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-gray-900 dark:text-gray-400">
                                     <tr>
-                                        <th class="px-3 py-2">Poster</th>
                                         <th class="px-3 py-2">Schedule ID</th>
                                         <th class="px-3 py-2">Date</th>
                                         <th class="px-3 py-2">Mode</th>
@@ -630,6 +729,9 @@
             $.get(schedulesUrl, function(res) {
                 allSchedules = res.data || [];
                 renderLevels(allSchedules);
+            }).fail(function(xhr) {
+                console.error(xhr.responseText);
+                showToast('error', 'Gagal memuat daftar schedule');
             });
         }
 
@@ -640,7 +742,7 @@
         $(document).ready(function() {
             loadSchedules();
 
-            $('#grade_id').select2({
+            $('#job_level').select2({
                 width: '100%',
                 dropdownParent: $('#scheduleModal'),
                 placeholder: 'Choose level',
@@ -653,22 +755,6 @@
                     cache: true
                 }
             });
-
-            @if ($training->training_type === 'INTERNAL')
-                $('#speaker_username').select2({
-                    width: '100%',
-                    dropdownParent: $('#scheduleModal'),
-                    placeholder: 'Choose speaker',
-                    ajax: {
-                        url: "{{ route('mastertraining.sessions.speaker-search') }}",
-                        dataType: 'json',
-                        delay: 250,
-                        data: params => ({ q: params.term }),
-                        processResults: data => ({ results: data.results }),
-                        cache: true
-                    }
-                });
-            @endif
 
             $('#addScheduleBtn').click(function() {
                 $('#scheduleModalTitle').text('Add Schedule');
@@ -687,11 +773,20 @@
                 if (!s) return;
 
                 $('#scheduleModalTitle').text('Edit Schedule');
-                $('#scheduleModalSubtitle').text('Editing one date. Level/speaker/poster changes apply to every date in this batch.');
+                $('#scheduleModalSubtitle').text('Editing one date. Level/batch name/speaker-source changes apply to every date in this batch.');
                 $('#schedule_id').val(s.id);
 
-                let gradeOpt = new Option(s.grade_name, s.grade_id, true, true);
-                $('#grade_id').append(gradeOpt).trigger('change');
+                let gradeOpt = new Option(s.grade_name, s.job_level, true, true);
+                $('#job_level').append(gradeOpt).trigger('change');
+
+                $('#training_detail_name').val(s.training_detail_name);
+                if (s.training_poster_url) {
+                    $('#posterPreview').attr('src', s.training_poster_url);
+                    $('#posterPreviewWrapper').removeClass('hidden');
+                } else {
+                    $('#posterPreviewWrapper').addClass('hidden');
+                }
+                setToggleGroup('is_ext_speaker', s.is_ext_speaker ? '1' : '0');
 
                 $('#datesContainer').empty();
                 dateIndex = 0;
@@ -704,23 +799,24 @@
                 $block.find('.date-start_time').val(s.start_time ? s.start_time.slice(0, 5) : '');
                 $block.find('.date-end_time').val(s.end_time ? s.end_time.slice(0, 5) : '');
                 setMode($block, s.mode);
-                $block.find('.date-location').val(s.location);
+
+                if (s.places_id) {
+                    let placeOpt = new Option(s.places_name || s.places_id, s.places_id, true, true);
+                    $block.find('.date-places').append(placeOpt).trigger('change');
+                }
+
                 $block.find('.date-platform').val(s.platform);
                 $block.find('.date-meeting_link').val(s.meeting_link);
                 $block.find('.date-registration_deadline').val(s.registration_deadline).data('touched', true);
 
-                if (trainingType === 'INTERNAL' && s.speaker_username) {
-                    let speakerOpt = new Option(s.speaker_name, s.speaker_username, true, true);
-                    $('#speaker_username').append(speakerOpt).trigger('change');
-                }
-
-                if (s.poster_url) {
-                    $('#posterPreview').attr('src', s.poster_url);
-                    $('#posterPreviewWrapper').removeClass('hidden');
-                    $('#poster').prop('required', false);
-                } else {
-                    $('#posterPreviewWrapper').addClass('hidden');
-                    $('#poster').prop('required', true);
+                if (s.is_ext_speaker) {
+                    $block.find('.date-ext-speaker').val(s.training_ext_speaker_name);
+                } else if (s.training_speaker_username) {
+                    let speakerOpt = new Option(s.training_speaker_name, s.training_speaker_username, true, true);
+                    $block.find('.date-speaker').append(speakerOpt).trigger('change');
+                } else if (s.training_speaker_name) {
+                    let speakerOpt = new Option(s.training_speaker_name, '__free__' + s.training_speaker_name, true, true);
+                    $block.find('.date-speaker').append(speakerOpt).trigger('change');
                 }
 
                 $('#quotaRows').empty();
@@ -781,31 +877,46 @@
                     }
                 });
 
+                function readSpeaker($block) {
+                    let $sel = $block.find('.date-speaker');
+                    let val = $sel.val();
+                    if (!val) return { username: '', name: '' };
+                    if (val.indexOf('__free__') === 0) {
+                        return { username: '', name: val.slice('__free__'.length) };
+                    }
+                    let data = $sel.select2('data');
+                    let text = (data && data[0]) ? data[0].text : '';
+                    return { username: val, name: text };
+                }
+
                 let dates = [];
                 $('#datesContainer .date-block').each(function() {
                     let $block = $(this);
+                    let speaker = readSpeaker($block);
                     dates.push({
                         schedule_date: $block.find('.date-schedule_date').val() || '',
                         start_time: $block.find('.date-start_time').val() || '',
                         end_time: $block.find('.date-end_time').val() || '',
                         mode: $block.find('.date-mode').val() || '',
-                        location: $block.find('.date-location').val() || '',
+                        places_id: $block.find('.date-places').val() || '',
                         platform: $block.find('.date-platform').val() || '',
                         meeting_link: $block.find('.date-meeting_link').val() || '',
                         registration_deadline: $block.find('.date-registration_deadline').val() || '',
+                        speaker_username: speaker.username,
+                        speaker_name: speaker.name,
+                        ext_speaker_name: $block.find('.date-ext-speaker').val() || '',
                     });
                 });
 
                 let formData = new FormData();
-                formData.append('grade_id', $('#grade_id').val() || '');
-                if (trainingType === 'INTERNAL') {
-                    formData.append('speaker_username', $('#speaker_username').val() || '');
-                }
+                formData.append('job_level', $('#job_level').val() || '');
+                formData.append('training_detail_name', $('#training_detail_name').val() || '');
+                formData.append('is_ext_speaker', $('#is_ext_speaker').val() || '0');
                 formData.append('_token', '{{ csrf_token() }}');
 
-                let posterFile = $('#poster')[0].files[0];
+                let posterFile = $('#training_poster')[0].files[0];
                 if (posterFile) {
-                    formData.append('poster', posterFile);
+                    formData.append('training_poster', posterFile);
                 }
 
                 let id = $('#schedule_id').val();
@@ -817,10 +928,13 @@
                     formData.append('start_time', d.start_time);
                     formData.append('end_time', d.end_time);
                     formData.append('mode', d.mode);
-                    formData.append('location', d.location);
+                    formData.append('places_id', d.places_id);
                     formData.append('platform', d.platform);
                     formData.append('meeting_link', d.meeting_link);
                     formData.append('registration_deadline', d.registration_deadline);
+                    formData.append('speaker_username', d.speaker_username);
+                    formData.append('speaker_name', d.speaker_name);
+                    formData.append('ext_speaker_name', d.ext_speaker_name);
                 } else {
                     // Adding a batch: one-or-more dates (matches the controller's batchRules()).
                     dates.forEach(function(d, i) {
@@ -828,10 +942,13 @@
                         formData.append(`dates[${i}][start_time]`, d.start_time);
                         formData.append(`dates[${i}][end_time]`, d.end_time);
                         formData.append(`dates[${i}][mode]`, d.mode);
-                        formData.append(`dates[${i}][location]`, d.location);
+                        formData.append(`dates[${i}][places_id]`, d.places_id);
                         formData.append(`dates[${i}][platform]`, d.platform);
                         formData.append(`dates[${i}][meeting_link]`, d.meeting_link);
                         formData.append(`dates[${i}][registration_deadline]`, d.registration_deadline);
+                        formData.append(`dates[${i}][speaker_username]`, d.speaker_username);
+                        formData.append(`dates[${i}][speaker_name]`, d.speaker_name);
+                        formData.append(`dates[${i}][ext_speaker_name]`, d.ext_speaker_name);
                     });
                 }
 

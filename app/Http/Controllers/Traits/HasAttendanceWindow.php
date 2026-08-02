@@ -2,27 +2,28 @@
 
 namespace App\Http\Controllers\Traits;
 
-use App\Models\TrTrainingScheduleDetail;
+use App\Models\MsLndTrainingSchedule;
 use Carbon\Carbon;
 
 trait HasAttendanceWindow
 {
     /**
      * A barcode is valid from midnight on the event day through 24h after
-     * the session's end time.
+     * the session's end time (schedule_start_time / schedule_end_time are
+     * the real columns on ms_lnd_training_schedule).
      */
-    protected function attendanceWindow(TrTrainingScheduleDetail $detail): array
+    protected function attendanceWindow(MsLndTrainingSchedule $detail): array
     {
         $from = Carbon::parse($detail->schedule_date)->startOfDay();
 
-        $until = $detail->end_time
-            ? Carbon::parse($detail->schedule_date . ' ' . $detail->end_time)
+        $until = $detail->schedule_end_time
+            ? Carbon::parse($detail->schedule_date . ' ' . $detail->schedule_end_time)
             : $from->copy()->endOfDay();
 
         return ['from' => $from, 'until' => $until->addDay()];
     }
 
-    protected function isWithinAttendanceWindow(TrTrainingScheduleDetail $detail): bool
+    protected function isWithinAttendanceWindow(MsLndTrainingSchedule $detail): bool
     {
         $window = $this->attendanceWindow($detail);
         $now = now();

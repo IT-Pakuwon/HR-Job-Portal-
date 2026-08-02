@@ -15,6 +15,8 @@ use App\Models\SysMenu;
 use App\Models\SysUserRole;
 use App\Models\SysRoleMenu;
 use App\Models\SysMenuFavourite;
+use App\Models\TrLndTrainingRegistration;
+use App\Observers\TrLndTrainingRegistrationObserver;
 
 use Cmixin\BusinessDay;
 
@@ -30,6 +32,8 @@ class AppServiceProvider extends ServiceProvider
         Sanctum::usePersonalAccessTokenModel(PersonalAccessTokenPgsql2::class);
 
         BusinessDay::enable(Carbon::class);
+
+        TrLndTrainingRegistration::observe(TrLndTrainingRegistrationObserver::class);
 
         Validator::extendImplicit('captcha', function ($attribute, $value, $parameters, $validator) {
             return $this->validateRecaptcha($value);

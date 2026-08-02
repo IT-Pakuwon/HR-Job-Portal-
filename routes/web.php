@@ -86,6 +86,8 @@ use App\Http\Controllers\MasterTrainingController;
 use App\Http\Controllers\TrainingSessionController;
 use App\Http\Controllers\TrainingRegistrationController;
 use App\Http\Controllers\TrainingAttendanceController;
+use App\Http\Controllers\TrainingFeedbackController;
+use App\Http\Controllers\TrainingSetupController;
 use App\Http\Controllers\MappingIssueERPController;
 use App\Http\Controllers\MappingPoERPController;
 use App\Http\Controllers\MasterController;
@@ -329,6 +331,30 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', [MasterTrainingController::class, 'index'])->name('mastertraining');
             Route::get('/json', [MasterTrainingController::class, 'json'])->name('mastertraining.json');
             Route::get('/category-search', [MasterTrainingController::class, 'categorySearch'])->name('mastertraining.category-search');
+
+            Route::middleware('access:MASTERTRAINING,VIEW')->group(function () {
+                Route::get('/setup', [TrainingSetupController::class, 'index'])->name('mastertraining.setup');
+                Route::get('/setup/places', [TrainingSetupController::class, 'getPlaces'])->name('mastertraining.setup.places');
+                Route::get('/setup/places/{id}', [TrainingSetupController::class, 'findPlace'])->name('mastertraining.setup.places.find');
+                Route::get('/setup/categories', [TrainingSetupController::class, 'getCategories'])->name('mastertraining.setup.categories');
+                Route::get('/setup/categories/{id}', [TrainingSetupController::class, 'findCategory'])->name('mastertraining.setup.categories.find');
+            });
+
+            Route::middleware('access:MASTERTRAINING,CREATE')->group(function () {
+                Route::post('/setup/places', [TrainingSetupController::class, 'storePlace'])->name('mastertraining.setup.places.store');
+                Route::post('/setup/categories', [TrainingSetupController::class, 'storeCategory'])->name('mastertraining.setup.categories.store');
+            });
+
+            Route::middleware('access:MASTERTRAINING,EDIT')->group(function () {
+                Route::put('/setup/places/{id}', [TrainingSetupController::class, 'updatePlace'])->name('mastertraining.setup.places.update');
+                Route::put('/setup/categories/{id}', [TrainingSetupController::class, 'updateCategory'])->name('mastertraining.setup.categories.update');
+            });
+
+            Route::middleware('access:MASTERTRAINING,DELETE')->group(function () {
+                Route::delete('/setup/places/{id}', [TrainingSetupController::class, 'deletePlace'])->name('mastertraining.setup.places.delete');
+                Route::delete('/setup/categories/{id}', [TrainingSetupController::class, 'deleteCategory'])->name('mastertraining.setup.categories.delete');
+            });
+
             Route::get('/{hash}', [MasterTrainingController::class, 'index'])->name('mastertraining.view')->where('hash', '[A-Za-z0-9]+');
         });
 
@@ -352,6 +378,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/sessions/grade-search', [TrainingSessionController::class, 'gradeSearch'])->name('mastertraining.sessions.grade-search');
             Route::get('/sessions/speaker-search', [TrainingSessionController::class, 'speakerSearch'])->name('mastertraining.sessions.speaker-search');
             Route::get('/sessions/company-search', [TrainingSessionController::class, 'companySearch'])->name('mastertraining.sessions.company-search');
+            Route::get('/sessions/place-search', [TrainingSessionController::class, 'placeSearch'])->name('mastertraining.sessions.place-search');
         });
 
         Route::middleware('access:MASTERTRAINING,CREATE')->group(function () {
@@ -370,18 +397,22 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/my/{eid}', [TrainingRegistrationController::class, 'index'])->name('training-list.my.show')->where('eid', '[A-Za-z0-9]+');
             Route::get('/json', [TrainingRegistrationController::class, 'json'])->name('training-list.json');
             Route::get('/my', [TrainingRegistrationController::class, 'myRegistrations'])->name('training-list.my');
+            Route::get('/colleagues', [TrainingRegistrationController::class, 'colleagues'])->name('training-list.colleagues');
             Route::get('/my/{id}/barcode-status', [TrainingRegistrationController::class, 'barcodeStatus'])->name('training-list.barcode.status')->where('id', '[0-9]+');
             Route::get('/my/{id}/barcode-image', [TrainingRegistrationController::class, 'barcodeImage'])->name('training-list.barcode.image')->where('id', '[0-9]+');
             Route::get('/waitlist', [TrainingRegistrationController::class, 'waitlistForOffer'])->name('training-list.waitlist');
+            Route::get('/my/{id}/feedback', [TrainingFeedbackController::class, 'show'])->name('training-list.feedback.show')->where('id', '[0-9]+');
+            Route::get('/my/{id}/certificate', [TrainingRegistrationController::class, 'myCertificate'])->name('training-list.certificate')->where('id', '[0-9]+');
             Route::get('/{eid}', [TrainingRegistrationController::class, 'show'])->name('training-list.show')->where('eid', '[A-Za-z0-9]+');
         });
 
         Route::middleware('access:TRAININGLIST,CREATE')->group(function () {
-            Route::post('/{id}/register', [TrainingRegistrationController::class, 'register'])->name('training-list.register');
-            Route::post('/{id}/cancel', [TrainingRegistrationController::class, 'cancel'])->name('training-list.cancel');
-            Route::post('/{id}/offer/accept', [TrainingRegistrationController::class, 'acceptOffer'])->name('training-list.offer.accept');
-            Route::post('/{id}/offer/decline', [TrainingRegistrationController::class, 'declineOffer'])->name('training-list.offer.decline');
-            Route::post('/{id}/manual-offer', [TrainingRegistrationController::class, 'manualOffer'])->name('training-list.manual-offer');
+            Route::post('/{scheduleId}/register', [TrainingRegistrationController::class, 'register'])->name('training-list.register')->where('scheduleId', '[A-Za-z0-9_-]+');
+            Route::post('/{scheduleId}/cancel', [TrainingRegistrationController::class, 'cancel'])->name('training-list.cancel')->where('scheduleId', '[A-Za-z0-9_-]+');
+            Route::post('/{id}/offer/accept', [TrainingRegistrationController::class, 'acceptOffer'])->name('training-list.offer.accept')->where('id', '[0-9]+');
+            Route::post('/{id}/offer/decline', [TrainingRegistrationController::class, 'declineOffer'])->name('training-list.offer.decline')->where('id', '[0-9]+');
+            Route::post('/{id}/manual-accept', [TrainingRegistrationController::class, 'manualAccept'])->name('training-list.manual-accept')->where('id', '[0-9]+');
+            Route::post('/my/{id}/feedback', [TrainingFeedbackController::class, 'submit'])->name('training-list.feedback.submit')->where('id', '[0-9]+');
         });
 
         // Approve/reject are gated by the approval-line check inside ApprovalController
@@ -394,18 +425,20 @@ Route::middleware(['auth'])->group(function () {
         Route::middleware('access:TRAININGATTENDANCE,VIEW')->group(function () {
             Route::get('/', [TrainingAttendanceController::class, 'index'])->name('training-attendance');
             Route::get('/events', [TrainingAttendanceController::class, 'events'])->name('training-attendance.events');
-            Route::get('/{scheduleDetailId}/roster', [TrainingAttendanceController::class, 'roster'])->name('training-attendance.roster');
-            Route::get('/{scheduleDetailId}/after-event', [TrainingAttendanceController::class, 'afterEvent'])->name('training-attendance.after-event');
-            Route::get('/{scheduleDetailId}/export/excel', [TrainingAttendanceController::class, 'exportExcel'])->name('training-attendance.export.excel');
-            Route::get('/{scheduleDetailId}/export/csv', [TrainingAttendanceController::class, 'exportCsv'])->name('training-attendance.export.csv');
-            Route::get('/{scheduleDetailId}/export/pdf', [TrainingAttendanceController::class, 'exportPdf'])->name('training-attendance.export.pdf');
+            Route::get('/{scheduleId}/roster', [TrainingAttendanceController::class, 'roster'])->name('training-attendance.roster')->where('scheduleId', '[A-Za-z0-9_-]+');
+            Route::get('/{scheduleId}/after-event', [TrainingAttendanceController::class, 'afterEvent'])->name('training-attendance.after-event')->where('scheduleId', '[A-Za-z0-9_-]+');
+            Route::get('/{scheduleId}/export/excel', [TrainingAttendanceController::class, 'exportExcel'])->name('training-attendance.export.excel')->where('scheduleId', '[A-Za-z0-9_-]+');
+            Route::get('/{scheduleId}/export/csv', [TrainingAttendanceController::class, 'exportCsv'])->name('training-attendance.export.csv')->where('scheduleId', '[A-Za-z0-9_-]+');
+            Route::get('/{scheduleId}/export/pdf', [TrainingAttendanceController::class, 'exportPdf'])->name('training-attendance.export.pdf')->where('scheduleId', '[A-Za-z0-9_-]+');
+            Route::get('/{scheduleId}/feedback/results', [TrainingAttendanceController::class, 'feedbackResults'])->name('training-attendance.feedback.results')->where('scheduleId', '[A-Za-z0-9_-]+');
         });
 
         Route::middleware('access:TRAININGATTENDANCE,CREATE')->group(function () {
             Route::post('/scan', [TrainingAttendanceController::class, 'scan'])->name('training-attendance.scan');
             Route::post('/{registrationId}/attend', [TrainingAttendanceController::class, 'markAttend'])->name('training-attendance.attend');
-            Route::post('/{scheduleDetailId}/lock', [TrainingAttendanceController::class, 'lock'])->name('training-attendance.lock');
-            Route::post('/{registrationId}/certificates', [TrainingAttendanceController::class, 'uploadCertificate'])->name('training-attendance.certificates.upload');
+            Route::post('/{registrationId}/unattend', [TrainingAttendanceController::class, 'unmarkAttend'])->name('training-attendance.unattend');
+            Route::post('/{scheduleId}/feedback/open', [TrainingAttendanceController::class, 'openFeedback'])->name('training-attendance.feedback.open')->where('scheduleId', '[A-Za-z0-9_-]+');
+            Route::post('/{scheduleId}/feedback/close', [TrainingAttendanceController::class, 'closeFeedback'])->name('training-attendance.feedback.close')->where('scheduleId', '[A-Za-z0-9_-]+');
         });
     });
 

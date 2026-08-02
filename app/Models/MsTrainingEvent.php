@@ -8,16 +8,15 @@ class MsTrainingEvent extends Model
 {
     protected $connection = 'pgsql5';
 
-    protected $table = 'ms_training_event';
+    protected $table = 'ms_lnd_training';
 
     protected $fillable = [
         'training_id',
         'training_name',
         'category_id',
         'is_mandatory',
-        'description',
+        'training_description',
         'training_type',
-        'speaker_external',
         'status',
         'created_by',
         'updated_by',

@@ -81,6 +81,15 @@
 
     <!--Calendar -->
 
+    <!-- Livewire's bundled auto-start (livewire.esm.js) only skips itself when
+         window.livewireScriptConfig is already defined at import time. The real
+         @livewireScriptConfig directive sits near the end of <body>, so on a slow
+         or truncated render it can lose that race — causing Livewire.start() (and
+         therefore Alpine.start()) to fire twice, which crashes with "Cannot redefine
+         property: $persist" and breaks every x-data scope on the page. Pre-seeding
+         a placeholder here closes that race regardless of how the rest of the page renders. -->
+    <script>window.livewireScriptConfig = window.livewireScriptConfig || {};</script>
+
     <!-- ================= VITE ================= -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 

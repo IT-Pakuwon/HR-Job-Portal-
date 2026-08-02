@@ -6,14 +6,17 @@ use App\Exports\TrainingAttendanceExport;
 use App\Http\Controllers\Traits\HasAttendanceWindow;
 use App\Models\MsCompany;
 use App\Models\MsDepartment;
+use App\Models\MsLndTrainingFeedback;
 use App\Models\StoGrading;
-use App\Models\TrTrainingCertificate;
-use App\Models\TrTrainingRegistration;
-use App\Models\TrTrainingScheduleDetail;
+use App\Models\TrLndTrainingAttendance;
+use App\Models\TrLndTrainingFeedbackAnswer;
+use App\Models\TrLndTrainingRegistration;
+use App\Models\MsLndTrainingSchedule;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Excel as ExcelFormat;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -34,44 +37,51 @@ class TrainingAttendanceController extends Controller
      */
     public function events()
     {
-        $details = TrTrainingScheduleDetail::whereIn('status', ['PUBLISHED', 'CLOSED'])
-            ->withCount(['registrations as approved_count' => fn ($q) => $q->approved()])
+        $details = MsLndTrainingSchedule::whereIn('status', ['P', 'C'])
             ->with('schedule.training')
             ->orderByDesc('schedule_date')
             ->get();
 
-        $gradeIds = $details->pluck('schedule.grade_id')->filter()->unique();
+        $scheduleIds = $details->pluck('schedule_id');
+
+        $approvedCounts = TrLndTrainingRegistration::whereIn('schedule_id', $scheduleIds)
+            ->where('status', TrLndTrainingRegistration::STATUS_APPROVED)
+            ->seated()
+            ->select('schedule_id', DB::raw('count(*) as cnt'))
+            ->groupBy('schedule_id')
+            ->pluck('cnt', 'schedule_id');
+
+        $gradeIds = $details->pluck('schedule.job_level')->filter()->unique();
         $gradeNames = $gradeIds->isEmpty()
             ? collect()
             : StoGrading::whereIn('grade_id', $gradeIds)->pluck('grade_name', 'grade_id');
 
-        $rows = $details->map(function ($d) use ($gradeNames) {
+        $rows = $details->map(function ($d) use ($gradeNames, $approvedCounts) {
             $schedule = $d->schedule;
             $training = $schedule?->training;
 
             return [
-                'id' => $d->id,
-                'docid' => $d->docid,
+                'id' => $d->schedule_id,
+                'docid' => $d->training_detail_id,
                 'training_name' => $training->training_name ?? null,
-                'grade_name' => $gradeNames[$schedule->grade_id ?? null] ?? ($schedule->grade_id ?? null),
+                'grade_name' => $gradeNames[$schedule->job_level ?? null] ?? ($schedule->job_level ?? null),
                 'schedule_date' => $d->schedule_date,
-                'start_time' => $d->start_time,
-                'end_time' => $d->end_time,
-                'mode' => $d->mode,
-                'location' => $d->location,
-                'platform' => $d->platform,
+                'start_time' => $d->schedule_start_time,
+                'end_time' => $d->schedule_end_time,
+                'mode' => $d->training_mode,
+                'location' => $d->training_platform,
+                'platform' => $d->training_platform,
                 'status' => $d->status,
-                'approved_count' => $d->approved_count,
-                'is_locked' => (bool) $d->attendance_locked_at,
+                'approved_count' => (int) ($approvedCounts[$d->schedule_id] ?? 0),
             ];
         })->values();
 
         return response()->json(['data' => $rows]);
     }
 
-    private function decorateRegistrations($registrations)
+    private function decorateRegistrations($registrations, bool $withHistory = false)
     {
-        $usernames = $registrations->pluck('username')->unique();
+        $usernames = $registrations->pluck('user_registration')->unique();
         $names = $usernames->isEmpty() ? collect() : User::whereIn('username', $usernames)->pluck('name', 'username');
 
         $cpnyIds = $registrations->pluck('cpny_id')->filter()->unique();
@@ -80,51 +90,77 @@ class TrainingAttendanceController extends Controller
         $deptIds = $registrations->pluck('department_id')->filter()->unique();
         $deptNames = $deptIds->isEmpty() ? collect() : MsDepartment::whereIn('department_id', $deptIds)->pluck('department_name', 'department_id');
 
-        return $registrations->map(fn ($r) => [
-            'id' => $r->id,
-            'docid' => $r->docid,
-            'username' => $r->username,
-            'name' => $names[$r->username] ?? $r->username,
-            'cpny_name' => $cpnyNames[$r->cpny_id] ?? $r->cpny_id,
-            'department_name' => $deptNames[$r->department_id] ?? $r->department_id,
-            'attended_at' => $r->attended_at,
-            'attended_by' => $r->attended_by,
-        ])->values();
+        // Full scan/undo timeline, only when asked for (roster/scan don't need it —
+        // just the after-event corrections view does). training_regist_id is a 1:1
+        // key per row, so this can't pull in another participant's entries.
+        $historyByDocid = collect();
+        if ($withHistory) {
+            $historyByDocid = TrLndTrainingAttendance::withTrashed()
+                ->whereIn('training_regist_id', $registrations->pluck('training_regist_id'))
+                ->orderBy('attendance_datetime')
+                ->get()
+                ->groupBy('training_regist_id');
+        }
+
+        return $registrations->map(function ($r) use ($names, $cpnyNames, $deptNames, $withHistory, $historyByDocid) {
+            $row = [
+                'id' => $r->id,
+                'docid' => $r->training_regist_id,
+                'username' => $r->user_registration,
+                'name' => $names[$r->user_registration] ?? $r->user_registration,
+                'cpny_name' => $cpnyNames[$r->cpny_id] ?? $r->cpny_id,
+                'department_name' => $deptNames[$r->department_id] ?? $r->department_id,
+                'attended_at' => $r->completed_at,
+                'attended_by' => $r->completed_by,
+            ];
+
+            if ($withHistory) {
+                $row['history'] = $historyByDocid->get($r->training_regist_id, collect())->map(fn ($h) => [
+                    'attendance_datetime' => $h->attendance_datetime,
+                    'status' => $h->status,
+                    'created_by' => $h->created_by,
+                    'voided' => $h->trashed(),
+                ])->values();
+            }
+
+            return $row;
+        })->values();
     }
 
-    public function roster($scheduleDetailId)
+    public function roster($scheduleId)
     {
-        $detail = TrTrainingScheduleDetail::findOrFail($scheduleDetailId);
+        $detail = MsLndTrainingSchedule::where('schedule_id', $scheduleId)->firstOrFail();
 
-        $registrations = TrTrainingRegistration::where('schedule_detail_id', $scheduleDetailId)
-            ->approved()
+        $registrations = TrLndTrainingRegistration::where('schedule_id', $scheduleId)
+            ->where('status', TrLndTrainingRegistration::STATUS_APPROVED)
+            ->seated()
             ->orderBy('created_at')
             ->get();
 
         return response()->json([
             'data' => $this->decorateRegistrations($registrations),
-            'is_locked' => (bool) $detail->attendance_locked_at,
         ]);
     }
 
     public function scan(Request $request)
     {
         $request->validate([
-            'schedule_detail_id' => 'required|integer',
+            'schedule_id' => 'required|string',
             'code' => 'required|string',
         ]);
 
-        $detail = TrTrainingScheduleDetail::findOrFail($request->schedule_detail_id);
+        $detail = MsLndTrainingSchedule::where('schedule_id', $request->schedule_id)->firstOrFail();
 
-        $registration = TrTrainingRegistration::where('attendance_code', trim($request->code))
-            ->approved()
+        $registration = TrLndTrainingRegistration::where('attendance_code', trim($request->code))
+            ->where('status', TrLndTrainingRegistration::STATUS_APPROVED)
+            ->seated()
             ->first();
 
         if (!$registration) {
             return response()->json(['success' => false, 'message' => 'Barcode tidak dikenali'], 404);
         }
 
-        if ((int) $registration->schedule_detail_id !== (int) $detail->id) {
+        if (strcasecmp((string) $registration->schedule_id, (string) $detail->schedule_id) !== 0) {
             return response()->json(['success' => false, 'message' => 'Barcode ini bukan untuk event yang dipilih'], 422);
         }
 
@@ -135,25 +171,38 @@ class TrainingAttendanceController extends Controller
         return response()->json([
             'success' => true,
             'data' => $this->decorateRegistrations(collect([$registration]))->first(),
-            'is_locked' => (bool) $detail->attendance_locked_at,
         ]);
     }
 
     public function markAttend($registrationId)
     {
-        $registration = TrTrainingRegistration::findOrFail($registrationId);
-        $detail = TrTrainingScheduleDetail::findOrFail($registration->schedule_detail_id);
+        $registration = TrLndTrainingRegistration::findOrFail($registrationId);
 
-        if ($detail->attendance_locked_at) {
-            return response()->json(['success' => false, 'message' => 'Attendance untuk event ini sudah dikunci'], 422);
+        if ($registration->status_registration) {
+            return response()->json(['success' => false, 'message' => 'Peserta belum memiliki slot pada event ini'], 422);
         }
 
-        if (!$registration->attended_at) {
+        $detail = MsLndTrainingSchedule::where('schedule_id', $registration->schedule_id)->first();
+
+        if (!$detail || !$this->isWithinAttendanceWindow($detail)) {
+            return response()->json(['success' => false, 'message' => 'Barcode belum berlaku atau sudah kedaluwarsa'], 422);
+        }
+
+        if (!$registration->completed_at) {
             $user = Auth::user();
+            $now = now();
 
             $registration->update([
-                'attended_at' => now(),
-                'attended_by' => $user->username ?? 'system',
+                'completed_at' => $now,
+                'completed_by' => $user->username ?? 'system',
+                'updated_by' => $user->username ?? 'system',
+            ]);
+
+            TrLndTrainingAttendance::create([
+                'training_regist_id' => $registration->training_regist_id,
+                'attendance_datetime' => $now,
+                'status' => 'A',
+                'created_by' => $user->username ?? 'system',
             ]);
         }
 
@@ -163,122 +212,81 @@ class TrainingAttendanceController extends Controller
         ]);
     }
 
-    public function lock($scheduleDetailId)
-    {
-        $detail = TrTrainingScheduleDetail::findOrFail($scheduleDetailId);
-
-        if ($detail->attendance_locked_at) {
-            return response()->json(['success' => false, 'message' => 'Attendance sudah dikunci sebelumnya'], 422);
-        }
-
-        $user = Auth::user();
-
-        $detail->update([
-            'attendance_locked_at' => now(),
-            'attendance_locked_by' => $user->username ?? 'system',
-        ]);
-
-        return response()->json(['success' => true, 'message' => 'Attendance berhasil dikunci']);
-    }
-
-    public function afterEvent($scheduleDetailId)
-    {
-        $registrations = TrTrainingRegistration::where('schedule_detail_id', $scheduleDetailId)
-            ->approved()
-            ->whereNotNull('attended_at')
-            ->orderBy('attended_at')
-            ->get();
-
-        $decorated = $this->decorateRegistrations($registrations);
-
-        $canUpload = (bool) Auth::user()?->hasRole('HCDEVACCESS');
-
-        $certsByRegistration = TrTrainingCertificate::whereIn('registration_id', $registrations->pluck('id'))
-            ->get()
-            ->groupBy('registration_id');
-
-        $decorated = $decorated->map(function ($row) use ($certsByRegistration, $canUpload) {
-            $certs = $certsByRegistration->get($row['id'], collect());
-            $row['certificate_count'] = $certs->count();
-            $row['certificates'] = $certs->map(fn ($c) => [
-                'id' => $c->id,
-                'original_name' => $c->original_name,
-                'url' => asset($c->file_path),
-            ])->values();
-
-            return $row;
-        });
-
-        return response()->json([
-            'data' => $decorated,
-            'can_upload' => $canUpload,
-        ]);
-    }
-
-    public function uploadCertificate(Request $request, $registrationId)
+    /**
+     * HCDEV-only correction for a mis-scan: clears the registration's
+     * completed_at/completed_by and voids (soft-deletes) its attendance log
+     * row so the person can be re-scanned. training_regist_id is a 1:1 key
+     * per row now, so this can't accidentally touch anyone else's log entry.
+     */
+    public function unmarkAttend($registrationId)
     {
         $user = Auth::user();
         abort_unless($user && $user->hasRole('HCDEVACCESS'), 403);
 
-        $registration = TrTrainingRegistration::findOrFail($registrationId);
+        $registration = TrLndTrainingRegistration::findOrFail($registrationId);
 
-        $request->validate([
-            'files' => 'required|array|min:1',
-            'files.*' => 'file|mimes:jpg,jpeg,pdf|max:5120',
+        if (!$registration->completed_at) {
+            return response()->json(['success' => false, 'message' => 'Peserta ini belum ditandai hadir'], 422);
+        }
+
+        TrLndTrainingAttendance::where('training_regist_id', $registration->training_regist_id)
+            ->where('status', 'A')
+            ->get()
+            ->each(fn ($row) => $row->delete());
+
+        $registration->update([
+            'completed_at' => null,
+            'completed_by' => null,
+            'updated_by' => $user->username,
         ]);
 
-        $existing = TrTrainingCertificate::where('registration_id', $registration->id)->count();
-        $incoming = count($request->file('files'));
-
-        if ($existing + $incoming > 5) {
-            return response()->json([
-                'success' => false,
-                'message' => "Maksimal 5 file per peserta (sudah ada {$existing})",
-            ], 422);
-        }
-
-        $year = now()->year;
-        $folder = public_path("training_certificates/{$year}/{$registration->id}");
-        if (!is_dir($folder)) {
-            mkdir($folder, 0777, true);
-        }
-
-        foreach ($request->file('files') as $file) {
-            $filename = md5(random_int(10000000, 99999999)) . '-' . str_replace('%', '', $file->getClientOriginalName());
-            $file->move($folder, $filename);
-
-            TrTrainingCertificate::create([
-                'registration_id' => $registration->id,
-                'file_path' => "training_certificates/{$year}/{$registration->id}/{$filename}",
-                'original_name' => $file->getClientOriginalName(),
-                'mime_type' => $file->getClientMimeType(),
-                'size_bytes' => $file->getSize(),
-                'uploaded_by' => $user->username,
-                'uploaded_at' => now(),
-            ]);
-        }
-
-        return response()->json(['success' => true, 'message' => 'Sertifikat berhasil diupload']);
+        return response()->json([
+            'success' => true,
+            'data' => $this->decorateRegistrations(collect([$registration->fresh()]))->first(),
+        ]);
     }
 
-    public function exportExcel($scheduleDetailId)
+    public function afterEvent($scheduleId)
     {
-        return Excel::download(new TrainingAttendanceExport((int) $scheduleDetailId), 'attendance.xlsx');
+        MsLndTrainingSchedule::where('schedule_id', $scheduleId)->firstOrFail();
+
+        $registrations = TrLndTrainingRegistration::where('schedule_id', $scheduleId)
+            ->where('status', TrLndTrainingRegistration::STATUS_APPROVED)
+            ->whereNotNull('completed_at')
+            ->orderBy('completed_at')
+            ->get();
+
+        $decorated = $this->decorateRegistrations($registrations, withHistory: true);
+
+        $canManage = (bool) Auth::user()?->hasRole('HCDEVACCESS');
+
+        return response()->json([
+            'data' => $decorated,
+            'can_undo' => $canManage,
+        ]);
     }
 
-    public function exportCsv($scheduleDetailId)
+    public function exportExcel($scheduleId)
     {
-        return Excel::download(new TrainingAttendanceExport((int) $scheduleDetailId), 'attendance.csv', ExcelFormat::CSV);
+        return Excel::download(new TrainingAttendanceExport((string) $scheduleId), 'attendance.xlsx');
     }
 
-    public function exportPdf($scheduleDetailId)
+    public function exportCsv($scheduleId)
     {
-        $detail = TrTrainingScheduleDetail::with('schedule.training')->findOrFail($scheduleDetailId);
+        return Excel::download(new TrainingAttendanceExport((string) $scheduleId), 'attendance.csv', ExcelFormat::CSV);
+    }
 
-        $registrations = TrTrainingRegistration::where('schedule_detail_id', $scheduleDetailId)
-            ->approved()
-            ->whereNotNull('attended_at')
-            ->orderBy('attended_at')
+    public function exportPdf($scheduleId)
+    {
+        $detail = MsLndTrainingSchedule::with('schedule.training')
+            ->where('schedule_id', $scheduleId)
+            ->firstOrFail();
+
+        $registrations = TrLndTrainingRegistration::where('schedule_id', $scheduleId)
+            ->where('status', TrLndTrainingRegistration::STATUS_APPROVED)
+            ->seated()
+            ->whereNotNull('completed_at')
+            ->orderBy('completed_at')
             ->get();
 
         $pdf = Pdf::loadView('pages.training_attendance.export-pdf', [
@@ -288,5 +296,106 @@ class TrainingAttendanceController extends Controller
         ]);
 
         return $pdf->download('attendance.pdf');
+    }
+
+    /**
+     * HCDEV-only: open the feedback window for this schedule. Re-opening
+     * after a close clears feedback_closed_at so is_feedback_open flips back
+     * to true.
+     */
+    public function openFeedback($scheduleId)
+    {
+        $user = Auth::user();
+        abort_unless($user && $user->hasRole('HCDEVACCESS'), 403);
+
+        $detail = MsLndTrainingSchedule::where('schedule_id', $scheduleId)->firstOrFail();
+
+        $detail->update([
+            'feedback_opened_at' => now(),
+            'feedback_opened_by' => $user->username,
+            'feedback_closed_at' => null,
+            'feedback_closed_by' => null,
+            'updated_by' => $user->username,
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Feedback dibuka untuk peserta']);
+    }
+
+    public function closeFeedback($scheduleId)
+    {
+        $user = Auth::user();
+        abort_unless($user && $user->hasRole('HCDEVACCESS'), 403);
+
+        $detail = MsLndTrainingSchedule::where('schedule_id', $scheduleId)->firstOrFail();
+
+        if (!$detail->feedback_opened_at) {
+            return response()->json(['success' => false, 'message' => 'Feedback belum pernah dibuka'], 422);
+        }
+
+        $detail->update([
+            'feedback_closed_at' => now(),
+            'feedback_closed_by' => $user->username,
+            'updated_by' => $user->username,
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Feedback ditutup']);
+    }
+
+    /**
+     * Aggregate results per question: average + distribution for Rating,
+     * option counts for Single Choice, raw comment list for Long Text.
+     * Also doubles as the feedback-window status view (is_open/opened/closed).
+     */
+    public function feedbackResults($scheduleId)
+    {
+        $detail = MsLndTrainingSchedule::where('schedule_id', $scheduleId)->firstOrFail();
+
+        $attendedCount = TrLndTrainingRegistration::where('schedule_id', $scheduleId)
+            ->where('status', TrLndTrainingRegistration::STATUS_APPROVED)
+            ->whereNotNull('completed_at')
+            ->count();
+
+        $answers = TrLndTrainingFeedbackAnswer::where('schedule_id', $scheduleId)->get();
+        $respondentCount = $answers->pluck('training_regist_id')->unique()->count();
+
+        $usernames = $answers->pluck('user_registration')->unique();
+        $names = $usernames->isEmpty() ? collect() : User::whereIn('username', $usernames)->pluck('name', 'username');
+
+        $byQuestion = $answers->groupBy('question_order')->sortKeys()->map(function ($rows) use ($names) {
+            $first = $rows->first();
+
+            $result = [
+                'question_order' => $first->question_order,
+                'question_text' => $first->question_text,
+                'question_type' => $first->question_type,
+                'response_count' => $rows->count(),
+            ];
+
+            if ($first->question_type === MsLndTrainingFeedback::TYPE_RATING) {
+                $numbers = $rows->pluck('answer_number')->filter(fn ($n) => $n !== null);
+                $result['average'] = $numbers->isEmpty() ? null : round($numbers->avg(), 2);
+                $result['distribution'] = $numbers->countBy();
+            } elseif ($first->question_type === MsLndTrainingFeedback::TYPE_SINGLE_CHOICE) {
+                $result['distribution'] = $rows->pluck('answer_text')->filter()->countBy();
+            } else {
+                $result['answers'] = $rows->map(fn ($r) => [
+                    'name' => $names[$r->user_registration] ?? $r->user_registration,
+                    'text' => $r->answer_text,
+                ])->filter(fn ($a) => !empty($a['text']))->values();
+            }
+
+            return $result;
+        })->values();
+
+        return response()->json([
+            'attended_count' => $attendedCount,
+            'respondent_count' => $respondentCount,
+            'is_open' => (bool) $detail->is_feedback_open,
+            'opened_at' => $detail->feedback_opened_at,
+            'opened_by' => $detail->feedback_opened_by,
+            'closed_at' => $detail->feedback_closed_at,
+            'can_manage' => (bool) Auth::user()?->hasRole('HCDEVACCESS'),
+            'questions' => $byQuestion,
+        ]);
     }
 }

@@ -22,6 +22,7 @@ use App\Models\TrIMBudget;
 use App\Models\TrItemRequest;
 use App\Models\TrItrecommend;
 use App\Models\TrMessage;
+use App\Models\TrLndTrainingRegistration;
 use App\Models\TrParkingRegistration;
 use App\Models\TrRfca;
 use App\Models\TrRfp;
@@ -504,9 +505,12 @@ class DocumentNotificationService
                     'idCol' => $extCfg['idCol'],
                     'url'   => $extCfg['url'],
                     // All extended doctypes reach 'C' on final approval via ApprovalController's
-                    // onComplete closures, except RC (TrRfca), which has no reliable header-status
-                    // terminal value yet — leave it unfiltered rather than guess wrong.
-                    'terminalStatuses' => $extDoctype === 'RC' ? [] : ['C'],
+                    // onComplete closures and stop needing comment notifications after that, except:
+                    // RC (TrRfca), which has no reliable header-status terminal value yet, and TRN
+                    // (training registration), whose seat lifecycle (offer/accept/decline/manual
+                    // accept) keeps generating notification-worthy events well after approval
+                    // completes — an explicit override in extendedDocTypeConfig() beats guessing.
+                    'terminalStatuses' => $extCfg['terminalStatuses'] ?? ($extDoctype === 'RC' ? [] : ['C']),
                 ];
             }
 
@@ -520,15 +524,29 @@ class DocumentNotificationService
                     ->where('message_date', '>=', now()->subDays(21))
                     ->whereRaw("lower(trim(coalesce(username,''))) != ?", [$username])
                     ->get()
-                    ->filter(fn($row) => !self::isCommentExpired($row->message_date, $commentHolidays));
+                    ->filter(fn($row) => !self::isCommentExpired($row->message_date, $commentHolidays))
+                    ->reject(fn($row) => $readKeys->contains('CMT_' . $commentDoctype . '_' . $row->id));
+
+                if ($rows->isEmpty()) {
+                    continue;
+                }
+
+                // Batch-fetch every doc this doctype's rows reference in one query instead of
+                // one `first()` per row — with 90+ days of messages across 14 doctypes this was
+                // firing hundreds of per-row queries on every buildForUser() call (run for every
+                // active user each minute by notifications:refresh-doc), which was blowing past
+                // the 60s execution limit.
+                $docsByKey = $cfg['model']::whereIn(
+                        $cfg['idCol'],
+                        $rows->pluck('refnbr')->filter()->unique()->values()->all()
+                    )
+                    ->get()
+                    ->keyBy($cfg['idCol']);
 
                 foreach ($rows as $row) {
                     $key = 'CMT_' . $commentDoctype . '_' . $row->id;
-                    if ($readKeys->contains($key)) {
-                        continue;
-                    }
 
-                    $doc = $cfg['model']::where($cfg['idCol'], $row->refnbr)->first();
+                    $doc = $docsByKey->get($row->refnbr);
                     if (!$doc) {
                         continue;
                     }
@@ -928,6 +946,11 @@ class DocumentNotificationService
             // RFCA has no TrApproval line of its own (routed via TrRfcaStep instead) — no approvalDoctype by design.
             'RC' => ['model' => TrRfca::class, 'idCol' => 'rfcaid', 'url' => '/showrfca', 'creatorFields' => ['user_peminta', 'created_by'], 'roleIds' => ['APFINACCESS', 'APTREACCESS', 'FINACCESS']],
             'CA' => ['model' => TrCalr::class, 'idCol' => 'calrid', 'url' => '/showcalr', 'creatorFields' => ['user_peminta', 'created_by'], 'approvalDoctype' => 'CA', 'roleIds' => ['APFINACCESS', 'APTREACCESS', 'FINACCESS']],
+
+            // Training registration: seat-lifecycle events (offer, accept, decline, manual
+            // accept) keep firing after approval reaches 'C', so this is never terminal —
+            // see the loop above that builds $commentDocTypes.
+            'TRN' => ['model' => TrLndTrainingRegistration::class, 'idCol' => 'training_regist_id', 'url' => '/training-list/my', 'creatorFields' => ['created_by'], 'approvalDoctype' => 'TRN', 'roleIds' => ['HCDEVACCESS'], 'terminalStatuses' => []],
         ];
     }
 

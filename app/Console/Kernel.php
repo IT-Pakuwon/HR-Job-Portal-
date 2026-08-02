@@ -105,6 +105,12 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/training-close-registrations.log'));
 
+        // Email attendees once their certificate crosses the H+1 eligibility window
+        $schedule->command('training:notify-certificate-ready')
+            ->dailyAt('06:00')
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/training-notify-certificate-ready.log'));
+
         // Refresh Dashboard PGTrek materialized views (point/time, personnel, alert point)
         $schedule->command('pgtrek:refresh-views')
             ->everyThirtyMinutes()

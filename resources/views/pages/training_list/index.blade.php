@@ -56,7 +56,7 @@
             @if (Auth::user()->hasRole('HCDEVACCESS'))
                 <div id="tab-waitlist" class="tab-panel hidden">
                     <p class="mb-2 text-xs text-gray-500 dark:text-gray-400">
-                        Slots forfeited after a schedule closes (H-3) don't auto-requeue — pick who gets offered the freed slot.
+                        Slots forfeited after a schedule closes (H-3) don't auto-requeue — pick who to accept into the freed seat. You can also choose a different company's quota for the person.
                     </p>
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
@@ -68,6 +68,7 @@
                                     <th class="py-2 pr-4">Training</th>
                                     <th class="py-2 pr-4">Date</th>
                                     <th class="py-2 pr-4">Schedule Status</th>
+                                    <th class="py-2 pr-4">Approval</th>
                                     <th class="py-2 pr-4">Action</th>
                                 </tr>
                             </thead>
@@ -343,6 +344,8 @@
     <script>
         const jsonUrl = "{{ route('training-list.json') }}";
         const myUrl = "{{ route('training-list.my') }}";
+        const certificateUrl = "{{ route('training-list.certificate', ['id' => '__ID__']) }}";
+        const colleaguesUrl = "{{ route('training-list.colleagues') }}";
         @if (Auth::user()->hasRole('HCDEVACCESS'))
         const waitlistUrl = "{{ route('training-list.waitlist') }}";
         @endif
@@ -425,6 +428,8 @@
         let cardsByDocid = {};
         let deptOptionsGlobal = [];
         let allTrainingRows = [];
+        let myCompanyNameGlobal = '';
+        let myDepartmentNameGlobal = '';
 
         function populateFilterOptions(rows) {
             const $level = $('#filterLevel');
@@ -471,6 +476,8 @@
                 const rows = res.data || [];
                 deptOptionsGlobal = res.department_options || [];
                 allTrainingRows = rows;
+                myCompanyNameGlobal = res.my_company_name || '';
+                myDepartmentNameGlobal = res.my_department_name || '';
 
                 cardsByDocid = {};
                 rows.forEach((r) => { cardsByDocid[r.docid] = r; });
@@ -729,20 +736,38 @@
             });
         });
 
-        $(document).on('click', '.registerScheduleBtn', function () {
-            const scheduleId = $(this).data('id');
-            const training = cardsByDocid[$(this).data('docid')];
-            if (!training) return;
-            const sched = (training.schedules || []).find((s) => String(s.id) === String(scheduleId));
-            if (!sched) return;
+        const selfUsername = @json(Auth::user()->username);
 
+        function submitRegistration(scheduleId, participants, closeDetail) {
+            $.ajax({
+                url: `/training-list/${scheduleId}/register`,
+                method: 'POST',
+                headers: csrfHeaders,
+                data: { participants: participants },
+                success: function (res) {
+                    toast(res.success ? 'success' : 'error', res.message);
+                    if (res.success) {
+                        loadAvailable();
+                        if (closeDetail) closeDetailModal();
+                    }
+                },
+                error: function (xhr) {
+                    toast('error', xhr.responseJSON?.message || 'Gagal melakukan registrasi');
+                },
+            });
+        }
+
+        // Batch registration modal: you are always included, plus any
+        // colleagues from the same origin company & department (searchable).
+        // A live preview lists everyone before the batch is submitted.
+        function openColleaguePicker(training, sched, closeDetail) {
             const thumbHtml = training.poster_url
                 ? `<img class="ticketModal-thumb" src="${training.poster_url}">`
                 : `<div class="ticketModal-thumbFallback">🎓</div>`;
 
-            const pickerFieldsHtml =
-                pickerFieldHtml('🏢', 'Company', 'swalCompany', sched.eligible_companies.map((c) => ({ id: c.cpny_id, name: c.cpny_name }))) +
-                pickerFieldHtml('🏬', 'Department', 'swalDept', deptOptionsGlobal);
+            const hint = myCompanyNameGlobal && myDepartmentNameGlobal
+                ? ` (${myCompanyNameGlobal} · ${myDepartmentNameGlobal})`
+                : '';
 
             const html = `
                 <div class="ticketModal-header">
@@ -754,77 +779,79 @@
                 </div>
                 <div class="ticketModal-body">
                     <div class="ticketModal-card">
-                        ${pickerFieldsHtml ? `<div class="ticketModal-pickerGrid">${pickerFieldsHtml}</div>` : ''}
-                        <div id="swalCapacity" class="ticketModal-capacity"></div>
+                        <label class="ticketModal-label">👥 Select Colleagues</label>
+                        <select id="swalColleagues" multiple></select>
+                        <p style="font-size:11px;color:#6b7280;margin-top:8px;">
+                            You'll be registered automatically. Add colleagues${hint} to register them in the same batch.
+                        </p>
+                        <div id="swalPreview" class="ticketModal-capacity"></div>
                     </div>
                 </div>
             `;
 
             Swal.fire({
                 html,
-                width: 440,
+                width: 480,
                 showCancelButton: true,
                 confirmButtonText: 'Confirm Registration',
                 cancelButtonText: 'Cancel',
                 customClass: { popup: 'ticketModalPopup', confirmButton: 'ticketConfirmBtn', cancelButton: 'ticketCancelBtn' },
                 didOpen: () => {
                     const $popup = $(Swal.getPopup());
-                    const $companySelect = $popup.find('#swalCompany');
-                    const $deptSelect = $popup.find('#swalDept');
+                    const $sel = $popup.find('#swalColleagues');
 
-                    if ($companySelect.length) {
-                        $companySelect.select2({ dropdownParent: $popup, width: '100%', minimumResultsForSearch: -1 });
-                    }
-                    if ($deptSelect.length) {
-                        $deptSelect.select2({ dropdownParent: $popup, width: '100%', minimumResultsForSearch: -1 });
-                    }
+                    $sel.select2({
+                        dropdownParent: $popup,
+                        width: '100%',
+                        multiple: true,
+                        placeholder: 'Search colleagues...',
+                        allowClear: true,
+                        minimumInputLength: 1,
+                        ajax: {
+                            url: colleaguesUrl,
+                            dataType: 'json',
+                            delay: 250,
+                            data: (params) => ({ q: params.term || '' }),
+                            processResults: (res) => ({
+                                results: (res.data || []).map((c) => ({
+                                    id: c.username,
+                                    text: `${c.name} (${c.username})`,
+                                })),
+                            }),
+                        },
+                    });
 
-                    const refreshStats = () => {
-                        const c = sched.eligible_companies.find((x) => x.cpny_id === $companySelect.val()) || sched.eligible_companies[0];
-                        const $capacity = $popup.find('#swalCapacity');
-                        if (!c) { $capacity.html(''); return; }
-
-                        const filled = c.quota_pax > 0 ? Math.round(((c.reserved + c.used) / c.quota_pax) * 100) : 0;
-                        const barColor = filled >= 100 ? '#dc2626' : '#111827';
-                        $capacity.html(`
-                            <div style="display:flex;align-items:baseline;justify-content:space-between;">
-                                <span style="font-size:20px;font-weight:800;color:#111827;">${c.available}<span style="font-size:12px;font-weight:600;color:#9ca3af;"> / ${c.quota_pax} seats available</span></span>
-                                <span style="font-size:11px;font-weight:600;color:#b45309;">${c.reserved} reserved</span>
+                    const renderPreview = () => {
+                        const list = [selfUsername, ...($sel.val() || [])];
+                        $popup.find('#swalPreview').html(list.map((u) => `
+                            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border:1px solid #f0f1f3;border-radius:8px;margin-top:6px;background:#f9fafb;">
+                                <span style="font-size:12px;font-weight:600;color:#111827;">${u}</span>
+                                <span style="font-size:10px;color:#6b7280;">${u === selfUsername ? 'You' : 'Colleague'}</span>
                             </div>
-                            <div style="height:6px;border-radius:9999px;background:#e5e7eb;overflow:hidden;margin-top:8px;">
-                                <div style="height:100%;width:${filled}%;background:${barColor};border-radius:9999px;"></div>
-                            </div>
-                        `);
+                        `).join(''));
                     };
 
-                    $companySelect.on('change', refreshStats);
-                    refreshStats();
+                    $sel.on('change', renderPreview);
+                    renderPreview();
                 },
-                preConfirm: () => ({
-                    cpnyId: document.getElementById('swalCompany')?.value ?? (sched.eligible_companies[0]?.cpny_id || ''),
-                    departmentId: document.getElementById('swalDept')?.value ?? (deptOptionsGlobal[0]?.id || ''),
-                }),
+                preConfirm: () => {
+                    const $sel = $(Swal.getPopup()).find('#swalColleagues');
+                    return { participants: [selfUsername, ...($sel.val() || [])] };
+                },
             }).then((result) => {
                 if (!result.isConfirmed) return;
-                const { cpnyId, departmentId } = result.value;
-
-                $.ajax({
-                    url: `/training-list/${scheduleId}/register`,
-                    method: 'POST',
-                    headers: csrfHeaders,
-                    data: { cpny_id: cpnyId, department_id: departmentId },
-                    success: function (res) {
-                        toast(res.success ? 'success' : 'error', res.message);
-                        if (res.success) {
-                            loadAvailable();
-                            closeDetailModal();
-                        }
-                    },
-                    error: function (xhr) {
-                        toast('error', xhr.responseJSON?.message || 'Gagal melakukan registrasi');
-                    },
-                });
+                submitRegistration(sched.id, result.value.participants, closeDetail);
             });
+        }
+
+        $(document).on('click', '.registerScheduleBtn', function () {
+            const scheduleId = $(this).data('id');
+            const training = cardsByDocid[$(this).data('docid')];
+            if (!training) return;
+            const sched = (training.schedules || []).find((s) => String(s.id) === String(scheduleId));
+            if (!sched) return;
+
+            openColleaguePicker(training, sched, true);
         });
 
         $(document).on('click', '.registerBtn', function () {
@@ -880,17 +907,6 @@
                     <label class="ticketModal-label">🎟️ Select a Session</label>
                     <div id="swalDateCards" class="ticketModal-sessionGrid">${dateCardsHtml}</div>
                     <input type="hidden" id="swalDate" value="${openSchedules[0]?.id ?? ''}">
-
-                    <div class="ticketModal-card">
-                        <div id="swalPickerGrid" class="ticketModal-pickerGrid">
-                            <div id="swalCompanyWrap" class="ticketModal-field" style="display:none;">
-                                <label class="ticketModal-label">🏢 Company</label>
-                                <select id="swalCompany" class="ticketModal-select"></select>
-                            </div>
-                            ${pickerFieldHtml('🏬', 'Department', 'swalDept', deptOptionsGlobal)}
-                        </div>
-                        <div id="swalCapacity" class="ticketModal-capacity"></div>
-                    </div>
                 </div>
             `;
 
@@ -898,107 +914,60 @@
                 html,
                 width: 480,
                 showCancelButton: true,
-                confirmButtonText: 'Confirm Registration',
+                confirmButtonText: 'Next',
                 cancelButtonText: 'Cancel',
                 buttonsStyling: true,
                 reverseButtons: false,
                 customClass: { popup: 'ticketModalPopup', confirmButton: 'ticketConfirmBtn', cancelButton: 'ticketCancelBtn' },
                 didOpen: () => {
                     const $popup = $(Swal.getPopup());
-                    const $dateHidden = $popup.find('#swalDate');
-                    const $companySelect = $popup.find('#swalCompany');
-                    const $deptSelect = $popup.find('#swalDept');
-
-                    if ($deptSelect.length) {
-                        $deptSelect.select2({ dropdownParent: $popup, width: '100%', minimumResultsForSearch: -1 });
-                    }
-
-                    const refreshStats = () => {
-                        const sched = openSchedules.find((s) => String(s.id) === $dateHidden.val());
-                        const $capacity = $popup.find('#swalCapacity');
-                        if (!sched) { $capacity.html(''); return; }
-
-                        const c = sched.eligible_companies.length > 1
-                            ? sched.eligible_companies.find((x) => x.cpny_id === $companySelect.val())
-                            : sched.eligible_companies[0];
-                        if (!c) { $capacity.html(''); return; }
-
-                        const filled = c.quota_pax > 0 ? Math.round(((c.reserved + c.used) / c.quota_pax) * 100) : 0;
-                        const barColor = filled >= 100 ? '#dc2626' : '#111827';
-                        $capacity.html(`
-                            <div style="display:flex;align-items:baseline;justify-content:space-between;">
-                                <span style="font-size:20px;font-weight:800;color:#111827;">${c.available}<span style="font-size:12px;font-weight:600;color:#9ca3af;"> / ${c.quota_pax} seats available</span></span>
-                                <span style="font-size:11px;font-weight:600;color:#b45309;">${c.reserved} reserved</span>
-                            </div>
-                            <div style="height:6px;border-radius:9999px;background:#e5e7eb;overflow:hidden;margin-top:8px;">
-                                <div style="height:100%;width:${filled}%;background:${barColor};border-radius:9999px;"></div>
-                            </div>
-                        `);
-                    };
-
-                    const refreshCompanies = () => {
-                        const sched = openSchedules.find((s) => String(s.id) === $dateHidden.val());
-                        const $wrap = $popup.find('#swalCompanyWrap');
-                        const companies = sched ? sched.eligible_companies : [];
-
-                        if ($companySelect.data('select2')) {
-                            $companySelect.select2('destroy');
-                        }
-                        $companySelect.empty();
-
-                        if (companies.length) {
-                            companies.forEach((c) => {
-                                $companySelect.append(new Option(c.cpny_name, c.cpny_id));
-                            });
-                            $companySelect.prop('disabled', companies.length === 1);
-                            $wrap.show();
-                            $companySelect.select2({ dropdownParent: $popup, width: '100%', minimumResultsForSearch: -1 });
-                        } else {
-                            $wrap.hide();
-                        }
-                        refreshStats();
-                    };
-
                     $popup.find('.dateCardOption').on('click', function () {
                         $popup.find('.dateCardOption').removeClass('selected');
                         $(this).addClass('selected');
-                        $dateHidden.val($(this).data('id'));
-                        refreshCompanies();
+                        $popup.find('#swalDate').val($(this).data('id'));
                     });
-
-                    $companySelect.on('change', refreshStats);
-                    refreshCompanies();
                 },
                 preConfirm: () => {
                     const scheduleId = document.getElementById('swalDate').value;
                     const sched = openSchedules.find((s) => String(s.id) === scheduleId);
-                    const cpnyId = document.getElementById('swalCompany')?.value ?? (sched.eligible_companies[0]?.cpny_id || '');
-                    const departmentId = document.getElementById('swalDept')?.value ?? (deptOptionsGlobal[0]?.id || '');
-                    return { scheduleId, cpnyId, departmentId };
+                    return { sched };
                 },
             }).then((result) => {
                 if (!result.isConfirmed) return;
-                const { scheduleId, cpnyId, departmentId } = result.value;
-
-                $.ajax({
-                    url: `/training-list/${scheduleId}/register`,
-                    method: 'POST',
-                    headers: csrfHeaders,
-                    data: { cpny_id: cpnyId, department_id: departmentId },
-                    success: function (res) {
-                        toast(res.success ? 'success' : 'error', res.message);
-                        if (res.success) loadAvailable();
-                    },
-                    error: function (xhr) {
-                        toast('error', xhr.responseJSON?.message || 'Gagal melakukan registrasi');
-                    },
-                });
+                openColleaguePicker(training, result.value.sched, false);
             });
         });
+
+        let myRegistrationsRows = [];
+
+        function feedbackActionHtml(r) {
+            if (r.can_fill_feedback) {
+                const label = r.feedback_submitted ? '✏️ Edit Feedback' : '📝 Fill Feedback';
+                return `<button class="fillFeedbackBtn w-full rounded-lg border border-indigo-300 px-3 py-1.5 text-xs font-semibold text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-900/20" data-id="${r.id}">${label}</button>`;
+            }
+            if (r.feedback_submitted) {
+                return `<button class="fillFeedbackBtn w-full rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">👁 View Feedback</button>`;
+            }
+            if (r.has_attended) {
+                return `<p class="text-[11px] text-gray-400">Feedback not open yet</p>`;
+            }
+            return '';
+        }
+
+        function certificateActionHtml(r) {
+            if (r.can_view_certificate) {
+                return `<a href="${certificateUrl.replace('__ID__', r.id)}" target="_blank" class="w-full inline-block text-center rounded-lg border border-amber-300 px-3 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-900/20">🎓 Download Certificate</a>`;
+            }
+            if (r.has_attended) {
+                return `<p class="text-[11px] text-gray-400">Certificate not available yet</p>`;
+            }
+            return '';
+        }
 
         function loadMine() {
             $.get(myUrl, function (res) {
                 const rows = res.data || [];
+                myRegistrationsRows = rows;
                 $('#mineEmpty').toggleClass('hidden', rows.length > 0);
                 const $list = $('#mineList').empty();
 
@@ -1008,7 +977,7 @@
                         actionHtml = `
                             <div class="flex gap-2">
                                 <button class="viewBarcodeBtn flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">🎫 Barcode</button>
-                                <button class="cancelBtn flex-1 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${r.id}">Cancel</button>
+                                <button class="cancelBtn flex-1 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${r.id}" data-schedule-id="${r.schedule_id}">Cancel</button>
                             </div>
                         `;
                     } else if (r.status === 'O') {
@@ -1019,6 +988,9 @@
                             </div>
                         `;
                     }
+
+                    const feedbackHtml = feedbackActionHtml(r);
+                    const certificateHtml = certificateActionHtml(r);
 
                     $list.append(`
                         <div class="flex flex-col gap-2 rounded-xl border border-gray-200 p-3 dark:border-gray-700 dark:bg-gray-900">
@@ -1031,6 +1003,8 @@
                                 <span class="shrink-0">${fmtDate(r.schedule_date)}</span>
                             </div>
                             ${actionHtml ? `<div class="mt-1">${actionHtml}</div>` : ''}
+                            ${feedbackHtml ? `<div class="mt-1">${feedbackHtml}</div>` : ''}
+                            ${certificateHtml ? `<div class="mt-1">${certificateHtml}</div>` : ''}
                         </div>
                     `);
                 });
@@ -1064,6 +1038,7 @@
 
         $(document).on('click', '.cancelBtn', function () {
             const id = $(this).data('id');
+            const scheduleId = $(this).data('schedule-id');
 
             Swal.fire({
                 title: 'Cancel this registration?',
@@ -1074,7 +1049,7 @@
                 if (!result.isConfirmed) return;
 
                 $.ajax({
-                    url: `/training-list/${id}/cancel`,
+                    url: `/training-list/${scheduleId}/cancel`,
                     method: 'POST',
                     headers: csrfHeaders,
                     success: function (res) {
@@ -1115,27 +1090,123 @@
             });
         });
 
+        function renderFeedbackQuestion(q, readOnly) {
+            const name = `feedback_q_${q.question_order}`;
+
+            let inputHtml = '';
+            if (q.question_type === 'Single Choice') {
+                inputHtml = (q.options || []).map((opt) => `
+                    <label style="display:flex;align-items:center;gap:6px;margin-top:4px;font-size:13px;">
+                        <input type="radio" name="${name}" value="${opt}" ${q.answer_text === opt ? 'checked' : ''} ${readOnly ? 'disabled' : ''}>
+                        ${opt}
+                    </label>
+                `).join('');
+            } else if (q.question_type === 'Rating') {
+                inputHtml = `<div style="display:flex;gap:12px;margin-top:4px;">` + (q.options || []).map((opt) => `
+                    <label style="display:flex;flex-direction:column;align-items:center;font-size:12px;">
+                        <input type="radio" name="${name}" value="${opt}" ${String(q.answer_number ?? '') === String(opt) ? 'checked' : ''} ${readOnly ? 'disabled' : ''}>
+                        ${opt}
+                    </label>
+                `).join('') + `</div>`;
+            } else {
+                inputHtml = `<textarea name="${name}" rows="2" style="width:100%;margin-top:4px;font-size:13px;border:1px solid #d1d5db;border-radius:6px;padding:6px;" ${readOnly ? 'disabled' : ''}>${q.answer_text ?? ''}</textarea>`;
+            }
+
+            return `
+                <div style="margin-bottom:14px;text-align:left;">
+                    <label style="font-size:13px;font-weight:600;color:#111827;">${q.question_order}. ${q.question_text}</label>
+                    ${inputHtml}
+                </div>
+            `;
+        }
+
+        function openFeedbackModal(row) {
+            $.get(`/training-list/my/${row.id}/feedback`, function (res) {
+                const readOnly = !res.is_open;
+                const questions = res.questions || [];
+                const questionsHtml = questions.map((q) => renderFeedbackQuestion(q, readOnly)).join('');
+                const notice = readOnly
+                    ? `<p style="font-size:12px;color:#b45309;margin-bottom:10px;">Feedback window is currently closed — showing your submitted answers (read only).</p>`
+                    : '';
+
+                Swal.fire({
+                    title: `${readOnly ? 'Feedback' : 'Fill Feedback'} — ${row.training_name ?? ''}`,
+                    html: `${notice}<div>${questionsHtml}</div>`,
+                    width: 560,
+                    showCancelButton: !readOnly,
+                    confirmButtonText: readOnly ? 'Close' : 'Submit',
+                    cancelButtonText: 'Cancel',
+                    preConfirm: () => {
+                        if (readOnly) return true;
+
+                        return questions.map((q) => {
+                            const name = `feedback_q_${q.question_order}`;
+                            const el = document.querySelector(`input[name="${name}"]:checked, textarea[name="${name}"]`);
+                            return { question_order: q.question_order, value: el ? el.value : null };
+                        });
+                    },
+                }).then((result) => {
+                    if (readOnly || !result.isConfirmed) return;
+
+                    $.ajax({
+                        url: `/training-list/my/${row.id}/feedback`,
+                        method: 'POST',
+                        headers: csrfHeaders,
+                        data: { answers: result.value },
+                        success: function (subRes) {
+                            toast(subRes.success ? 'success' : 'error', subRes.message);
+                            if (subRes.success) loadMine();
+                        },
+                        error: function (xhr) {
+                            toast('error', xhr.responseJSON?.message || 'Gagal menyimpan feedback');
+                        },
+                    });
+                });
+            }).fail(function (xhr) {
+                toast('error', xhr.responseJSON?.message || 'Gagal memuat feedback');
+            });
+        }
+
+        $(document).on('click', '.fillFeedbackBtn', function () {
+            const id = $(this).data('id');
+            const row = myRegistrationsRows.find((r) => String(r.id) === String(id));
+            if (row) openFeedbackModal(row);
+        });
+
         @if (Auth::user()->hasRole('HCDEVACCESS'))
+        let waitlistRows = [];
+
         function loadWaitlist() {
             $.get(waitlistUrl, function (res) {
-                const rows = res.data || [];
-                $('#waitlistEmpty').toggleClass('hidden', rows.length > 0);
+                waitlistRows = res.data || [];
+                $('#waitlistEmpty').toggleClass('hidden', waitlistRows.length > 0);
                 const $body = $('#waitlistBody').empty();
 
-                rows.forEach(function (r) {
-                    const canOffer = r.schedule_status === 'CLOSED';
-                    const actionHtml = canOffer
-                        ? `<button class="manualOfferBtn rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-700 dark:bg-white dark:text-gray-900" data-id="${r.id}" data-username="${r.username}">Offer Slot</button>`
-                        : '<span class="text-xs text-gray-400">Schedule still open</span>';
+                waitlistRows.forEach(function (r) {
+                    const canAccept = r.schedule_status === 'C' && r.approval_status === 'C';
+                    const approvalHtml = r.approval_status === 'C'
+                        ? '<span class="text-xs font-semibold text-green-600 dark:text-green-400">Approved</span>'
+                        : r.approval_status === 'R'
+                            ? '<span class="text-xs font-semibold text-red-600 dark:text-red-400">Rejected</span>'
+                            : '<span class="text-xs text-amber-600 dark:text-amber-400">Pending</span>';
+                    const actionHtml = canAccept
+                        ? `<button class="manualAcceptBtn rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-700 dark:bg-white dark:text-gray-900" data-id="${r.id}">Accept</button>`
+                        : r.approval_status === 'R'
+                            ? '<span class="text-xs text-gray-400">Rejected</span>'
+                            : '<span class="text-xs text-gray-400">Waiting for approval</span>';
 
                     $body.append(`
                         <tr>
                             <td class="py-2 pr-4 font-mono text-xs">${r.docid}</td>
-                            <td class="py-2 pr-4">${r.username}</td>
+                            <td class="py-2 pr-4">
+                                <span class="block text-xs font-semibold text-gray-800 dark:text-gray-100">${r.name ?? r.username}</span>
+                                <span class="block text-[11px] text-gray-400">${r.username}</span>
+                            </td>
                             <td class="py-2 pr-4">${r.cpny_id}</td>
                             <td class="py-2 pr-4">${r.training_name ?? '-'}</td>
                             <td class="py-2 pr-4">${fmtDate(r.schedule_date)}</td>
                             <td class="py-2 pr-4">${r.schedule_status ?? '-'}</td>
+                            <td class="py-2 pr-4">${approvalHtml}</td>
                             <td class="py-2 pr-4">${actionHtml}</td>
                         </tr>
                     `);
@@ -1143,29 +1214,52 @@
             });
         }
 
-        $(document).on('click', '.manualOfferBtn', function () {
+        $(document).on('click', '.manualAcceptBtn', function () {
             const id = $(this).data('id');
-            const username = $(this).data('username');
+            const r = waitlistRows.find((x) => String(x.id) === String(id));
+            if (!r) return;
+
+            const opts = (r.quota_options || []).map((q) => {
+                const sel = q.cpny_id === r.cpny_id ? ' selected' : '';
+                const label = `${q.cpny_name} — ${q.available}/${q.quota_pax} seats`;
+                return `<option value="${q.cpny_id}"${sel}>${label}</option>`;
+            }).join('');
 
             Swal.fire({
-                title: `Offer this slot to ${username}?`,
-                text: 'They will have 24 hours to confirm before it cascades to the next person.',
-                icon: 'question',
+                title: `Accept ${r.name ?? r.username}?`,
+                html: `
+                    <div style="text-align:left;font-size:13px;">
+                        <p><strong>Doc ID:</strong> ${r.docid}</p>
+                        <p><strong>Training:</strong> ${r.training_name ?? '-'}</p>
+                        <p><strong>Date:</strong> ${fmtDate(r.schedule_date)}</p>
+                        <div style="margin-top:12px;">
+                            <label class="ticketModal-label">🏢 Use Quota From</label>
+                            <select id="swalAcceptCpny" class="ticketModal-select">${opts}</select>
+                            <p style="font-size:11px;color:#6b7280;margin-top:6px;">
+                                Defaults to the participant's own company (${r.cpny_id}). Pick another company to consume its quota instead.
+                            </p>
+                        </div>
+                    </div>
+                `,
                 showCancelButton: true,
-                confirmButtonText: 'Yes, offer',
+                confirmButtonText: 'Yes, accept',
+                cancelButtonText: 'Cancel',
             }).then((result) => {
                 if (!result.isConfirmed) return;
 
+                const cpnyId = document.getElementById('swalAcceptCpny')?.value ?? r.cpny_id;
+
                 $.ajax({
-                    url: `/training-list/${id}/manual-offer`,
+                    url: `/training-list/${id}/manual-accept`,
                     method: 'POST',
                     headers: csrfHeaders,
+                    data: { cpny_id: cpnyId },
                     success: function (res) {
                         toast(res.success ? 'success' : 'error', res.message);
                         if (res.success) loadWaitlist();
                     },
                     error: function (xhr) {
-                        toast('error', xhr.responseJSON?.message || 'Gagal menawarkan slot');
+                        toast('error', xhr.responseJSON?.message || 'Gagal menerima peserta');
                     },
                 });
             });

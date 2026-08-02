@@ -14,6 +14,9 @@
                 <button class="tabBtn border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="after">
                     After Event
                 </button>
+                <button class="tabBtn border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="feedback">
+                    Feedback
+                </button>
             </div>
 
             {{-- Shared event picker --}}
@@ -24,13 +27,6 @@
                         <option value="">Select an event…</option>
                     </select>
                 </div>
-                <button type="button" id="closeAttendanceBtn" class="hidden shrink-0 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700">
-                    Close Attendance
-                </button>
-            </div>
-
-            <div id="lockedBanner" class="hidden rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-300">
-                🔒 Attendance for this event is locked — nothing can be changed anymore.
             </div>
 
             <div id="noEventState" class="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
@@ -88,7 +84,7 @@
                                     <th class="py-2 pr-4">Company</th>
                                     <th class="py-2 pr-4">Department</th>
                                     <th class="py-2 pr-4">Attended At</th>
-                                    <th class="py-2 pr-4">Certificate</th>
+                                    <th class="py-2 pr-4">Attendance</th>
                                 </tr>
                             </thead>
                             <tbody id="afterEventBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
@@ -96,6 +92,24 @@
                         <div id="afterEventEmpty" class="hidden rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
                             No one attended this event yet.
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Feedback --}}
+            <div id="tab-feedback" class="tab-panel hidden space-y-3">
+                <div id="feedbackArea" class="hidden space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-gray-200 p-3 dark:border-gray-700 dark:bg-gray-900">
+                        <div id="feedbackStatusText" class="text-xs text-gray-600 dark:text-gray-300"></div>
+                        <div class="flex gap-2">
+                            <button id="openFeedbackBtn" class="hidden rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700">Open Feedback</button>
+                            <button id="closeFeedbackBtn" class="hidden rounded-lg border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20">Close Feedback</button>
+                        </div>
+                    </div>
+
+                    <div id="feedbackQuestions" class="space-y-3"></div>
+                    <div id="feedbackEmpty" class="hidden rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
+                        No feedback submitted yet.
                     </div>
                 </div>
             </div>
@@ -144,15 +158,17 @@
 
         const routeTemplates = {
             events: "{{ route('training-attendance.events') }}",
-            roster: "{{ route('training-attendance.roster', ['scheduleDetailId' => '__ID__']) }}",
+            roster: "{{ route('training-attendance.roster', ['scheduleId' => '__ID__']) }}",
             scan: "{{ route('training-attendance.scan') }}",
             attend: "{{ route('training-attendance.attend', ['registrationId' => '__ID__']) }}",
-            lock: "{{ route('training-attendance.lock', ['scheduleDetailId' => '__ID__']) }}",
-            afterEvent: "{{ route('training-attendance.after-event', ['scheduleDetailId' => '__ID__']) }}",
-            certificates: "{{ route('training-attendance.certificates.upload', ['registrationId' => '__ID__']) }}",
-            exportExcel: "{{ route('training-attendance.export.excel', ['scheduleDetailId' => '__ID__']) }}",
-            exportCsv: "{{ route('training-attendance.export.csv', ['scheduleDetailId' => '__ID__']) }}",
-            exportPdf: "{{ route('training-attendance.export.pdf', ['scheduleDetailId' => '__ID__']) }}",
+            unattend: "{{ route('training-attendance.unattend', ['registrationId' => '__ID__']) }}",
+            afterEvent: "{{ route('training-attendance.after-event', ['scheduleId' => '__ID__']) }}",
+            exportExcel: "{{ route('training-attendance.export.excel', ['scheduleId' => '__ID__']) }}",
+            exportCsv: "{{ route('training-attendance.export.csv', ['scheduleId' => '__ID__']) }}",
+            exportPdf: "{{ route('training-attendance.export.pdf', ['scheduleId' => '__ID__']) }}",
+            feedbackResults: "{{ route('training-attendance.feedback.results', ['scheduleId' => '__ID__']) }}",
+            feedbackOpen: "{{ route('training-attendance.feedback.open', ['scheduleId' => '__ID__']) }}",
+            feedbackClose: "{{ route('training-attendance.feedback.close', ['scheduleId' => '__ID__']) }}",
         };
 
         function routeUrl(key, id) {
@@ -183,15 +199,13 @@
 
         let events = [];
         let selectedEventId = null;
-        let attendanceLocked = false;
         let currentRoster = [];
         let activeTab = 'checkin';
 
         function eventLabel(e) {
             const time = `${e.start_time ?? ''}-${e.end_time ?? ''}`;
-            const lockIcon = e.is_locked ? ' 🔒' : '';
             const count = e.approved_count === 1 ? '1 registrant' : `${e.approved_count} registrants`;
-            return `${e.training_name ?? '-'} · ${e.grade_name ?? ''} · ${fmtDate(e.schedule_date)} ${time} · ${count}${lockIcon}`;
+            return `${e.training_name ?? '-'} · ${e.grade_name ?? ''} · ${fmtDate(e.schedule_date)} ${time} · ${count}`;
         }
 
         function loadEvents(preserveSelection) {
@@ -225,7 +239,7 @@
                 toast('warning', 'This event has not started yet — today is not the event date.');
             }
 
-            if (event.status !== 'CLOSED') {
+            if (event.status !== 'C') {
                 toast('warning', 'Registration for this event has not been closed yet.');
             }
         }
@@ -233,15 +247,12 @@
         function onEventChange(id, skipReload) {
             selectedEventId = id || null;
             const event = events.find((e) => String(e.id) === String(selectedEventId));
-            attendanceLocked = !!event?.is_locked;
             checkEventReadiness(event);
 
             $('#noEventState').toggleClass('hidden', !!selectedEventId);
             $('#checkinArea').toggleClass('hidden', !selectedEventId);
             $('#afterEventArea').toggleClass('hidden', !selectedEventId);
-            $('#lockedBanner').toggleClass('hidden', !attendanceLocked);
-            $('#closeAttendanceBtn').toggleClass('hidden', !selectedEventId || attendanceLocked);
-            $('#scanInput').prop('disabled', attendanceLocked);
+            $('#feedbackArea').toggleClass('hidden', !selectedEventId);
 
             if (!selectedEventId) return;
 
@@ -252,7 +263,8 @@
             if (skipReload) return;
 
             if (activeTab === 'checkin') loadRoster();
-            else loadAfterEvent();
+            else if (activeTab === 'after') loadAfterEvent();
+            else loadFeedback();
         }
 
         $('#eventSelect').on('change', function () {
@@ -272,7 +284,8 @@
 
             if (!selectedEventId) return;
             if (tab === 'checkin') loadRoster();
-            else loadAfterEvent();
+            else if (tab === 'after') loadAfterEvent();
+            else loadFeedback();
         });
 
         function renderRoster() {
@@ -306,10 +319,6 @@
 
             $.get(routeUrl('roster', selectedEventId), function (res) {
                 currentRoster = res.data || [];
-                attendanceLocked = !!res.is_locked;
-                $('#lockedBanner').toggleClass('hidden', !attendanceLocked);
-                $('#closeAttendanceBtn').toggleClass('hidden', attendanceLocked);
-                $('#scanInput').prop('disabled', attendanceLocked);
                 renderRoster();
             });
         }
@@ -324,16 +333,13 @@
 
         function openAttendModal(row) {
             const already = !!row.attended_at;
-            const locked = attendanceLocked;
 
             let stateHtml = '';
             if (already) {
                 stateHtml = `<p style="margin-top:10px;font-size:13px;color:#15803d;">✅ Attended at ${fmtDateTime(row.attended_at)}${row.attended_by ? ' by ' + row.attended_by : ''}</p>`;
-            } else if (locked) {
-                stateHtml = `<p style="margin-top:10px;font-size:13px;color:#6b7280;">🔒 Attendance for this event is locked.</p>`;
             }
 
-            const canAttend = !already && !locked;
+            const canAttend = !already;
 
             Swal.fire({
                 title: row.name,
@@ -384,7 +390,7 @@
                 url: routeTemplates.scan,
                 method: 'POST',
                 headers: csrfHeaders,
-                data: { schedule_detail_id: selectedEventId, code },
+                data: { schedule_id: selectedEventId, code },
                 success: function (res) {
                     if (res.success) {
                         patchRoster(res.data);
@@ -397,59 +403,24 @@
             });
         });
 
-        $('#closeAttendanceBtn').on('click', function () {
-            if (!selectedEventId) return;
+        let afterEventRows = [];
+        let afterEventCanUndo = false;
 
-            Swal.fire({
-                title: 'Close attendance for this event?',
-                text: 'Attendance cannot be changed after this — this cannot be undone.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Yes, close it',
-            }).then((result) => {
-                if (!result.isConfirmed) return;
-
-                $.ajax({
-                    url: routeUrl('lock', selectedEventId),
-                    method: 'POST',
-                    headers: csrfHeaders,
-                    success: function (res) {
-                        toast(res.success ? 'success' : 'error', res.message);
-                        if (res.success) {
-                            attendanceLocked = true;
-                            $('#lockedBanner').removeClass('hidden');
-                            $('#closeAttendanceBtn').addClass('hidden');
-                            $('#scanInput').prop('disabled', true);
-                            const ev = events.find((e) => String(e.id) === String(selectedEventId));
-                            if (ev) ev.is_locked = true;
-                        }
-                    },
-                    error: function (xhr) {
-                        toast('error', xhr.responseJSON?.message || 'Gagal mengunci attendance');
-                    },
-                });
-            });
-        });
-
-        function certificateCellHtml(row, canUpload) {
-            const count = row.certificate_count || 0;
-            const badge = `<span class="text-xs text-gray-500 dark:text-gray-400">${count} file${count === 1 ? '' : 's'}</span>`;
-            const uploadBtn = canUpload
-                ? `<button class="uploadCertBtn ml-2 rounded-lg border border-gray-300 px-2 py-1 text-[11px] font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${row.id}">Upload</button>`
+        function attendanceCellHtml(row, canUndo) {
+            const historyBtn = `<button class="historyBtn rounded-lg border border-gray-300 px-2 py-1 text-[11px] font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${row.id}">History</button>`;
+            const undoBtn = canUndo
+                ? `<button class="undoAttendBtn ml-2 rounded-lg border border-red-300 px-2 py-1 text-[11px] font-semibold text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${row.id}">Undo</button>`
                 : '';
 
-            return `<div class="flex items-center">${badge}${uploadBtn}</div>`;
+            return `<div class="flex items-center">${historyBtn}${undoBtn}</div>`;
         }
-
-        let afterEventRows = [];
-        let afterEventCanUpload = false;
 
         function loadAfterEvent() {
             if (!selectedEventId) return;
 
             $.get(routeUrl('afterEvent', selectedEventId), function (res) {
                 afterEventRows = res.data || [];
-                afterEventCanUpload = !!res.can_upload;
+                afterEventCanUndo = !!res.can_undo;
 
                 const $body = $('#afterEventBody').empty();
                 $('#afterEventEmpty').toggleClass('hidden', afterEventRows.length > 0);
@@ -462,76 +433,188 @@
                             <td class="py-2 pr-4">${r.cpny_name ?? '-'}</td>
                             <td class="py-2 pr-4">${r.department_name ?? '-'}</td>
                             <td class="py-2 pr-4">${fmtDateTime(r.attended_at)}</td>
-                            <td class="py-2 pr-4">${certificateCellHtml(r, afterEventCanUpload)}</td>
+                            <td class="py-2 pr-4">${attendanceCellHtml(r, afterEventCanUndo)}</td>
                         </tr>
                     `);
                 });
             });
         }
 
-        $(document).on('click', '.uploadCertBtn', function () {
+        function historyRowHtml(h) {
+            const voidedTag = h.voided
+                ? `<span class="ml-1 text-[11px] font-semibold text-red-500">(voided)</span>`
+                : '';
+            const style = h.voided ? 'text-decoration:line-through;color:#9ca3af;' : '';
+
+            return `<li style="${style}">${fmtDateTime(h.attendance_datetime)} — marked by ${h.created_by ?? '-'}${voidedTag}</li>`;
+        }
+
+        $(document).on('click', '.historyBtn', function () {
+            const id = $(this).data('id');
+            const row = afterEventRows.find((r) => String(r.id) === String(id));
+            if (!row) return;
+
+            const items = (row.history || []).map(historyRowHtml).join('');
+
+            Swal.fire({
+                title: `Attendance history — ${row.name}`,
+                html: `<ul style="text-align:left;font-size:13px;list-style:disc;padding-left:18px;">${items || '<li>No history recorded.</li>'}</ul>`,
+                confirmButtonText: 'Close',
+            });
+        });
+
+        $(document).on('click', '.undoAttendBtn', function () {
             const id = $(this).data('id');
             const row = afterEventRows.find((r) => String(r.id) === String(id));
             if (!row) return;
 
             Swal.fire({
-                title: `Upload certificate — ${row.name}`,
-                html: `
-                    <div style="text-align:left;">
-                        <input type="file" id="certFiles" multiple accept=".jpg,.jpeg,.pdf"
-                            style="display:block;width:100%;font-size:13px;">
-                        <p style="font-size:11px;color:#6b7280;margin-top:6px;">
-                            JPG, JPEG or PDF, max 5MB each, up to 5 files total (currently ${row.certificate_count}).
-                        </p>
-                    </div>
-                `,
+                title: `Undo attendance — ${row.name}`,
+                text: 'This clears their attendance mark so they can be re-scanned. Continue?',
+                icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Upload',
+                confirmButtonText: 'Undo',
                 cancelButtonText: 'Cancel',
-                preConfirm: () => {
-                    const input = document.getElementById('certFiles');
-                    const files = Array.from(input.files || []);
-
-                    if (!files.length) {
-                        Swal.showValidationMessage('Select at least one file');
-                        return false;
-                    }
-                    if (row.certificate_count + files.length > 5) {
-                        Swal.showValidationMessage(`Maximum 5 files total (already has ${row.certificate_count})`);
-                        return false;
-                    }
-                    for (const f of files) {
-                        if (f.size > 5 * 1024 * 1024) {
-                            Swal.showValidationMessage(`${f.name} exceeds 5MB`);
-                            return false;
-                        }
-                        const ext = (f.name.split('.').pop() || '').toLowerCase();
-                        if (!['jpg', 'jpeg', 'pdf'].includes(ext)) {
-                            Swal.showValidationMessage(`${f.name} must be jpg, jpeg, or pdf`);
-                            return false;
-                        }
-                    }
-                    return files;
-                },
+                confirmButtonColor: '#dc2626',
             }).then((result) => {
                 if (!result.isConfirmed) return;
 
-                const formData = new FormData();
-                result.value.forEach((f) => formData.append('files[]', f));
-
                 $.ajax({
-                    url: routeUrl('certificates', row.id),
+                    url: routeUrl('unattend', row.id),
                     method: 'POST',
                     headers: csrfHeaders,
-                    data: formData,
-                    processData: false,
-                    contentType: false,
                     success: function (res) {
-                        toast(res.success ? 'success' : 'error', res.message);
-                        if (res.success) loadAfterEvent();
+                        toast(res.success ? 'success' : 'error', res.message || 'Attendance updated');
+                        if (res.success) {
+                            loadAfterEvent();
+                            if (activeTab === 'checkin') loadRoster();
+                        }
                     },
                     error: function (xhr) {
-                        toast('error', xhr.responseJSON?.message || 'Upload gagal');
+                        toast('error', xhr.responseJSON?.message || 'Gagal membatalkan attendance');
+                    },
+                });
+            });
+        });
+
+        function feedbackDistributionHtml(dist, total, color) {
+            return Object.keys(dist).sort().map((key) => {
+                const count = dist[key];
+                const pct = total ? Math.round((count / total) * 100) : 0;
+
+                return `
+                    <div style="display:flex;align-items:center;gap:6px;font-size:12px;margin-top:3px;">
+                        <span style="width:70px;flex-shrink:0;">${key}</span>
+                        <div style="flex:1;background:#e5e7eb;border-radius:4px;height:8px;overflow:hidden;">
+                            <div style="background:${color};height:8px;width:${pct}%;"></div>
+                        </div>
+                        <span style="width:24px;text-align:right;flex-shrink:0;">${count}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function feedbackQuestionCardHtml(q) {
+            let body = '';
+
+            if (q.question_type === 'Rating') {
+                body = `
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Average: <strong>${q.average ?? '-'}</strong> · ${q.response_count} response${q.response_count === 1 ? '' : 's'}</p>
+                    <div class="mt-2">${feedbackDistributionHtml(q.distribution || {}, q.response_count, '#6366f1')}</div>
+                `;
+            } else if (q.question_type === 'Single Choice') {
+                body = `
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">${q.response_count} response${q.response_count === 1 ? '' : 's'}</p>
+                    <div class="mt-2">${feedbackDistributionHtml(q.distribution || {}, q.response_count, '#10b981')}</div>
+                `;
+            } else {
+                const answers = q.answers || [];
+                const items = answers.map((a) => `<li style="margin-top:4px;"><strong>${a.name}:</strong> ${a.text}</li>`).join('');
+                body = `<ul style="font-size:12px;color:#374151;list-style:disc;padding-left:16px;margin-top:6px;" class="dark:text-gray-300">${items || '<li style="color:#9ca3af;">No responses yet.</li>'}</ul>`;
+            }
+
+            return `
+                <div class="rounded-xl border border-gray-200 p-3 dark:border-gray-700 dark:bg-gray-900">
+                    <p class="text-sm font-semibold text-gray-800 dark:text-white">${q.question_order}. ${q.question_text}</p>
+                    ${body}
+                </div>
+            `;
+        }
+
+        function loadFeedback() {
+            if (!selectedEventId) return;
+
+            $.get(routeUrl('feedbackResults', selectedEventId), function (res) {
+                const isOpen = !!res.is_open;
+                const canManage = !!res.can_manage;
+
+                $('#openFeedbackBtn').toggleClass('hidden', !canManage || isOpen);
+                $('#closeFeedbackBtn').toggleClass('hidden', !canManage || !isOpen);
+
+                let statusText = 'Feedback has never been opened for this event.';
+                if (res.opened_at && isOpen) {
+                    statusText = `🟢 Feedback is OPEN (opened ${fmtDateTime(res.opened_at)} by ${res.opened_by ?? '-'}) · ${res.respondent_count}/${res.attended_count} attendees responded`;
+                } else if (res.opened_at && !isOpen) {
+                    statusText = `🔴 Feedback is CLOSED (closed ${fmtDateTime(res.closed_at)}) · ${res.respondent_count}/${res.attended_count} attendees responded`;
+                }
+                $('#feedbackStatusText').text(statusText);
+
+                const questions = res.questions || [];
+                $('#feedbackEmpty').toggleClass('hidden', questions.length > 0);
+                $('#feedbackQuestions').html(questions.map(feedbackQuestionCardHtml).join(''));
+            });
+        }
+
+        $('#openFeedbackBtn').on('click', function () {
+            if (!selectedEventId) return;
+
+            Swal.fire({
+                title: 'Open feedback for this event?',
+                text: 'Attendees will be able to submit their training feedback.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Open',
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                $.ajax({
+                    url: routeUrl('feedbackOpen', selectedEventId),
+                    method: 'POST',
+                    headers: csrfHeaders,
+                    success: function (res) {
+                        toast(res.success ? 'success' : 'error', res.message);
+                        if (res.success) loadFeedback();
+                    },
+                    error: function (xhr) {
+                        toast('error', xhr.responseJSON?.message || 'Gagal membuka feedback');
+                    },
+                });
+            });
+        });
+
+        $('#closeFeedbackBtn').on('click', function () {
+            if (!selectedEventId) return;
+
+            Swal.fire({
+                title: 'Close feedback for this event?',
+                text: 'Attendees will no longer be able to submit or edit their feedback.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Close',
+                confirmButtonColor: '#dc2626',
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                $.ajax({
+                    url: routeUrl('feedbackClose', selectedEventId),
+                    method: 'POST',
+                    headers: csrfHeaders,
+                    success: function (res) {
+                        toast(res.success ? 'success' : 'error', res.message);
+                        if (res.success) loadFeedback();
+                    },
+                    error: function (xhr) {
+                        toast('error', xhr.responseJSON?.message || 'Gagal menutup feedback');
                     },
                 });
             });

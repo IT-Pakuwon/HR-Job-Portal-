@@ -6,10 +6,16 @@
                 class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
                 <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🎓 Master
                     Training List</h2>
-                <button id="addTrainingBtn"
-                    class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
-                    + Add Training
-                </button>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('mastertraining.setup') }}"
+                        class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-gray-900 px-5 text-sm font-medium text-white transition hover:bg-gray-700 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100">
+                        ⚙️ Setup
+                    </a>
+                    <button id="addTrainingBtn"
+                        class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
+                        + Add Training
+                    </button>
+                </div>
             </div>
 
             <div class="relative overflow-hidden">
@@ -24,7 +30,6 @@
                             <th class="px-4 py-3 text-left font-medium">Category</th>
                             <th class="px-4 py-3 text-left font-medium">Mandatory</th>
                             <th class="px-4 py-3 text-left font-medium">Type</th>
-                            <th class="px-4 py-3 text-left font-medium">Speaker (External)</th>
                             <th class="px-4 py-3 text-left font-medium">Schedules</th>
                             <th class="col-status px-4 py-3 text-left font-medium">Status</th>
                         </tr>
@@ -124,26 +129,13 @@
                             </div>
                         </div>
 
-                        {{-- Speaker External (conditional) --}}
-                        <div id="speakerExternalWrapper"
-                            class="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-900/40"
-                            style="display:none;">
-                            <label for="speaker_external"
-                                class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                Speaker Name (External)
-                            </label>
-                            <input type="text" id="speaker_external" name="speaker_external"
-                                placeholder="Type speaker name"
-                                class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-white dark:focus:ring-white">
-                        </div>
-
                         {{-- Description --}}
                         <div>
-                            <label for="description"
+                            <label for="training_description"
                                 class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 Description
                             </label>
-                            <textarea id="description" name="description" rows="3"
+                            <textarea id="training_description" name="training_description" rows="3"
                                 placeholder="Optional notes about this training"
                                 class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:focus:border-white dark:focus:ring-white"></textarea>
                         </div>
@@ -210,11 +202,6 @@
                         <div>
                             <div class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Training Name</div>
                             <div id="view_training_name" class="mt-0.5 text-sm text-gray-900 dark:text-white"></div>
-                        </div>
-
-                        <div id="view_speaker_external_wrapper" style="display:none;">
-                            <div class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Speaker (External)</div>
-                            <div id="view_speaker_external" class="mt-0.5 text-sm text-gray-900 dark:text-white"></div>
                         </div>
 
                         <div>
@@ -358,16 +345,6 @@
             $('#loadingOverlay').addClass('hidden');
         }
 
-        function toggleSpeakerExternal() {
-            if ($('#training_type').val() === 'EXTERNAL') {
-                $('#speakerExternalWrapper').show();
-                $('#speaker_external').prop('required', true);
-            } else {
-                $('#speakerExternalWrapper').hide();
-                $('#speaker_external').prop('required', false).val('');
-            }
-        }
-
         function setToggleGroup(group, value) {
             $(`[data-toggle-group="${group}"] .toggle-pill`).each(function() {
                 $(this).toggleClass('is-active', $(this).data('value') == value);
@@ -480,12 +457,6 @@
                         data: 'training_type'
                     },
                     {
-                        data: 'speaker_external',
-                        render: function(data) {
-                            return data ? data : '-';
-                        }
-                    },
-                    {
                         data: 'schedule_count',
                         className: 'text-center',
                         render: function(data, type, row) {
@@ -537,10 +508,6 @@
                 let group = $(this).closest('[data-toggle-group]').data('toggle-group');
                 let value = $(this).data('value');
                 setToggleGroup(group, value);
-
-                if (group === 'training_type') {
-                    toggleSpeakerExternal();
-                }
             });
 
             function resetTrainingForm() {
@@ -549,7 +516,6 @@
                 $('#category_id').val(null).trigger('change');
                 setToggleGroup('is_mandatory', '0');
                 setToggleGroup('training_type', 'INTERNAL');
-                toggleSpeakerExternal();
             }
 
             // Open modal Add
@@ -585,10 +551,7 @@
 
                     setToggleGroup('is_mandatory', data.is_mandatory ? '1' : '0');
                     setToggleGroup('training_type', data.training_type);
-                    $('#speaker_external').val(data.speaker_external);
-                    $('#description').val(data.description);
-
-                    toggleSpeakerExternal();
+                    $('#training_description').val(data.training_description);
 
                     hideLoading();
                 }).fail(function(xhr) {
@@ -624,14 +587,7 @@
                     $('#view_is_mandatory').text(t.is_mandatory ? 'Mandatory' : 'Not Mandatory');
                     $('#view_training_type').text(t.training_type);
                     $('#view_training_name').text(t.training_name);
-                    $('#view_description').text(t.description || '-');
-
-                    if (t.training_type === 'EXTERNAL') {
-                        $('#view_speaker_external').text(t.speaker_external || '-');
-                        $('#view_speaker_external_wrapper').show();
-                    } else {
-                        $('#view_speaker_external_wrapper').hide();
-                    }
+                    $('#view_description').text(t.training_description || '-');
 
                     let $levels = $('#view_levels').empty();
 

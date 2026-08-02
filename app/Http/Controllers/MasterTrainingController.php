@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\MsCategory;
 use App\Models\MsTrainingEvent;
-use App\Models\TrTrainingScheduleDetail;
+use App\Models\MsLndTrainingSchedule;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -36,19 +36,18 @@ class MasterTrainingController extends Controller
                 'training_name',
                 'category_id',
                 'is_mandatory',
-                'description',
+                'training_description',
                 'training_type',
-                'speaker_external',
                 'status',
             ])
             ->orderByDesc('id')
             ->get();
 
-        // One row per dated schedule (tr_training_schedule_detail), aggregated
+        // One row per dated schedule (ms_lnd_training_schedule), aggregated
         // per training via its header table — avoids an N+1 query per row.
         $scheduleCounts = DB::connection('pgsql5')
-            ->table('tr_training_schedule as h')
-            ->join('tr_training_schedule_detail as d', 'd.docid', '=', 'h.docid')
+            ->table('ms_lnd_training_detail as h')
+            ->join('ms_lnd_training_schedule as d', 'd.training_detail_id', '=', 'h.training_detail_id')
             ->select('h.training_id', DB::raw('count(*) as cnt'))
             ->groupBy('h.training_id')
             ->pluck('cnt', 'training_id');
@@ -66,12 +65,11 @@ class MasterTrainingController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'training_name'    => 'required|string|max:255',
-            'category_id'      => 'required|string|max:50',
-            'is_mandatory'     => 'nullable|boolean',
-            'description'      => 'nullable|string',
-            'training_type'    => 'required|in:INTERNAL,EXTERNAL',
-            'speaker_external' => 'required_if:training_type,EXTERNAL|nullable|string|max:255',
+            'training_name'         => 'required|string|max:255',
+            'category_id'           => 'required|string|max:50',
+            'is_mandatory'          => 'nullable|boolean',
+            'training_description'  => 'nullable|string',
+            'training_type'         => 'required|in:INTERNAL,EXTERNAL',
         ]);
 
         DB::connection('pgsql5')->beginTransaction();
@@ -84,18 +82,15 @@ class MasterTrainingController extends Controller
             $trainingId = $this->generateTrainingCode($createdBy);
 
             $row = MsTrainingEvent::create([
-                'training_id'       => $trainingId,
-                'training_name'     => trim($request->training_name),
-                'category_id'       => trim($request->category_id),
-                'is_mandatory'      => $request->boolean('is_mandatory'),
-                'description'       => $request->filled('description') ? trim($request->description) : null,
-                'training_type'     => $request->training_type,
-                'speaker_external'  => $request->training_type === 'EXTERNAL'
-                    ? trim($request->speaker_external)
-                    : null,
-                'status'            => 'A',
-                'created_by'        => $createdBy,
-                'created_at'        => $now,
+                'training_id'           => $trainingId,
+                'training_name'         => trim($request->training_name),
+                'category_id'           => trim($request->category_id),
+                'is_mandatory'          => $request->boolean('is_mandatory'),
+                'training_description'  => $request->filled('training_description') ? trim($request->training_description) : null,
+                'training_type'         => $request->training_type,
+                'status'                => 'A',
+                'created_by'            => $createdBy,
+                'created_at'            => $now,
             ]);
 
             DB::connection('pgsql5')->commit();
@@ -121,15 +116,14 @@ class MasterTrainingController extends Controller
         $row = MsTrainingEvent::findOrFail($id);
 
         return response()->json([
-            'id'                => $row->id,
-            'training_id'       => $row->training_id,
-            'training_name'     => $row->training_name,
-            'category_id'       => $row->category_id,
-            'is_mandatory'      => $row->is_mandatory,
-            'description'       => $row->description,
-            'training_type'     => $row->training_type,
-            'speaker_external'  => $row->speaker_external,
-            'status'            => $row->status,
+            'id'                     => $row->id,
+            'training_id'            => $row->training_id,
+            'training_name'          => $row->training_name,
+            'category_id'            => $row->category_id,
+            'is_mandatory'           => $row->is_mandatory,
+            'training_description'   => $row->training_description,
+            'training_type'          => $row->training_type,
+            'status'                 => $row->status,
         ]);
     }
 
@@ -138,12 +132,11 @@ class MasterTrainingController extends Controller
         $row = MsTrainingEvent::findOrFail($id);
 
         $request->validate([
-            'training_name'    => 'required|string|max:255',
-            'category_id'      => 'required|string|max:50',
-            'is_mandatory'     => 'nullable|boolean',
-            'description'      => 'nullable|string',
-            'training_type'    => 'required|in:INTERNAL,EXTERNAL',
-            'speaker_external' => 'required_if:training_type,EXTERNAL|nullable|string|max:255',
+            'training_name'         => 'required|string|max:255',
+            'category_id'           => 'required|string|max:50',
+            'is_mandatory'          => 'nullable|boolean',
+            'training_description'  => 'nullable|string',
+            'training_type'         => 'required|in:INTERNAL,EXTERNAL',
         ]);
 
         DB::connection('pgsql5')->beginTransaction();
@@ -154,16 +147,13 @@ class MasterTrainingController extends Controller
             $updatedBy = $user->username ?? 'system';
 
             $row->update([
-                'training_name'     => trim($request->training_name),
-                'category_id'       => trim($request->category_id),
-                'is_mandatory'      => $request->boolean('is_mandatory'),
-                'description'       => $request->filled('description') ? trim($request->description) : null,
-                'training_type'     => $request->training_type,
-                'speaker_external'  => $request->training_type === 'EXTERNAL'
-                    ? trim($request->speaker_external)
-                    : null,
-                'updated_by'        => $updatedBy,
-                'updated_at'        => $now,
+                'training_name'         => trim($request->training_name),
+                'category_id'           => trim($request->category_id),
+                'is_mandatory'          => $request->boolean('is_mandatory'),
+                'training_description'  => $request->filled('training_description') ? trim($request->training_description) : null,
+                'training_type'         => $request->training_type,
+                'updated_by'            => $updatedBy,
+                'updated_at'            => $now,
             ]);
 
             DB::connection('pgsql5')->commit();
@@ -193,10 +183,13 @@ class MasterTrainingController extends Controller
         $user = Auth::user();
 
         if ($request->status === 'X') {
-            $hasOpenSchedule = TrTrainingScheduleDetail::whereHas('schedule', function ($q) use ($row) {
+            // ms_lnd_training_schedule.status is stored as a single-letter code
+            // (see TrainingSessionController::STATUS_CODE_MAP) — 'C' = Closed,
+            // 'X' = Cancelled. Anything else (Draft/Published) counts as open.
+            $hasOpenSchedule = MsLndTrainingSchedule::whereHas('schedule', function ($q) use ($row) {
                     $q->where('training_id', $row->training_id);
                 })
-                ->where('status', '!=', 'CLOSED')
+                ->whereNotIn('status', ['C', 'X'])
                 ->exists();
 
             if ($hasOpenSchedule) {
