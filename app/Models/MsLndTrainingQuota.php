@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MsLndTrainingQuota extends Model
 {
+    use SoftDeletes;
+
     protected $connection = 'pgsql5';
 
     protected $table = 'ms_lnd_training_quota';
@@ -21,6 +24,11 @@ class MsLndTrainingQuota extends Model
         'status',
         'created_by',
         'updated_by',
+        'deleted_by',
+    ];
+
+    protected $casts = [
+        'deleted_at' => 'datetime',
     ];
 
     public function detail()

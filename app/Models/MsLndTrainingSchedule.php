@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MsLndTrainingSchedule extends Model
 {
+    use SoftDeletes;
+
     protected $connection = 'pgsql5';
 
     protected $table = 'ms_lnd_training_schedule';
@@ -30,6 +33,7 @@ class MsLndTrainingSchedule extends Model
         'status',
         'created_by',
         'updated_by',
+        'deleted_by',
         'feedback_opened_at',
         'feedback_opened_by',
         'feedback_closed_at',
@@ -40,6 +44,7 @@ class MsLndTrainingSchedule extends Model
         'feedback_opened_at' => 'datetime',
         'feedback_closed_at' => 'datetime',
         'schedule_date' => 'date',
+        'deleted_at' => 'datetime',
     ];
 
     public function schedule()

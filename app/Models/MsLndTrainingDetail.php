@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MsLndTrainingDetail extends Model
 {
+    use SoftDeletes;
+
     protected $connection = 'pgsql5';
 
     protected $table = 'ms_lnd_training_detail';
@@ -25,6 +28,7 @@ class MsLndTrainingDetail extends Model
 
     protected $casts = [
         'is_ext_speaker' => 'boolean',
+        'deleted_at' => 'datetime',
     ];
 
     public function details()
