@@ -1,7 +1,7 @@
 <x-app-layout>
     @include('pages.ticket.partial.style')
 
-    <div class="max-w-9xl mx-auto w-full p-2">
+    <div class="max-w-9xl mx-auto w-full overflow-x-hidden p-2">
         @php
 
             $isIT = \App\Models\MsTicketCategoryDept::query()
@@ -595,11 +595,11 @@
 
                 </div>
 
-                <div class="flex items-center gap-3">
+                <div class="flex flex-wrap items-center gap-2 sm:gap-3">
 
                     @if ($isITRole)
                         <button type="button" id="btn_open_so_list"
-                            class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-teal-300 bg-teal-50 px-4 text-sm font-medium text-teal-700 transition hover:bg-teal-100 dark:border-teal-700 dark:bg-teal-900/30 dark:text-teal-200 dark:hover:bg-teal-900/50">
+                            class="inline-flex h-10 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-teal-300 bg-teal-50 px-4 text-sm font-medium text-teal-700 transition hover:bg-teal-100 dark:border-teal-700 dark:bg-teal-900/30 dark:text-teal-200 dark:hover:bg-teal-900/50">
 
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -612,7 +612,7 @@
 
                     @if ($isIT)
                         <a href="{{ route('ticketsetup') }}"
-                            class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-indigo-300 bg-indigo-50 px-4 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100 dark:border-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-200 dark:hover:bg-indigo-900/50">
+                            class="inline-flex h-10 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-indigo-300 bg-indigo-50 px-4 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100 dark:border-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-200 dark:hover:bg-indigo-900/50">
 
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
@@ -631,7 +631,7 @@
 
                         </a>
                         <button type="button" id="btn_export_ticket"
-                            class="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
+                            class="inline-flex h-10 shrink-0 items-center justify-center whitespace-nowrap rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
 
                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-4 w-4" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
@@ -647,7 +647,7 @@
                     @endif
 
                     <button type="button" id="btn_create_ticket"
-                        class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
+                        class="inline-flex h-10 shrink-0 items-center justify-center whitespace-nowrap rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
 
                         <span class="mr-2 text-base">
                             +
