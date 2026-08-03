@@ -32,11 +32,18 @@ class SpinwheelController extends Controller
             ->orderByDesc('event_date')
             ->get();
 
-        $isOperator = $user->hasRole('ADEVENTACCESS');
         $activeEventId = Cache::get($this->activeEventCacheKey());
         $activeEvent = $activeEventId ? $events->firstWhere('event_id', $activeEventId) : null;
 
-        return view('pages.spinwheel.spinwheel', compact('events', 'activeEvent', 'isOperator'));
+        if ($user->hasRole('SPINWHEELADMIN')) {
+            return view('pages.spinwheel.admin', compact('events', 'activeEvent'));
+        }
+
+        if ($user->hasRole('SPINWHEELACCESS')) {
+            return view('pages.spinwheel.audience', compact('activeEvent'));
+        }
+
+        abort(403, 'You need the Spin Wheel Admin or Audience role to view this page.');
     }
 
     private function activeEventCacheKey(): string

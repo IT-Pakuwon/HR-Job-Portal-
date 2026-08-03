@@ -102,6 +102,11 @@ class VoucherTaxiExport implements FromCollection, WithHeadings
                         ->format('d-M-Y')
                     : '-',
 
+                'DATE USED' => $row->date_used
+                    ? Carbon::parse($row->date_used)
+                        ->format('d-M-Y')
+                    : '-',
+
                 'CREATED USER' => $users[$row->created_by]
                     ?? $row->created_by,
 
@@ -149,6 +154,7 @@ class VoucherTaxiExport implements FromCollection, WithHeadings
         return [
             'DOC ID',
             'DATE',
+            'DATE USED',
             'CREATED USER',
             'REQUESTER',
             'DEPARTMENT',

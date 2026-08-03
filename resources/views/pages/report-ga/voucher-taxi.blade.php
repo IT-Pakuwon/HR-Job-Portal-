@@ -135,6 +135,7 @@
                     <tr>
                         <th>Doc ID</th>
                         <th>Date</th>
+                        <th>Date Used</th>
                         <th>Created User</th>
                         <th>Requester</th>
                         <th>Department</th>
@@ -200,6 +201,10 @@
                 {
                     data: 'voucher_date',
                     name: 'voucher_date'
+                },
+                {
+                    data: 'date_used',
+                    name: 'date_used'
                 },
                 {
                     data: 'created_by',

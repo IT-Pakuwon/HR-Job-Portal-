@@ -139,9 +139,36 @@ const EventCalendarApp = {
             eventLongPressDelay: 0,
             selectLongPressDelay: 0,
             resources: window.EventCalendarResources || [],
-            resourceGroupField: 'cpny_name',
-            resourceOrder: 'cpny_name,title',
-            resourceAreaHeaderContent: 'Location',
+            resourceOrder: 'cpny_name,department_label,title',
+            resourceAreaColumns: [
+                { field: 'cpny_name', headerContent: 'Company', group: true },
+                { field: 'department_label', headerContent: 'Department', group: true },
+                {
+                    field: 'title',
+                    headerContent: 'Location',
+                    cellContent: (arg) => {
+                        const raw = arg.fieldValue || '';
+                        const match = raw.match(/^(.*) - ([\d.,]+\s*m²)$/);
+
+                        if (!match) {
+                            return { html: `<span class="fc-loc-name">${EventCalendarApp.escapeHtml(raw)}</span>` };
+                        }
+
+                        return {
+                            html: `<span class="fc-loc-name">${EventCalendarApp.escapeHtml(match[1])}</span>`
+                                + `<span class="fc-loc-area">${EventCalendarApp.escapeHtml(match[2])}</span>`,
+                        };
+                    },
+                },
+            ],
+            resourceGroupLabelClassNames: (arg) => {
+                const value = String(arg.groupValue || '').trim().toUpperCase();
+
+                if (value === 'LOYALTY') return ['fc-dept-loyalty'];
+                if (value.includes('PROMOTION') || value.includes('CASUALLEASING')) return ['fc-dept-promo'];
+
+                return ['fc-group-company'];
+            },
             selectable: true,
             selectMirror: true,
             editable: false,
@@ -253,6 +280,10 @@ const EventCalendarApp = {
                 <div class="ecap-tip-row">
                     <i class="fa-solid fa-user"></i>
                     <span>${pics.length ? EventCalendarApp.escapeHtml(pics.join(', ')) : '-'}</span>
+                </div>
+                <div class="ecap-tip-row">
+                    <i class="fa-solid fa-file-contract"></i>
+                    <span>${props.event_total_contract != null && props.event_total_contract !== '' ? EventCalendarApp.escapeHtml(String(props.event_total_contract)) : '-'}</span>
                 </div>
                 <span class="ecap-tip-status" style="background:${colors.bg};color:${colors.text}">
                     ${EventCalendarApp.escapeHtml(props.event_status || '-')}
@@ -402,6 +433,7 @@ const EventCalendarApp = {
         document.getElementById('view_event_start_date').textContent = props.event_start_date || '-';
         document.getElementById('view_event_end_date').textContent = props.event_end_date || '-';
         document.getElementById('view_event_total_area').textContent = props.event_total_area || '-';
+        document.getElementById('view_event_total_contract').textContent = props.event_total_contract ?? '-';
         document.getElementById('view_created_by').textContent = props.created_by_name || props.created_by || '-';
 
         const picNames = (props.pic_event || '').split(',').map((v) => v.trim()).filter(Boolean);
@@ -467,6 +499,7 @@ const EventCalendarApp = {
         document.getElementById('event_start_date').value = props.event_start_date || '';
         document.getElementById('event_end_date').value = props.event_end_date || '';
         document.getElementById('product_check_exp').value = props.product_check_exp || '';
+        document.getElementById('event_total_contract').value = props.event_total_contract ?? '';
         document.getElementById('event_description').value = props.event_description || '';
 
         const picNames = (props.pic_event || '').split(',').map((v) => v.trim()).filter(Boolean);

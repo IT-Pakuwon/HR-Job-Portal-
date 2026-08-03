@@ -36,6 +36,8 @@ class ReceiptListController extends Controller
         $cpnyRaw = $user->cpny_id ?? '';
         $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
 
+        $hasReceiptAllAccess = $user->isAdmin() || $user->hasRole('FINACCESS');
+
         $receiptjobs = vPoPending::when(!empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))->count();
         $onProgress = TrReceipt::where('created_by', $u)->where('status', 'P')->count();
         $completed = TrReceipt::where('created_by', $u)->where('status', 'C')->count();
@@ -60,7 +62,7 @@ class ReceiptListController extends Controller
             ->count();
 
         return view('pages.receipt.receiptlist', compact(
-            'receiptjobs', 'onProgress', 'completed', 'all', 'returnjobs', 'rejected', 'revise', 'receiptAll'
+            'receiptjobs', 'onProgress', 'completed', 'all', 'returnjobs', 'rejected', 'revise', 'receiptAll', 'hasReceiptAllAccess'
         ));
     }
 

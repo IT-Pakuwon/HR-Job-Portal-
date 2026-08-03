@@ -177,6 +177,7 @@ class BookingCarSetupController extends Controller
     {
         $query = MsCategory::query()
             ->where('doctype', 'BCR')
+            ->where('groups', 'PURPOSE')
             ->orderByDesc('id');
 
         return DataTables::of($query)
@@ -525,8 +526,8 @@ class BookingCarSetupController extends Controller
 
             MsCategory::create([
                 'doctype'       => 'BCR',
-                'categoryid'    => strtoupper($request->categoryid),
-                'category_name' => strtoupper($request->category_name),
+                'categoryid'    => $request->categoryid,
+                'category_name' => $request->category_name,
                 'groups'        => strtoupper($request->groups),
                 'username'      => Auth::user()->username ?? Auth::user()->name,
                 'status'        => 'A',
@@ -568,8 +569,8 @@ class BookingCarSetupController extends Controller
                 ->findOrFail($id);
 
             $category->update([
-                'categoryid'    => strtoupper($request->categoryid),
-                'category_name' => strtoupper($request->category_name),
+                'categoryid'    => $request->categoryid,
+                'category_name' => $request->category_name,
                 'groups'        => strtoupper($request->groups),
                 'type'          => strtoupper($request->type),
                 'updated_by'    => Auth::user()->username ?? Auth::user()->name,

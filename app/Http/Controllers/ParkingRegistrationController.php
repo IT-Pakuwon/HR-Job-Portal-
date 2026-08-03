@@ -75,6 +75,7 @@ class ParkingRegistrationController extends Controller
             ->whereIn('department_id', $deptIds);
 
         $all        = (clone $q)->count();
+        $draft      = (clone $q)->where('status', 'H')->count();
         $onProgress = (clone $q)->where('status', 'P')->count();
         $reject     = (clone $q)->where('status', 'R')->count();
         $revise     = (clone $q)->where('status', 'D')->count();
@@ -154,6 +155,7 @@ class ParkingRegistrationController extends Controller
 
         return view('pages.parkingregistration.parkingregistration', compact(
             'all',
+            'draft',
             'onProgress',
             'reject',
             'revise',
@@ -1100,7 +1102,9 @@ class ParkingRegistrationController extends Controller
     }   
 
     public function storeParkingRegistration(Request $request)
-    {        
+    {
+        $isDraft = $request->boolean('is_draft');
+
         $parkingType = strtoupper(trim((string) $request->parking_type));
         $workerType = strtoupper(trim((string) $request->worker_type));
         $attachSetting = MsParkingSettingAttach::query()
@@ -1122,14 +1126,14 @@ class ParkingRegistrationController extends Controller
             'parking_type'     => ['required', 'string'],
             'worker_type'      => ['required', 'string'],
 
-            'detail_name'              => ['required', 'array', 'min:1'],
-            'detail_name.*'            => ['required', 'string'],
+            'detail_name'              => [$isDraft ? 'nullable' : 'required', 'array'],
+            'detail_name.*'            => ['nullable', 'string'],
             'detail_username'          => ['nullable', 'array'],
             'detail_username.*'        => ['nullable', 'string'],
-            'detail_no_polisi'         => ['required', 'array', 'min:1'],
-            'detail_no_polisi.*'       => ['required', 'string'],
-            'detail_jenis_kendaraan'   => ['required', 'array', 'min:1'],
-            'detail_jenis_kendaraan.*' => ['required', 'string'],
+            'detail_no_polisi'         => [$isDraft ? 'nullable' : 'required', 'array'],
+            'detail_no_polisi.*'       => ['nullable', 'string'],
+            'detail_jenis_kendaraan'   => [$isDraft ? 'nullable' : 'required', 'array'],
+            'detail_jenis_kendaraan.*' => ['nullable', 'string'],
 
             'detail_nopol_lama'        => ['nullable', 'array'],
             'detail_nopol_lama.*'      => ['nullable', 'string'],
@@ -1143,45 +1147,53 @@ class ParkingRegistrationController extends Controller
             'attachments.*' => ['nullable', 'file', 'max:10240'],
         ];
 
-        if ($requiresStnk) {
-            $rules['detail_attach_stnk'] = ['required', 'array', 'min:1'];
-            $rules['detail_attach_stnk.*'] = ['required', 'file', 'max:10240'];
-        }
+        if (!$isDraft) {
+            $rules['detail_name'][] = 'min:1';
+            $rules['detail_no_polisi'][] = 'min:1';
+            $rules['detail_jenis_kendaraan'][] = 'min:1';
 
-        if ($requiresIdCard) {
-            $rules['detail_attach_idcard'] = ['required', 'array', 'min:1'];
-            $rules['detail_attach_idcard.*'] = ['required', 'file', 'max:10240'];
-        }
+            if ($requiresStnk) {
+                $rules['detail_attach_stnk'] = ['required', 'array', 'min:1'];
+                $rules['detail_attach_stnk.*'] = ['required', 'file', 'max:10240'];
+            }
 
-        if ($requiresBuktiBayar) {
-            $rules['detail_attach_bukti_bayar'] = ['required', 'array', 'min:1'];
-            $rules['detail_attach_bukti_bayar.*'] = ['required', 'file', 'max:10240'];
+            if ($requiresIdCard) {
+                $rules['detail_attach_idcard'] = ['required', 'array', 'min:1'];
+                $rules['detail_attach_idcard.*'] = ['required', 'file', 'max:10240'];
+            }
+
+            if ($requiresBuktiBayar) {
+                $rules['detail_attach_bukti_bayar'] = ['required', 'array', 'min:1'];
+                $rules['detail_attach_bukti_bayar.*'] = ['required', 'file', 'max:10240'];
+            }
         }
 
         $request->validate($rules);
 
         $detailNames = $request->input('detail_name', []);
 
-        foreach ($detailNames as $i => $detailName) {
-            $missing = [];
+        if (!$isDraft) {
+            foreach ($detailNames as $i => $detailName) {
+                $missing = [];
 
-            if ($requiresStnk && !$request->hasFile("detail_attach_stnk.$i")) {
-                $missing["detail_attach_stnk.$i"] = ['Attach STNK wajib diisi.'];
-            }
+                if ($requiresStnk && !$request->hasFile("detail_attach_stnk.$i")) {
+                    $missing["detail_attach_stnk.$i"] = ['Attach STNK wajib diisi.'];
+                }
 
-            if ($requiresIdCard && !$request->hasFile("detail_attach_idcard.$i")) {
-                $missing["detail_attach_idcard.$i"] = ['Attach ID Card wajib diisi.'];
-            }
+                if ($requiresIdCard && !$request->hasFile("detail_attach_idcard.$i")) {
+                    $missing["detail_attach_idcard.$i"] = ['Attach ID Card wajib diisi.'];
+                }
 
-            if ($requiresBuktiBayar && !$request->hasFile("detail_attach_bukti_bayar.$i")) {
-                $missing["detail_attach_bukti_bayar.$i"] = ['Attach Bukti Bayar wajib diisi.'];
-            }
+                if ($requiresBuktiBayar && !$request->hasFile("detail_attach_bukti_bayar.$i")) {
+                    $missing["detail_attach_bukti_bayar.$i"] = ['Attach Bukti Bayar wajib diisi.'];
+                }
 
-            if (!empty($missing)) {
-                return response()->json([
-                    'message' => 'Mohon periksa input.',
-                    'errors'  => $missing,
-                ], 422);
+                if (!empty($missing)) {
+                    return response()->json([
+                        'message' => 'Mohon periksa input.',
+                        'errors'  => $missing,
+                    ], 422);
+                }
             }
         }
 
@@ -1222,7 +1234,7 @@ class ParkingRegistrationController extends Controller
             |--------------------------------------------------------------------------
             */
             if ($parkingTypeUpper === 'TEMPREQUEST') {
-                if (!$request->filled('startdate') || !$request->filled('enddate')) {
+                if (!$isDraft && (!$request->filled('startdate') || !$request->filled('enddate'))) {
                     return response()->json([
                         'message' => 'Mohon periksa input.',
                         'errors' => [
@@ -1232,8 +1244,8 @@ class ParkingRegistrationController extends Controller
                     ], 422);
                 }
 
-                $startDate = Carbon::parse($request->startdate)->toDateString();
-                $endDate   = Carbon::parse($request->enddate)->toDateString();
+                $startDate = $request->filled('startdate') ? Carbon::parse($request->startdate)->toDateString() : null;
+                $endDate   = $request->filled('enddate') ? Carbon::parse($request->enddate)->toDateString() : null;
             } else {
                 $startDate = Carbon::createFromDate((int) $perpost, 1, 1)->toDateString();
                 $endDate   = Carbon::createFromDate((int) $perpost, 12, 31)->toDateString();
@@ -1264,7 +1276,7 @@ class ParkingRegistrationController extends Controller
             | Date range wajib dari input user.
             |--------------------------------------------------------------------------
             */
-            if (!$request->filled('startdate') || !$request->filled('enddate')) {
+            if (!$isDraft && (!$request->filled('startdate') || !$request->filled('enddate'))) {
                 return response()->json([
                     'message' => 'Mohon periksa input.',
                     'errors' => [
@@ -1274,8 +1286,8 @@ class ParkingRegistrationController extends Controller
                 ], 422);
             }
 
-            $startDate = Carbon::parse($request->startdate)->toDateString();
-            $endDate   = Carbon::parse($request->enddate)->toDateString();
+            $startDate = $request->filled('startdate') ? Carbon::parse($request->startdate)->toDateString() : null;
+            $endDate   = $request->filled('enddate') ? Carbon::parse($request->enddate)->toDateString() : null;
 
             $headerInfo = $request->info;
         }
@@ -1287,8 +1299,12 @@ class ParkingRegistrationController extends Controller
             |--------------------------------------------------------------------------
             | Validasi setup approval
             |--------------------------------------------------------------------------
+            | Draft belum masuk approval, jadi skip validasi approval line.
+            |--------------------------------------------------------------------------
             */
-            $approvalCtl->loadLines($doctype, $cpnyId, $departmentId);
+            if (!$isDraft) {
+                $approvalCtl->loadLines($doctype, $cpnyId, $departmentId);
+            }
 
             DB::connection('pgsql5')->beginTransaction();
 
@@ -1326,7 +1342,7 @@ class ParkingRegistrationController extends Controller
                 'worker_type'         => $workerType,
                 'perpost'             => $perpost,
                 'info'                => $headerInfo,
-                'status'              => 'P',
+                'status'              => $isDraft ? 'H' : 'P',
                 'created_by'          => $username,
                 'created_at'          => $dt,
             ]);
@@ -1413,6 +1429,16 @@ class ParkingRegistrationController extends Controller
 
                 /*
                 |--------------------------------------------------------------------------
+                | Draft belum menyentuh ms_parking_kendaraan sama sekali.
+                | Mutasi master kendaraan hanya terjadi saat benar-benar submit approval.
+                |--------------------------------------------------------------------------
+                */
+                if ($isDraft) {
+                    continue;
+                }
+
+                /*
+                |--------------------------------------------------------------------------
                 | NEWREQUEST / TEMPREQUEST
                 |--------------------------------------------------------------------------
                 | Buat data baru di ms_parking_kendaraan dengan status P.
@@ -1467,7 +1493,7 @@ class ParkingRegistrationController extends Controller
                         ->where('worker_type', $workerType)
                         // ->where('perpost', $perpost)
                         ->whereRaw('UPPER(TRIM(nopol)) = ?', [$matchNopol]);
-            
+
                     if (!empty($detailUsername)) {
                         $qKendaraan->where('username', $detailUsername);
                     } else {
@@ -1510,25 +1536,29 @@ class ParkingRegistrationController extends Controller
             |--------------------------------------------------------------------------
             | Generate Approval
             |--------------------------------------------------------------------------
+            | Draft belum masuk approval flow, jadi skip generate + notifikasi.
+            |--------------------------------------------------------------------------
             */
-            $ctx = [
-                'site_id_parking' => $siteParking,
-            ];
+            if (!$isDraft) {
+                $ctx = [
+                    'site_id_parking' => $siteParking,
+                ];
 
-            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                $docid,
-                $doctype,
-                $cpnyId,
-                $departmentId,
-                $username,
-                $ctx,
-                $dt
-            );
+                [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                    $docid,
+                    $doctype,
+                    $cpnyId,
+                    $departmentId,
+                    $username,
+                    $ctx,
+                    $dt
+                );
 
-            if ($firstApprovalUsernames) {
-                $header->completed_by = $firstApprovalUsernames;
-                $header->completed_at = $dt;
-                $header->save();
+                if ($firstApprovalUsernames) {
+                    $header->completed_by = $firstApprovalUsernames;
+                    $header->completed_at = $dt;
+                    $header->save();
+                }
             }
 
             /*
@@ -1557,29 +1587,31 @@ class ParkingRegistrationController extends Controller
             | Notify First Approver
             |--------------------------------------------------------------------------
             */
-            $approvalCtl->notifyFirstApprover(
-                $docid,
-                $doctype,
-                $header->status,
-                $docName,
-                url('/showparkingregistration/' . $eid),
-                [
-                    'info'            => $headerInfo,
-                    'createdby'       => $header->created_by,
-                    'date'            => $dt->toDateTimeString(),
-                    'cpny_id'         => $cpnyId,
-                    'department_id'   => $departmentId,
-                    'site_id_parking' => $siteParking,
-                    'parking_type'    => $parkingType,
-                    'worker_type'     => $workerType,
-                    'perpost'         => $perpost,
-                ]
-            );
+            if (!$isDraft) {
+                $approvalCtl->notifyFirstApprover(
+                    $docid,
+                    $doctype,
+                    $header->status,
+                    $docName,
+                    url('/showparkingregistration/' . $eid),
+                    [
+                        'info'            => $headerInfo,
+                        'createdby'       => $header->created_by,
+                        'date'            => $dt->toDateTimeString(),
+                        'cpny_id'         => $cpnyId,
+                        'department_id'   => $departmentId,
+                        'site_id_parking' => $siteParking,
+                        'parking_type'    => $parkingType,
+                        'worker_type'     => $workerType,
+                        'perpost'         => $perpost,
+                    ]
+                );
+            }
 
             DB::connection('pgsql5')->commit();
 
             return response()->json([
-                'message' => 'Parking Registration created successfully',
+                'message' => $isDraft ? 'Parking Registration saved as draft' : 'Parking Registration created successfully',
                 'docid'   => $docid,
                 'eid'     => $eid,
             ]);
@@ -1614,10 +1646,10 @@ class ParkingRegistrationController extends Controller
         |--------------------------------------------------------------------------
         | Optional security
         |--------------------------------------------------------------------------
-        | Biasanya edit hanya boleh saat status D / Revise.
+        | Biasanya edit hanya boleh saat status D / Revise atau H / Draft.
         |--------------------------------------------------------------------------
         */
-        if (!in_array($parkingRegistration->status, ['D'], true)) {
+        if (!in_array($parkingRegistration->status, ['D', 'H'], true)) {
             abort(403, 'Document cannot be edited.');
         }
 
@@ -1735,12 +1767,14 @@ class ParkingRegistrationController extends Controller
             ], 404);
         }
 
-        if (!in_array($parking->status, ['D'], true)) {
+        if (!in_array($parking->status, ['D', 'H'], true)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Only revised document can be edited.',
+                'message' => 'Only revised or draft document can be edited.',
             ], 403);
         }
+
+        $isDraft = $request->boolean('is_draft');
 
         $parkingType = strtoupper(trim((string) $request->parking_type));
         $workerType = strtoupper(trim((string) $request->worker_type));
@@ -1767,14 +1801,14 @@ class ParkingRegistrationController extends Controller
             'enddate'          => ['nullable', 'date', 'after_or_equal:startdate'],
             'info'             => ['nullable', 'string'],
 
-            'detail_name'              => ['required', 'array', 'min:1'],
-            'detail_name.*'            => ['required', 'string'],
+            'detail_name'              => [$isDraft ? 'nullable' : 'required', 'array'],
+            'detail_name.*'            => ['nullable', 'string'],
             'detail_username'          => ['nullable', 'array'],
             'detail_username.*'        => ['nullable', 'string'],
-            'detail_no_polisi'         => ['required', 'array', 'min:1'],
-            'detail_no_polisi.*'       => ['required', 'string'],
-            'detail_jenis_kendaraan'   => ['required', 'array', 'min:1'],
-            'detail_jenis_kendaraan.*' => ['required', 'string'],
+            'detail_no_polisi'         => [$isDraft ? 'nullable' : 'required', 'array'],
+            'detail_no_polisi.*'       => ['nullable', 'string'],
+            'detail_jenis_kendaraan'   => [$isDraft ? 'nullable' : 'required', 'array'],
+            'detail_jenis_kendaraan.*' => ['nullable', 'string'],
 
             'detail_nopol_lama'        => ['nullable', 'array'],
             'detail_nopol_lama.*'      => ['nullable', 'string'],
@@ -1793,30 +1827,38 @@ class ParkingRegistrationController extends Controller
             'detail_attach_bukti_bayar.*' => ['nullable', 'file', 'max:10240'],
         ];
 
+        if (!$isDraft) {
+            $rules['detail_name'][] = 'min:1';
+            $rules['detail_no_polisi'][] = 'min:1';
+            $rules['detail_jenis_kendaraan'][] = 'min:1';
+        }
+
         $request->validate($rules);
 
         $detailNames = $request->input('detail_name', []);
 
-        foreach ($detailNames as $i => $detailName) {
-            $missing = [];
+        if (!$isDraft) {
+            foreach ($detailNames as $i => $detailName) {
+                $missing = [];
 
-            if ($requiresStnk && !$request->hasFile("detail_attach_stnk.$i") && trim((string) $request->input("old_attach_stnk.$i")) === '') {
-                $missing["detail_attach_stnk.$i"] = ['Attach STNK wajib diisi.'];
-            }
+                if ($requiresStnk && !$request->hasFile("detail_attach_stnk.$i") && trim((string) $request->input("old_attach_stnk.$i")) === '') {
+                    $missing["detail_attach_stnk.$i"] = ['Attach STNK wajib diisi.'];
+                }
 
-            if ($requiresIdCard && !$request->hasFile("detail_attach_idcard.$i") && trim((string) $request->input("old_attach_idcard.$i")) === '') {
-                $missing["detail_attach_idcard.$i"] = ['Attach ID Card wajib diisi.'];
-            }
+                if ($requiresIdCard && !$request->hasFile("detail_attach_idcard.$i") && trim((string) $request->input("old_attach_idcard.$i")) === '') {
+                    $missing["detail_attach_idcard.$i"] = ['Attach ID Card wajib diisi.'];
+                }
 
-            if ($requiresBuktiBayar && !$request->hasFile("detail_attach_bukti_bayar.$i") && trim((string) $request->input("old_attach_bukti_bayar.$i")) === '') {
-                $missing["detail_attach_bukti_bayar.$i"] = ['Attach Bukti Bayar wajib diisi.'];
-            }
+                if ($requiresBuktiBayar && !$request->hasFile("detail_attach_bukti_bayar.$i") && trim((string) $request->input("old_attach_bukti_bayar.$i")) === '') {
+                    $missing["detail_attach_bukti_bayar.$i"] = ['Attach Bukti Bayar wajib diisi.'];
+                }
 
-            if (!empty($missing)) {
-                return response()->json([
-                    'message' => 'Mohon periksa input.',
-                    'errors'  => $missing,
-                ], 422);
+                if (!empty($missing)) {
+                    return response()->json([
+                        'message' => 'Mohon periksa input.',
+                        'errors'  => $missing,
+                    ], 422);
+                }
             }
         }
 
@@ -1833,7 +1875,7 @@ class ParkingRegistrationController extends Controller
 
         if ($isEmployee) {
             if ($parkingTypeUpper === 'TEMPREQUEST') {
-                if (!$request->filled('startdate') || !$request->filled('enddate')) {
+                if (!$isDraft && (!$request->filled('startdate') || !$request->filled('enddate'))) {
                     return response()->json([
                         'message' => 'Mohon periksa input.',
                         'errors' => [
@@ -1843,8 +1885,8 @@ class ParkingRegistrationController extends Controller
                     ], 422);
                 }
 
-                $startDate = Carbon::parse($request->startdate)->toDateString();
-                $endDate = Carbon::parse($request->enddate)->toDateString();
+                $startDate = $request->filled('startdate') ? Carbon::parse($request->startdate)->toDateString() : null;
+                $endDate = $request->filled('enddate') ? Carbon::parse($request->enddate)->toDateString() : null;
             } else {
                 $startDate = Carbon::createFromDate((int) $perpost, 1, 1)->toDateString();
                 $endDate = Carbon::createFromDate((int) $perpost, 12, 31)->toDateString();
@@ -1862,7 +1904,7 @@ class ParkingRegistrationController extends Controller
                 $headerInfo = trim(($parkingTypeName ?: $parkingType) . ' - ' . $perpost);
             }
         } else {
-            if (!$request->filled('startdate') || !$request->filled('enddate')) {
+            if (!$isDraft && (!$request->filled('startdate') || !$request->filled('enddate'))) {
                 return response()->json([
                     'message' => 'Mohon periksa input.',
                     'errors' => [
@@ -1872,8 +1914,8 @@ class ParkingRegistrationController extends Controller
                 ], 422);
             }
 
-            $startDate = Carbon::parse($request->startdate)->toDateString();
-            $endDate = Carbon::parse($request->enddate)->toDateString();
+            $startDate = $request->filled('startdate') ? Carbon::parse($request->startdate)->toDateString() : null;
+            $endDate = $request->filled('enddate') ? Carbon::parse($request->enddate)->toDateString() : null;
             $headerInfo = $request->info;
         }
 
@@ -1932,7 +1974,7 @@ class ParkingRegistrationController extends Controller
                 'worker_type'         => $workerType,
                 'perpost'             => $perpost,
                 'info'                => $headerInfo,
-                'status'              => 'P',
+                'status'              => $isDraft ? 'H' : 'P',
                 'updated_by'          => $username,
                 'updated_at'          => $dt,
             ]);
@@ -2016,6 +2058,15 @@ class ParkingRegistrationController extends Controller
 
                 /*
                 |--------------------------------------------------------------------------
+                | Draft belum menyentuh ms_parking_kendaraan sama sekali.
+                |--------------------------------------------------------------------------
+                */
+                if ($isDraft) {
+                    continue;
+                }
+
+                /*
+                |--------------------------------------------------------------------------
                 | Update / create master kendaraan menjadi P
                 |--------------------------------------------------------------------------
                 */
@@ -2070,64 +2121,61 @@ class ParkingRegistrationController extends Controller
                 }
             }
 
+            $eid = Hashids::encode($parking->id);
+
             /*
             |--------------------------------------------------------------------------
             | Generate ulang approval
             |--------------------------------------------------------------------------
-            | Sesuaikan dengan struktur ApprovalController kamu.
+            | Draft belum masuk approval flow, jadi skip generate + notifikasi.
             |--------------------------------------------------------------------------
             */
-            // DB::connection('pgsql')->table('tr_approval')
-            //     ->where('refnbr', $parking->docid)
-            //     ->where('doctype', 'PKR')
-            //     ->delete();
+            if (!$isDraft) {
+                $approvalCtl = app(\App\Http\Controllers\ApprovalController::class);
 
-            $approvalCtl = app(\App\Http\Controllers\ApprovalController::class);
-
-            $ctx = [
-                'site_id_parking' => $siteParking,
-            ];
-
-            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                $parking->docid,
-                'PKR',
-                $cpnyId,
-                $departmentId,
-                $username,
-                $ctx,
-                $dt
-            );
-
-            if ((int) $linesCount < 1) {
-                throw new \Exception('Approval line belum di-setup, Please contact IT!');
-            }
-
-            $eid = Hashids::encode($parking->id);
-
-            $approvalCtl->notifyFirstApprover(
-                $parking->docid,
-                'PKR',
-                'P',
-                'Parking Registration',
-                url('/showparkingregistration/' . $eid),
-                [
-                    'info'            => $parking->info,
-                    'createdby'       => $parking->created_by,
-                    'date'            => $dt->toDateTimeString(),
-                    'cpny_id'         => $cpnyId,
-                    'department_id'   => $departmentId,
+                $ctx = [
                     'site_id_parking' => $siteParking,
-                    'parking_type'    => $parkingType,
-                    'worker_type'     => $workerType,
-                    'perpost'         => $perpost,
-                ]
-            );
+                ];
+
+                [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                    $parking->docid,
+                    'PKR',
+                    $cpnyId,
+                    $departmentId,
+                    $username,
+                    $ctx,
+                    $dt
+                );
+
+                if ((int) $linesCount < 1) {
+                    throw new \Exception('Approval line belum di-setup, Please contact IT!');
+                }
+
+                $approvalCtl->notifyFirstApprover(
+                    $parking->docid,
+                    'PKR',
+                    'P',
+                    'Parking Registration',
+                    url('/showparkingregistration/' . $eid),
+                    [
+                        'info'            => $parking->info,
+                        'createdby'       => $parking->created_by,
+                        'date'            => $dt->toDateTimeString(),
+                        'cpny_id'         => $cpnyId,
+                        'department_id'   => $departmentId,
+                        'site_id_parking' => $siteParking,
+                        'parking_type'    => $parkingType,
+                        'worker_type'     => $workerType,
+                        'perpost'         => $perpost,
+                    ]
+                );
+            }
 
             DB::connection('pgsql5')->commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Parking Registration updated and submitted successfully.',
+                'message' => $isDraft ? 'Parking Registration saved as draft' : 'Parking Registration updated and submitted successfully.',
                 'docid'   => $parking->docid,
             ]);
         } catch (\Throwable $e) {

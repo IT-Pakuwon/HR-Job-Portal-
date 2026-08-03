@@ -131,6 +131,110 @@
             color: #f87171;
         }
 
+        /* ── Resource grid (Company / Department / Location) — elevated look ── */
+        #calendar .fc-datagrid-header .fc-datagrid-cell-cushion {
+            padding: 10px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #64748b;
+        }
+
+        .dark #calendar .fc-datagrid-header .fc-datagrid-cell-cushion {
+            color: #94a3b8;
+        }
+
+        #calendar .fc-datagrid-cell-cushion {
+            padding: 9px 12px;
+        }
+
+        /* Company group header: bold text only, no row wash */
+        #calendar .fc-group-company {
+            font-weight: 700;
+            font-size: 12.5px;
+            letter-spacing: 0.02em;
+            color: #0f172a;
+        }
+
+        .dark #calendar .fc-group-company {
+            color: #f1f5f9;
+        }
+
+        /* Department group header: small color dot + muted text, no filled tag */
+        #calendar .fc-dept-loyalty,
+        #calendar .fc-dept-promo {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            color: #64748b;
+        }
+
+        #calendar .fc-dept-loyalty::before,
+        #calendar .fc-dept-promo::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 9999px;
+            flex-shrink: 0;
+        }
+
+        #calendar .fc-dept-loyalty::before {
+            background: #a855f7;
+        }
+
+        #calendar .fc-dept-promo::before {
+            background: #3b82f6;
+        }
+
+        .dark #calendar .fc-dept-loyalty,
+        .dark #calendar .fc-dept-promo {
+            color: #94a3b8;
+        }
+
+        /* Location rows: name + de-emphasized area figure */
+        #calendar .fc-loc-name {
+            font-size: 12.5px;
+            font-weight: 500;
+            color: #334155;
+        }
+
+        #calendar .fc-loc-area {
+            display: block;
+            font-size: 10.5px;
+            color: #94a3b8;
+            margin-top: 1px;
+        }
+
+        .dark #calendar .fc-loc-name {
+            color: #e2e8f0;
+        }
+
+        .dark #calendar .fc-loc-area {
+            color: #64748b;
+        }
+
+        #calendar .fc-datagrid-body tr:hover .fc-loc-name {
+            color: #0f172a;
+        }
+
+        .dark #calendar .fc-datagrid-body tr:hover .fc-loc-name {
+            color: #ffffff;
+        }
+
+        /* FullCalendar's own default shading for group-header lanes reads as
+           dull/gray next to our colored tags above — keep it plain instead. */
+        #calendar .fc-cell-shaded {
+            background: #ffffff !important;
+        }
+
+        .dark #calendar .fc-cell-shaded {
+            background: transparent !important;
+        }
+
         /* Event hover tooltip (tippy.js) */
         .ecap-tip {
             min-width: 180px;
@@ -331,6 +435,15 @@
                                 class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
                         </div>
 
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                Total Contract
+                            </label>
+                            <input type="number" id="event_total_contract" name="event_total_contract" step="any" min="0"
+                                placeholder="e.g. 1"
+                                class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
+                        </div>
+
                         <div class="flex items-end">
                             <label class="inline-flex cursor-pointer items-center gap-2.5">
                                 <input type="checkbox" id="status_active" checked
@@ -469,6 +582,11 @@
                     </div>
 
                     <div>
+                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Total Contract</p>
+                        <p id="view_event_total_contract" class="mt-1 text-sm text-slate-700 dark:text-slate-200">-</p>
+                    </div>
+
+                    <div>
                         <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Created By</p>
                         <p id="view_created_by" class="mt-1 text-sm text-slate-700 dark:text-slate-200">-</p>
                     </div>
@@ -514,6 +632,9 @@
             'id' => (string) $l->id,
             'title' => $l->event_total_area ? "{$l->event_location_name} - {$l->event_total_area} m²" : $l->event_location_name,
             'cpny_name' => optional($l->company)->cpny_name,
+            'department_label' => collect($l->departmentIds())
+                ->map(fn ($id) => $departmentNames->get($id, $id))
+                ->implode(', '),
         ])->values()) !!};
 
         window.EventCalendarCurrentUser = {

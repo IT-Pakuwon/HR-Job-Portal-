@@ -1,8 +1,5 @@
 <x-app-layout>
     @php
-        $user = auth()->user();
-        $hasReceiptAllAccess = $user->isAdmin();
-
         $xlCols = 7;
 
         if ($hasReceiptAllAccess) {

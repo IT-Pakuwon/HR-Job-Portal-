@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MsDepartment;
 use App\Models\MsEvent;
 use App\Models\MsEventLocation;
 use App\Models\User;
@@ -26,7 +27,7 @@ class EventCalendarController extends Controller
     {
         $user = auth()->user();
 
-        return $user && in_array('admin', $user->roles(), true);
+        return $user && $user->hasRole('ADEVENTACCESS');
     }
 
     private function userCpnyIds(): array
@@ -53,9 +54,10 @@ class EventCalendarController extends Controller
     }
 
     /**
-     * Locations the current user is allowed to see/book.
-     * Admins see every active location; everyone else is scoped to their
-     * own company AND a department overlap with the location's allowed list.
+     * Locations the current user is allowed to see/book. Everyone — admins
+     * included — is scoped to their own company; admins additionally see
+     * every department within that company, while everyone else also needs
+     * a department overlap with the location's allowed list.
      */
     private function visibleLocations(): \Illuminate\Support\Collection
     {
@@ -64,16 +66,17 @@ class EventCalendarController extends Controller
             ->where('status', 'A')
             ->with('company');
 
-        if ($this->isAdmin()) {
-            return $query->get()->sortBy('event_location_name')->values();
-        }
-
         $cpnyIds = $this->userCpnyIds();
-        $userDeptIds = $this->userDepartmentIds();
 
         if (!empty($cpnyIds)) {
             $query->whereIn('cpny_id', $cpnyIds);
         }
+
+        if ($this->isAdmin()) {
+            return $query->get()->sortBy('event_location_name')->values();
+        }
+
+        $userDeptIds = $this->userDepartmentIds();
 
         return $query->get()
             ->filter(fn (MsEventLocation $location) => array_intersect($location->departmentIds(), $userDeptIds) !== [])
@@ -108,6 +111,8 @@ class EventCalendarController extends Controller
             ->orderBy('name')
             ->get(['username', 'name']);
 
+        $departmentNames = MsDepartment::query()->pluck('department_name', 'department_id');
+
         return response()
             ->view('pages.event_calendar.calendar', [
                 'locations' => $this->visibleLocations(),
@@ -115,6 +120,7 @@ class EventCalendarController extends Controller
                 'eventStatuses' => self::EVENT_STATUSES,
                 'isAdmin' => $this->isAdmin(),
                 'users' => $users,
+                'departmentNames' => $departmentNames,
             ])
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
             ->header('Pragma', 'no-cache');
@@ -122,29 +128,27 @@ class EventCalendarController extends Controller
 
     public function json(Request $request)
     {
-        $isAdmin = $this->isAdmin();
-
         $query = MsEvent::query()->whereNull('deleted_at');
 
-        if (!$isAdmin) {
+        $cpnyIds = $this->userCpnyIds();
+
+        if (!empty($cpnyIds)) {
             // Coarse SQL-level pre-filter (cpnyid alone is never ambiguous); the
             // precise (cpnyid, event_location_id) pair check happens below.
-            $query->whereIn('cpnyid', $this->userCpnyIds());
+            $query->whereIn('cpnyid', $cpnyIds);
         }
 
         $events = $query->get();
 
         $locationsByKey = $this->locationsByKey();
 
-        if (!$isAdmin) {
-            $visibleKeys = $this->visibleLocations()
-                ->map(fn (MsEventLocation $l) => $l->cpny_id.'|'.$l->event_location_id)
-                ->all();
+        $visibleKeys = $this->visibleLocations()
+            ->map(fn (MsEventLocation $l) => $l->cpny_id.'|'.$l->event_location_id)
+            ->all();
 
-            $events = $events->filter(
-                fn (MsEvent $event) => in_array($event->cpnyid.'|'.$event->event_location_id, $visibleKeys, true)
-            );
-        }
+        $events = $events->filter(
+            fn (MsEvent $event) => in_array($event->cpnyid.'|'.$event->event_location_id, $visibleKeys, true)
+        );
 
         $creatorNames = User::query()
             ->whereIn('username', $events->pluck('created_user')->filter()->unique())
@@ -176,6 +180,7 @@ class EventCalendarController extends Controller
                         'event_end_date' => optional($event->event_end_date)->format('Y-m-d'),
                         'event_total_area' => optional($location)->event_total_area,
                         'event_description' => $event->event_description,
+                        'event_total_contract' => $event->event_total_contract,
                         'pic_event' => $event->pic_event,
                         'product_check_exp' => $event->product_check_exp,
                         'status' => $event->status,
@@ -214,6 +219,7 @@ class EventCalendarController extends Controller
             'event_start_date' => 'required|date',
             'event_end_date' => 'required|date|after_or_equal:event_start_date',
             'event_description' => 'nullable|string',
+            'event_total_contract' => 'nullable|numeric',
             'pic_event' => 'nullable|string|max:255',
             'product_check_exp' => 'nullable|date',
             'status' => 'required|in:A,X',
@@ -222,23 +228,26 @@ class EventCalendarController extends Controller
 
     private function assertLocationVisible(int $locationRowId): void
     {
+        // visibleLocationIds() already covers admins (every department within
+        // their own company), so no separate admin bypass is needed here.
         abort_unless(
-            $this->isAdmin() || in_array($locationRowId, $this->visibleLocationIds(), true),
+            in_array($locationRowId, $this->visibleLocationIds(), true),
             403,
             'You are not allowed to book this location.'
         );
     }
 
     /**
-     * Non-admins may only edit/delete events they created themselves.
+     * Anyone may edit/delete events they created themselves. Admins may
+     * additionally edit/delete any event within their own assigned
+     * company/companies, but never outside of it.
      */
     private function assertCanModify(MsEvent $event): void
     {
-        abort_unless(
-            $this->isAdmin() || $event->created_user === auth()->user()->username,
-            403,
-            'You can only edit or delete events you created.'
-        );
+        $canModify = $event->created_user === auth()->user()->username
+            || ($this->isAdmin() && in_array($event->cpnyid, $this->userCpnyIds(), true));
+
+        abort_unless($canModify, 403, 'You can only edit or delete events you created.');
     }
 
     public function store(Request $request)

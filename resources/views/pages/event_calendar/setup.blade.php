@@ -109,11 +109,11 @@
 
                     <div>
                         <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                            Location ID *
+                            Location ID
                         </label>
-                        <input type="text" id="event_location_id" name="event_location_id" required
-                            placeholder="e.g. LOC001"
-                            class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
+                        <input type="text" id="event_location_id" name="event_location_id" readonly
+                            placeholder="Auto-generated on save"
+                            class="h-11 w-full cursor-not-allowed rounded-lg border border-slate-200 bg-gray-100 px-4 text-sm text-slate-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-400">
                     </div>
 
                     <div>

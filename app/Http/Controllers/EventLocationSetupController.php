@@ -15,7 +15,20 @@ class EventLocationSetupController extends Controller
     {
         $user = auth()->user();
 
-        abort_unless($user && in_array('admin', $user->roles(), true), 403);
+        abort_unless($user && $user->hasRole('ADEVENTACCESS'), 403);
+    }
+
+    /**
+     * Even admins are scoped to their own assigned company/companies here —
+     * setting up locations for a company you don't belong to isn't allowed.
+     */
+    private function userCpnyIds(): array
+    {
+        $user = auth()->user();
+
+        return is_string($user->cpny_id)
+            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
+            : (array) $user->cpny_id;
     }
 
     public function index()
@@ -24,6 +37,7 @@ class EventLocationSetupController extends Controller
 
         $companies = MsCompany::query()
             ->where('status', 'A')
+            ->whereIn('cpny_id', $this->userCpnyIds())
             ->orderBy('cpny_name')
             ->get(['cpny_id', 'cpny_name']);
 
@@ -47,6 +61,7 @@ class EventLocationSetupController extends Controller
 
         $locations = MsEventLocation::query()
             ->whereNull('deleted_at')
+            ->whereIn('cpny_id', $this->userCpnyIds())
             ->with('company')
             ->orderBy('event_location_name')
             ->get();
@@ -73,23 +88,27 @@ class EventLocationSetupController extends Controller
         ]);
     }
 
-    private function rules(Request $request, $ignoreId = null): array
+    private function rules(): array
     {
         return [
-            'cpny_id' => 'required|string|exists:pgsql2.ms_company,cpny_id',
-            'event_location_id' => [
-                'required',
-                'string',
-                'max:50',
-                Rule::unique('pgsql5.ms_event_location', 'event_location_id')
-                    ->where('cpny_id', $request->input('cpny_id'))
-                    ->ignore($ignoreId),
-            ],
+            'cpny_id' => ['required', 'string', Rule::in($this->userCpnyIds())],
             'event_location_name' => 'required|string|max:255',
             'event_total_area' => 'nullable|numeric',
             'event_department_id' => 'nullable|string|max:100',
             'status' => 'required|in:A,X',
         ];
+    }
+
+    private function nextLocationId(string $cpnyId): string
+    {
+        $max = MsEventLocation::query()
+            ->where('cpny_id', $cpnyId)
+            ->where('event_location_id', 'like', 'EL%')
+            ->get(['event_location_id'])
+            ->map(fn ($row) => (int) substr($row->event_location_id, 2))
+            ->max();
+
+        return 'EL'.str_pad((string) (($max ?? 0) + 1), 5, '0', STR_PAD_LEFT);
     }
 
     private function validateDepartmentIds(?string $commaSeparatedIds): void
@@ -109,12 +128,15 @@ class EventLocationSetupController extends Controller
     {
         $this->assertAdmin();
 
-        $data = $request->validate($this->rules($request));
+        $data = $request->validate($this->rules());
         $this->validateDepartmentIds($data['event_department_id'] ?? null);
 
         $location = DB::connection('pgsql5')->transaction(function () use ($data) {
+            MsEventLocation::query()->where('cpny_id', $data['cpny_id'])->lockForUpdate()->get();
+
             return MsEventLocation::create([
                 ...$data,
+                'event_location_id' => $this->nextLocationId($data['cpny_id']),
                 'created_by' => auth()->user()->username,
             ]);
         });
@@ -130,9 +152,12 @@ class EventLocationSetupController extends Controller
     {
         $this->assertAdmin();
 
-        $location = MsEventLocation::query()->whereNull('deleted_at')->findOrFail($id);
+        $location = MsEventLocation::query()
+            ->whereNull('deleted_at')
+            ->whereIn('cpny_id', $this->userCpnyIds())
+            ->findOrFail($id);
 
-        $data = $request->validate($this->rules($request, $location->id));
+        $data = $request->validate($this->rules());
         $this->validateDepartmentIds($data['event_department_id'] ?? null);
 
         DB::connection('pgsql5')->transaction(function () use ($data, $location) {
@@ -153,7 +178,10 @@ class EventLocationSetupController extends Controller
     {
         $this->assertAdmin();
 
-        $location = MsEventLocation::query()->whereNull('deleted_at')->findOrFail($id);
+        $location = MsEventLocation::query()
+            ->whereNull('deleted_at')
+            ->whereIn('cpny_id', $this->userCpnyIds())
+            ->findOrFail($id);
 
         $location->update([
             'status' => 'X',

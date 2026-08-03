@@ -2,9 +2,9 @@
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- STATUS CARDS --}}
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 {{ $canParkingAccess ? 'xl:grid-cols-7' : ($canViewMasterKendaraan ? 'xl:grid-cols-6' : 'xl:grid-cols-5') }}">
+        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 {{ $canParkingAccess ? 'xl:grid-cols-8' : ($canViewMasterKendaraan ? 'xl:grid-cols-7' : 'xl:grid-cols-6') }}">
 
-            <a href="#" class="status-filter active group block h-full" data-status="">
+            <a href="#" class="status-filter group block h-full" data-status="">
                 <div
                     class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📄</div>
@@ -15,7 +15,18 @@
                 </div>
             </a>
 
-            <a href="#" class="status-filter group block h-full" data-status="P">
+            <a href="#" class="status-filter group block h-full" data-status="H">
+                <div
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95">
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">💾</div>
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-sm font-medium">Draft</p>
+                    </div>
+                    <p class="shrink-0 text-base font-bold">{{ number_format($draft) }}</p>
+                </div>
+            </a>
+
+            <a href="#" class="status-filter active group block h-full" data-status="P">
                 <div
                     class="status-card flex h-full items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-md active:scale-95">
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⏳</div>
@@ -90,7 +101,7 @@
             <div
                 class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
                 <h2 id="parkingTitle" class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
-                    Parking Registration
+                    Parking Registration - On Progress
                 </h2>
                 <div class="flex items-center gap-3">
                     @if (auth()->check() && auth()->user()->hasRole('GAACCESS'))
@@ -293,7 +304,7 @@
 
             const currentUser = @json(auth()->user()->username ?? '');
             const canEditMasterKendaraan = @json($canParkingAccess);
-            let parkingStatus = '';
+            let parkingStatus = 'P';
             let parkingScope = 'my';
             let parkingTable = null;
 
@@ -360,6 +371,10 @@
                 }
                 if (v === 'D') {
                     return `<span class="inline-block w-24 rounded bg-blue-300/30 px-3 py-1.5 text-sm font-semibold text-blue-600">Revise</span>`;
+                }
+
+                if (v === 'H') {
+                    return `<span class="inline-block w-24 rounded bg-gray-300/30 px-3 py-1.5 text-sm font-semibold text-gray-600 dark:text-gray-300">Draft</span>`;
                 }
 
                 if (v === 'P') {
@@ -519,7 +534,7 @@
                             let mainUrl = `/showparkingregistration/${row.eid}`;
                             let mainCls = 'inline-flex w-[160px] justify-center rounded bg-gray-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-700';
 
-                            if (row.status === 'D' && row.created_by === currentUser) {
+                            if (['D', 'H'].includes(row.status) && row.created_by === currentUser) {
                                 mainUrl = `/editparkingregistration/${row.eid}`;
                                 mainCls = 'inline-flex w-[160px] justify-center rounded bg-yellow-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-yellow-700';
 
@@ -903,6 +918,7 @@
 
                     const titleMap = {
                         '': 'Parking Registration',
+                        'H': 'Parking Registration - Draft',
                         'P': 'Parking Registration - On Progress',
                         'D': 'Parking Registration - Revise',
                         'R': 'Parking Registration - Rejected',

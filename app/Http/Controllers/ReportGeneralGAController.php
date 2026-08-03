@@ -76,7 +76,7 @@ class ReportGeneralGAController extends Controller
         $hasADMIN    = $user->isAdmin();
         $hasGAACCESS = $user->hasRole('GAACCESS');
 
-        $tabCount = ($hasCSACCESS ? 1 : 0) + ($hasADMIN ? 1 : 0) + ($hasGAACCESS ? 3 : 0);
+        $tabCount = ($hasCSACCESS ? 1 : 0) + ($hasADMIN ? 1 : 0) + ($hasGAACCESS ? 4 : 0);
 
         $defaultReport = match (true) {
             $hasGAACCESS => 'operational-car',
@@ -805,6 +805,8 @@ class ReportGeneralGAController extends Controller
 
                 'vt.voucher_date',
 
+                'vt.date_used',
+
                 'vt.created_by',
 
                 'vt.user_peminta_expense',
@@ -868,6 +870,13 @@ class ReportGeneralGAController extends Controller
             ->editColumn('voucher_date', function ($row) {
                 return $row->voucher_date
                     ? Carbon::parse($row->voucher_date)
+                        ->format('d-M-Y')
+                    : '-';
+            })
+
+            ->editColumn('date_used', function ($row) {
+                return $row->date_used
+                    ? Carbon::parse($row->date_used)
                         ->format('d-M-Y')
                     : '-';
             })

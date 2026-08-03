@@ -79,8 +79,7 @@
             </a>
             @endif
 
-            {{-- Free Parking (temporarily hidden: tr_parking_registration_detail table missing on pgsql5) --}}
-            {{--
+            {{-- Free Parking --}}
             @if($hasGAACCESS)
             <a href="#" data-report="free-parking"
                 class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700">
@@ -95,7 +94,6 @@
                 </div>
             </a>
             @endif
-            --}}
 
             {{-- Car Expense --}}
             @if($hasGAACCESS)
@@ -139,11 +137,9 @@
                 @include('pages.report-ga.voucher-taxi')
             </div>
 
-            {{-- Free Parking content (temporarily hidden, see card above)
             <div id="report-free-parking" class="hidden">
                 @include('pages.report-ga.free-parking')
             </div>
-            --}}
 
             <div id="report-car-expense" class="hidden">
                 @include('pages.report-ga.car-expense')

@@ -23,6 +23,11 @@
                     onclick="switchCpnyTab('businessunit')">
                     🏬 Business Unit
                 </button>
+                <button type="button" id="tab-companybudget"
+                    class="cpnyTabBtn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                    onclick="switchCpnyTab('companybudget')">
+                    💰 Company Budget
+                </button>
             </div>
 
             {{-- ── TAB 1: Company ──────────────────────────────────────────────── --}}
@@ -146,6 +151,37 @@
                                 <th class="px-4 py-3 text-left font-medium">Solomon Company</th>
                                 <th class="px-4 py-3 text-left font-medium">Solomon Allocation</th>
                                 <th class="px-4 py-3 text-left font-medium">Integration Type</th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- ── TAB 4: Company Budget ──────────────────────────────────────── --}}
+            <div id="panel-companybudget"
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                <div
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">💰 Company
+                        Budget List</h2>
+                    <button id="addCompanyBudgetBtn"
+                        class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
+                        + Add Company Budget
+                    </button>
+                </div>
+
+                <div class="relative overflow-hidden">
+                    <table id="companyBudgetTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                <th class="w-10 px-4 py-3"></th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
+                                <th class="px-4 py-3 text-left font-medium">Company Group</th>
+                                <th class="px-4 py-3 text-left font-medium">Company ID</th>
+                                <th class="px-4 py-3 text-left font-medium">Budget Company ID</th>
                                 <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
                             </tr>
                         </thead>
@@ -429,6 +465,62 @@
                 </form>
             </div>
         </div>
+
+        <!-- Modal: Company Budget -->
+        <div id="companyBudgetModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4">
+            <div class="relative w-full max-w-xl rounded-lg bg-white p-4 dark:bg-gray-700">
+                <h2 id="modalCompanyBudgetTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add
+                    Company Budget</h2>
+
+                <form id="companyBudgetForm">
+                    @csrf
+                    <input type="hidden" id="cb_id" name="id">
+
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Company Group</label>
+                            <select id="cb_group_cpny_id" name="group_cpny_id" class="cb-select2 w-full">
+                                <option value="">-- Select Company Group --</option>
+                                <option value="JKT">JKT</option>
+                                <option value="SBY">SBY</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Company</label>
+                            <select id="cb_cpnyid" name="cpnyid"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                                <option value="">-- Select Company --</option>
+                                @foreach ($companies as $company)
+                                    <option value="{{ $company->cpny_id }}">
+                                        {{ $company->cpny_id }} - {{ $company->cpny_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="mb-3 md:col-span-2">
+                            <label class="block text-gray-700 dark:text-white">Budget Company</label>
+                            <select id="cb_budget_cpnyid" name="budget_cpnyid"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                                <option value="">-- Select Budget Company --</option>
+                                @foreach ($companies as $company)
+                                    <option value="{{ $company->cpny_id }}">
+                                        {{ $company->cpny_id }} - {{ $company->cpny_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 flex justify-end space-x-2">
+                        <button type="button" id="closeCompanyBudgetModal"
+                            class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
+                        <button type="submit" class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
     <div id="loadingOverlay"
         class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
@@ -452,13 +544,13 @@
             $('#loadingOverlay').addClass('hidden');
         }
 
-        const initedCpnyTabs = { company: false, site: false, businessunit: false };
+        const initedCpnyTabs = { company: false, site: false, businessunit: false, companybudget: false };
         const cpnyActiveClasses = 'bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400';
         const cpnyInactiveClasses = 'bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400';
 
         function switchCpnyTab(tab) {
-            const panels = { company: '#panel-company', site: '#panel-site', businessunit: '#panel-businessunit' };
-            const btns   = { company: '#tab-company',   site: '#tab-site',   businessunit: '#tab-businessunit' };
+            const panels = { company: '#panel-company', site: '#panel-site', businessunit: '#panel-businessunit', companybudget: '#panel-companybudget' };
+            const btns   = { company: '#tab-company',   site: '#tab-site',   businessunit: '#tab-businessunit',   companybudget: '#tab-companybudget' };
 
             Object.keys(panels).forEach(function(key) {
                 const isActive = key === tab;
@@ -473,12 +565,15 @@
                 if (tab === 'company') initCompanyTable();
                 if (tab === 'site') initSiteTable();
                 if (tab === 'businessunit') initBusinessUnitTable();
+                if (tab === 'companybudget') initCompanyBudgetTable();
             } else if (tab === 'company' && window.companiesTable) {
                 window.companiesTable.columns.adjust().responsive.recalc();
             } else if (tab === 'site' && window.siteTable) {
                 window.siteTable.columns.adjust().responsive.recalc();
             } else if (tab === 'businessunit' && window.businessUnitTable) {
                 window.businessUnitTable.columns.adjust().responsive.recalc();
+            } else if (tab === 'companybudget' && window.companyBudgetTable) {
+                window.companyBudgetTable.columns.adjust().responsive.recalc();
             }
         }
 
@@ -597,6 +692,15 @@
                     width: '100%',
                     allowClear: true,
                     dropdownParent: $('#companyModal')
+                });
+            });
+
+            // Init select2 for company group (inside company budget modal)
+            $('.cb-select2').each(function() {
+                $(this).select2({
+                    width: '100%',
+                    allowClear: true,
+                    dropdownParent: $('#companyBudgetModal')
                 });
             });
 
@@ -1268,6 +1372,280 @@
                 $('#businessUnitForm')[0].reset();
                 $('#bu_id').val('');
                 $('#businessUnitModal').addClass('hidden').removeClass('flex');
+            });
+
+            // =========================================================
+            // Company Budget
+            // =========================================================
+            window.initCompanyBudgetTable = function() {
+                window.companyBudgetTable = $('#companyBudgetTable').DataTable({
+                    ajax: "{{ route('company-budgets.json') }}",
+                    processing: true,
+                    serverSide: false,
+                    autoWidth: false,
+                    lengthMenu: [
+                        [10, 25, 50, 100, 250, -1],
+                        [10, 25, 50, 100, 250, 'All']
+                    ],
+                    responsive: {
+                        details: {
+                            type: 'column',
+                            target: 0
+                        }
+                    },
+                    columnDefs: [{
+                        targets: 0,
+                        width: '28px',
+                        className: 'dtr-control',
+                        orderable: false
+                    }],
+                    dom: '<"dt-toolbar flex items-center justify-start gap-4"lBf>rtip',
+                    buttons: [{
+                            extend: 'excelHtml5',
+                            text: '↓ Excel',
+                            title: 'Company Budget',
+                            className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                            exportOptions: {
+                                columns: ':visible',
+                                modifier: {
+                                    page: 'current'
+                                }
+                            }
+                        },
+                        {
+                            extend: 'csvHtml5',
+                            text: '↓ CSV',
+                            title: 'Company Budget',
+                            className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                            exportOptions: {
+                                columns: ':visible',
+                                modifier: {
+                                    page: 'current'
+                                }
+                            }
+                        }
+                    ],
+                    columns: [{
+                            data: null,
+                            defaultContent: ''
+                        }, {
+                            data: 'id',
+                            render: function(data, type, row) {
+                                return `
+                                    <div class="flex justify-center space-x-2">
+                                        <label class="switch">
+                                            <input type="checkbox" class="toggleCompanyBudgetStatus" data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
+                                            <span class="slider round"></span>
+                                        </label>
+                                        <button class="editCompanyBudgetBtn bg-blue-500 text-white px-2 py-1 rounded" data-id="${data}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="deleteCompanyBudgetBtn bg-red-500 text-white px-2 py-1 rounded" data-id="${data}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                `;
+                            }
+                        },
+                        {
+                            data: 'group_cpny_id',
+                            className: 'no-pointer',
+                            defaultContent: '-'
+                        },
+                        {
+                            data: 'cpnyid',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'budget_cpnyid',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'status',
+                            className: 'no-pointer',
+                            render: function(data) {
+                                return data === 'A' ?
+                                    '<span class="w-full max-w-25 bg-green-300/30 dark:bg-green-300 text-green-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Active</span>' :
+                                    '<span class="w-full max-w-25 bg-red-300/30 dark:bg-red-300 text-red-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Inactive</span>';
+                            }
+                        }
+                    ]
+                });
+            };
+
+            // Add
+            $('#addCompanyBudgetBtn').click(function() {
+                $('#modalCompanyBudgetTitle').text("Add Company Budget");
+                $('#companyBudgetForm')[0].reset();
+                $('#cb_id').val('');
+                $('.cb-select2').val('').trigger('change');
+                $('#companyBudgetModal').removeClass('hidden').addClass('flex');
+            });
+
+            // Edit
+            $(document).on('click', '.editCompanyBudgetBtn', function() {
+                let id = $(this).data('id');
+
+                showLoading();
+
+                $.get(`/company-budgets/${id}/edit`, function(c) {
+                    $('#modalCompanyBudgetTitle').text("Edit Company Budget");
+                    $('#cb_id').val(c.id);
+                    $('#cb_group_cpny_id').val(c.group_cpny_id).trigger('change');
+                    $('#cb_cpnyid').val(c.cpnyid);
+                    $('#cb_budget_cpnyid').val(c.budget_cpnyid);
+
+                    $('#companyBudgetModal').removeClass('hidden').addClass('flex');
+                    hideLoading();
+                }).fail(function(xhr) {
+                    hideLoading();
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Gagal mengambil data company budget'
+                    });
+
+                    console.error(xhr.responseText);
+                });
+            });
+
+            // Toggle status (company budget)
+            $(document).on('change', '.toggleCompanyBudgetStatus', function() {
+                let id = $(this).data('id');
+                let newStatus = $(this).is(':checked') ? 'A' : 'X';
+
+                $.ajax({
+                    url: `/company-budgets/${id}/toggle-status`,
+                    type: 'PUT',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    data: {
+                        status: newStatus
+                    },
+                    success: function() {
+                        window.companyBudgetTable.ajax.reload(null, false);
+                    }
+                });
+            });
+
+            // Delete (company budget)
+            $(document).on('click', '.deleteCompanyBudgetBtn', function() {
+                let id = $(this).data('id');
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Delete company budget?',
+                    showCancelButton: true,
+                    confirmButtonText: 'Delete',
+                    confirmButtonColor: '#dc2626'
+                }).then(function(result) {
+                    if (!result.isConfirmed) return;
+
+                    showLoading();
+
+                    $.ajax({
+                        url: `/company-budgets/${id}`,
+                        type: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        success: function() {
+                            hideLoading();
+                            window.companyBudgetTable.ajax.reload(null, false);
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                        },
+                        error: function(xhr) {
+                            hideLoading();
+
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Gagal menghapus company budget'
+                            });
+
+                            console.error(xhr.responseText);
+                        }
+                    });
+                });
+            });
+
+            // Submit form (create / update company budget)
+            $('#companyBudgetForm').submit(function(e) {
+                e.preventDefault();
+
+                let id = $('#cb_id').val();
+                let url = id ? `/company-budgets/${id}` : "{{ route('company-budgets.store') }}";
+                let formData = new FormData(document.getElementById('companyBudgetForm'));
+
+                if (id) {
+                    formData.append('_method', 'PUT');
+                }
+
+                showLoading();
+                $('#companyBudgetForm button[type="submit"]').prop('disabled', true);
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function() {
+                        hideLoading();
+                        $('#companyBudgetForm button[type="submit"]').prop('disabled', false);
+
+                        $('#companyBudgetModal').addClass('hidden').removeClass('flex');
+                        $('#companyBudgetForm')[0].reset();
+                        $('#cb_id').val('');
+                        window.companyBudgetTable.ajax.reload(null, false);
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Company budget saved successfully',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    },
+                    error: function(xhr) {
+                        hideLoading();
+                        $('#companyBudgetForm button[type="submit"]').prop('disabled', false);
+
+                        let msg = 'Gagal menyimpan data company budget';
+
+                        if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                            msg = Object.values(xhr.responseJSON.errors)
+                                .map(arr => arr.join(', '))
+                                .join('\n');
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: msg
+                        });
+
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+
+            $('#closeCompanyBudgetModal').click(function() {
+                $('#companyBudgetForm')[0].reset();
+                $('#cb_id').val('');
+                $('.cb-select2').val('').trigger('change');
+                $('#companyBudgetModal').addClass('hidden').removeClass('flex');
             });
 
             // init first (visible) tab

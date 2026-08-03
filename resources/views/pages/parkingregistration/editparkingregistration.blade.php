@@ -53,6 +53,7 @@
             @csrf
 
             <input type="hidden" id="docid" value="{{ $parkingRegistration->docid }}">
+            <input type="hidden" name="is_draft" id="isDraftField" value="0">
 
             {{-- HEADER --}}
             <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
@@ -220,7 +221,7 @@
                     </div>
 
                     {{-- Info --}}
-                    <div class="flex flex-col gap-2">
+                    <div id="infoBox" class="flex flex-col gap-2">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Info
                         </label>
@@ -540,6 +541,19 @@
                             class="flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">
                             <i class="fa-solid fa-ban"></i>
                             <span>Cancel</span>
+                        </button>
+
+                        <button type="button" id="saveDraftBtn"
+                            class="flex items-center gap-2 rounded-md bg-gray-500 px-4 py-2 text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                            <span id="draftBtnText">Save as Draft</span>
+                            <svg id="draftLoadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                    stroke="currentColor" stroke-width="4">
+                                </circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8v8z"></path>
+                            </svg>
                         </button>
 
                         <button type="submit" id="submitBtn"
@@ -1169,6 +1183,7 @@
             if (showExtraSection) {
                 $('#nonEmployeeExtraSection').removeClass('hidden').show();
                 $('#extraDateRangeBox').toggleClass('hidden', !shouldRequireDateRange);
+                $('#infoBox').toggleClass('lg:col-span-2', !shouldRequireDateRange);
 
                 $('#startdate').prop('required', shouldRequireDateRange);
                 $('#enddate').prop('required', shouldRequireDateRange);
@@ -1180,6 +1195,7 @@
             } else {
                 $('#nonEmployeeExtraSection').addClass('hidden').hide();
                 $('#extraDateRangeBox').removeClass('hidden');
+                $('#infoBox').removeClass('lg:col-span-2');
 
                 $('#startdate').prop('required', false);
                 $('#enddate').prop('required', false);
@@ -1364,6 +1380,10 @@
                     }
                 }
             });
+
+            $('#site_id_parking, #parking_type, #worker_type').select2({
+                width: '100%'
+            });
         });
     </script>
 
@@ -1464,24 +1484,28 @@
             });
         });
 
-        $('#parkingRegistrationForm').on('submit', function (e) {
-            e.preventDefault();
-
-            if (!syncDetailNamesBeforeSubmit()) {
+        function submitParkingForm(isDraft) {
+            if (!isDraft && !syncDetailNamesBeforeSubmit()) {
                 return;
             }
 
-            $('#submitBtn, #backBtn').prop('disabled', true);
-            $('#btnText').text('Processing...');
-            $('#loadingSpinner').removeClass('hidden');
-            showOverlay('Updating');
+            $('#isDraftField').val(isDraft ? '1' : '0');
+
+            const $btnText = isDraft ? $('#draftBtnText') : $('#btnText');
+            const $spinner = isDraft ? $('#draftLoadingSpinner') : $('#loadingSpinner');
+            const idleText = isDraft ? 'Save as Draft' : 'Update Approval';
+
+            $('#submitBtn, #saveDraftBtn, #cancelBtn, #backBtn').prop('disabled', true);
+            $btnText.text('Processing...');
+            $spinner.removeClass('hidden');
+            showOverlay(isDraft ? 'Saving draft' : 'Updating');
 
             syncDetailUsernameBeforeSubmit();
 
             const formData = new FormData(document.getElementById('parkingRegistrationForm'));
 
             formData.append('_method', 'PUT');
-            
+
             $.ajax({
                 url: "{{ route('parkingregistration.update', $parkingRegistration->docid) }}",
                 type: "POST",
@@ -1490,7 +1514,7 @@
                 contentType: false
             })
             .done(function (res) {
-                toastr.success(res.message || 'Parking Registration updated successfully.');
+                toastr.success(res.message || (isDraft ? 'Parking Registration saved as draft.' : 'Parking Registration updated successfully.'));
 
                 setTimeout(function () {
                     window.location.href = "{{ route('parkingregistration') }}";
@@ -1520,11 +1544,20 @@
                 console.error(xhr.responseText);
             })
             .always(function () {
-                $('#submitBtn, #backBtn').prop('disabled', false);
-                $('#btnText').text('Update Approval');
-                $('#loadingSpinner').addClass('hidden');
+                $('#submitBtn, #saveDraftBtn, #cancelBtn, #backBtn').prop('disabled', false);
+                $btnText.text(idleText);
+                $spinner.addClass('hidden');
                 hideOverlay();
             });
+        }
+
+        $('#parkingRegistrationForm').on('submit', function (e) {
+            e.preventDefault();
+            submitParkingForm(false);
+        });
+
+        $('#saveDraftBtn').on('click', function () {
+            submitParkingForm(true);
         });
 
         $(function () {

@@ -50,7 +50,8 @@
     <div class="max-w-9xl mx-auto w-full p-2">
         <form id="parkingRegistrationForm" class="flex flex-col gap-6" enctype="multipart/form-data">
             @csrf
-           
+            <input type="hidden" name="is_draft" id="isDraftField" value="0">
+
             {{-- HEADER --}}
             <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
                 <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
@@ -195,7 +196,7 @@
                     </div>
 
                     {{-- Info --}}
-                    <div class="flex flex-col gap-2">
+                    <div id="infoBox" class="flex flex-col gap-2">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Info
                         </label>
@@ -406,6 +407,19 @@
                     </button>
 
                     <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                        <button type="button" id="saveDraftBtn"
+                            class="flex items-center gap-2 rounded-md bg-gray-500 px-4 py-2 text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                            <span id="draftBtnText">Save as Draft</span>
+                            <svg id="draftLoadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                    stroke="currentColor" stroke-width="4">
+                                </circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8v8z"></path>
+                            </svg>
+                        </button>
+
                         <button type="submit" id="submitBtn"
                             class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                             <span id="btnText">Submit Approval</span>
@@ -1056,6 +1070,7 @@
             if (showExtraSection) {
                 $('#nonEmployeeExtraSection').removeClass('hidden');
                 $('#extraDateRangeBox').toggleClass('hidden', !shouldRequireDateRange);
+                $('#infoBox').toggleClass('lg:col-span-2', !shouldRequireDateRange);
 
                 $('#startdate').prop('required', shouldRequireDateRange);
                 $('#enddate').prop('required', shouldRequireDateRange);
@@ -1067,6 +1082,7 @@
             } else {
                 $('#nonEmployeeExtraSection').addClass('hidden');
                 $('#extraDateRangeBox').removeClass('hidden');
+                $('#infoBox').removeClass('lg:col-span-2');
 
                 $('#startdate').prop('required', false).val('');
                 $('#enddate').prop('required', false).val('');
@@ -1181,6 +1197,10 @@
             if (typeof toggleNonEmployeeExtraFields === 'function') {
                 toggleNonEmployeeExtraFields();
             }
+
+            $('#site_id_parking, #parking_type, #worker_type').select2({
+                width: '100%'
+            });
         });
     </script>
 
@@ -1294,25 +1314,21 @@
             return true;
         }
 
-        $('#parkingRegistrationForm').on('submit', function (e) {
-            e.preventDefault();
-
-            if (!syncDetailNamesBeforeSubmit()) {
+        function submitParkingForm(isDraft) {
+            if (!isDraft && !syncDetailNamesBeforeSubmit()) {
                 return;
             }
 
-            $('#submitBtn, #backBtn').prop('disabled', true);
-            $('#btnText').text('Processing...');
-            $('#loadingSpinner').removeClass('hidden');
-            showOverlay('Submitting');
+            $('#isDraftField').val(isDraft ? '1' : '0');
 
-            if (!syncDetailNamesBeforeSubmit()) {
-                $('#submitBtn, #backBtn').prop('disabled', false);
-                $('#btnText').text('Submit Approval');
-                $('#loadingSpinner').addClass('hidden');
-                hideOverlay();
-                return;
-            }
+            const $btnText = isDraft ? $('#draftBtnText') : $('#btnText');
+            const $spinner = isDraft ? $('#draftLoadingSpinner') : $('#loadingSpinner');
+            const idleText = isDraft ? 'Save as Draft' : 'Submit Approval';
+
+            $('#submitBtn, #saveDraftBtn, #backBtn').prop('disabled', true);
+            $btnText.text('Processing...');
+            $spinner.removeClass('hidden');
+            showOverlay(isDraft ? 'Saving draft' : 'Submitting');
 
             syncDetailUsernameBeforeSubmit();
 
@@ -1326,7 +1342,7 @@
                 contentType: false
             })
             .done(function (res) {
-                toastr.success(res.message || 'Parking Registration created successfully.');
+                toastr.success(res.message || (isDraft ? 'Parking Registration saved as draft.' : 'Parking Registration created successfully.'));
 
                 setTimeout(function () {
                     window.location.href = "{{ route('parkingregistration') }}";
@@ -1357,11 +1373,20 @@
                 console.error(xhr.responseText);
             })
             .always(function () {
-                $('#submitBtn, #backBtn').prop('disabled', false);
-                $('#btnText').text('Submit Approval');
-                $('#loadingSpinner').addClass('hidden');
+                $('#submitBtn, #saveDraftBtn, #backBtn').prop('disabled', false);
+                $btnText.text(idleText);
+                $spinner.addClass('hidden');
                 hideOverlay();
             });
+        }
+
+        $('#parkingRegistrationForm').on('submit', function (e) {
+            e.preventDefault();
+            submitParkingForm(false);
+        });
+
+        $('#saveDraftBtn').on('click', function () {
+            submitParkingForm(true);
         });
 
         $(function () {
