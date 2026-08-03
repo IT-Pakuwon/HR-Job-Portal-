@@ -6,22 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\BusinessUnit;
-use App\Models\MsCompany;
 
 class BusinessUnitController extends Controller
 {
-    public function index()
-    {
-        $companies = MsCompany::query()
-            ->select('cpny_id', 'cpny_name')
-            ->where('status', 'A')
-            ->whereNull('deleted_at')
-            ->orderBy('cpny_name')
-            ->get();
-
-        return view('pages.businessunit.businessunit', compact('companies'));
-    }
-
     public function json(Request $request)
     {
         $cpnyId = $request->get('cpny_id');

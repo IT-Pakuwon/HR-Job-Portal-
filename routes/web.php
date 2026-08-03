@@ -2604,7 +2604,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/sys-calendar/{id}', [SysCalendarController::class, 'update'])->name('sys-calendar.update');
         Route::put('/sys-calendar/{id}/toggle-status', [SysCalendarController::class, 'toggleStatus'])->name('sys-calendar.toggle-status');
 
-        Route::get('/business-units', [BusinessUnitController::class, 'index'])->name('business-units');
         Route::get('/business-units/json', [BusinessUnitController::class, 'json'])->name('business-units.json');
         Route::post('/business-units', [BusinessUnitController::class, 'store'])->name('business-units.store');
         Route::get('/business-units/{id}/edit', [BusinessUnitController::class, 'edit'])->name('business-units.edit');

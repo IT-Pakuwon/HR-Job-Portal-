@@ -11,7 +11,13 @@ class CompanyController extends Controller
 {
     public function index()
     {
-        return view('pages.company.company');
+        $companies = MsCompany::select('cpny_id', 'cpny_name')
+            ->where('status', 'A')
+            ->whereNull('deleted_at')
+            ->orderBy('cpny_name')
+            ->get();
+
+        return view('pages.company.company', compact('companies'));
     }
 
     public function json()

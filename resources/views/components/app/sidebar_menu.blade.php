@@ -318,7 +318,6 @@
                                 'menus',
                                 'companies',
                                 'department',
-                                'business-units',
                                 'tenants',
                                 'locations',
                                 'categories',
@@ -461,10 +460,6 @@
                                         </li>
                                         <li><a href="{{ route('department') }}"
                                                 class="{{ Request::segment(1) === 'department' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Department</a>
-                                        </li>
-                                        <li><a href="{{ route('business-units') }}"
-                                                class="{{ Request::segment(1) === 'business-units' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Business
-                                                Units</a>
                                         </li>
                                         <li><a href="{{ route('tenants') }}"
                                                 class="{{ Request::segment(1) === 'tenants' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Tenants</a>
