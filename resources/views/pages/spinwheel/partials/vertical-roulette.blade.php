@@ -91,24 +91,6 @@
         return reelHeight / ROULETTE_VISIBLE_ROWS;
     }
 
-    function escapeHtml(value) {
-        return $('<div>').text(value ?? '').html();
-    }
-
-    function candidateLabel(candidate, combo) {
-
-        const name = escapeHtml(candidate.customer_name);
-        const company = escapeHtml(candidate.company_name);
-        const refNbr = escapeHtml(candidate.ref_nbr);
-
-        if (combo === 'name_refnbr') {
-            return `${name}${refNbr ? ' — ' + refNbr : ''}`;
-        }
-
-        return `${name}${company ? ' — ' + company : ''}`;
-
-    }
-
     function pickRouletteLabel(pool, combo, avoidLabel) {
 
         let label;

@@ -2,7 +2,7 @@
 
     @include('pages.spinwheel.partials.styles')
 
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" async></script>
 
     <div class="max-w-9xl mx-auto w-full">
 
@@ -56,6 +56,12 @@
                         </div>
 
                     </div>
+
+                    <a href="{{ route('spinwheel.live') }}" target="_blank" rel="noopener" title="Open Live Display in a new tab"
+                        class="inline-flex h-11 shrink-0 items-center gap-2 self-end rounded-xl border border-white/15 bg-white/5 px-4 text-sm font-medium text-slate-200 transition hover:bg-white/10 sm:self-auto">
+                        <span>📺</span>
+                        <span>Open Live Display</span>
+                    </a>
 
                     <button type="button" id="fullscreenBtn" title="Toggle Fullscreen"
                         class="flex h-11 w-11 shrink-0 items-center justify-center self-end rounded-xl border border-white/15 bg-white/5 text-lg text-slate-200 transition hover:bg-white/10 sm:self-auto">
@@ -111,7 +117,7 @@
 
                 <div class="grid min-h-0 flex-1 grid-cols-1 grid-rows-1 gap-4 lg:grid-cols-5">
 
-                    {{-- ROULETTE + DRAW PANEL --}}
+                    {{-- DRAW PANEL --}}
                     <div id="drawWinnersPanel" class="flex h-full min-h-0 flex-col lg:col-span-3 rounded-2xl border border-white/10 bg-white/5 p-5 shadow-sm">
 
                         <div class="flex shrink-0 items-center justify-between">
@@ -141,17 +147,7 @@
 
                         </div>
 
-                        <div class="mt-8 flex min-h-0 flex-1 flex-col items-center">
-
-                            @include('pages.spinwheel.partials.vertical-roulette')
-
-                            <div id="spinStatus"
-                                class="mt-5 min-h-[2.5rem] shrink-0 text-center text-lg font-extrabold text-fuchsia-300">
-                            </div>
-
-                        </div>
-
-                        <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
 
                             <div class="sm:col-span-2">
                                 <label class="mb-2 block text-sm font-medium text-slate-300">
@@ -282,42 +278,6 @@
             $('#liveBadge').toggleClass('hidden', !isLive).toggleClass('flex', isLive);
             $('#goLiveBtn').toggleClass('hidden', isLive).prop('disabled', !selectedEventId);
             $('#endLiveBtn').toggleClass('hidden', !isLive);
-
-        }
-
-        function resetRouletteIdle() {
-
-            const wrap = $('#rouletteReels');
-            wrap.html('');
-
-            const count = Math.max(1, parseInt($('#candidateCount').val() || '1', 10));
-            const pool = (window.sampleNames && window.sampleNames.length) ? window.sampleNames : [{
-                customer_name: '???',
-                company_name: '',
-                ref_nbr: ''
-            }];
-
-            for (let i = 0; i < count; i++) {
-
-                const rows = [];
-                let lastLabel = null;
-
-                for (let r = 0; r < ROULETTE_VISIBLE_ROWS; r++) {
-                    const label = pickRouletteLabel(pool, currentDisplayCombo, lastLabel);
-                    rows.push(label);
-                    lastLabel = label;
-                }
-
-                const track = $('<div class="roulette-reel-track" style="transition:none;"></div>');
-                rows.forEach(label => track.append(`<div class="roulette-reel-row">${label}</div>`));
-
-                const reel = $('<div class="roulette-reel"></div>');
-                reel.append('<div class="roulette-marker"></div>');
-                reel.append(track);
-
-                wrap.append(reel);
-
-            }
 
         }
 
@@ -556,11 +516,6 @@
                 const batchId = response.batch_id;
                 const combo = settings.display_combo;
 
-                if (combo !== currentDisplayCombo) {
-                    currentDisplayCombo = combo;
-                    if (!spinning) resetRouletteIdle();
-                }
-
                 if (batchId && batchId !== lastSeenBatchId) {
 
                     lastSeenBatchId = batchId;
@@ -568,32 +523,15 @@
 
                     const isFreshBatch = candidates.some(c => c.decision === 'pending');
 
+                    // no roulette to animate on the admin console — render the
+                    // candidates immediately, only popping the congrats modal
+                    // for a batch we haven't shown yet
+                    renderCandidates(candidates, combo);
+
                     if (isFreshBatch) {
-
-                        spinning = true;
-                        $('#spinStatus').text('🎰 Drawing...');
-
-                        spinVerticalRoulette(candidates, combo, 4500);
-
-                        setTimeout(function() {
-                            $('#spinStatus').text('');
-                            renderCandidates(candidates, combo);
-                            showCongratsPopup(candidates, combo);
-                        }, 4500);
-
-                    } else {
-                        // batch was already resolved in a previous session (e.g. stale
-                        // cache from a page reload) — sync state without replaying the
-                        // spin animation or congrats popup
-                        renderCandidates(candidates, combo);
+                        showCongratsPopup(candidates, combo);
                     }
 
-                }
-
-                const allResolved = candidates.length > 0 && candidates.every(c => c.decision !== 'pending');
-
-                if (batchId && allResolved && spinning) {
-                    spinning = false;
                 }
 
             });
@@ -634,8 +572,6 @@
 
             $('#eventWorkspace').removeClass('hidden');
             $('#candidatesArea').html('');
-            resetRouletteIdle();
-            spinning = false;
 
             loadPrizes(eventId);
             loadSummary(eventId);
@@ -689,9 +625,6 @@
 
             const eventId = currentEventId();
 
-            currentDisplayCombo = $('#displayCombo').val();
-            if (!spinning) resetRouletteIdle();
-
             if (!eventId) return;
 
             $.post('{{ route('spinwheel.saveSettings') }}', {
@@ -706,8 +639,6 @@
         $('#candidateCount').on('change', function() {
 
             const eventId = currentEventId();
-
-            if (!spinning) resetRouletteIdle();
 
             if (!eventId) return;
 

@@ -75,12 +75,16 @@
 
     th.qty-col,
     td.qty-col {
-        width: 20px;
+        width: 24px;
+        padding-left: 2px;
+        padding-right: 2px;
     }
 
     th.uom-col,
     td.uom-col {
-        width: 20px;
+        width: 24px;
+        padding-left: 2px;
+        padding-right: 2px;
     }
 
 
@@ -263,8 +267,8 @@
         <col style="width:18px"> {{-- No --}}
         <col style="width:110px"> {{-- Inventory ID --}}
         <col> {{-- Description (auto) --}}
-        <col style="width:40px"> {{-- Qty --}}
-        <col style="width:40px"> {{-- UoM --}}
+        <col style="width:24px"> {{-- Qty --}}
+        <col style="width:24px"> {{-- UoM --}}
         @for ($i = 0; $i < $maxVendors; $i++)
             <col style="width:120px"> {{-- Vendor --}}
         @endfor

@@ -13,9 +13,11 @@ class Personnel extends Model
     protected $fillable = [
         'docid',
         'cpnyid',
+        'group_cpny_id',
         'departementid',
         'division_id',
         'locationname',
+        'area_id',
         'date',
         'user',
         'job_title',
@@ -36,6 +38,8 @@ class Personnel extends Model
         'experience_start',
         'experience_end',
         'experience_position',
+        'expected_employment_date',
+        'budget_cpnyid',
         'created_user',
         'created_at',
         'updated_user',
@@ -44,7 +48,7 @@ class Personnel extends Model
         'site',
         'refid',
         'completed_user',
-        'created_user',
+        'completed_at',
         'cpnyid_site'
     ];
 

@@ -74,8 +74,10 @@
         /* Event bar content: ID badge + title + creator avatar */
         #calendar .fc-event {
             border-radius: 6px !important;
-            padding: 2px 8px !important;
+            padding: 6px 10px !important;
+            min-height: 30px;
             font-weight: 600;
+            font-size: 12.5px;
         }
 
         #calendar .fc-event-main-frame {
@@ -87,7 +89,7 @@
 
         #calendar .fc-event-id-badge {
             flex-shrink: 0;
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 700;
             opacity: 0.8;
         }
@@ -104,11 +106,11 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 16px;
-            height: 16px;
+            width: 20px;
+            height: 20px;
             border-radius: 9999px;
             background: rgba(0, 0, 0, 0.14);
-            font-size: 9px;
+            font-size: 10px;
             font-weight: 700;
             line-height: 1;
         }
@@ -149,7 +151,15 @@
             padding: 9px 12px;
         }
 
-        /* Company group header: bold text only, no row wash */
+        /* Company + Department now render together as one full-width group
+           header (see resourceGroupLabelContent in calendar.js), so lay the
+           two spans out on a single line with a divider between them. */
+        #calendar .fc-datagrid-cell-cushion:has(.fc-group-company) {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         #calendar .fc-group-company {
             font-weight: 700;
             font-size: 12.5px;
@@ -159,6 +169,15 @@
 
         .dark #calendar .fc-group-company {
             color: #f1f5f9;
+        }
+
+        #calendar .fc-group-dept {
+            padding-left: 10px;
+            border-left: 1px solid #e2e8f0;
+        }
+
+        .dark #calendar .fc-group-dept {
+            border-left-color: rgba(255, 255, 255, 0.1);
         }
 
         /* Department group header: small color dot + muted text, no filled tag */
@@ -193,36 +212,6 @@
         .dark #calendar .fc-dept-loyalty,
         .dark #calendar .fc-dept-promo {
             color: #94a3b8;
-        }
-
-        /* Location rows: name + de-emphasized area figure */
-        #calendar .fc-loc-name {
-            font-size: 12.5px;
-            font-weight: 500;
-            color: #334155;
-        }
-
-        #calendar .fc-loc-area {
-            display: block;
-            font-size: 10.5px;
-            color: #94a3b8;
-            margin-top: 1px;
-        }
-
-        .dark #calendar .fc-loc-name {
-            color: #e2e8f0;
-        }
-
-        .dark #calendar .fc-loc-area {
-            color: #64748b;
-        }
-
-        #calendar .fc-datagrid-body tr:hover .fc-loc-name {
-            color: #0f172a;
-        }
-
-        .dark #calendar .fc-datagrid-body tr:hover .fc-loc-name {
-            color: #ffffff;
         }
 
         /* FullCalendar's own default shading for group-header lanes reads as
@@ -628,14 +617,30 @@
     </div>
 
     <script>
-        window.EventCalendarResources = {!! json_encode($locations->map(fn($l) => [
-            'id' => (string) $l->id,
-            'title' => $l->event_total_area ? "{$l->event_location_name} - {$l->event_total_area} m²" : $l->event_location_name,
-            'cpny_name' => optional($l->company)->cpny_name,
-            'department_label' => collect($l->departmentIds())
+        window.EventCalendarResources = {!! json_encode($locations->map(function ($l) use ($departmentNames) {
+            $cpnyName = optional($l->company)->cpny_name;
+            $deptLabel = collect($l->departmentIds())
                 ->map(fn ($id) => $departmentNames->get($id, $id))
-                ->implode(', '),
-        ])->values()) !!};
+                ->implode(', ');
+
+            return [
+                'id' => (string) $l->id,
+                'title' => $l->event_total_area ? "{$l->event_location_name} - {$l->event_total_area} m²" : $l->event_location_name,
+                'cpny_name' => $cpnyName,
+                'department_label' => $deptLabel,
+                // Single composite key so Company + Department render as one
+                // full-width group header with locations nested directly
+                // beneath it, instead of separate staircased columns.
+                'group_key' => "{$cpnyName}|||{$deptLabel}",
+                // Sort by insertion order (id) rather than name, so locations
+                // land in whatever sequence they were set up in (e.g. floor
+                // order: LG, GF, UG, 1st FL...) instead of alphabetically.
+                // "Others" is still forced last as a catch-all safety net.
+                'sort_key' => strtolower(trim($l->event_location_name)) === 'others'
+                    ? 999999999
+                    : $l->id,
+            ];
+        })->values()) !!};
 
         window.EventCalendarCurrentUser = {
             username: @json(auth()->user()->username),

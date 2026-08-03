@@ -11,6 +11,24 @@
     let currentBatchId = null;
     let currentDisplayCombo = 'name_company';
 
+    function escapeHtml(value) {
+        return $('<div>').text(value ?? '').html();
+    }
+
+    function candidateLabel(candidate, combo) {
+
+        const name = escapeHtml(candidate.customer_name);
+        const company = escapeHtml(candidate.company_name);
+        const refNbr = escapeHtml(candidate.ref_nbr);
+
+        if (combo === 'name_refnbr') {
+            return `${name}${refNbr ? ' — ' + refNbr : ''}`;
+        }
+
+        return `${name}${company ? ' — ' + company : ''}`;
+
+    }
+
     function applySelect2(el, options = {}) {
 
         if (el.hasClass('select2-hidden-accessible')) {
@@ -114,7 +132,8 @@
 
             window.sampleNames = response.sample_names ?? [];
 
-            if (!spinning) {
+            // admin console has no roulette visual, so it doesn't define resetRouletteIdle()
+            if (!spinning && typeof resetRouletteIdle === 'function') {
                 resetRouletteIdle();
             }
 

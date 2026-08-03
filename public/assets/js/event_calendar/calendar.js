@@ -139,35 +139,26 @@ const EventCalendarApp = {
             eventLongPressDelay: 0,
             selectLongPressDelay: 0,
             resources: window.EventCalendarResources || [],
-            resourceOrder: 'cpny_name,department_label,title',
-            resourceAreaColumns: [
-                { field: 'cpny_name', headerContent: 'Company', group: true },
-                { field: 'department_label', headerContent: 'Department', group: true },
-                {
-                    field: 'title',
-                    headerContent: 'Location',
-                    cellContent: (arg) => {
-                        const raw = arg.fieldValue || '';
-                        const match = raw.match(/^(.*) - ([\d.,]+\s*m²)$/);
+            resourceOrder: 'group_key,sort_key',
+            resourceGroupField: 'group_key',
+            resourceAreaHeaderContent: 'Location',
+            // group_key is "Company|||Department" (see calendar.blade.php) so the
+            // two combine into one full-width header row, with locations nested
+            // directly beneath it — no separate staircased columns.
+            resourceGroupLabelContent: (arg) => {
+                const [company, department] = String(arg.groupValue || '').split('|||');
+                const deptValue = String(department || '').trim().toUpperCase();
 
-                        if (!match) {
-                            return { html: `<span class="fc-loc-name">${EventCalendarApp.escapeHtml(raw)}</span>` };
-                        }
+                let deptClass = '';
+                if (deptValue === 'LOYALTY') deptClass = 'fc-dept-loyalty';
+                else if (deptValue.includes('PROMOTION') || deptValue.includes('CASUALLEASING')) deptClass = 'fc-dept-promo';
 
-                        return {
-                            html: `<span class="fc-loc-name">${EventCalendarApp.escapeHtml(match[1])}</span>`
-                                + `<span class="fc-loc-area">${EventCalendarApp.escapeHtml(match[2])}</span>`,
-                        };
-                    },
-                },
-            ],
-            resourceGroupLabelClassNames: (arg) => {
-                const value = String(arg.groupValue || '').trim().toUpperCase();
+                const companyHtml = `<span class="fc-group-company">${EventCalendarApp.escapeHtml(company || '')}</span>`;
+                const deptHtml = department
+                    ? `<span class="fc-group-dept ${deptClass}">${EventCalendarApp.escapeHtml(department)}</span>`
+                    : '';
 
-                if (value === 'LOYALTY') return ['fc-dept-loyalty'];
-                if (value.includes('PROMOTION') || value.includes('CASUALLEASING')) return ['fc-dept-promo'];
-
-                return ['fc-group-company'];
+                return { html: companyHtml + deptHtml };
             },
             selectable: true,
             selectMirror: true,
@@ -275,7 +266,7 @@ const EventCalendarApp = {
                 <div class="ecap-tip-title">${EventCalendarApp.escapeHtml(arg.event.title)}</div>
                 <div class="ecap-tip-row">
                     <i class="fa-solid fa-building"></i>
-                    <span>${EventCalendarApp.escapeHtml(props.cpny_name || '-')}</span>
+                    <span>${EventCalendarApp.escapeHtml(props.event_company_name || '-')}</span>
                 </div>
                 <div class="ecap-tip-row">
                     <i class="fa-solid fa-user"></i>

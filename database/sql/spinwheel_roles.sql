@@ -71,3 +71,11 @@ SET status = 'X', updated_by = 'bedriamaail'
 WHERE screen_id = 'SPINWHEELS'
   AND role_id IN ('ADEVENTACCESS', 'EVENTACCESS')
   AND status = 'A';
+
+-- ── Sidebar menu visibility (confirmed menu_id='SPINWHEELS', parent 'EVENT') ──
+INSERT INTO sys_role_menu (role_id, menu_id, parent_menu_id, status, created_by)
+SELECT v.role_id, 'SPINWHEELS', 'EVENT', 'A', 'bedriamaail'
+FROM (VALUES ('SPINWHEELADMIN'), ('SPINWHEELACCESS')) AS v(role_id)
+WHERE NOT EXISTS (
+    SELECT 1 FROM sys_role_menu r WHERE r.role_id = v.role_id AND r.menu_id = 'SPINWHEELS'
+);

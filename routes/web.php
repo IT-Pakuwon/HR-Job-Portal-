@@ -1934,6 +1934,7 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('spinwheel')->controller(SpinwheelController::class)->group(function () {
             Route::middleware('access:SPINWHEELS,VIEW')->group(function () {
                 Route::get('/', 'index')->name('spinwheel');
+                Route::get('/live', 'liveDisplay')->name('spinwheel.live');
                 Route::get('/download-template', 'downloadTemplate')->name('spinwheel.downloadTemplate');
 
                 Route::middleware('ajax')->group(function () {

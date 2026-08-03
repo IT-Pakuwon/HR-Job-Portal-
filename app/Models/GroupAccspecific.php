@@ -11,6 +11,8 @@ class GroupAccspecific extends Model
     protected $table = "ms_group_acc_specific";
 
     protected $fillable = [
+        'group_cpny_id',
+        'area_id',
         'group_access_id',
         'group_access_name',
         'username',
@@ -18,7 +20,9 @@ class GroupAccspecific extends Model
         'parameter_access_id',
         'status',
         'created_user',
+        'created_at',
         'updated_user',
+        'updated_at',
     ];
 }
 

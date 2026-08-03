@@ -12,13 +12,16 @@ class StoGrading extends Model
     protected $table = "hr_ms_sto_grading";
     
     protected $fillable = [
+        'group_cpny_id',
         'grade_id',
         'grade_name',
-        'grade_color_code',       
+        'grade_color_code',
         'status',
         'created_user',
+        'created_at',
         'updated_user',
-        'completed_user' 
+        'updated_at',
+        'completed_user'
     ];
 
 

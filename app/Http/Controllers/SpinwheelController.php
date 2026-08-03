@@ -27,23 +27,40 @@ class SpinwheelController extends Controller
             return redirect()->route('login');
         }
 
-        $events = MsLuckydrawEvent::query()
-            ->where('status', 'A')
-            ->orderByDesc('event_date')
-            ->get();
-
-        $activeEventId = Cache::get($this->activeEventCacheKey());
-        $activeEvent = $activeEventId ? $events->firstWhere('event_id', $activeEventId) : null;
-
         if ($user->hasRole('SPINWHEELADMIN')) {
+            $events = MsLuckydrawEvent::query()
+                ->where('status', 'A')
+                ->orderByDesc('event_date')
+                ->get();
+
+            $activeEventId = Cache::get($this->activeEventCacheKey());
+            $activeEvent = $activeEventId ? $events->firstWhere('event_id', $activeEventId) : null;
+
             return view('pages.spinwheel.admin', compact('events', 'activeEvent'));
         }
 
         if ($user->hasRole('SPINWHEELACCESS')) {
-            return view('pages.spinwheel.audience', compact('activeEvent'));
+            return view('pages.spinwheel.audience', ['activeEvent' => $this->resolveActiveEvent()]);
         }
 
         abort(403, 'You need the Spin Wheel Admin or Audience role to view this page.');
+    }
+
+    // Lets an operator (SPINWHEELADMIN) deliberately open the audience/live-display
+    // screen — e.g. on a projector — instead of always landing on their own console.
+    // No role branching here: anyone who passed the SPINWHEELS,VIEW middleware may view it.
+    public function liveDisplay()
+    {
+        return view('pages.spinwheel.audience', ['activeEvent' => $this->resolveActiveEvent()]);
+    }
+
+    private function resolveActiveEvent()
+    {
+        $activeEventId = Cache::get($this->activeEventCacheKey());
+
+        return $activeEventId
+            ? MsLuckydrawEvent::query()->where('event_id', $activeEventId)->where('status', 'A')->first()
+            : null;
     }
 
     private function activeEventCacheKey(): string

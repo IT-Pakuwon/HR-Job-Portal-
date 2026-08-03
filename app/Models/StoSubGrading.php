@@ -12,15 +12,18 @@ class StoSubGrading extends Model
     protected $table = "hr_ms_sto_subgrading";
     
     protected $fillable = [
+        'group_cpny_id',
         'subgrade_id',
         'subgrade_name',
-        'subgrade_color_code',  
-        'grade_id',       
-        'group_grade',     
+        'subgrade_color_code',
+        'grade_id',
+        'group_grade',
         'status',
         'created_user',
+        'created_at',
         'updated_user',
-        'completed_user' 
+        'updated_at',
+        'completed_user'
     ];
 
 
