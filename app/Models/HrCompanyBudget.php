@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class HrCompanyBudget extends Model
 {
-    protected $connection = 'mysql3';
+    protected $connection = 'pgsql3';
     protected $table = "hr_company_budget";
 
     protected $fillable = [

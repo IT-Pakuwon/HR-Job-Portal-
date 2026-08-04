@@ -488,8 +488,7 @@
 
                         <div class="mb-3">
                             <label class="block text-gray-700 dark:text-white">Company</label>
-                            <select id="cb_cpnyid" name="cpnyid"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            <select id="cb_cpnyid" name="cpnyid" class="cb-select2 w-full" required>
                                 <option value="">-- Select Company --</option>
                                 @foreach ($companies as $company)
                                     <option value="{{ $company->cpny_id }}">
@@ -501,8 +500,7 @@
 
                         <div class="mb-3 md:col-span-2">
                             <label class="block text-gray-700 dark:text-white">Budget Company</label>
-                            <select id="cb_budget_cpnyid" name="budget_cpnyid"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            <select id="cb_budget_cpnyid" name="budget_cpnyid" class="cb-select2 w-full" required>
                                 <option value="">-- Select Budget Company --</option>
                                 @foreach ($companies as $company)
                                     <option value="{{ $company->cpny_id }}">
