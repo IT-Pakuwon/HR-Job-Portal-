@@ -114,6 +114,7 @@ class ReportWarehouseController extends Controller
                 'd.inventoryid',
                 'd.inventory_descr',
                 'd.issue_qty',
+                'd.uom',
                 'd.siteid',
 
                 'd.budget_business_unit_id',
@@ -807,6 +808,8 @@ class ReportWarehouseController extends Controller
                 'Description' => $row->inventory_descr,
 
                 'Qty Issued' => number_format($row->issue_qty ?? 0,3,'.',''),
+
+                'UOM' => $row->uom ?? '',
 
                 'Issued By' => $users[$row->issue_created_by] ?? $row->issue_created_by,
 
