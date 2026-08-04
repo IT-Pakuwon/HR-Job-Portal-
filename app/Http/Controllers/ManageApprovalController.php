@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MsCompany;
 use App\Models\TrApproval;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -54,10 +55,15 @@ class ManageApprovalController extends Controller
             ->orderBy('username')
             ->get();
 
+        $companies = MsCompany::select('cpny_id', 'cpny_name')
+            ->orderBy('cpny_name')
+            ->get();
+
         return view('pages.manage-approval.manage-approvals', [
-            'doctypes' => $doctypes,
-            'users'    => $users,
-            'allUsers' => $allUsers,
+            'doctypes'  => $doctypes,
+            'users'     => $users,
+            'allUsers'  => $allUsers,
+            'companies' => $companies,
         ]);
     }
 
@@ -86,10 +92,11 @@ class ManageApprovalController extends Controller
         $doctype  = trim((string) $request->query('doctype', ''));
         $username = trim((string) $request->query('username', ''));
         $status   = trim((string) $request->query('status', ''));
+        $company  = trim((string) $request->query('company', ''));
 
         // This is an admin diagnostic tool over a table with tens of thousands of
         // historical rows across ~26 doctypes — refuse to dump the whole table.
-        if ($refnbr === '' && $doctype === '' && $username === '' && $status === '') {
+        if ($refnbr === '' && $doctype === '' && $username === '' && $status === '' && $company === '') {
             return response()->json([
                 'data'    => [],
                 'message' => 'Enter a Refnbr, Doctype, Username, or Status filter to search.',
@@ -108,6 +115,7 @@ class ManageApprovalController extends Controller
             ->when($doctype !== '', fn ($q) => $q->where('aprv_doctype', $doctype))
             ->when($username !== '', fn ($q) => $q->where('aprv_username', 'ilike', "%{$username}%"))
             ->when($status !== '', fn ($q) => $q->where('status', $status))
+            ->when($company !== '', fn ($q) => $q->where('aprv_cpnyid', $company))
             ->orderBy('refnbr')
             ->orderBy('created_at')
             ->orderBy('id');
@@ -136,6 +144,7 @@ class ManageApprovalController extends Controller
                 'refnbr'           => $row->refnbr,
                 'aprv_doctype'     => $doctype,
                 'doctype_label'    => $entry['label'] ?? $doctype,
+                'aprv_cpnyid'      => $row->aprv_cpnyid,
                 'aprv_leveling'    => $row->aprv_leveling,
                 'aprv_username'    => $row->aprv_username,
                 'aprv_name'        => $row->aprv_name,

@@ -80,6 +80,16 @@
                         </select>
                     </div>
 
+                    <div class="min-w-50 flex-1">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">Company</label>
+                        <select id="filterCompany" class="w-full dark:bg-gray-700">
+                            <option value="">All Company</option>
+                            @foreach ($companies as $c)
+                                <option value="{{ $c->cpny_id }}">{{ $c->cpny_id }} - {{ $c->cpny_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     <div class="min-w-40 flex-1">
                         <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">Status</label>
                         <select id="filterStatus" class="w-full dark:bg-gray-700">
@@ -110,6 +120,7 @@
                             <tr>
                                 <th class="px-3 py-3 text-left">Refnbr</th>
                                 <th class="px-3 py-3 text-left">Doc Type</th>
+                                <th class="px-3 py-3 text-left">Company</th>
                                 <th class="w-16 px-3 py-3 text-center">Level</th>
                                 <th class="px-3 py-3 text-left">Approver</th>
                                 <th class="w-28 px-3 py-3 text-center">Approval Status</th>
@@ -355,6 +366,7 @@
                         d.doctype = $('#filterDoctype').val();
                         d.username = $('#filterUsername').val();
                         d.status = $('#filterStatus').val();
+                        d.company = $('#filterCompany').val();
                     },
                     dataSrc: function(json) {
                         if (json.message) {
@@ -371,6 +383,7 @@
                 columns: [
                     { data: 'refnbr', render: (v) => `<span class="font-medium text-gray-800 dark:text-gray-100">${v}</span>` },
                     { data: 'doctype_label', render: doctypeBadge },
+                    { data: 'aprv_cpnyid', render: (v) => v || '<span class="text-gray-400">—</span>' },
                     { data: 'aprv_leveling', className: 'text-center', type: 'num' },
                     {
                         data: null,
@@ -408,7 +421,7 @@
             });
 
             // ===== select2-ify all dropdowns =====
-            $('#filterDoctype, #filterStatus').select2({ width: '100%' });
+            $('#filterDoctype, #filterStatus, #filterCompany').select2({ width: '100%' });
             $('#filterUsername').select2({ width: '100%', placeholder: 'Any approver' });
             $('#transferFrom, #transferDoctype').select2({ width: '100%' });
             $('#transferTo').select2({ width: '100%', placeholder: 'Select user(s)…' });
@@ -419,12 +432,13 @@
                 $('#filterDoctype').val('').trigger('change');
                 $('#filterUsername').val('').trigger('change');
                 $('#filterStatus').val('').trigger('change');
+                $('#filterCompany').val('').trigger('change');
                 table.clear().draw();
             });
             $('#filterRefnbr').on('keydown', function(e) {
                 if (e.key === 'Enter') table.ajax.reload();
             });
-            $('#filterDoctype, #filterStatus, #filterUsername').on('change', () => table.ajax.reload());
+            $('#filterDoctype, #filterStatus, #filterUsername, #filterCompany').on('change', () => table.ajax.reload());
 
             // ===== Set Status modal =====
             let setStatusRowId = null;

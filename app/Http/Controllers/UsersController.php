@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\SysRole;
 use App\Models\SysUserRole;
 use App\Models\BusinessUnit;
-use App\Models\MsDivision;
+use App\Models\Division;
 use App\Models\Userdivision;
 use App\Models\UserDas;
 use App\Models\SysScreen;
@@ -46,7 +46,7 @@ class UsersController extends Controller
             ->distinct()
             ->get();
 
-        $divisions = MsDivision::select(['division_id', 'division_name'])
+        $divisions = Division::select(['division_id', 'division_name'])
             ->where('status', 'A')
             ->orderBy('division_name')
             ->get();
