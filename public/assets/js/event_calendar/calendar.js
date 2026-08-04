@@ -254,6 +254,17 @@ const EventCalendarApp = {
         return div.innerHTML;
     },
 
+    formatCurrency(amount) {
+        if (amount === null || amount === undefined || amount === '' || Number.isNaN(Number(amount))) return '-';
+
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        }).format(Number(amount));
+    },
+
     attachEventTooltip(arg) {
         if (typeof tippy === 'undefined') return;
 
@@ -274,7 +285,7 @@ const EventCalendarApp = {
                 </div>
                 <div class="ecap-tip-row">
                     <i class="fa-solid fa-file-contract"></i>
-                    <span>${props.event_total_contract != null && props.event_total_contract !== '' ? EventCalendarApp.escapeHtml(String(props.event_total_contract)) : '-'}</span>
+                    <span>${EventCalendarApp.escapeHtml(EventCalendarApp.formatCurrency(props.event_total_contract))}</span>
                 </div>
                 <span class="ecap-tip-status" style="background:${colors.bg};color:${colors.text}">
                     ${EventCalendarApp.escapeHtml(props.event_status || '-')}
@@ -411,7 +422,9 @@ const EventCalendarApp = {
         document.getElementById('view_event_name').textContent = event.title || '-';
         document.getElementById('view_event_company_name').textContent = props.event_company_name || '-';
         document.getElementById('view_event_location').textContent = EventCalendarApp.locationName(props.location_row_id);
-        document.getElementById('view_event_type').textContent = props.event_type || '-';
+        document.getElementById('view_event_type').innerHTML = props.event_type
+            ? `<i class="fa-solid fa-shapes text-[10px]"></i> ${EventCalendarApp.escapeHtml(props.event_type)}`
+            : '-';
 
         const statusColors = EventCalendarApp.statusColors[props.event_status] || { bg: '#eef0f2', text: '#475569' };
         document.getElementById('view_event_status').innerHTML = props.event_status
@@ -424,7 +437,7 @@ const EventCalendarApp = {
         document.getElementById('view_event_start_date').textContent = props.event_start_date || '-';
         document.getElementById('view_event_end_date').textContent = props.event_end_date || '-';
         document.getElementById('view_event_total_area').textContent = props.event_total_area || '-';
-        document.getElementById('view_event_total_contract').textContent = props.event_total_contract ?? '-';
+        document.getElementById('view_event_total_contract').textContent = EventCalendarApp.formatCurrency(props.event_total_contract);
         document.getElementById('view_created_by').textContent = props.created_by_name || props.created_by || '-';
 
         const picNames = (props.pic_event || '').split(',').map((v) => v.trim()).filter(Boolean);

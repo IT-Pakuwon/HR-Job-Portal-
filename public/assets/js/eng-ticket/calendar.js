@@ -211,6 +211,7 @@ const EngTicketCalendar = {
                         issue_summary:    ticket.issue_summary,
                         status_pekerjaan: ticket.status_pekerjaan,
                         pic_ticket:       ticket.pic_ticket,
+                        location_name:    ticket.location_name,
                         calendar_state:   ticket.calendar_state,
                         can_edit:         !!ticket.can_edit,
                     },
@@ -302,6 +303,7 @@ const EngTicketCalendar = {
 ${event.title}
 Status: ${props.status_pekerjaan}
 PIC: ${props.pic_ticket || '-'}
+Location: ${props.location_name || '-'}
 `.trim();
     },
 

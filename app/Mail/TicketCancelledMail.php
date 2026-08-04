@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\ResolvesTicketSystemLabel;
 use App\Models\TrTicket;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -9,7 +10,7 @@ use Illuminate\Queue\SerializesModels;
 
 class TicketCancelledMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, SerializesModels, ResolvesTicketSystemLabel;
 
     public $ticket;
 
@@ -31,6 +32,8 @@ class TicketCancelledMail extends Mailable
 
             ->view(
                 'emails.ticket-cancelled'
-            );
+            )
+
+            ->with('systemLabel', $this->systemLabelFor($this->ticket));
     }
 }

@@ -1818,6 +1818,7 @@ Route::middleware(['auth'])->group(function () {
                     Route::get('/issue-summary-search', 'issueSummarySearch')->name('oprteknik-ticket.issueSummarySearch');
                     Route::get('/priority-search', 'prioritySearch')->name('oprteknik-ticket.prioritySearch');
                     Route::get('/location-search', 'locationSearch')->name('oprteknik-ticket.locationSearch');
+                    Route::get('/sub-location-search', 'subLocationSearch')->name('oprteknik-ticket.subLocationSearch');
                     Route::get('/pic-search', 'picSearch')->name('oprteknik-ticket.picSearch');
                     Route::get('/counts', 'counts')->name('oprteknik-ticket.counts');
                     Route::get('/companies-search', 'companiesSearch')->name('oprteknik-ticket.companiesSearch');

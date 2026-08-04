@@ -521,75 +521,88 @@
 
             </div>
 
-            <div class="space-y-4 bg-slate-50 p-5 dark:bg-[#0b1220]">
+            <div class="space-y-5 bg-slate-50 p-5 dark:bg-[#0b1220]">
 
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {{-- Hero: name + tenant --}}
+                <div class="rounded-xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-white/[0.03]">
+                    <p class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                        <i class="fa-solid fa-tag text-[10px]"></i> Event Name
+                    </p>
+                    <p id="view_event_name" class="mt-1 text-base font-bold text-slate-900 dark:text-white">-</p>
 
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Event Name</p>
-                        <p id="view_event_name" class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">-</p>
+                    <div class="mt-3 flex items-center gap-1.5 border-t border-slate-100 pt-3 text-[11px] font-semibold uppercase tracking-wide text-slate-400 dark:border-white/10">
+                        <i class="fa-solid fa-building text-[10px]"></i> Tenant / Event Company Name
+                    </div>
+                    <p id="view_event_company_name" class="mt-1 text-sm font-medium text-slate-700 dark:text-slate-200">-</p>
+                </div>
+
+                {{-- Status badges --}}
+                <div class="flex flex-wrap items-center gap-2">
+                    <span id="view_event_status">-</span>
+                    <span id="view_status">-</span>
+                    <span id="view_event_type" class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 dark:bg-white/10 dark:text-slate-200">-</span>
+                </div>
+
+                {{-- Detail cards --}}
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+
+                    <div class="rounded-lg border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                        <p class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                            <i class="fa-solid fa-location-dot text-[10px]"></i> Location
+                        </p>
+                        <p id="view_event_location" class="mt-1.5 text-sm font-medium text-slate-800 dark:text-slate-100">-</p>
                     </div>
 
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Tenant / Event Company Name</p>
-                        <p id="view_event_company_name" class="mt-1 text-sm text-slate-700 dark:text-slate-200">-</p>
+                    <div class="rounded-lg border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                        <p class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                            <i class="fa-solid fa-ruler-combined text-[10px]"></i> Location Total Area (m²)
+                        </p>
+                        <p id="view_event_total_area" class="mt-1.5 text-sm font-medium text-slate-800 dark:text-slate-100">-</p>
                     </div>
 
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Location</p>
-                        <p id="view_event_location" class="mt-1 text-sm text-slate-700 dark:text-slate-200">-</p>
+                    <div class="rounded-lg border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                        <p class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                            <i class="fa-solid fa-calendar-day text-[10px]"></i> Start Date
+                        </p>
+                        <p id="view_event_start_date" class="mt-1.5 text-sm font-medium text-slate-800 dark:text-slate-100">-</p>
                     </div>
 
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Event Type</p>
-                        <p id="view_event_type" class="mt-1 text-sm text-slate-700 dark:text-slate-200">-</p>
+                    <div class="rounded-lg border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                        <p class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                            <i class="fa-solid fa-calendar-check text-[10px]"></i> End Date
+                        </p>
+                        <p id="view_event_end_date" class="mt-1.5 text-sm font-medium text-slate-800 dark:text-slate-100">-</p>
                     </div>
 
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Event Status</p>
-                        <p id="view_event_status" class="mt-1 text-sm text-slate-700 dark:text-slate-200">-</p>
+                    <div class="rounded-lg border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                        <p class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                            <i class="fa-solid fa-file-contract text-[10px]"></i> Total Contract
+                        </p>
+                        <p id="view_event_total_contract" class="mt-1.5 text-sm font-semibold text-emerald-700 dark:text-emerald-400">-</p>
                     </div>
 
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Status</p>
-                        <p id="view_status" class="mt-1 text-sm text-slate-700 dark:text-slate-200">-</p>
+                    <div class="rounded-lg border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                        <p class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                            <i class="fa-solid fa-user text-[10px]"></i> PIC Event
+                        </p>
+                        <p id="view_pic_event" class="mt-1.5 text-sm text-slate-800 dark:text-slate-100">-</p>
                     </div>
 
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Start Date</p>
-                        <p id="view_event_start_date" class="mt-1 text-sm text-slate-700 dark:text-slate-200">-</p>
-                    </div>
-
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">End Date</p>
-                        <p id="view_event_end_date" class="mt-1 text-sm text-slate-700 dark:text-slate-200">-</p>
-                    </div>
-
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Location Total Area (m²)</p>
-                        <p id="view_event_total_area" class="mt-1 text-sm text-slate-700 dark:text-slate-200">-</p>
-                    </div>
-
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Total Contract</p>
-                        <p id="view_event_total_contract" class="mt-1 text-sm text-slate-700 dark:text-slate-200">-</p>
-                    </div>
-
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Created By</p>
-                        <p id="view_created_by" class="mt-1 text-sm text-slate-700 dark:text-slate-200">-</p>
-                    </div>
-
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">PIC Event</p>
-                        <p id="view_pic_event" class="mt-1 text-sm text-slate-700 dark:text-slate-200">-</p>
+                    <div class="rounded-lg border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03] sm:col-span-2">
+                        <p class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                            <i class="fa-solid fa-user-pen text-[10px]"></i> Created By
+                        </p>
+                        <p id="view_created_by" class="mt-1.5 text-sm text-slate-800 dark:text-slate-100">-</p>
                     </div>
 
                 </div>
 
-                <div>
-                    <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Description</p>
-                    <p id="view_event_description" class="mt-1 whitespace-pre-line text-sm text-slate-700 dark:text-slate-200">-</p>
+                {{-- Description --}}
+                <div class="rounded-lg border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                    <p class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                        <i class="fa-solid fa-align-left text-[10px]"></i> Description
+                    </p>
+                    <p id="view_event_description" class="mt-1.5 whitespace-pre-line text-sm text-slate-700 dark:text-slate-200">-</p>
                 </div>
 
             </div>

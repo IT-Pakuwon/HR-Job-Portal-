@@ -102,7 +102,11 @@ function populateResponseTicket(ticket) {
 
     $("#response_ticket_subcategory").text(ticket.ticket_subcategory || "-");
 
-    $("#response_ticket_location").text(ticket.location_name || "-");
+    $("#response_ticket_location").text(
+        ticket.sub_location_name
+            ? `${ticket.location_name || "-"} — ${ticket.sub_location_name}`
+            : (ticket.location_name || "-")
+    );
 
     if (ticket.ticket_priority && ticket.priority_name) {
         const priorityOption = new Option(

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>{{ $ticket->ticketid }} — {{ match($ticket->ticket_type) {
-        'BA_BSFO' => 'Berita Acara BSFO',
+        'BA_BS' => 'Berita Acara BSFO',
         'BA_ENG' => 'Berita Acara ENG',
         'BSFOSUPPORTTICKET' => 'BS&FO Support Ticket',
         default => 'Engineering Support Ticket',
@@ -257,7 +257,7 @@
         $pLower = strtolower($pName);
 
         $moduleLabel = match($ticket->ticket_type) {
-            'BA_BSFO' => 'BERITA ACARA BSFO',
+            'BA_BS' => 'BERITA ACARA BSFO',
             'BA_ENG' => 'BERITA ACARA ENG',
             'BSFOSUPPORTTICKET' => 'BS&FO SUPPORT TICKET',
             default => 'ENGINEERING SUPPORT TICKET',
@@ -318,7 +318,12 @@
                         </tr>
                         <tr>
                             <td class="meta-label">Location</td>
-                            <td class="meta-value" colspan="3">{{ optional($ticket->site)->site_name ?? '-' }}</td>
+                            <td class="meta-value" colspan="3">
+                                {{ $locationDisplay['location_name'] ?? '-' }}
+                                @if ($locationDisplay['sub_location_name'] ?? null)
+                                    &mdash; {{ $locationDisplay['sub_location_name'] }}
+                                @endif
+                            </td>
                         </tr>
                         <tr>
                             <td class="meta-label">SLA Due Date</td>

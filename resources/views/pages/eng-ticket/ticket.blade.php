@@ -348,12 +348,12 @@
 
         {{-- Calendar Status Filter --}}
         <div id="ticketCalendarStatusFilterRow"
-            class="mt-4 grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+            class="grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
 
             <button type="button" class="calendar-status-filter text-left" data-state="UNSCHEDULED">
-                <div class="calendar-status-card flex h-full items-center gap-3 rounded-lg border border-gray-500 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:text-gray-400 dark:hover:bg-gray-700">
+                <div class="calendar-status-card flex h-full items-center gap-3 rounded-lg border border-gray-600 bg-gray-300/30 p-3 text-gray-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:text-gray-300 dark:hover:bg-gray-700">
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center">
-                        <span class="h-3 w-3 rounded-full bg-gray-400"></span>
+                        <span class="h-3 w-3 rounded-full bg-gray-600"></span>
                     </div>
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
                         <p class="whitespace-normal break-words text-sm font-medium">Unscheduled</p>
@@ -766,28 +766,38 @@
 
         </div>
             </div>
-            @if ($isMgrOprTeknik)
-                {{-- Pending Approval Panel --}}
-                <div id="ticketApprovalPanel"
-                    class="hidden w-full shrink-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] lg:w-80 flex">
+            {{-- Pending Approval Panel --}}
+            <div id="ticketApprovalPanel"
+                class="hidden w-full shrink-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] lg:w-80 flex">
 
-                    <div class="shrink-0 border-b border-gray-100 p-4 dark:border-white/[0.06]">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
-                                Pending My Approval
-                            </h3>
-                            <span id="ticketApprovalCount"
-                                class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
-                                0
+                <div
+                    class="shrink-0 border-b border-gray-100 bg-gradient-to-r from-amber-50 to-white p-4 dark:border-white/[0.06] dark:from-amber-900/10 dark:to-transparent">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <span
+                                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400">
+                                <i class="fa-solid fa-stamp text-sm"></i>
                             </span>
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                                    Pending My Approval
+                                </h3>
+                                <p class="text-[11px] text-gray-400 dark:text-gray-500">
+                                    Tickets waiting for your decision
+                                </p>
+                            </div>
                         </div>
+                        <span id="ticketApprovalCount"
+                            class="shrink-0 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                            0
+                        </span>
                     </div>
-
-                    <div id="ticketApprovalBody" class="flex-1 space-y-2 overflow-y-auto p-3"
-                        style="max-height: 720px;"></div>
-
                 </div>
-            @endif
+
+                <div id="ticketApprovalBody" class="flex-1 space-y-2.5 overflow-y-auto p-3"
+                    style="max-height: 720px;"></div>
+
+            </div>
             </div>
         {{-- CREATE TICKET MODAL --}}
         <div id="createTicketModal" data-form-modal="true"
@@ -1020,6 +1030,25 @@
 
                                 </div>
 
+                                <div id="sub_location_field" class="hidden">
+
+                                    <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+
+                                        Sub Location
+
+                                    </label>
+
+                                    <select id="sub_location_id" name="sub_location_id"
+                                        class="ticket-select h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]">
+
+                                        <option value="">
+                                            Select Sub Location
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
                             </div>
 
                         </div>
@@ -1047,14 +1076,26 @@
                                         Issue Summary <span class="text-red-500">*</span>
                                     </label>
 
-                                    <select id="issue_summary" name="issue_summary"
-                                        class="ticket-select h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]">
+                                    <div id="issue_summary_select_field">
 
-                                        <option value="">
-                                            Select Issue Summary
-                                        </option>
+                                        <select id="issue_summary" name="issue_summary"
+                                            class="ticket-select h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]">
 
-                                    </select>
+                                            <option value="">
+                                                Select Issue Summary
+                                            </option>
+
+                                        </select>
+
+                                    </div>
+
+                                    <div id="issue_summary_text_field" class="hidden">
+
+                                        <input type="text" id="issue_summary_text"
+                                            placeholder="Enter issue summary"
+                                            class="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 dark:border-white/10 dark:bg-[#0b1220]">
+
+                                    </div>
 
                                 </div>
 
@@ -1783,6 +1824,8 @@
             prioritySearch: "{{ route('oprteknik-ticket.prioritySearch') }}",
 
             locationSearch: "{{ route('oprteknik-ticket.locationSearch') }}",
+
+            subLocationSearch: "{{ route('oprteknik-ticket.subLocationSearch') }}",
 
             picSearch: "{{ route('oprteknik-ticket.picSearch') }}",
 

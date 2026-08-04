@@ -176,7 +176,7 @@
 
                             <input type="text" name="ticket_type"
                                 class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm uppercase uppercase shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                                placeholder="IT">
+                                placeholder="ENGSUPPORTTICKET">
 
                         </div>
 
@@ -188,7 +188,7 @@
 
                             <input type="text" name="ticket_type_name"
                                 class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                                placeholder="IT SUPPORT">
+                                placeholder="Engineering Support Ticketing">
 
                         </div>
 

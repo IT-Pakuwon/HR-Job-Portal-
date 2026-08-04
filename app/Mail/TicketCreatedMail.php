@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\ResolvesTicketSystemLabel;
 use App\Models\TrTicket;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -9,7 +10,7 @@ use Illuminate\Queue\SerializesModels;
 
 class TicketCreatedMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, SerializesModels, ResolvesTicketSystemLabel;
 
     public $ticket;
 
@@ -22,11 +23,7 @@ class TicketCreatedMail extends Mailable
 
     public function build()
     {
-        $systemLabel = match ($this->ticket->ticket_type) {
-            'ENGSUPPORTTICKET' => 'Engineering Ticketing System',
-            'BSFOSUPPORTTICKET' => 'BS-FO Ticketing System',
-            default => 'IT Ticketing System',
-        };
+        $systemLabel = $this->systemLabelFor($this->ticket);
 
         return $this
 

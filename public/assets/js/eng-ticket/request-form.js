@@ -67,7 +67,7 @@ function resetCreateTicketForm() {
 
     $('.modal-description')
         .text(
-            'Create new IT support ticket request.'
+            'Create new Engineering / BS support ticket request.'
         );
 
     $('#btn_submit_ticket')
@@ -86,6 +86,7 @@ function resetCreateTicketForm() {
     $('#ticket_categoryid').val(null).trigger('change');
     $('#ticket_subcategoryid').val(null).trigger('change');
     $('#location_id').val(null).trigger('change');
+    $('#sub_location_id').val(null).trigger('change');
 
     const firstCompany =
         window.ticketCompanies?.[0];
@@ -118,6 +119,7 @@ function resetCreateTicketForm() {
     }
 
     $('#issue_summary').val(null).trigger('change');
+    $('#issue_summary_text').val('');
     $('#issue_descr').val('');
 
     if (window.issueDescrQuill) {
@@ -161,14 +163,23 @@ function submitCreateTicket() {
         );
     }
 
-    const summary = ($('#issue_summary').val() || '').trim();
+    const summary = typeof getIssueSummaryValue === 'function'
+        ? getIssueSummaryValue()
+        : ($('#issue_summary').val() || '').trim();
+
     const descrText = window.issueDescrQuill
         ? window.issueDescrQuill.getText().trim()
         : $('#issue_descr').val().trim();
 
     if (!summary) {
         showError('Issue Summary is required.');
-        $('#issue_summary').focus();
+
+        if (typeof isBaTicketType === 'function' && isBaTicketType($('#ticket_type').val())) {
+            $('#issue_summary_text').focus();
+        } else {
+            $('#issue_summary').focus();
+        }
+
         return;
     }
 

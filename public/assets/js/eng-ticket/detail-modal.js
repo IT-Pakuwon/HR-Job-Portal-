@@ -753,20 +753,18 @@ function renderTicketTimeline(timelines = []) {
             item.status_pekerjaan ||
             'CREATED';
 
-        const descriptionWorkflows = [
-            'ENVISION CHECKED / SOLVED',
-            'CANCEL',
-            'RESPONSE',
-            'PROCESS',
-            'PENDING',
-            'TRANSFER',
-            'REOPEN',
-        ];
-
         const rawDescription = item.description || item.response_descr || '';
 
+        // Strip tags/whitespace before deciding if there's really something
+        // to show — a Quill editor left empty still submits markup like
+        // "<p><br></p>", which is truthy but renders as a blank box.
+        const strippedDescription = rawDescription
+            .replace(/<[^>]*>/g, '')
+            .replace(/&nbsp;/gi, ' ')
+            .trim();
+
         const description =
-            descriptionWorkflows.includes(workflow) && rawDescription !== '-'
+            rawDescription !== '-' && strippedDescription !== ''
                 ? rawDescription
                 : '';
 

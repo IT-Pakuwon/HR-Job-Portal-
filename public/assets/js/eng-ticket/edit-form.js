@@ -93,6 +93,18 @@ function loadEditTicket(eid) {
                 .val(ticket.ticket_type)
                 .trigger('change');
 
+            // The ticket_type change handler is skipped while isEditLoading
+            // is true, so Location's option list (site vs ms_location) has
+            // to be rebuilt for this ticket's type explicitly, same as
+            // category/subcategory are re-seeded below.
+            if (typeof refreshLocationDropdown === 'function') {
+                refreshLocationDropdown();
+            }
+
+            if (typeof refreshIssueSummaryField === 'function') {
+                refreshIssueSummaryField();
+            }
+
             setTimeout(function () {
 
                 if (ticket.ticket_categoryid) {
@@ -137,19 +149,46 @@ function loadEditTicket(eid) {
                 .val(ticket.location_id)
                 .trigger('change');
 
-            if (ticket.issue_summary) {
+            if (typeof isBaTicketType === 'function'
+                && isBaTicketType(ticket.ticket_type)
+                && ticket.sub_location_id) {
 
-                const issueSummaryOption =
+                const subLocationOption =
                     new Option(
-                        ticket.issue_summary,
-                        ticket.issue_summary,
+                        ticket.sub_location_name || ticket.sub_location_id,
+                        ticket.sub_location_id,
                         true,
                         true
                     );
 
-                $('#issue_summary')
-                    .append(issueSummaryOption)
+                $('#sub_location_id')
+                    .append(subLocationOption)
                     .trigger('change');
+
+            }
+
+            if (ticket.issue_summary) {
+
+                if (typeof isBaTicketType === 'function' && isBaTicketType(ticket.ticket_type)) {
+
+                    $('#issue_summary_text')
+                        .val(ticket.issue_summary);
+
+                } else {
+
+                    const issueSummaryOption =
+                        new Option(
+                            ticket.issue_summary,
+                            ticket.issue_summary,
+                            true,
+                            true
+                        );
+
+                    $('#issue_summary')
+                        .append(issueSummaryOption)
+                        .trigger('change');
+
+                }
 
             }
 
@@ -300,7 +339,7 @@ function submitUpdateTicket() {
 
             $('.modal-description')
                 .text(
-                    'Create new IT support ticket request.'
+                    'Create new Engineering / BS support ticket request.'
                 );
 
             $('#btn_submit_ticket')

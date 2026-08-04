@@ -632,6 +632,7 @@ ORDER/MONTHLY : Monthly
 
         $ticket->loadMissing([
             'site',
+            'location',
             'subLocation',
         ]);
 
@@ -653,13 +654,21 @@ ORDER/MONTHLY : Monthly
             default => 'TICKET OPR TEKNIK',
         };
 
+        // BA_BS / BA_ENG store a ms_location id in location_id, everything
+        // else (ENGSUPPORTTICKET / BSFOSUPPORTTICKET) stores a ms_site id.
+        $isBaTicket = in_array($ticket->ticket_type, ['BA_BS', 'BA_ENG'], true);
+
+        $locationName = $isBaTicket
+            ? $ticket->location?->location_name
+            : $ticket->site?->site_name;
+
         $message = "
 PAKUWON SYSTEM
 {$ticketTypeLabel}
 =================
 STATUS : {$eventLabel}
 PROJECT : {$ticket->department_id}
-LOCATION : {$ticket->site?->site_name}
+LOCATION : {$locationName}
 SUB LOCATION : {$ticket->subLocation?->sub_location_name}
 
 TICKET DATE : {$requestDate}

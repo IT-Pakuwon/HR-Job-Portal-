@@ -6,7 +6,9 @@ use App\Exports\EngTicketExport;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\MsCategory;
 use App\Models\MsCompany;
+use App\Models\MsLocation;
 use App\Models\MsSite;
+use App\Models\MsSubLocation;
 use App\Models\MsTicketCategory;
 use App\Models\MsTicketCategoryDept;
 use App\Models\MsTicketPriority;
@@ -46,7 +48,7 @@ class EngTicketController extends Controller
 
     protected const ENG_TICKET_TYPE = 'ENGSUPPORTTICKET';
 
-    protected const BA_BSFO_TICKET_TYPE = 'BA_BSFO';
+    protected const BA_BSFO_TICKET_TYPE = 'BA_BS';
 
     protected const BA_ENG_TICKET_TYPE = 'BA_ENG';
 
@@ -137,7 +139,7 @@ class EngTicketController extends Controller
     protected function approvalConditionFor(TrTicket $ticket): string
     {
         if ($ticket->ticket_type === self::BA_BSFO_TICKET_TYPE) {
-            return 'BA BSFO';
+            return 'BA BS';
         }
 
         if ($ticket->ticket_type === self::BA_ENG_TICKET_TYPE) {
@@ -149,34 +151,63 @@ class EngTicketController extends Controller
             : 'Engineering';
     }
 
-    protected function baTypePrefix(string $ticketType): string
+    protected function baDivision(string $ticketType): string
     {
         return match ($ticketType) {
-            self::BA_BSFO_TICKET_TYPE => 'BA-BSFO',
-            self::BA_ENG_TICKET_TYPE  => 'BA-ENG',
-            default => 'BA',
+            self::BA_BSFO_TICKET_TYPE => 'BS',
+            self::BA_ENG_TICKET_TYPE  => 'ENG',
+            default => '',
         };
     }
 
-    protected function formatBaAutoNumber(string $ticketType, int $seq, string $deptOrCode, string $month, string $year): string
+    protected function formatBaAutoNumber(string $ticketType, int $seq, string $month, string $year): string
     {
-        $prefix = $this->baTypePrefix($ticketType);
-        return sprintf('%03d', $seq) . '/' . $prefix . '/' . strtoupper($deptOrCode) . '/' . $month . '/' . $year;
+        $division = $this->baDivision($ticketType);
+        return 'BA' . '/' . $division . '/' . $month . '/' . $year . '/' . sprintf('%03d', $seq);
     }
 
     protected function getBaAutoNumber(TrTicket $ticket): ?string
     {
-        if (!in_array($ticket->ticket_type, [self::BA_BSFO_TICKET_TYPE, self::BA_ENG_TICKET_TYPE], true)) {
+        if (!$this->isBaTicketType($ticket->ticket_type)) {
             return null;
         }
 
         $seq = (int) substr($ticket->ticketid, -4);
-        $code = $ticket->cpny_id ?? $ticket->department_id ?? 'XX';
         $dt = $ticket->ticketdate ? Carbon::parse($ticket->ticketdate) : now();
         $month = $dt->format('m');
         $year = $dt->format('Y');
 
-        return $this->formatBaAutoNumber($ticket->ticket_type, $seq, $code, $month, $year);
+        return $this->formatBaAutoNumber($ticket->ticket_type, $seq, $month, $year);
+    }
+
+    protected function isBaTicketType(string $ticketType): bool
+    {
+        return in_array($ticketType, [self::BA_BSFO_TICKET_TYPE, self::BA_ENG_TICKET_TYPE], true);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Location display
+    |--------------------------------------------------------------------------
+    | ENGSUPPORTTICKET / BSFOSUPPORTTICKET store a ms_site id in location_id.
+    | BA_BS / BA_ENG store a ms_location id in location_id plus a ms_sub_location
+    | id in sub_location_id — same columns, different lookup table depending on
+    | ticket_type.
+    */
+
+    protected function locationDisplayFor(TrTicket $ticket): array
+    {
+        if ($this->isBaTicketType($ticket->ticket_type)) {
+            return [
+                'location_name' => optional($ticket->location)->location_name,
+                'sub_location_name' => optional($ticket->subLocation)->sub_location_name,
+            ];
+        }
+
+        return [
+            'location_name' => optional($ticket->site)->site_name,
+            'sub_location_name' => null,
+        ];
     }
 
     /*
@@ -256,18 +287,16 @@ class EngTicketController extends Controller
             return [self::ENG_TICKET_TYPE, self::BSFO_TICKET_TYPE, self::BA_BSFO_TICKET_TYPE, self::BA_ENG_TICKET_TYPE];
         }
 
-        $baTypes = [self::BA_BSFO_TICKET_TYPE, self::BA_ENG_TICKET_TYPE];
-
         $types = [];
 
         if ($this->isEng() || $this->isENGRole()) {
             $types[] = self::ENG_TICKET_TYPE;
-            $types = array_merge($types, $baTypes);
+            $types[] = self::BA_ENG_TICKET_TYPE;
         }
 
         if ($this->isBSFO() || $this->isBSFORole()) {
             $types[] = self::BSFO_TICKET_TYPE;
-            $types = array_merge($types, $baTypes);
+            $types[] = self::BA_BSFO_TICKET_TYPE;
         }
 
         return array_values(array_unique($types));
@@ -415,6 +444,8 @@ class EngTicketController extends Controller
             'subcategory',
             'priority',
             'site',
+            'location',
+            'subLocation',
             'responseActivity',
         ])
             ->whereNull('deleted_at')
@@ -537,9 +568,7 @@ class EngTicketController extends Controller
             })
 
             ->addColumn('location_name', function ($row) {
-                return optional(
-                    $row->site
-                )->site_name;
+                return $this->locationDisplayFor($row)['location_name'];
             })
 
             ->addColumn('response_working_start', function ($row) {
@@ -560,8 +589,6 @@ class EngTicketController extends Controller
 
     public function pendingApprovalJson(Request $request)
     {
-        abort_unless($this->isMgrOprTeknik(), 403);
-
         $username = strtolower(auth()->user()->username);
 
         $refnbrs = TrApproval::query()
@@ -610,7 +637,7 @@ class EngTicketController extends Controller
 
         $engTypes = $this->engTicketTypes();
 
-        $query = TrTicket::with('responseActivity')
+        $query = TrTicket::with(['responseActivity', 'site', 'location', 'subLocation'])
             ->whereIn('ticket_type', $engTypes)
             ->where(function ($q) use ($broadTypes, $user) {
                 $q->whereIn('ticket_type', $broadTypes)
@@ -684,6 +711,8 @@ class EngTicketController extends Controller
                 ? $latestScheduled->working_end_date
                 : null;
 
+            $locationDisplay = $this->locationDisplayFor($ticket);
+
             return [
                 'eid' => Hashids::encode($ticket->id),
 
@@ -700,6 +729,10 @@ class EngTicketController extends Controller
                 'cpny_id' => $ticket->cpny_id,
 
                 'department_id' => $ticket->department_id,
+
+                'location_name' => $locationDisplay['location_name'],
+
+                'sub_location_name' => $locationDisplay['sub_location_name'],
 
                 'event_start' => optional($eventStart)->toISOString(),
 
@@ -739,10 +772,18 @@ class EngTicketController extends Controller
             return 'COMPLETED';
         }
 
+        // Unscheduled means "not yet responded to" — not "no working dates
+        // filled". Once Response happens the ticket is always at least
+        // Scheduled, whether or not that Response filled working dates.
+        if (!$response) {
+            return 'UNSCHEDULED';
+        }
+
         // Late is decided once, at the moment of Response — did the response
-        // itself land after the due date? Not a live now()-vs-duedate check,
-        // so it's independent of whether a working schedule was ever filled.
-        $isLate = $response?->response_date
+        // itself land after the due date? It's sticky: an SLA breach already
+        // happened and stays true no matter what Process/Pending/Reopen do
+        // to the schedule afterward.
+        $isLate = $response->response_date
             && $ticket->ticket_duedate
             && Carbon::parse($response->response_date)->greaterThan($ticket->ticket_duedate);
 
@@ -750,15 +791,12 @@ class EngTicketController extends Controller
             return 'LATE';
         }
 
-        if (!$hasSchedule) {
-            return 'UNSCHEDULED';
-        }
-
         // "Reschedule" reflects the activity that actually supplied the dates
         // currently shown on the calendar — not just the ticket's current
         // status — since Process/Pending/Reopen can happen without touching
-        // the schedule (in which case the prior dates keep standing).
-        if (in_array($latestScheduled->status_pekerjaan, ['PROCESS', 'PENDING', 'REOPEN'], true)) {
+        // the schedule (in which case the prior dates, or lack thereof, keep
+        // standing and the ticket stays Scheduled).
+        if ($hasSchedule && in_array($latestScheduled->status_pekerjaan, ['PROCESS', 'PENDING', 'REOPEN'], true)) {
             return 'RESCHEDULE';
         }
 
@@ -823,6 +861,7 @@ class EngTicketController extends Controller
             'ticket_categoryid' => 'required',
             'ticket_subcategoryid' => 'required',
             'location_id' => 'required',
+            'sub_location_id' => $this->isBaTicketType((string) $request->ticket_type) ? 'required' : 'nullable',
             'issue_summary' => 'required|max:255',
             'issue_descr' => 'required',
 
@@ -889,6 +928,7 @@ class EngTicketController extends Controller
                 'user_peminta' => $username,
 
                 'location_id' => $request->location_id,
+                'sub_location_id' => $request->sub_location_id,
 
                 'issue_summary' => $request->issue_summary,
                 'issue_descr' => $request->issue_descr,
@@ -1004,6 +1044,7 @@ class EngTicketController extends Controller
             'ticket_categoryid' => 'required',
             'ticket_subcategoryid' => 'required',
             'location_id' => 'required',
+            'sub_location_id' => $this->isBaTicketType((string) $request->ticket_type) ? 'required' : 'nullable',
             'issue_summary' => 'required|max:255',
             'issue_descr' => 'required',
         ]);
@@ -1022,6 +1063,7 @@ class EngTicketController extends Controller
                 'ticket_categoryid' => $request->ticket_categoryid,
                 'ticket_subcategoryid' => $request->ticket_subcategoryid,
                 'location_id' => $request->location_id,
+                'sub_location_id' => $request->sub_location_id,
                 'issue_summary' => $request->issue_summary,
                 'issue_descr' => $request->issue_descr,
                 'updated_by' => auth()->user()->username,
@@ -1181,6 +1223,8 @@ class EngTicketController extends Controller
             'subcategory',
             'priority',
             'site',
+            'location',
+            'subLocation',
             'type',
         ])->findOrFail($id);
 
@@ -1305,9 +1349,11 @@ class EngTicketController extends Controller
 
                     'location_id' => $ticket->location_id,
 
-                    'location_name' => optional(
-                        $ticket->site
-                    )->site_name,
+                    'location_name' => $this->locationDisplayFor($ticket)['location_name'],
+
+                    'sub_location_id' => $ticket->sub_location_id,
+
+                    'sub_location_name' => $this->locationDisplayFor($ticket)['sub_location_name'],
 
                     'ticket_priority' => $ticket->ticket_priority,
 
@@ -2803,6 +2849,20 @@ class EngTicketController extends Controller
                 'cpny_id' => $site->cpny_id,
             ]);
 
+        $baLocations = MsLocation::query()
+            ->where('status', 'A')
+            ->orderBy('location_name')
+            ->get([
+                'location_id',
+                'location_name',
+                'cpny_id',
+            ])
+            ->map(fn ($location) => [
+                'location_id' => $location->location_id,
+                'location_name' => $location->location_name,
+                'cpny_id' => $location->cpny_id,
+            ]);
+
         $types = MsTicketType::query()
             ->whereIn('ticket_type', $this->engTicketTypes())
             ->where('status', 'A')
@@ -2817,6 +2877,7 @@ class EngTicketController extends Controller
             'companies' => $companies,
             'departments' => $departments,
             'locations' => $locations,
+            'locations_ba' => $baLocations,
             'types' => $types,
         ]);
     }
@@ -2966,6 +3027,33 @@ class EngTicketController extends Controller
                         'text' => $row->site_name,
                     ];
                 }),
+        ]);
+    }
+
+    public function subLocationSearch(Request $request)
+    {
+        $query = MsSubLocation::query()
+            ->where('status', 'A');
+
+        if ($request->filled('location_id')) {
+            $query->where('location_id', $request->location_id);
+        } else {
+            $query->whereRaw('1 = 0');
+        }
+
+        if ($request->filled('search')) {
+            $query->where('sub_location_name', 'ilike', '%'.$request->search.'%');
+        }
+
+        return response()->json([
+            'results' => $query
+                ->orderBy('sub_location_name')
+                ->limit(50)
+                ->get()
+                ->map(fn ($row) => [
+                    'id' => $row->sub_location_id,
+                    'text' => $row->sub_location_name,
+                ]),
         ]);
     }
 
@@ -3252,6 +3340,8 @@ class EngTicketController extends Controller
             'subcategory',
             'priority',
             'site',
+            'location',
+            'subLocation',
         ])->findOrFail($id);
 
         $attachmentController = app(TrAttachmentController::class);
@@ -3311,7 +3401,9 @@ class EngTicketController extends Controller
 
         $baAutoNumber = $this->getBaAutoNumber($ticket);
 
-        $pdf = \PDF::loadView('pages.eng-ticket.print', compact('ticket', 'attachments', 'respondedBy', 'baAutoNumber'))
+        $locationDisplay = $this->locationDisplayFor($ticket);
+
+        $pdf = \PDF::loadView('pages.eng-ticket.print', compact('ticket', 'attachments', 'respondedBy', 'baAutoNumber', 'locationDisplay'))
             ->setPaper('a4', 'portrait');
 
         return $pdf->stream("TICKET-{$ticket->ticketid}.pdf");

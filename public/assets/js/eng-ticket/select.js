@@ -51,7 +51,8 @@ function initCreateTicketDropdown() {
             );
 
             renderLocationDropdown(
-                response.locations || []
+                response.locations || [],
+                response.locations_ba || []
             );
 
         },
@@ -174,20 +175,81 @@ function renderTicketTypeDropdown(
 }
 
 function renderLocationDropdown(
-    locations = []
+    locations = [],
+    locationsBa = []
 ) {
 
     Ticket.state.allLocations = locations;
+    Ticket.state.allBaLocations = locationsBa;
+
+    refreshLocationDropdown();
+
+}
+
+// BA_BS / BA_ENG ticket types source Location from ms_location + Sub Location
+// from ms_sub_location, instead of ms_site like every other ticket type.
+function isBaTicketType(ticketType) {
+
+    return ticketType === 'BA_BS' || ticketType === 'BA_ENG';
+
+}
+
+function refreshLocationDropdown() {
+
+    const ticketType = $('#ticket_type').val();
+
+    const isBa = isBaTicketType(ticketType);
 
     const cpnyId = $('#cpny_id').val();
 
+    const source = isBa
+        ? (Ticket.state.allBaLocations || [])
+        : (Ticket.state.allLocations || []);
+
     const filtered = cpnyId
-        ? locations.filter(function (l) {
+        ? source.filter(function (l) {
             return l.cpny_id === cpnyId || l.cpny_id === 'ALL';
         })
-        : locations;
+        : source;
 
     populateLocationSelect(filtered);
+
+    $('#sub_location_field').toggleClass('hidden', !isBa);
+
+    if (!isBa) {
+        $('#sub_location_id').empty().val(null).trigger('change');
+    }
+
+}
+
+// BA_BS / BA_ENG take a free-text Issue Summary instead of picking from the
+// select2 autocomplete of previously used summaries. Only one of the two
+// fields carries name="issue_summary" at a time, so FormData naturally
+// submits whichever is active.
+function refreshIssueSummaryField() {
+
+    const isBa = isBaTicketType($('#ticket_type').val());
+
+    $('#issue_summary_select_field').toggleClass('hidden', isBa);
+    $('#issue_summary_text_field').toggleClass('hidden', !isBa);
+
+    if (isBa) {
+        $('#issue_summary').removeAttr('name');
+        $('#issue_summary_text').attr('name', 'issue_summary');
+        $('#issue_summary').val(null).trigger('change');
+    } else {
+        $('#issue_summary_text').removeAttr('name');
+        $('#issue_summary').attr('name', 'issue_summary');
+        $('#issue_summary_text').val('');
+    }
+
+}
+
+function getIssueSummaryValue() {
+
+    return isBaTicketType($('#ticket_type').val())
+        ? ($('#issue_summary_text').val() || '').trim()
+        : ($('#issue_summary').val() || '').trim();
 
 }
 
@@ -385,6 +447,58 @@ function initLocationSelect() {
 
     });
 
+    $('#sub_location_id').select2({
+
+        width:
+            '100%',
+
+        dropdownParent:
+            $(Ticket.modal.create),
+
+        placeholder:
+            'Select Sub Location',
+
+        allowClear:
+            true,
+
+        ajax: {
+
+            url:
+                Ticket.routes.subLocationSearch,
+
+            dataType:
+                'json',
+
+            delay:
+                250,
+
+            data: function (params) {
+
+                return {
+
+                    location_id:
+                        $('#location_id').val(),
+
+                    search:
+                        params.term,
+
+                };
+
+            },
+
+            processResults: function (data) {
+
+                return {
+                    results:
+                        data.results || [],
+                };
+
+            },
+
+        },
+
+    });
+
 }
 
 function initIssueSummarySelect() {
@@ -465,6 +579,29 @@ function bindTicketSelectEvents() {
                 .val(null)
                 .trigger('change');
 
+            refreshLocationDropdown();
+
+            $('#location_id')
+                .val(null)
+                .trigger('change');
+
+            refreshIssueSummaryField();
+
+        }
+    );
+
+    $('#location_id').on(
+        'change',
+        function () {
+
+            if (Ticket.state.isEditLoading) {
+                return;
+            }
+
+            $('#sub_location_id')
+                .val(null)
+                .trigger('change');
+
         }
     );
 
@@ -491,16 +628,7 @@ function bindTicketSelectEvents() {
                 return;
             }
 
-            const cpnyId = $(this).val();
-            const all = Ticket.state.allLocations || [];
-
-            const filtered = cpnyId
-                ? all.filter(function (l) {
-                    return l.cpny_id === cpnyId || l.cpny_id === 'ALL';
-                })
-                : all;
-
-            populateLocationSelect(filtered);
+            refreshLocationDropdown();
 
             $('#location_id')
                 .val(null)
