@@ -12,17 +12,17 @@ class CompanyAddress extends Model
     protected $connection = 'pgsql3';
     protected $table = 'hr_company_address'; 
     
-    protected $fillable = [     
+    protected $fillable = [
         'cpnyid',
         'cpnyname',
         'address',
         'sitelocation',
         'site',
         'location',
-        'address2',   
+        'address2',
         'status',
         'created_user',
-        'updated_user'
+        'updated_by'
     ];
    
 }

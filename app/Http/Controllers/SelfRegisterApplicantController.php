@@ -54,7 +54,7 @@ class SelfRegisterApplicantController extends Controller
         $tagged    = (clone $base)->whereNotNull('tag.id')->count();
         $untagged  = (clone $base)->whereNull('tag.id')->count();
 
-        $divisions = \App\Models\MsDivision::where('status', 'A')
+        $divisions = \App\Models\Division::where('status', 'A')
             ->orderBy('division_name')
             ->get(['division_id', 'division_name']);
 

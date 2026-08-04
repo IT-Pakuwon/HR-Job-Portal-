@@ -9,15 +9,15 @@ use Illuminate\Validation\Rule;
 use App\Models\MsDepartment;
 use App\Models\DepartmentFin;
 use App\Models\DepartmentHR;
-use App\Models\MsDivision;
+use App\Models\Division;
 
 class DepartmentsController extends Controller
 {
     public function index()
     {
-        $divisions = MsDivision::where('status', 'A')
+        $divisions = Division::where('status', 'A')
             ->orderBy('division_name')
-            ->get(['division_id', 'division_name']);
+            ->get(['division_id', 'division_name', 'group_cpny_id']);
 
         $departmentFins = DepartmentFin::select('department_fin_id', DB::raw('MAX(department_name) as department_name'))
             ->groupBy('department_fin_id')
@@ -62,7 +62,7 @@ class DepartmentsController extends Controller
 
             $dept = MsDepartment::create([
                 'department_id'     => strtoupper($request->department_id),
-                'department_name'   => strtoupper($request->department_name),
+                'department_name'   => $request->department_name,
                 'department_fin_id' => strtoupper($request->department_fin_id ?? ''),
                 'status'            => 'A',
                 'created_by'        => $loginUser->username ?? 'system',
@@ -116,7 +116,7 @@ class DepartmentsController extends Controller
 
             $dept->update([
                 'department_id'     => strtoupper($request->department_id),
-                'department_name'   => strtoupper($request->department_name),
+                'department_name'   => $request->department_name,
                 'department_fin_id' => strtoupper($request->department_fin_id ?? ''),
                 'updated_by'        => $loginUser->username ?? 'system',
                 'updated_at'        => now(),
@@ -392,7 +392,7 @@ class DepartmentsController extends Controller
 
             $dept = DepartmentFin::create([
                 'department_fin_id' => $departmentFinId,
-                'department_name'   => strtoupper($request->department_name),
+                'department_name'   => $request->department_name,
                 'status'            => 'A',
                 'created_by'        => $loginUser->username ?? 'system',
                 'created_at'        => now(),
@@ -442,7 +442,7 @@ class DepartmentsController extends Controller
         ]);
 
         $newDepartmentFinId = strtoupper($request->department_fin_id);
-        $newDepartmentName  = strtoupper($request->department_name);
+        $newDepartmentName  = $request->department_name;
 
         DB::beginTransaction();
 
@@ -505,13 +505,17 @@ class DepartmentsController extends Controller
     public function jsonHr()
     {
         $department = DepartmentHR::query()
-            ->leftJoin('hr_ms_division', 'hr_ms_department.division_id', '=', 'hr_ms_division.division_id')
+            ->leftJoin('hr_ms_division', function ($join) {
+                $join->on('hr_ms_department.division_id', '=', 'hr_ms_division.division_id')
+                    ->on('hr_ms_department.group_cpny_id', '=', 'hr_ms_division.group_cpny_id');
+            })
             ->select([
                 'hr_ms_department.id',
                 'hr_ms_department.department_id',
                 'hr_ms_department.department_name',
                 'hr_ms_department.division_id',
                 'hr_ms_division.division_name',
+                'hr_ms_department.group_cpny_id',
                 'hr_ms_department.status',
             ])
             ->orderByDesc('hr_ms_department.id')
@@ -522,10 +526,17 @@ class DepartmentsController extends Controller
 
     public function storeHr(Request $request)
     {
+        $groupCpnyId = strtoupper((string) $request->group_cpny_id);
+
         $request->validate([
-            'department_id'   => 'required|string|max:50|unique:mysql3.hr_ms_department,department_id',
+            'department_id'   => [
+                'required', 'string', 'max:50',
+                Rule::unique('mysql3.hr_ms_department', 'department_id')
+                    ->where(fn ($query) => $query->where('group_cpny_id', $groupCpnyId)),
+            ],
             'department_name' => 'required|string|max:200',
             'division_id'     => 'required|string|max:50',
+            'group_cpny_id'   => 'nullable|string|max:50',
         ]);
 
         DB::beginTransaction();
@@ -535,10 +546,11 @@ class DepartmentsController extends Controller
 
             $dept = DepartmentHR::create([
                 'department_id'   => strtoupper($request->department_id),
-                'department_name' => strtoupper($request->department_name),
+                'department_name' => $request->department_name,
                 'division_id'     => $request->division_id,
+                'group_cpny_id'   => strtoupper((string) $request->group_cpny_id),
                 'status'          => 'A',
-                'created_user'    => $loginUser->username ?? 'system',
+                'created_by'      => $loginUser->username ?? 'system',
             ]);
 
             DB::commit();
@@ -567,6 +579,7 @@ class DepartmentsController extends Controller
             'department_id'   => $dept->department_id,
             'department_name' => $dept->department_name,
             'division_id'     => $dept->division_id,
+            'group_cpny_id'   => $dept->group_cpny_id,
             'status'          => $dept->status,
         ]);
     }
@@ -574,11 +587,18 @@ class DepartmentsController extends Controller
     public function updateHr(Request $request, $id)
     {
         $dept = DepartmentHR::findOrFail($id);
+        $groupCpnyId = strtoupper((string) $request->group_cpny_id);
 
         $request->validate([
-            'department_id'   => 'required|string|max:50|unique:mysql3.hr_ms_department,department_id,' . $dept->id,
+            'department_id'   => [
+                'required', 'string', 'max:50',
+                Rule::unique('mysql3.hr_ms_department', 'department_id')
+                    ->where(fn ($query) => $query->where('group_cpny_id', $groupCpnyId))
+                    ->ignore($dept->id),
+            ],
             'department_name' => 'required|string|max:200',
             'division_id'     => 'required|string|max:50',
+            'group_cpny_id'   => 'nullable|string|max:50',
         ]);
 
         DB::beginTransaction();
@@ -588,9 +608,10 @@ class DepartmentsController extends Controller
 
             $dept->update([
                 'department_id'   => strtoupper($request->department_id),
-                'department_name' => strtoupper($request->department_name),
+                'department_name' => $request->department_name,
                 'division_id'     => $request->division_id,
-                'updated_user'    => $loginUser->username ?? 'system',
+                'group_cpny_id'   => strtoupper((string) $request->group_cpny_id),
+                'updated_by'      => $loginUser->username ?? 'system',
             ]);
 
             DB::commit();
@@ -616,8 +637,8 @@ class DepartmentsController extends Controller
         $status = request('status');
 
         $dept->update([
-            'status'       => $status,
-            'updated_user' => Auth::check() ? Auth::user()->username : 'system',
+            'status'     => $status,
+            'updated_by' => Auth::check() ? Auth::user()->username : 'system',
         ]);
 
         return response()->json([
@@ -632,10 +653,11 @@ class DepartmentsController extends Controller
 
     public function jsonDivision()
     {
-        $division = MsDivision::select([
+        $division = Division::select([
                 'id',
                 'division_id',
                 'division_name',
+                'group_cpny_id',
                 'status',
             ])
             ->orderByDesc('id')
@@ -646,9 +668,16 @@ class DepartmentsController extends Controller
 
     public function storeDivision(Request $request)
     {
+        $groupCpnyId = strtoupper((string) $request->group_cpny_id);
+
         $request->validate([
-            'division_id'   => 'required|string|max:50|unique:mysql3.hr_ms_division,division_id',
+            'division_id'   => [
+                'required', 'string', 'max:50',
+                Rule::unique('mysql3.hr_ms_division', 'division_id')
+                    ->where(fn ($query) => $query->where('group_cpny_id', $groupCpnyId)),
+            ],
             'division_name' => 'required|string|max:200',
+            'group_cpny_id' => 'nullable|string|max:50',
         ]);
 
         DB::beginTransaction();
@@ -656,11 +685,12 @@ class DepartmentsController extends Controller
         try {
             $loginUser = Auth::user();
 
-            $division = MsDivision::create([
+            $division = Division::create([
                 'division_id'   => strtoupper($request->division_id),
-                'division_name' => strtoupper($request->division_name),
+                'division_name' => $request->division_name,
+                'group_cpny_id' => strtoupper((string) $request->group_cpny_id),
                 'status'        => 'A',
-                'created_user'  => $loginUser->username ?? 'system',
+                'created_by'    => $loginUser->username ?? 'system',
             ]);
 
             DB::commit();
@@ -682,23 +712,31 @@ class DepartmentsController extends Controller
 
     public function editDivision($id)
     {
-        $division = MsDivision::findOrFail($id);
+        $division = Division::findOrFail($id);
 
         return response()->json([
             'id'            => $division->id,
             'division_id'   => $division->division_id,
             'division_name' => $division->division_name,
+            'group_cpny_id' => $division->group_cpny_id,
             'status'        => $division->status,
         ]);
     }
 
     public function updateDivision(Request $request, $id)
     {
-        $division = MsDivision::findOrFail($id);
+        $division = Division::findOrFail($id);
+        $groupCpnyId = strtoupper((string) $request->group_cpny_id);
 
         $request->validate([
-            'division_id'   => 'required|string|max:50|unique:mysql3.hr_ms_division,division_id,' . $division->id,
+            'division_id'   => [
+                'required', 'string', 'max:50',
+                Rule::unique('mysql3.hr_ms_division', 'division_id')
+                    ->where(fn ($query) => $query->where('group_cpny_id', $groupCpnyId))
+                    ->ignore($division->id),
+            ],
             'division_name' => 'required|string|max:200',
+            'group_cpny_id' => 'nullable|string|max:50',
         ]);
 
         DB::beginTransaction();
@@ -708,8 +746,9 @@ class DepartmentsController extends Controller
 
             $division->update([
                 'division_id'   => strtoupper($request->division_id),
-                'division_name' => strtoupper($request->division_name),
-                'updated_user'  => $loginUser->username ?? 'system',
+                'division_name' => $request->division_name,
+                'group_cpny_id' => strtoupper((string) $request->group_cpny_id),
+                'updated_by'    => $loginUser->username ?? 'system',
             ]);
 
             DB::commit();
@@ -730,13 +769,13 @@ class DepartmentsController extends Controller
 
     public function toggleStatusDivision($id)
     {
-        $division = MsDivision::findOrFail($id);
+        $division = Division::findOrFail($id);
 
         $status = request('status');
 
         $division->update([
-            'status'       => $status,
-            'updated_user' => Auth::check() ? Auth::user()->username : 'system',
+            'status'     => $status,
+            'updated_by' => Auth::check() ? Auth::user()->username : 'system',
         ]);
 
         return response()->json([

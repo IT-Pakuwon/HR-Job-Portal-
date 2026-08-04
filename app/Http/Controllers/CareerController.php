@@ -1375,7 +1375,7 @@ class CareerController extends Controller
         if ($is_remapped && $applicant->process_step == 2) {
             // Remapped + already filled form — notify of position change only
             $jobposting = Jobposting::where('docid', $career->jobid)->first();
-            $division   = \App\Models\MsDivision::where('division_id', $jobposting->division_id ?? '')->value('division_name');
+            $division   = \App\Models\Division::where('division_id', $jobposting->division_id ?? '')->value('division_name');
             $department = \App\Models\DepartmentHR::where('department_id', $jobposting->departementid ?? '')->value('department_name');
             $data = [
                 'name'       => $applicant->full_name ?? 'Pelamar',

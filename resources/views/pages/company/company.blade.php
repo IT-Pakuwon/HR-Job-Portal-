@@ -18,6 +18,11 @@
                     onclick="switchCpnyTab('site')">
                     📍 Site
                 </button>
+                <button type="button" id="tab-placementlocation"
+                    class="cpnyTabBtn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                    onclick="switchCpnyTab('placementlocation')">
+                    🎯 Placement Location
+                </button>
                 <button type="button" id="tab-businessunit"
                     class="cpnyTabBtn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                     onclick="switchCpnyTab('businessunit')">
@@ -95,6 +100,39 @@
                                 <th class="px-4 py-3 text-left font-medium">City</th>
                                 <th class="w-24 px-4 py-3 text-left font-medium">Default</th>
                                 <th class="w-24 px-4 py-3 text-left font-medium">Parking</th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- ── TAB: Placement Location ────────────────────────────────────── --}}
+            <div id="panel-placementlocation"
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                <div
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🎯 Placement
+                        Location List</h2>
+                    <button id="addPlacementLocationBtn"
+                        class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
+                        + Add Placement Location
+                    </button>
+                </div>
+
+                <div class="relative overflow-hidden">
+                    <table id="placementLocationTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                <th class="w-8 px-2 py-3 text-center"></th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
+                                <th class="px-4 py-3 text-left font-medium">Company ID</th>
+                                <th class="px-4 py-3 text-left font-medium">Company Name</th>
+                                <th class="px-4 py-3 text-left font-medium">Site</th>
+                                <th class="px-4 py-3 text-left font-medium">Site Location</th>
+                                <th class="px-4 py-3 text-left font-medium">Location</th>
                                 <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
                             </tr>
                         </thead>
@@ -430,6 +468,65 @@
             </div>
         </div>
 
+        <!-- Modal: Placement Location -->
+        <div id="placementLocationModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+            <div class="relative w-full max-w-2xl rounded-lg bg-white p-4 dark:bg-gray-700">
+                <h2 id="modalPlacementLocationTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add
+                    Placement Location</h2>
+                <form id="placementLocationForm">
+                    @csrf
+                    <input type="hidden" id="pl_id" name="id">
+
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Company ID</label>
+                            <input type="text" id="pl_cpnyid" name="cpnyid"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Company Name</label>
+                            <input type="text" id="pl_cpnyname" name="cpnyname"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Site</label>
+                            <input type="text" id="pl_site" name="site"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Site Location</label>
+                            <input type="text" id="pl_sitelocation" name="sitelocation"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                        </div>
+
+                        <div class="mb-3 md:col-span-2">
+                            <label class="block text-gray-700 dark:text-white">Location</label>
+                            <textarea id="pl_location" name="location" rows="2"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700"></textarea>
+                        </div>
+
+                        <div class="mb-3 md:col-span-2">
+                            <label class="block text-gray-700 dark:text-white">Address</label>
+                            <textarea id="pl_address" name="address" rows="2"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700"></textarea>
+                        </div>
+                        <div class="mb-3 md:col-span-2">
+                            <label class="block text-gray-700 dark:text-white">Address 2</label>
+                            <textarea id="pl_address2" name="address2" rows="2"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 flex justify-end space-x-2">
+                        <button type="button" id="closePlacementLocationModal"
+                            class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
+                        <button type="submit" class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- Modal: Business Unit -->
         <div id="businessUnitModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4">
             <div class="relative w-full max-w-3xl rounded-lg bg-white p-4 dark:bg-gray-700">
@@ -641,13 +738,13 @@
             $('#loadingOverlay').addClass('hidden');
         }
 
-        const initedCpnyTabs = { company: false, site: false, businessunit: false, companybudget: false, project: false };
+        const initedCpnyTabs = { company: false, site: false, placementlocation: false, businessunit: false, companybudget: false, project: false };
         const cpnyActiveClasses = 'bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400';
         const cpnyInactiveClasses = 'bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400';
 
         function switchCpnyTab(tab) {
-            const panels = { company: '#panel-company', site: '#panel-site', businessunit: '#panel-businessunit', companybudget: '#panel-companybudget', project: '#panel-project' };
-            const btns   = { company: '#tab-company',   site: '#tab-site',   businessunit: '#tab-businessunit',   companybudget: '#tab-companybudget',   project: '#tab-project' };
+            const panels = { company: '#panel-company', site: '#panel-site', placementlocation: '#panel-placementlocation', businessunit: '#panel-businessunit', companybudget: '#panel-companybudget', project: '#panel-project' };
+            const btns   = { company: '#tab-company',   site: '#tab-site',   placementlocation: '#tab-placementlocation',   businessunit: '#tab-businessunit',   companybudget: '#tab-companybudget',   project: '#tab-project' };
 
             Object.keys(panels).forEach(function(key) {
                 const isActive = key === tab;
@@ -661,6 +758,7 @@
                 initedCpnyTabs[tab] = true;
                 if (tab === 'company') initCompanyTable();
                 if (tab === 'site') initSiteTable();
+                if (tab === 'placementlocation') initPlacementLocationTable();
                 if (tab === 'businessunit') initBusinessUnitTable();
                 if (tab === 'companybudget') initCompanyBudgetTable();
                 if (tab === 'project') initProjectTable();
@@ -668,6 +766,8 @@
                 window.companiesTable.columns.adjust().responsive.recalc();
             } else if (tab === 'site' && window.siteTable) {
                 window.siteTable.columns.adjust().responsive.recalc();
+            } else if (tab === 'placementlocation' && window.placementLocationTable) {
+                window.placementLocationTable.columns.adjust().responsive.recalc();
             } else if (tab === 'businessunit' && window.businessUnitTable) {
                 window.businessUnitTable.columns.adjust().responsive.recalc();
             } else if (tab === 'companybudget' && window.companyBudgetTable) {
@@ -1224,6 +1324,244 @@
                 $('#siteForm')[0].reset();
                 $('#site_id').val('');
                 $('#siteModal').addClass('hidden');
+            });
+
+            // =========================================================
+            // Placement Location
+            // =========================================================
+            window.initPlacementLocationTable = function() {
+                window.placementLocationTable = $('#placementLocationTable').DataTable({
+                    ajax: {
+                        url: "{{ route('companies.placement-locations.json') }}",
+                        type: "GET",
+                        dataSrc: 'data'
+                    },
+                    processing: true,
+                    serverSide: false,
+                    autoWidth: false,
+                    lengthMenu: [
+                        [10, 25, 50, 100, 250, -1],
+                        [10, 25, 50, 100, 250, 'All']
+                    ],
+                    responsive: {
+                        details: {
+                            type: 'column',
+                            target: 0
+                        }
+                    },
+                    columnDefs: [{
+                        targets: 0,
+                        width: '28px',
+                        className: 'dtr-control',
+                        orderable: false
+                    }],
+                    dom: '<"dt-toolbar flex items-center justify-start gap-4"lBf>rtip',
+                    buttons: [{
+                            extend: 'excelHtml5',
+                            text: '↓ Excel',
+                            title: 'Placement Location',
+                            className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                            exportOptions: {
+                                columns: ':visible',
+                                modifier: {
+                                    page: 'current'
+                                }
+                            }
+                        },
+                        {
+                            extend: 'csvHtml5',
+                            text: '↓ CSV',
+                            title: 'Placement Location',
+                            className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                            exportOptions: {
+                                columns: ':visible',
+                                modifier: {
+                                    page: 'current'
+                                }
+                            }
+                        }
+                    ],
+                    columns: [{
+                            data: null,
+                            defaultContent: ''
+                        }, {
+                            data: 'id',
+                            className: 'text-center',
+                            render: function(data, type, row) {
+                                return `
+                                            <div class="flex justify-center space-x-2">
+                                                <label class="switch">
+                                                    <input type="checkbox" class="togglePlacementLocationStatus" data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
+                                                    <span class="slider round"></span>
+                                                </label>
+                                                <button class="editPlacementLocationBtn bg-blue-500 text-white px-2 py-1 rounded" data-id="${data}">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </div>
+                                        `;
+                            }
+                        },
+                        {
+                            data: 'cpnyid'
+                        },
+                        {
+                            data: 'cpnyname'
+                        },
+                        {
+                            data: 'site'
+                        },
+                        {
+                            data: 'sitelocation'
+                        },
+                        {
+                            data: 'location'
+                        },
+                        {
+                            data: 'status',
+                            className: 'text-center',
+                            render: function(data) {
+                                return data === 'A' ?
+                                    '<span class="bg-green-300/30 text-green-600 font-semibold px-4 py-1 rounded">Active</span>' :
+                                    '<span class="bg-red-300/30 text-red-600 font-semibold px-4 py-1 rounded">Inactive</span>';
+                            }
+                        }
+                    ]
+                });
+            };
+
+            // Add
+            $('#addPlacementLocationBtn').click(function() {
+                $('#modalPlacementLocationTitle').text("Add Placement Location");
+                $('#placementLocationForm')[0].reset();
+                $('#pl_id').val('');
+                $('#placementLocationModal').removeClass('hidden');
+            });
+
+            // Edit
+            $(document).on('click', '.editPlacementLocationBtn', function() {
+                let id = $(this).data('id');
+
+                $('#modalPlacementLocationTitle').text("Loading...");
+                $('#placementLocationForm')[0].reset();
+                $('#pl_id').val(id);
+                $('#placementLocationModal').removeClass('hidden');
+                showLoading();
+
+                $.get(`/companies/placement-locations/${id}/edit`, function(data) {
+                    $('#modalPlacementLocationTitle').text("Edit Placement Location");
+
+                    $('#pl_cpnyid').val(data.cpnyid);
+                    $('#pl_cpnyname').val(data.cpnyname);
+                    $('#pl_site').val(data.site);
+                    $('#pl_sitelocation').val(data.sitelocation);
+                    $('#pl_location').val(data.location);
+                    $('#pl_address').val(data.address);
+                    $('#pl_address2').val(data.address2);
+
+                    hideLoading();
+                }).fail(function(xhr) {
+                    hideLoading();
+                    $('#placementLocationModal').addClass('hidden');
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Gagal mengambil data placement location'
+                    });
+
+                    console.error(xhr.responseText);
+                });
+            });
+
+            // Toggle status (placement location)
+            $(document).on('change', '.togglePlacementLocationStatus', function() {
+                let id = $(this).data('id');
+                let newStatus = $(this).is(':checked') ? 'A' : 'X';
+
+                $.ajax({
+                    url: `/companies/placement-locations/${id}/toggle-status`,
+                    type: 'PUT',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    data: {
+                        status: newStatus
+                    },
+                    success: function() {
+                        window.placementLocationTable.ajax.reload(null, false);
+                    }
+                });
+            });
+
+            // Submit (create / update placement location)
+            $('#placementLocationForm').submit(function(e) {
+                e.preventDefault();
+
+                let id = $('#pl_id').val();
+                let url = id ? `/companies/placement-locations/${id}` : "{{ route('companies.placement-locations.store') }}";
+                let method = 'POST';
+                let formData = new FormData(document.getElementById('placementLocationForm'));
+
+                if (id) {
+                    formData.append('_method', 'PUT');
+                }
+
+                showLoading();
+                $('#placementLocationForm button[type="submit"]').prop('disabled', true);
+
+                $.ajax({
+                    url: url,
+                    type: method,
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function() {
+                        hideLoading();
+                        $('#placementLocationForm button[type="submit"]').prop('disabled', false);
+
+                        $('#placementLocationModal').addClass('hidden');
+                        $('#placementLocationForm')[0].reset();
+                        $('#pl_id').val('');
+                        window.placementLocationTable.ajax.reload();
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Placement Location saved successfully',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    },
+                    error: function(xhr) {
+                        hideLoading();
+                        $('#placementLocationForm button[type="submit"]').prop('disabled', false);
+
+                        let msg = 'Gagal menyimpan data placement location';
+
+                        if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                            msg = Object.values(xhr.responseJSON.errors)
+                                .map(arr => arr.join(', '))
+                                .join('\n');
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: msg
+                        });
+
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+
+            $('#closePlacementLocationModal').click(function() {
+                $('#placementLocationForm')[0].reset();
+                $('#pl_id').val('');
+                $('#placementLocationModal').addClass('hidden');
             });
 
             // =========================================================

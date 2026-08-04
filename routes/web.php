@@ -29,6 +29,7 @@ use App\Http\Controllers\CanvassxController;
 use App\Http\Controllers\CareerController;
 use App\Http\Controllers\CarExpenseController;
 use App\Http\Controllers\ChangeStoController;
+use App\Http\Controllers\CompanyAddressController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\HrCompanyBudgetController;
 use App\Http\Controllers\MsProjectController;
@@ -38,6 +39,7 @@ use App\Http\Controllers\CsListController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataFeedController;
 use App\Http\Controllers\DepartmentsController;
+use App\Http\Controllers\GradingController;
 use App\Http\Controllers\DocumentNotificationController;
 use App\Http\Controllers\EngTicketController;
 use App\Http\Controllers\EventCalendarController;
@@ -2500,6 +2502,12 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/companies/sites/{id}', [MsSiteController::class, 'update'])->name('companies.sites.update');
         Route::put('/companies/sites/{id}/toggle-status', [MsSiteController::class, 'toggleStatus'])->name('companies.sites.toggle-status');
 
+        Route::get('/companies/placement-locations/json', [CompanyAddressController::class, 'json'])->name('companies.placement-locations.json');
+        Route::post('/companies/placement-locations', [CompanyAddressController::class, 'store'])->name('companies.placement-locations.store');
+        Route::get('/companies/placement-locations/{id}/edit', [CompanyAddressController::class, 'edit'])->name('companies.placement-locations.edit');
+        Route::put('/companies/placement-locations/{id}', [CompanyAddressController::class, 'update'])->name('companies.placement-locations.update');
+        Route::put('/companies/placement-locations/{id}/toggle-status', [CompanyAddressController::class, 'toggleStatus'])->name('companies.placement-locations.toggle-status');
+
         Route::get('/department', [DepartmentsController::class, 'index'])->name('department');
         Route::get('/department/json', [DepartmentsController::class, 'json'])->name('department.json');
         Route::post('/department', [DepartmentsController::class, 'store'])->name('department.store');
@@ -2530,6 +2538,19 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/department/division/{id}/edit', [DepartmentsController::class, 'editDivision'])->name('department.division.edit');
         Route::put('/department/division/{id}', [DepartmentsController::class, 'updateDivision'])->name('department.division.update');
         Route::put('/department/division/{id}/toggle-status', [DepartmentsController::class, 'toggleStatusDivision'])->name('department.division.toggle-status');
+
+        Route::get('/grading', [GradingController::class, 'index'])->name('grading');
+        Route::get('/grading/json', [GradingController::class, 'json'])->name('grading.json');
+        Route::post('/grading', [GradingController::class, 'store'])->name('grading.store');
+        Route::get('/grading/{id}/edit', [GradingController::class, 'edit'])->name('grading.edit');
+        Route::put('/grading/{id}', [GradingController::class, 'update'])->name('grading.update');
+        Route::put('/grading/{id}/toggle-status', [GradingController::class, 'toggleStatus'])->name('grading.toggle-status');
+
+        Route::get('/grading/subgrading/json', [GradingController::class, 'jsonSub'])->name('grading.subgrading.json');
+        Route::post('/grading/subgrading', [GradingController::class, 'storeSub'])->name('grading.subgrading.store');
+        Route::get('/grading/subgrading/{id}/edit', [GradingController::class, 'editSub'])->name('grading.subgrading.edit');
+        Route::put('/grading/subgrading/{id}', [GradingController::class, 'updateSub'])->name('grading.subgrading.update');
+        Route::put('/grading/subgrading/{id}/toggle-status', [GradingController::class, 'toggleStatusSub'])->name('grading.subgrading.toggle-status');
 
         Route::get('/categories', [MsCategoryController::class, 'index'])->name('categories');
         Route::get('/categories/json', [MsCategoryController::class, 'json'])->name('categories.json');

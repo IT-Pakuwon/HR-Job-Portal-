@@ -367,7 +367,7 @@
                                 <!-- ================================================= -->
                                 <!-- USER & ACCESS -->
                                 <!-- ================================================= -->
-                                @php $ua = ['users','roles','access_rights','role_menus','group-acc-specific']; @endphp
+                                @php $ua = ['users','roles','access_rights','role_menus','group-acc-specific','grading']; @endphp
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $ua) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
@@ -390,6 +390,9 @@
                                         <li><a href="{{ route('group_acc_specific') }}"
                                                 class="{{ Request::segment(1) === 'group-acc-specific' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Group
                                                 Access Specific</a>
+                                        </li>
+                                        <li><a href="{{ route('grading') }}"
+                                                class="{{ Request::segment(1) === 'grading' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Grading</a>
                                         </li>
                                         {{-- <li><a href="{{ route('roles') }}"
                                                 class="{{ Request::segment(1) === 'roles' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Roles</a>

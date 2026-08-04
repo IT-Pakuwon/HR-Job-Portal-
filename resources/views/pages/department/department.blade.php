@@ -152,6 +152,7 @@
                                 <th class="px-4 py-3 text-left font-medium">Department ID</th>
                                 <th class="px-4 py-3 text-left font-medium">Department Name</th>
                                 <th class="px-4 py-3 text-left font-medium">Division</th>
+                                <th class="px-4 py-3 text-left font-medium">Company Group</th>
                                 <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
                             </tr>
                         </thead>
@@ -182,6 +183,7 @@
                                 <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
                                 <th class="px-4 py-3 text-left font-medium">Division ID</th>
                                 <th class="px-4 py-3 text-left font-medium">Division Name</th>
+                                <th class="px-4 py-3 text-left font-medium">Company Group</th>
                                 <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
                             </tr>
                         </thead>
@@ -335,12 +337,22 @@
                     </div>
 
                     <div class="mb-3">
+                        <label class="block text-gray-700 dark:text-white">Company Group</label>
+                        <select id="hr_group_cpny_id" name="group_cpny_id"
+                            class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                            <option value="">-- Select Company Group --</option>
+                            <option value="JKT">JKT</option>
+                            <option value="SBY">SBY</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
                         <label class="block text-gray-700 dark:text-white">Division</label>
                         <select id="hr_division_id" name="division_id"
-                            class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                            <option value="">-- Select Division --</option>
+                            class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required disabled>
+                            <option value="">-- Select Company Group first --</option>
                             @foreach ($divisions as $division)
-                                <option value="{{ $division->division_id }}">{{ $division->division_name }}</option>
+                                <option value="{{ $division->division_id }}" data-group="{{ $division->group_cpny_id }}">{{ $division->division_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -372,6 +384,16 @@
                         <label class="block text-gray-700 dark:text-white">Division Name</label>
                         <input type="text" id="division_name_field" name="division_name"
                             class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="block text-gray-700 dark:text-white">Company Group</label>
+                        <select id="division_group_cpny_id" name="group_cpny_id"
+                            class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                            <option value="">-- Select Company Group --</option>
+                            <option value="JKT">JKT</option>
+                            <option value="SBY">SBY</option>
+                        </select>
                     </div>
 
                     <div class="mt-4 flex justify-end space-x-2">
@@ -623,6 +645,11 @@
             $('#departmentForm').submit(function(e) {
                 e.preventDefault();
 
+                if ($('#departmentForm button[type="submit"]').prop('disabled')) {
+                    return;
+                }
+                $('#departmentForm button[type="submit"]').prop('disabled', true);
+
                 let id = $('#id').val();
                 let url = id ? `/department/${id}` : "{{ route('department.store') }}";
                 let formData = new FormData(document.getElementById('departmentForm'));
@@ -632,7 +659,6 @@
                 }
 
                 showLoading();
-                $('#departmentForm button[type="submit"]').prop('disabled', true);
 
                 $.ajax({
                     url: url,
@@ -886,6 +912,11 @@
             $('#departmentFinForm').submit(function(e) {
                 e.preventDefault();
 
+                if ($('#departmentFinForm button[type="submit"]').prop('disabled')) {
+                    return;
+                }
+                $('#departmentFinForm button[type="submit"]').prop('disabled', true);
+
                 let id = $('#fin_id').val();
                 let url = id ? `/department/fin/${id}` : "{{ route('department.fin.store') }}";
                 let formData = new FormData(document.getElementById('departmentFinForm'));
@@ -895,7 +926,6 @@
                 }
 
                 showLoading();
-                $('#departmentFinForm button[type="submit"]').prop('disabled', true);
 
                 $.ajax({
                     url: url,
@@ -1118,6 +1148,11 @@
             $('#finMasterForm').submit(function(e) {
                 e.preventDefault();
 
+                if ($('#finMasterForm button[type="submit"]').prop('disabled')) {
+                    return;
+                }
+                $('#finMasterForm button[type="submit"]').prop('disabled', true);
+
                 let id = $('#finmaster_id').val();
                 let url = id ? `/department/finmaster/${id}` : "{{ route('department.finmaster.store') }}";
                 let formData = new FormData(document.getElementById('finMasterForm'));
@@ -1127,7 +1162,6 @@
                 }
 
                 showLoading();
-                $('#finMasterForm button[type="submit"]').prop('disabled', true);
 
                 $.ajax({
                     url: url,
@@ -1220,7 +1254,7 @@
                             className: 'text-center'
                         },
                         {
-                            targets: 5,
+                            targets: 6,
                             className: 'text-center'
                         }
                     ],
@@ -1232,7 +1266,7 @@
                             title: 'Department HR',
                             className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                             exportOptions: {
-                                columns: [2, 3, 4, 5]
+                                columns: [2, 3, 4, 5, 6]
                             }
                         },
                         {
@@ -1241,7 +1275,7 @@
                             title: 'Department HR',
                             className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                             exportOptions: {
-                                columns: [2, 3, 4, 5]
+                                columns: [2, 3, 4, 5, 6]
                             }
                         }
                     ],
@@ -1282,6 +1316,11 @@
                             defaultContent: '-'
                         },
                         {
+                            data: 'group_cpny_id',
+                            className: 'no-pointer',
+                            defaultContent: '-'
+                        },
+                        {
                             data: 'status',
                             className: 'no-pointer',
                             render: function(data) {
@@ -1296,15 +1335,50 @@
 
             $('#hr_division_id').select2({
                 dropdownParent: $('#departmentHrModal'),
-                placeholder: '-- Select Division --',
+                placeholder: '-- Select Company Group first --',
                 width: '100%'
+            });
+
+            $('#hr_group_cpny_id').select2({
+                dropdownParent: $('#departmentHrModal'),
+                placeholder: '-- Select Company Group --',
+                width: '100%'
+            });
+
+            // Filter #hr_division_id options by the selected Company Group
+            const hrDivisionOptions = $('#hr_division_id option').clone();
+
+            function filterHrDivisionByGroup(groupId, keepValue) {
+                const $select = $('#hr_division_id');
+                const selected = keepValue !== undefined ? keepValue : $select.val();
+
+                if (!groupId) {
+                    $select.empty().append(
+                        '<option value="">-- Select Company Group first --</option>'
+                    ).prop('disabled', true).trigger('change');
+                    return;
+                }
+
+                $select.empty().append(
+                    hrDivisionOptions.filter(function() {
+                        return $(this).val() === '' || $(this).data('group') === groupId;
+                    }).clone()
+                );
+                $select.find('option[value=""]').text('-- Select Division --');
+
+                $select.prop('disabled', false).val(selected).trigger('change');
+            }
+
+            $(document).on('change', '#hr_group_cpny_id', function() {
+                filterHrDivisionByGroup($(this).val());
             });
 
             $('#addDepartmentHrBtn').click(function() {
                 $('#modalHrTitle').text("Add Department HR");
                 $('#departmentHrForm')[0].reset();
                 $('#hr_id').val('');
-                $('#hr_division_id').val('').trigger('change');
+                $('#hr_group_cpny_id').val('').trigger('change');
+                filterHrDivisionByGroup('');
                 $('#departmentHrModal').removeClass('hidden');
             });
 
@@ -1320,7 +1394,8 @@
                     $('#hr_id').val(c.id);
                     $('#hr_department_id').val(c.department_id);
                     $('#hr_department_name').val(c.department_name);
-                    $('#hr_division_id').val(c.division_id).trigger('change');
+                    $('#hr_group_cpny_id').val(c.group_cpny_id).trigger('change');
+                    filterHrDivisionByGroup(c.group_cpny_id, c.division_id);
                     hideLoading();
                 }).fail(function(xhr) {
                     hideLoading();
@@ -1363,6 +1438,11 @@
             $('#departmentHrForm').submit(function(e) {
                 e.preventDefault();
 
+                if ($('#departmentHrForm button[type="submit"]').prop('disabled')) {
+                    return;
+                }
+                $('#departmentHrForm button[type="submit"]').prop('disabled', true);
+
                 let id = $('#hr_id').val();
                 let url = id ? `/department/hr/${id}` : "{{ route('department.hr.store') }}";
                 let formData = new FormData(document.getElementById('departmentHrForm'));
@@ -1372,7 +1452,6 @@
                 }
 
                 showLoading();
-                $('#departmentHrForm button[type="submit"]').prop('disabled', true);
 
                 $.ajax({
                     url: url,
@@ -1418,7 +1497,8 @@
             $('#closeHrModal').click(function() {
                 $('#departmentHrForm')[0].reset();
                 $('#hr_id').val('');
-                $('#hr_division_id').val('').trigger('change');
+                $('#hr_group_cpny_id').val('').trigger('change');
+                filterHrDivisionByGroup('');
                 $('#departmentHrModal').addClass('hidden');
             });
 
@@ -1464,7 +1544,7 @@
                             className: 'text-center'
                         },
                         {
-                            targets: 4,
+                            targets: 5,
                             className: 'text-center'
                         }
                     ],
@@ -1476,7 +1556,7 @@
                             title: 'Division',
                             className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                             exportOptions: {
-                                columns: [2, 3, 4]
+                                columns: [2, 3, 4, 5]
                             }
                         },
                         {
@@ -1485,7 +1565,7 @@
                             title: 'Division',
                             className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                             exportOptions: {
-                                columns: [2, 3, 4]
+                                columns: [2, 3, 4, 5]
                             }
                         }
                     ],
@@ -1521,6 +1601,11 @@
                             className: 'no-pointer'
                         },
                         {
+                            data: 'group_cpny_id',
+                            className: 'no-pointer',
+                            defaultContent: '-'
+                        },
+                        {
                             data: 'status',
                             className: 'no-pointer',
                             render: function(data) {
@@ -1533,10 +1618,17 @@
                 });
             }
 
+            $('#division_group_cpny_id').select2({
+                dropdownParent: $('#divisionModal'),
+                placeholder: '-- Select Company Group --',
+                width: '100%'
+            });
+
             $('#addDivisionBtn').click(function() {
                 $('#modalDivisionTitle').text("Add Division");
                 $('#divisionForm')[0].reset();
                 $('#division_id_hidden').val('');
+                $('#division_group_cpny_id').val('').trigger('change');
                 $('#divisionModal').removeClass('hidden');
             });
 
@@ -1552,6 +1644,7 @@
                     $('#division_id_hidden').val(c.id);
                     $('#division_id_field').val(c.division_id);
                     $('#division_name_field').val(c.division_name);
+                    $('#division_group_cpny_id').val(c.group_cpny_id).trigger('change');
                     hideLoading();
                 }).fail(function(xhr) {
                     hideLoading();
@@ -1594,6 +1687,11 @@
             $('#divisionForm').submit(function(e) {
                 e.preventDefault();
 
+                if ($('#divisionForm button[type="submit"]').prop('disabled')) {
+                    return;
+                }
+                $('#divisionForm button[type="submit"]').prop('disabled', true);
+
                 let id = $('#division_id_hidden').val();
                 let url = id ? `/department/division/${id}` : "{{ route('department.division.store') }}";
                 let formData = new FormData(document.getElementById('divisionForm'));
@@ -1603,7 +1701,6 @@
                 }
 
                 showLoading();
-                $('#divisionForm button[type="submit"]').prop('disabled', true);
 
                 $.ajax({
                     url: url,
@@ -1649,6 +1746,7 @@
             $('#closeDivisionModal').click(function() {
                 $('#divisionForm')[0].reset();
                 $('#division_id_hidden').val('');
+                $('#division_group_cpny_id').val('').trigger('change');
                 $('#divisionModal').addClass('hidden');
             });
 
