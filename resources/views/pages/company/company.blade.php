@@ -28,6 +28,11 @@
                     onclick="switchCpnyTab('companybudget')">
                     💰 Company Budget
                 </button>
+                <button type="button" id="tab-project"
+                    class="cpnyTabBtn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                    onclick="switchCpnyTab('project')">
+                    🗂️ Project
+                </button>
             </div>
 
             {{-- ── TAB 1: Company ──────────────────────────────────────────────── --}}
@@ -181,7 +186,40 @@
                                 <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
                                 <th class="px-4 py-3 text-left font-medium">Company Group</th>
                                 <th class="px-4 py-3 text-left font-medium">Company ID</th>
-                                <th class="px-4 py-3 text-left font-medium">Budget Company ID</th>
+                                <th class="px-4 py-3 text-left font-medium">Budget Project ID</th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- ── TAB 5: Project ──────────────────────────────────────────────── --}}
+            <div id="panel-project"
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                <div
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🗂️ Project
+                        List</h2>
+                    <button id="addProjectBtn"
+                        class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
+                        + Add Project
+                    </button>
+                </div>
+
+                <div class="relative overflow-hidden">
+                    <table id="projectTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                <th class="w-10 px-4 py-3"></th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
+                                <th class="px-4 py-3 text-left font-medium">Project ID</th>
+                                <th class="px-4 py-3 text-left font-medium">Project Name</th>
+                                <th class="px-4 py-3 text-left font-medium">Company</th>
+                                <th class="px-4 py-3 text-left font-medium">Area</th>
+                                <th class="px-4 py-3 text-left font-medium">Company Group</th>
                                 <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
                             </tr>
                         </thead>
@@ -491,7 +529,7 @@
                             <select id="cb_cpnyid" name="cpnyid" class="cb-select2 w-full" required>
                                 <option value="">-- Select Company --</option>
                                 @foreach ($companies as $company)
-                                    <option value="{{ $company->cpny_id }}">
+                                    <option value="{{ $company->cpny_id }}" data-group="{{ $company->group_cpny_id }}">
                                         {{ $company->cpny_id }} - {{ $company->cpny_name }}
                                     </option>
                                 @endforeach
@@ -499,12 +537,12 @@
                         </div>
 
                         <div class="mb-3 md:col-span-2">
-                            <label class="block text-gray-700 dark:text-white">Budget Company</label>
-                            <select id="cb_budget_cpnyid" name="budget_cpnyid" class="cb-select2 w-full" required>
-                                <option value="">-- Select Budget Company --</option>
-                                @foreach ($companies as $company)
-                                    <option value="{{ $company->cpny_id }}">
-                                        {{ $company->cpny_id }} - {{ $company->cpny_name }}
+                            <label class="block text-gray-700 dark:text-white">Budget Project</label>
+                            <select id="cb_budget_project_id" name="budget_project_id" class="cb-select2 w-full" required>
+                                <option value="">-- Select Budget Project --</option>
+                                @foreach ($projects as $project)
+                                    <option value="{{ $project->project_id }}">
+                                        {{ $project->project_id }} - {{ $project->project_name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -513,6 +551,67 @@
 
                     <div class="mt-4 flex justify-end space-x-2">
                         <button type="button" id="closeCompanyBudgetModal"
+                            class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
+                        <button type="submit" class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal: Project -->
+        <div id="projectModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4">
+            <div class="relative w-full max-w-xl rounded-lg bg-white p-4 dark:bg-gray-700">
+                <h2 id="modalProjectTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add
+                    Project</h2>
+
+                <form id="projectForm">
+                    @csrf
+                    <input type="hidden" id="proj_id" name="id">
+
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Project ID</label>
+                            <input type="text" id="proj_project_id" name="project_id"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Project Name</label>
+                            <input type="text" id="proj_project_name" name="project_name"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                        </div>
+
+                        <div class="mb-3 md:col-span-2">
+                            <label class="block text-gray-700 dark:text-white">Company</label>
+                            <input type="text" id="proj_cpny_name" name="cpny_name"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Area</label>
+                            <select id="proj_area_id" name="area_id" class="proj-select2 w-full">
+                                <option value="">-- Select Area --</option>
+                                <option value="Yogyakarta">Yogyakarta</option>
+                                <option value="Solo">Solo</option>
+                                <option value="Surabaya">Surabaya</option>
+                                <option value="Batam">Batam</option>
+                                <option value="Semarang">Semarang</option>
+                                <option value="Bali">Bali</option>
+                                <option value="Jakarta">Jakarta</option>
+                                <option value="Bekasi">Bekasi</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Company Group</label>
+                            <select id="proj_group_cpny_id" name="group_cpny_id" class="proj-select2 w-full">
+                                <option value="">-- Select Company Group --</option>
+                                <option value="JKT">JKT</option>
+                                <option value="SBY">SBY</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 flex justify-end space-x-2">
+                        <button type="button" id="closeProjectModal"
                             class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
                         <button type="submit" class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
                     </div>
@@ -542,13 +641,13 @@
             $('#loadingOverlay').addClass('hidden');
         }
 
-        const initedCpnyTabs = { company: false, site: false, businessunit: false, companybudget: false };
+        const initedCpnyTabs = { company: false, site: false, businessunit: false, companybudget: false, project: false };
         const cpnyActiveClasses = 'bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400';
         const cpnyInactiveClasses = 'bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400';
 
         function switchCpnyTab(tab) {
-            const panels = { company: '#panel-company', site: '#panel-site', businessunit: '#panel-businessunit', companybudget: '#panel-companybudget' };
-            const btns   = { company: '#tab-company',   site: '#tab-site',   businessunit: '#tab-businessunit',   companybudget: '#tab-companybudget' };
+            const panels = { company: '#panel-company', site: '#panel-site', businessunit: '#panel-businessunit', companybudget: '#panel-companybudget', project: '#panel-project' };
+            const btns   = { company: '#tab-company',   site: '#tab-site',   businessunit: '#tab-businessunit',   companybudget: '#tab-companybudget',   project: '#tab-project' };
 
             Object.keys(panels).forEach(function(key) {
                 const isActive = key === tab;
@@ -564,6 +663,7 @@
                 if (tab === 'site') initSiteTable();
                 if (tab === 'businessunit') initBusinessUnitTable();
                 if (tab === 'companybudget') initCompanyBudgetTable();
+                if (tab === 'project') initProjectTable();
             } else if (tab === 'company' && window.companiesTable) {
                 window.companiesTable.columns.adjust().responsive.recalc();
             } else if (tab === 'site' && window.siteTable) {
@@ -572,6 +672,8 @@
                 window.businessUnitTable.columns.adjust().responsive.recalc();
             } else if (tab === 'companybudget' && window.companyBudgetTable) {
                 window.companyBudgetTable.columns.adjust().responsive.recalc();
+            } else if (tab === 'project' && window.projectTable) {
+                window.projectTable.columns.adjust().responsive.recalc();
             }
         }
 
@@ -700,6 +802,35 @@
                     allowClear: true,
                     dropdownParent: $('#companyBudgetModal')
                 });
+            });
+
+            // Init select2 for area / company group (inside project modal)
+            $('.proj-select2').each(function() {
+                $(this).select2({
+                    width: '100%',
+                    allowClear: true,
+                    dropdownParent: $('#projectModal')
+                });
+            });
+
+            // Filter #cb_cpnyid options by the selected Company Group
+            const cbCompanyOptions = $('#cb_cpnyid option').clone();
+
+            function filterCbCompanyByGroup(groupId, keepValue) {
+                const $select = $('#cb_cpnyid');
+                const selected = keepValue !== undefined ? keepValue : $select.val();
+
+                $select.empty().append(
+                    cbCompanyOptions.filter(function() {
+                        return $(this).val() === '' || !groupId || $(this).data('group') === groupId;
+                    }).clone()
+                );
+
+                $select.val(selected).trigger('change');
+            }
+
+            $(document).on('change', '#cb_group_cpny_id', function() {
+                filterCbCompanyByGroup($(this).val());
             });
 
             // Add
@@ -1455,7 +1586,7 @@
                             className: 'no-pointer'
                         },
                         {
-                            data: 'budget_cpnyid',
+                            data: 'budget_project_id',
                             className: 'no-pointer'
                         },
                         {
@@ -1490,8 +1621,8 @@
                     $('#modalCompanyBudgetTitle').text("Edit Company Budget");
                     $('#cb_id').val(c.id);
                     $('#cb_group_cpny_id').val(c.group_cpny_id).trigger('change');
-                    $('#cb_cpnyid').val(c.cpnyid);
-                    $('#cb_budget_cpnyid').val(c.budget_cpnyid);
+                    $('#cb_cpnyid').val(c.cpnyid).trigger('change');
+                    $('#cb_budget_project_id').val(c.budget_project_id).trigger('change');
 
                     $('#companyBudgetModal').removeClass('hidden').addClass('flex');
                     hideLoading();
@@ -1644,6 +1775,292 @@
                 $('#cb_id').val('');
                 $('.cb-select2').val('').trigger('change');
                 $('#companyBudgetModal').addClass('hidden').removeClass('flex');
+            });
+
+            // =========================================================
+            // Project
+            // =========================================================
+            window.initProjectTable = function() {
+                window.projectTable = $('#projectTable').DataTable({
+                    ajax: "{{ route('budget-projects.json') }}",
+                    processing: true,
+                    serverSide: false,
+                    autoWidth: false,
+                    lengthMenu: [
+                        [10, 25, 50, 100, 250, -1],
+                        [10, 25, 50, 100, 250, 'All']
+                    ],
+                    responsive: {
+                        details: {
+                            type: 'column',
+                            target: 0
+                        }
+                    },
+                    columnDefs: [{
+                        targets: 0,
+                        width: '28px',
+                        className: 'dtr-control',
+                        orderable: false
+                    }],
+                    dom: '<"dt-toolbar flex items-center justify-start gap-4"lBf>rtip',
+                    buttons: [{
+                            extend: 'excelHtml5',
+                            text: '↓ Excel',
+                            title: 'Project',
+                            className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                            exportOptions: {
+                                columns: ':visible',
+                                modifier: {
+                                    page: 'current'
+                                }
+                            }
+                        },
+                        {
+                            extend: 'csvHtml5',
+                            text: '↓ CSV',
+                            title: 'Project',
+                            className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                            exportOptions: {
+                                columns: ':visible',
+                                modifier: {
+                                    page: 'current'
+                                }
+                            }
+                        }
+                    ],
+                    columns: [{
+                            data: null,
+                            defaultContent: ''
+                        }, {
+                            data: 'id',
+                            render: function(data, type, row) {
+                                return `
+                                    <div class="flex justify-center space-x-2">
+                                        <label class="switch">
+                                            <input type="checkbox" class="toggleProjectStatus" data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
+                                            <span class="slider round"></span>
+                                        </label>
+                                        <button class="editProjectBtn bg-blue-500 text-white px-2 py-1 rounded" data-id="${data}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="deleteProjectBtn bg-red-500 text-white px-2 py-1 rounded" data-id="${data}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                `;
+                            }
+                        },
+                        {
+                            data: 'project_id',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'project_name',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'cpny_name',
+                            className: 'no-pointer',
+                            defaultContent: '-'
+                        },
+                        {
+                            data: 'area_id',
+                            className: 'no-pointer',
+                            defaultContent: '-'
+                        },
+                        {
+                            data: 'group_cpny_id',
+                            className: 'no-pointer',
+                            defaultContent: '-'
+                        },
+                        {
+                            data: 'status',
+                            className: 'no-pointer',
+                            render: function(data) {
+                                return data === 'A' ?
+                                    '<span class="w-full max-w-25 bg-green-300/30 dark:bg-green-300 text-green-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Active</span>' :
+                                    '<span class="w-full max-w-25 bg-red-300/30 dark:bg-red-300 text-red-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Inactive</span>';
+                            }
+                        }
+                    ]
+                });
+            };
+
+            // Add
+            $('#addProjectBtn').click(function() {
+                $('#modalProjectTitle').text("Add Project");
+                $('#projectForm')[0].reset();
+                $('#proj_id').val('');
+                $('.proj-select2').val('').trigger('change');
+                $('#projectModal').removeClass('hidden').addClass('flex');
+            });
+
+            // Edit
+            $(document).on('click', '.editProjectBtn', function() {
+                let id = $(this).data('id');
+
+                showLoading();
+
+                $.get(`/budget-projects/${id}/edit`, function(p) {
+                    $('#modalProjectTitle').text("Edit Project");
+                    $('#proj_id').val(p.id);
+                    $('#proj_project_id').val(p.project_id);
+                    $('#proj_project_name').val(p.project_name);
+                    $('#proj_cpny_name').val(p.cpny_name);
+                    $('#proj_area_id').val(p.area_id).trigger('change');
+                    $('#proj_group_cpny_id').val(p.group_cpny_id).trigger('change');
+
+                    $('#projectModal').removeClass('hidden').addClass('flex');
+                    hideLoading();
+                }).fail(function(xhr) {
+                    hideLoading();
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Gagal mengambil data project'
+                    });
+
+                    console.error(xhr.responseText);
+                });
+            });
+
+            // Toggle status (project)
+            $(document).on('change', '.toggleProjectStatus', function() {
+                let id = $(this).data('id');
+                let newStatus = $(this).is(':checked') ? 'A' : 'X';
+
+                $.ajax({
+                    url: `/budget-projects/${id}/toggle-status`,
+                    type: 'PUT',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    data: {
+                        status: newStatus
+                    },
+                    success: function() {
+                        window.projectTable.ajax.reload(null, false);
+                    }
+                });
+            });
+
+            // Delete (project)
+            $(document).on('click', '.deleteProjectBtn', function() {
+                let id = $(this).data('id');
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Delete project?',
+                    showCancelButton: true,
+                    confirmButtonText: 'Delete',
+                    confirmButtonColor: '#dc2626'
+                }).then(function(result) {
+                    if (!result.isConfirmed) return;
+
+                    showLoading();
+
+                    $.ajax({
+                        url: `/budget-projects/${id}`,
+                        type: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        success: function() {
+                            hideLoading();
+                            window.projectTable.ajax.reload(null, false);
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                        },
+                        error: function(xhr) {
+                            hideLoading();
+
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Gagal menghapus project'
+                            });
+
+                            console.error(xhr.responseText);
+                        }
+                    });
+                });
+            });
+
+            // Submit form (create / update project)
+            $('#projectForm').submit(function(e) {
+                e.preventDefault();
+
+                let id = $('#proj_id').val();
+                let url = id ? `/budget-projects/${id}` : "{{ route('budget-projects.store') }}";
+                let formData = new FormData(document.getElementById('projectForm'));
+
+                if (id) {
+                    formData.append('_method', 'PUT');
+                }
+
+                showLoading();
+                $('#projectForm button[type="submit"]').prop('disabled', true);
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function() {
+                        hideLoading();
+                        $('#projectForm button[type="submit"]').prop('disabled', false);
+
+                        $('#projectModal').addClass('hidden').removeClass('flex');
+                        $('#projectForm')[0].reset();
+                        $('#proj_id').val('');
+                        window.projectTable.ajax.reload(null, false);
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Project saved successfully',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    },
+                    error: function(xhr) {
+                        hideLoading();
+                        $('#projectForm button[type="submit"]').prop('disabled', false);
+
+                        let msg = 'Gagal menyimpan data project';
+
+                        if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                            msg = Object.values(xhr.responseJSON.errors)
+                                .map(arr => arr.join(', '))
+                                .join('\n');
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: msg
+                        });
+
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+
+            $('#closeProjectModal').click(function() {
+                $('#projectForm')[0].reset();
+                $('#proj_id').val('');
+                $('.proj-select2').val('').trigger('change');
+                $('#projectModal').addClass('hidden').removeClass('flex');
             });
 
             // init first (visible) tab

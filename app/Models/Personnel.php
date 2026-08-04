@@ -39,17 +39,14 @@ class Personnel extends Model
         'experience_end',
         'experience_position',
         'expected_employment_date',
-        'budget_cpnyid',
+        'budget_project_id',
+        'status',
         'created_user',
         'created_at',
         'updated_user',
         'updated_at',
-        'status',
-        'site',
-        'refid',
         'completed_user',
         'completed_at',
-        'cpnyid_site'
     ];
 
     public function departement()
