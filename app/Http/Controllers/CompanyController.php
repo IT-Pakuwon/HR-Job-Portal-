@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MsBudgetProject;
 use App\Models\MsCompany;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,13 +12,19 @@ class CompanyController extends Controller
 {
     public function index()
     {
-        $companies = MsCompany::select('cpny_id', 'cpny_name')
+        $companies = MsCompany::select('cpny_id', 'cpny_name', 'group_cpny_id')
             ->where('status', 'A')
             ->whereNull('deleted_at')
             ->orderBy('cpny_name')
             ->get();
 
-        return view('pages.company.company', compact('companies'));
+        $projects = MsBudgetProject::select('project_id', 'project_name')
+            ->where('status', 'A')
+            ->whereNull('deleted_at')
+            ->orderBy('project_name')
+            ->get();
+
+        return view('pages.company.company', compact('companies', 'projects'));
     }
 
     public function json()

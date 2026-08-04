@@ -31,6 +31,7 @@ use App\Http\Controllers\CarExpenseController;
 use App\Http\Controllers\ChangeStoController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\HrCompanyBudgetController;
+use App\Http\Controllers\MsProjectController;
 use App\Http\Controllers\CostControlDashboardController;
 use App\Http\Controllers\CsJobController;
 use App\Http\Controllers\CsListController;
@@ -2619,6 +2620,13 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/company-budgets/{id}', [HrCompanyBudgetController::class, 'update'])->name('company-budgets.update');
         Route::put('/company-budgets/{id}/toggle-status', [HrCompanyBudgetController::class, 'toggleStatus'])->name('company-budgets.toggle-status');
         Route::delete('/company-budgets/{id}', [HrCompanyBudgetController::class, 'destroy'])->name('company-budgets.destroy');
+
+        Route::get('/budget-projects/json', [MsProjectController::class, 'json'])->name('budget-projects.json');
+        Route::post('/budget-projects', [MsProjectController::class, 'store'])->name('budget-projects.store');
+        Route::get('/budget-projects/{id}/edit', [MsProjectController::class, 'edit'])->name('budget-projects.edit');
+        Route::put('/budget-projects/{id}', [MsProjectController::class, 'update'])->name('budget-projects.update');
+        Route::put('/budget-projects/{id}/toggle-status', [MsProjectController::class, 'toggleStatus'])->name('budget-projects.toggle-status');
+        Route::delete('/budget-projects/{id}', [MsProjectController::class, 'destroy'])->name('budget-projects.destroy');
 
         Route::get('/attachments-master', [AttachmentMasterController::class, 'index'])->name('attachments-master');
         Route::get('/attachments-master/json', [AttachmentMasterController::class, 'json'])->name('attachments-master.json');
