@@ -46,7 +46,7 @@ class UsersController extends Controller
             ->distinct()
             ->get();
 
-        $divisions = Division::select(['division_id', 'division_name'])
+        $divisions = Division::select(['division_id', 'division_name', 'group_cpny_id'])
             ->where('status', 'A')
             ->orderBy('division_name')
             ->get();
@@ -223,7 +223,7 @@ class UsersController extends Controller
             'email' => 'required',
             'group_cpny_id' => 'nullable|string',
             'cpny_id' => 'required|array',
-            'department_id' => 'required|array',
+            'department_id' => 'nullable|array',
             'division_id' => 'nullable|array',
             'business_unit_id' => 'nullable|array',
             'homepage' => 'nullable|string',
@@ -241,7 +241,7 @@ class UsersController extends Controller
             $groupCpnyId = $isSby ? 'SBY' : $request->group_cpny_id;
 
             $companyIdsString = implode(',', $request->cpny_id);
-            $deptIdsString    = implode(',', $request->department_id);
+            $deptIdsString    = implode(',', $request->department_id ?? []);
             $businessUnitIdsString = implode(',', $request->business_unit_id ?? []);
             $divisionIdsString = implode(',', $request->division_id ?? []);
             $roles = $isSby ? array_values(array_intersect($request->role, ['user', 'adminsby'])) : $request->role;
@@ -286,7 +286,7 @@ class UsersController extends Controller
             }
 
             // USERDEPT
-            foreach ($request->department_id as $dept) {
+            foreach ($request->department_id ?? [] as $dept) {
                 Userdept::create([
                     'username'      => $username,
                     'department_id' => $dept,
@@ -395,7 +395,7 @@ class UsersController extends Controller
             'email'         => 'required',
             'group_cpny_id' => 'nullable|string',
             'cpny_id'       => 'required|array',
-            'department_id' => 'required|array',
+            'department_id' => 'nullable|array',
             'division_id'   => 'nullable|array',
             'business_unit_id' => 'nullable|array',
             'homepage'      => 'nullable|string',
@@ -425,7 +425,7 @@ class UsersController extends Controller
                 : $oldUsername;
 
             $companyIdsString = implode(',', $request->cpny_id);
-            $deptIdsString    = implode(',', $request->department_id);
+            $deptIdsString    = implode(',', $request->department_id ?? []);
             $divisionIdsString = implode(',', $request->division_id ?? []);
             $businessUnitIdsString = implode(',', $request->business_unit_id ?? []);
             $roles = $isSby ? array_values(array_intersect($request->role, ['user', 'adminsby'])) : $request->role;
@@ -475,7 +475,7 @@ class UsersController extends Controller
                 ]);
             }
 
-            foreach ($request->department_id as $dept) {
+            foreach ($request->department_id ?? [] as $dept) {
                 Userdept::create([
                     'username'      => $newUsername,
                     'department_id' => $dept,

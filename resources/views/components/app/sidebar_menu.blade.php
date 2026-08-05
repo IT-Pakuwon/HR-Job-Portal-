@@ -58,6 +58,64 @@
                     }
                 }
 
+                // ================= SETTINGS MENU (hardcoded, role-gated) =================
+                // Mirrors the same role checks used to render the GLOBAL SETTINGS block below,
+                // so search never surfaces a link the current user can't actually see/click.
+                $settingsIcon = 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z';
+
+                $addSearchItem = function ($routeName, $label, $parent) use ($menuSearchIndex, $settingsIcon) {
+                    if (Route::has($routeName)) {
+                        $menuSearchIndex->push([
+                            'menu_name'   => $label,
+                            'menu_icon'   => $settingsIcon,
+                            'parent_name' => $parent,
+                            'url'         => route($routeName),
+                        ]);
+                    }
+                };
+
+                if (auth()->check()) {
+                    $userRolesForSearch = auth()->user()->roles();
+
+                    if (in_array('admin', $userRolesForSearch)) {
+                        $addSearchItem('access_control_studio', 'Access Control Studio', 'Global Settings');
+
+                        $addSearchItem('users', 'Users', 'Organization Setup');
+                        $addSearchItem('autonbrs', 'Autonbrs', 'Organization Setup');
+                        $addSearchItem('companies', 'Companies', 'Organization Setup');
+                        $addSearchItem('locations', 'Locations', 'Organization Setup');
+                        $addSearchItem('categories', 'Categories', 'Organization Setup');
+                        $addSearchItem('department', 'Department', 'Organization Setup');
+                        $addSearchItem('sys-calendar', 'Calendar Exception', 'Organization Setup');
+
+                        $addSearchItem('approvals', 'Approvals', 'Workflow');
+                        $addSearchItem('manage-approvals', 'Manage Approval', 'Workflow');
+                        $addSearchItem('attachments-master', 'Attachments Master', 'Workflow');
+
+                        $addSearchItem('grading', 'Grading', 'HRGA Setup');
+                        $addSearchItem('kendaraan', 'Kendaraan', 'HRGA Setup');
+                        $addSearchItem('group_acc_specific', 'Group Access Specific', 'HRGA Setup');
+
+                        $addSearchItem('tops', 'TOPS', 'Purchasing Setup');
+                        $addSearchItem('tenants', 'Tenants', 'Purchasing Setup');
+                        $addSearchItem('vendors', 'Vendors', 'Purchasing Setup');
+                        $addSearchItem('groupbiayanonpurch', 'Group Biaya Non Purch', 'Purchasing Setup');
+
+                        $addSearchItem('integration.ifcaintegration', 'IFCA Integration', 'Integration Setup');
+                        $addSearchItem('integration.acumvms.index', 'ACUM VMS Integration', 'Integration Setup');
+                    } elseif (\App\Models\SysUserRole::where('username', auth()->user()->username ?? '')
+                            ->whereIn('role_id', ['COSTCTRLACCESS', 'APFINACCESS'])
+                            ->where(function ($q) { $q->whereNull('status')->orWhere('status', 'A'); })
+                            ->exists()) {
+                        $addSearchItem('groupbiayanonpurch', 'Group Biaya Non Purch', 'Global Settings');
+                    }
+
+                    if (in_array('adminsby', $userRolesForSearch)) {
+                        $addSearchItem('users-sby', 'Users', 'Setting');
+                        $addSearchItem('approvals-sby', 'Approvals', 'Setting');
+                    }
+                }
+
                 $menuSearchIndex = $menuSearchIndex->values();
             @endphp
 
@@ -347,63 +405,18 @@
                                 </svg>
                             </button>
 
-                            <ul x-show="open" x-collapse class="mt-1 space-y-0.5 pl-2">
+                            <ul x-show="open" x-collapse class="mt-2 space-y-0.5 pl-2">
 
                                 <!-- ================================================= -->
                                 <!-- ACCESS CONTROL STUDIO (guided one-page console) -->
                                 <!-- ================================================= -->
-                                <li>
+                                <li class="mb-2">
                                     <a href="{{ route('access_control_studio') }}"
-                                        class="{{ Request::segment(1) === 'access_control_studio' ? 'text-white bg-indigo-600 dark:bg-indigo-500' : 'text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20' }} mb-1.5 flex min-h-9 items-center gap-2 rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors duration-200 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-500">
-                                        <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z" />
-                                        </svg>
-                                        <span>Access Control Studio</span>
+                                        class="{{ Request::segment(1) === 'access_control_studio' ? 'bg-indigo-100/70 dark:bg-indigo-500/15' : 'bg-indigo-50/70 dark:bg-indigo-500/10' }} group flex items-center gap-3 rounded-2xl px-3.5 py-2.5 transition-colors duration-200 hover:bg-indigo-100/70 dark:hover:bg-indigo-500/15 border-indigo-700 dark:border-indigo-800 borderIn">
+                                        <span class="flex min-w-0 flex-col leading-tight">
+                                            <span class="truncate text-sm font-semibold text-indigo-700 dark:text-indigo-200">Access Control Studio</span>
+                                        </span>
                                     </a>
-                                </li>
-
-                                <!-- ================================================= -->
-                                <!-- USER & ACCESS -->
-                                <!-- ================================================= -->
-                                @php $ua = ['users','roles','access_rights','role_menus','group-acc-specific','grading']; @endphp
-                                <li x-data="{ open: {{ in_array(Request::segment(1), $ua) ? 'true' : 'false' }} }">
-
-                                    <button @click="open = !open"
-                                        class="flex w-full items-center justify-between min-h-9 rounded-lg px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
-
-                                        <span class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">User &
-                                            Access</span>
-
-                                        <svg class="chevron h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M6 9l6 6 6-6" />
-                                        </svg>
-                                    </button>
-
-                                    <ul x-show="open" x-collapse class="space-y-0.5 pl-4">
-                                        <li><a href="{{ route('users') }}"
-                                                class="{{ Request::segment(1) === 'users' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Users</a>
-                                        </li>
-                                        <li><a href="{{ route('group_acc_specific') }}"
-                                                class="{{ Request::segment(1) === 'group-acc-specific' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Group
-                                                Access Specific</a>
-                                        </li>
-                                        <li><a href="{{ route('grading') }}"
-                                                class="{{ Request::segment(1) === 'grading' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Grading</a>
-                                        </li>
-                                        {{-- <li><a href="{{ route('roles') }}"
-                                                class="{{ Request::segment(1) === 'roles' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Roles</a>
-                                        </li>
-                                        <li><a href="{{ route('access_rights') }}"
-                                                class="{{ Request::segment(1) === 'access_rights' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Access
-                                                Rights</a></li>
-                                        <li><a href="{{ route('role_menus') }}"
-                                                class="{{ Request::segment(1) === 'role_menus' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Role
-                                                Menus</a></li> --}}
-                                    </ul>
                                 </li>
 
                                 <!-- ================================================= -->
@@ -439,16 +452,18 @@
                                 </li> --}}
 
                                 <!-- ================================================= -->
-                                <!-- ORGANIZATION -->
+                                <!-- ORGANIZATION SETUP (Organization + Master Data merged) -->
                                 <!-- ================================================= -->
-                                @php $org = ['companies','department','tenants','locations']; @endphp
-                                <li x-data="{ open: {{ in_array(Request::segment(1), $org) ? 'true' : 'false' }} }">
+                                @php $orgSetup = ['users', 'autonbrs', 'companies', 'locations', 'categories', 'department', 'sys-calendar']; @endphp
+                                <li x-data="{ open: {{ in_array(Request::segment(1), $orgSetup) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
                                         class="flex w-full items-center justify-between min-h-9 rounded-lg px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
 
-                                        <span
-                                            class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">Organization</span>
+                                        <span class="flex flex-1 items-center gap-2 text-left">
+                                            <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17M3 21h18M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2" /></svg>
+                                            <span class="whitespace-normal wrap-break-word leading-snug">Organization Setup</span>
+                                        </span>
 
                                         <svg class="chevron h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''"
                                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -458,81 +473,46 @@
                                     </button>
 
                                     <ul x-show="open" x-collapse class="space-y-0.5 pl-4">
+                                        <li><a href="{{ route('users') }}"
+                                                class="{{ Request::segment(1) === 'users' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Users</a>
+                                        </li>
+                                        <li><a href="{{ route('autonbrs') }}"
+                                                class="{{ Request::segment(1) === 'autonbrs' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Autonbrs</a>
+                                        </li>
                                         <li><a href="{{ route('companies') }}"
                                                 class="{{ Request::segment(1) === 'companies' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Companies</a>
-                                        </li>
-                                        <li><a href="{{ route('department') }}"
-                                                class="{{ Request::segment(1) === 'department' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Department</a>
-                                        </li>
-                                        <li><a href="{{ route('tenants') }}"
-                                                class="{{ Request::segment(1) === 'tenants' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Tenants</a>
                                         </li>
                                         <li><a href="{{ route('locations') }}"
                                                 class="{{ Request::segment(1) === 'locations' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Locations</a>
                                         </li>
-
-
-                                    </ul>
-                                </li>
-                                <!-- ================================================= -->
-                                <!-- MASTER DATA -->
-                                <!-- ================================================= -->
-                                @php $md = ['categories','vendors','autonbrs','tops']; @endphp
-                                <li x-data="{ open: {{ in_array(Request::segment(1), $md) ? 'true' : 'false' }} }">
-
-                                    <button @click="open = !open"
-                                        class="flex w-full items-center justify-between min-h-9 rounded-lg px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
-
-                                        <span class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">Master
-                                            Data</span>
-
-                                        <svg class="chevron h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M6 9l6 6 6-6" />
-                                        </svg>
-                                    </button>
-
-                                    <ul x-show="open" x-collapse class="space-y-0.5 pl-4">
                                         <li><a href="{{ route('categories') }}"
                                                 class="{{ Request::segment(1) === 'categories' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Categories</a>
                                         </li>
-                                        <li><a href="{{ route('vendors') }}"
-                                                class="{{ Request::segment(1) === 'vendors' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Vendors</a>
-                                        </li>
-                                        {{-- <li><a href="{{ route('inventories') }}"
-                                                class="{{ Request::segment(1) === 'inventories' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Inventories</a>
-                                        </li> --}}
-                                        <li><a href="{{ route('autonbrs') }}"
-                                                class="{{ Request::segment(1) === 'autonbrs' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Autonbrs</a>
-                                        </li>
-                                        <li><a href="{{ route('tops') }}"
-                                                class="{{ Request::segment(1) === 'tops' ? 'text-indigo-600' : '' }} sidebar-link text-sm">TOPS</a>
+                                        <li><a href="{{ route('department') }}"
+                                                class="{{ Request::segment(1) === 'department' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Department</a>
                                         </li>
                                         <li><a href="{{ route('sys-calendar') }}"
                                                 class="{{ Request::segment(1) === 'sys-calendar' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Calendar
                                                 Exception</a>
                                         </li>
-                                        <li><a href="{{ route('kendaraan') }}"
-                                                class="{{ Request::segment(1) === 'kendaraan' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Kendaraan</a>
-                                        </li>
-                                        <li><a href="{{ route('groupbiayanonpurch') }}"
-                                                class="{{ Request::segment(1) === 'groupbiayanonpurch' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Group
-                                                Biaya Non Purch</a>
-                                        </li>
+                                        {{-- <li><a href="{{ route('inventories') }}"
+                                                class="{{ Request::segment(1) === 'inventories' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Inventories</a>
+                                        </li> --}}
                                     </ul>
                                 </li>
                                 <!-- ================================================= -->
                                 <!-- WORKFLOW -->
                                 <!-- ================================================= -->
-                                @php $workflowSegments = ['approvals','manage-approvals','attachments-master','ifcaintegration']; @endphp
+                                @php $workflowSegments = ['approvals','manage-approvals','attachments-master']; @endphp
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $workflowSegments) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
                                         class="flex w-full items-center justify-between min-h-9 rounded-lg px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
 
-                                        <span
-                                            class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">Workflow</span>
+                                        <span class="flex flex-1 items-center gap-2 text-left">
+                                            <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2" /><circle cx="6" cy="18" r="2" /><circle cx="18" cy="12" r="2" /><path d="M6 8v8M8 6h4l6 6M8 18h4l6-6" /></svg>
+                                            <span class="whitespace-normal wrap-break-word leading-snug">Workflow</span>
+                                        </span>
 
                                         <svg class="chevron h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''"
                                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -553,18 +533,6 @@
                                                 class="{{ Request::segment(1) === 'attachments-master' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Attachments
                                                 Master</a>
                                         </li>
-                                        <li>
-                                            <a href="{{ route('integration.ifcaintegration') }}"
-                                                class="{{ Request::segment(1) === 'ifcaintegration' ? 'text-indigo-600' : '' }} sidebar-link text-sm">
-                                                IFCA Integration
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a href="{{ route('integration.acumvms.index') }}"
-                                                class="{{ Request::segment(1) === 'acumvms' ? 'text-indigo-600' : '' }} sidebar-link text-sm">
-                                                ACUM VMS Integration
-                                            </a>
-                                        </li>
                                         {{-- <li>
                                             <a href="{{ route('user_sync.index') }}"
                                                 class="{{ Request::segment(1) === 'user_sync' ? 'text-indigo-600' : '' }} sidebar-link text-sm">
@@ -579,6 +547,116 @@
                                         </li> --}}
 
 
+                                    </ul>
+                                </li>
+
+                                <!-- ================================================= -->
+                                <!-- HRGA SETUP -->
+                                <!-- ================================================= -->
+                                @php $hrgaSetup = ['grading', 'kendaraan', 'group-acc-specific']; @endphp
+                                <li x-data="{ open: {{ in_array(Request::segment(1), $hrgaSetup) ? 'true' : 'false' }} }">
+
+                                    <button @click="open = !open"
+                                        class="flex w-full items-center justify-between min-h-9 rounded-lg px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
+
+                                        <span class="flex flex-1 items-center gap-2 text-left">
+                                            <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h16v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8ZM9 8V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" /></svg>
+                                            <span class="whitespace-normal wrap-break-word leading-snug">HRGA Setup</span>
+                                        </span>
+
+                                        <svg class="chevron h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M6 9l6 6 6-6" />
+                                        </svg>
+                                    </button>
+
+                                    <ul x-show="open" x-collapse class="space-y-0.5 pl-4">
+                                        <li><a href="{{ route('grading') }}"
+                                                class="{{ Request::segment(1) === 'grading' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Grading</a>
+                                        </li>
+                                        <li><a href="{{ route('kendaraan') }}"
+                                                class="{{ Request::segment(1) === 'kendaraan' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Kendaraan</a>
+                                        </li>
+                                        <li><a href="{{ route('group_acc_specific') }}"
+                                                class="{{ Request::segment(1) === 'group-acc-specific' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Group
+                                                Access Specific</a>
+                                        </li>
+                                    </ul>
+                                </li>
+
+                                <!-- ================================================= -->
+                                <!-- PURCHASING SETUP -->
+                                <!-- ================================================= -->
+                                @php $purchasingSetup = ['tops', 'tenants', 'vendors', 'groupbiayanonpurch']; @endphp
+                                <li x-data="{ open: {{ in_array(Request::segment(1), $purchasingSetup) ? 'true' : 'false' }} }">
+
+                                    <button @click="open = !open"
+                                        class="flex w-full items-center justify-between min-h-9 rounded-lg px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
+
+                                        <span class="flex flex-1 items-center gap-2 text-left">
+                                            <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 8ZM9 8V6a3 3 0 0 1 6 0v2" /></svg>
+                                            <span class="whitespace-normal wrap-break-word leading-snug">Purchasing Setup</span>
+                                        </span>
+
+                                        <svg class="chevron h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M6 9l6 6 6-6" />
+                                        </svg>
+                                    </button>
+
+                                    <ul x-show="open" x-collapse class="space-y-0.5 pl-4">
+                                        <li><a href="{{ route('tops') }}"
+                                                class="{{ Request::segment(1) === 'tops' ? 'text-indigo-600' : '' }} sidebar-link text-sm">TOPS</a>
+                                        </li>
+                                        <li><a href="{{ route('tenants') }}"
+                                                class="{{ Request::segment(1) === 'tenants' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Tenants</a>
+                                        </li>
+                                        <li><a href="{{ route('vendors') }}"
+                                                class="{{ Request::segment(1) === 'vendors' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Vendors</a>
+                                        </li>
+                                        <li><a href="{{ route('groupbiayanonpurch') }}"
+                                                class="{{ Request::segment(1) === 'groupbiayanonpurch' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Group
+                                                Biaya Non Purch</a>
+                                        </li>
+                                    </ul>
+                                </li>
+
+                                <!-- ================================================= -->
+                                <!-- INTEGRATION SETUP -->
+                                <!-- ================================================= -->
+                                @php $integrationSetup = ['ifcaintegration', 'acumvms']; @endphp
+                                <li x-data="{ open: {{ in_array(Request::segment(1), $integrationSetup) ? 'true' : 'false' }} }">
+
+                                    <button @click="open = !open"
+                                        class="flex w-full items-center justify-between min-h-9 rounded-lg px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
+
+                                        <span class="flex flex-1 items-center gap-2 text-left">
+                                            <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h13M14 4l3 3-3 3M20 17H7M10 14l-3 3 3 3" /></svg>
+                                            <span class="whitespace-normal wrap-break-word leading-snug">Integration Setup</span>
+                                        </span>
+
+                                        <svg class="chevron h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M6 9l6 6 6-6" />
+                                        </svg>
+                                    </button>
+
+                                    <ul x-show="open" x-collapse class="space-y-0.5 pl-4">
+                                        <li>
+                                            <a href="{{ route('integration.ifcaintegration') }}"
+                                                class="{{ Request::segment(1) === 'ifcaintegration' ? 'text-indigo-600' : '' }} sidebar-link text-sm">
+                                                IFCA Integration
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="{{ route('integration.acumvms.index') }}"
+                                                class="{{ Request::segment(1) === 'acumvms' ? 'text-indigo-600' : '' }} sidebar-link text-sm">
+                                                ACUM VMS Integration
+                                            </a>
+                                        </li>
                                     </ul>
                                 </li>
                             </ul>
