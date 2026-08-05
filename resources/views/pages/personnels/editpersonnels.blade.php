@@ -745,16 +745,22 @@
                 const $budget = $('#budget_entity_id');
                 $budget.empty().append('<option value="">Select Budget Company</option>');
 
-                companyBudgets
-                    .filter(item => String(item.cpnyid) === String(cpnyid))
-                    .forEach(item => {
+                const matchingBudgets = companyBudgets
+                    .filter(item => String(item.cpnyid) === String(cpnyid));
+
+                matchingBudgets.forEach(item => {
                         const label = item.budget_entity_name
                             ? `${item.budget_entity_id} (${item.budget_entity_name})`
                             : item.budget_entity_id;
                         const option = new Option(label, item.budget_entity_id);
-                        option.selected = String(item.budget_entity_id) === String(selectedValue ?? '');
                         $budget.append(option);
                     });
+
+                if (matchingBudgets.length === 1) {
+                    $budget.val(String(matchingBudgets[0].budget_entity_id));
+                } else if (selectedValue !== null && selectedValue !== '') {
+                    $budget.val(String(selectedValue));
+                }
 
                 $budget.trigger('change');
             }

@@ -103,6 +103,7 @@
                                 ['label' => 'Company', 'value' => $rfp->cpny_id ?: '-'],
                                 ['label' => 'Department', 'value' => $rfp->department_id ?: '-'],
                                 ['label' => 'RP Date', 'value' => $rfp->rfp_date ? \Carbon\Carbon::parse($rfp->rfp_date)->format('d M Y') : '-'],
+                                ['label' => 'Submit Date', 'value' => !empty($submitDate) ? \Carbon\Carbon::parse($submitDate)->format('d M Y H:i:s') : '-'],
                                 ['label' => 'Created User', 'value' => e($createdUserValue)],
                                 ['label' => 'Vendor ID', 'value' => $rfp->vendor_id ?: '-'],
                                 ['label' => 'Vendor Name', 'value' => $rfp->vendor_name ?: '-'],

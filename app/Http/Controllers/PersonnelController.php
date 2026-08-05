@@ -491,10 +491,11 @@ class PersonnelController extends Controller
             // $tglbln = substr($year, 2) . $month;
             // $docid = $doctype . $tglbln . sprintf("%03d", $urutan);
 
-            $auto = $this->nextAutonbr(
+            $auto = $this->nextAutonbrByGroupCpnyid(
                 $doctype,
                 $year,
                 $month,
+                $groupCompanyId,
                 $username,
                 'PRF'
             );
@@ -1611,6 +1612,7 @@ class PersonnelController extends Controller
 
         // === Approval pakai TrApproval (refnbr & aprv_leveling) ===
         $approval = TrApproval::where('refnbr', $personnel->docid)
+            ->where('aprv_cpnyid', $personnel->cpnyid)
             ->where('status', '<>', 'X')
             ->orderBy('created_at')
             ->orderBy('aprv_leveling')
@@ -1623,6 +1625,7 @@ class PersonnelController extends Controller
 
         // === Attachment di GCS + generate Signed URL ===
         $attachments = TrAttachment::where('refnbr', $personnel->docid)
+            ->where('cpny_id', $personnel->cpnyid)
             ->where('status', 'A')
             ->orderBy('created_at', 'asc')
             ->get();

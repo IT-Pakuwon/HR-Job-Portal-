@@ -1306,6 +1306,10 @@ class RfpNonPurchController extends Controller
             ->where('rfpnonpurchaseid', $docid)
             ->first();
 
+        $taxDescriptions = $this->rfpNonPurchaseTaxes()
+            ->mapWithKeys(fn ($tax) => [$tax->taxid => $tax->descr])
+            ->all();
+
         return view('pages.rfpnonpurch.showrfpnonpurch', compact(
             'rfpnonpurch',
             'details',
@@ -1321,6 +1325,7 @@ class RfpNonPurchController extends Controller
             'userdept2',
             'rfpnonpurchSteps',
             'deposit',
+            'taxDescriptions',
             'imbudgetUrl',
             'imbudgetHash'
         ));

@@ -703,6 +703,15 @@ class RfpController extends Controller
         $imBlockingId = $blockingIMBudget->imbudgetid ?? null;
         $imBlockingStatus = $blockingIMBudget->status ?? null;
 
+        $firstApproval = TrApproval::query()
+            ->where('refnbr', $rfp->rfp_id)
+            ->where('aprv_doctype', 'RP')
+            ->where('status', '<>', 'X')
+            ->orderBy('aprv_leveling')
+            ->orderBy('id')
+            ->first();
+        $submitDate = $firstApproval ? $firstApproval->aprv_datebefore : null;
+
         $rfpSteps = collect();
         $createdStepUser = strtoupper(trim((string) $rfp->type_po)) === 'KONTRAK'
             ? ($rfp->user_peminta ?: '-')
@@ -754,6 +763,7 @@ class RfpController extends Controller
             'imbudgetUrl',
             'typepayment',
             'rfpSteps',
+            'submitDate',
             'terbilang',
             'kontrakBudgets',
             'hasApFinAccess',

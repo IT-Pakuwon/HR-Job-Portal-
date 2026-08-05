@@ -135,4 +135,39 @@ trait HasAutonbr
             ];
         });
     }
+
+    /**
+     * Generate the next autonumber scoped by group company.
+     * The group company value is stored in ms_autonbr.cpny_id
+     * (for example: PRF/JKT and PRF/SBY have separate sequences).
+     *
+     * @return array{doctype:string,year:int,month:string,group_cpny_id:string,next:int}
+     */
+    protected function nextAutonbrByGroupCpnyid(
+        string $doctype,
+        int $year,
+        string $month,
+        string $groupCompanyId,
+        string $username = 'system',
+        ?string $doctypeDescr = null
+    ): array {
+        $groupCompanyId = strtoupper(trim($groupCompanyId));
+
+        $result = $this->nextAutonbrByCpnyid(
+            $doctype,
+            $year,
+            $month,
+            $groupCompanyId,
+            $username,
+            $doctypeDescr
+        );
+
+        return [
+            'doctype' => $result['doctype'],
+            'year' => $result['year'],
+            'month' => $result['month'],
+            'group_cpny_id' => $groupCompanyId,
+            'next' => $result['next'],
+        ];
+    }
 }

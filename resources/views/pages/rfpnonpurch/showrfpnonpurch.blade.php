@@ -10,10 +10,10 @@
         />
 
          <div class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
-             <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+             <div class="grid grid-cols-1 gap-6 xl:grid-cols-5">
 
                 {{-- LEFT CARD --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800 xl:col-span-3">
                     <header class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
                             <span class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
@@ -221,11 +221,13 @@
                                                 <col class="w-[50px]">
                                             @endif
 
-                                            <col class="{{ $hasBudgetDetail ? ($isRCA ? 'w-[45%]' : 'w-[40%]') : 'w-auto' }}">
-                                            <col class="w-35">
+                                            <col class="{{ $hasBudgetDetail ? ($isRCA ? 'w-[28%]' : 'w-[30%]') : 'w-auto' }}">
                                             @if ($hasBudgetDetail)
                                                 <col class="w-70">
                                             @endif
+                                            <col class="w-35">
+                                            <col class="w-32">
+                                            <col class="w-35">
                                         </colgroup>
 
                                         <thead class="border-b text-gray-600 dark:text-gray-300">
@@ -238,10 +240,12 @@
                                                     {{ $isRCA ? 'Keperluan' : 'Description' }}
                                                 </th>
 
-                                                <th class="p-2 text-right">Amount Request</th>
                                                 @if ($hasBudgetDetail)
                                                     <th class="p-2 text-left">Budget</th>
                                                 @endif
+                                                <th class="p-2 text-right">Amount DPP</th>
+                                                <th class="p-2 text-left">Tax</th>
+                                                <th class="p-2 text-right">Amount Request</th>
                                             </tr>
                                         </thead>
 
@@ -254,10 +258,6 @@
 
                                                     <td class="p-2">
                                                         {{ $isRCA ? ($rfpnonpurch->keperluan ?: '-') : ($d->keperluan_detail ?: '-') }}
-                                                    </td>
-
-                                                    <td class="p-2 text-right">
-                                                        Rp {{ number_format((float) ($d->amount_request ?? 0), 2, ',', '.') }}
                                                     </td>
 
                                                     @if ($hasBudgetDetail)
@@ -315,10 +315,31 @@
                                                         </div>
                                                     </td>
                                                     @endif
+
+                                                    <td class="p-2 text-right">
+                                                        Rp {{ number_format((float) ($d->amount_request_dpp ?? 0), 2, ',', '.') }}
+                                                    </td>
+
+                                                    <td class="p-2">
+                                                        @php
+                                                            $taxCode = trim((string) ($d->taxcodeid ?? ''));
+                                                            $taxDescr = $taxCode !== ''
+                                                                ? ($taxDescriptions[$taxCode] ?? $taxCode)
+                                                                : '-';
+                                                        @endphp
+
+                                                        <span class="font-semibold text-gray-700 dark:text-gray-200">
+                                                            {{ $taxDescr }}
+                                                        </span>
+                                                    </td>
+
+                                                    <td class="p-2 text-right">
+                                                        Rp {{ number_format((float) ($d->amount_request ?? 0), 2, ',', '.') }}
+                                                    </td>
                                                 </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="{{ ($isRCA ? 2 : 3) + ($hasBudgetDetail ? 1 : 0) }}" class="p-3 text-center italic text-gray-500 dark:text-gray-400">
+                                                    <td colspan="{{ ($isRCA ? 4 : 5) + ($hasBudgetDetail ? 1 : 0) }}" class="p-3 text-center italic text-gray-500 dark:text-gray-400">
                                                         No detail found.
                                                     </td>
                                                 </tr>
@@ -382,7 +403,7 @@
                 </div>
 
                 {{-- RIGHT CARD --}}
-                <div class="flex flex-1 flex-col gap-6">
+                <div class="flex flex-1 flex-col gap-6 xl:col-span-2">
                     <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                         <div x-data="{ activeTab: 'attachment' }" class="flex max-h-[100%] flex-1 flex-col overflow-y-auto">
                             <header class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">

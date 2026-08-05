@@ -22,6 +22,7 @@ use App\Models\TrRfpNonPurchDetail;
 use App\Models\MsCompany;
 use App\Models\MsPurchSetting;
 use App\Models\MsTax;
+use App\Models\BudgetDetail;
 
 class CalrNonPurchController extends Controller
 {
@@ -1331,6 +1332,62 @@ class CalrNonPurchController extends Controller
             ->orderBy('id', 'asc')
             ->get();
 
+        $budgets = BudgetDetail::leftJoin('ms_coa', function ($join) {
+                $join->on('ms_budget.account_id', '=', 'ms_coa.account_id')
+                    ->on('ms_budget.cpny_id', '=', 'ms_coa.cpny_id');
+            })
+            ->where('ms_budget.status', 'C')
+            ->select(
+                'ms_budget.cpny_id',
+                'ms_budget.business_unit_id',
+                'ms_budget.department_fin_id',
+                'ms_budget.account_id',
+                'ms_budget.activity_id',
+                'ms_budget.activity_descr',
+                'ms_budget.perpost',
+                'ms_budget.totalbudget',
+                'ms_budget.totalbudget_add',
+                'ms_budget.total_reserve',
+                'ms_budget.total_used',
+                'ms_coa.account_descr as account_descr'
+            )
+            ->get();
+
+        $budgetMap = [];
+
+        foreach ($budgets as $b) {
+            $key = implode('|', [
+                (string) $b->cpny_id,
+                (string) $b->business_unit_id,
+                (string) $b->department_fin_id,
+                (string) $b->account_id,
+                (string) $b->activity_descr,
+                (string) $b->perpost,
+            ]);
+
+            $budgetMap[$key] = $b;
+        }
+
+        foreach ($details as $item) {
+            $key = implode('|', [
+                (string) $item->budget_cpny_id,
+                (string) $item->budget_business_unit_id,
+                (string) $item->budget_department_fin_id,
+                (string) $item->budget_account_id,
+                (string) $item->budget_activity_descr,
+                (string) $item->budget_perpost,
+            ]);
+
+            $budget = $budgetMap[$key] ?? null;
+
+            $item->budget_data = $budget;
+            $item->account_descr = $budget->account_descr ?? null;
+        }
+
+        $taxDescriptions = $this->rfpNonPurchaseTaxes()
+            ->mapWithKeys(fn ($tax) => [$tax->taxid => $tax->descr])
+            ->all();
+
         $doctype = 'CAR';
         $refnbr = $calr->calrnonpurchaseid;
 
@@ -1384,7 +1441,8 @@ class CalrNonPurchController extends Controller
             'doctype',
             'refnbr',
             'canUpload',
-            'isApprover'
+            'isApprover',
+            'taxDescriptions'
         ));
     }   
 

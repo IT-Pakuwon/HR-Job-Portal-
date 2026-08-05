@@ -466,30 +466,7 @@
                                 </tbody>
                             </table>
                         </div>
-
-                        {{-- <div x-show="activeTab === 'comments'" x-transition:enter="transition ease-out duration-300"
-                            x-transition:enter-start="opacity-0 translate-y-2"
-                            x-transition:enter-end="opacity-100 translate-y-0"
-                            x-transition:leave="transition ease-in duration-200"
-                            x-transition:leave-start="opacity-100 translate-y-0"
-                            x-transition:leave-end="opacity-0 translate-y-2">
-                            <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex w-full flex-col justify-center">
-                                <div id="commentList"
-                                    class="custom-scrollbar flex max-h-60 flex-col space-y-4 overflow-y-auto p-4">
-                                    <p class="py-4 text-center italic text-gray-500 dark:text-gray-400">Loading comments...</p>
-                                </div>
-                                <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
-                                    <input id="commentInput" x-model="newComment" type="text"
-                                        placeholder="Write a comment..."
-                                        class="flex-1 rounded-lg border border-transparent bg-gray-100 p-3 text-gray-800 transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
-                                    <button id="postCommentBtn"
-                                        @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
-                                        class="hover: rounded-lg bg-indigo-600 px-5 py-3  text-sm  font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
-                                        Post 🚀
-                                    </button>
-                                </div>
-                            </div>
-                        </div> --}}
+            
                         <div x-show="activeTab === 'comments'" x-transition:enter="transition ease-out duration-300"
                             x-transition:enter-start="opacity-0 translate-y-2"
                             x-transition:enter-end="opacity-100 translate-y-0"
@@ -573,106 +550,7 @@
             window.lucide.createIcons();
         }
     </script>
-
-
-    {{-- <script>
-        $(document).ready(function() {
-            let docid = "{{ $personnel->docid }}"; // Ambil task ID dari PHP ke JavaScript
-            loadComments(docid);
-
-            // **Fungsi untuk Memuat Komentar**
-            function loadComments(docid) {
-                console.log("Loading comments for Doc ID:", docid);
-                let commentList = $('#commentList');
-                commentList.html('<p class="text-gray-500 italic dark:text-gray-400">Loading comments...</p>'); // Loader
-
-                $.ajax({
-                    url: `/personnel/${docid}/comments`,
-                    type: 'GET',
-                    success: function(response) {
-                        console.log("Comments Loaded:", response);
-                        commentList.empty();
-
-                        if (response.comments.length === 0) {
-                            commentList.append(
-                                '<p class="text-gray-500 text-sm italic dark:text-gray-400">No comments yet. Be the first to comment!</p>'
-                            );
-                        } else {
-                            response.comments.forEach(comment => {
-                                let timeAgo = moment(comment.created_at)
-                                    .fromNow(); // Format waktu seperti "4 days ago"
-
-                                commentList.append(`
-                                    <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-                                        <p class=" text-sm  font-semibold">${comment.username}
-                                            <span class="text-sm text-gray-500 dark:text-gray-400">(${timeAgo})</span>
-                                        </p>
-                                        <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
-                                    </div>
-                                `);
-                            });
-                        }
-                    },
-                    error: function(xhr) {
-                        console.error("Error fetching comments:", xhr.responseText);
-                        commentList.html('<p class="text-red-500 italic">Failed to load comments.</p>');
-                    }
-                });
-            }
-
-            // **Fungsi untuk Menambahkan Komentar**
-            function addComment() {
-                let input = $('#commentInput').val().trim();
-
-                if (input === "") {
-                    alert("Please enter a comment.");
-                    return;
-                }
-
-                $('#postCommentBtn').prop('disabled', true).text('Posting...'); // Disable button saat proses
-
-                $.ajax({
-                    url: `/personnel/${docid}/comments`,
-                    type: 'POST',
-                    data: {
-                        docid: docid,
-                        comment: input,
-                        _token: '{{ csrf_token() }}'
-                    },
-                    success: function(response) {
-                        console.log('Comment added successfully:', response);
-
-                        if (response.status === "success") {
-                            loadComments(docid); // **Reload komentar setelah menambahkan**
-                            $('#commentInput').val(''); // Kosongkan input setelah sukses
-                        }
-                    },
-                    error: function(xhr) {
-                        console.error("Error adding comment:", xhr);
-                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message :
-                            "Unknown Error"));
-                    },
-                    complete: function() {
-                        $('#postCommentBtn').prop('disabled', false).text(
-                            'Post'); // Aktifkan kembali tombol
-                    }
-                });
-            }
-
-            // **Event Listener untuk Tombol "Post"**
-            $('#postCommentBtn').click(function() {
-                addComment();
-            });
-
-            // **Event Listener untuk Enter (Tanpa Shift) di Input**
-            $('#commentInput').keypress(function(event) {
-                if (event.which === 13 && !event.shiftKey) {
-                    event.preventDefault();
-                    addComment();
-                }
-            });
-        });
-    </script> --}}
+    
     <script src="{{ asset('assets/js/shared/mention-autocomplete.js') }}"></script>
     <script>
         $(function() {
