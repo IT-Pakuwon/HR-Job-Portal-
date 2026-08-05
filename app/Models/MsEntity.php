@@ -4,15 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class MsBudgetProject extends Model
+class MsEntity extends Model
 {
     protected $connection = 'pgsql2';
-    protected $table = 'ms_project';
+    protected $table = 'ms_entity';
 
     protected $fillable = [
-        'project_id',
-        'project_name',
-        'cpny_name',
+        'entity_id',
+        'entity_name',
         'area_id',
         'group_cpny_id',
         'status',

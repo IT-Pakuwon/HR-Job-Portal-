@@ -212,6 +212,57 @@
         .nowrap {
             white-space: nowrap;
         }
+
+        .detail-title {
+            margin-top: 14px;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .detail-table {
+            margin-top: 6px;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        .detail-table th,
+        .detail-table td {
+            border: 1px solid #000;
+            padding: 5px 6px;
+            font-size: 13px;
+            vertical-align: top;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+        }
+
+        .detail-table th {
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .detail-no {
+            width: 6%;
+            text-align: center;
+        }
+
+        .detail-amount {
+            width: 25%;
+            text-align: right;
+        }
+
+        .detail-budget {
+            width: 27%;
+            font-size: 11px;
+            line-height: 1.3;
+        }
+
+        .detail-budget .b-line {
+            display: block;
+        }
+
+        .detail-budget .b-desc {
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -362,6 +413,60 @@
             </td>
         </tr>
     </table>
+
+    {{-- DETAIL --}}
+    @if (isset($details) && $details->count())
+        <div class="detail-title">
+            Detail {{ $isRCA ? 'RCA' : 'RFP' }} Non Purchase
+        </div>
+
+        <table class="detail-table">
+            <thead>
+                <tr>
+                    <th class="detail-no">No</th>
+                    <th>{{ $isRCA ? 'Keperluan' : 'Description' }}</th>
+                    <th class="detail-amount">Amount Request</th>
+                    @if (!empty($hasBudgetDetail))
+                        <th class="detail-budget">Budget</th>
+                    @endif
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach ($details as $i => $d)
+                    <tr>
+                        <td class="detail-no">{{ $i + 1 }}</td>
+                        <td>{{ $isRCA ? ($rfpnonpurch->keperluan ?: '-') : ($d->keperluan_detail ?: '-') }}</td>
+                        <td class="detail-amount">Rp {{ number_format((float) ($d->amount_request ?? 0), 2, ',', '.') }}</td>
+
+                        @if (!empty($hasBudgetDetail))
+                            <td class="detail-budget">
+                                @php
+                                    $budgetData = $d->budget_data ?? null;
+                                @endphp
+
+                                @if ($budgetData)
+                                    <span class="b-line">
+                                        {{ $d->budget_business_unit_id ?: '-' }} /
+                                        {{ $d->budget_department_fin_id ?: '-' }} /
+                                        {{ $d->budget_account_id ?: '-' }}
+                                    </span>
+                                    <span class="b-line b-desc">
+                                        {{ $d->budget_activity_descr ?: $d->budget_activity_id ?: '-' }}
+                                    </span>
+                                    <span class="b-line">
+                                        Available: Rp {{ number_format((float) ($d->budget_remaining ?? 0), 0, ',', '.') }}
+                                    </span>
+                                @else
+                                    -
+                                @endif
+                            </td>
+                        @endif
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
 
     {{-- APPROVAL --}}
     <table class="approval-table">

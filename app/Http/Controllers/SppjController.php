@@ -694,8 +694,8 @@ class SppjController extends Controller
                     $meta = [
                         'refnbr' => $docid,
                         'doctype' => $doctype,
-                        'cpnyid' => $request->input('cpnyid'),
-                        'departementid' => $request->input('departementid'),
+                        'cpny_id' => $request->input('cpnyid'),
+                        'department_id' => $request->input('departementid'),
                         'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
                         'created_by' => $user->username,
                     ];
@@ -1319,8 +1319,8 @@ class SppjController extends Controller
                 $meta = [
                     'refnbr' => $header->sppjid,
                     'doctype' => $doctype,
-                    'cpnyid' => $request->cpnyid,
-                    'departementid' => $request->departementid,
+                    'cpny_id' => $request->cpnyid,
+                    'department_id' => $request->departementid,
                     'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by' => $user->username,
                 ];
@@ -3201,8 +3201,8 @@ class SppjController extends Controller
                 $meta = [
                     'refnbr' => $bqid,
                     'doctype' => $doctype,
-                    'cpnyid' => $cpny_id,
-                    'departementid' => $deptid,
+                    'cpny_id' => $cpny_id,
+                    'department_id' => $deptid,
                     'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by' => $username,
                 ];
@@ -3331,8 +3331,8 @@ class SppjController extends Controller
                 $meta = [
                     'refnbr' => $bqid,
                     'doctype' => $doctype,
-                    'cpnyid' => $cpny_id,
-                    'departementid' => $deptid,
+                    'cpny_id' => $cpny_id,
+                    'department_id' => $deptid,
                     'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by' => $user->username,
                 ];

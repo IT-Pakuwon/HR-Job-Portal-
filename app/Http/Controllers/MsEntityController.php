@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MsBudgetProject;
+use App\Models\MsEntity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class MsProjectController extends Controller
+class MsEntityController extends Controller
 {
     public function json()
     {
-        $rows = MsBudgetProject::whereNull('deleted_at')
+        $rows = MsEntity::whereNull('deleted_at')
             ->orderByDesc('id')
             ->get();
 
@@ -21,9 +21,8 @@ class MsProjectController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'project_id'    => 'required|string|max:25|unique:pgsql2.ms_project,project_id',
-            'project_name'  => 'required|string|max:255',
-            'cpny_name'     => 'nullable|string|max:255',
+            'entity_id'     => 'required|string|max:25|unique:pgsql2.ms_entity,entity_id',
+            'entity_name'   => 'required|string|max:255',
             'area_id'       => 'nullable|string|max:10',
             'group_cpny_id' => 'nullable|string|max:10',
         ]);
@@ -32,10 +31,9 @@ class MsProjectController extends Controller
         try {
             $loginUser = Auth::user();
 
-            $row = MsBudgetProject::create([
-                'project_id'    => strtoupper(trim($request->project_id)),
-                'project_name'  => strtoupper($request->project_name),
-                'cpny_name'     => strtoupper((string) $request->cpny_name),
+            $row = MsEntity::create([
+                'entity_id'     => strtoupper(trim($request->entity_id)),
+                'entity_name'   => strtoupper($request->entity_name),
                 'area_id'       => $request->area_id,
                 'group_cpny_id' => strtoupper((string) $request->group_cpny_id),
                 'status'        => 'A',
@@ -50,7 +48,7 @@ class MsProjectController extends Controller
             DB::rollBack();
 
             return response()->json([
-                'error'   => 'Gagal menyimpan project',
+                'error'   => 'Gagal menyimpan entity',
                 'message' => $e->getMessage(),
             ], 500);
         }
@@ -58,13 +56,12 @@ class MsProjectController extends Controller
 
     public function edit($id)
     {
-        $row = MsBudgetProject::whereNull('deleted_at')->findOrFail($id);
+        $row = MsEntity::whereNull('deleted_at')->findOrFail($id);
 
         return response()->json([
             'id'            => $row->id,
-            'project_id'    => $row->project_id,
-            'project_name'  => $row->project_name,
-            'cpny_name'     => $row->cpny_name,
+            'entity_id'     => $row->entity_id,
+            'entity_name'   => $row->entity_name,
             'area_id'       => $row->area_id,
             'group_cpny_id' => $row->group_cpny_id,
             'status'        => $row->status,
@@ -73,12 +70,11 @@ class MsProjectController extends Controller
 
     public function update(Request $request, $id)
     {
-        $row = MsBudgetProject::whereNull('deleted_at')->findOrFail($id);
+        $row = MsEntity::whereNull('deleted_at')->findOrFail($id);
 
         $request->validate([
-            'project_id'    => 'required|string|max:25|unique:pgsql2.ms_project,project_id,'.$row->id,
-            'project_name'  => 'required|string|max:255',
-            'cpny_name'     => 'nullable|string|max:255',
+            'entity_id'     => 'required|string|max:25|unique:pgsql2.ms_entity,entity_id,'.$row->id,
+            'entity_name'   => 'required|string|max:255',
             'area_id'       => 'nullable|string|max:10',
             'group_cpny_id' => 'nullable|string|max:10',
         ]);
@@ -88,9 +84,8 @@ class MsProjectController extends Controller
             $loginUser = Auth::user();
 
             $row->update([
-                'project_id'    => strtoupper(trim($request->project_id)),
-                'project_name'  => strtoupper($request->project_name),
-                'cpny_name'     => strtoupper((string) $request->cpny_name),
+                'entity_id'     => strtoupper(trim($request->entity_id)),
+                'entity_name'   => strtoupper($request->entity_name),
                 'area_id'       => $request->area_id,
                 'group_cpny_id' => strtoupper((string) $request->group_cpny_id),
                 'updated_by'    => $loginUser->username ?? 'system',
@@ -104,7 +99,7 @@ class MsProjectController extends Controller
             DB::rollBack();
 
             return response()->json([
-                'error'   => 'Gagal update project',
+                'error'   => 'Gagal update entity',
                 'message' => $e->getMessage(),
             ], 500);
         }
@@ -112,7 +107,7 @@ class MsProjectController extends Controller
 
     public function toggleStatus(Request $request, $id)
     {
-        $row = MsBudgetProject::whereNull('deleted_at')->findOrFail($id);
+        $row = MsEntity::whereNull('deleted_at')->findOrFail($id);
         $loginUser = Auth::user();
 
         $row->update([
@@ -126,7 +121,7 @@ class MsProjectController extends Controller
 
     public function destroy($id)
     {
-        $row = MsBudgetProject::whereNull('deleted_at')->findOrFail($id);
+        $row = MsEntity::whereNull('deleted_at')->findOrFail($id);
         $loginUser = Auth::user();
 
         $row->update([
@@ -134,6 +129,6 @@ class MsProjectController extends Controller
             'deleted_at' => now(),
         ]);
 
-        return response()->json(['message' => 'Project deleted']);
+        return response()->json(['message' => 'Entity deleted']);
     }
 }

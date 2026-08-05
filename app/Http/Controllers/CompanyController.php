@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MsBudgetProject;
 use App\Models\MsCompany;
+use App\Models\MsEntity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -18,13 +18,13 @@ class CompanyController extends Controller
             ->orderBy('cpny_name')
             ->get();
 
-        $projects = MsBudgetProject::select('project_id', 'project_name')
+        $entities = MsEntity::select('entity_id', 'entity_name')
             ->where('status', 'A')
             ->whereNull('deleted_at')
-            ->orderBy('project_name')
+            ->orderBy('entity_name')
             ->get();
 
-        return view('pages.company.company', compact('companies', 'projects'));
+        return view('pages.company.company', compact('companies', 'entities'));
     }
 
     public function json()

@@ -693,6 +693,35 @@
                         </li>
                     @endif
 
+                    @if (!in_array('admin', $userRoles) && auth()->user()->hasRole('PURCHACCESS'))
+                        {{-- PURCHACCESS (non-admin): scoped access to Vendors under Setting --}}
+                        <li class="mt-4"
+                            x-data="{ open: {{ Request::segment(1) === 'vendors' ? 'true' : 'false' }} }">
+
+                            <button @click="open = !open"
+                                class="flex w-full items-center justify-between min-h-11 rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
+                                <div class="flex items-center gap-2.5">
+                                    <svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 8ZM9 8V6a3 3 0 0 1 6 0v2" /></svg>
+                                    <span class="whitespace-normal wrap-break-word leading-snug">SETTING</span>
+                                </div>
+                                <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M6 9l6 6 6-6" />
+                                </svg>
+                            </button>
+
+                            <ul x-show="open" x-collapse class="mt-1 space-y-0.5 pl-2">
+                                <li>
+                                    <a href="{{ route('vendors') }}"
+                                        class="{{ Request::segment(1) === 'vendors' ? 'text-indigo-600' : '' }} sidebar-link text-sm">
+                                        Vendors
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    @endif
+
                     @if (in_array('adminsby', $userRoles))
                         {{-- Admin Surabaya: only Users and Approvals under Setting --}}
                         <li class="mt-4"
