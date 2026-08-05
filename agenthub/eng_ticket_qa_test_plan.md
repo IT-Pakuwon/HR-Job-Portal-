@@ -159,3 +159,113 @@ App\Models\TrTicket::whereIn('ticketid', $ticketIds)->delete();
 **Step 3** — Sanity check: search the ticket list for the QA tag (`QA-ENGTIX-...`) in Issue Summary — result count must be 0 after cleanup.
 
 **Step 4** — If any real WhatsApp group or real email inboxes received test notifications, send a short courtesy follow-up noting they were QA test messages (a human action, not something to script).
+
+---
+
+## QA Execution Results — 2026-08-05
+
+- **Environment:** Local/Demo (`http://localhost:8000`), Laravel app + 3 test DBs (pgsql / pgsql2 / pgsql5). **Not production.**
+- **Method:** Backend + HTTP API automation (PowerShell `Invoke-WebRequest` with cached authenticated sessions). No browser automation — visual-only items below are marked accordingly.
+- **Real side effects fired as agreed:** WhatsApp group messages + emails were actually sent on Response/Process/Complete/etc. Approver + requester mailboxes and the mapped WA group(s) received live QA notifications.
+- **QA tag:** `QA-ENGTIX-2026-08-04` (prefix of Issue Summary/Description).
+- **Tickets created:** `TOK26080001`..`TOK26080005` (T1 ENG, T2 BSFO, T3 BA_ENG, T4 BA_BS, T5 BA_BS cancel-test). T5 = cancelled test ticket.
+- **Test users:** `qa_eng`, `qa_bs`, `qa_mgr`, `qa_req` (password `QaTest!2026`); approvers `jhonsimanjuntak`, `djoharitatang`, `ardisolaiman`, `agustius`, `agunggunawan`, `krisniagasari` (login `pakuwon1234#`). All 10 verified with `OPRTIKET` FULL rights.
+- **Overall:** 117 automated assertions executed (25 in §A/B/H/J pass, 92 in §C/D/E/F/G/I/J.2 pass) — **0 FAIL**.
+
+Legend: ✅ PASS · ⚠️ NOT TESTED (needs browser/visual or a scenario not run) · ◐ PARTIAL
+
+### A. Ticket Type Rename & Auto-Number
+| Test | Result | Evidence |
+|---|---|---|
+| A.1 types (no BA_BSFO) | ✅ | DB scan: `ENGSUPPORTTICKET`,`BSFOSUPPORTTICKET`,`BA_ENG`,`BA_BS` all status A, no `BA_BSFO` |
+| A.2 BA_ENG doc number + header | ✅ | `A.2.detail` BA/ENG/08/2026/003; `A.2.print` PDF (3687 B); header "BERITA ACARA ENG" |
+| A.3 BA_BS doc number + header | ✅ | `A.3.detail` BA/BS/08/2026/004; `A.3.print` PDF (3711 B); header "BERITA ACARA BSFO" |
+| A.4 approval condition labels | ✅ | `ms_approval` TOK shows "BA BS" and "BA ENG", no "BA BSFO" |
+
+### B. Location Source
+| Test | Result | Evidence |
+|---|---|---|
+| B.1 ENG/BSFO site dropdown, no sub-location | ✅ | T1/T2 `location_id=AW` (ms_site), `sub_location_id` NULL |
+| B.2 BA from ms_location + sub-location | ✅ | T3/T4 `location_id=AL0000002`, `sub_location_id=AL0020003` (ms_location/ms_sub_location); sub-location submitted successfully |
+| B.3 BA without sub-location blocked | ⚠️ | Negative not executed (only valid BA submits tested) |
+| B.4 edit BA prefills loc+subloc | ⚠️ | Not executed (J.1 edit was on ENG ticket) |
+| B.5 edit ENG keeps site-only | ⚠️ | Not executed |
+| B.6 location shown list/print/respond | ✅ | Detail JSON + Print PDF show location (+ sub-location for BA) |
+| B.7 WA LOCATION line populated | ◐ | Response WA actually sent with no exception; message content not asserted |
+
+### C. Issue Summary Field Mode
+| Test | Result | Evidence |
+|---|---|---|
+| C.1 select2 for ENG/BSFO | ✅ | create page contains `issue_summary_select_field` + select2 |
+| C.2 free-text for BA | ✅ | create page contains `issue_summary_text_field` |
+| C.3 free-text saved/displayed | ✅ | T3/T4 detail shows free-text summary containing `QA-ENGTIX-2026-08-04` |
+| C.4 toggle back/forth no stale leak | ⚠️ | Not executed |
+| C.5 edit BA prefills text input | ⚠️ | Not executed |
+
+### D. Calendar
+| Test | Result | Evidence |
+|---|---|---|
+| D.1 Unscheduled (gray, all-day) | ✅ | `D.1.T1..T5` — all UNSCHEDULED + all_day before any response |
+| D.2 respond without dates → Scheduled | ✅ | `D.2` — core fix verified (NOT Unscheduled) |
+| D.3 respond with dates → Scheduled + range | ✅ | `D.3` — not all-day, event_start present |
+| D.4 late → "Late" | ⚠️ | No SLA-overdue run executed |
+| D.5 no new dates keeps state | ✅ | `D.5.T1` PENDING keeps RESCHEDULE; `D.5.T2` no-dates stays SCHEDULED; `D.5.T3` process w/o dates stays SCHEDULED |
+| D.6 new dates → Reschedule | ✅ | `D.6` — Process with new dates → RESCHEDULE |
+| D.7 late sticky | ⚠️ | Not executed |
+| D.8 Completed / Cancelled | ✅ | `D.8.complete` → COMPLETED; `D.8.cancel` → CANCELLED |
+| D.9 hover tooltip | ⚠️ | Browser-only |
+| D.10 counts/tiles consistent | ⚠️ | Browser-only |
+
+### E. Tracking Timeline
+| Test | Result | Evidence |
+|---|---|---|
+| E.1 card titles correct | ✅ | `E.1` — Created/Response/Process/Pending/Completed present |
+| E.2 real notes show box | ✅ | `E.2` — response/process/solution text present in timeline |
+| E.3 empty notes → no empty box | ✅ | `E.3` — process with no notes renders description "-" |
+| E.4 Created/Completed notes no clash | ⚠️ | Not executed (visual) |
+
+### F. WhatsApp Notifications
+| Test | Result | Evidence |
+|---|---|---|
+| F.1 respond → WA sent | ✅ | Actual send (200), no exception in `laravel.log` |
+| F.2 process → WA sent | ✅ | Actual send (200), no exception in `laravel.log` |
+| F.3 complete → WA sent | ✅ | Actual send (200), no exception in `laravel.log` |
+| F.4 no WA on create/cancel/transfer/reopen/pending | ⚠️ | Not asserted (only absence-of-exception scanned) |
+
+### G. Email Notifications
+| Test | Result | Evidence |
+|---|---|---|
+| G.1 all 4 types trigger mails | ◐ | Real sends occurred across all workflow steps with no exceptions in `laravel.log`; per-type coverage not enumerated |
+| G.2 header badge/footer labels correct | ⚠️ | Email body content not asserted (needs inbox inspection) |
+
+### H. Role-Based Access
+| Test | Result | Evidence |
+|---|---|---|
+| H.1 no cross-type leak (list) | ✅ | `qa_eng` sees T1/T3 not T2/T4; `qa_bs` sees T2/T4 not T1/T3 (via list json) — the exact leak fix |
+| H.1 (calendar/export) | ⚠️ | Only list endpoint asserted |
+| H.2 owned cross-type ticket: see + actions blocked | ⚠️ | Not executed |
+| H.3 manager sees all 4 | ✅ | `H.mgr` — manager list contains all 4 ticket IDs |
+
+### I. Approval Panel
+| Test | Result | Evidence |
+|---|---|---|
+| I.1 current approver sees "Pending My Approval" | ✅ | `I.1.krisniagasari` sees T3+T4 |
+| I.2 only my active tickets, not system-wide | ✅ | `I.2.jhonsimanjuntak` only T1; `I.2.ardisolaiman` only T2; `I.2.agustius` empty (not active anywhere) |
+| I.3 visual badges | ⚠️ | Browser-only |
+| I.4 approve dialog | ⚠️ | Backend approve tested end-to-end (`W.T1.approve1..3`, T2/T3/T4 chains); dialog UI not |
+| I.5 reject dialog + empty-reason block | ◐ | Backend reject with reason tested (`W.T2.reject`); dialog UI not |
+| I.6 non-approver hidden | ✅ | `I.6` — qa_eng sees empty pending list |
+
+### J. Edit Permission
+| Test | Result | Evidence |
+|---|---|---|
+| J.1 creator edit while CREATED | ✅ | `J.1` — qa_req edit T1 succeeded (summary `[EDITED]` persisted) |
+| J.2 edit after Response → 403 | ✅ | `J.2` — direct POST to `/update/{hash}` → 403 |
+| J.3 non-creator edit → 403 | ✅ | `J.3` — qa_eng POST while CREATED → 403 |
+
+### Workflow (bonus coverage beyond plan items — all PASS)
+Response (PIC validation: invalid/missing/cross-type → 422), approval chain ordering (3/2/4/4 levels per condition), wrong-approver → 403, reject → CREATED + approver R / others X, re-respond regenerates fresh lines, process/pending/complete, cancel lifecycle (requester while CREATED, wrong-role → 403, re-cancel → 403), reopen (REOPEN + reopen_ticket/descr), transfer (PIC-only, category/sub-category change + "Transfer category from …" note, fresh approval round, re-approve), SLA (HIGH=1d, MEDIUM=3d), and 0 server errors across every workflow action.
+
+---
+
+## Cleanup — delete ALL QA test data

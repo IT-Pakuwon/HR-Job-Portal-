@@ -157,7 +157,7 @@ class GradingController extends Controller
     public function jsonSub()
     {
         $subgrades = StoSubGrading::query()
-            ->leftJoin('hr_ms_sto_grading', 'hr_ms_sto_subgrading.grade_id', '=', 'hr_ms_sto_grading.grade_id')
+            ->leftJoin('hr_ms_sto_grading', DB::raw('hr_ms_sto_subgrading.grade_id::varchar'), '=', 'hr_ms_sto_grading.grade_id')
             ->select([
                 'hr_ms_sto_subgrading.id',
                 'hr_ms_sto_subgrading.subgrade_id',

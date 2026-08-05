@@ -1,25 +1,27 @@
 <style>
     /* ================= SIDEBAR LINKS ================= */
     .sidebar-link {
+        position: relative;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
         min-height: 32px;
-        padding: 4px 12px;
+        padding: 4px 12px 4px 16px;
         border-radius: 0.5rem;
         color: rgb(75 85 99);
         /* gray-600 */
         transition: background-color .15s ease, color .15s ease;
     }
 
+    /* Left accent bar — replaces the old dot bullet */
     .sidebar-link::before {
         content: '';
-        width: 5px;
-        height: 5px;
-        flex-shrink: 0;
+        position: absolute;
+        left: 3px;
+        top: 6px;
+        bottom: 6px;
+        width: 3px;
         border-radius: 9999px;
-        background-color: rgb(209 213 219);
-        /* gray-300 */
+        background-color: transparent;
         transition: background-color .15s ease;
     }
 
@@ -31,8 +33,8 @@
     }
 
     .sidebar-link:hover::before {
-        background-color: rgb(156 163 175);
-        /* gray-400 */
+        background-color: rgb(209 213 219);
+        /* gray-300 */
     }
 
     /* Active state — Blade already adds text-indigo-600 when the route matches */
@@ -53,11 +55,6 @@
         /* gray-400 */
     }
 
-    .dark .sidebar-link::before {
-        background-color: rgb(75 85 99);
-        /* gray-600 */
-    }
-
     .dark .sidebar-link:hover {
         color: rgb(243 244 246);
         /* gray-100 */
@@ -65,8 +62,8 @@
     }
 
     .dark .sidebar-link:hover::before {
-        background-color: rgb(156 163 175);
-        /* gray-400 */
+        background-color: rgb(107 114 128);
+        /* gray-500 */
     }
 
     .dark .sidebar-link.text-indigo-600 {
@@ -76,6 +73,20 @@
     .dark .sidebar-link.text-indigo-600::before {
         background-color: rgb(165 180 252);
         /* indigo-300 */
+    }
+
+    /* ================= SECTION HEADER ICONS ================= */
+    .section-icon {
+        width: 15px;
+        height: 15px;
+        flex-shrink: 0;
+        color: rgb(156 163 175);
+        /* gray-400 */
+    }
+
+    .dark .section-icon {
+        color: rgb(107 114 128);
+        /* gray-500 */
     }
 
     /* ================= SETTINGS SUBHEADERS ================= */

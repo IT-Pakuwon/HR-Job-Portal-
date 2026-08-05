@@ -381,7 +381,7 @@
                                         <div>
                                             <label class="mb-2 block text-sm font-medium">Department</label>
                                             <select name="department_id[]" class="select2 w-full" multiple
-                                                data-placeholder="Search and select department access" required>
+                                                data-placeholder="Search and select department access">
                                                 <option></option>
                                                 @foreach ($department as $d)
                                                     <option value="{{ $d->department_id }}">
@@ -396,11 +396,6 @@
                                             <select name="division_id[]" class="select2 w-full" multiple
                                                 data-placeholder="Search and select division access">
                                                 <option></option>
-                                                @foreach ($divisions as $d)
-                                                    <option value="{{ $d->division_id }}">
-                                                        {{ $d->division_id }} - {{ $d->division_name }}
-                                                    </option>
-                                                @endforeach
                                             </select>
                                         </div>
 
@@ -534,6 +529,7 @@
 
     <script>
         const companiesData = {!! $company->toJson() !!};
+        const divisionsData = {!! $divisions->toJson() !!};
         const isSbyUser = @json($usersSby);
 
         // Rebuild the Company multi-select options, scoped to the chosen company group.
@@ -546,6 +542,21 @@
                 .forEach(c => {
                     const isSelected = selectedIds.includes(c.cpny_id);
                     $select.append(new Option(`${c.cpny_id} - ${c.cpny_name}`, c.cpny_id, isSelected, isSelected));
+                });
+
+            $select.trigger('change');
+        }
+
+        // Rebuild the Division multi-select options, scoped to the chosen company group.
+        function renderDivisionOptions(group, selectedIds = []) {
+            const $select = $('select[name="division_id[]"]');
+            $select.empty();
+
+            divisionsData
+                .filter(d => !group || d.group_cpny_id === group)
+                .forEach(d => {
+                    const isSelected = selectedIds.includes(d.division_id);
+                    $select.append(new Option(`${d.division_id} - ${d.division_name}`, d.division_id, isSelected, isSelected));
                 });
 
             $select.trigger('change');
@@ -1081,12 +1092,13 @@
                 if (isSbyUser) {
                     $('#group_cpny_id').val('SBY').trigger('change');
                     renderCompanyOptions('SBY', []);
+                    renderDivisionOptions('SBY', []);
                 } else {
                     $('#group_cpny_id').val('').trigger('change');
                     renderCompanyOptions(null, []);
+                    renderDivisionOptions(null, []);
                 }
                 $('select[name="department_id[]"]').val(null).trigger('change');
-                $('select[name="division_id[]"]').val(null).trigger('change');
                 $('select[name="business_unit_id[]"]').val(null).trigger('change');
                 $('select[name="role_ids[]"]').val(null).trigger('change');
 
@@ -1132,8 +1144,8 @@
                     $('#group_cpny_id').prop('disabled', isSbyUser);
                     $('#group_cpny_id').val(isSbyUser ? 'SBY' : app.group_cpny_id).trigger('change');
                     renderCompanyOptions(isSbyUser ? 'SBY' : app.group_cpny_id, app.cpny_id);
+                    renderDivisionOptions(isSbyUser ? 'SBY' : app.group_cpny_id, app.division_id);
                     $('select[name="department_id[]"]').val(app.department_id).trigger('change');
-                    $('select[name="division_id[]"]').val(app.division_id).trigger('change');
                     $('select[name="business_unit_id[]"]').val(app.business_unit_id).trigger(
                         'change');
 
@@ -1298,9 +1310,10 @@
                 placeholder: 'Select company group'
             });
 
-            // Company options are scoped to the selected group — re-filter on every manual change.
+            // Company and Division options are scoped to the selected group — re-filter on every manual change.
             $(document).on('change', '#group_cpny_id', function() {
                 renderCompanyOptions($(this).val(), []);
+                renderDivisionOptions($(this).val(), []);
             });
 
             $('#origin_cpny_id').select2({
