@@ -3340,6 +3340,8 @@ class SpptController extends Controller
                 $file
             );
 
+            $this->validateImportedBqDetails($temp_id);
+
             // Simpan temp_id ke session untuk dipakai di halaman create
             session(['import_temp_id' => $temp_id]);
 
@@ -3410,6 +3412,8 @@ class SpptController extends Controller
                 $file
             );
 
+            $this->validateImportedBqDetails($temp_id);
+
             // Simpan temp_id ke session untuk dipakai di halaman edit
             session(['import_temp_id' => $temp_id]);
 
@@ -3421,6 +3425,50 @@ class SpptController extends Controller
                 ->withInput()
                 ->with('error', 'Gagal import: '.$e->getMessage());
         }
+    }
+
+    /**
+     * Batalkan import jika baris BQ yang terisi tidak memiliki Description atau Qty.
+     */
+    private function validateImportedBqDetails(string $tempId): void
+    {
+        $details = BqDetailTemp::where('temp_id', $tempId)
+            ->orderBy('bq_line_no')
+            ->get();
+
+        $invalidRows = $details->values()->map(function ($detail, $index) {
+            $missingFields = [];
+
+            if (trim((string) $detail->bq_descr) === '') {
+                $missingFields[] = 'Description';
+            }
+
+            if ($detail->qty === null || trim((string) $detail->qty) === '') {
+                $missingFields[] = 'Qty';
+            }
+
+            if ($missingFields === []) {
+                return null;
+            }
+
+            $lineNumber = trim((string) $detail->bq_line_no);
+            $rowLabel = $lineNumber !== '' ? "Line No {$lineNumber}" : 'baris data '.($index + 1);
+
+            return $rowLabel.' ('.implode(', ', $missingFields).')';
+        })->filter()->values();
+
+        if ($invalidRows->isEmpty()) {
+            return;
+        }
+
+        // Jangan sisakan preview/import parsial ketika validasi gagal.
+        BqDetailTemp::where('temp_id', $tempId)->delete();
+
+        throw new \RuntimeException(
+            'Description dan Qty wajib diisi. Data bermasalah: '
+            .$invalidRows->implode('; ')
+            .'. Harap isi kolom tersebut atau hapus barisnya terlebih dahulu.'
+        );
     }
 
     public function importCreate_xxx(Request $request)

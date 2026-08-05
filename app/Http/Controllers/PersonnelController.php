@@ -9,6 +9,7 @@ use App\Models\CompanyAddress;
 use App\Models\DepartmentHR;
 use App\Models\Division;
 use App\Models\GroupAccspecific;
+use App\Models\HrCompanyBudget;
 use App\Models\JobLevel;
 use App\Models\Jobposting;
 use App\Models\JobpostingQualification;
@@ -20,6 +21,7 @@ use App\Models\MJobtag;
 use App\Models\MsApproval;
 use App\Models\MsCompany;
 use App\Models\MsDepartment;
+use App\Models\MsEntity;
 use App\Models\Personnel;
 use App\Models\Site;
 use App\Models\StoDepartement;
@@ -282,19 +284,31 @@ class PersonnelController extends Controller
             ->get();
         $userdept2 = Userdept::where('username', '=', $user->username)
             ->first();
-        $companies = MsCompany::select('cpny_id')->get();
+        $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
+        $accessibleCompanyIds = $usercpny->pluck('cpny_id')->filter()->unique()->values();
+        $companies = MsCompany::query()
+            ->select('cpny_id', 'cpny_name')
+            ->where('group_cpny_id', $groupCompanyId)
+            ->where('status', 'A')
+            ->whereIn('cpny_id', $accessibleCompanyIds)
+            ->orderBy('cpny_id')
+            ->get();
         $skillTags = MJobtag::select('id', 'job_tags')->get();
+
         $division = Division::select('division_id', 'division_name')
             ->where('status', 'A')
+            ->where('group_cpny_id', $groupCompanyId)
             ->get();
 
         $subgradings = StoSubGrading::select('subgrade_id', 'subgrade_name', 'group_grade')
             ->where('status', 'A')
+            ->where('group_cpny_id', $groupCompanyId)
             ->orderBy('subgrade_id', 'ASC')
             ->get();
 // dd($subgradings);
         $activeUsers = User::select('username', 'name')
             ->where('status', 'A')
+            ->where('group_cpny_id', $groupCompanyId)
             ->orderBy('name', 'ASC')
             ->get();
 
@@ -311,11 +325,34 @@ class PersonnelController extends Controller
         $userdivison = Division::query()
             ->select('division_id', 'division_name')
             ->where('status', 'A')
+            ->where('group_cpny_id', $groupCompanyId)
             ->whereIn('division_id', $userDivisionIds)
             ->orderBy('division_name')
             ->get();
 
-        return view('pages.personnels.createpersonnels', compact('companies', 'usercpny', 'usercpny2', 'userdept', 'userdept2', 'skillTags', 'division', 'subgradings', 'userdivison', 'activeUsers'));
+        $companyBudgets = HrCompanyBudget::query()
+            ->select('cpnyid', 'budget_entity_id')
+            ->where('group_cpny_id', $groupCompanyId)
+            ->where('status', 'A')
+            ->whereNull('deleted_at')
+            ->orderBy('budget_entity_id')
+            ->get();
+
+        $entityNames = MsEntity::query()
+            ->where('group_cpny_id', $groupCompanyId)
+            ->where('status', 'A')
+            ->whereIn('entity_id', $companyBudgets->pluck('budget_entity_id')->filter()->unique())
+            ->pluck('entity_name', 'entity_id');
+
+        $companyBudgets->each(function ($budget) use ($entityNames) {
+            $budget->budget_entity_name = $entityNames->get($budget->budget_entity_id);
+        });
+
+        $view = $groupCompanyId === 'SBY'
+            ? 'pages.personnels.createpersonnels_sby'
+            : 'pages.personnels.createpersonnels';
+
+        return view($view, compact('companies', 'usercpny', 'usercpny2', 'userdept', 'userdept2', 'skillTags', 'division', 'subgradings', 'userdivison', 'activeUsers', 'companyBudgets'));
     }
 
     public function createPersonnelx()
@@ -340,6 +377,9 @@ class PersonnelController extends Controller
     public function storePersonnel(Request $request)
     {
         // Validasi input
+        $user = $request->user();
+        $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
+
         $request->validate([
             'cpnyid' => 'required|string',
             'departementid' => 'required|string',
@@ -354,10 +394,35 @@ class PersonnelController extends Controller
             'actual' => 'required|integer',
             'total_actual' => 'required|integer',
             'attachments.*' => 'file|max:2048', // Validasi file, max 2MB
+            'budget_entity_id' => $groupCompanyId === 'SBY' ? 'required|string' : 'nullable|string',
         ]);
+
+        if ($groupCompanyId === 'SBY') {
+            $hasCompanyBudget = HrCompanyBudget::query()
+                ->where('group_cpny_id', $groupCompanyId)
+                ->where('cpnyid', $request->cpnyid)
+                ->where('budget_entity_id', $request->budget_entity_id)
+                ->where('status', 'A')
+                ->whereNull('deleted_at')
+                ->exists();
+
+            if (!$hasCompanyBudget) {
+                return response()->json(['message' => 'Budget Company tidak valid untuk Company yang dipilih.'], 422);
+            }
+        }
+
+        $hasSite = CompanyAddress::query()
+            ->where('group_cpny_id', $groupCompanyId)
+            ->where('sitelocation', $request->siteid)
+            ->exists();
+
+        if (!$hasSite) {
+            return response()->json(['message' => 'Placement Location tidak valid untuk group company user.'], 422);
+        }
 
         $grading = StoSubGrading::where('subgrade_id', $request->subgrade_id)
             ->where('status', 'A')
+            ->where('group_cpny_id', $groupCompanyId)
             ->first();
 
         if (!$grading) {
@@ -370,7 +435,6 @@ class PersonnelController extends Controller
         // $positionCondition = strtolower(trim($request->job_type.' '.$groupGrade));
         $positionCondition = strtolower(trim($groupGrade));
         $doctype = 'PRF';
-        $user = $request->user();
         $username = $user->username ?? 'system';
         $fullname = $user->name ?? 'system';
         $dt = \Carbon\Carbon::now();
@@ -446,9 +510,11 @@ class PersonnelController extends Controller
             $task = Personnel::create([
                 'docid' => $docid,
                 'cpnyid' => $request->cpnyid,
+                'group_cpny_id' => $groupCompanyId,
                 'departementid' => $request->departementid,
                 'division_id' => $request->division,
                 'locationname' => $request->siteid ?? null,
+                'budget_entity_id' => $request->budget_entity_id,
                 'date' => $datenow,
                 'user' => $user->username,
                 'job_title' => $request->job_title,
@@ -684,17 +750,26 @@ class PersonnelController extends Controller
         abort_if(!$id, 404);
 
         $personnel = Personnel::findOrFail($id);
+        $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
 
         $usercpny = Usercpny::where('username', $user->username)->get();
         $usercpny2 = Usercpny::where('username', $user->username)->first();
         $userdept = Userdept::where('username', $user->username)->get();
         $userdept2 = Userdept::where('username', $user->username)->first();
 
-        $companies = MsCompany::select('cpny_id')->get();
+        $accessibleCompanyIds = $usercpny->pluck('cpny_id')->filter()->unique()->values();
+        $companies = MsCompany::query()
+            ->select('cpny_id', 'cpny_name')
+            ->where('group_cpny_id', $groupCompanyId)
+            ->where('status', 'A')
+            ->whereIn('cpny_id', $accessibleCompanyIds)
+            ->orderBy('cpny_id')
+            ->get();
         $skillTags = MJobtag::select('id', 'job_tags')->get();
 
         $subgradings = StoSubGrading::select('subgrade_id', 'subgrade_name', 'group_grade')
             ->where('status', 'A')
+            ->where('group_cpny_id', $groupCompanyId)
             ->orderBy('subgrade_id', 'ASC')
             ->get();
 
@@ -714,6 +789,7 @@ class PersonnelController extends Controller
         $division = Division::query()
             ->select('division_id', 'division_name')
             ->where('status', 'A')
+            ->where('group_cpny_id', $groupCompanyId)
             ->when(!empty($userDivisionIds), function ($q) use ($userDivisionIds) {
                 $q->whereIn('division_id', $userDivisionIds);
             })
@@ -743,10 +819,34 @@ class PersonnelController extends Controller
 
         $activeUsers = User::select('username', 'name')
             ->where('status', 'A')
+            ->where('group_cpny_id', $groupCompanyId)
             ->orderBy('name', 'ASC')
             ->get();
 
-        return view('pages.personnels.editpersonnels', [
+        $companyBudgets = HrCompanyBudget::query()
+            ->select('cpnyid', 'budget_entity_id')
+            ->where('group_cpny_id', $groupCompanyId)
+            ->where('status', 'A')
+            ->whereNull('deleted_at')
+            ->orderBy('budget_entity_id')
+            ->get();
+
+        $entityNames = MsEntity::query()
+            ->where('group_cpny_id', $groupCompanyId)
+            ->where('status', 'A')
+            ->whereIn('entity_id', $companyBudgets->pluck('budget_entity_id')->filter()->unique())
+            ->pluck('entity_name', 'entity_id');
+
+        $companyBudgets->each(function ($budget) use ($entityNames) {
+            $budget->budget_entity_name = $entityNames->get($budget->budget_entity_id);
+        });
+
+        $isSby = $groupCompanyId === 'SBY';
+        $view = $isSby
+            ? 'pages.personnels.editpersonnels_sby'
+            : 'pages.personnels.editpersonnels';
+
+        return view($view, [
             'companies' => $companies,
             'usercpny' => $usercpny,
             'usercpny2' => $usercpny2,
@@ -762,6 +862,8 @@ class PersonnelController extends Controller
             'jobqua' => collect($jobqua),
             'selectedTags' => is_array($selectedTags) ? $selectedTags : [],
             'activeUsers' => $activeUsers,
+            'companyBudgets' => $companyBudgets,
+            'isSby' => $isSby,
             'hash' => $hash,
         ]);
     }
@@ -972,6 +1074,9 @@ class PersonnelController extends Controller
     {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
+        $user = $request->user();
+        $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
+
         // Validasi utama
         $request->validate([
             'cpnyid' => 'required|string',
@@ -985,8 +1090,32 @@ class PersonnelController extends Controller
             'required' => 'required|integer|min:0',
             'actual' => 'required|integer|min:0',
             'total_actual' => 'required|integer|min:0',
+            'budget_entity_id' => $groupCompanyId === 'SBY' ? 'required|string' : 'nullable|string',
             // 'attachments.*' => 'file|max:20480', // opsional, 20MB
         ]);
+
+        if ($groupCompanyId === 'SBY') {
+            $hasCompanyBudget = HrCompanyBudget::query()
+                ->where('group_cpny_id', $groupCompanyId)
+                ->where('cpnyid', $request->cpnyid)
+                ->where('budget_entity_id', $request->budget_entity_id)
+                ->where('status', 'A')
+                ->whereNull('deleted_at')
+                ->exists();
+
+            if (!$hasCompanyBudget) {
+                return response()->json(['message' => 'Budget Company tidak valid untuk Company yang dipilih.'], 422);
+            }
+        }
+
+        $hasSite = CompanyAddress::query()
+            ->where('group_cpny_id', $groupCompanyId)
+            ->where('sitelocation', $request->siteid)
+            ->exists();
+
+        if (!$hasSite) {
+            return response()->json(['message' => 'Placement Location tidak valid untuk group company user.'], 422);
+        }
 
         DB::beginTransaction();
         try {
@@ -996,13 +1125,12 @@ class PersonnelController extends Controller
             $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
             $doctype = 'PRF';
             $datestamp = Carbon::now()->toDateTimeString();
-            $user = $request->user();
-
             $personnel = Personnel::findOrFail($id);
 
             // Ambil grading (termasuk group_grade untuk logika approval)
             $grading = StoSubGrading::where('subgrade_id', $request->subgrade_id)
                 ->where('status', 'A')
+                ->where('group_cpny_id', $groupCompanyId)
                 ->first();
 
             if (!$grading) {
@@ -1020,9 +1148,12 @@ class PersonnelController extends Controller
             // Update header personnel
             $personnel->update([
                 'cpnyid' => $request->cpnyid,
+                'group_cpny_id' => $groupCompanyId,
                 'departementid' => $request->departementid,
+                'division_id' => $request->division_id,
                 'date' => $datenow,
                 'locationname' => $request->siteid ?? null, // simpan ID site
+                'budget_entity_id' => $request->budget_entity_id,
                 'user' => $user->username,
                 'job_title' => $request->job_title,
                 'subgrade_id' => $request->subgrade_id,
@@ -2310,12 +2441,17 @@ class PersonnelController extends Controller
 
         // $sites = Site::select('id', 'site')
         //     ->get();
-        $sites = CompanyAddress::where('status', 'A')
-            ->whereNotNull('sitelocation')
-            ->where('sitelocation', '<>', '')        // optional: hindari string kosong
-            ->select('sitelocation as site')
-            ->distinct()
-            ->get();
+        $groupCompanyId = strtoupper(trim((string) request()->user()->group_cpny_id));
+
+        $sites = CompanyAddress::query()
+            ->where('group_cpny_id', $groupCompanyId)
+            ->pluck('sitelocation')
+            ->map(fn ($site) => trim((string) $site))
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values()
+            ->map(fn ($site) => ['site' => $site]);
 
         return response()->json($sites);
     }

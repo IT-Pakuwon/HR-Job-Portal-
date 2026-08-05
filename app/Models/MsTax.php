@@ -15,6 +15,7 @@ class MsTax extends Model
         'taxrate',
         'descr',
         'taxtype',
+        'is_rfp_nonpurchase',
         'status',
         'created_by',
         'updated_by',

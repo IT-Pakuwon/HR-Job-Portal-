@@ -1209,6 +1209,7 @@ class PoController extends Controller
         $bq = TrBQCS::where('bqid', $cs->bqid)->firstOrFail();
 
         $details = TrBQCSDetail::where('bqid', $bq->bqid)
+            ->where('csid', $cs->csid)
             ->orderBy('bq_no')
             ->orderBy('bq_line_no')
             ->get();
@@ -1281,6 +1282,7 @@ class PoController extends Controller
         $bq = TrBQCS::where('bqid', $cs->bqid)->firstOrFail();
 
         $details = TrBQCSDetail::where('bqid', $bq->bqid)
+            ->where('csid', $cs->csid)
             ->orderBy('bq_no')
             ->orderBy('bq_line_no')
             ->get();

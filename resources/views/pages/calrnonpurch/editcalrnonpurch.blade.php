@@ -207,7 +207,9 @@
                                     <tr>
                                         <th class="w-12 border p-3 text-center">No</th>
                                         <th class="req border p-3">Description</th>
-                                        <th class="req w-[220px] border p-3 text-right">Price</th>
+                                        <th class="w-[220px] border p-3 text-right">Amount DPP</th>
+                                        <th class="req w-[220px] border p-3 text-left">Tax</th>
+                                        <th class="req w-[220px] border p-3 text-right">Total Amount</th>
                                         <th class="w-16 border p-3 text-center"></th>
                                     </tr>
                                 </thead>
@@ -220,7 +222,31 @@
                                             <td class="border p-3">
                                                 <textarea name="description[]" rows="2"
                                                     class="descriptionField w-full resize-y border-none bg-transparent p-2 focus:outline-none focus:ring-0"
-                                                    placeholder="Input description..." required>{{ $d->keperluan_detail }}</textarea>
+                                                placeholder="Input description..." required>{{ $d->keperluan_detail }}</textarea>
+                                            </td>
+
+                                            <td class="border p-3">
+                                                <input type="text" name="amount_request_dpp[]"
+                                                    value="{{ $d->amount_request_dpp !== null ? number_format((float) $d->amount_request_dpp, 2, ',', '.') : '' }}"
+                                                    class="amountDppField w-full border-none bg-gray-100 p-2 text-right focus:outline-none focus:ring-0 dark:bg-gray-900"
+                                                    placeholder="0,00" readonly>
+                                                <input type="hidden" name="amount_request_taxamt[]" class="taxAmountField"
+                                                    value="{{ $d->amount_request_taxamt !== null ? (float) $d->amount_request_taxamt : 0 }}">
+                                            </td>
+
+                                            <td class="border p-3">
+                                                <select name="taxcodeid[]"
+                                                    class="taxCodeField w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                                    required>
+                                                    @forelse ($rfpNonPurchaseTaxes as $tax)
+                                                        <option value="{{ $tax->taxid }}" data-rate="{{ (float) $tax->taxrate }}"
+                                                            {{ ($d->taxcodeid ?: 'NONTAX') === $tax->taxid ? 'selected' : '' }}>
+                                                            {{ $tax->descr ?: $tax->taxid }}
+                                                        </option>
+                                                    @empty
+                                                        <option value="">Tax tidak ditemukan</option>
+                                                    @endforelse
+                                                </select>
                                             </td>
 
                                             <td class="border p-3">
@@ -245,6 +271,28 @@
                                                 <textarea name="description[]" rows="2"
                                                     class="descriptionField w-full resize-y border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                                                     placeholder="Input description..." required></textarea>
+                                            </td>
+
+                                            <td class="border p-3">
+                                                <input type="text" name="amount_request_dpp[]"
+                                                    class="amountDppField w-full border-none bg-gray-100 p-2 text-right focus:outline-none focus:ring-0 dark:bg-gray-900"
+                                                    placeholder="0,00" readonly>
+                                                <input type="hidden" name="amount_request_taxamt[]" class="taxAmountField" value="0">
+                                            </td>
+
+                                            <td class="border p-3">
+                                                <select name="taxcodeid[]"
+                                                    class="taxCodeField w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                                    required>
+                                                    @forelse ($rfpNonPurchaseTaxes as $tax)
+                                                        <option value="{{ $tax->taxid }}" data-rate="{{ (float) $tax->taxrate }}"
+                                                            {{ $tax->taxid === 'NONTAX' ? 'selected' : '' }}>
+                                                            {{ $tax->descr ?: $tax->taxid }}
+                                                        </option>
+                                                    @empty
+                                                        <option value="">Tax tidak ditemukan</option>
+                                                    @endforelse
+                                                </select>
                                             </td>
 
                                             <td class="border p-3">
@@ -548,6 +596,39 @@
                 }
             }
 
+            const rfpNonPurchaseTaxes = @json($rfpNonPurchaseTaxes ?? []);
+
+            function taxOptionsHtml(selectedTaxId = 'NONTAX') {
+                if (!rfpNonPurchaseTaxes.length) {
+                    return '<option value="">Tax tidak ditemukan</option>';
+                }
+
+                return rfpNonPurchaseTaxes.map(tax => {
+                    const taxId = String(tax.taxid || '');
+                    const rate = Number(tax.taxrate || 0);
+                    const descr = String(tax.descr || taxId);
+                    const selected = taxId === String(selectedTaxId || 'NONTAX') ? 'selected' : '';
+
+                    return `<option value="${taxId}" data-rate="${rate}" ${selected}>${descr}</option>`;
+                }).join('');
+            }
+
+            function calculateRowTax($row) {
+                const totalAmount = parseNumber($row.find('.priceField').val());
+                const rate = Number($row.find('.taxCodeField option:selected').data('rate') || 0);
+                const amountDpp = rate > 0 ? (totalAmount * 100 / (100 + rate)) : totalAmount;
+                const taxAmount = rate > 0 ? (amountDpp * rate / 100) : 0;
+
+                $row.find('.amountDppField').val(totalAmount ? formatNumber(amountDpp) : '');
+                $row.find('.taxAmountField').val(taxAmount.toFixed(2));
+            }
+
+            function calculateAllRowTaxes() {
+                $('#calrNonPurchDetailTable tr.calr-detail-row').each(function() {
+                    calculateRowTax($(this));
+                });
+            }
+
             function newRowTemplate(no) {
                 return `
                     <tr class="calr-detail-row">
@@ -557,6 +638,21 @@
                             <textarea name="description[]" rows="2"
                                 class="descriptionField w-full resize-y border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                                 placeholder="Input description..." required></textarea>
+                        </td>
+
+                        <td class="border p-3">
+                            <input type="text" name="amount_request_dpp[]"
+                                class="amountDppField w-full border-none bg-gray-100 p-2 text-right focus:outline-none focus:ring-0 dark:bg-gray-900"
+                                placeholder="0,00" readonly>
+                            <input type="hidden" name="amount_request_taxamt[]" class="taxAmountField" value="0">
+                        </td>
+
+                        <td class="border p-3">
+                            <select name="taxcodeid[]"
+                                class="taxCodeField w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                required>
+                                ${taxOptionsHtml()}
+                            </select>
                         </td>
 
                         <td class="border p-3">
@@ -582,6 +678,7 @@
                 updateRowNumbers();
                 updateRemoveButtons();
                 calculateTotal();
+                calculateAllRowTaxes();
             });
 
             $(document).on('click', '.removeCalrDetail', function() {
@@ -590,6 +687,7 @@
                 updateRowNumbers();
                 updateRemoveButtons();
                 calculateTotal();
+                calculateAllRowTaxes();
             });
 
             $(document).on('input', '.priceField', function() {
@@ -620,6 +718,11 @@
                 this.value = value;
 
                 calculateTotal();
+                calculateRowTax($(this).closest('.calr-detail-row'));
+            });
+
+            $(document).on('change', '.taxCodeField', function() {
+                calculateRowTax($(this).closest('.calr-detail-row'));
             });
 
             $(document).on('keypress', '.priceField', function(e) {
@@ -662,6 +765,7 @@
                 $(this).val(value ? formatNumber(value) : '');
 
                 calculateTotal();
+                calculateRowTax($(this).closest('.calr-detail-row'));
             });
 
             function validateDetails() {
@@ -675,9 +779,11 @@
 
                     const $desc = $row.find('.descriptionField');
                     const $price = $row.find('.priceField');
+                    const $tax = $row.find('.taxCodeField');
 
                     const desc = ($desc.val() || '').trim();
                     const price = parseNumber($price.val());
+                    const taxCodeId = ($tax.val() || '').trim();
 
                     let rowErr = false;
 
@@ -691,7 +797,13 @@
 
                     if (priceRaw === '' || priceRaw === '-') {
                         $price.addClass('is-invalid');
-                        $price.after('<small class="error-feedback text-red-500">Price wajib diisi.</small>');
+                        $price.after('<small class="error-feedback text-red-500">Total Amount wajib diisi.</small>');
+                        rowErr = true;
+                    }
+
+                    if (!taxCodeId) {
+                        $tax.addClass('is-invalid');
+                        $tax.after('<small class="error-feedback text-red-500">Tax wajib diisi.</small>');
                         rowErr = true;
                     }
 
@@ -721,7 +833,7 @@
                 return true;
             }
 
-            $(document).on('input change', '#calrNonPurchForm input, #calrNonPurchForm textarea', function() {
+            $(document).on('input change', '#calrNonPurchForm input, #calrNonPurchForm textarea, #calrNonPurchForm select', function() {
                 $(this).removeClass('is-invalid');
                 $(this).next('.error-feedback').remove();
             });
@@ -753,6 +865,8 @@
 
                 //     return;
                 // }
+
+                calculateAllRowTaxes();
 
                 $('.priceField').each(function() {
                     this.value = (this.value || '')
@@ -808,6 +922,7 @@
             updateRowNumbers();
             updateRemoveButtons();
             calculateTotal();
+            calculateAllRowTaxes();
         });
     </script>
 

@@ -16,7 +16,7 @@
                             </h2>
                         </div>
 
-                        <div class="mt-2 grid grid-cols-1 gap-6 md:grid-cols-2 {{ !empty($isSby) ? 'lg:grid-cols-5' : 'lg:grid-cols-4' }}">
+                        <div class="mt-2 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             {{-- Company --}}
                             <div class="flex flex-col gap-2">
                                 <label
@@ -24,25 +24,14 @@
                                 <select
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="cpnyid" id="cpnyid" required>
-                                    @foreach (!empty($isSby) ? $companies : $usercpny as $p)
+                                    @foreach ($usercpny as $p)
                                         <option value="{{ $p->cpny_id }}"
                                             {{ (string) $p->cpny_id === (string) $personnel->cpnyid ? 'selected' : '' }}>
-                                            {{ $p->cpny_id }}{{ !empty($isSby) && $p->cpny_name ? ' (' . $p->cpny_name . ')' : '' }}
+                                            {{ $p->cpny_id }}
                                         </option>
                                     @endforeach
                                 </select>
                             </div>
-
-                            @if (!empty($isSby))
-                                <div class="flex flex-col gap-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Budget Company</label>
-                                    <select
-                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                        name="budget_entity_id" id="budget_entity_id" required>
-                                        <option value="">Select Budget Company</option>
-                                    </select>
-                                </div>
-                            @endif
 
                             {{-- Division --}}
                             <div class="flex flex-col gap-2">
@@ -735,30 +724,6 @@
 
             // ========= COMPANY -> SITE (AJAX like create) =========
             const currentSiteValue = @json($personnel->locationname); // samakan dengan yang kamu simpan (id/site)
-            const isSby = @json(!empty($isSby));
-            const companyBudgets = @json($companyBudgets ?? []);
-            const currentBudgetValue = @json(old('budget_entity_id', $personnel->budget_entity_id));
-
-            function loadCompanyBudgets(cpnyid, selectedValue = null) {
-                if (!isSby) return;
-
-                const $budget = $('#budget_entity_id');
-                $budget.empty().append('<option value="">Select Budget Company</option>');
-
-                companyBudgets
-                    .filter(item => String(item.cpnyid) === String(cpnyid))
-                    .forEach(item => {
-                        const label = item.budget_entity_name
-                            ? `${item.budget_entity_id} (${item.budget_entity_name})`
-                            : item.budget_entity_id;
-                        const option = new Option(label, item.budget_entity_id);
-                        option.selected = String(item.budget_entity_id) === String(selectedValue ?? '');
-                        $budget.append(option);
-                    });
-
-                $budget.trigger('change');
-            }
-
             function loadSites(cpnyid, selectedValue) {
                 const $site = $('#siteid');
 
@@ -784,10 +749,8 @@
             }
 
             loadSites($('#cpnyid').val(), currentSiteValue);
-            loadCompanyBudgets($('#cpnyid').val(), currentBudgetValue);
             $('#cpnyid').on('change', function() {
                 loadSites(this.value, null);
-                loadCompanyBudgets(this.value, null);
             });
 
             // ========= ATTACHMENT (add/remove) =========

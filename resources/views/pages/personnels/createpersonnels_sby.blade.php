@@ -1,0 +1,1150 @@
+<x-app-layout>
+
+
+    <div class="max-w-9xl mx-auto w-full p-2">
+        <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
+            <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
+                <form id="personnelForm" class="flex flex-col gap-4" enctype="multipart/form-data">
+                    @csrf
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
+                        <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
+                            <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create Personnel
+                                Requisition
+                            </h2>
+                        </div>
+                        <div class="mt-2 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
+                            <div class="flex flex-col gap-2">
+                                <label
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
+                                <select
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    name="cpnyid" required>
+                                    @foreach ($companies as $p)
+                                        <option value="{{ $p->cpny_id }}"
+                                            {{ $p->cpny_id == $usercpny2->cpny_id ? 'selected' : '' }}>
+                                            {{ $p->cpny_id }}{{ $p->cpny_name ? ' (' . $p->cpny_name . ')' : '' }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Budget Company</label>
+                                <select
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    name="budget_entity_id" id="budget_entity_id" required>
+                                    <option value="">Select Budget Company</option>
+                                </select>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <label
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Division</label>
+                                <select
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    name="division" id="division_id" required>
+                                    <option value="" disabled selected>Select Division</option>
+                                    @foreach ($userdivison as $p)
+                                        <option value="{{ $p->division_id }}">{{ $p->division_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <label
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
+                                <select
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    name="departementid" id="departementid" required>
+                                    <option value="" disabled selected>Select Department</option>
+                                </select>
+
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Placement
+                                    Location</label>
+                                <select
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    name="siteid" id="siteid" required>
+                                    <option value="">Select Site </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
+                        <details class="group" open>
+                            <summary
+                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                                <span>Job Detail Info</span>
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
+                                    details &rarr;</span>
+                                <span
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
+                                    details &darr;</span>
+                            </summary>
+                            <div class="pt-6">
+                                <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
+                                 <div id="jobTypeWrapper" class="grid grid-cols-1 gap-6">
+
+                                        {{-- Job Type --}}
+                                        <div class="flex flex-col gap-2">
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                Job Type
+                                            </label>
+                                            <select name="job_type" id="job_type"
+                                                class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                                required>
+                                                <option value="" disabled>Select Job Type</option>
+                                                <option value="New">New</option>
+                                                <option value="Replacement">Replacement</option>
+                                            </select>
+                                        </div>
+
+                                        {{-- Replacement --}}
+                                        <div id="replacementField" class="hidden flex-col gap-2">
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                Replacement Name
+                                            </label>
+                                            <input type="text" name="immediate_replacement" id="immediate_replacement"
+                                                class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                                placeholder="Enter employee name to be replaced">
+                                        </div>
+
+                                        </div>
+                                        <div class="flex flex-col gap-1">
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                Job Title
+                                            </label>
+
+                                            <input type="text" name="job_title" id="job_title"
+                                                class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                                required>
+
+                                            {{-- NOTE --}}
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                * Hanya tuliskan nama job. Contoh: <b>Promotion</b> / <b>IT</b>. Tidak perlu level (Staff, Officer, dll).
+                                            </span>
+                                        </div>
+                                    <div class="flex flex-col gap-2">
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
+                                            Level</label>
+                                        <input type="hidden" name="group_grade" id="group_grade">
+                                        {{-- <input type="hidden" name="subgrade_id" id="subgrade_id"> --}}
+                                        {{-- <input type="text" name="job_level" id="job_level"
+                                            class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                            readonly> --}}
+                                        <select
+                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                            name="subgrade_id" id="subgrade_id" required>
+                                            @foreach ($subgradings as $sg)
+                                                <option value="{{ $sg->subgrade_id }}"
+                                                    data-group="{{ $sg->group_grade }}">
+                                                    {{ $sg->subgrade_id }} - {{ $sg->subgrade_name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="flex flex-col gap-2">
+                                        <label
+                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300">Immediate
+                                            Superior</label>
+                                        <select name="immediate_superior" id="immediate_superior"
+                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                            <option value="">Select User</option>
+                                            @foreach ($activeUsers as $u)
+                                                <option value="{{ $u->username }}">{{ $u->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="flex flex-col gap-2">
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Superior
+                                            Position</label>
+                                        <input type="text" name="state_position" id="state_position"
+                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                    </div>
+                                    <div class="flex flex-col gap-2">
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Reason
+                                            for
+                                            Vacancy</label>
+                                        <textarea name="reason_vacancy" id="reason_vacancy"
+                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                            required></textarea>
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="mb-6 mt-6 grid grid-cols-1 gap-4 rounded-l bg-gray-200/40 p-4 sm:grid-cols-3">
+                                    <div class="flex items-center gap-4">
+                                        <label class="font-medium text-gray-700 dark:text-gray-300">Actual</label>
+                                        <input type="number" name="actual" id="actual" min="0"
+                                            class="number-only w-50 w-full rounded-sm border border-gray-300/50 bg-white p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
+                                            required>
+                                    </div>
+                                    <div class="flex items-center gap-4">
+                                        <label
+                                            class="mb-1 block w-40 font-medium text-gray-700 dark:text-gray-300">Number
+                                            Required</label>
+                                        <input type="number" name="required" id="required" min="0"
+                                            class="number-only w-50 w-full rounded-sm border border-gray-300/50 bg-white p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
+                                            required>
+                                    </div>
+                                    <div class="flex items-center gap-4">
+                                        <label
+                                            class="mb-1 block w-40 font-medium text-gray-700 dark:text-gray-300">Total
+                                            Actual Number</label>
+                                        <input type="number" name="total_actual" id="total_actual" min="0"
+                                            class="number-only w-full rounded-sm border border-gray-300/50 bg-white p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
+                                            required>
+                                    </div>
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+
+
+                    <div class="flex w-full flex-col gap-2 rounded-xl border-b bg-white shadow-md dark:bg-gray-800">
+                        <div class="flex w-full flex-col rounded-xl p-4">
+                            <details class="group" open>
+                                <summary class="mb-4 flex cursor-pointer items-center justify-between rounded">
+                                    <span class="text-sm font-semibold">Job Responsibilities</span>
+                                    <span class="transition-all group-open:hidden">See details</span>
+                                    <span class="hidden transition-all group-open:inline">Hide details</span>
+                                </summary>
+                                <div class="flex h-auto flex-col justify-start">
+                                    <div class="overflow-y-auto">
+                                        <table class="mb-4 mt-3 w-full">
+                                            <thead class="bg-gray-100/10">
+                                                <tr>
+                                                    <th class="w-12 border p-3 text-center">No</th>
+                                                    <th class="border-l border-t p-3">Responsibility</th>
+                                                    <th class="w-16 border-r border-t p-3 text-center"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="responsibilitiesTable">
+                                                <tr class="responsibilities-row">
+                                                    <td class="border p-3 text-center">1</td>
+                                                    <td class="border p-3">
+                                                        <input type="text" name="responsibilities[]"
+                                                            placeholder="Type here..."
+                                                            class="w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0">
+                                                    </td>
+                                                    <td class="border-b border-r border-t p-3 text-center">
+                                                        <button type="button"
+                                                            class="removeResponsibilities hidden rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30">🗑️</button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <button type="button" id="addResponsibilities"
+                                        class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                            fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                        Add Column
+                                    </button>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+
+                    {{-- <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
+                        <details class="group" open>
+                            <summary
+                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                                <span>Job Qualification</span>
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
+                                    details &rarr;</span>
+                                <span
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
+                                    details &darr;</span>
+                            </summary>
+                            <div class="flex flex-col gap-6 pt-6">
+                                <div class="flex flex-col gap-2">
+                                    <label class="block  text-sm  font-semibold text-gray-800 dark:text-gray-200">🔹
+                                        Education</label>
+                                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                        <input type="text" name="education" id="education_min"
+                                            class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                            readonly>
+                                        <input type="text" name="education_jurusan" id="education_jurusan"
+                                            class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                            readonly>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-col gap-2">
+                                    <label class="block  text-sm  font-semibold text-gray-800 dark:text-gray-200">🔹
+                                        Experience</label>
+                                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                        <input type="text" name="experience_start" id="experience_start"
+                                            class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                            readonly>
+                                        <input type="text" name="experience_position" id="experience_position"
+                                            class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                            readonly>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-col gap-2">
+                                    <label class="block  text-sm  font-semibold text-gray-800 dark:text-gray-200">🔹
+                                        Tags</label>
+                                    <select name="tags[]" id="tags" multiple
+                                        class="tags-input w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                    </select>
+                                </div>
+
+                                <div class="flex flex-col gap-2">
+                                    <label class="block  text-sm  font-semibold text-gray-800 dark:text-gray-200">🔹
+                                        Skill</label>
+                                    <div class="max-h-60 overflow-y-auto">
+                                        <table
+                                            class="w-full border-collapse border border-gray-200 dark:border-gray-700">
+                                            <thead>
+                                                <tr class="bg-gray-50 dark:bg-gray-700">
+                                                    <th
+                                                        class="w-10 border border-gray-200 p-3 text-center  text-sm  font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                                        No</th>
+                                                    <th
+                                                        class="border border-gray-200 p-3 text-left  text-sm  font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                                        Skill</th>
+                                                    <th
+                                                        class="w-16 border border-gray-200 p-3 text-center  text-sm  font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="qualificationTable">
+                                                <tr class="qualification-row">
+                                                    <td
+                                                        class="border border-gray-200 p-3 text-center dark:border-gray-700">
+                                                        1</td>
+                                                    <td class="border border-gray-200 p-3 dark:border-gray-700">
+                                                        <input type="text" name="qualification[]"
+                                                            placeholder="Type here..."
+                                                            class="w-full border-none bg-transparent p-1 focus:outline-none focus:ring-0">
+                                                    </td>
+                                                    <td
+                                                        class="border border-gray-200 p-3 text-center dark:border-gray-700">
+                                                        <button type="button"
+                                                            class="removeQualification rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30">
+                                                            🗑️
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <button type="button" id="addQualification"
+                                        class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5  text-sm  font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                            fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
+                                                clip-rule="evenodd" />
+                                        </svg> Add Skill
+                                    </button>
+                                </div>
+                            </div>
+                        </details>
+                    </div> --}}
+                    <div class="flex w-full flex-col gap-2 rounded-xl border-b bg-white shadow-md dark:bg-gray-800">
+                        <div class="flex w-full flex-col gap-4 p-4">
+                            <details class="group w-full min-w-0 max-w-full px-1" open>
+
+                                <summary class="mb-4 flex cursor-pointer items-center justify-between rounded">
+                                    <span class="text-sm font-semibold">Job Qualification</span>
+                                    <span class="transition-all group-open:hidden">See details</span>
+                                    <span class="hidden transition-all group-open:inline">Hide details</span>
+                                </summary>
+                                <!-- Education -->
+                                <div class="flex flex-col gap-2">
+                                    <label class="mb-2 font-semibold"> 🔹 Education</label>
+                                    <div class="relative pl-4">
+                                        <select name="education" id="education"
+                                            class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                                            <option value="" disabled selected>Select</option>
+                                            <option value="SMP">SMP</option>
+                                            <option value="SMA / SMK">SMA / SMK</option>
+                                            <option value="D1">D1</option>
+                                            <option value="D2">D2</option>
+                                            <option value="D3">D3</option>
+                                            <option value="D4">D4</option>
+                                            <option value="S1">S1</option>
+                                            <option value="S2">S2</option>
+                                            <option value="S3">S3</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Experience -->
+                                <div class="flex flex-col gap-2 pb-4 pt-4">
+                                    <label class="mb-2 font-semibold"> 🔹 Experience</label>
+                                    <div class="flex gap-4 pl-4">
+                                        <div class="flex w-1/2 flex-col">
+                                            <label
+                                                class="mb-2 font-medium text-gray-700 dark:text-gray-300">Start</label>
+                                            <input type="number" name="experience_start" id="experience_start"
+                                                min="0" placeholder="Input here"
+                                                class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                                        </div>
+                                        <div class="flex w-1/2 flex-col">
+                                            <label
+                                                class="mb-2 font-medium text-gray-700 dark:text-gray-300">End</label>
+                                            <input type="number" name="experience_end" id="experience_end"
+                                                min="0" placeholder="Input here"
+                                                class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex h-auto flex-col justify-start">
+                                    <label class="mb-2 font-semibold"> 🔹 Skill</label>
+                                    <div class="overflow-y-auto">
+                                        <table class="mb-4 mt-3 w-full">
+                                            <thead class="bg-gray-100/10">
+                                                <tr>
+                                                    <th class="w-12 border p-3 text-center">No</th>
+                                                    <th class="border-t p-3">Skill</th>
+                                                    <th class="w-16 border-r border-t p-3 text-center"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="qualificationTable">
+                                                <tr class="qualification-row">
+                                                    <td class="border p-3 text-center">1</td>
+                                                    <td class="border p-3">
+                                                        <input type="text" name="qualification[]"
+                                                            placeholder="Type here..."
+                                                            class="w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0">
+                                                    </td>
+                                                    <td class="border p-3 text-center">
+                                                        <button type="button"
+                                                            class="removeQualification hidden rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30">🗑️</button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <button type="button" id="addQualification"
+                                        class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                            fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
+                                                clip-rule="evenodd" />
+                                        </svg> Add Column
+                                    </button>
+                                </div>
+                                <!-- Tags -->
+                                <div class="mt-4 w-full min-w-0">
+                                    <label
+                                        class="mb-2 flex items-center gap-1 font-semibold text-gray-700 dark:text-gray-200">
+                                        <span>🔹</span>
+                                        <span>Tags</span>
+                                    </label>
+
+                                    <select name="tags[]" id="tags" multiple
+                                        class="tags-input block w-full min-w-0 rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                                    </select>
+                                </div>
+
+                            </details>
+                        </div>
+                    </div>
+
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
+                        <details class="group" open>
+                            <summary
+                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                                <span>Attachments</span>
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
+                                    details &rarr;</span>
+                                <span
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
+                                    details &darr;</span>
+                            </summary>
+                            <div class="flex max-h-[125px] flex-col overflow-y-auto pt-6">
+                                <div id="attachmentsContainer">
+                                    <div class="attachment-row flex items-center gap-2">
+                                        <input type="file" name="attachments[]"
+                                            class="file: flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                        <button type="button"
+                                            class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" id="addAttachment"
+                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                    fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
+                                        clip-rule="evenodd" />
+                                </svg> Add Attachment
+                            </button>
+                        </details>
+
+                        <div
+                            class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
+                            <button id="backBtn" onclick="history.back()"
+                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-300">
+
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 19l-7-7 7-7" />
+                                </svg>
+                                <span>Back</span>
+                            </button>
+                            <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                <button type="submit" id="submitBtn"
+                                    class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                    <span id="btnText">Submit Approval</span>
+                                    <svg id="loadingSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div id="successMessage" class="mt-4 hidden font-bold text-green-600 lg:col-span-2">
+                Personnel Requisition Created Successfully!
+            </div>
+        </div>
+    </div>
+
+    <!-- Toastr CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <!-- Toastr JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('#personnelForm').submit(function(e) {
+                e.preventDefault();
+
+                let formData = new FormData(this);
+
+                // Tampilkan Loading, Disable Button
+                $('#submitBtn').attr('disabled', true); // Disable tombol
+                $('#btnText').text('Processing...'); // Ubah teks tombol
+                $('#loadingSpinner').removeClass('hidden'); // Tampilkan spinner
+
+                $.ajax({
+                    url: "{{ route('personnels.store') }}",
+                    type: "POST",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        $('#successMessage').removeClass('hidden'); // Tampilkan pesan sukses
+                        $('#personnelForm')[0].reset(); // Reset form setelah submit
+
+                        // Reset Tombol ke Semula
+                        $('#submitBtn').attr('disabled', false);
+                        $('#btnText').text('Submit Approval');
+                        $('#loadingSpinner').addClass('hidden'); // Sembunyikan spinner
+                        toastr.success("Personnel Requisition Submit Successfully!");
+                        window.location.href = "/personnels";
+                    },
+                    error: function(xhr) {
+                        if (xhr.status === 422 && xhr.responseJSON.message) {
+                            toastr.error(xhr.responseJSON.message);
+                        } else {
+                            alert('Error! Please check the input.');
+                        }
+
+                        // Reset Tombol ke Semula
+                        $('#submitBtn').attr('disabled', false);
+                        $('#btnText').text('Submit Approval');
+                        $('#loadingSpinner').addClass('hidden');
+                    }
+                });
+            });
+
+            $('#cancelBtn').click(function() {
+                const confirmed = confirm("Are you sure you want to cancel? Unsaved changes will be lost.");
+
+                if (confirmed) {
+                    $('#cancelBtn').attr('disabled', true);
+                    $('#cancelText').text('Cancelling...');
+                    $('#cancelSpinner').removeClass('hidden');
+
+                    // Redirect to /news
+                    window.location.href = "{{ route('personnels') }}";
+                }
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            // Fungsi Tambah Attachment
+            $('#addAttachment').click(function() {
+                $('#attachmentsContainer').append(`
+            <div class="attachment-row flex items-center gap-2">
+                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2  text-sm  text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file: text-sm  file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                    <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
+            </div>
+        `);
+                toggleDeleteButton();
+            });
+
+            // Fungsi Hapus Attachment
+            $(document).on('click', '.removeAttachment', function() {
+                $(this).closest('.attachment-row').remove();
+                toggleDeleteButton();
+            });
+
+            // Fungsi untuk Menampilkan atau Menyembunyikan Tombol Delete
+            function toggleDeleteButton() {
+                if ($('.attachment-row').length > 1) {
+                    $('.removeAttachment').removeClass('hidden');
+                } else {
+                    $('.removeAttachment').addClass('hidden');
+                }
+            }
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            let responsibilityCount = 1;
+
+            // Fungsi untuk Menambah Baris Responsibility
+            $('#addResponsibilities').click(function() {
+                responsibilityCount++;
+                $('#responsibilitiesTable').append(`
+                <tr class="responsibilities-row">
+                    <td class="p-3 border text-center">${responsibilityCount}</td>
+                    <td class="p-3 border">
+                                <input type="text" name="responsibilities[]" placeholder="Type here..." class="w-full p-2 border-none focus:ring-0 focus:outline-none bg-transparent">
+                    </td>
+                    <td class="p-3 border text-center">
+                        <button type="button" class="removeResponsibilities  bg-red-200/10  hover:border-red-700  hover:bg-red-400/30  border-red-700 border text-white px-3 py-3 rounded hidden">🗑️</button>
+                    </td>
+                </tr>
+            `);
+                updateRemoveButtons();
+            });
+
+            // Fungsi untuk Menghapus Baris Responsibility
+            $(document).on('click', '.removeResponsibilities', function() {
+                $(this).closest('.responsibilities-row').remove();
+                updateRowNumbers();
+                updateRemoveButtons();
+            });
+
+            // Fungsi untuk Memperbarui Nomor pada Tabel
+            function updateRowNumbers() {
+                responsibilityCount = 0;
+                $('#responsibilitiesTable tr').each(function() {
+                    responsibilityCount++;
+                    $(this).find('td:first').text(responsibilityCount);
+                });
+            }
+
+            // Fungsi untuk Menyembunyikan Tombol Hapus Jika Hanya Satu Baris
+            function updateRemoveButtons() {
+                if ($('.responsibilities-row').length > 1) {
+                    $('.removeResponsibilities').removeClass('hidden');
+                } else {
+                    $('.removeResponsibilities').addClass('hidden');
+                }
+            }
+
+            updateRemoveButtons();
+
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            let qualificationCount = 1;
+
+            // Fungsi untuk Menambah Baris Qualification
+            $('#addQualification').click(function() {
+                qualificationCount++;
+                $('#qualificationTable').append(`
+                <tr class="qualification-row">
+                    <td class="p-3 border text-center">${qualificationCount}</td>
+                    <td class="p-3 border">
+                        <input type="text" name="qualification[]" placeholder="Type here..." class="w-full p-2 border-none focus:ring-0 focus:outline-none bg-transparent">
+                    </td>
+                    <td class="p-3 border text-center">
+                        <button type="button" class="removeQualification bg-red-200/10  hover:border-red-700  hover:bg-red-400/30  border-red-700 border text-white px-3 py-3 rounded hidden">🗑️</button>
+                    </td>
+                </tr>
+            `);
+                updateRemoveButtons();
+            });
+
+            // Fungsi untuk Menghapus Baris Qualification
+            $(document).on('click', '.removeQualification', function() {
+                $(this).closest('.qualification-row').remove();
+                updateRowNumbers();
+                updateRemoveButtons();
+            });
+
+            // Fungsi untuk Memperbarui Nomor pada Tabel
+            function updateRowNumbers() {
+                qualificationCount = 0;
+                $('#qualificationTable tr').each(function() {
+                    qualificationCount++;
+                    $(this).find('td:first').text(qualificationCount);
+                });
+            }
+
+            // Fungsi untuk Menyembunyikan Tombol Hapus Jika Hanya Satu Baris
+            function updateRemoveButtons() {
+                if ($('.qualification-row').length > 1) {
+                    $('.removeQualification').removeClass('hidden');
+                } else {
+                    $('.removeQualification').addClass('hidden');
+                }
+            }
+
+            updateRemoveButtons();
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            // Cegah input selain angka saat mengetik
+            $('.number-only').on('keypress', function(event) {
+                let charCode = event.which ? event.which : event.keyCode;
+                if (charCode < 48 || charCode > 57) {
+                    event.preventDefault();
+                }
+            });
+
+            // Hapus karakter selain angka jika sudah terlanjur masuk
+            $('.number-only').on('input', function() {
+                let value = $(this).val();
+                $(this).val(value.replace(/[^0-9]/g, ''));
+            });
+        });
+    </script>
+
+
+    <script>
+        $(document).ready(function() {
+            // Bikin total_actual jadi readonly
+            $('#total_actual').prop('readonly', true);
+
+            // Kalau Actual atau Required berubah
+            $('#actual, #required').on('input', function() {
+                let actual = parseInt($('#actual').val()) || 0;
+                let required = parseInt($('#required').val()) || 0;
+                let total = actual + required;
+
+                // Set hasil ke total_actual
+                $('#total_actual').val(total);
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            let tagsData = @json($skillTags);
+
+            // Format data agar bisa dibaca select2
+            let formattedTags = tagsData.map(tag => {
+                return {
+                    id: tag.job_tags,
+                    text: tag.job_tags
+                };
+            });
+
+            $('#tags').select2({
+                data: formattedTags,
+                placeholder: "Select or type tags",
+                tags: true, // agar bisa ketik bebas juga
+                tokenSeparators: [',']
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            const companyBudgets = @json($companyBudgets);
+
+            function loadCompanyBudgets(cpnyid) {
+                const $budgetSelect = $('#budget_entity_id');
+                $budgetSelect.empty().append('<option value="">Select Budget Company</option>');
+
+                companyBudgets
+                    .filter(item => String(item.cpnyid) === String(cpnyid))
+                    .forEach(item => {
+                        const label = item.budget_entity_name
+                            ? `${item.budget_entity_id} (${item.budget_entity_name})`
+                            : item.budget_entity_id;
+                        $budgetSelect.append(new Option(label, item.budget_entity_id));
+                    });
+
+                $budgetSelect.trigger('change');
+            }
+
+            // Fungsi ketika Company berubah
+            $('select[name="cpnyid"]').on('change', function() {
+                var cpnyid = $(this).val();
+                loadCompanyBudgets(cpnyid);
+
+                if (cpnyid) {
+                    $.ajax({
+                        url: `/api/sites/${cpnyid}`,
+                        type: "GET",
+                        dataType: "json",
+                        success: function(data) {
+                            let $siteSelect = $('select[name="siteid"]');
+                            $siteSelect.empty();
+                            $siteSelect.append('<option value="">Select Site </option>');
+
+                            $.each(data, function(key, value) {
+                                $siteSelect.append(
+                                    `<option value="${value.site}">${value.site}</option>`
+                                );
+                            });
+                        }
+                    });
+                } else {
+                    $('select[name="siteid"]').empty().append(
+                        '<option value="">Select Site </option>');
+                }
+            });
+
+            // 🔄 Trigger langsung saat load untuk mengisi default site
+            $('select[name="cpnyid"]').trigger('change');
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+
+
+            function loadJobTitles() {
+                let deptId = $('select[name="departementid"]').val();
+                let jobType = $('#job_type').val();
+                let $jobTitle = $('#job_title');
+
+                $jobTitle.empty().append('<option value="">Loading...</option>');
+
+                if (!deptId || !jobType) {
+                    $jobTitle.html('<option value="">Select</option>');
+                    return;
+                }
+
+                let url =
+                    jobType === 'New' ?
+                    `/api/vacant-employees/${deptId}` // Untuk VACANT (default)
+                    :
+                    `/api/replacement-employees/${deptId}`; // Untuk pengganti (non-VACANT)
+
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        $jobTitle.empty().append(
+                            '<option value="">Select</option>');
+
+                        if (data.length > 0) {
+                            $.each(data, function(key, emp) {
+                                const subgradeId = emp.subgrade_id ?? '';
+
+                                $jobTitle.append(`
+                                    <option value="${emp.departement_id}"
+                                            data-title-level="${emp.subgrade_name}"
+                                            data-parent-id="${emp.parent_id}"
+                                            data-subgrade-id="${subgradeId}">
+                                        ${emp.departement_name}-${emp.subgrade_name}
+                                    </option>`);
+                            });
+                        } else {
+                            $jobTitle.append('<option value="">No positions found</option>');
+                        }
+                    },
+                    error: function() {
+                        $jobTitle.html('<option value="">Error loading data</option>');
+                    }
+                });
+            }
+
+            // Jalankan saat departementid atau job_type berubah
+            // $('select[name="departementid"], #job_type').on('change', function() {
+            //     loadJobTitles();
+            // });
+
+
+            $('#job_title').on('change', function() {
+                let selected = $(this).find(':selected');
+                let titleLevel = selected.data('title-level') || '';
+                let parentId = selected.data('parent-id') || '';
+                let deptId = $('select[name="departementid"]').val();
+
+                $('#job_level').val(titleLevel).prop('readonly', true); // isi title level
+
+                // SET subgrade_id
+                const subgradeId = selected.data('subgrade-id') || '';
+                $('#subgrade_id').val(subgradeId).trigger('change');
+
+                if (parentId) {
+                    $.ajax({
+                        url: `/api/job-parent-info/${parentId}/${selected.val()}/${deptId}`,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function(data) {
+                            // Isi experience dan education
+                            $('#experience_start').val(data.experience_min || '').prop(
+                                'readonly', true);
+                            $('#experience_position').val(data.experience_position || '').prop(
+                                'readonly', true);
+                            $('#education_min').val(data.education_min || '').prop('readonly',
+                                true);
+                            $('#education_jurusan').val(data.education_jurusan || '').prop(
+                                'readonly', true);
+                            $('#actual').val(data.actual).prop('readonly', true);
+                            $('#required').val(data.required).prop('readonly', true);
+                            $('#total_actual').val(data.total_actual).prop('readonly', true);
+
+
+                            // Tampilkan job profile ke tabel
+                            let $tbody = $('#jobProfileTable tbody');
+                            $tbody.empty();
+
+                            if (data.job_profile && data.job_profile.length > 0) {
+                                $.each(data.job_profile, function(index, row) {
+                                    $tbody.append(`
+                                        <tr>
+                                            <td class="border p-2 text-center">${row.no_job_purpose}</td>
+                                            <td class="border p-2">${row.job_purpose}</td>
+                                            <input type="hidden" name="responsibilities[]" value="${row.job_purpose}">
+                                        </tr>
+                                    `);
+                                });
+                            } else {
+                                $tbody.append(
+                                    '<tr><td colspan="2" class="text-center p-2 border">No job profile found</td></tr>'
+                                );
+                            }
+                        },
+                        error: function() {
+                            $('#immediate_superior').val('').trigger('change');
+                            $('#state_position').val('');
+                            $('#experience_start').val('');
+                            $('#experience_position').val('');
+                            $('#education_min').val('');
+                            $('#education_jurusan').val('');
+                            $('#jobProfileTable tbody').html(
+                                '<tr><td colspan="2" class="text-center p-2 border">Error loading job profile</td></tr>'
+                            );
+                        }
+                    });
+                }
+
+            });
+
+
+            // 🔄 Trigger saat awal untuk load data berdasarkan departemen terpilih
+            $('select[name="departementid"]').trigger('change');
+        });
+    </script>
+    {{-- <script>
+        $(function () {
+            const $cpny = $('select[name="cpnyid"]');
+            const $dept = $('select[name="departementid"]');
+
+            // Jadikan searchable
+            $cpny.select2({
+            placeholder: 'Select Company',
+            width: '100%',
+            allowClear: true
+            });
+
+            $dept.select2({
+            placeholder: 'Select Department',
+            width: '100%',
+            allowClear: true
+            });
+
+            // Catatan: event .on('change') yang sudah Anda tulis tetap bekerja dengan Select2.
+            // Jika dropdown berada di dalam modal/elemen ber-z-index tinggi, set:
+            // dropdownParent: $('#id-modal-anda')
+        });
+    </script> --}}
+    <script>
+        $(function() {
+            const $cpny = $('select[name="cpnyid"]');
+            const $dept = $('select[name="departementid"]');
+
+            $cpny.select2({
+                placeholder: 'Select Company',
+                width: '100%',
+                allowClear: true
+            });
+            $dept.select2({
+                placeholder: 'Select Department',
+                width: '100%',
+                allowClear: true
+            });
+            $('#subgrade_id').select2({
+                placeholder: 'Select Job Level',
+                width: '100%',
+                allowClear: false
+            });
+            $('#immediate_superior').select2({
+                placeholder: 'Select User',
+                width: '100%',
+                allowClear: true
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const subgradeSelect = document.getElementById("subgrade_id");
+            const hiddenGroupInput = document.getElementById("group_grade");
+
+            function updateGroupGrade() {
+                const selected = subgradeSelect.options[subgradeSelect.selectedIndex];
+                hiddenGroupInput.value = selected.dataset.group ?? "";
+            }
+
+            // trigger saat pertama kali load
+            updateGroupGrade();
+
+            // trigger saat pilihan berubah
+            subgradeSelect.addEventListener("change", updateGroupGrade);
+        });
+
+        $(document).ready(function () {
+
+            function toggleReplacementField() {
+                let jobType = $('#job_type').val();
+
+                if (jobType === 'Replacement') {
+
+                    $('#jobTypeWrapper')
+                        .removeClass('md:grid-cols-1')
+                        .addClass('md:grid-cols-2');
+
+                    $('#replacementField')
+                        .removeClass('hidden')
+                        .addClass('flex');
+
+                    $('#immediate_replacement').attr('required', true);
+
+                } else {
+
+                    $('#jobTypeWrapper')
+                        .removeClass('md:grid-cols-2')
+                        .addClass('md:grid-cols-1');
+
+                    $('#replacementField')
+                        .addClass('hidden')
+                        .removeClass('flex');
+
+                    $('#immediate_replacement').val('');
+                    $('#immediate_replacement').removeAttr('required');
+                }
+            }
+
+            // 👉 trigger saat change
+            $('#job_type').on('change', toggleReplacementField);
+
+            // 👉 trigger saat pertama load
+            toggleReplacementField();
+
+        });
+
+        $(document).on('keydown', 'input, textarea', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+    </script>
+
+    <script>
+        $(function() {
+            const $division = $('#division_id');
+            const $dept = $('#departementid');
+
+            // select2 init
+            $division.select2({
+                placeholder: 'Select Division',
+                width: '100%',
+                allowClear: true
+            });
+            $dept.select2({
+                placeholder: 'Select Department',
+                width: '100%',
+                allowClear: true
+            });
+
+            function resetDept(message = 'Select Department') {
+                $dept.empty().append(`<option value="" disabled selected>${message}</option>`);
+                $dept.val(null).trigger('change'); // reset select2 value
+            }
+
+            function loadDepartments(divisionId) {
+                resetDept('Loading...');
+
+                $.ajax({
+                    url: `/hr/departments`,
+                    type: 'GET',
+                    dataType: 'json',
+                    data: {
+                        division_id: divisionId
+                    },
+                    success: function(rows) {
+                        resetDept('Select Department');
+
+                        if (rows && rows.length) {
+                            rows.forEach(r => {
+                                // NOTE: value bisa kamu pilih mau department_id atau department_name
+                                // rekomendasi: pakai department_id (lebih aman buat relasi)
+                                $dept.append(
+                                    `<option value="${r.department_id}">${r.department_name}</option>`
+                                );
+                            });
+                        } else {
+                            resetDept('No department found');
+                        }
+                    },
+                    error: function() {
+                        resetDept('Error loading department');
+                    }
+                });
+            }
+
+            // on division change
+            $division.on('change', function() {
+                const divisionId = $(this).val();
+                if (!divisionId) {
+                    resetDept();
+                    return;
+                }
+
+                loadDepartments(divisionId);
+
+                // OPTIONAL: kalau department berubah, job title kamu load berdasarkan dept -> tetap jalan
+                // karena event departementid sudah ada di script kamu: $('select[name="departementid"], #job_type').on('change', ...)
+            });
+
+            // optional: kalau ada default division terpilih (edit mode), auto load dept
+            if ($division.val()) {
+                loadDepartments($division.val());
+            } else {
+                resetDept();
+            }
+        });
+    </script>
+
+
+
+
+
+</x-app-layout>

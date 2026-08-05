@@ -240,7 +240,9 @@
                                         <table class="mb-4 mt-3 w-full table-fixed">
                                             <colgroup>
                                                 <col class="w-[60px]">
-                                                <col id="descCol" class="w-[65%]">
+                                                <col id="descCol" class="w-[38%]">
+                                                <col class="rfp-tax-col w-[180px]">
+                                                <col class="rfp-tax-col w-[170px]">
                                                 <col class="w-[180px]">
                                                 <col class="budget-col w-[260px]">
                                                 <col class="w-[70px]">
@@ -250,7 +252,9 @@
                                                 <tr>
                                                     <th class="border p-3 text-center">No</th>
                                                     <th id="detailDescrHeader" class="req border p-3 text-left">Description</th>
-                                                    <th class="req border p-3 text-right">Price</th>
+                                                    <th class="rfp-tax-col border p-3 text-right">Amount DPP</th>
+                                                    <th class="rfp-tax-col req border p-3 text-left">Tax</th>
+                                                    <th class="req border p-3 text-right">Total Amount</th>
                                                     <th class="req border p-3 text-left budget-col">Budget</th>
                                                     <th class="border p-3 text-center"></th>
                                                 </tr>
@@ -265,6 +269,30 @@
                                                             <textarea name="rfpnonpurchase_descr[]" rows="2"
                                                                 class="rfpnonpurchaseDescrField w-full resize-y border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                                                                 placeholder="Input description...">{{ strtoupper($rfpnonpurch->rfpnonpurchase_type) === 'RCA' ? ($d->keperluan_detail ?: $rfpnonpurch->keperluan) : $d->keperluan_detail }}</textarea>
+                                                        </td>
+
+                                                        <td class="rfp-tax-col border p-3">
+                                                            <input type="text" name="amount_request_dpp[]"
+                                                                value="{{ $d->amount_request_dpp !== null ? number_format((float) $d->amount_request_dpp, 2, ',', '.') : '' }}"
+                                                                class="amountDppField w-full border-none bg-gray-100 p-2 text-right focus:outline-none focus:ring-0 dark:bg-gray-900"
+                                                                placeholder="0,00" readonly>
+                                                            <input type="hidden" name="amount_request_taxamt[]" class="taxAmountField"
+                                                                value="{{ $d->amount_request_taxamt !== null ? (float) $d->amount_request_taxamt : 0 }}">
+                                                        </td>
+
+                                                        <td class="rfp-tax-col border p-3">
+                                                            <select name="taxcodeid[]"
+                                                                class="taxCodeField w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                                                required>
+                                                                @forelse ($rfpNonPurchaseTaxes as $tax)
+                                                                    <option value="{{ $tax->taxid }}" data-rate="{{ (float) $tax->taxrate }}"
+                                                                        {{ ($d->taxcodeid ?: 'NONTAX') === $tax->taxid ? 'selected' : '' }}>
+                                                                        {{ $tax->descr ?: $tax->taxid }}
+                                                                    </option>
+                                                                @empty
+                                                                    <option value="">Tax tidak ditemukan</option>
+                                                                @endforelse
+                                                            </select>
                                                         </td>
 
                                                         <td class="border p-3">
@@ -310,13 +338,35 @@
                                                                 placeholder="Input description..."></textarea>
                                                         </td>
 
+                                                        <td class="rfp-tax-col border p-3">
+                                                            <input type="text" name="amount_request_dpp[]"
+                                                                class="amountDppField w-full border-none bg-gray-100 p-2 text-right focus:outline-none focus:ring-0 dark:bg-gray-900"
+                                                                placeholder="0,00" readonly>
+                                                            <input type="hidden" name="amount_request_taxamt[]" class="taxAmountField" value="0">
+                                                        </td>
+
+                                                        <td class="rfp-tax-col border p-3">
+                                                            <select name="taxcodeid[]"
+                                                                class="taxCodeField w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                                                required>
+                                                                @forelse ($rfpNonPurchaseTaxes as $tax)
+                                                                    <option value="{{ $tax->taxid }}" data-rate="{{ (float) $tax->taxrate }}"
+                                                                        {{ $tax->taxid === 'NONTAX' ? 'selected' : '' }}>
+                                                                        {{ $tax->descr ?: $tax->taxid }}
+                                                                    </option>
+                                                                @empty
+                                                                    <option value="">Tax tidak ditemukan</option>
+                                                                @endforelse
+                                                            </select>
+                                                        </td>
+
                                                         <td class="border p-3">
                                                             <input type="text" name="price[]"
                                                                 class="priceField w-full border-none bg-transparent p-2 text-right focus:outline-none focus:ring-0"
                                                                 placeholder="0,00">
                                                         </td>
 
-                                                        <td class="border p-3">
+                                                        <td class="border p-3 budget-col">
                                                             <div class="flex items-center gap-2">
                                                                 <input type="hidden" name="activity_id[]" class="activityIdField">
                                                                 <input type="hidden" name="business_unit_id_detail[]" class="businessUnitIdField">
@@ -346,10 +396,10 @@
 
                                             <tfoot>
                                                 <tr class="border-t-2 border-indigo-200 bg-indigo-50/60 dark:bg-indigo-900/20">
-                                                    <td colspan="2" class="p-3 text-right text-xs font-semibold uppercase tracking-widest text-indigo-400 dark:text-indigo-400">
+                                                    <td colspan="4" class="grandTotalLabelCell p-3 text-right text-xs font-semibold uppercase tracking-widest text-indigo-400 dark:text-indigo-400">
                                                         Grand Total
                                                     </td>
-                                                    <td class="p-3 text-right text-base font-extrabold tabular-nums text-indigo-700 dark:text-indigo-200">
+                                                    <td class="grandTotalAmountCell whitespace-nowrap p-3 text-right text-base font-extrabold tabular-nums text-indigo-700 dark:text-indigo-200">
                                                         <span id="grandTotalDisplay">{{ number_format((float) $rfpnonpurchasedetail->sum('amount_request'), 2, ',', '.') }}</span>
                                                         <input type="hidden" name="grand_total" id="grandTotalInput" value="{{ $rfpnonpurchasedetail->sum('amount_request') }}">
                                                     </td>
@@ -584,6 +634,68 @@
             }
         }
 
+        const rfpNonPurchaseTaxes = @json($rfpNonPurchaseTaxes ?? []);
+
+        function taxOptionsHtml(selectedTaxId = 'NONTAX') {
+            if (!rfpNonPurchaseTaxes.length) {
+                return '<option value="">Tax tidak ditemukan</option>';
+            }
+
+            return rfpNonPurchaseTaxes.map(tax => {
+                const taxId = String(tax.taxid || '');
+                const rate = Number(tax.taxrate || 0);
+                const descr = String(tax.descr || taxId);
+                const selected = taxId === String(selectedTaxId || 'NONTAX') ? 'selected' : '';
+
+                return `<option value="${taxId}" data-rate="${rate}" ${selected}>${descr}</option>`;
+            }).join('');
+        }
+
+        function currentTypeIsRfp() {
+            return String($('#rfpnonpurchase_type').val() || '').toUpperCase() === 'RFP';
+        }
+
+        function calculateRowTax($row) {
+            const totalAmount = parseNumber($row.find('.priceField').val());
+            const rate = Number($row.find('.taxCodeField option:selected').data('rate') || 0);
+            const amountDpp = rate > 0 ? (totalAmount * 100 / (100 + rate)) : totalAmount;
+            const taxAmount = rate > 0 ? (amountDpp * rate / 100) : 0;
+
+            $row.find('.amountDppField').val(totalAmount ? formatNumber(amountDpp) : '');
+            $row.find('.taxAmountField').val(taxAmount.toFixed(2));
+        }
+
+        function calculateAllRowTaxes() {
+            $('#rfpnonpurchTable tr.rfpnonpurch-row').each(function () {
+                calculateRowTax($(this));
+            });
+        }
+
+        function updateGrandTotalFooterLayout() {
+            $('.grandTotalLabelCell').attr('colspan', currentTypeIsRfp() ? 4 : 2);
+        }
+
+        function applyTaxColumnVisibility() {
+            if (currentTypeIsRfp()) {
+                $('.rfp-tax-col').removeClass('hidden');
+                $('#descCol').removeClass('w-[65%] w-[75%]').addClass('w-[38%]');
+                $('.amountDppField, .taxAmountField, .taxCodeField').prop('disabled', false);
+                $('.taxCodeField').prop('required', true);
+                calculateAllRowTaxes();
+            } else {
+                $('.rfp-tax-col').addClass('hidden');
+                $('#descCol')
+                    .removeClass('w-[38%]')
+                    .addClass(window.isBudgetSelected() ? 'w-[65%]' : 'w-[75%]');
+                $('.amountDppField, .taxAmountField, .taxCodeField')
+                    .val('')
+                    .prop('disabled', true);
+                $('.taxCodeField').prop('required', false);
+            }
+
+            updateGrandTotalFooterLayout();
+        }
+
         function newRowTemplate(no) {
             return `
                 <tr class="rfpnonpurch-row">
@@ -593,6 +705,21 @@
                         <textarea name="rfpnonpurchase_descr[]" rows="2"
                             class="rfpnonpurchaseDescrField w-full resize-y border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                             placeholder="Input description..."></textarea>
+                    </td>
+
+                    <td class="rfp-tax-col border p-3">
+                        <input type="text" name="amount_request_dpp[]"
+                            class="amountDppField w-full border-none bg-gray-100 p-2 text-right focus:outline-none focus:ring-0 dark:bg-gray-900"
+                            placeholder="0,00" readonly>
+                        <input type="hidden" name="amount_request_taxamt[]" class="taxAmountField" value="0">
+                    </td>
+
+                    <td class="rfp-tax-col border p-3">
+                        <select name="taxcodeid[]"
+                            class="taxCodeField w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                            required>
+                            ${taxOptionsHtml()}
+                        </select>
                     </td>
 
                     <td class="border p-3">
@@ -640,10 +767,12 @@
                 const $desc = $row.find('.rfpnonpurchaseDescrField');
                 const $price = $row.find('.priceField');
                 const $coa = $row.find('.coaNameField');
+                const $tax = $row.find('.taxCodeField');
 
                 const desc = ($desc.val() || '').trim();
                 const price = parseNumber($price.val());
                 const coaId = ($row.find('.coaIdField').val() || '').trim();
+                const taxCodeId = ($tax.val() || '').trim();
 
                 const isBudget = window.isBudgetSelected();
                 const isEmptyRow = !desc && !price && !coaId;
@@ -658,7 +787,12 @@
                 }
 
                 if (!price) {
-                    addError($price, 'Price tidak boleh 0.');
+                    addError($price, 'Total Amount tidak boleh 0.');
+                    rowErr = true;
+                }
+
+                if (currentTypeIsRfp() && !taxCodeId) {
+                    addError($tax, 'Tax wajib diisi.');
                     rowErr = true;
                 }
 
@@ -919,6 +1053,7 @@
                 updateRowNumbers();
                 updateRemoveButtons();
                 calculateGrandTotal();
+                calculateAllRowTaxes();
             });
 
             $(document).on('input', '.priceField, #amountrequestpayment', function () {
@@ -934,12 +1069,22 @@
                 const parts = this.value.split(',');
                 if (parts.length > 2) this.value = parts[0] + ',' + parts.slice(1).join('');
                 calculateGrandTotal();
+                if ($(this).hasClass('priceField')) {
+                    calculateRowTax($(this).closest('.rfpnonpurch-row'));
+                }
             });
 
             $(document).on('blur', '.priceField, #amountrequestpayment', function () {
                 const value = parseNumber($(this).val());
                 $(this).val(value ? formatNumber(value) : '');
                 calculateGrandTotal();
+                if ($(this).hasClass('priceField')) {
+                    calculateRowTax($(this).closest('.rfpnonpurch-row'));
+                }
+            });
+
+            $(document).on('change', '.taxCodeField', function () {
+                calculateRowTax($(this).closest('.rfpnonpurch-row'));
             });
 
             updateRowNumbers();
@@ -1275,6 +1420,7 @@
                 }
 
                 toggleBudgetMode();
+                applyTaxColumnVisibility();
                 window.updateRow2ColSpans();
             }
 
@@ -1317,17 +1463,20 @@
                     $('#detailDescrHeader').text('Keperluan');
                 }
 
+                applyTaxColumnVisibility();
                 window.updateRow2ColSpans();
             }
 
             $('#rfpnonpurchase_type').on('change', function () {
                 toggleRfpRcaMode();
                 toggleBudgetMode();
+                applyTaxColumnVisibility();
             });
 
             $('#groupbiaya_id').on('change select2:select', function () {
                 toggleDepositFields();
                 toggleBudgetMode();
+                applyTaxColumnVisibility();
             });
 
             $('#addImBudgetNonPurch').on('click', function () {
@@ -1344,12 +1493,14 @@
 
                 // IMPORTANT
                 toggleBudgetMode();
+                applyTaxColumnVisibility();
             });
 
             // FIRST LOAD
             toggleRfpRcaMode();
             toggleDepositFields();
             toggleBudgetMode();
+            applyTaxColumnVisibility();
             window.updateRow2ColSpans();
 
             function toggleDeleteAttachmentButton() {

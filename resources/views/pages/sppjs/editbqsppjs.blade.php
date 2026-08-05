@@ -276,7 +276,7 @@
                 toastr.success("{{ session('success') }}", "✅ Success");
             @endif
             @if (session('error'))
-                toastr.error("{{ session('error') }}", "❌ Failed");
+                toastr.error(@json(session('error')), "❌ Failed");
             @endif
         });
     </script>

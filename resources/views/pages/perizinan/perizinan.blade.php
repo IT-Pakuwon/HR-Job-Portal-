@@ -6,6 +6,10 @@
                     'doctype' => 'MIK',
                     'refnbr' => '__REFNBR__',
                 ]);
+                $activityAttachmentListUrlTemplate = route('attachments.list', [
+                    'doctype' => '__DOCTYPE__',
+                    'refnbr' => '__REFNBR__',
+                ]);
                 $cards = [
                     ['all', 'All Permits', $allPerizinan, 'border-slate-600 bg-slate-100 text-slate-700'],
                     ['active', 'Active', $activePerizinan, 'border-blue-600 bg-blue-50 text-blue-700'],
@@ -173,7 +177,11 @@
                     </div>
                     <div>
                         <label class="mb-1 block text-sm font-semibold">Application Handling Method</label>
-                        <input type="text" id="application_handling_method" name="application_handling_method" class="w-full rounded-lg border px-3 py-2" maxlength="255">
+                        <select id="application_handling_method" name="application_handling_method" class="w-full rounded-lg border px-3 py-2">
+                            <option value="">Select Handling Method</option>
+                            <option value="INTERNAL">Internal</option>
+                            <option value="EXTERNAL">External</option>
+                        </select>
                     </div>
                     <div>
                         <label class="mb-1 block text-sm font-semibold">Issuing Authority</label>
@@ -261,6 +269,12 @@
                         <div><p class="text-xs text-gray-400">Requester</p><p id="detailRequester" class="mt-1 text-sm font-medium">-</p></div>
                         <div><p class="text-xs text-gray-400">Start Date</p><p id="detailStartDate" class="mt-1 text-sm font-medium">-</p></div>
                         <div><p class="text-xs text-gray-400">End Date</p><p id="detailEndDate" class="mt-1 text-sm font-medium">-</p></div>
+                        <div><p class="text-xs text-gray-400">Issue Date</p><p id="detailIssueDate" class="mt-1 text-sm font-medium">-</p></div>
+                        <div><p class="text-xs text-gray-400">Reminder</p><p id="detailReminder" class="mt-1 text-sm font-medium">-</p></div>
+                        <div><p class="text-xs text-gray-400">Handling Method</p><p id="detailHandlingMethod" class="mt-1 text-sm font-medium">-</p></div>
+                        <div><p class="text-xs text-gray-400">Issuing Authority</p><p id="detailIssuingAuthority" class="mt-1 text-sm font-medium">-</p></div>
+                        <div><p class="text-xs text-gray-400">Submission Channel</p><p id="detailSubmissionChannel" class="mt-1 text-sm font-medium">-</p></div>
+                        <div><p class="text-xs text-gray-400">Legal Contract Number</p><p id="detailLegalContract" class="mt-1 text-sm font-medium">-</p></div>
                         <div class="sm:col-span-2"><p class="text-xs text-gray-400">Approvers</p><p id="detailApprovers" class="mt-1 text-sm font-medium">-</p></div>
                         <div class="sm:col-span-2"><p class="text-xs text-gray-400">Description</p><div id="detailDescription" class="mt-2 rounded-lg bg-gray-50 p-4 text-sm whitespace-pre-wrap dark:bg-gray-700">-</div></div>
                     </div>
@@ -309,7 +323,7 @@
                 <h2 class="text-lg font-bold">Permit Action</h2>
                 <button type="button" class="btnCloseActivity text-2xl text-gray-500 dark:text-gray-400">&times;</button>
             </div>
-            <form id="activityForm">
+            <form id="activityForm" enctype="multipart/form-data">
                 @csrf
                 <input type="hidden" id="activityPermitId">
                 <div class="space-y-4 p-5">
@@ -327,6 +341,13 @@
                             <option value="CANCELLED">Cancelled</option>
                             <option value="DONE">Done</option>
                         </select>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-semibold">Attachments</label>
+                        <input type="file" id="activityAttachments" name="attachments[]" multiple
+                            class="w-full rounded-lg border px-3 py-2"
+                            accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Maximum 5 MB per file. You can select multiple files.</p>
                     </div>
                     <div id="activityErrors" class="hidden rounded-lg bg-red-50 p-3 text-sm text-red-700"></div>
                 </div>
@@ -508,6 +529,7 @@
             const removeAttachmentBaseUrl = @json(url('/remove-attachment'));
             const csrfToken = @json(csrf_token());
             const attachmentListUrlTemplate = @json($attachmentListUrlTemplate);
+            const activityAttachmentListUrlTemplate = @json($activityAttachmentListUrlTemplate);
 
             $('#user_approval').select2({
                 placeholder: 'Search user approval...',
@@ -583,6 +605,36 @@
                     });
             }
 
+            function loadActivityAttachments(activity) {
+                const $container = $(`#activityAttachments-${activity.id}`);
+                if (!$container.length || !activity.attachment_refnbr || !activity.attachment_doctype) return;
+
+                const listUrl = activityAttachmentListUrlTemplate
+                    .replace('__DOCTYPE__', encodeURIComponent(activity.attachment_doctype))
+                    .replace('__REFNBR__', encodeURIComponent(activity.attachment_refnbr));
+
+                $.get(listUrl)
+                    .done(function (response) {
+                        const attachments = response.success ? (response.attachments || []) : [];
+                        if (!attachments.length) {
+                            $container.addClass('hidden').empty();
+                            return;
+                        }
+
+                        $container.removeClass('hidden').html(`
+                            <p class="mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400">Attachments (${attachments.length})</p>
+                            <div class="flex flex-wrap gap-2">
+                                ${attachments.map(attachment => {
+                                    const fileName = attachment.name || attachment.display_name || attachment.attachment_name || attachment.filename || 'Attachment';
+                                    return attachment.url
+                                        ? `<a href="${escapeHtml(attachment.url)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-950/40">&#128206; ${escapeHtml(fileName)}</a>`
+                                        : `<span class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2.5 py-1.5 text-xs dark:bg-gray-700">&#128206; ${escapeHtml(fileName)}</span>`;
+                                }).join('')}
+                            </div>`);
+                    })
+                    .fail(() => $container.addClass('hidden').empty());
+            }
+
             function renderEditAttachments(rows) {
                 const $list = $('#editAttachmentList');
                 $('#editAttachmentCount').text(rows.length);
@@ -647,6 +699,14 @@
                 $('#detailRequester').text(permit.user_peminta || '-');
                 $('#detailStartDate').text(formatLongDateId(permit.startdate));
                 $('#detailEndDate').text(permit.expired_date ? formatLongDateId(permit.enddate) : 'No expiration date');
+                $('#detailIssueDate').text(formatLongDateId(permit.issue_date));
+                $('#detailReminder').text(permit.reminder_days_before_end ? `${permit.reminder_days_before_end} Days Before End Date` : '-');
+                $('#detailHandlingMethod').text(permit.application_handling_method
+                    ? permit.application_handling_method.charAt(0).toUpperCase() + permit.application_handling_method.slice(1).toLowerCase()
+                    : '-');
+                $('#detailIssuingAuthority').text(permit.issuing_authority || '-');
+                $('#detailSubmissionChannel').text(permit.submission_channel || '-');
+                $('#detailLegalContract').text(permit.no_kontrak_legal || '-');
                 $('#detailApprovers').text((permit.user_approval || '').split(',').filter(Boolean).join(', ') || '-');
                 $('#detailDescription').text(permit.perizinan_descr || '-');
                 $('#btnDetailAction').data('id', permit.perizinan_id);
@@ -674,9 +734,12 @@
                                 <span class="rounded-full px-2.5 py-1 text-xs font-bold ${statusClass(status)}">${escapeHtml(status)}</span>
                             </div>
                             <p class="mt-2 text-xs text-gray-400">${escapeHtml(activity.pic_perizinan || '-')} · ${formatDateTime(activity.response_date)}</p>
+                            <div id="activityAttachments-${escapeHtml(activity.id)}" class="mt-3 hidden border-t pt-3 dark:border-gray-700"></div>
                         </div>
                     </div>`;
                 }).join('') : '<div class="rounded-lg border border-dashed p-8 text-center text-sm text-gray-500 dark:text-gray-400">No tracking activity yet.</div>');
+
+                activities.forEach(loadActivityAttachments);
 
                 $detailModal.removeClass('hidden').addClass('flex');
                 $('body').addClass('overflow-hidden');
@@ -872,6 +935,7 @@
             $('#activityForm').on('submit', function (event) {
                 event.preventDefault();
                 const permitId = $('#activityPermitId').val();
+                const formData = new FormData(this);
                 const $button = $('#btnSaveActivity');
                 $button.prop('disabled', true).addClass('opacity-60');
                 $('#activitySpinner').removeClass('hidden');
@@ -880,7 +944,9 @@
                 $.ajax({
                     url: `${baseUrl}/${encodeURIComponent(permitId)}/activities`,
                     method: 'POST',
-                    data: $(this).serialize(),
+                    data: formData,
+                    processData: false,
+                    contentType: false,
                     success: async function (response) {
                         $activityModal.addClass('hidden').removeClass('flex');
                         table.ajax.reload(null, false);

@@ -21,10 +21,35 @@ use App\Models\SysUserRole;
 use App\Models\TrRfpNonPurchDetail;
 use App\Models\MsCompany;
 use App\Models\MsPurchSetting;
+use App\Models\MsTax;
 
 class CalrNonPurchController extends Controller
 {
     use HasAutonbr;
+
+    private function rfpNonPurchaseTaxes()
+    {
+        return MsTax::query()
+            ->where(function ($q) {
+                $q->where('is_rfp_nonpurchase', true)
+                    ->orWhere('is_rfp_nonpurchase', 't')
+                    ->orWhere('is_rfp_nonpurchase', 1);
+            })
+            ->where('status', 'A')
+            ->orderBy('taxrate')
+            ->orderBy('taxid')
+            ->get(['taxid', 'taxrate', 'descr'])
+            ->map(function ($row) {
+                $taxId = trim((string) $row->taxid);
+
+                return (object) [
+                    'taxid' => $taxId,
+                    'taxrate' => (float) $row->taxrate,
+                    'descr' => trim((string) ($row->descr ?: $taxId)),
+                ];
+            })
+            ->values();
+    }
 
     public function index()
     {
@@ -876,7 +901,9 @@ class CalrNonPurchController extends Controller
             })
             ->firstOrFail();
 
-        return view('pages.calrnonpurch.createcalrnonpurch', compact('header'));
+        $rfpNonPurchaseTaxes = $this->rfpNonPurchaseTaxes();
+
+        return view('pages.calrnonpurch.createcalrnonpurch', compact('header', 'rfpNonPurchaseTaxes'));
     }
 
     public function storeCalrNonPurch(Request $request)
@@ -950,6 +977,8 @@ class CalrNonPurchController extends Controller
             'description.*' => ['required', 'string'],
             'price' => ['required', 'array', 'min:1'],
             'price.*' => ['required'],
+            'taxcodeid' => ['required', 'array', 'min:1'],
+            'taxcodeid.*' => ['required', 'string'],
         ]);
 
         $approvalCtl = app(ApprovalController::class);
@@ -1006,6 +1035,8 @@ class CalrNonPurchController extends Controller
             */
             $descs = $request->description ?? [];
             $prices = $request->price ?? [];
+            $taxCodeIds = $request->taxcodeid ?? [];
+            $taxMap = $this->rfpNonPurchaseTaxes()->keyBy('taxid');
 
             $amountSettlement = 0;
             $validRows = 0;
@@ -1019,6 +1050,15 @@ class CalrNonPurchController extends Controller
                 }
 
                 $price = $toFloat($priceRaw);
+                $taxCodeId = trim((string) ($taxCodeIds[$i] ?? ''));
+
+                if ($taxCodeId === '') {
+                    throw new \Exception('Tax wajib diisi pada detail baris ' . ($i + 1) . '.');
+                }
+
+                if (!$taxMap->has($taxCodeId)) {
+                    throw new \Exception('Tax tidak valid pada detail baris ' . ($i + 1) . '.');
+                }
 
                 $amountSettlement += $price;
                 $validRows++;
@@ -1093,6 +1133,15 @@ class CalrNonPurchController extends Controller
                 }
 
                 $price = $toFloat($priceRaw);
+                $taxCodeId = trim((string) ($taxCodeIds[$i] ?? ''));
+                $tax = $taxMap->get($taxCodeId);
+                $rate = (float) ($tax->taxrate ?? 0);
+                $amountDpp = $rate > 0
+                    ? round($price * 100 / (100 + $rate), 2)
+                    : $price;
+                $amountTax = $rate > 0
+                    ? round($amountDpp * $rate / 100, 2)
+                    : 0;
 
                 TrRfpNonPurchDetail::create([
                     'rfpnonpurchaseid' => $rfp->rfpnonpurchaseid,
@@ -1103,6 +1152,9 @@ class CalrNonPurchController extends Controller
 
                     // price dari CALR detail
                     'amount_request_penyelesaian' => $price,
+                    'amount_request_dpp' => $amountDpp,
+                    'taxcodeid' => $taxCodeId,
+                    'amount_request_taxamt' => $amountTax,
 
                     /*
                     |--------------------------------------------------------------------------
@@ -1302,28 +1354,9 @@ class CalrNonPurchController extends Controller
         |--------------------------------------------------------------------------
         | Source dari TrCalrNonPurch.
         */
-        $calrnonpurchSteps = [
+        $calrnonpurchSteps = [           
             [
                 'order' => 1,
-                'description' => 'CALR Created',
-                'user' => $calr->created_by ?? '-',
-                'date' => $calr->created_at,
-                'status' => 'Done',
-            ],
-            [
-                'order' => 2,
-                'description' => 'CALR Approval',
-                'user' => $calr->completed_by ?? '-',
-                'date' => $calr->completed_at,
-                'status' => match ($calr->status) {
-                    'C' => 'Done',
-                    'R' => 'Rejected',
-                    'D' => 'Revise',
-                    default => 'Pending',
-                },
-            ],
-            [
-                'order' => 3,
                 'description' => 'Finance Received',
                 'user' => $calr->userreceive ?? '-',
                 'date' => $calr->receivedate,
@@ -1332,7 +1365,7 @@ class CalrNonPurchController extends Controller
                     : 'Pending',
             ],
             [
-                'order' => 4,
+                'order' => 2,
                 'description' => 'Treasury Payment',
                 'user' => $calr->userpayment ?? '-',
                 'date' => $calr->paymentdate,
@@ -2186,6 +2219,7 @@ class CalrNonPurchController extends Controller
             ->get();
 
         $calr_eid = Hashids::encode((string) $calr->id);
+        $rfpNonPurchaseTaxes = $this->rfpNonPurchaseTaxes();
 
         return view('pages.calrnonpurch.editcalrnonpurch', [
             'calr' => $calr,
@@ -2194,6 +2228,7 @@ class CalrNonPurchController extends Controller
             'calr_eid' => $calr_eid,
             'hash' => $hash,
             'attachments' => $attachments,
+            'rfpNonPurchaseTaxes' => $rfpNonPurchaseTaxes,
         ]);
     }
 
@@ -2256,6 +2291,8 @@ class CalrNonPurchController extends Controller
             'description.*' => ['required', 'string'],
             'price' => ['required', 'array', 'min:1'],
             'price.*' => ['required'],
+            'taxcodeid' => ['required', 'array', 'min:1'],
+            'taxcodeid.*' => ['required', 'string'],
         ]);
 
         DB::connection('pgsql')->beginTransaction();
@@ -2283,6 +2320,8 @@ class CalrNonPurchController extends Controller
 
             $descs = $request->description ?? [];
             $prices = $request->price ?? [];
+            $taxCodeIds = $request->taxcodeid ?? [];
+            $taxMap = $this->rfpNonPurchaseTaxes()->keyBy('taxid');
 
             $amountSettlement = 0;
             $validRows = 0;
@@ -2296,6 +2335,15 @@ class CalrNonPurchController extends Controller
                 }
 
                 $price = $toFloat($priceRaw);
+                $taxCodeId = trim((string) ($taxCodeIds[$i] ?? ''));
+
+                if ($taxCodeId === '') {
+                    throw new \Exception('Tax wajib diisi pada detail baris ' . ($i + 1) . '.');
+                }
+
+                if (!$taxMap->has($taxCodeId)) {
+                    throw new \Exception('Tax tidak valid pada detail baris ' . ($i + 1) . '.');
+                }
 
                 $amountSettlement += $price;
                 $validRows++;
@@ -2362,12 +2410,24 @@ class CalrNonPurchController extends Controller
                 }
 
                 $price = $toFloat($priceRaw);
+                $taxCodeId = trim((string) ($taxCodeIds[$i] ?? ''));
+                $tax = $taxMap->get($taxCodeId);
+                $rate = (float) ($tax->taxrate ?? 0);
+                $amountDpp = $rate > 0
+                    ? round($price * 100 / (100 + $rate), 2)
+                    : $price;
+                $amountTax = $rate > 0
+                    ? round($amountDpp * $rate / 100, 2)
+                    : 0;
 
                 TrRfpNonPurchDetail::create([
                     'rfpnonpurchaseid' => $calr->rfpnonpurchaseid,
                     'keperluan_detail' => $desc,
                     'amount_request' => 0,
                     'amount_request_penyelesaian' => $price,
+                    'amount_request_dpp' => $amountDpp,
+                    'taxcodeid' => $taxCodeId,
+                    'amount_request_taxamt' => $amountTax,
 
                     'budget_perpost' => $budgetRfca->budget_perpost ?? $dt->year,
                     'budget_cpny_id' => $budgetRfca->budget_cpny_id ?? $calr->cpny_id,

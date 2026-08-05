@@ -43,10 +43,35 @@ use Vinkla\Hashids\Facades\Hashids;
 use App\Models\BudgetDetail;
 use App\Models\MsPurchSetting;
 use App\Models\TrIMBudget;
+use App\Models\MsTax;
 
 class RfpNonPurchController extends Controller
 {
     use HasAutonbr;
+
+    private function rfpNonPurchaseTaxes()
+    {
+        return MsTax::query()
+            ->where(function ($q) {
+                $q->where('is_rfp_nonpurchase', true)
+                    ->orWhere('is_rfp_nonpurchase', 't')
+                    ->orWhere('is_rfp_nonpurchase', 1);
+            })
+            ->where('status', 'A')
+            ->orderBy('taxrate')
+            ->orderBy('taxid')
+            ->get(['taxid', 'taxrate', 'descr'])
+            ->map(function ($row) {
+                $taxId = trim((string) $row->taxid);
+
+                return (object) [
+                    'taxid' => $taxId,
+                    'taxrate' => (float) $row->taxrate,
+                    'descr' => trim((string) ($row->descr ?: $taxId)),
+                ];
+            })
+            ->values();
+    }
 
     public function index()
     {
@@ -377,7 +402,9 @@ class RfpNonPurchController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('pages.rfpnonpurch.createrfpnonpurch', compact('usercpny', 'usercpny2', 'userdept', 'userdept2', 'akses_stock', 'groupbiaya', 'groupbiayaBudgetSettings', 'departmentFinMap', 'kepada', 'tembusan'));
+        $rfpNonPurchaseTaxes = $this->rfpNonPurchaseTaxes();
+
+        return view('pages.rfpnonpurch.createrfpnonpurch', compact('usercpny', 'usercpny2', 'userdept', 'userdept2', 'akses_stock', 'groupbiaya', 'groupbiayaBudgetSettings', 'departmentFinMap', 'kepada', 'tembusan', 'rfpNonPurchaseTaxes'));
     }
 
     public function groupBiayaOptions(Request $request)
@@ -607,6 +634,9 @@ class RfpNonPurchController extends Controller
             $busUnitIds = $request->business_unit_id_detail ?? [];
             $deptFinIds = $request->department_fin_id ?? [];
             $actDescrs = $request->activity_descr ?? [];
+            $taxCodeIds = $request->taxcodeid ?? [];
+
+            $taxMap = $this->rfpNonPurchaseTaxes()->keyBy('taxid');
 
             $rowCount = count($prices);
             $insertedDetail = 0;
@@ -639,6 +669,39 @@ class RfpNonPurchController extends Controller
                 $budgetDepartmentFinId = $deptFinIds[$i] ?? null;
                 $budgetAccountId = $coaIds[$i] ?? null;
                 $budgetActivityId = $activityIds[$i] ?? null;
+                $taxCodeId = $doctype === 'RCA' ? 'NONTAX' : null;
+                $amountDpp = $doctype === 'RCA' ? $amount : null;
+                $amountTax = $doctype === 'RCA' ? 0 : null;
+
+                if ($doctype === 'RFP') {
+                    $taxCodeId = trim((string) ($taxCodeIds[$i] ?? ''));
+
+                    if ($taxCodeId === '') {
+                        DB::rollBack();
+
+                        return response()->json([
+                            'message' => 'Tax wajib diisi pada detail baris ' . ($i + 1) . '.',
+                        ], 422);
+                    }
+
+                    $tax = $taxCodeId !== '' ? $taxMap->get($taxCodeId) : null;
+
+                    if (!$tax) {
+                        DB::rollBack();
+
+                        return response()->json([
+                            'message' => 'Tax tidak valid pada detail baris ' . ($i + 1) . '.',
+                        ], 422);
+                    }
+
+                    $rate = (float) ($tax->taxrate ?? 0);
+                    $amountDpp = $rate > 0
+                        ? round($amount * 100 / (100 + $rate), 2)
+                        : $amount;
+                    $amountTax = $rate > 0
+                        ? round($amountDpp * $rate / 100, 2)
+                        : 0;
+                }
 
                 if (
                     trim((string) $budgetBusinessUnitId) !== '' &&
@@ -662,6 +725,9 @@ class RfpNonPurchController extends Controller
                         : 'BUDGET-RFP',
 
                     'amount_request' => $amount,
+                    'amount_request_dpp' => $amountDpp,
+                    'taxcodeid' => $taxCodeId,
+                    'amount_request_taxamt' => $amountTax,
 
                     'budget_perpost' => $year,
                     'budget_cpny_id' => $request->cpnyid,
@@ -2130,6 +2196,8 @@ class RfpNonPurchController extends Controller
         $rfpnonpurch->transferto   = $deposit->transferto ?? null;
         $rfpnonpurch->bankname     = $deposit->bankname ?? null;
         $rfpnonpurch->bankacct     = $deposit->bankacct ?? null;
+
+        $rfpNonPurchaseTaxes = $this->rfpNonPurchaseTaxes();
   
         return view('pages.rfpnonpurch.editrfpnonpurch', compact(
             'rfpnonpurch',
@@ -2144,7 +2212,8 @@ class RfpNonPurchController extends Controller
             'kepada',
             'tembusan',
             'attachments',
-            'hash'
+            'hash',
+            'rfpNonPurchaseTaxes'
         ));
     }
 
@@ -2309,6 +2378,9 @@ class RfpNonPurchController extends Controller
             $busUnitIds = $request->business_unit_id_detail ?? [];
             $deptFinIds = $request->department_fin_id ?? [];
             $actDescrs = $request->activity_descr ?? [];
+            $taxCodeIds = $request->taxcodeid ?? [];
+
+            $taxMap = $this->rfpNonPurchaseTaxes()->keyBy('taxid');
 
             $rowCount = count($prices);
             $needsIMBudget = false;
@@ -2334,6 +2406,39 @@ class RfpNonPurchController extends Controller
                 $budgetDepartmentFinId = $deptFinIds[$i] ?? null;
                 $budgetAccountId = $coaIds[$i] ?? null;
                 $budgetActivityId = $activityIds[$i] ?? null;
+                $taxCodeId = $doctype === 'RCA' ? 'NONTAX' : null;
+                $amountDpp = $doctype === 'RCA' ? $amount : null;
+                $amountTax = $doctype === 'RCA' ? 0 : null;
+
+                if ($doctype === 'RFP') {
+                    $taxCodeId = trim((string) ($taxCodeIds[$i] ?? ''));
+
+                    if ($taxCodeId === '') {
+                        DB::rollBack();
+
+                        return response()->json([
+                            'message' => 'Tax wajib diisi pada detail baris ' . ($i + 1) . '.',
+                        ], 422);
+                    }
+
+                    $tax = $taxCodeId !== '' ? $taxMap->get($taxCodeId) : null;
+
+                    if (!$tax) {
+                        DB::rollBack();
+
+                        return response()->json([
+                            'message' => 'Tax tidak valid pada detail baris ' . ($i + 1) . '.',
+                        ], 422);
+                    }
+
+                    $rate = (float) ($tax->taxrate ?? 0);
+                    $amountDpp = $rate > 0
+                        ? round($amount * 100 / (100 + $rate), 2)
+                        : $amount;
+                    $amountTax = $rate > 0
+                        ? round($amountDpp * $rate / 100, 2)
+                        : 0;
+                }
 
                 if (
                     trim((string) $budgetBusinessUnitId) !== '' &&
@@ -2350,6 +2455,9 @@ class RfpNonPurchController extends Controller
                         ? null
                         : $desc,
                     'amount_request' => $amount,
+                    'amount_request_dpp' => $amountDpp,
+                    'taxcodeid' => $taxCodeId,
+                    'amount_request_taxamt' => $amountTax,
 
                     'budget_perpost' => $year,
                     'budget_cpny_id' => $request->cpnyid,

@@ -304,6 +304,11 @@ class PerizinanController extends Controller
             ->whereIn('cpny_id', $companyIds)
             ->firstOrFail();
 
+        $permit->activities->each(function ($activity) use ($permit) {
+            $activity->attachment_refnbr = $permit->perizinan_id;
+            $activity->attachment_doctype = 'ACT-'.$activity->id;
+        });
+
         return response()->json(['data' => $permit]);
     }
 
@@ -312,6 +317,8 @@ class PerizinanController extends Controller
         $validated = $request->validate([
             'response_descr' => ['required', 'string'],
             'status_pekerjaan' => ['required', Rule::in(['WAITING', 'PROCESS', 'REJECTED', 'CANCELLED', 'DONE'])],
+            'attachments' => ['nullable', 'array'],
+            'attachments.*' => ['file', 'max:5120'],
         ]);
         $companyIds = Usercpny::query()->where('username', $request->user()->username)
             ->where('status', 'A')->pluck('cpny_id');
@@ -335,6 +342,17 @@ class PerizinanController extends Controller
                 'status' => 'A',
                 'created_by' => $request->user()->username,
             ]);
+
+            if ($request->hasFile('attachments')) {
+                app(TrAttachmentController::class)->uploadInternal([
+                    'refnbr' => $perizinanId,
+                    'doctype' => 'ACT-'.$activity->id,
+                    'cpny_id' => $permit->cpny_id,
+                    'department_id' => $permit->department_fin_id,
+                    'base_folder' => 'att-purchasing-app/mik',
+                    'created_by' => $request->user()->username,
+                ], (array) $request->file('attachments'));
+            }
 
             $permitStatus = [
                 'DONE' => 'C',
@@ -466,7 +484,7 @@ class PerizinanController extends Controller
             'expired_date' => ['required', 'boolean'],
             'enddate' => ['nullable', 'required_if:expired_date,1', 'date', 'after_or_equal:startdate'],
             'reminder_days_before_end' => ['required', 'integer', Rule::in([120, 90, 60, 30])],
-            'application_handling_method' => ['nullable', 'string', 'max:255'],
+            'application_handling_method' => ['nullable', Rule::in(['INTERNAL', 'EXTERNAL'])],
             'issuing_authority' => ['nullable', 'string', 'max:255'],
             'submission_channel' => ['nullable', 'string', 'max:255'],
             'no_kontrak_legal' => ['nullable', 'string', 'max:255'],
