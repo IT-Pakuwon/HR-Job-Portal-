@@ -32,7 +32,7 @@ use App\Http\Controllers\ChangeStoController;
 use App\Http\Controllers\CompanyAddressController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\HrCompanyBudgetController;
-use App\Http\Controllers\MsProjectController;
+use App\Http\Controllers\MsEntityController;
 use App\Http\Controllers\CostControlDashboardController;
 use App\Http\Controllers\CsJobController;
 use App\Http\Controllers\CsListController;
@@ -2573,14 +2573,6 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/autonbrs/{id}', [AutonbrController::class, 'update']);
         Route::put('/autonbrs/{id}/toggle-status', [AutonbrController::class, 'toggleStatus']);
 
-        Route::get('/vendors', [VendorController::class, 'index'])->name('vendors');
-        Route::get('/vendors/json', [VendorController::class, 'json'])->name('vendors.json');
-        Route::post('/vendors', [VendorController::class, 'store'])->name('vendors.store');
-        Route::get('/vendors/{id}/edit', [VendorController::class, 'edit'])->name('vendors.edit');
-        Route::put('/vendors/{id}', [VendorController::class, 'update'])->name('vendors.update');
-        Route::put('/vendors/{id}/toggle-status', [VendorController::class, 'toggleStatus'])->name('vendors.toggle-status');
-        Route::post('/vendors/sync', [VendorController::class, 'syncVendor'])->name('vendors.sync');
-
         // Route::get('/inventories', [InventoryController::class, 'index'])->name('inventories');
         // Route::get('/inventories/json', [InventoryController::class, 'json'])->name('inventories.json');
         // Route::post('/inventories', [InventoryController::class, 'store'])->name('inventories.store');
@@ -2642,12 +2634,12 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/company-budgets/{id}/toggle-status', [HrCompanyBudgetController::class, 'toggleStatus'])->name('company-budgets.toggle-status');
         Route::delete('/company-budgets/{id}', [HrCompanyBudgetController::class, 'destroy'])->name('company-budgets.destroy');
 
-        Route::get('/budget-projects/json', [MsProjectController::class, 'json'])->name('budget-projects.json');
-        Route::post('/budget-projects', [MsProjectController::class, 'store'])->name('budget-projects.store');
-        Route::get('/budget-projects/{id}/edit', [MsProjectController::class, 'edit'])->name('budget-projects.edit');
-        Route::put('/budget-projects/{id}', [MsProjectController::class, 'update'])->name('budget-projects.update');
-        Route::put('/budget-projects/{id}/toggle-status', [MsProjectController::class, 'toggleStatus'])->name('budget-projects.toggle-status');
-        Route::delete('/budget-projects/{id}', [MsProjectController::class, 'destroy'])->name('budget-projects.destroy');
+        Route::get('/budget-entities/json', [MsEntityController::class, 'json'])->name('budget-entities.json');
+        Route::post('/budget-entities', [MsEntityController::class, 'store'])->name('budget-entities.store');
+        Route::get('/budget-entities/{id}/edit', [MsEntityController::class, 'edit'])->name('budget-entities.edit');
+        Route::put('/budget-entities/{id}', [MsEntityController::class, 'update'])->name('budget-entities.update');
+        Route::put('/budget-entities/{id}/toggle-status', [MsEntityController::class, 'toggleStatus'])->name('budget-entities.toggle-status');
+        Route::delete('/budget-entities/{id}', [MsEntityController::class, 'destroy'])->name('budget-entities.destroy');
 
         Route::get('/attachments-master', [AttachmentMasterController::class, 'index'])->name('attachments-master');
         Route::get('/attachments-master/json', [AttachmentMasterController::class, 'json'])->name('attachments-master.json');
@@ -2655,6 +2647,15 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/attachments/{id}', [AttachmentMasterController::class, 'delete'])
             ->name('attachments.delete');
     }); // end admin middleware
+
+    // ── Vendors: accessible to admin and PURCHACCESS (authorization enforced in VendorController) ──
+    Route::get('/vendors', [VendorController::class, 'index'])->name('vendors');
+    Route::get('/vendors/json', [VendorController::class, 'json'])->name('vendors.json');
+    Route::post('/vendors', [VendorController::class, 'store'])->name('vendors.store');
+    Route::get('/vendors/{id}/edit', [VendorController::class, 'edit'])->name('vendors.edit');
+    Route::put('/vendors/{id}', [VendorController::class, 'update'])->name('vendors.update');
+    Route::put('/vendors/{id}/toggle-status', [VendorController::class, 'toggleStatus'])->name('vendors.toggle-status');
+    Route::post('/vendors/sync', [VendorController::class, 'syncVendor'])->name('vendors.sync');
 
     // ── Admin Surabaya (adminsby): scoped duplicate of Users / Manage Approval ──
     Route::middleware('adminsby')->group(function () {

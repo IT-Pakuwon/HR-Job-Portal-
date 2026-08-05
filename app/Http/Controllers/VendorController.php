@@ -13,13 +13,22 @@ class VendorController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $isAdmin = $this->isAdmin($user);
+
+        if (!$this->canManageVendors($user)) {
+            abort(403, 'Unauthorized. Menu Vendors hanya untuk admin dan PURCHACCESS.');
+        }
+
+        $isAdmin = true;
 
         return view('pages.vendor.vendor', compact('user', 'isAdmin'));
     }
 
     public function json()
     {
+        if (!$this->canManageVendors(Auth::user())) {
+            abort(403, 'Unauthorized. Menu Vendors hanya untuk admin dan PURCHACCESS.');
+        }
+
         $vendors = MsVendor::select([
                 'id',
                 'vendor_id',
@@ -45,10 +54,10 @@ class VendorController extends Controller
 
     public function store(Request $request)
     {
-        if (!$this->isAdmin(Auth::user())) {
+        if (!$this->canManageVendors(Auth::user())) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized. Hanya admin yang dapat menambah vendor.'
+                'message' => 'Unauthorized. Hanya admin dan PURCHACCESS yang dapat menambah vendor.'
             ], 403);
         }
 
@@ -109,10 +118,10 @@ class VendorController extends Controller
 
     public function edit($id)
     {
-        if (!$this->isAdmin(Auth::user())) {
+        if (!$this->canManageVendors(Auth::user())) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized. Hanya admin yang dapat mengakses edit vendor.'
+                'message' => 'Unauthorized. Hanya admin dan PURCHACCESS yang dapat mengakses edit vendor.'
             ], 403);
         }
 
@@ -139,10 +148,10 @@ class VendorController extends Controller
 
     public function update(Request $request, $id)
     {
-        if (!$this->isAdmin(Auth::user())) {
+        if (!$this->canManageVendors(Auth::user())) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized. Hanya admin yang dapat mengubah vendor.'
+                'message' => 'Unauthorized. Hanya admin dan PURCHACCESS yang dapat mengubah vendor.'
             ], 403);
         }
 
@@ -201,10 +210,10 @@ class VendorController extends Controller
 
     public function toggleStatus(Request $request, $id)
     {
-        if (!$this->isAdmin(Auth::user())) {
+        if (!$this->canManageVendors(Auth::user())) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized. Hanya admin yang dapat mengubah status vendor.'
+                'message' => 'Unauthorized. Hanya admin dan PURCHACCESS yang dapat mengubah status vendor.'
             ], 403);
         }
 
@@ -225,10 +234,10 @@ class VendorController extends Controller
 
     public function syncVendor(Request $request)
     {
-        if (!$this->isAdmin(Auth::user())) {
+        if (!$this->canManageVendors(Auth::user())) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized. Hanya admin yang dapat melakukan sync vendor.'
+                'message' => 'Unauthorized. Hanya admin dan PURCHACCESS yang dapat melakukan sync vendor.'
             ], 403);
         }
 
@@ -332,9 +341,9 @@ class VendorController extends Controller
         }
     }
 
-    private function isAdmin($user): bool
+    private function canManageVendors($user): bool
     {
-        return $user && $user->isAdmin();
+        return $user && ($user->isAdmin() || $user->hasRole('PURCHACCESS'));
     }
 
     private function limitText($value, int $max)

@@ -1570,8 +1570,8 @@ class ParkingRegistrationController extends Controller
                 $meta = [
                     'refnbr'        => $docid,
                     'doctype'       => $doctype,
-                    'cpnyid'        => $cpnyId,
-                    'departementid' => $departmentId,
+                    'cpny_id'       => $cpnyId,
+                    'department_id' => $departmentId,
                     'base_folder'   => 'att-parking-registration',
                     'created_by'    => $username,
                 ];

@@ -23,7 +23,7 @@ class HrCompanyBudgetController extends Controller
         $request->validate([
             'group_cpny_id' => 'nullable|string|max:50',
             'cpnyid'        => 'required|string|max:50',
-            'budget_project_id' => 'required|string|max:50',
+            'budget_entity_id' => 'required|string|max:50',
         ]);
 
         DB::beginTransaction();
@@ -33,7 +33,7 @@ class HrCompanyBudgetController extends Controller
             $row = HrCompanyBudget::create([
                 'group_cpny_id' => strtoupper((string) $request->group_cpny_id),
                 'cpnyid'        => strtoupper(trim($request->cpnyid)),
-                'budget_project_id' => strtoupper(trim($request->budget_project_id)),
+                'budget_entity_id' => strtoupper(trim($request->budget_entity_id)),
                 'status'        => 'A',
                 'created_user'  => $loginUser->username ?? 'system',
                 'created_at'    => now(),
@@ -60,7 +60,7 @@ class HrCompanyBudgetController extends Controller
             'id'            => $row->id,
             'group_cpny_id' => $row->group_cpny_id,
             'cpnyid'        => $row->cpnyid,
-            'budget_project_id' => $row->budget_project_id,
+            'budget_entity_id' => $row->budget_entity_id,
             'status'        => $row->status,
         ]);
     }
@@ -72,7 +72,7 @@ class HrCompanyBudgetController extends Controller
         $request->validate([
             'group_cpny_id' => 'nullable|string|max:50',
             'cpnyid'        => 'required|string|max:50',
-            'budget_project_id' => 'required|string|max:50',
+            'budget_entity_id' => 'required|string|max:50',
         ]);
 
         DB::beginTransaction();
@@ -82,7 +82,7 @@ class HrCompanyBudgetController extends Controller
             $row->update([
                 'group_cpny_id' => strtoupper((string) $request->group_cpny_id),
                 'cpnyid'        => strtoupper(trim($request->cpnyid)),
-                'budget_project_id' => strtoupper(trim($request->budget_project_id)),
+                'budget_entity_id' => strtoupper(trim($request->budget_entity_id)),
                 'updated_by'    => $loginUser->username ?? 'system',
                 'updated_at'    => now(),
             ]);

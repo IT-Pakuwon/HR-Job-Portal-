@@ -39,7 +39,7 @@ class Personnel extends Model
         'experience_end',
         'experience_position',
         'expected_employment_date',
-        'budget_project_id',
+        'budget_entity_id',
         'status',
         'created_user',
         'created_at',

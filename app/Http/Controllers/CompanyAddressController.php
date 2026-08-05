@@ -20,6 +20,8 @@ class CompanyAddressController extends Controller
                 'location',
                 'address',
                 'address2',
+                'area_id',
+                'group_cpny_id',
                 'status',
             ])
             ->orderBy('cpnyid')
@@ -39,6 +41,8 @@ class CompanyAddressController extends Controller
             'location' => 'nullable|string',
             'address' => 'nullable|string',
             'address2' => 'nullable|string',
+            'area_id' => 'nullable|string|max:100',
+            'group_cpny_id' => 'nullable|string|max:100',
         ]);
 
         DB::connection('pgsql3')->beginTransaction();
@@ -54,6 +58,8 @@ class CompanyAddressController extends Controller
                 'location' => $request->filled('location') ? trim($request->location) : null,
                 'address' => $request->filled('address') ? trim($request->address) : null,
                 'address2' => $request->filled('address2') ? trim($request->address2) : null,
+                'area_id' => $request->filled('area_id') ? trim($request->area_id) : null,
+                'group_cpny_id' => $request->filled('group_cpny_id') ? trim($request->group_cpny_id) : null,
                 'status' => 'A',
                 'created_user' => $user->username ?? 'system',
             ]);
@@ -89,6 +95,8 @@ class CompanyAddressController extends Controller
             'location' => $row->location,
             'address' => $row->address,
             'address2' => $row->address2,
+            'area_id' => $row->area_id,
+            'group_cpny_id' => $row->group_cpny_id,
             'status' => $row->status,
         ]);
     }
@@ -105,6 +113,8 @@ class CompanyAddressController extends Controller
             'location' => 'nullable|string',
             'address' => 'nullable|string',
             'address2' => 'nullable|string',
+            'area_id' => 'nullable|string|max:100',
+            'group_cpny_id' => 'nullable|string|max:100',
         ]);
 
         DB::connection('pgsql3')->beginTransaction();
@@ -120,6 +130,8 @@ class CompanyAddressController extends Controller
                 'location' => $request->filled('location') ? trim($request->location) : null,
                 'address' => $request->filled('address') ? trim($request->address) : null,
                 'address2' => $request->filled('address2') ? trim($request->address2) : null,
+                'area_id' => $request->filled('area_id') ? trim($request->area_id) : null,
+                'group_cpny_id' => $request->filled('group_cpny_id') ? trim($request->group_cpny_id) : null,
                 'updated_by' => $user->username ?? 'system',
             ]);
 

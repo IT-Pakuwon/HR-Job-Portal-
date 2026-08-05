@@ -813,8 +813,8 @@ class SpbController extends Controller
                 $meta = [
                     'refnbr' => $docid,
                     'doctype' => $doctype,
-                    'cpnyid' => $request->input('cpnyid'),
-                    'departementid' => $request->input('departementid'),
+                    'cpny_id' => $request->input('cpnyid'),
+                    'department_id' => $request->input('departementid'),
                     'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by' => $username,
                 ];
@@ -1306,8 +1306,8 @@ class SpbController extends Controller
                 $meta = [
                     'refnbr' => $header->spbid,
                     'doctype' => $doctype,
-                    'cpnyid' => $request->cpnyid,
-                    'departementid' => $request->departementid,
+                    'cpny_id' => $request->cpnyid,
+                    'department_id' => $request->departementid,
                     'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by' => $user->username,
                 ];

@@ -33,10 +33,10 @@
                     onclick="switchCpnyTab('companybudget')">
                     💰 Company Budget
                 </button>
-                <button type="button" id="tab-project"
+                <button type="button" id="tab-entity"
                     class="cpnyTabBtn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-                    onclick="switchCpnyTab('project')">
-                    🗂️ Project
+                    onclick="switchCpnyTab('entity')">
+                    🗂️ Entity
                 </button>
             </div>
 
@@ -133,6 +133,8 @@
                                 <th class="px-4 py-3 text-left font-medium">Site</th>
                                 <th class="px-4 py-3 text-left font-medium">Site Location</th>
                                 <th class="px-4 py-3 text-left font-medium">Location</th>
+                                <th class="px-4 py-3 text-left font-medium">Area</th>
+                                <th class="px-4 py-3 text-left font-medium">Company Group</th>
                                 <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
                             </tr>
                         </thead>
@@ -224,7 +226,7 @@
                                 <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
                                 <th class="px-4 py-3 text-left font-medium">Company Group</th>
                                 <th class="px-4 py-3 text-left font-medium">Company ID</th>
-                                <th class="px-4 py-3 text-left font-medium">Budget Project ID</th>
+                                <th class="px-4 py-3 text-left font-medium">Budget Entity ID</th>
                                 <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
                             </tr>
                         </thead>
@@ -233,29 +235,28 @@
                 </div>
             </div>
 
-            {{-- ── TAB 5: Project ──────────────────────────────────────────────── --}}
-            <div id="panel-project"
+            {{-- ── TAB 5: Entity ───────────────────────────────────────────────── --}}
+            <div id="panel-entity"
                 class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
                 <div
                     class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🗂️ Project
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🗂️ Entity
                         List</h2>
-                    <button id="addProjectBtn"
+                    <button id="addEntityBtn"
                         class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
-                        + Add Project
+                        + Add Entity
                     </button>
                 </div>
 
                 <div class="relative overflow-hidden">
-                    <table id="projectTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <table id="entityTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
                         <thead>
                             <tr
                                 class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                                 <th class="w-10 px-4 py-3"></th>
                                 <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
-                                <th class="px-4 py-3 text-left font-medium">Project ID</th>
-                                <th class="px-4 py-3 text-left font-medium">Project Name</th>
-                                <th class="px-4 py-3 text-left font-medium">Company</th>
+                                <th class="px-4 py-3 text-left font-medium">Entity ID</th>
+                                <th class="px-4 py-3 text-left font-medium">Entity Name</th>
                                 <th class="px-4 py-3 text-left font-medium">Area</th>
                                 <th class="px-4 py-3 text-left font-medium">Company Group</th>
                                 <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
@@ -516,6 +517,29 @@
                             <textarea id="pl_address2" name="address2" rows="2"
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700"></textarea>
                         </div>
+
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Area</label>
+                            <select id="pl_area_id" name="area_id" class="pl-select2 w-full">
+                                <option value="">-- Select Area --</option>
+                                <option value="Yogyakarta">Yogyakarta</option>
+                                <option value="Solo">Solo</option>
+                                <option value="Surabaya">Surabaya</option>
+                                <option value="Batam">Batam</option>
+                                <option value="Semarang">Semarang</option>
+                                <option value="Bali">Bali</option>
+                                <option value="Jakarta">Jakarta</option>
+                                <option value="Bekasi">Bekasi</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Company Group</label>
+                            <select id="pl_group_cpny_id" name="group_cpny_id" class="pl-select2 w-full">
+                                <option value="">-- Select Company Group --</option>
+                                <option value="JKT">JKT</option>
+                                <option value="SBY">SBY</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="mt-4 flex justify-end space-x-2">
@@ -634,12 +658,12 @@
                         </div>
 
                         <div class="mb-3 md:col-span-2">
-                            <label class="block text-gray-700 dark:text-white">Budget Project</label>
-                            <select id="cb_budget_project_id" name="budget_project_id" class="cb-select2 w-full" required>
-                                <option value="">-- Select Budget Project --</option>
-                                @foreach ($projects as $project)
-                                    <option value="{{ $project->project_id }}">
-                                        {{ $project->project_id }} - {{ $project->project_name }}
+                            <label class="block text-gray-700 dark:text-white">Entity</label>
+                            <select id="cb_budget_entity_id" name="budget_entity_id" class="cb-select2 w-full" required>
+                                <option value="">-- Select Entity --</option>
+                                @foreach ($entities as $entity)
+                                    <option value="{{ $entity->entity_id }}">
+                                        {{ $entity->entity_id }} - {{ $entity->entity_name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -655,37 +679,31 @@
             </div>
         </div>
 
-        <!-- Modal: Project -->
-        <div id="projectModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4">
+        <!-- Modal: Entity -->
+        <div id="entityModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4">
             <div class="relative w-full max-w-xl rounded-lg bg-white p-4 dark:bg-gray-700">
-                <h2 id="modalProjectTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add
-                    Project</h2>
+                <h2 id="modalEntityTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add
+                    Entity</h2>
 
-                <form id="projectForm">
+                <form id="entityForm">
                     @csrf
-                    <input type="hidden" id="proj_id" name="id">
+                    <input type="hidden" id="ent_id" name="id">
 
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div class="mb-3">
-                            <label class="block text-gray-700 dark:text-white">Project ID</label>
-                            <input type="text" id="proj_project_id" name="project_id"
+                            <label class="block text-gray-700 dark:text-white">Entity ID</label>
+                            <input type="text" id="ent_entity_id" name="entity_id"
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
                         </div>
                         <div class="mb-3">
-                            <label class="block text-gray-700 dark:text-white">Project Name</label>
-                            <input type="text" id="proj_project_name" name="project_name"
+                            <label class="block text-gray-700 dark:text-white">Entity Name</label>
+                            <input type="text" id="ent_entity_name" name="entity_name"
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                        </div>
-
-                        <div class="mb-3 md:col-span-2">
-                            <label class="block text-gray-700 dark:text-white">Company</label>
-                            <input type="text" id="proj_cpny_name" name="cpny_name"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
                         </div>
 
                         <div class="mb-3">
                             <label class="block text-gray-700 dark:text-white">Area</label>
-                            <select id="proj_area_id" name="area_id" class="proj-select2 w-full">
+                            <select id="ent_area_id" name="area_id" class="ent-select2 w-full">
                                 <option value="">-- Select Area --</option>
                                 <option value="Yogyakarta">Yogyakarta</option>
                                 <option value="Solo">Solo</option>
@@ -699,7 +717,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="block text-gray-700 dark:text-white">Company Group</label>
-                            <select id="proj_group_cpny_id" name="group_cpny_id" class="proj-select2 w-full">
+                            <select id="ent_group_cpny_id" name="group_cpny_id" class="ent-select2 w-full">
                                 <option value="">-- Select Company Group --</option>
                                 <option value="JKT">JKT</option>
                                 <option value="SBY">SBY</option>
@@ -708,7 +726,7 @@
                     </div>
 
                     <div class="mt-4 flex justify-end space-x-2">
-                        <button type="button" id="closeProjectModal"
+                        <button type="button" id="closeEntityModal"
                             class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
                         <button type="submit" class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
                     </div>
@@ -738,13 +756,13 @@
             $('#loadingOverlay').addClass('hidden');
         }
 
-        const initedCpnyTabs = { company: false, site: false, placementlocation: false, businessunit: false, companybudget: false, project: false };
+        const initedCpnyTabs = { company: false, site: false, placementlocation: false, businessunit: false, companybudget: false, entity: false };
         const cpnyActiveClasses = 'bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400';
         const cpnyInactiveClasses = 'bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400';
 
         function switchCpnyTab(tab) {
-            const panels = { company: '#panel-company', site: '#panel-site', placementlocation: '#panel-placementlocation', businessunit: '#panel-businessunit', companybudget: '#panel-companybudget', project: '#panel-project' };
-            const btns   = { company: '#tab-company',   site: '#tab-site',   placementlocation: '#tab-placementlocation',   businessunit: '#tab-businessunit',   companybudget: '#tab-companybudget',   project: '#tab-project' };
+            const panels = { company: '#panel-company', site: '#panel-site', placementlocation: '#panel-placementlocation', businessunit: '#panel-businessunit', companybudget: '#panel-companybudget', entity: '#panel-entity' };
+            const btns   = { company: '#tab-company',   site: '#tab-site',   placementlocation: '#tab-placementlocation',   businessunit: '#tab-businessunit',   companybudget: '#tab-companybudget',   entity: '#tab-entity' };
 
             Object.keys(panels).forEach(function(key) {
                 const isActive = key === tab;
@@ -761,7 +779,7 @@
                 if (tab === 'placementlocation') initPlacementLocationTable();
                 if (tab === 'businessunit') initBusinessUnitTable();
                 if (tab === 'companybudget') initCompanyBudgetTable();
-                if (tab === 'project') initProjectTable();
+                if (tab === 'entity') initEntityTable();
             } else if (tab === 'company' && window.companiesTable) {
                 window.companiesTable.columns.adjust().responsive.recalc();
             } else if (tab === 'site' && window.siteTable) {
@@ -772,8 +790,8 @@
                 window.businessUnitTable.columns.adjust().responsive.recalc();
             } else if (tab === 'companybudget' && window.companyBudgetTable) {
                 window.companyBudgetTable.columns.adjust().responsive.recalc();
-            } else if (tab === 'project' && window.projectTable) {
-                window.projectTable.columns.adjust().responsive.recalc();
+            } else if (tab === 'entity' && window.entityTable) {
+                window.entityTable.columns.adjust().responsive.recalc();
             }
         }
 
@@ -904,12 +922,21 @@
                 });
             });
 
-            // Init select2 for area / company group (inside project modal)
-            $('.proj-select2').each(function() {
+            // Init select2 for area / company group (inside entity modal)
+            $('.ent-select2').each(function() {
                 $(this).select2({
                     width: '100%',
                     allowClear: true,
-                    dropdownParent: $('#projectModal')
+                    dropdownParent: $('#entityModal')
+                });
+            });
+
+            // Init select2 for area / company group (inside placement location modal)
+            $('.pl-select2').each(function() {
+                $(this).select2({
+                    width: '100%',
+                    allowClear: true,
+                    dropdownParent: $('#placementLocationModal')
                 });
             });
 
@@ -1417,6 +1444,12 @@
                             data: 'location'
                         },
                         {
+                            data: 'area_id'
+                        },
+                        {
+                            data: 'group_cpny_id'
+                        },
+                        {
                             data: 'status',
                             className: 'text-center',
                             render: function(data) {
@@ -1434,6 +1467,8 @@
                 $('#modalPlacementLocationTitle').text("Add Placement Location");
                 $('#placementLocationForm')[0].reset();
                 $('#pl_id').val('');
+                $('#pl_area_id').val('').trigger('change');
+                $('#pl_group_cpny_id').val('').trigger('change');
                 $('#placementLocationModal').removeClass('hidden');
             });
 
@@ -1457,6 +1492,8 @@
                     $('#pl_location').val(data.location);
                     $('#pl_address').val(data.address);
                     $('#pl_address2').val(data.address2);
+                    $('#pl_area_id').val(data.area_id).trigger('change');
+                    $('#pl_group_cpny_id').val(data.group_cpny_id).trigger('change');
 
                     hideLoading();
                 }).fail(function(xhr) {
@@ -1561,6 +1598,7 @@
             $('#closePlacementLocationModal').click(function() {
                 $('#placementLocationForm')[0].reset();
                 $('#pl_id').val('');
+                $('.pl-select2').val('').trigger('change');
                 $('#placementLocationModal').addClass('hidden');
             });
 
@@ -1924,7 +1962,7 @@
                             className: 'no-pointer'
                         },
                         {
-                            data: 'budget_project_id',
+                            data: 'budget_entity_id',
                             className: 'no-pointer'
                         },
                         {
@@ -1960,7 +1998,7 @@
                     $('#cb_id').val(c.id);
                     $('#cb_group_cpny_id').val(c.group_cpny_id).trigger('change');
                     $('#cb_cpnyid').val(c.cpnyid).trigger('change');
-                    $('#cb_budget_project_id').val(c.budget_project_id).trigger('change');
+                    $('#cb_budget_entity_id').val(c.budget_entity_id).trigger('change');
 
                     $('#companyBudgetModal').removeClass('hidden').addClass('flex');
                     hideLoading();
@@ -2116,11 +2154,11 @@
             });
 
             // =========================================================
-            // Project
+            // Entity
             // =========================================================
-            window.initProjectTable = function() {
-                window.projectTable = $('#projectTable').DataTable({
-                    ajax: "{{ route('budget-projects.json') }}",
+            window.initEntityTable = function() {
+                window.entityTable = $('#entityTable').DataTable({
+                    ajax: "{{ route('budget-entities.json') }}",
                     processing: true,
                     serverSide: false,
                     autoWidth: false,
@@ -2144,7 +2182,7 @@
                     buttons: [{
                             extend: 'excelHtml5',
                             text: '↓ Excel',
-                            title: 'Project',
+                            title: 'Entity',
                             className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                             exportOptions: {
                                 columns: ':visible',
@@ -2156,7 +2194,7 @@
                         {
                             extend: 'csvHtml5',
                             text: '↓ CSV',
-                            title: 'Project',
+                            title: 'Entity',
                             className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                             exportOptions: {
                                 columns: ':visible',
@@ -2175,13 +2213,13 @@
                                 return `
                                     <div class="flex justify-center space-x-2">
                                         <label class="switch">
-                                            <input type="checkbox" class="toggleProjectStatus" data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
+                                            <input type="checkbox" class="toggleEntityStatus" data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
                                             <span class="slider round"></span>
                                         </label>
-                                        <button class="editProjectBtn bg-blue-500 text-white px-2 py-1 rounded" data-id="${data}">
+                                        <button class="editEntityBtn bg-blue-500 text-white px-2 py-1 rounded" data-id="${data}">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button class="deleteProjectBtn bg-red-500 text-white px-2 py-1 rounded" data-id="${data}">
+                                        <button class="deleteEntityBtn bg-red-500 text-white px-2 py-1 rounded" data-id="${data}">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
@@ -2189,17 +2227,12 @@
                             }
                         },
                         {
-                            data: 'project_id',
+                            data: 'entity_id',
                             className: 'no-pointer'
                         },
                         {
-                            data: 'project_name',
+                            data: 'entity_name',
                             className: 'no-pointer'
-                        },
-                        {
-                            data: 'cpny_name',
-                            className: 'no-pointer',
-                            defaultContent: '-'
                         },
                         {
                             data: 'area_id',
@@ -2225,30 +2258,29 @@
             };
 
             // Add
-            $('#addProjectBtn').click(function() {
-                $('#modalProjectTitle').text("Add Project");
-                $('#projectForm')[0].reset();
-                $('#proj_id').val('');
-                $('.proj-select2').val('').trigger('change');
-                $('#projectModal').removeClass('hidden').addClass('flex');
+            $('#addEntityBtn').click(function() {
+                $('#modalEntityTitle').text("Add Entity");
+                $('#entityForm')[0].reset();
+                $('#ent_id').val('');
+                $('.ent-select2').val('').trigger('change');
+                $('#entityModal').removeClass('hidden').addClass('flex');
             });
 
             // Edit
-            $(document).on('click', '.editProjectBtn', function() {
+            $(document).on('click', '.editEntityBtn', function() {
                 let id = $(this).data('id');
 
                 showLoading();
 
-                $.get(`/budget-projects/${id}/edit`, function(p) {
-                    $('#modalProjectTitle').text("Edit Project");
-                    $('#proj_id').val(p.id);
-                    $('#proj_project_id').val(p.project_id);
-                    $('#proj_project_name').val(p.project_name);
-                    $('#proj_cpny_name').val(p.cpny_name);
-                    $('#proj_area_id').val(p.area_id).trigger('change');
-                    $('#proj_group_cpny_id').val(p.group_cpny_id).trigger('change');
+                $.get(`/budget-entities/${id}/edit`, function(p) {
+                    $('#modalEntityTitle').text("Edit Entity");
+                    $('#ent_id').val(p.id);
+                    $('#ent_entity_id').val(p.entity_id);
+                    $('#ent_entity_name').val(p.entity_name);
+                    $('#ent_area_id').val(p.area_id).trigger('change');
+                    $('#ent_group_cpny_id').val(p.group_cpny_id).trigger('change');
 
-                    $('#projectModal').removeClass('hidden').addClass('flex');
+                    $('#entityModal').removeClass('hidden').addClass('flex');
                     hideLoading();
                 }).fail(function(xhr) {
                     hideLoading();
@@ -2256,20 +2288,20 @@
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: 'Gagal mengambil data project'
+                        text: 'Gagal mengambil data entity'
                     });
 
                     console.error(xhr.responseText);
                 });
             });
 
-            // Toggle status (project)
-            $(document).on('change', '.toggleProjectStatus', function() {
+            // Toggle status (entity)
+            $(document).on('change', '.toggleEntityStatus', function() {
                 let id = $(this).data('id');
                 let newStatus = $(this).is(':checked') ? 'A' : 'X';
 
                 $.ajax({
-                    url: `/budget-projects/${id}/toggle-status`,
+                    url: `/budget-entities/${id}/toggle-status`,
                     type: 'PUT',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -2278,18 +2310,18 @@
                         status: newStatus
                     },
                     success: function() {
-                        window.projectTable.ajax.reload(null, false);
+                        window.entityTable.ajax.reload(null, false);
                     }
                 });
             });
 
-            // Delete (project)
-            $(document).on('click', '.deleteProjectBtn', function() {
+            // Delete (entity)
+            $(document).on('click', '.deleteEntityBtn', function() {
                 let id = $(this).data('id');
 
                 Swal.fire({
                     icon: 'warning',
-                    title: 'Delete project?',
+                    title: 'Delete entity?',
                     showCancelButton: true,
                     confirmButtonText: 'Delete',
                     confirmButtonColor: '#dc2626'
@@ -2299,14 +2331,14 @@
                     showLoading();
 
                     $.ajax({
-                        url: `/budget-projects/${id}`,
+                        url: `/budget-entities/${id}`,
                         type: 'DELETE',
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
                         },
                         success: function() {
                             hideLoading();
-                            window.projectTable.ajax.reload(null, false);
+                            window.entityTable.ajax.reload(null, false);
 
                             Swal.fire({
                                 icon: 'success',
@@ -2321,7 +2353,7 @@
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Error',
-                                text: 'Gagal menghapus project'
+                                text: 'Gagal menghapus entity'
                             });
 
                             console.error(xhr.responseText);
@@ -2330,20 +2362,20 @@
                 });
             });
 
-            // Submit form (create / update project)
-            $('#projectForm').submit(function(e) {
+            // Submit form (create / update entity)
+            $('#entityForm').submit(function(e) {
                 e.preventDefault();
 
-                let id = $('#proj_id').val();
-                let url = id ? `/budget-projects/${id}` : "{{ route('budget-projects.store') }}";
-                let formData = new FormData(document.getElementById('projectForm'));
+                let id = $('#ent_id').val();
+                let url = id ? `/budget-entities/${id}` : "{{ route('budget-entities.store') }}";
+                let formData = new FormData(document.getElementById('entityForm'));
 
                 if (id) {
                     formData.append('_method', 'PUT');
                 }
 
                 showLoading();
-                $('#projectForm button[type="submit"]').prop('disabled', true);
+                $('#entityForm button[type="submit"]').prop('disabled', true);
 
                 $.ajax({
                     url: url,
@@ -2356,26 +2388,26 @@
                     contentType: false,
                     success: function() {
                         hideLoading();
-                        $('#projectForm button[type="submit"]').prop('disabled', false);
+                        $('#entityForm button[type="submit"]').prop('disabled', false);
 
-                        $('#projectModal').addClass('hidden').removeClass('flex');
-                        $('#projectForm')[0].reset();
-                        $('#proj_id').val('');
-                        window.projectTable.ajax.reload(null, false);
+                        $('#entityModal').addClass('hidden').removeClass('flex');
+                        $('#entityForm')[0].reset();
+                        $('#ent_id').val('');
+                        window.entityTable.ajax.reload(null, false);
 
                         Swal.fire({
                             icon: 'success',
                             title: 'Success',
-                            text: 'Project saved successfully',
+                            text: 'Entity saved successfully',
                             timer: 1500,
                             showConfirmButton: false
                         });
                     },
                     error: function(xhr) {
                         hideLoading();
-                        $('#projectForm button[type="submit"]').prop('disabled', false);
+                        $('#entityForm button[type="submit"]').prop('disabled', false);
 
-                        let msg = 'Gagal menyimpan data project';
+                        let msg = 'Gagal menyimpan data entity';
 
                         if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
                             msg = Object.values(xhr.responseJSON.errors)
@@ -2394,11 +2426,11 @@
                 });
             });
 
-            $('#closeProjectModal').click(function() {
-                $('#projectForm')[0].reset();
-                $('#proj_id').val('');
-                $('.proj-select2').val('').trigger('change');
-                $('#projectModal').addClass('hidden').removeClass('flex');
+            $('#closeEntityModal').click(function() {
+                $('#entityForm')[0].reset();
+                $('#ent_id').val('');
+                $('.ent-select2').val('').trigger('change');
+                $('#entityModal').addClass('hidden').removeClass('flex');
             });
 
             // init first (visible) tab

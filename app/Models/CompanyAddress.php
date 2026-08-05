@@ -20,9 +20,15 @@ class CompanyAddress extends Model
         'site',
         'location',
         'address2',
+        'area_id',
+        'group_cpny_id',
         'status',
         'created_user',
-        'updated_by'
+        'created_at',
+        'updated_by',
+        'updated_at',
+        'deleted_by',
+        'deleted_at',
     ];
    
 }

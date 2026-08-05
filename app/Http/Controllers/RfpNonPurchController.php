@@ -2701,6 +2701,100 @@ class RfpNonPurchController extends Controller
             ->get();
 
         // =========================
+        // DETAIL (RFP / RCA)
+        // =========================
+        $doctype = strtoupper(trim((string) $rfpnonpurch->rfpnonpurchase_type));
+        $isRCA = $doctype === 'RCA';
+
+        $detailsQuery = TrRfpNonPurchDetail::query()
+            ->where('rfpnonpurchaseid', $rfpnonpurch->rfpnonpurchaseid);
+
+        if ($isRCA) {
+            $detailsQuery->where('rfpnonpurch_budget_type', 'BUDGET-RCA');
+        }
+
+        $details = $detailsQuery->orderBy('id')->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Mapping Budget Detail
+        |--------------------------------------------------------------------------
+        | Sama seperti di showRfpNonPurch(): totalbudget, totalbudget_add,
+        | total_reserve, total_used, account_descr dipakai di kolom Budget PDF.
+        */
+        $budgets = BudgetDetail::leftJoin('ms_coa', function ($join) {
+                $join->on('ms_budget.account_id', '=', 'ms_coa.account_id')
+                    ->on('ms_budget.cpny_id', '=', 'ms_coa.cpny_id');
+            })
+            ->where('ms_budget.status', 'C')
+            ->select(
+                'ms_budget.cpny_id',
+                'ms_budget.business_unit_id',
+                'ms_budget.department_fin_id',
+                'ms_budget.account_id',
+                'ms_budget.activity_id',
+                'ms_budget.activity_descr',
+                'ms_budget.perpost',
+                'ms_budget.totalbudget',
+                'ms_budget.totalbudget_add',
+                'ms_budget.total_reserve',
+                'ms_budget.total_used',
+                'ms_coa.account_descr as account_descr'
+            )
+            ->get();
+
+        $budgetMap = [];
+
+        foreach ($budgets as $b) {
+            $key = implode('|', [
+                (string) $b->cpny_id,
+                (string) $b->business_unit_id,
+                (string) $b->department_fin_id,
+                (string) $b->account_id,
+                (string) $b->activity_descr,
+                (string) $b->perpost,
+            ]);
+
+            $budgetMap[$key] = $b;
+        }
+
+        foreach ($details as $item) {
+            $key = implode('|', [
+                (string) $item->budget_cpny_id,
+                (string) $item->budget_business_unit_id,
+                (string) $item->budget_department_fin_id,
+                (string) $item->budget_account_id,
+                (string) $item->budget_activity_descr,
+                (string) $item->budget_perpost,
+            ]);
+
+            if (isset($budgetMap[$key])) {
+                $budget = $budgetMap[$key];
+
+                $item->budget_data = $budget;
+                $item->account_descr = $budget->account_descr;
+
+                $budgetValue = (float) ($budget->totalbudget ?? 0);
+                $additional  = (float) ($budget->totalbudget_add ?? 0);
+                $reserved    = (float) ($budget->total_reserve ?? 0);
+                $used        = (float) ($budget->total_used ?? 0);
+
+                $item->budget_remaining = $budgetValue + $additional - $reserved - $used;
+            } else {
+                $item->budget_data = null;
+                $item->account_descr = null;
+                $item->budget_remaining = 0;
+            }
+        }
+
+        $hasBudgetDetail = $details->contains(function ($d) {
+            return trim((string) ($d->budget_department_fin_id ?? '')) !== ''
+                || trim((string) ($d->budget_account_id ?? '')) !== ''
+                || trim((string) ($d->budget_activity_id ?? '')) !== ''
+                || trim((string) ($d->budget_activity_descr ?? '')) !== '';
+        });
+
+        // =========================
         // BUSINESS UNIT (ambil dari detail)
         // =========================
         $selectedBuId = TrRfpNonPurchDetail::query()
@@ -2773,6 +2867,9 @@ class RfpNonPurchController extends Controller
             'created_by_username' => $created_by_username,
             'req_date_fmt' => $req_date_fmt,
             'cpny_name' => $cpny_name,
+            'details' => $details,
+            'isRCA' => $isRCA,
+            'hasBudgetDetail' => $hasBudgetDetail,
         ]);
 
         $pdf->setPaper('A4', 'portrait');

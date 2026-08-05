@@ -13,7 +13,7 @@ class HrCompanyBudget extends Model
     protected $fillable = [
         'group_cpny_id',
         'cpnyid',
-        'budget_project_id',
+        'budget_entity_id',
         'status',
         'created_user',
         'created_at',
