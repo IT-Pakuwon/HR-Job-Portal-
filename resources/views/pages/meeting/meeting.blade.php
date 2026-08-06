@@ -846,9 +846,12 @@
                 document.getElementById('view_type').innerText =
                     props.type === 'external' ? 'External' : 'Internal';
 
-                const total = props.participant ?? 0;
+                const total = props.participant_count ?? 0;
 
                 document.getElementById('view_count').innerText =
+                    `${total} ${total > 1 ? 'Participants' : 'Participant'}`;
+
+                document.getElementById('view_count_badge').innerText =
                     `${total} ${total > 1 ? 'Participants' : 'Participant'}`;
 
                 // =========================
@@ -885,14 +888,6 @@
                         type: isExternal ? 'external' : 'internal'
                     };
                 });
-
-                const totalParticipants = merged.length;
-
-                document.getElementById('view_count').innerText =
-                    totalParticipants;
-
-                document.getElementById('view_count_badge').innerText =
-                    `${totalParticipants} Participants`;
 
                 // 🔥 SPLIT INTERNAL / EXTERNAL
                 const internal = participantsList.filter(p => p.type === 'internal');
@@ -1892,7 +1887,7 @@
 
         if (!Array.isArray(participants)) participants = [];
 
-        document.getElementById('participant').value = participants.length;
+        document.getElementById('participant').value = props.participant_count ?? '';
 
         const internalList = participants.filter(p => p.type !== 'external');
         const externalList = participants.filter(p => p.type === 'external');
