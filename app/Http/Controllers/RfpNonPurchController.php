@@ -3114,6 +3114,10 @@ class RfpNonPurchController extends Controller
             return $this->terbilang($angka / 1000) . " Ribu" . $this->terbilang($angka % 1000);
         } elseif ($angka < 1000000000) {
             return $this->terbilang($angka / 1000000) . " Juta" . $this->terbilang($angka % 1000000);
+        } elseif ($angka < 1000000000000) {
+            return $this->terbilang($angka / 1000000000) . " Milyar" . $this->terbilang($angka % 1000000000);
+        } elseif ($angka < 1000000000000000) {
+            return $this->terbilang($angka / 1000000000000) . " Triliun" . $this->terbilang($angka % 1000000000000);
         } else {
             return "Terlalu Besar";
         }

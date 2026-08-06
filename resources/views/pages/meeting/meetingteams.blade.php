@@ -376,8 +376,8 @@
                 <!-- FOOTER -->
                 <div class="flex items-center justify-between border-t px-6 py-4 dark:border-gray-700">
 
-                    <button onclick="cancelMeeting()"
-                        class="rounded-lg bg-red-500 px-4 py-2 text-sm text-white hover:bg-red-600">
+                    <button id="cancelMeetingBtn" onclick="cancelMeeting()"
+                        class="hidden rounded-lg bg-red-500 px-4 py-2 text-sm text-white hover:bg-red-600">
                         Cancel Meeting
                     </button>
 
@@ -406,6 +406,9 @@
     <script>
         let calendarInstance = null;
         let currentEventId = null;
+
+        window.currentUserId = @json(auth()->user()->username);
+        window.hasCSACCESS = @json($hasCsAccess ?? false);
 
         document.addEventListener('DOMContentLoaded', function() {
             const calendarEl = document.getElementById('calendar');
@@ -1248,6 +1251,10 @@ function copyLink(link, encoded = false) {
             }
 
             document.getElementById('view_participants').innerHTML = participantsHtml;
+
+            const isCreator = props.username === window.currentUserId;
+            const cancelBtn = document.getElementById('cancelMeetingBtn');
+            cancelBtn.classList.toggle('hidden', !(isCreator || window.hasCSACCESS));
 
             const teamsEl = document.getElementById('view_teams');
             const badge = document.getElementById('link_status_badge');

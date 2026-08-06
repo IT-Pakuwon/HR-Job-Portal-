@@ -67,12 +67,19 @@
                                 {{ $statusText }}
                             </span>
 
-                            <a href="{{ url('/pdf_rfp') }}/{{ $hash }}" target="_blank">
-                                    <button
-                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                            @if ($rfp->status === 'H')
+                                <button type="button" disabled title="Cannot print PDF while document is on Hold"
+                                    class="inline-flex cursor-not-allowed items-center gap-2 rounded-full bg-gray-300 px-4 py-1 text-sm font-semibold text-gray-500 dark:bg-gray-600 dark:text-gray-400">
                                     Print PDF
                                 </button>
-                            </a>
+                            @else
+                                <a href="{{ url('/pdf_rfp') }}/{{ $hash }}" target="_blank">
+                                        <button
+                                        class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                        Print PDF
+                                    </button>
+                                </a>
+                            @endif
 
                         </div>
                     </header>
