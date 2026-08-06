@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MsCompany;
 use App\Models\TrApproval;
 use App\Models\TrBookingCar;
 use App\Models\TrCS;
@@ -111,7 +112,9 @@ class ApprovalDashboardController extends Controller
             ->table($tblApr)
             ->select(
                 'refnbr',
-                'aprv_datebefore'
+                'aprv_datebefore',
+                'aprv_cpnyid',
+                'aprv_departementid'
             )
             ->whereRaw(
                 "(',' || lower(regexp_replace(coalesce(aprv_username,''), '\s+', '', 'g')) || ',') like ?",
@@ -125,20 +128,54 @@ class ApprovalDashboardController extends Controller
             return collect();
         }
 
+        // Individual company/department codes aren't reliable enough to
+        // disambiguate a duplicated refnbr: some approval lines are stamped
+        // with the approver's own company/department rather than the
+        // document's (e.g. BCR/IS), so an exact match would wrongly hide
+        // legitimate approvals. Group Company ID (ms_company.group_cpny_id)
+        // is stable across those cases and is still enough to tell apart
+        // documents from genuinely different companies (e.g. PRF numbering
+        // colliding between a JKT-group and an SBY-group company).
+        $groupMap = DB::connection((new MsCompany())->getConnectionName() ?: config('database.default'))
+            ->table((new MsCompany())->getTable())
+            ->select('cpny_id', 'group_cpny_id')
+            ->get()
+            ->reduce(function ($map, $r) {
+                $cpnyid = strtoupper(trim($r->cpny_id));
+                $map[$cpnyid] = strtoupper(trim((string) $r->group_cpny_id)) ?: $cpnyid;
+
+                return $map;
+            }, []);
+
+        $resolveGroup = function ($cpnyid) use ($groupMap) {
+            $cpnyid = strtoupper(trim((string) $cpnyid));
+
+            return $groupMap[$cpnyid] ?? $cpnyid;
+        };
+
+        // A refnbr is only unique within a company group — the same refnbr
+        // can legitimately belong to two different documents from two
+        // different company groups (e.g. PRF numbering). Key approvals by
+        // refnbr+group so we resolve to the correct document.
         $approvalMap = $approvalRows
-            ->groupBy(fn ($r) => strtoupper(trim($r->refnbr)))
-            ->map(function ($rows, $refnbr) {
+            ->groupBy(function ($r) use ($resolveGroup) {
+                return strtoupper(trim($r->refnbr)).'|'.$resolveGroup($r->aprv_cpnyid);
+            })
+            ->map(function ($rows) {
                 $latest = collect($rows)
                     ->sortByDesc(fn ($r) => $r->aprv_datebefore)
                     ->first();
 
                 return [
-                    'refnbr' => $refnbr,
+                    'refnbr' => strtoupper(trim($latest->refnbr)),
                     'aprv_datebefore' => $latest->aprv_datebefore,
                 ];
             });
 
-        $docids = $approvalMap->keys()->values();
+        $docids = $approvalMap
+            ->pluck('refnbr')
+            ->unique()
+            ->values();
 
         if ($doctype !== '') {
             $docids = $docids
@@ -405,16 +442,23 @@ class ApprovalDashboardController extends Controller
             ]);
         }
 
-        // De-duplicate: keep first occurrence per docid (in case CS/BCR/VCR also exist in v_all_das)
-        $data = $data->unique(fn ($r) => strtoupper(trim($r->docid)));
-
         $data = $data
-            ->map(function ($r) use ($approvalMap, $status) {
+            ->map(function ($r) use ($approvalMap, $status, $resolveGroup) {
                 $docidKey = strtoupper(
                     trim($r->docid)
                 );
 
-                $approval = $approvalMap->get($docidKey);
+                // Match on docid+company-group, not docid alone — a refnbr
+                // can be shared by two different documents from two
+                // different company groups (e.g. PRF numbering), so
+                // docid-only matching could resolve to the wrong document.
+                $compositeKey = $docidKey.'|'.$resolveGroup($r->cpnyid);
+
+                $approval = $approvalMap->get($compositeKey);
+
+                if (!$approval) {
+                    return null;
+                }
 
                 // Eng Ticket (TOK) shares tr_ticket with the IT ticket module in
                 // the v_all_trx view, which still points its url at the IT
@@ -434,6 +478,14 @@ class ApprovalDashboardController extends Controller
                     'status' => $status,
                 ];
             })
+            ->filter()
+            // De-duplicate: the group match above already resolved which
+            // document this approval belongs to, so any rows still sharing
+            // a docid here are the same document surfacing from more than
+            // one source view (e.g. CS/BCR/VCR also exist in v_all_das,
+            // sometimes with a slightly different company code within the
+            // same group) — keep one.
+            ->unique(fn ($r) => strtoupper(trim($r['docid'])))
             ->sortByDesc(fn ($r) => $r['docdate'] ?? '')
             ->values();
 
