@@ -2907,6 +2907,26 @@ class RfpNonPurchController extends Controller
                 || trim((string) ($d->budget_activity_descr ?? '')) !== '';
         });
 
+        /*
+        |--------------------------------------------------------------------------
+        | Mapping Tax Detail (RFP only — RCA rows are tagged NONTAX)
+        |--------------------------------------------------------------------------
+        */
+        $taxMap = MsTax::query()
+            ->whereIn('taxid', $details->pluck('taxcodeid')->filter()->unique())
+            ->get()
+            ->keyBy('taxid');
+
+        foreach ($details as $item) {
+            $item->tax_data = $taxMap->get($item->taxcodeid);
+        }
+
+        $hasTaxDetail = !$isRCA && $details->contains(function ($d) {
+            $taxId = trim((string) ($d->taxcodeid ?? ''));
+
+            return $taxId !== '' && $taxId !== 'NONTAX';
+        });
+
         // =========================
         // BUSINESS UNIT (ambil dari detail)
         // =========================
@@ -2983,6 +3003,7 @@ class RfpNonPurchController extends Controller
             'details' => $details,
             'isRCA' => $isRCA,
             'hasBudgetDetail' => $hasBudgetDetail,
+            'hasTaxDetail' => $hasTaxDetail,
         ]);
 
         $pdf->setPaper('A4', 'portrait');

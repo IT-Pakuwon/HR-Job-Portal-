@@ -34,6 +34,27 @@ class MsApprovalController extends Controller
         return DepartmentHR::where('department_id', $deptId)->exists();
     }
 
+    private function isSbyCompany(?string $cpnyId): bool
+    {
+        if (!$cpnyId) return false;
+
+        return MsCompany::where('cpny_id', $cpnyId)->where('group_cpny_id', 'SBY')->exists();
+    }
+
+    private function sbyCompanyIds()
+    {
+        return MsCompany::where('group_cpny_id', 'SBY')->pluck('cpny_id');
+    }
+
+    private function allUsernamesAreSby(array $usernames): bool
+    {
+        $usernames = array_values(array_unique(array_filter($usernames)));
+        if (empty($usernames)) return true;
+
+        $count = User::where('group_cpny_id', 'SBY')->whereIn('username', $usernames)->count();
+        return $count === count($usernames);
+    }
+
     public function index()
     {
         $user = Auth::user();
@@ -50,11 +71,13 @@ class MsApprovalController extends Controller
             ->get();
 
         $users = User::select('username', 'name')
+            ->when($this->isRestrictedAdmin(), fn($q) => $q->where('group_cpny_id', 'SBY'))
             ->orderBy('username')
             ->get();
 
         $companies = MsCompany::select('cpny_id', 'cpny_name')
             ->where('status', 'A')
+            ->when($this->isRestrictedAdmin(), fn($q) => $q->where('group_cpny_id', 'SBY'))
             ->orderBy('cpny_id')
             ->get();
 
@@ -109,7 +132,8 @@ class MsApprovalController extends Controller
 
         if ($this->isRestrictedAdmin()) {
             $query->where('aprv_doctype', 'PRF')
-                ->whereIn('aprv_departementid', DepartmentHR::pluck('department_id'));
+                ->whereIn('aprv_departementid', DepartmentHR::pluck('department_id'))
+                ->whereIn('aprv_cpnyid', $this->sbyCompanyIds());
         }
 
         if (!$request->has('order')) {
@@ -163,6 +187,13 @@ class MsApprovalController extends Controller
             }
             if (!$this->isHrDepartment($request->aprv_departementid)) {
                 abort(403, 'This account can only manage HR department approvals.');
+            }
+            if (!$this->isSbyCompany($request->aprv_cpnyid)) {
+                abort(403, 'This account can only manage approvals for Surabaya group companies.');
+            }
+            $allUsernames = collect($request->aprv_username)->flatten()->filter()->all();
+            if (!$this->allUsernamesAreSby($allUsernames)) {
+                abort(403, 'This account can only assign approvers from Surabaya group companies.');
             }
         }
 
@@ -245,7 +276,7 @@ class MsApprovalController extends Controller
     {
         $row = MsApproval::findOrFail($id);
 
-        if ($this->isRestrictedAdmin() && strtoupper($row->aprv_doctype) !== 'PRF') {
+        if ($this->isRestrictedAdmin() && (strtoupper($row->aprv_doctype) !== 'PRF' || !$this->isSbyCompany($row->aprv_cpnyid))) {
             abort(403);
         }
 
@@ -296,6 +327,12 @@ class MsApprovalController extends Controller
             }
             if (!$this->isHrDepartment($request->aprv_departementid)) {
                 abort(403, 'This account can only manage HR department approvals.');
+            }
+            if (!$this->isSbyCompany($row->aprv_cpnyid) || !$this->isSbyCompany($request->aprv_cpnyid)) {
+                abort(403, 'This account can only manage approvals for Surabaya group companies.');
+            }
+            if (!$this->allUsernamesAreSby($request->aprv_username[0] ?? [])) {
+                abort(403, 'This account can only assign approvers from Surabaya group companies.');
             }
         }
 
@@ -368,7 +405,7 @@ class MsApprovalController extends Controller
     {
         $row = MsApproval::findOrFail($id);
 
-        if ($this->isRestrictedAdmin() && strtoupper($row->aprv_doctype) !== 'PRF') {
+        if ($this->isRestrictedAdmin() && (strtoupper($row->aprv_doctype) !== 'PRF' || !$this->isSbyCompany($row->aprv_cpnyid))) {
             abort(403);
         }
 
@@ -397,6 +434,10 @@ class MsApprovalController extends Controller
         $deptId  = $request->query('departementid');
 
         if (!$doctype || !$cpnyId || !$deptId) {
+            return response()->json(['lines' => []]);
+        }
+
+        if ($this->isRestrictedAdmin() && !$this->isSbyCompany($cpnyId)) {
             return response()->json(['lines' => []]);
         }
 
