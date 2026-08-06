@@ -779,11 +779,16 @@
                 </div>
                 <div class="ticketModal-body">
                     <div class="ticketModal-card">
-                        <label class="ticketModal-label">👥 Select Colleagues</label>
-                        <select id="swalColleagues" multiple></select>
-                        <p style="font-size:11px;color:#6b7280;margin-top:8px;">
-                            You'll be registered automatically. Add colleagues${hint} to register them in the same batch.
-                        </p>
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                            <input type="checkbox" id="swalAddColleagues" style="width:16px;height:16px;">
+                            <span class="ticketModal-label" style="margin:0;">👥 Also register colleagues${hint}</span>
+                        </label>
+                        <div id="swalColleaguesWrap" style="margin-top:10px;display:none;">
+                            <select id="swalColleagues" multiple></select>
+                            <p style="font-size:11px;color:#6b7280;margin-top:8px;">
+                                Search and add colleagues to register them in the same batch.
+                            </p>
+                        </div>
                         <div id="swalPreview" class="ticketModal-capacity"></div>
                     </div>
                 </div>
@@ -798,6 +803,8 @@
                 customClass: { popup: 'ticketModalPopup', confirmButton: 'ticketConfirmBtn', cancelButton: 'ticketCancelBtn' },
                 didOpen: () => {
                     const $popup = $(Swal.getPopup());
+                    const $toggle = $popup.find('#swalAddColleagues');
+                    const $wrap = $popup.find('#swalColleaguesWrap');
                     const $sel = $popup.find('#swalColleagues');
 
                     $sel.select2({
@@ -822,7 +829,7 @@
                     });
 
                     const renderPreview = () => {
-                        const list = [selfUsername, ...($sel.val() || [])];
+                        const list = $toggle.is(':checked') ? [selfUsername, ...($sel.val() || [])] : [selfUsername];
                         $popup.find('#swalPreview').html(list.map((u) => `
                             <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border:1px solid #f0f1f3;border-radius:8px;margin-top:6px;background:#f9fafb;">
                                 <span style="font-size:12px;font-weight:600;color:#111827;">${u}</span>
@@ -831,12 +838,23 @@
                         `).join(''));
                     };
 
+                    // Colleague search stays hidden/inert until the checkbox is ticked,
+                    // so nothing can be picked without deliberately opting in first.
+                    $toggle.on('change', () => {
+                        const checked = $toggle.is(':checked');
+                        $wrap.toggle(checked);
+                        if (!checked) $sel.val(null).trigger('change');
+                        renderPreview();
+                    });
+
                     $sel.on('change', renderPreview);
                     renderPreview();
                 },
                 preConfirm: () => {
-                    const $sel = $(Swal.getPopup()).find('#swalColleagues');
-                    return { participants: [selfUsername, ...($sel.val() || [])] };
+                    const $popup = $(Swal.getPopup());
+                    const $sel = $popup.find('#swalColleagues');
+                    const addColleagues = $popup.find('#swalAddColleagues').is(':checked');
+                    return { participants: addColleagues ? [selfUsername, ...($sel.val() || [])] : [selfUsername] };
                 },
             }).then((result) => {
                 if (!result.isConfirmed) return;

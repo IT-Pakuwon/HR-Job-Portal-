@@ -612,8 +612,25 @@ class TrainingRegistrationController extends Controller
                         ? 'Registrasi berhasil (' . $docIds->count() . ' dokumen: ' . $docIds->implode(', ') . '), menunggu approval'
                         : 'Registrasi berhasil, menunggu approval'),
             ]);
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $e) {
+            // abort()/abort_if() calls further down the stack (e.g. ApprovalController::loadLines()
+            // aborting with "Approval line belum di-setup, Please contact IT!") carry a real,
+            // actionable message — let those surface as-is instead of being masked below.
+            DB::connection('pgsql5')->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage() ?: 'Gagal melakukan registrasi',
+            ], $e->getStatusCode());
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
+
+            \Illuminate\Support\Facades\Log::error('Training registration failed', [
+                'schedule_id' => $scheduleId,
+                'user' => $user->username,
+                'participants' => $requested->all(),
+                'exception' => $e,
+            ]);
 
             return response()->json([
                 'success' => false,
