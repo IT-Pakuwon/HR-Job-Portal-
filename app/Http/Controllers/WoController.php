@@ -1066,9 +1066,7 @@ class WoController extends Controller
             'userdept',
             'userdept2',
             'canProcess',
-            'isPicWo',
-            'worktypeDepts',
-            'userDepts'
+            'isPicWo'
         ));
     }
 
