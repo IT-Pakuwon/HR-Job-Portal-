@@ -13,6 +13,7 @@
         $docname = $docname ?? 'SPPB';
         $name = $name ?? ($name ?? 'User');
         $status = strtoupper($status ?? 'P'); // P,R,D,A,C
+        $info = $info ?? '-';
 
         $map = [
             'P' => [

@@ -511,6 +511,7 @@ class TrainingRegistrationController extends Controller
         // non-rejected) registration on a *different* schedule of this same
         // training_id.
         $isMandatory = (bool) MsTrainingEvent::where('training_id', $detail->training_id)->value('is_mandatory');
+        $trainingName = (string) MsTrainingEvent::where('training_id', $detail->training_id)->value('training_name');
 
         if ($isMandatory) {
             $mandatoryDuplicates = TrLndTrainingRegistration::where('training_id', $detail->training_id)
@@ -596,7 +597,7 @@ class TrainingRegistrationController extends Controller
                     'created_at' => $now,
                 ]);
 
-                $this->submitForApproval($docId, $originCpnyId, $originDeptId, $user, $now);
+                $this->submitForApproval($docId, $originCpnyId, $originDeptId, $user, $now, $trainingName);
             }
 
             DB::connection('pgsql5')->commit();
@@ -1097,7 +1098,7 @@ class TrainingRegistrationController extends Controller
         ]);
     }
 
-    private function submitForApproval(string $docId, string $cpnyId, string $deptId, User $user, Carbon $now): void
+    private function submitForApproval(string $docId, string $cpnyId, string $deptId, User $user, Carbon $now, string $trainingName = ''): void
     {
         $approvalCtl = app(ApprovalController::class);
 
@@ -1122,6 +1123,7 @@ class TrainingRegistrationController extends Controller
             'Training Registration',
             $docUrl,
             [
+                'info' => $trainingName,
                 'createdby' => $user->name ?? $user->username,
                 'date' => $now->toDateTimeString(),
             ]
