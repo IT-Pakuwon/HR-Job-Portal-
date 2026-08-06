@@ -6,6 +6,7 @@ use App\Models\MsCompany;
 use App\Models\TrApproval;
 use App\Models\TrBookingCar;
 use App\Models\TrCS;
+use App\Models\TrLndTrainingRegistration;
 use App\Models\TrVoucherTaxi;
 use App\Models\TrxVplReceive;
 use App\Models\TrxVplTransfer;
@@ -438,6 +439,41 @@ class ApprovalDashboardController extends Controller
             }
         } catch (\Throwable $e) {
             Log::warning('approvalJson VPU fetch failed', [
+                'err' => $e->getMessage(),
+            ]);
+        }
+
+        // TRN (Training Registration) — not in v_all_das/v_all_trx; fetch directly
+        try {
+            $trnDocids = $docids->filter(fn ($id) => str_starts_with($id, 'TRN'))->values();
+            if ($trnDocids->isNotEmpty()) {
+                $trnM     = new TrLndTrainingRegistration();
+                $trnConn  = $trnM->getConnectionName() ?: config('database.default');
+                $trnTable = $trnM->getTable();
+                $trnRows  = collect();
+                foreach ($trnDocids->chunk(1200) as $chunk) {
+                    $trnRows = $trnRows->concat(
+                        DB::connection($trnConn)
+                            ->table("{$trnTable} as tr")
+                            ->leftJoin('ms_lnd_training as evt', 'evt.training_id', '=', 'tr.training_id')
+                            ->whereIn('tr.training_regist_id', $chunk->all())
+                            ->whereNull('tr.deleted_at')
+                            ->select(
+                                'tr.id',
+                                'tr.training_regist_date as docdate',
+                                'tr.cpny_id as cpnyid',
+                                'tr.department_id as departementid',
+                                DB::raw("coalesce(evt.training_name, 'Training') || ' - ' || tr.user_registration as infohd"),
+                                'tr.training_regist_id as docid'
+                            )
+                            ->get()
+                            ->map(fn ($r) => (object) array_merge((array) $r, ['url' => '/training-list/my']))
+                    );
+                }
+                $data = $data->concat($trnRows);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('approvalJson TRN fetch failed', [
                 'err' => $e->getMessage(),
             ]);
         }
