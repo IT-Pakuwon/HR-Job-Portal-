@@ -924,6 +924,27 @@ class WoController extends Controller
         }
     }
 
+    // Dept assignment for a WO's worktype is checked from both showWo() (UI button state)
+    // and processWo() (server-side authorization), so it lives here once.
+    private function deptMatchesWorktype($user, TrWO $wo): bool
+    {
+        $userDepts = collect(explode(',', (string) ($user->department_id ?? '')))
+            ->map(fn ($v) => strtoupper(trim($v)))
+            ->filter()
+            ->unique()
+            ->values();
+
+        $worktypeDepts = MsWorktypeDept::where('worktypeid', $wo->worktypeid)
+            ->pluck('department_id')
+            ->map(fn ($v) => strtoupper(trim((string) $v)))
+            ->filter()
+            ->unique()
+            ->values();
+
+        return $worktypeDepts->contains('ALL')
+            || $userDepts->intersect($worktypeDepts)->isNotEmpty();
+    }
+
     public function showWo($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
@@ -1005,23 +1026,7 @@ class WoController extends Controller
         // ✅ HITUNG isProcessor DI CONTROLLER
         // department_id user: "ENGINEERING,ENGINEERING HVAC,..." => array
         // =========================
-        $userDeptRaw = (string) ($user->department_id ?? '');
-        $userDepts = collect(explode(',', $userDeptRaw))
-            ->map(fn ($v) => strtoupper(trim($v)))
-            ->filter()
-            ->unique()
-            ->values();
-
-        // MsWorktypeDept: ambil semua department utk worktype WO ini
-        $worktypeDepts = MsWorktypeDept::where('worktypeid', $wo->worktypeid)
-            ->pluck('department_id')
-            ->map(fn ($v) => strtoupper(trim((string) $v)))
-            ->filter()
-            ->unique()
-            ->values();
-
-        $deptMatch = $worktypeDepts->contains('ALL')
-            || $userDepts->intersect($worktypeDepts)->isNotEmpty();
+        $deptMatch = $this->deptMatchesWorktype($user, $wo);
 
         // PIC WO boleh proses juga
         $loginUsername = strtolower(trim((string) ($user->username ?? $user->name ?? '')));
@@ -2290,29 +2295,40 @@ class WoController extends Controller
     {
         $user = auth()->user();
 
-        $wo = TrWO::where('woid', $woid)->firstOrFail();
+        return DB::transaction(function () use ($user, $woid) {
+            // lockForUpdate() so two users clicking Process at the same time
+            // can't both pass the "no PIC yet" check before either one saves.
+            $wo = TrWO::where('woid', $woid)->lockForUpdate()->firstOrFail();
 
-        if ($wo->pic_wo) {
+            if ($wo->pic_wo) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'WO already processed.',
+                ], 400);
+            }
+
+            if (!$user->isAdmin() && !$this->deptMatchesWorktype($user, $wo)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You are not authorized to process this WO.',
+                ], 403);
+            }
+
+            $wo->pic_wo = $user->username;
+
+            // REMOVE this if column does not exist
+            // $wo->pic_department = $user->department_id ?? null;
+
+            $wo->status_pekerjaan = 'P';
+
+            $wo->save();
+
             return response()->json([
-                'success' => false,
-                'message' => 'WO already processed.',
-            ], 400);
-        }
-
-        $wo->pic_wo = $user->username;
-
-        // REMOVE this if column does not exist
-        // $wo->pic_department = $user->department_id ?? null;
-
-        $wo->status_pekerjaan = 'P';
-
-        $wo->save();
-
-        return response()->json([
-            'success' => true,
-            'pic_wo' => $wo->pic_wo,
-            'status_pekerjaan' => $wo->status_pekerjaan,
-        ]);
+                'success' => true,
+                'pic_wo' => $wo->pic_wo,
+                'status_pekerjaan' => $wo->status_pekerjaan,
+            ]);
+        });
     }
 
     // POST /wo/{woid}/job-status
@@ -2326,7 +2342,19 @@ class WoController extends Controller
             'attachment' => 'nullable|file|max:10240', // 10MB
         ]);
 
+        $user = auth()->user();
         $wo = TrWO::where('woid', $woid)->firstOrFail();
+
+        $loginUsername = strtolower(trim((string) ($user->username ?? '')));
+        $pic = strtolower(trim((string) ($wo->pic_wo ?? '')));
+        $isPicWo = ($pic !== '' && $pic === $loginUsername);
+
+        if (!$isPicWo && !$user->isAdmin()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only the assigned PIC can update this WO.',
+            ], 403);
+        }
 
         // =========================
         // UPDATE JOB STATUS
@@ -2345,9 +2373,6 @@ class WoController extends Controller
         // =========================
         // FLAG NORMALIZATION
         // =========================
-        $flag = filter_var($req->input('flag_sppbjkt'), FILTER_VALIDATE_BOOLEAN)
-                || $req->input('flag_sppbjkt') == 1;
-
         $wo->flag_sppbjkt = $req->has('flag_sppbjkt') && $req->flag_sppbjkt == 1 ? 'Y' : 'N';
 
         $wo->save();

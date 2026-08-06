@@ -40,10 +40,10 @@
                         @endphp
 
                         <div class="flex items-center gap-3">
-                            <span
+                            <spanPI
                                 class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
                                 {{ $statusText }}
-                            </span>
+                            </spanPI>
 
                             {{-- Dropdown Print --}}
                             <div class="relative">

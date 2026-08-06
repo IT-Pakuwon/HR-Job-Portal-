@@ -652,17 +652,25 @@ class ApprovalController extends Controller
 
             DB::connection($conn)->commit();
 
-            if ($onNotifyNext) {
-                $onNotifyNext($next, $now);
-            }
-
-            return ['ok' => true, 'completed' => false];
-
         } catch (\Throwable $e) {
             DB::connection($conn)->rollBack();
             report($e);
             return ['ok' => false, 'message' => 'Approve failed'];
         }
+
+        // Notification runs after the commit, outside the transaction's
+        // try/catch: a mail failure here must not be reported back as an
+        // approve failure — the approval itself already succeeded and can't
+        // be rolled back at this point.
+        if ($onNotifyNext) {
+            try {
+                $onNotifyNext($next, $now);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        return ['ok' => true, 'completed' => false];
     }
 
     public function rejectStep(
