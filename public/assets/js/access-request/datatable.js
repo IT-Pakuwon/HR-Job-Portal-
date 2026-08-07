@@ -38,7 +38,6 @@ function initDataTable() {
             data: function (d) {
 
                 d.status = currentStatus;
-                d.search.value = $("#globalSearch").val();
 
             },
         },
@@ -498,26 +497,6 @@ function initFilters() {
                 $(this).data("status");
 
             table.ajax.reload();
-
-        }
-    );
-}
-
-function initSearch() {
-
-    let delayTimer;
-
-    $("#globalSearch").on(
-        "keyup",
-        function () {
-
-            clearTimeout(delayTimer);
-
-            delayTimer = setTimeout(() => {
-
-                table.ajax.reload();
-
-            }, 500);
 
         }
     );
