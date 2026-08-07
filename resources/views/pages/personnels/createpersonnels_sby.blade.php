@@ -519,6 +519,30 @@
         </div>
     </div>
 
+    <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
+        <div class="loading-card">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">
+                Processing<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showOverlay(text = 'Processing') {
+            const $overlay = $('#loadingSpinnerContainer');
+            $overlay.find('.loading-text').html(
+                (text || 'Processing') +
+                '<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>'
+            );
+            $overlay.stop(true, true).fadeIn(120);
+        }
+
+        function hideOverlay() {
+            $('#loadingSpinnerContainer').stop(true, true).fadeOut(120);
+        }
+    </script>
+
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <!-- Toastr JS -->
@@ -534,7 +558,7 @@
                 // Tampilkan Loading, Disable Button
                 $('#submitBtn').attr('disabled', true); // Disable tombol
                 $('#btnText').text('Processing...'); // Ubah teks tombol
-                $('#loadingSpinner').removeClass('hidden'); // Tampilkan spinner
+                showOverlay('Submitting');
 
                 $.ajax({
                     url: "{{ route('personnels.store') }}",
@@ -564,6 +588,7 @@
                         $('#submitBtn').attr('disabled', false);
                         $('#btnText').text('Submit Approval');
                         $('#loadingSpinner').addClass('hidden');
+                        hideOverlay();
                     }
                 });
             });

@@ -12,9 +12,12 @@ class AutonbrJobportal extends Model
     protected $primaryKey = 'id';
     protected $fillable = [
         'doctype',
+        'cpnyid',
         'year',
         'month',
         'number',
-        'status'
+        'number_temp',
+        'status',
+        'created_user',
     ];
 }

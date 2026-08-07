@@ -54,13 +54,13 @@
                             {{ $statusText }}
                         </span>
                     </header>
-                    <div class="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2">
+                    <div class="grid grid-cols-1 gap-4 p-4 text-sm sm:grid-cols-2">
 
                         {{-- Reusable Row Class: mobile = vertical, desktop = horizontal --}}
                         @php
                             $row = 'flex flex-col sm:flex-row sm:items-center sm:gap-3';
-                            $label = 'flex items-center gap-2 text-gray-500 sm:min-w-44 max-w-44';
-                            $value = 'font-medium text-gray-900 sm:flex-1 break-words dark:text-gray-100';
+                            $label = 'flex items-center gap-2 text-sm text-gray-500 sm:min-w-44 max-w-44';
+                            $value = 'text-sm font-medium text-gray-900 sm:flex-1 break-words dark:text-gray-100';
                         @endphp
 
                         {{-- Company --}}
@@ -69,7 +69,7 @@
                                 <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
                                 <span>Company</span>
                             </div>
-                            <span class="{{ $value }}">{{ $personnel->cpnyid }}</span>
+                            <span class="{{ $value }}">{{ $companyName ?: $personnel->cpnyid }}</span>
                         </div>
 
                         {{-- Department --}}
@@ -78,7 +78,16 @@
                                 <x-heroicon-o-rectangle-group class="h-5 w-5 text-gray-400" />
                                 <span>Department</span>
                             </div>
-                            <span class="{{ $value }}">{{ $personnel->departementid }}</span>
+                            <span class="{{ $value }}">{{ $departmentName ?: $personnel->departementid }}</span>
+                        </div>
+
+                        {{-- Division --}}
+                        <div class="{{ $row }}">
+                            <div class="{{ $label }}">
+                                <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
+                                <span>Division</span>
+                            </div>
+                            <span class="{{ $value }}">{{ $divisionName ?: $personnel->division_id }}</span>
                         </div>
 
                         {{-- Date --}}
@@ -280,8 +289,8 @@
                                         <span
                                             class="flex-shrink-0 text-base text-indigo-500 dark:text-indigo-400">🎓</span>
                                         {{-- Larger icon --}}
-                                        <span class="font-semibold text-gray-800 dark:text-gray-100">Minimum
-                                            <span class="font-bold">{{ $personnel->education }}</span> Educational
+                                        <span class="text-sm font-medium leading-relaxed text-gray-800 dark:text-gray-100">Minimum
+                                            <span class="font-semibold">{{ $personnel->education }}</span> Educational
                                             Background From All Major.</span>
 
                                         {{-- Bolder value --}}
@@ -292,8 +301,8 @@
                                         <span
                                             class="flex-shrink-0 text-base text-indigo-500 dark:text-indigo-400">💼</span>
                                         {{-- Larger icon --}}
-                                        <span class="font-semibold text-gray-800 dark:text-gray-100">Minimum
-                                            <span class="font-bold">{{ $personnel->experience_start }} -
+                                        <span class="text-sm font-medium leading-relaxed text-gray-800 dark:text-gray-100">Minimum
+                                            <span class="font-semibold">{{ $personnel->experience_start }} -
                                                 {{ $personnel->experience_end }}
                                                 Year of experience as
                                                 {{ $personnel->job_title }}.</span></span>
@@ -497,13 +506,13 @@
         </div>
     </div>
 
-    <div id="loadingSpinnerContainer" class="flex h-16 items-center justify-center">
-        <svg class="h-10 w-10 animate-spin text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none"
-            viewBox="0 0 24 24" stroke="currentColor">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
-            </circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-        </svg>
+    <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
+        <div class="loading-card">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">
+                Processing<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>
+            </div>
+        </div>
     </div>
 
     <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 p-4">
@@ -555,6 +564,7 @@
     <script>
         $(function() {
             const docid = @json($personnel->docid);
+            const cpnyid = @json($personnel->cpnyid);
             const $list = $('#commentList');
             const $input = $('#commentInput');
             const $btn = $('#postCommentBtn');
@@ -612,7 +622,10 @@
                 $.ajax({
                         url: `/personnel/${encodeURIComponent(docid)}/comments`,
                         type: 'GET',
-                        dataType: 'json'
+                        dataType: 'json',
+                        data: {
+                            cpnyid: cpnyid
+                        }
                     })
                     .done(function(res) {
                         renderComments(res?.comments || []);
@@ -637,6 +650,7 @@
                         data: {
                             _token: @json(csrf_token()),
                             docid: docid,
+                            cpnyid: cpnyid,
                             comment: text
                         }
                     })
@@ -696,7 +710,8 @@
                 type: "POST",
                 data: {
                     _token: "{{ csrf_token() }}",
-                    docid: docid
+                    docid: docid,
+                    cpnyid: @json($personnel->cpnyid)
                 },
                 success: function(response) {
                     if (response.success) {
@@ -769,6 +784,7 @@
                     data: {
                         _token: "{{ csrf_token() }}",
                         docid: docid,
+                        cpnyid: @json($personnel->cpnyid),
                         reason: rejectReason
                     },
                     success: function(response) {
@@ -837,6 +853,7 @@
                     data: {
                         _token: "{{ csrf_token() }}",
                         docid: docid,
+                        cpnyid: @json($personnel->cpnyid),
                         reason: reviseReason
                     },
                     success: function(response) {
@@ -880,6 +897,9 @@
             $.ajax({
                 url: `/personnel/${docid}/check-approval/${action}`,
                 type: "GET",
+                data: {
+                    cpnyid: @json($personnel->cpnyid)
+                },
                 success: function(response) {
                     if (response.canPerformAction) {
                         // Jika user bisa melakukan aksi, tampilkan modal atau langsung proses approval
@@ -915,31 +935,5 @@
             }, 300);
         }
     </script>
-
-    <style>
-        /* Styling untuk loading spinner di kanan bawah */
-        #loadingSpinnerContainer {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 50px;
-            height: 50px;
-            z-index: 1000;
-            display: none;
-            /* Tersembunyi saat tidak digunakan */
-        }
-
-        #loadingSpinnerContainer svg {
-            width: 30px;
-            height: 30px;
-            color: white;
-        }
-    </style>
 
 </x-app-layout>
