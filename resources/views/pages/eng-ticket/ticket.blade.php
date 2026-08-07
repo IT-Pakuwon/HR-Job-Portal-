@@ -931,6 +931,20 @@
 
                                 </div>
 
+                                {{-- Ticket Date --}}
+                                <div>
+
+                                    <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+
+                                        Ticket Date
+
+                                    </label>
+
+                                    <input type="date" id="ticketdate" name="ticketdate"
+                                        class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 dark:border-white/10 dark:bg-[#0b1220]">
+
+                                </div>
+
                             </div>
 
                         </div>

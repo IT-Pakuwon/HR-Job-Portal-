@@ -209,10 +209,17 @@
         utils.setText('corpTableSubtitle', label);
     }
 
+    function updateCategoryByUnitTitle() {
+        var sel = document.getElementById('gmTicketTypeFilter');
+        var isBa = sel && sel.value === 'BA';
+        utils.setText('corpCategoryByUnitTitle', isBa ? 'Ticket Categories by Company' : 'Ticket Categories by Business Unit');
+    }
+
     // ── Refresh on filter change ─────────────────────────────────────────────
     function refresh() {
         var params = utils.buildParams ? utils.buildParams() : '';
         updateTableSubtitle();
+        updateCategoryByUnitTitle();
         loadSummary(params);
         loadCategoryByUnit(params);
         loadStatusByCategory(params);

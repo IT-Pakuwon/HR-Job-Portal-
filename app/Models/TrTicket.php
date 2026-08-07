@@ -97,6 +97,11 @@ class TrTicket extends Model
         return $this->belongsTo(MsSubLocation::class, 'sub_location_id', 'sub_location_id');
     }
 
+    public function company()
+    {
+        return $this->belongsTo(MsCompany::class, 'cpny_id', 'cpny_id');
+    }
+
     public function serviceOrders()
     {
         return $this->hasMany(

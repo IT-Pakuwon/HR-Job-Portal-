@@ -81,6 +81,13 @@ function loadEditTicket(eid) {
             const ticket =
                 response.data.ticket;
 
+            $('#ticketdate')
+                .val(
+                    ticket.ticketdate
+                        ? ticket.ticketdate.substring(0, 10)
+                        : ''
+                );
+
             $('#cpny_id')
                 .val(ticket.cpny_id)
                 .trigger('change');

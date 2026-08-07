@@ -864,6 +864,7 @@ class EngTicketController extends Controller
             'sub_location_id' => $this->isBaTicketType((string) $request->ticket_type) ? 'required' : 'nullable',
             'issue_summary' => 'required|max:255',
             'issue_descr' => 'required',
+            'ticketdate' => 'nullable|date',
 
             'attachments.*' => [
                 'nullable',
@@ -912,7 +913,9 @@ class EngTicketController extends Controller
 
             $ticket = TrTicket::create([
                 'ticketid' => $ticketid,
-                'ticketdate' => now(),
+                'ticketdate' => $request->filled('ticketdate')
+                    ? Carbon::parse($request->ticketdate)
+                    : now(),
 
                 'cpny_id' => $request->cpny_id,
                 'department_id' => $request->department_id,
@@ -1047,6 +1050,7 @@ class EngTicketController extends Controller
             'sub_location_id' => $this->isBaTicketType((string) $request->ticket_type) ? 'required' : 'nullable',
             'issue_summary' => 'required|max:255',
             'issue_descr' => 'required',
+            'ticketdate' => 'nullable|date',
         ]);
 
         abort_unless(
@@ -1066,6 +1070,9 @@ class EngTicketController extends Controller
                 'sub_location_id' => $request->sub_location_id,
                 'issue_summary' => $request->issue_summary,
                 'issue_descr' => $request->issue_descr,
+                'ticketdate' => $request->filled('ticketdate')
+                    ? Carbon::parse($request->ticketdate)
+                    : $ticket->ticketdate,
                 'updated_by' => auth()->user()->username,
             ]);
 

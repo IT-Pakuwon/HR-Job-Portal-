@@ -74,7 +74,7 @@
         <div class="grid grid-cols-1 gap-3 lg:grid-cols-3" style="align-items:stretch">
 
             <x-card-chart.card-shell class="lg:col-span-2 flex flex-col" subtitle="Activity Overview"
-                title="Ticket Categories by Business Unit" gradient="linear-gradient(to right,#3B82F6,#8B5CF6,#EC4899)">
+                title="Ticket Categories by Business Unit" titleId="corpCategoryByUnitTitle" gradient="linear-gradient(to right,#3B82F6,#8B5CF6,#EC4899)">
                 <div class="flex-1 px-2 pb-3 pt-1">
                     <div id="corpCategoryByUnitChart" style="min-height:340px"></div>
                 </div>

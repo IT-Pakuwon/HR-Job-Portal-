@@ -62,6 +62,12 @@ function resetCreateTicketForm() {
 
     $('#ticket_eid').val('');
 
+    $('#ticketdate')
+        .val(
+            new Date()
+                .toLocaleDateString('en-CA')
+        );
+
     $('.modal-title')
         .text('Create Ticket');
 
