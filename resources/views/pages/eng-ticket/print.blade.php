@@ -36,7 +36,7 @@
         }
 
         .header td {
-            vertical-align: top;
+            vertical-align: middle;
         }
 
         .title {
@@ -272,14 +272,19 @@
                 <td>
                     <div class="title">{{ $moduleLabel }}</div>
                     <div class="company">{{ $ticket->cpny_id ?? '-' }} &nbsp;·&nbsp; {{ $ticket->department_id ?? '-' }}</div>
+                    @if (in_array($ticket->ticket_type, ['BA_ENG', 'BA_BS'], true))
+                        <div class="company" style="margin-top:2px;">{{ optional($ticket->ticketdate)->format('d F Y') ?? '-' }}</div>
+                    @endif
                 </td>
                 <td style="text-align:right;">
                     <div class="doc-number">{{ $baAutoNumber ?? $ticket->ticketid }}</div>
                     @if ($baAutoNumber)
                         <div style="font-size:10px; color:#888; margin-top:2px;">{{ $ticket->ticketid }}</div>
                     @endif
-                    <div class="doc-date">{{ optional($ticket->ticketdate)->format('d F Y') ?? '-' }}</div>
-                    <div class="doc-status">{{ $statusLabel }}</div>
+                    @unless (in_array($ticket->ticket_type, ['BA_ENG', 'BA_BS'], true))
+                        <div class="doc-date">{{ optional($ticket->ticketdate)->format('d F Y') ?? '-' }}</div>
+                        <div class="doc-status">{{ $statusLabel }}</div>
+                    @endunless
                 </td>
             </tr>
         </table>
@@ -294,7 +299,7 @@
                     <tbody>
                         <tr>
                             <td class="meta-label">Requester</td>
-                            <td class="meta-value">{{ $ticket->user_peminta ?? $ticket->created_by ?? '-' }}</td>
+                            <td class="meta-value">{{ $requesterName ?? '-' }}</td>
                             <td class="meta-label">Company</td>
                             <td class="meta-value">{{ $ticket->cpny_id ?? '-' }}</td>
                         </tr>
@@ -365,15 +370,15 @@
                     <tbody>
                         <tr>
                             <td class="meta-label">Responded By</td>
-                            <td class="meta-value">{{ $respondedBy ?? '-' }}</td>
+                            <td class="meta-value">{{ $respondedByName ?? '-' }}</td>
                             <td class="meta-label">Completed By</td>
-                            <td class="meta-value">{{ $ticket->completed_by ?? '-' }}</td>
+                            <td class="meta-value">{{ $completedByName ?? '-' }}</td>
                         </tr>
                         <tr>
                             <td class="meta-label">Completed At</td>
                             <td class="meta-value">{{ optional($ticket->completed_at)->format('d M Y, H:i') ?? '-' }}</td>
                             <td class="meta-label">PIC</td>
-                            <td class="meta-value">{{ $ticket->pic_ticket ?? '-' }}</td>
+                            <td class="meta-value">{{ $picName ?? '-' }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -444,8 +449,46 @@
             </div>
         @endif
 
-        {{-- SECTION: ACKNOWLEDGEMENT (completed tickets only) --}}
-        @if ($ticket->status === 'C')
+        {{-- SECTION: APPROVAL (BA_ENG / BA_BS only) --}}
+        @if (in_array($ticket->ticket_type, ['BA_ENG', 'BA_BS'], true) && !empty($approval))
+            @php
+                $aprvStatusLabel = fn ($s) => match ($s) {
+                    'A' => 'Approved',
+                    'R' => 'Rejected',
+                    'D' => 'Revise',
+                    'C' => 'Completed',
+                    'P' => 'Waiting Approval',
+                    default => $s,
+                };
+            @endphp
+            <div class="section">
+                <div class="section-header">Approval</div>
+                <div class="section-body">
+                    <table class="approval-table">
+                        <thead>
+                            <tr>
+                                @foreach ($approval as $i => $line)
+                                    <th>Level {{ $i + 1 }}</th>
+                                @endforeach
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                @foreach ($approval as $line)
+                                    <td>
+                                        <div class="approval-name">{{ strtoupper($line['aprv_name'] ?? '-') }}</div>
+                                        <div class="approval-role">{{ $aprvStatusLabel($line['status'] ?? '') }}</div>
+                                        @if (!empty($line['aprv_dateafter']))
+                                            <div class="approval-role">{{ \Carbon\Carbon::parse($line['aprv_dateafter'])->format('d M Y, H:i') }}</div>
+                                        @endif
+                                    </td>
+                                @endforeach
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @elseif ($ticket->status === 'C')
             <div class="section">
                 <div class="section-header">Acknowledgement</div>
                 <div class="section-body">
@@ -459,11 +502,11 @@
                         <tbody>
                             <tr>
                                 <td>
-                                    <div class="approval-name">{{ strtoupper($ticket->user_peminta ?? $ticket->created_by ?? '-') }}</div>
+                                    <div class="approval-name">{{ strtoupper($requesterName ?? '-') }}</div>
                                     <div class="approval-role">Ticket Requester</div>
                                 </td>
                                 <td>
-                                    <div class="approval-name">{{ strtoupper($ticket->completed_by ?? $ticket->pic_ticket ?? '-') }}</div>
+                                    <div class="approval-name">{{ strtoupper($completedByName ?? $picName ?? '-') }}</div>
                                     <div class="approval-role">Engineering Support / PIC</div>
                                 </td>
                             </tr>

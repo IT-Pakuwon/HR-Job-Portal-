@@ -3,11 +3,12 @@
 
     // ── Shared filter state — mutated by gm-filter, read by all sections ───────
     window.gmState = {
-        cpnyId  : '',
-        dateFrom: '',   // ISO date: YYYY-MM-DD
-        dateTo  : '',   // ISO date: YYYY-MM-DD
-        depts   : [],
-        preset  : 'this-year',
+        cpnyId    : '',
+        dateFrom  : '',   // ISO date: YYYY-MM-DD
+        dateTo    : '',   // ISO date: YYYY-MM-DD
+        depts     : [],
+        preset    : 'this-year',
+        ticketType: '',   // only used by pages that render the Ticket Type filter (e.g. corp-teknik-report)
     };
 
     // ── Shared utilities — available to all section scripts ────────────────────
@@ -43,9 +44,10 @@
         buildParams: function () {
             var s = window.gmState;
             var parts = [];
-            if (s.dateFrom) parts.push('date_from=' + encodeURIComponent(s.dateFrom));
-            if (s.dateTo)   parts.push('date_to='   + encodeURIComponent(s.dateTo));
-            if (s.cpnyId)   parts.push('cpny_id='   + encodeURIComponent(s.cpnyId));
+            if (s.dateFrom)   parts.push('date_from='   + encodeURIComponent(s.dateFrom));
+            if (s.dateTo)     parts.push('date_to='     + encodeURIComponent(s.dateTo));
+            if (s.cpnyId)     parts.push('cpny_id='     + encodeURIComponent(s.cpnyId));
+            if (s.ticketType) parts.push('ticket_type=' + encodeURIComponent(s.ticketType));
             s.depts.forEach(function (d) { parts.push('departments[]=' + encodeURIComponent(d)); });
             return parts.length ? '?' + parts.join('&') : '';
         },

@@ -2,6 +2,12 @@
 
 window.Ticket = window.Ticket || {};
 
+function refreshTicketCalendar() {
+    if (typeof EngTicketCalendar !== 'undefined' && EngTicketCalendar.state.initialized) {
+        EngTicketCalendar.refresh();
+    }
+}
+
 function showSuccess(message = 'Success') {
 
     Swal.fire({

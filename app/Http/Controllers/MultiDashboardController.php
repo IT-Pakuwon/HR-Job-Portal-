@@ -61,6 +61,7 @@ class MultiDashboardController extends Controller
             'DASHGA' => 'dashboard-ga',
             'DASHFIN' => 'dashboard-finance',
             'DASHTREAS' => 'dashboard-treasury',
+            'DASHCORPTEK' => 'dashboard-corporate-teknik',
             default => 'dashboard-approval',
         };
     }

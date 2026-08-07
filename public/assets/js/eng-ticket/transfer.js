@@ -678,6 +678,8 @@ function submitTransferTicket() {
                     );
             }
 
+            refreshTicketCalendar();
+
             resetTicketUrl();
         },
 

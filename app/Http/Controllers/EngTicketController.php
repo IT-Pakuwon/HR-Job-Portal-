@@ -3076,18 +3076,21 @@ class EngTicketController extends Controller
             );
         }
 
-        return response()->json([
-            'results' => $query
-                ->distinct()
-                ->orderBy('username')
-                ->get()
-                ->map(function ($row) {
-                    return [
-                        'id' => $row->username,
+        $rows = $query
+            ->distinct()
+            ->orderBy('username')
+            ->get();
 
-                        'text' => $row->username,
-                    ];
-                }),
+        $names = $this->resolveUserNames($rows->pluck('username')->all());
+
+        return response()->json([
+            'results' => $rows->map(function ($row) use ($names) {
+                return [
+                    'id' => $row->username,
+
+                    'text' => $names[$row->username] ?? $row->username,
+                ];
+            }),
         ]);
     }
 
@@ -3104,6 +3107,17 @@ class EngTicketController extends Controller
                 'text' => $c->cpny_name,
             ])->values(),
         ]);
+    }
+
+    protected function resolveUserNames(array $usernames): array
+    {
+        $usernames = array_values(array_unique(array_filter($usernames)));
+
+        if (empty($usernames)) {
+            return [];
+        }
+
+        return User::whereIn('username', $usernames)->pluck('name', 'username')->toArray();
     }
 
     protected function calculateDueDate(int $slaDays, ?Carbon $from = null): Carbon
@@ -3403,8 +3417,41 @@ class EngTicketController extends Controller
 
         $locationDisplay = $this->locationDisplayFor($ticket);
 
-        $pdf = \PDF::loadView('pages.eng-ticket.print', compact('ticket', 'attachments', 'respondedBy', 'baAutoNumber', 'locationDisplay'))
-            ->setPaper('a4', 'portrait');
+        $approval = [];
+
+        if ($this->isBaTicketType($ticket->ticket_type)) {
+            $approval = app(ApprovalController::class)
+                ->getApprovalByDocument($ticket->ticketid, self::DOCTYPE)
+                ->getData(true)['data'] ?? [];
+        }
+
+        $requesterUsername = $ticket->user_peminta ?? $ticket->created_by;
+        $completedByUsername = $ticket->completed_by;
+        $picUsername = $ticket->pic_ticket;
+
+        $userNames = $this->resolveUserNames([
+            $requesterUsername,
+            $respondedBy,
+            $completedByUsername,
+            $picUsername,
+        ]);
+
+        $requesterName = $userNames[$requesterUsername] ?? $requesterUsername;
+        $respondedByName = $userNames[$respondedBy] ?? $respondedBy;
+        $completedByName = $userNames[$completedByUsername] ?? $completedByUsername;
+        $picName = $userNames[$picUsername] ?? $picUsername;
+
+        $pdf = \PDF::loadView('pages.eng-ticket.print', compact(
+            'ticket',
+            'attachments',
+            'respondedByName',
+            'baAutoNumber',
+            'locationDisplay',
+            'approval',
+            'requesterName',
+            'completedByName',
+            'picName'
+        ))->setPaper('a4', 'portrait');
 
         return $pdf->stream("TICKET-{$ticket->ticketid}.pdf");
     }

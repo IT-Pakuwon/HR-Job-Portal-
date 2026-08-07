@@ -7,6 +7,8 @@
     'departments' => [],
     'companies' => [],
     'locations' => [],
+    'ticketTypes' => [],
+    'showDepartment' => true,
 ])
 
 @php
@@ -332,6 +334,23 @@
                     </svg>
                 </div>
 
+                @if(count($ticketTypes))
+                <div class="flex cursor-pointer items-center gap-1.5 px-3 py-2 transition hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                    <svg class="h-3.5 w-3.5 shrink-0 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    <select id="gmTicketTypeFilter"
+                        class="cursor-pointer appearance-none border-0 bg-transparent text-xs font-semibold text-slate-700 outline-none dark:text-slate-200">
+                        @foreach($ticketTypes as $tt)
+                            <option value="{{ $tt['value'] }}">{{ $tt['label'] }}</option>
+                        @endforeach
+                    </select>
+                    <svg class="pointer-events-none h-3 w-3 shrink-0 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </div>
+                @endif
+
                 <div class="relative">
                     <button id="gmDateBtn" type="button"
                         class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800/50"
@@ -390,6 +409,7 @@
             {{-- Group 2: Department + Refresh --}}
             <div class="flex items-center divide-x divide-slate-200 sm:border-l sm:border-slate-200 dark:divide-slate-700/60 dark:sm:border-slate-700/60">
 
+                @if($showDepartment)
                 <div class="relative">
                     <button id="gmDeptBtn" type="button"
                         class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800/50"
@@ -432,6 +452,7 @@
                         </button>
                     </div>
                 </div>
+                @endif
 
                 <button id="gmRefreshBtn" type="button"
                     class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800/50">

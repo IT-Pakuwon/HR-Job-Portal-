@@ -262,6 +262,8 @@ function submitCreateTicket() {
 
             }
 
+            refreshTicketCalendar();
+
         },
 
         error: function(xhr){

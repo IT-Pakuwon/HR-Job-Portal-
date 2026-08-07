@@ -537,6 +537,8 @@ function submitPendingTicket() {
                     );
             }
 
+            refreshTicketCalendar();
+
             resetTicketUrl();
         },
 

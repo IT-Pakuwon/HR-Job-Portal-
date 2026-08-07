@@ -356,6 +356,8 @@ function submitUpdateTicket() {
                     false
                 );
 
+            refreshTicketCalendar();
+
         },
 
         error: function (xhr) {

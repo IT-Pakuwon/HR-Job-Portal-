@@ -2,6 +2,7 @@
     'title'         => 'Metric',
     'subtitle'      => '',
     'value'         => '0',
+    'valueId'       => null,
     'trend'         => null,
     'trendUp'       => true,
     'description'   => 'vs last period',
@@ -43,7 +44,7 @@
                     </p>
                 @endif
 
-                <p class="mt-2.5 text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums dark:text-white">
+                <p @if($valueId) id="{{ $valueId }}" @endif class="mt-2.5 text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums dark:text-white">
                     {{ $value }}
                 </p>
 

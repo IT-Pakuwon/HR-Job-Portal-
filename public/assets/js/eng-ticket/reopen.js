@@ -290,6 +290,8 @@ function submitReopenTicket() {
                     );
             }
 
+            refreshTicketCalendar();
+
             resetTicketUrl();
         },
 

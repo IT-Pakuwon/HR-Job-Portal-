@@ -72,6 +72,8 @@ function cancelTicket(eid) {
                     $('#ticketTable').DataTable().ajax.reload(null, false);
                 }
 
+                refreshTicketCalendar();
+
                 resetTicketUrl();
             },
             error(xhr) {

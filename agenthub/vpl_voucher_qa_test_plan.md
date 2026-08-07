@@ -642,12 +642,11 @@ App\Models\TrApproval::whereIn('refnbr', $allDocIds)->delete();
 // Messages / comments tied to any of the QA docs
 App\Models\TrMessage::whereIn('refnbr', $allDocIds)->delete();
 
-// Attachments — confirm actual `doctype` values used per module before running
-// (Master Product confirmed 'VPLPROD'; Receive/Transfer/Usage/Settlement doctype
-// strings were not independently confirmed by this research pass — check via
-// `TrAttachment::whereIn('docid', $allDocIds)->get()` first, then decide whether
-// to flip status='X' (GCS-file convention, see eng_ticket plan) or hard-delete.
-App\Models\TrAttachment::whereIn('docid', $allDocIds)->update(['status' => 'X']);
+// Attachments — QA attachment rows must be **hard-deleted**, not soft-deleted.
+// The AttachmentMaster list (AttachmentMasterController) does NOT filter by status,
+// so a status='X' row still shows up in the attachment list screen. Hard-delete rows
+// matching QA refnbrs or created by QA users:
+App\Models\TrAttachment::where('refnbr', $allDocIds)->orWhere('created_by', 'qatester')->delete();
 
 // Transactional documents (pgsql5) — details first, then headers
 App\Models\TrxVplSettlementDetail::whereIn('settlement_id', $settlementIds)->delete();
@@ -673,6 +672,10 @@ App\Models\MsVplWarehouse::whereIn('whs_id', $qaWhsIds)->delete();
 - **Confirm no real product's `ms_vpl_product_detail.qty_available`/`qty_reserved` was ever touched** — this should hold automatically if section 1.1's isolation was followed, but verify explicitly since a mistake here corrupts real inventory reporting, not just test data.
 
 **Step 4** — If any real approver inboxes/emails received live notifications during testing, send a short courtesy follow-up noting they were QA test messages.
+
+**Step 5** — Remove the synthetic **account layer** created by setup on pgsql2 (this was omitted from the original spec and is the reason "QA Scoped EP" and friends stayed visible in the user list after cleanup). Delete, in dependency order: `tr_approval` rows created by QA users (orphaned refs to already-deleted QA docs), `ms_approval` rules created by setup, `ms_user_dept` / `ms_user_cpny` links, `sys_user_role` links for QA usernames, `sys_access_right` + `sys_role` rows for the QAVPL* roles only (never touch real roles like `VPACCESS`), `ms_user` rows for the QA usernames, and `ms_department` QADEPT. Finally, delete `ms_autonbr` rows created by QA and restore the `autonbr_snapshot` captured by setup for the pre-existing counter rows.
+
+**Step 6** — Sanity checks after Step 5: the QA usernames return 0 rows in `ms_user`; no QAVPL* roles remain in `sys_role`/`sys_access_right`; user list shows no "QA *" names; `tr_attachment` has 0 rows with QA refnbrs or `created_by='qatester'`.
 
 ---
 

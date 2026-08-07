@@ -332,6 +332,8 @@ function submitResponseTicket() {
                 $("#ticketTable").DataTable().ajax.reload(null, false);
             }
 
+            refreshTicketCalendar();
+
             resetTicketUrl();
         },
 

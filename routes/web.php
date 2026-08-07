@@ -33,6 +33,8 @@ use App\Http\Controllers\CompanyAddressController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\HrCompanyBudgetController;
 use App\Http\Controllers\MsEntityController;
+use App\Http\Controllers\CorporateTeknikDashboardController;
+use App\Http\Controllers\CorporateTeknikReportController;
 use App\Http\Controllers\CostControlDashboardController;
 use App\Http\Controllers\CsJobController;
 use App\Http\Controllers\CsListController;
@@ -2250,6 +2252,29 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/approval-history-json', 'approvalHistoryJson')->name('operational.history');
             Route::get('/work-order-json', 'workOrderJson')->name('operational.work-order');
             Route::get('/approval-doctypes', 'approvalDocTypes')->name('operational.doctypes');
+        });
+
+        Route::prefix('corporate-teknik-dashboard')->controller(CorporateTeknikDashboardController::class)->group(function () {
+            Route::get('/summary-json', 'summaryJson')->name('corptek-dashboard.summary');
+            Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('corptek-dashboard.waiting');
+            Route::get('/approval-history-json', 'approvalHistoryJson')->name('corptek-dashboard.history');
+            Route::get('/ticket-json', 'ticketJson')->name('corptek-dashboard.ticket');
+            Route::get('/berita-acara-json', 'beritaAcaraJson')->name('corptek-dashboard.berita-acara');
+            Route::get('/approval-doctypes-json', 'approvalDocTypes')->name('corptek-dashboard.approval-doctypes');
+        });
+
+        Route::prefix('corporate-teknik-report')->controller(CorporateTeknikReportController::class)->group(function () {
+            Route::get('/dashboard', 'dashboard')->middleware('access:REPORTCORPTEK,VIEW')->name('corptek-report.dashboard');
+
+            Route::get('/api/companies', 'companies')->name('corptek-report.companies');
+            Route::get('/api/summary', 'summaryJson')->name('corptek-report.summary');
+            Route::get('/api/category-by-unit', 'categoryByUnitJson')->name('corptek-report.category-by-unit');
+            Route::get('/api/status-by-category', 'statusByCategoryJson')->name('corptek-report.status-by-category');
+            Route::get('/api/top-equipment', 'topEquipmentJson')->name('corptek-report.top-equipment');
+            Route::get('/api/table', 'tableJson')->name('corptek-report.table');
+
+            Route::get('/export/pdf', 'exportPdf')->name('corptek-report.export.pdf');
+            Route::get('/export/xlsx', 'exportXlsx')->name('corptek-report.export.xlsx');
         });
 
         Route::prefix('ga-dashboard')->controller(GADashboardController::class)->group(function () {
