@@ -171,26 +171,22 @@
 
                                 <div
                                     class="mb-6 mt-6 grid grid-cols-1 gap-4 rounded-l bg-gray-200/40 p-4 sm:grid-cols-3">
-                                    <div class="flex items-center gap-4">
-                                        <label class="font-medium text-gray-700 dark:text-gray-300">Actual</label>
+                                    <div class="flex min-w-0 flex-col gap-1.5">
+                                        <label class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Actual</label>
                                         <input type="number" name="actual" id="actual" min="0"
-                                            class="number-only w-50 w-full rounded-sm border border-gray-300/50 bg-white p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
+                                            class="number-only w-full rounded-md border border-gray-300/50 bg-white p-2 text-sm focus:ring focus:ring-blue-300 dark:bg-gray-800"
                                             required>
                                     </div>
-                                    <div class="flex items-center gap-4">
-                                        <label
-                                            class="mb-1 block w-40 font-medium text-gray-700 dark:text-gray-300">Number
-                                            Required</label>
+                                    <div class="flex min-w-0 flex-col gap-1.5">
+                                        <label class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Number Required</label>
                                         <input type="number" name="required" id="required" min="0"
-                                            class="number-only w-50 w-full rounded-sm border border-gray-300/50 bg-white p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
+                                            class="number-only w-full rounded-md border border-gray-300/50 bg-white p-2 text-sm focus:ring focus:ring-blue-300 dark:bg-gray-800"
                                             required>
                                     </div>
-                                    <div class="flex items-center gap-4">
-                                        <label
-                                            class="mb-1 block w-40 font-medium text-gray-700 dark:text-gray-300">Total
-                                            Actual Number</label>
+                                    <div class="flex min-w-0 flex-col gap-1.5">
+                                        <label class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Total Actual Number</label>
                                         <input type="number" name="total_actual" id="total_actual" min="0"
-                                            class="number-only w-full rounded-sm border border-gray-300/50 bg-white p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
+                                            class="number-only w-full rounded-md border border-gray-300/50 bg-white p-2 text-sm focus:ring focus:ring-blue-300 dark:bg-gray-800"
                                             required>
                                     </div>
                                 </div>
