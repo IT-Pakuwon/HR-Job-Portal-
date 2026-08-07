@@ -54,6 +54,7 @@ class GroupAccspecificController extends Controller
                 'username',
                 'department_id',
                 'parameter_access_id',
+                'group_cpny_id',
                 'status',
             ])
             ->orderBy('group_access_id')
@@ -73,6 +74,7 @@ class GroupAccspecificController extends Controller
             'username' => 'required|string|max:50',
             'department_id' => 'nullable|string|max:20',
             'parameter_access_id' => 'nullable|string|max:50',
+            'group_cpny_id' => 'nullable|string|max:10',
         ]);
 
         DB::beginTransaction();
@@ -88,6 +90,7 @@ class GroupAccspecificController extends Controller
                 'username' => trim($request->username),
                 'department_id' => $request->filled('department_id') ? trim($request->department_id) : null,
                 'parameter_access_id' => $request->filled('parameter_access_id') ? trim($request->parameter_access_id) : null,
+                'group_cpny_id' => $request->filled('group_cpny_id') ? strtoupper(trim($request->group_cpny_id)) : null,
                 'status' => 'A',
                 'created_user' => $createdUser,
                 'created_at' => $now,
@@ -122,6 +125,7 @@ class GroupAccspecificController extends Controller
             'username' => $row->username,
             'department_id' => $row->department_id,
             'parameter_access_id' => $row->parameter_access_id,
+            'group_cpny_id' => $row->group_cpny_id,
             'status' => $row->status,
         ]);
     }
@@ -136,6 +140,7 @@ class GroupAccspecificController extends Controller
             'username' => 'required|string|max:50',
             'department_id' => 'nullable|string|max:20',
             'parameter_access_id' => 'nullable|string|max:50',
+            'group_cpny_id' => 'nullable|string|max:10',
         ]);
 
         DB::beginTransaction();
@@ -151,6 +156,7 @@ class GroupAccspecificController extends Controller
                 'username' => trim($request->username),
                 'department_id' => $request->filled('department_id') ? trim($request->department_id) : null,
                 'parameter_access_id' => $request->filled('parameter_access_id') ? trim($request->parameter_access_id) : null,
+                'group_cpny_id' => $request->filled('group_cpny_id') ? strtoupper(trim($request->group_cpny_id)) : null,
                 'updated_user' => $updatedUser,
                 'updated_at' => $now,
             ]);

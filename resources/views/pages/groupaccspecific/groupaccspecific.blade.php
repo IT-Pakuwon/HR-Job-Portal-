@@ -24,6 +24,7 @@
                             <th class="px-4 py-3 text-left font-medium">Username</th>
                             <th class="px-4 py-3 text-left font-medium">Department</th>
                             <th class="px-4 py-3 text-left font-medium">Parameter Access ID</th>
+                            <th class="px-4 py-3 text-left font-medium">Company Group</th>
                             <th class="col-status px-4 py-3 text-left font-medium">Status</th>
                         </tr>
                     </thead>
@@ -95,12 +96,23 @@
                         </div>
                     </div>
 
-                    {{-- ROW 3 : Parameter Access ID --}}
+                    {{-- ROW 3 : Parameter Access ID + Company Group --}}
                     <div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div>
                             <label class="mb-1 block text-gray-700 dark:text-white">Parameter Access ID</label>
                             <input type="text" id="parameter_access_id" name="parameter_access_id"
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                        </div>
+
+                        {{-- GROUP CPNY ID --}}
+                        <div>
+                            <label class="mb-1 block text-gray-700 dark:text-white">Company Group</label>
+                            <select id="group_cpny_id" name="group_cpny_id"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                                <option value="">choose </option>
+                                <option value="JKT">JKT</option>
+                                <option value="SBY">SBY</option>
+                            </select>
                         </div>
                     </div>
 
@@ -235,6 +247,9 @@
                         data: 'parameter_access_id'
                     },
                     {
+                        data: 'group_cpny_id'
+                    },
+                    {
                         data: 'status',
                         className: 'col-status',
                         render: function(data) {
@@ -247,7 +262,7 @@
             });
 
             // Select2 untuk dropdown di modal
-            $('#group_access_id, #username, #department_id').select2({
+            $('#group_access_id, #username, #department_id, #group_cpny_id').select2({
                 width: '100%',
                 dropdownParent: $('#groupAccModal')
             });
@@ -260,6 +275,7 @@
                 $('#group_access_id').val('').trigger('change');
                 $('#username').val('').trigger('change');
                 $('#department_id').val('').trigger('change');
+                $('#group_cpny_id').val('').trigger('change');
                 $('#groupAccModal').removeClass('hidden');
             });
 
@@ -270,6 +286,7 @@
                 $('#group_access_id').val('').trigger('change');
                 $('#username').val('').trigger('change');
                 $('#department_id').val('').trigger('change');
+                $('#group_cpny_id').val('').trigger('change');
                 $('#groupAccModal').addClass('hidden');
             });
 
@@ -291,6 +308,7 @@
                     $('#username').val(data.username).trigger('change');
                     $('#department_id').val(data.department_id).trigger('change');
                     $('#parameter_access_id').val(data.parameter_access_id);
+                    $('#group_cpny_id').val(data.group_cpny_id).trigger('change');
 
                     hideLoading();
                 }).fail(function(xhr) {
@@ -362,6 +380,7 @@
                         $('#group_access_id').val('').trigger('change');
                         $('#username').val('').trigger('change');
                         $('#department_id').val('').trigger('change');
+                        $('#group_cpny_id').val('').trigger('change');
                         table.ajax.reload();
 
                         Swal.fire({

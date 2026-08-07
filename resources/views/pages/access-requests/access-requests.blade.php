@@ -1127,14 +1127,14 @@
     window.authUsername = @json(auth()->user()->username);
     window.authRole = @json(auth()->user()->role_id);
 </script>
-<script src="{{ asset('assets/js/shared/mention-autocomplete.js') }}"></script>
-<script src="{{ asset('assets/js/access-request/core.js') }}"></script>
-<script src="{{ asset('assets/js/access-request/helper.js') }}"></script>
-<script src="{{ asset('assets/js/access-request/attachment.js') }}"></script>
-<script src="{{ asset('assets/js/access-request/modal.js') }}"></script>
-<script src="{{ asset('assets/js/access-request/datatable.js') }}"></script>
-<script src="{{ asset('assets/js/access-request/detail-modal.js') }}"></script>
-<script src="{{ asset('assets/js/access-request/request-form.js') }}"></script>
-<script src="{{ asset('assets/js/access-request/approval.js') }}"></script>
-<script src="{{ asset('assets/js/access-request/process-hardware.js') }}"></script>
-<script src="{{ asset('assets/js/access-request/process-software.js') }}"></script>
+<script src="{{ asset('assets/js/shared/mention-autocomplete.js') }}?v={{ filemtime(public_path('assets/js/shared/mention-autocomplete.js')) }}"></script>
+<script src="{{ asset('assets/js/access-request/core.js') }}?v={{ filemtime(public_path('assets/js/access-request/core.js')) }}"></script>
+<script src="{{ asset('assets/js/access-request/helper.js') }}?v={{ filemtime(public_path('assets/js/access-request/helper.js')) }}"></script>
+<script src="{{ asset('assets/js/access-request/attachment.js') }}?v={{ filemtime(public_path('assets/js/access-request/attachment.js')) }}"></script>
+<script src="{{ asset('assets/js/access-request/modal.js') }}?v={{ filemtime(public_path('assets/js/access-request/modal.js')) }}"></script>
+<script src="{{ asset('assets/js/access-request/datatable.js') }}?v={{ filemtime(public_path('assets/js/access-request/datatable.js')) }}"></script>
+<script src="{{ asset('assets/js/access-request/detail-modal.js') }}?v={{ filemtime(public_path('assets/js/access-request/detail-modal.js')) }}"></script>
+<script src="{{ asset('assets/js/access-request/request-form.js') }}?v={{ filemtime(public_path('assets/js/access-request/request-form.js')) }}"></script>
+<script src="{{ asset('assets/js/access-request/approval.js') }}?v={{ filemtime(public_path('assets/js/access-request/approval.js')) }}"></script>
+<script src="{{ asset('assets/js/access-request/process-hardware.js') }}?v={{ filemtime(public_path('assets/js/access-request/process-hardware.js')) }}"></script>
+<script src="{{ asset('assets/js/access-request/process-software.js') }}?v={{ filemtime(public_path('assets/js/access-request/process-software.js')) }}"></script>
