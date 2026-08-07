@@ -2263,19 +2263,22 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/approval-doctypes-json', 'approvalDocTypes')->name('corptek-dashboard.approval-doctypes');
         });
 
-        Route::prefix('corporate-teknik-report')->controller(CorporateTeknikReportController::class)->group(function () {
-            Route::get('/dashboard', 'dashboard')->middleware('access:REPORTCORPTEK,VIEW')->name('corptek-report.dashboard');
+        Route::prefix('corporate-teknik-report')
+            ->controller(CorporateTeknikReportController::class)
+            ->middleware('access:REPORTCORPTEK,VIEW')
+            ->group(function () {
+                Route::get('/dashboard', 'dashboard')->name('corptek-report.dashboard');
 
-            Route::get('/api/companies', 'companies')->name('corptek-report.companies');
-            Route::get('/api/summary', 'summaryJson')->name('corptek-report.summary');
-            Route::get('/api/category-by-unit', 'categoryByUnitJson')->name('corptek-report.category-by-unit');
-            Route::get('/api/status-by-category', 'statusByCategoryJson')->name('corptek-report.status-by-category');
-            Route::get('/api/top-equipment', 'topEquipmentJson')->name('corptek-report.top-equipment');
-            Route::get('/api/table', 'tableJson')->name('corptek-report.table');
+                Route::get('/api/companies', 'companies')->name('corptek-report.companies');
+                Route::get('/api/summary', 'summaryJson')->name('corptek-report.summary');
+                Route::get('/api/category-by-unit', 'categoryByUnitJson')->name('corptek-report.category-by-unit');
+                Route::get('/api/status-by-category', 'statusByCategoryJson')->name('corptek-report.status-by-category');
+                Route::get('/api/top-equipment', 'topEquipmentJson')->name('corptek-report.top-equipment');
+                Route::get('/api/table', 'tableJson')->name('corptek-report.table');
 
-            Route::get('/export/pdf', 'exportPdf')->name('corptek-report.export.pdf');
-            Route::get('/export/xlsx', 'exportXlsx')->name('corptek-report.export.xlsx');
-        });
+                Route::get('/export/pdf', 'exportPdf')->name('corptek-report.export.pdf');
+                Route::get('/export/xlsx', 'exportXlsx')->name('corptek-report.export.xlsx');
+            });
 
         Route::prefix('ga-dashboard')->controller(GADashboardController::class)->group(function () {
             Route::get('/summary-json', 'summaryJson')->name('ga.summary');

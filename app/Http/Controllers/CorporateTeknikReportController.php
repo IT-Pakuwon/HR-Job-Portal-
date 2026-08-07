@@ -24,10 +24,11 @@ use Vinkla\Hashids\Facades\Hashids;
 |   - Support Ticket : ENGSUPPORTTICKET + BSFOSUPPORTTICKET, located via ms_site
 |   - Berita Acara    : BA_ENG + BA_BS, located via ms_location + sub_location
 |
-| Restricted to role MGROPRTEKNIKACCESS only — see the constructor middleware
-| below. Unlike the card-list dashboard (CorporateTeknikDashboardController),
-| this report has no ENG/BSFO-scoped view, so every action here assumes the
-| caller already holds the manager role.
+| Access is entirely DB-driven via sys_access_right (screen_id REPORTCORPTEK,
+| access_name VIEW) — see the `access:REPORTCORPTEK,VIEW` middleware on the
+| whole route group in routes/web.php. No role is hardcoded here, so granting
+| another role access is a data change (sys_access_right + sys_role_menu),
+| not a code change.
 */
 class CorporateTeknikReportController extends Controller
 {
@@ -35,28 +36,12 @@ class CorporateTeknikReportController extends Controller
 
     protected const BA_TYPES = ['BA_ENG', 'BA_BS'];
 
-    protected const MGR_ROLE_ID = 'MGROPRTEKNIKACCESS';
-
-    public function __construct()
-    {
-        $this->middleware(function ($request, $next) {
-            abort_unless($this->hasRole(self::MGR_ROLE_ID), 403);
-
-            return $next($request);
-        });
-    }
-
-    protected function hasRole(string $roleId): bool
-    {
-        return (bool) auth()->user()?->hasRole($roleId);
-    }
-
     protected function isBaSelection(string $ticketType): bool
     {
         return strtoupper($ticketType) === 'BA';
     }
 
-    /** Ticket type codes for the current BA/Support toggle — every caller here already holds MGR_ROLE_ID. */
+    /** Ticket type codes for the current BA/Support toggle. */
     protected function resolveTypes(string $ticketType): array
     {
         return $this->isBaSelection($ticketType) ? self::BA_TYPES : self::SUPPORT_TYPES;
@@ -233,7 +218,7 @@ class CorporateTeknikReportController extends Controller
         $topCategory = $active->groupBy('category_name')->map->count()->sortDesc();
         $topEquipment = $active->groupBy('equipment_system')->map->count()->sortDesc();
 
-        $label = $data['isBa'] ? 'Berita Acara' : 'engineering tickets';
+        $label = $data['isBa'] ? 'Berita Acara' : 'tickets';
         $periodLabel = \Carbon\Carbon::parse($data['dateFrom'])->format('M Y').' – '.\Carbon\Carbon::parse($data['dateTo'])->format('M Y');
 
         $highlights = [];

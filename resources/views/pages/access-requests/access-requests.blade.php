@@ -126,6 +126,12 @@
 
                 <div class="flex items-center gap-3">
 
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400"></i>
+                        <input type="text" id="globalSearch" placeholder="Search..."
+                            class="h-10 w-56 rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-sm text-gray-700 transition focus:border-blue-400 focus:ring-0 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-100 dark:placeholder:text-gray-500">
+                    </div>
+
                     <button id="btnCreate" type="button"
                         class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
 
