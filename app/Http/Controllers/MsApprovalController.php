@@ -493,6 +493,11 @@ class MsApprovalController extends Controller
             ->selectRaw("department_id as value, department_name as text")
             ->whereNotNull('department_id')
             ->where('department_id', '<>', '')
+            ->when(
+                $this->isRestrictedAdmin(),
+                fn($q) => $q->where('group_cpny_id', 'SBY'),
+                fn($q) => $q->where(fn($q2) => $q2->where('group_cpny_id', '<>', 'SBY')->orWhereNull('group_cpny_id'))
+            )
             ->get();
 
         if ($source === 'FIN') {
@@ -517,6 +522,11 @@ class MsApprovalController extends Controller
                 ->selectRaw("department_id as value, department_name as text")
                 ->whereNotNull('department_id')
                 ->where('department_id', '<>', '')
+                ->when(
+                    $this->isRestrictedAdmin(),
+                    fn($q) => $q->where('group_cpny_id', 'SBY'),
+                    fn($q) => $q->where(fn($q2) => $q2->where('group_cpny_id', '<>', 'SBY')->orWhereNull('group_cpny_id'))
+                )
                 ->orderBy('department_id')
                 ->get();
         } else {

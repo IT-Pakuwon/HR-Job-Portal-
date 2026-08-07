@@ -14,6 +14,10 @@
                 <button class="tabBtn border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="mine">
                     My Registrations
                 </button>
+                <button id="approvalsTabBtn" class="tabBtn hidden border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="approvals">
+                    Waiting Approval
+                    <span id="approvalsTabCount" class="ml-1 inline-flex rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"></span>
+                </button>
                 @if (Auth::user()->hasRole('HCDEVACCESS'))
                     <button class="tabBtn border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="waitlist">
                         Waitlist Management
@@ -49,7 +53,46 @@
                 <div id="mineEmpty" class="hidden rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
                     You have no registrations yet.
                 </div>
-                <div id="mineList" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"></div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                        <thead>
+                            <tr class="text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                <th class="py-2 pr-4">Doc ID</th>
+                                <th class="py-2 pr-4">Training</th>
+                                <th class="py-2 pr-4">Date</th>
+                                <th class="py-2 pr-4">Status</th>
+                                <th class="py-2 pr-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mineBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- Waiting Approval (only shown once loadPendingApprovals() finds something) --}}
+            <div id="tab-approvals" class="tab-panel hidden">
+                <p class="mb-2 text-xs text-gray-500 dark:text-gray-400">
+                    Training registrations currently waiting on your approval.
+                </p>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                        <thead>
+                            <tr class="text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                <th class="py-2 pr-4">Doc ID</th>
+                                <th class="py-2 pr-4">Employee</th>
+                                <th class="py-2 pr-4">Company / Dept</th>
+                                <th class="py-2 pr-4">Training</th>
+                                <th class="py-2 pr-4">Schedule Date</th>
+                                <th class="py-2 pr-4">Waiting Since</th>
+                                <th class="py-2 pr-4">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="approvalsBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
+                    </table>
+                    <div id="approvalsEmpty" class="hidden rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
+                        Nothing waiting on your approval right now.
+                    </div>
+                </div>
             </div>
 
             {{-- Waitlist Management (HCDEVACCESS) --}}
@@ -348,6 +391,7 @@
         const colleaguesUrl = "{{ route('training-list.colleagues') }}";
         @if (Auth::user()->hasRole('HCDEVACCESS'))
         const waitlistUrl = "{{ route('training-list.waitlist') }}";
+        const pendingApprovalsUrl = "{{ route('training-list.pending-approvals') }}";
         @endif
         const csrfHeaders = { 'X-CSRF-TOKEN': '{{ csrf_token() }}' };
         const initialEid = @json($initialEid);
@@ -418,6 +462,7 @@
             $('#tab-' + tab).removeClass('hidden');
 
             if (tab === 'mine') loadMine();
+            if (tab === 'approvals') loadPendingApprovals();
             if (tab === 'waitlist') loadWaitlist();
         });
 
@@ -961,23 +1006,23 @@
         function feedbackActionHtml(r) {
             if (r.can_fill_feedback) {
                 const label = r.feedback_submitted ? '✏️ Edit Feedback' : '📝 Fill Feedback';
-                return `<button class="fillFeedbackBtn w-full rounded-lg border border-indigo-300 px-3 py-1.5 text-xs font-semibold text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-900/20" data-id="${r.id}">${label}</button>`;
+                return `<button class="fillFeedbackBtn rounded-lg border border-indigo-300 px-2.5 py-1 text-xs font-semibold text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-900/20" data-id="${r.id}">${label}</button>`;
             }
             if (r.feedback_submitted) {
-                return `<button class="fillFeedbackBtn w-full rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">👁 View Feedback</button>`;
+                return `<button class="fillFeedbackBtn rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">👁 View Feedback</button>`;
             }
             if (r.has_attended) {
-                return `<p class="text-[11px] text-gray-400">Feedback not open yet</p>`;
+                return `<span class="text-[11px] text-gray-400">Feedback not open yet</span>`;
             }
             return '';
         }
 
         function certificateActionHtml(r) {
             if (r.can_view_certificate) {
-                return `<a href="${certificateUrl.replace('__ID__', r.id)}" target="_blank" class="w-full inline-block text-center rounded-lg border border-amber-300 px-3 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-900/20">🎓 Download Certificate</a>`;
+                return `<a href="${certificateUrl.replace('__ID__', r.id)}" target="_blank" class="inline-block rounded-lg border border-amber-300 px-2.5 py-1 text-xs font-semibold text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-900/20">🎓 Certificate</a>`;
             }
             if (r.has_attended) {
-                return `<p class="text-[11px] text-gray-400">Certificate not available yet</p>`;
+                return `<span class="text-[11px] text-gray-400">Certificate not available yet</span>`;
             }
             return '';
         }
@@ -987,43 +1032,39 @@
                 const rows = res.data || [];
                 myRegistrationsRows = rows;
                 $('#mineEmpty').toggleClass('hidden', rows.length > 0);
-                const $list = $('#mineList').empty();
+                const $body = $('#mineBody').empty();
 
                 rows.forEach(function (r) {
                     let actionHtml = '';
                     if (r.status === 'C') {
                         actionHtml = `
-                            <div class="flex gap-2">
-                                <button class="viewBarcodeBtn flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">🎫 Barcode</button>
-                                <button class="cancelBtn flex-1 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${r.id}" data-schedule-id="${r.schedule_id}">Cancel</button>
-                            </div>
+                            <button class="viewBarcodeBtn rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">🎫 Barcode</button>
+                            <button class="cancelBtn rounded-lg border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${r.id}" data-schedule-id="${r.schedule_id}">Cancel</button>
                         `;
                     } else if (r.status === 'O') {
                         actionHtml = `
-                            <div class="flex gap-2">
-                                <button class="acceptOfferBtn flex-1 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700" data-id="${r.id}">Accept</button>
-                                <button class="declineOfferBtn flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">Decline</button>
-                            </div>
+                            <button class="acceptOfferBtn rounded-lg bg-green-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-green-700" data-id="${r.id}">Accept</button>
+                            <button class="declineOfferBtn rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">Decline</button>
                         `;
                     }
 
                     const feedbackHtml = feedbackActionHtml(r);
                     const certificateHtml = certificateActionHtml(r);
 
-                    $list.append(`
-                        <div class="flex flex-col gap-2 rounded-xl border border-gray-200 p-3 dark:border-gray-700 dark:bg-gray-900">
-                            <div class="flex items-start justify-between gap-2">
-                                <h3 class="min-w-0 wrap-break-word text-sm font-semibold text-gray-800 dark:text-white">${r.training_name ?? '-'}</h3>
-                                <span class="shrink-0">${statusBadge(r.status)}</span>
-                            </div>
-                            <div class="flex flex-wrap items-center justify-between gap-x-2 text-xs text-gray-500 dark:text-gray-400">
-                                <span class="break-all font-mono">${r.docid}</span>
-                                <span class="shrink-0">${fmtDate(r.schedule_date)}</span>
-                            </div>
-                            ${actionHtml ? `<div class="mt-1">${actionHtml}</div>` : ''}
-                            ${feedbackHtml ? `<div class="mt-1">${feedbackHtml}</div>` : ''}
-                            ${certificateHtml ? `<div class="mt-1">${certificateHtml}</div>` : ''}
-                        </div>
+                    $body.append(`
+                        <tr>
+                            <td class="py-2 pr-4 font-mono text-xs">${r.docid}</td>
+                            <td class="py-2 pr-4 wrap-break-word text-sm text-gray-800 dark:text-gray-100">${r.training_name ?? '-'}</td>
+                            <td class="py-2 pr-4 whitespace-nowrap">${fmtDate(r.schedule_date)}</td>
+                            <td class="py-2 pr-4">${statusBadge(r.status)}</td>
+                            <td class="py-2 pr-4">
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    ${actionHtml}
+                                    ${feedbackHtml}
+                                    ${certificateHtml}
+                                </div>
+                            </td>
+                        </tr>
                     `);
                 });
             });
@@ -1103,6 +1144,86 @@
                     },
                     error: function (xhr) {
                         toast('error', xhr.responseJSON?.message || 'Gagal memproses offer');
+                    },
+                });
+            });
+        });
+
+        let pendingApprovalRows = [];
+
+        // Tab only appears once this actually finds something waiting on the
+        // current user — called on initial page load (not just when the tab
+        // is clicked) so the tab can decide its own visibility up front.
+        function loadPendingApprovals() {
+            $.get(pendingApprovalsUrl, function (res) {
+                const rows = res.data || [];
+                pendingApprovalRows = rows;
+
+                $('#approvalsTabBtn').toggleClass('hidden', rows.length === 0);
+                $('#approvalsTabCount').text(rows.length || '');
+
+                $('#approvalsEmpty').toggleClass('hidden', rows.length > 0);
+                const $body = $('#approvalsBody').empty();
+
+                rows.forEach(function (r) {
+                    $body.append(`
+                        <tr>
+                            <td class="py-2 pr-4 font-mono text-xs">${r.docid}</td>
+                            <td class="py-2 pr-4">
+                                <span class="block text-xs font-semibold text-gray-800 dark:text-gray-100">${r.name ?? r.username}</span>
+                                <span class="block text-[11px] text-gray-400">${r.username}</span>
+                            </td>
+                            <td class="py-2 pr-4">${r.cpny_name ?? r.cpny_id} / ${r.department_name ?? r.department_id}</td>
+                            <td class="py-2 pr-4">${r.training_name ?? '-'}</td>
+                            <td class="py-2 pr-4 whitespace-nowrap">${fmtDate(r.schedule_date)}</td>
+                            <td class="py-2 pr-4 whitespace-nowrap">${fmtDate(r.waiting_since)}</td>
+                            <td class="py-2 pr-4">
+                                <div class="flex items-center gap-1.5">
+                                    <button class="approveRegBtn rounded-lg bg-green-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-green-700" data-id="${r.id}">Approve</button>
+                                    <button class="rejectRegBtn rounded-lg border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${r.id}">Reject</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `);
+                });
+            });
+        }
+
+        $(document).on('click', '.approveRegBtn, .rejectRegBtn', function () {
+            const id = $(this).data('id');
+            const isApprove = $(this).hasClass('approveRegBtn');
+            const r = pendingApprovalRows.find((x) => String(x.id) === String(id));
+
+            Swal.fire({
+                title: isApprove ? 'Approve this registration?' : 'Reject this registration?',
+                html: r ? `
+                    <div style="text-align:left;font-size:13px;">
+                        <p><strong>Doc ID:</strong> ${r.docid}</p>
+                        <p><strong>Employee:</strong> ${r.name ?? r.username}</p>
+                        <p><strong>Training:</strong> ${r.training_name ?? '-'}</p>
+                    </div>
+                ` : '',
+                icon: isApprove ? 'question' : 'warning',
+                showCancelButton: true,
+                confirmButtonText: isApprove ? 'Yes, approve' : 'Yes, reject',
+                confirmButtonColor: isApprove ? '#16a34a' : '#dc2626',
+                cancelButtonText: 'Cancel',
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                $.ajax({
+                    url: `/training-list/${id}/${isApprove ? 'approve' : 'reject'}`,
+                    method: 'POST',
+                    headers: csrfHeaders,
+                    success: function (res) {
+                        const message = isApprove
+                            ? (res.completed ? 'Registrasi disetujui sepenuhnya' : 'Disetujui, menunggu approver berikutnya')
+                            : 'Registrasi ditolak';
+                        toast('success', message);
+                        loadPendingApprovals();
+                    },
+                    error: function (xhr) {
+                        toast('error', xhr.responseJSON?.message || 'Gagal memproses approval');
                     },
                 });
             });
@@ -1285,5 +1406,6 @@
         @endif
 
         loadAvailable();
+        loadPendingApprovals();
     </script>
 </x-app-layout>

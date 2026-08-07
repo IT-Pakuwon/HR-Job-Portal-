@@ -13,6 +13,7 @@ use App\Models\MsLndTrainingSchedule;
 use App\Models\MsLndTrainingQuota;
 use App\Models\MsTrainingEvent;
 use App\Models\StoGrading;
+use App\Models\TrApproval;
 use App\Models\TrLndTrainingFeedbackAnswer;
 use App\Models\TrLndTrainingRegistration;
 use App\Models\TrMessage;
@@ -876,6 +877,78 @@ class TrainingRegistrationController extends Controller
         );
 
         return response()->json($result, $result['ok'] ?? false ? 200 : 422);
+    }
+
+    /**
+     * TRN documents where the caller is the current (active) approver —
+     * same "active step" definition as ApprovalController::assertUserCanAct()
+     * (earliest P-status line for this refnbr with aprv_datebefore set, and
+     * the caller's username in that line's comma-separated aprv_username
+     * list), so this list matches exactly what approve()/reject() would
+     * actually let them act on right now.
+     */
+    public function pendingApprovals(Request $request)
+    {
+        $user = Auth::user();
+        $username = strtolower(trim($user->username));
+
+        $approvalRows = TrApproval::query()
+            ->where('aprv_doctype', self::DOCTYPE)
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->whereRaw(
+                "(',' || lower(regexp_replace(coalesce(aprv_username,''), '\s+', '', 'g')) || ',') like ?",
+                ['%,' . $username . ',%']
+            )
+            ->orderBy('aprv_datebefore')
+            ->get(['refnbr', 'aprv_datebefore']);
+
+        if ($approvalRows->isEmpty()) {
+            return response()->json(['data' => []]);
+        }
+
+        $docIds = $approvalRows->pluck('refnbr')->unique()->values();
+
+        $registrations = TrLndTrainingRegistration::whereIn('training_regist_id', $docIds->all())
+            ->with('schedule.schedule.training')
+            ->get()
+            ->keyBy('training_regist_id');
+
+        $usernames = $registrations->pluck('user_registration')->unique();
+        $names = $usernames->isEmpty() ? collect() : User::whereIn('username', $usernames)->pluck('name', 'username');
+
+        $cpnyIds = $registrations->pluck('cpny_id')->filter()->unique();
+        $companyNames = $cpnyIds->isEmpty() ? collect() : MsCompany::whereIn('cpny_id', $cpnyIds)->pluck('cpny_name', 'cpny_id');
+
+        $deptIds = $registrations->pluck('department_id')->filter()->unique();
+        $departmentNames = $deptIds->isEmpty() ? collect() : MsDepartment::whereIn('department_id', $deptIds)->pluck('department_name', 'department_id');
+
+        $data = $approvalRows
+            ->map(function ($apr) use ($registrations, $names, $companyNames, $departmentNames) {
+                $r = $registrations->get($apr->refnbr);
+
+                if (!$r) {
+                    return null;
+                }
+
+                return [
+                    'id' => $r->id,
+                    'docid' => $r->training_regist_id,
+                    'training_name' => $r->schedule?->schedule?->training?->training_name ?? null,
+                    'username' => $r->user_registration,
+                    'name' => $names[$r->user_registration] ?? $r->user_registration,
+                    'cpny_id' => $r->cpny_id,
+                    'cpny_name' => $companyNames[$r->cpny_id] ?? $r->cpny_id,
+                    'department_id' => $r->department_id,
+                    'department_name' => $departmentNames[$r->department_id] ?? $r->department_id,
+                    'schedule_date' => $r->schedule_date ?? $r->schedule?->schedule_date,
+                    'waiting_since' => $apr->aprv_datebefore,
+                ];
+            })
+            ->filter()
+            ->values();
+
+        return response()->json(['data' => $data]);
     }
 
     /**

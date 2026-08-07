@@ -405,6 +405,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/my/{id}/barcode-status', [TrainingRegistrationController::class, 'barcodeStatus'])->name('training-list.barcode.status')->where('id', '[0-9]+');
             Route::get('/my/{id}/barcode-image', [TrainingRegistrationController::class, 'barcodeImage'])->name('training-list.barcode.image')->where('id', '[0-9]+');
             Route::get('/waitlist', [TrainingRegistrationController::class, 'waitlistForOffer'])->name('training-list.waitlist');
+            Route::get('/pending-approvals', [TrainingRegistrationController::class, 'pendingApprovals'])->name('training-list.pending-approvals');
             Route::get('/my/{id}/feedback', [TrainingFeedbackController::class, 'show'])->name('training-list.feedback.show')->where('id', '[0-9]+');
             Route::get('/my/{id}/certificate', [TrainingRegistrationController::class, 'myCertificate'])->name('training-list.certificate')->where('id', '[0-9]+');
             Route::get('/{eid}', [TrainingRegistrationController::class, 'show'])->name('training-list.show')->where('eid', '[A-Za-z0-9]+');
