@@ -130,6 +130,12 @@
                 'rt' +
                 "<'flex items-center justify-between mt-3'<'text-sm'i><'text-sm'p>>",
 
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, 'All']
+            ],
+
+
             ajax: {
                 url: '/report-ga/json/' + type,
 

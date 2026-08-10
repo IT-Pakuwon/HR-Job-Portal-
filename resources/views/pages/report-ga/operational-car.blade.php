@@ -76,6 +76,14 @@
                         Cancelled
                     </option>
 
+                    <option value="F">
+                        Processed
+                    </option>
+
+                    <option value="U">
+                        Unprocessed
+                    </option>
+
                 </select>
             </div>
             {{-- DRIVER --}}
@@ -202,6 +210,11 @@
             serverSide: true,
             responsive: true,
             searching: false,
+
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, 'All']
+            ],
 
             dom:
                 "<'flex items-center justify-between mb-3'<'text-sm'l>>" +

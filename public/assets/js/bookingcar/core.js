@@ -40,12 +40,13 @@ const BookingCar = {
     // STATUS MAP
     // --------------------------------------------------------
     statusMap: {
-        P: { label: 'Pending',    color: 'blue'   },
-        C: { label: 'Approved',   color: 'emerald' },
-        F: { label: 'Processed',  color: 'indigo'  },
-        D: { label: 'Revise',     color: 'amber'   },
-        R: { label: 'Rejected',   color: 'red'     },
-        X: { label: 'Cancelled',  color: 'slate'   },
+        P: { label: 'Pending',     color: 'blue'   },
+        C: { label: 'Approved',    color: 'emerald' },
+        F: { label: 'Processed',   color: 'indigo'  },
+        U: { label: 'Unprocessed', color: 'slate'   },
+        D: { label: 'Revise',      color: 'amber'   },
+        R: { label: 'Rejected',    color: 'red'     },
+        X: { label: 'Cancelled',   color: 'slate'   },
     },
 
     // --------------------------------------------------------

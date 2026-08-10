@@ -263,6 +263,10 @@ class BookingCarExport implements
 
                         'X' => 'Cancelled',
 
+                        'F' => 'Processed',
+
+                        'U' => 'Unprocessed',
+
                         default => '-',
                     },
 

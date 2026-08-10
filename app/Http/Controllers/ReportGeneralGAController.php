@@ -754,6 +754,10 @@ class ReportGeneralGAController extends Controller
 
                     'X' => 'Cancelled',
 
+                    'F' => 'Processed',
+
+                    'U' => 'Unprocessed',
+
                     default => '-',
                 };
             })
