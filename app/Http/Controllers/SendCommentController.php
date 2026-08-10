@@ -87,6 +87,39 @@ class SendCommentController extends Controller
         ]);
     }
 
+    /**
+     * Simpan pesan dengan company scope untuk dokumen yang nomor referensinya
+     * dapat sama antar-company.
+     */
+    public function sendmsgWithCpnyid(
+        int $id,
+        string $doctype,
+        string $cpnyId,
+        Request $request
+    ) {
+        $user = Auth::user();
+        $username = $user->username ?? 'system';
+
+        $comment = TrMessage::create([
+            'refnbr' => $request->doc_no ?? $request->docid ?? (string) $id,
+            'doctype' => $doctype,
+            'message_date' => Carbon::now(),
+            'cpny_id' => strtoupper(trim($cpnyId)),
+            'username' => $username,
+            'name' => $user->name ?? $username,
+            'message' => $request->reason,
+            'status' => 'A',
+            'created_by' => $username,
+            'updated_by' => $username,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Message successfully saved!',
+            'comment' => $comment,
+        ]);
+    }
+
     public function fetchComments(string $doctype, $id)
     {
         $comments = TrMessage::where('doctype', $doctype)

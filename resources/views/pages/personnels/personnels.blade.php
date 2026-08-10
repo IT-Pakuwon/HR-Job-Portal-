@@ -150,6 +150,39 @@
 
             </div>
 
+            @if($hasAllDeptAccess ?? false)
+            <div class="flex flex-wrap items-end gap-3 border-b border-gray-100 px-5 py-3 dark:border-white/[0.06]">
+                <div class="min-w-[220px] flex-1">
+                    <label for="filterCompanyAllDept" class="mb-1 block text-xs font-medium text-gray-600">Company</label>
+                    <select id="filterCompanyAllDept" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                        <option value="">All Company</option>
+                        @foreach($filterCompanies as $company)
+                            <option value="{{ $company->cpny_id }}">{{ $company->cpny_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="min-w-[220px] flex-1">
+                    <label for="filterDivisionAllDept" class="mb-1 block text-xs font-medium text-gray-600">Division</label>
+                    <select id="filterDivisionAllDept" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                        <option value="">All Division</option>
+                        @foreach($filterDivisions as $division)
+                            <option value="{{ $division->division_id }}">{{ $division->division_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="min-w-[220px] flex-1">
+                    <label for="filterDepartmentAllDept" class="mb-1 block text-xs font-medium text-gray-600">Department</label>
+                    <select id="filterDepartmentAllDept" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                        <option value="">All Department</option>
+                        @foreach($filterDepartments as $department)
+                            <option value="{{ $department->department_id }}" data-division="{{ $department->division_id }}">{{ $department->department_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <button type="button" id="resetAllDeptFilters" class="rounded-md bg-gray-500 px-4 py-2 text-sm font-medium text-white hover:bg-gray-600">Reset</button>
+            </div>
+            @endif
+
             <div class="relative overflow-hidden">
                 <table id="personnelsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
                     <thead>
@@ -200,6 +233,42 @@
         var currentUser = "{{ auth()->user()->username }}";
         var personnelsTable;
         $(document).ready(function() {
+            const hasAllDeptAccess = @json($hasAllDeptAccess ?? false);
+
+            function appendAllDeptFilters(url) {
+                if (!hasAllDeptAccess) return url;
+                const separator = url.includes('?') ? '&' : '?';
+                return url + separator
+                    + 'company=' + encodeURIComponent($('#filterCompanyAllDept').val() || '')
+                    + '&division=' + encodeURIComponent($('#filterDivisionAllDept').val() || '')
+                    + '&department=' + encodeURIComponent($('#filterDepartmentAllDept').val() || '');
+            }
+
+            function reloadAllDeptFilters() {
+                if (!personnelsTable) return;
+                const currentUrl = new URL(personnelsTable.ajax.url(), window.location.origin);
+                currentUrl.searchParams.set('company', $('#filterCompanyAllDept').val() || '');
+                currentUrl.searchParams.set('division', $('#filterDivisionAllDept').val() || '');
+                currentUrl.searchParams.set('department', $('#filterDepartmentAllDept').val() || '');
+                personnelsTable.ajax.url(currentUrl.pathname + currentUrl.search).load();
+            }
+
+            $('#filterDivisionAllDept').on('change', function() {
+                const divisionId = $(this).val();
+                $('#filterDepartmentAllDept option').each(function() {
+                    const optionDivision = $(this).data('division');
+                    $(this).toggle(!$(this).val() || !divisionId || optionDivision == divisionId);
+                });
+                $('#filterDepartmentAllDept').val('');
+                reloadAllDeptFilters();
+            });
+
+            $('#filterCompanyAllDept, #filterDepartmentAllDept').on('change', reloadAllDeptFilters);
+            $('#resetAllDeptFilters').on('click', function() {
+                $('#filterCompanyAllDept, #filterDivisionAllDept, #filterDepartmentAllDept').val('');
+                $('#filterDepartmentAllDept option').show();
+                reloadAllDeptFilters();
+            });
             function toggleActionColumn(table, data) {
 
                 let hasToggle = data.some(r =>
@@ -213,7 +282,7 @@
 
             // Hanya inisialisasi tabel personnelsTable
             personnelsTable = $('#personnelsTable').DataTable({
-                ajax: "{{ route('personnels.json') }}?status=P",
+                ajax: appendAllDeptFilters("{{ route('personnels.json') }}?status=P"),
                 processing: true,
                 serverSide: false,
                 lengthMenu: [
@@ -704,7 +773,7 @@
                     newUrl += "?status=" + encodeURIComponent(selectedStatus ?? '');
                 }
 
-                personnelsTable.ajax.url(newUrl).load();
+                personnelsTable.ajax.url(appendAllDeptFilters(newUrl)).load();
             });
 
             // 🔥 APPLY FILTER
@@ -720,7 +789,7 @@
 
                 console.log("APPLY URL:", newUrl); // debug
 
-                personnelsTable.ajax.url(newUrl).load();
+                personnelsTable.ajax.url(appendAllDeptFilters(newUrl)).load();
             });
 
             $('#resetFilter').on('click', function() {
@@ -732,7 +801,7 @@
 
                 console.log("RESET URL:", newUrl);
 
-                personnelsTable.ajax.url(newUrl).load();
+                personnelsTable.ajax.url(appendAllDeptFilters(newUrl)).load();
             });
         });
         // Make each .grid-col-1 set independent

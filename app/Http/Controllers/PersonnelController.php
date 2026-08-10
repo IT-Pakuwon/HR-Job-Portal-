@@ -90,6 +90,30 @@ class PersonnelController extends Controller
             ->exists();
     }
 
+    private function personnelMailMasterNames(Personnel $personnel): array
+    {
+        $companyName = MsCompany::query()
+            ->where('cpny_id', $personnel->cpnyid)
+            ->where('group_cpny_id', $personnel->group_cpny_id)
+            ->value('cpny_name');
+
+        $departmentName = DepartmentHR::query()
+            ->where('department_id', $personnel->departementid)
+            ->where('group_cpny_id', $personnel->group_cpny_id)
+            ->value('department_name');
+
+        $creatorName = User::query()
+            ->where('username', $personnel->created_user)
+            ->where('group_cpny_id', $personnel->group_cpny_id)
+            ->value('name');
+
+        return [
+            'company' => $companyName ?: $personnel->cpnyid,
+            'department' => $departmentName ?: $personnel->departementid,
+            'creator' => $creatorName ?: '-',
+        ];
+    }
+
     private function personnelScopeForUser($user)
     {
         $cpnyIds = $this->userCpnyIds($user);
@@ -146,6 +170,37 @@ class PersonnelController extends Controller
             ->orderBy('department_name')
             ->get();
 
+        $hasAllDeptAccess = $this->hasRoleAllDept($user);
+        $filterCompanies = collect();
+        $filterDivisions = collect();
+        $filterDepartments = collect();
+
+        if ($hasAllDeptAccess) {
+            $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
+
+            $filterCompanies = MsCompany::query()
+                ->select('cpny_id', 'cpny_name')
+                ->where('group_cpny_id', $groupCompanyId)
+                ->where('status', 'A')
+                ->whereIn('cpny_id', $this->userCpnyIds($user))
+                ->orderBy('cpny_name')
+                ->get();
+
+            $filterDivisions = Division::query()
+                ->select('division_id', 'division_name')
+                ->where('group_cpny_id', $groupCompanyId)
+                ->where('status', 'A')
+                ->orderBy('division_name')
+                ->get();
+
+            $filterDepartments = DepartmentHR::query()
+                ->select('department_id', 'department_name', 'division_id')
+                ->where('group_cpny_id', $groupCompanyId)
+                ->where('status', 'A')
+                ->orderBy('department_name')
+                ->get();
+        }
+
         // =========================================================
         // 🔥 BASE NORMAL (ALL CARD) → HARUS PAKAI SCOPE USER
         // =========================================================
@@ -181,6 +236,10 @@ class PersonnelController extends Controller
             'completed' => (int) ($counts->completed ?? 0),
             'hcbpAll' => (int) ($hcbpAll ?? 0), // 🔥 tambahan
             'departments' => $departments,
+            'hasAllDeptAccess' => $hasAllDeptAccess,
+            'filterCompanies' => $filterCompanies,
+            'filterDivisions' => $filterDivisions,
+            'filterDepartments' => $filterDepartments,
             'group_cpny_id' => strtoupper(trim((string) $user->group_cpny_id)),
         ]);
     }
@@ -216,6 +275,16 @@ class PersonnelController extends Controller
         // ✅ STATUS FILTER (ONLY ONE)
         if (!empty($status) && strtolower($status) !== 'all') {
             $query->where('status', $status);
+        }
+
+        if ($this->hasRoleAllDept($user)) {
+            if ($request->filled('company')) {
+                $query->where('cpnyid', $request->company);
+            }
+
+            if ($request->filled('division')) {
+                $query->where('division_id', $request->division);
+            }
         }
 
         // ✅ DEPARTMENT FILTER
@@ -721,13 +790,17 @@ class PersonnelController extends Controller
                 ->first();
 
             $eid = Hashids::encode($task->id);
+            $mailMaster = $this->personnelMailMasterNames($task);
 
             $data = [
                 'docid' => $t_approval_next->refnbr,
-                'cpnyid' => $t_approval_next->aprv_cpnyid,
-                'deptname' => $t_approval_next->aprv_departementid,
+                'cpnyid' => $mailMaster['company'],
+                'deptname' => $mailMaster['department'],
                 'date' => $t_approval_next->aprv_datebefore,
-                'name' => $user->username, // atau $t_approval_next->created_by sesuai kebutuhan
+                'name' => '-',
+                'createdby' => $mailMaster['creator'],
+                'docname' => 'Personnel Requisition',
+                'status' => 'P',
                 'info' => $request->job_title,
                 'url' => url('/showpersonnels/'.$eid),
             ];
@@ -736,13 +809,15 @@ class PersonnelController extends Controller
             $multiapp = array_map('trim', explode(',', (string) $t_approval_next->aprv_username));
 
             $email_it = User::whereIn('username', $multiapp)
+                ->where('group_cpny_id', $task->group_cpny_id)
                 ->where('status', 'A')
                 ->get();
 
             foreach ($email_it as $emailsit) {
-                \Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
+                $recipientData = array_merge($data, ['name' => $emailsit->name ?: 'User']);
+                \Mail::send('emails.mailapproveprf', $recipientData, function ($message) use ($recipientData, $emailsit) {
                     $message->to($emailsit->notification_email)
-                            ->subject($data['docid'].' - Waiting Approval Personnels');
+                            ->subject($recipientData['docid'].' - Waiting Approval Personnel');
                     $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
             }
@@ -987,7 +1062,7 @@ class PersonnelController extends Controller
                 'date' => $datenow,
                 'locationname' => $request->siteid ?? null, // simpan ID site
                 'budget_entity_id' => $request->budget_entity_id,
-                'user' => $user->username,
+                // 'user' => $user->username,
                 'job_title' => $request->job_title,
                 'subgrade_id' => $request->subgrade_id,
                 'job_level' => $grading->subgrade_name,
@@ -1002,7 +1077,7 @@ class PersonnelController extends Controller
                 'education' => $request->education,
                 'experience_start' => $request->experience_start,
                 'experience_end' => $request->experience_end,
-                'created_user' => $user->username,
+                // 'created_user' => $user->username,
                 'status' => $request->status ?? 'P',
             ]);
 
@@ -1205,29 +1280,35 @@ class PersonnelController extends Controller
                 ->first();
 
             $eid = Hashids::encode($personnel->id);
+            $mailMaster = $this->personnelMailMasterNames($personnel);
 
             if (!$canEdit) {
                 if ($next) {
                     // jika multi user dipisah comma
                     $usernames = array_map('trim', explode(',', $next->aprv_username));
                     $emailTargets = User::whereIn('username', $usernames)
+                        ->where('group_cpny_id', $personnel->group_cpny_id)
                         ->where('status', 'A')
                         ->get();
 
                     $mailData = [
                         'docid' => $next->refnbr,
-                        'cpnyid' => $next->aprv_cpnyid,
-                        'deptname' => $next->aprv_departementid,
+                        'cpnyid' => $mailMaster['company'],
+                        'deptname' => $mailMaster['department'],
                         'date' => $next->aprv_datebefore,
-                        'name' => $user->username,
+                        'name' => '-',
+                        'createdby' => $mailMaster['creator'],
+                        'docname' => 'Personnel Requisition',
+                        'status' => 'P',
                         'info' => $request->job_title,
                         'url' => url('/showpersonnels/'.$eid),
                     ];
 
                     foreach ($emailTargets as $recipient) {
-                        \Mail::send('emails.mailapprove', $mailData, function ($message) use ($mailData, $recipient) {
+                        $recipientData = array_merge($mailData, ['name' => $recipient->name ?: 'User']);
+                        \Mail::send('emails.mailapproveprf', $recipientData, function ($message) use ($recipientData, $recipient) {
                             $message->to($recipient->notification_email)
-                                ->subject($mailData['docid'].' - Waiting Approval Personnel')
+                                ->subject($recipientData['docid'].' - Waiting Approval Personnel')
                                 ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                         });
                     }
@@ -1480,6 +1561,34 @@ class PersonnelController extends Controller
             // proses lanjutan setelah complete
             app('App\Http\Controllers\PersonnelController')->insert_jobposting($docid, $personnel->cpnyid);
 
+            $mailMaster = $this->personnelMailMasterNames($personnel);
+            $creator = User::query()
+                ->where('username', $personnel->created_user)
+                ->where('group_cpny_id', $personnel->group_cpny_id)
+                ->where('status', 'A')
+                ->first();
+
+            if ($creator && $creator->notification_email) {
+                $completedData = [
+                    'docid' => $personnel->docid,
+                    'cpnyid' => $mailMaster['company'],
+                    'deptname' => $mailMaster['department'],
+                    'date' => $datestamp,
+                    'name' => $creator->name ?: 'User',
+                    'createdby' => $mailMaster['creator'],
+                    'docname' => 'Personnel Requisition',
+                    'status' => 'C',
+                    'info' => $personnel->job_title,
+                    'url' => url('/showpersonnels/'.Hashids::encode($personnel->id)),
+                ];
+
+                \Mail::send('emails.mailapproveprf', $completedData, function ($message) use ($completedData, $creator) {
+                    $message->to($creator->notification_email)
+                        ->subject($completedData['docid'].' - Completed Personnel')
+                        ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+                });
+            }
+
             return response()->json(['success' => true, 'message' => 'Task approved & completed']);
         }
 
@@ -1497,25 +1606,31 @@ class PersonnelController extends Controller
 
             // Kirim email ke approver berikutnya
             $eid = \Hashids::encode($personnel->id);
+            $mailMaster = $this->personnelMailMasterNames($personnel);
             $data = [
                 'docid' => $tNext->refnbr,
-                'cpnyid' => $tNext->aprv_cpnyid,
-                'deptname' => $tNext->aprv_departementid,
+                'cpnyid' => $mailMaster['company'],
+                'deptname' => $mailMaster['department'],
                 'date' => $tNext->aprv_datebefore,
-                'name' => $tNext->created_by ?? $user->username, // fallback
+                'name' => '-',
+                'createdby' => $mailMaster['creator'],
+                'docname' => 'Personnel Requisition',
+                'status' => 'P',
                 'info' => $personnel->job_title,
                 'url' => url('/showpersonnels/'.$eid),
             ];
 
             $multiapp = explode(',', $tNext->aprv_username);
             $recipients = User::whereIn('username', $multiapp)
+                ->where('group_cpny_id', $personnel->group_cpny_id)
                 ->where('status', 'A')
                 ->get();
 
             foreach ($recipients as $rcp) {
-                \Mail::send('emails.mailapprove', $data, function ($message) use ($data, $rcp) {
+                $recipientData = array_merge($data, ['name' => $rcp->name ?: 'User']);
+                \Mail::send('emails.mailapproveprf', $recipientData, function ($message) use ($recipientData, $rcp) {
                     $message->to($rcp->notification_email)
-                            ->subject($data['docid'].' - Waiting Approval Personnel')
+                            ->subject($recipientData['docid'].' - Waiting Approval Personnel')
                             ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
             }
@@ -1565,24 +1680,30 @@ class PersonnelController extends Controller
 
         // Kirim email ke creator
         $eid = \Hashids::encode($personnel->id);
+        $mailMaster = $this->personnelMailMasterNames($personnel);
         $data = [
             'docid' => $tApproval->refnbr,
-            'cpnyid' => $tApproval->aprv_cpnyid,
-            'deptname' => $tApproval->aprv_departementid,
+            'cpnyid' => $mailMaster['company'],
+            'deptname' => $mailMaster['department'],
             'date' => $tApproval->aprv_datebefore,
-            'name' => $tApproval->created_by ?? $user->username,
+            'name' => '-',
+            'createdby' => $mailMaster['creator'],
+            'docname' => 'Personnel Requisition',
+            'status' => 'R',
             'info' => $personnel->job_title,
             'url' => url('/showpersonnels/'.$eid),
         ];
 
         $creator = User::where('username', $personnel->created_user)
+            ->where('group_cpny_id', $personnel->group_cpny_id)
             ->where('status', 'A')
             ->get();
 
         foreach ($creator as $rcp) {
-            \Mail::send('emails.mailapprove', $data, function ($message) use ($data, $rcp) {
+            $recipientData = array_merge($data, ['name' => $rcp->name ?: 'User']);
+            \Mail::send('emails.mailapproveprf', $recipientData, function ($message) use ($recipientData, $rcp) {
                 $message->to($rcp->notification_email)
-                        ->subject($data['docid'].' - Rejected Personnel')
+                        ->subject($recipientData['docid'].' - Rejected Personnel')
                         ->from('digitalserver@pakuwon.com', 'Pakuwon System');
             });
         }
@@ -1590,7 +1711,12 @@ class PersonnelController extends Controller
         // Kirim komentar (alasan) via controller existing
         $id = $personnel->id;
         $doctype = 'PRF';
-        app('App\Http\Controllers\SendCommentController')->sendmsg($id, $doctype, $request);
+        app('App\Http\Controllers\SendCommentController')->sendmsgWithCpnyid(
+            $id,
+            $doctype,
+            $personnel->cpnyid,
+            $request
+        );
 
         return response()->json(['success' => true, 'message' => 'Personnel rejected successfully']);
     }
@@ -1636,24 +1762,30 @@ class PersonnelController extends Controller
 
         // Email ke creator
         $eid = \Hashids::encode($personnel->id);
+        $mailMaster = $this->personnelMailMasterNames($personnel);
         $data = [
             'docid' => $tApproval->refnbr,
-            'cpnyid' => $tApproval->aprv_cpnyid,
-            'deptname' => $tApproval->aprv_departementid,
+            'cpnyid' => $mailMaster['company'],
+            'deptname' => $mailMaster['department'],
             'date' => $tApproval->aprv_datebefore,
-            'name' => $tApproval->created_by ?? $user->username,
+            'name' => '-',
+            'createdby' => $mailMaster['creator'],
+            'docname' => 'Personnel Requisition',
+            'status' => 'D',
             'info' => $personnel->job_title,
             'url' => url('/showpersonnels/'.$eid),
         ];
 
         $creator = User::where('username', $personnel->created_user)
+            ->where('group_cpny_id', $personnel->group_cpny_id)
             ->where('status', 'A')
             ->get();
 
         foreach ($creator as $rcp) {
-            \Mail::send('emails.mailapprove', $data, function ($message) use ($data, $rcp) {
+            $recipientData = array_merge($data, ['name' => $rcp->name ?: 'User']);
+            \Mail::send('emails.mailapproveprf', $recipientData, function ($message) use ($recipientData, $rcp) {
                 $message->to($rcp->notification_email)
-                        ->subject($data['docid'].' - Revise Personnel')
+                        ->subject($recipientData['docid'].' - Revise Personnel')
                         ->from('digitalserver@pakuwon.com', 'Pakuwon System');
             });
         }
@@ -1661,7 +1793,12 @@ class PersonnelController extends Controller
         // Simpan komentar (alasan revisi)
         $id = $personnel->id;
         $doctype = 'PRF';
-        app('App\Http\Controllers\SendCommentController')->sendmsg($id, $doctype, $request);
+        app('App\Http\Controllers\SendCommentController')->sendmsgWithCpnyid(
+            $id,
+            $doctype,
+            $personnel->cpnyid,
+            $request
+        );
 
         return response()->json(['success' => true, 'message' => 'Personnel revised successfully']);
     }
