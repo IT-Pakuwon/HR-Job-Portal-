@@ -1658,38 +1658,50 @@
                 // ===== PROCESS =====
                 if (mode === "process") {
 
-                    $spinner.fadeIn();
+                    Swal.fire({
+                        title: "Process this Work Order?",
+                        text: "You will be set as the PIC for this WO and become responsible for updating its progress.",
+                        icon: "question",
+                        showCancelButton: true,
+                        confirmButtonText: "Yes, Process",
+                        cancelButtonText: "Cancel",
+                        confirmButtonColor: "#4f46e5",
+                    }).then((result) => {
+                        if (!result.isConfirmed) return;
 
-                    $.ajax({
-                        url: "/wo/" + encodeURIComponent(woid) + "/process",
-                        type: "POST",
-                        data: {
-                            _token: csrf
-                        },
+                        $spinner.fadeIn();
 
-                        success: function(res) {
-                            if (!res.success) {
-                                toastr.error(res.message);
-                                return;
+                        $.ajax({
+                            url: "/wo/" + encodeURIComponent(woid) + "/process",
+                            type: "POST",
+                            data: {
+                                _token: csrf
+                            },
+
+                            success: function(res) {
+                                if (!res.success) {
+                                    toastr.error(res.message);
+                                    return;
+                                }
+
+                                toastr.success("You are now the PIC for this WO.");
+
+                                $("#picName").text(res.pic_wo);
+
+                                // THEN continue UI logic
+                                $form.removeClass("hidden");
+                                unlockForm();
+                                setButtonMode("save");
+                            },
+
+                            error: function(xhr) {
+                                toastr.error(xhr.responseJSON?.message || "Failed to process WO.");
+                            },
+
+                            complete: function() {
+                                $spinner.fadeOut();
                             }
-
-                            toastr.success("You are now the PIC for this WO.");
-
-                            $("#picName").text(res.pic_wo);
-
-                            // THEN continue UI logic
-                            $form.removeClass("hidden");
-                            unlockForm();
-                            setButtonMode("save");
-                        },
-
-                        error: function(xhr) {
-                            toastr.error(xhr.responseJSON?.message || "Failed to process WO.");
-                        },
-
-                        complete: function() {
-                            $spinner.fadeOut();
-                        }
+                        });
                     });
 
                     return;

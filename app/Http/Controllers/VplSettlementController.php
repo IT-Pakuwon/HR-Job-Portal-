@@ -453,13 +453,20 @@ class VplSettlementController extends Controller
             $user->username,
             $user->name,
             function ($refnbr, $now) use ($settlement, $user) {
-                // Stock, ledger, and product_bal report are all handled by a single
-                // database stored procedure the requester's boss maintains directly
-                // in SQL — not this code's concern.
-                $settlement->status = 'C';
-                $settlement->completed_user = $user->username;
-                $settlement->completed_at = $now;
-                $settlement->save();
+                // Stock, ledger, and product_bal are computed entirely by
+                // sp_process_vpl, not this code. Wrapped in its own transaction so a
+                // failure inside the procedure can't leave the header marked Completed
+                // with no corresponding ledger/balance effect.
+                DB::connection('pgsql5')->transaction(function () use ($settlement, $user, $now) {
+                    $settlement->status = 'C';
+                    $settlement->completed_user = $user->username;
+                    $settlement->completed_at = $now;
+                    $settlement->save();
+                    DB::connection('pgsql5')->statement(
+                        'CALL sp_process_vpl(?, ?, ?, ?, ?)',
+                        ['VPS', $settlement->settlement_id, $settlement->cpnyid, 'Submit', $user->username]
+                    );
+                });
             },
             function ($next, $now) use ($settlement, $id) {
                 app(ApprovalController::class)->notifyFirstApprover(

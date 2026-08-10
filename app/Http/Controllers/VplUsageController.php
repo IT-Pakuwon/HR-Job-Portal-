@@ -486,14 +486,27 @@ class VplUsageController extends Controller
             $user->username,
             $user->name,
             function ($refnbr, $now) use ($usage, $user, $id) {
-                // Wrapped so a mid-loop failure in finalizeStock() can't leave the header
-                // marked Completed while only some lines' stock actually moved.
+                // Wrapped so a mid-loop stock failure can't leave the header marked
+                // Completed while only some lines' stock actually moved. 'Usage'-type
+                // documents delegate stock/ledger/balance to sp_process_vpl (which has
+                // no concept of a return), only releasing the reservation hold here;
+                // 'Return'-type documents have no SP equivalent and keep the direct
+                // finalizeStock() path.
                 DB::connection('pgsql5')->transaction(function () use ($usage, $user, $now, $id) {
                     $usage->status = 'C';
                     $usage->completed_user = $user->username;
                     $usage->completed_at = $now;
                     $usage->save();
-                    $this->finalizeStock($id);
+
+                    if ($usage->usagetype === 'Usage') {
+                        $this->adjustReservation($usage->usage_id, -1);
+                        DB::connection('pgsql5')->statement(
+                            'CALL sp_process_vpl(?, ?, ?, ?, ?)',
+                            ['VPU', $usage->usage_id, $usage->cpnyid, 'Submit', $user->username]
+                        );
+                    } else {
+                        $this->finalizeStock($id);
+                    }
                 });
             },
             function ($next, $now) use ($usage, $id) {
@@ -951,6 +964,10 @@ class VplUsageController extends Controller
      * Return -> qty_available += qty, qty_reserved += qty (restocks); bumps qty_settlement
      *           on the referenced original Usage line so it can't be double-returned.
      */
+    // Handles the 'Return' usage subtype only. sp_process_vpl's VPU branch has no
+    // concept of a return (it always reads qty_usage and always decrements stock),
+    // so 'Usage'-type documents are routed through the SP instead (see approve())
+    // while 'Return' keeps this direct path.
     private function finalizeStock(int $id): void
     {
         $user = Auth::user();
@@ -964,49 +981,38 @@ class VplUsageController extends Controller
                 ->where('whs_id', $detail->whs_id)
                 ->first();
 
-            if ($usage->usagetype === 'Usage') {
-                $qty = $detail->qty_usage;
-                if ($stock) {
-                    $stock->qty_available -= $qty;
-                    $stock->qty_reserved = max(0, ($stock->qty_reserved ?? 0) - $qty);
-                    $stock->updated_user = $user->username;
-                    $stock->updated_at = $datestamp;
-                    $stock->save();
-                }
+            $qty = $detail->qty_return_usage;
+            if ($stock) {
+                $stock->qty_available += $qty;
+                $stock->qty_reserved += $qty;
+                $stock->updated_user = $user->username;
+                $stock->updated_at = $datestamp;
+                $stock->save();
             } else {
-                $qty = $detail->qty_return_usage;
-                if ($stock) {
-                    $stock->qty_available += $qty;
-                    $stock->qty_reserved += $qty;
-                    $stock->updated_user = $user->username;
-                    $stock->updated_at = $datestamp;
-                    $stock->save();
-                } else {
-                    MsVplProductDetail::create([
-                        'product_id' => $detail->product_id,
-                        'expired_date' => $detail->expired_date,
-                        'cpnyid' => $usage->cpnyid,
-                        'whs_id' => $detail->whs_id,
-                        'qty_available' => $qty,
-                        'qty_reserved' => $qty,
-                        'status' => 'A',
-                        'created_user' => $user->username,
-                        'updated_user' => $user->username,
-                    ]);
-                }
+                MsVplProductDetail::create([
+                    'product_id' => $detail->product_id,
+                    'expired_date' => $detail->expired_date,
+                    'cpnyid' => $usage->cpnyid,
+                    'whs_id' => $detail->whs_id,
+                    'qty_available' => $qty,
+                    'qty_reserved' => $qty,
+                    'status' => 'A',
+                    'created_user' => $user->username,
+                    'updated_user' => $user->username,
+                ]);
+            }
 
-                // Cap the original usage line so it can't be returned twice
-                if ($usage->ref_usage_id) {
-                    $origin = TrxVplUsageDetail::where('usage_id', $usage->ref_usage_id)
-                        ->where('product_id', $detail->product_id)
-                        ->where('expired_date', $detail->expired_date)
-                        ->where('whs_id', $detail->whs_id)
-                        ->first();
-                    if ($origin) {
-                        $origin->qty_settlement = ($origin->qty_settlement ?? 0) + $qty;
-                        $origin->updated_user = $user->username;
-                        $origin->save();
-                    }
+            // Cap the original usage line so it can't be returned twice
+            if ($usage->ref_usage_id) {
+                $origin = TrxVplUsageDetail::where('usage_id', $usage->ref_usage_id)
+                    ->where('product_id', $detail->product_id)
+                    ->where('expired_date', $detail->expired_date)
+                    ->where('whs_id', $detail->whs_id)
+                    ->first();
+                if ($origin) {
+                    $origin->qty_settlement = ($origin->qty_settlement ?? 0) + $qty;
+                    $origin->updated_user = $user->username;
+                    $origin->save();
                 }
             }
         }

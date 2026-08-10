@@ -456,14 +456,18 @@ class VplReceiveController extends Controller
             $user->name,
             function ($refnbr, $now) use ($receive, $user) {
                 // All approvals done → complete document. Wrapped in its own transaction
-                // so a mid-loop failure in insertMsProductDetail() can't leave the header
-                // marked Completed while only some lines were credited to stock.
+                // so a mid-loop failure in sp_process_vpl can't leave the header marked
+                // Completed while only some lines were credited to stock. Stock/ledger/
+                // balance are computed entirely by sp_process_vpl, not this code.
                 DB::connection('pgsql5')->transaction(function () use ($receive, $user, $now) {
                     $receive->status = 'C';
                     $receive->completed_user = $user->username;
                     $receive->completed_at = $now;
                     $receive->save();
-                    $this->insertMsProductDetail($receive->id);
+                    DB::connection('pgsql5')->statement(
+                        'CALL sp_process_vpl(?, ?, ?, ?, ?)',
+                        ['VPR', $receive->receive_id, $receive->cpnyid, 'Submit', $user->username]
+                    );
                 });
             },
             function ($next, $now) use ($receive, $id) {
@@ -841,38 +845,4 @@ class VplReceiveController extends Controller
         ]);
     }
 
-    private function insertMsProductDetail(int $id): void
-    {
-        $user = Auth::user();
-        $datestamp = Carbon::now()->toDateTimeString();
-        $receive = TrxVplReceive::find($id);
-
-        foreach (TrxVplReceiveDetail::where('receive_id', $receive->receive_id)->get() as $detail) {
-            $row = MsVplProductDetail::where('product_id', $detail->product_id)
-                ->where('expired_date', $detail->expired_date)
-                ->where('whs_id', $detail->whs_id)
-                ->first();
-
-            if ($row) {
-                $row->qty_available += $detail->qty_receive;
-                $row->updated_user = $user->username;
-                $row->updated_at = $datestamp;
-                $row->save();
-            } else {
-                MsVplProductDetail::create([
-                    'product_id' => $detail->product_id,
-                    'expired_date' => $detail->expired_date,
-                    'cpnyid' => $receive->cpnyid,
-                    'qty_available' => $detail->qty_receive,
-                    'qty_reserved' => 0,
-                    'whs_id' => $detail->whs_id,
-                    'status' => 'A',
-                    'created_user' => $receive->created_user,
-                    'created_at' => $receive->created_at,
-                    'updated_user' => $user->username,
-                    'updated_at' => $datestamp,
-                ]);
-            }
-        }
-    }
 }

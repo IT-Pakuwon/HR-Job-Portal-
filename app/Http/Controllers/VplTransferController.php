@@ -517,14 +517,20 @@ class VplTransferController extends Controller
             $user->name,
             function ($refnbr, $now) use ($transfer, $user, $id) {
                 // All steps done → complete document. Wrapped in its own transaction so a
-                // mid-loop stock failure inside processTransferStock() can't leave the header
-                // marked Completed while only some lines actually moved.
+                // mid-loop stock failure inside sp_process_vpl can't leave the header
+                // marked Completed while only some lines actually moved. Stock/ledger/
+                // balance are computed entirely by sp_process_vpl, not this code — this
+                // callback only releases the reservation hold taken at creation.
                 DB::connection('pgsql5')->transaction(function () use ($transfer, $user, $now, $id) {
                     $transfer->status         = 'C';
                     $transfer->completed_user = $user->username;
                     $transfer->completed_at   = $now;
                     $transfer->save();
-                    $this->processTransferStock($id);
+                    $this->releaseTransferReservation($id);
+                    DB::connection('pgsql5')->statement(
+                        'CALL sp_process_vpl(?, ?, ?, ?, ?)',
+                        ['VPT', $transfer->transfer_id, $transfer->cpnyid, 'Submit', $user->username]
+                    );
                 });
             },
             function ($next, $now) use ($transfer, $id) {
@@ -999,7 +1005,11 @@ class VplTransferController extends Controller
         ]);
     }
 
-    private function processTransferStock(int $id): void
+    // Releases the reservation hold taken at creation on the source warehouse.
+    // Actual qty_available movement, ledger, and balance are computed entirely
+    // by sp_process_vpl (called separately in approve()) — this method no longer
+    // touches qty_available itself.
+    private function releaseTransferReservation(int $id): void
     {
         $user      = Auth::user();
         $datestamp = Carbon::now()->toDateTimeString();
@@ -1007,51 +1017,17 @@ class VplTransferController extends Controller
         $details   = TrxVplTransferDetail::where('transfer_id', $transfer->transfer_id)->get();
 
         foreach ($details as $detail) {
-            // Deduct from source. Locked + re-validated here (this method always runs
-            // inside a transaction — see approve()) to close the race window between
-            // the pre-approval availability check and this actual deduction: two
-            // concurrent approvals could otherwise both pass that check and both
-            // deduct, taking stock negative.
             $from = MsVplProductDetail::where('product_id', $detail->product_id)
                 ->where('expired_date', $detail->expired_date)
                 ->where('whs_id', $detail->from_whs_id)
                 ->lockForUpdate()
                 ->first();
 
-            if (!$from || $from->qty_available < $detail->qty_transfer) {
-                $productName = MsVplProduct::where('product_id', $detail->product_id)->value('product_name') ?? $detail->product_id;
-                throw new \RuntimeException('Insufficient stock for '.$productName.' (Expired: '.$detail->expired_date.').');
-            }
-
-            $from->qty_available -= $detail->qty_transfer;
-            $from->qty_reserved   = max(0, ($from->qty_reserved ?? 0) - $detail->qty_transfer);
-            $from->updated_user   = $user->username;
-            $from->updated_at     = $datestamp;
-            $from->save();
-
-            // Add to destination
-            $to = MsVplProductDetail::where('product_id', $detail->product_id)
-                ->where('expired_date', $detail->expired_date)
-                ->where('whs_id', $detail->to_whs_id)
-                ->lockForUpdate()
-                ->first();
-
-            if ($to) {
-                $to->qty_available += $detail->qty_transfer;
-                $to->updated_user   = $user->username;
-                $to->updated_at     = $datestamp;
-                $to->save();
-            } else {
-                MsVplProductDetail::create([
-                    'product_id'    => $detail->product_id,
-                    'expired_date'  => $detail->expired_date,
-                    'cpnyid'        => $transfer->cpnyid,
-                    'whs_id'        => $detail->to_whs_id,
-                    'qty_available' => $detail->qty_transfer,
-                    'status'        => 'A',
-                    'created_user'  => $user->username,
-                    'updated_user'  => $user->username,
-                ]);
+            if ($from) {
+                $from->qty_reserved = max(0, ($from->qty_reserved ?? 0) - $detail->qty_transfer);
+                $from->updated_user = $user->username;
+                $from->updated_at   = $datestamp;
+                $from->save();
             }
         }
     }
