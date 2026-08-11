@@ -172,6 +172,7 @@ use App\Http\Controllers\VoucherTaxiController;
 use App\Http\Controllers\VoucherTaxiSetupController;
 use App\Http\Controllers\VplMsProductController;
 use App\Http\Controllers\VplReceiveController;
+use App\Http\Controllers\VplReportController;
 use App\Http\Controllers\VplTransferController;
 use App\Http\Controllers\VplSettlementController;
 use App\Http\Controllers\VplUsageController;
@@ -3191,9 +3192,11 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
-    Route::prefix('vpl')->name('vpl.')->group(function () {
-        // Report (reportvp)
-        Route::get('/reportvp', function () { return 'Coming soon'; })->name('reportvp');
+    // ── Report Voucher (report-vpl) ────────────────────────────────────────
+    Route::prefix('report-vpl')->middleware('access:REPORTVP,VIEW')->group(function () {
+        Route::get('/', [VplReportController::class, 'index'])->name('reportvpl');
+        Route::get('/json/{type}', [VplReportController::class, 'json'])->name('report.vpl.json');
+        Route::get('/export/{type}', [VplReportController::class, 'export'])->name('report.vpl.export');
     });
 
     // ── Usage Product / Voucher (usagevp) ─────────────────────────────────

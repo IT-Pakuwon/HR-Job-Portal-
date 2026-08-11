@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Vinkla\Hashids\Facades\Hashids;
 use Google\Cloud\Storage\StorageClient;
 use App\Models\MsVplProduct;
+use App\Models\MsVplProductBal;
 use App\Models\MsVplProductDetail;
 use App\Models\MsVplProductTargetDate;
 use App\Models\MsVplWarehouse;
@@ -520,6 +521,8 @@ class VplMsProductController extends Controller
         abort_unless($request->ajax(), 404);
         $product_id = $request->input('product_id');
         $username   = Auth::user()->username;
+        $cpnyid     = MsVplProduct::where('product_id', $product_id)->value('cpnyid');
+        $now        = now();
 
         DB::connection('pgsql5')->beginTransaction();
         try {
@@ -533,6 +536,13 @@ class VplMsProductController extends Controller
                     'created_user'  => $username,
                     'created_at'    => now(),
                 ]);
+
+                // Master Stock has no Receive document behind it, so it never
+                // goes through sp_process_vpl — post it straight to the balance
+                // table ourselves, otherwise the Stock Voucher report (which
+                // reads ms_vpl_product_bal, not ms_vpl_product_detail) never
+                // sees this qty at all.
+                $this->postStockBalanceIn($product_id, $cpnyid, $value['expired_date'], $value['source_whs'], (float) $value['qty'], $now, $username);
             }
             DB::connection('pgsql5')->commit();
             return response()->json(['success' => 'Product details added successfully.']);
@@ -543,6 +553,39 @@ class VplMsProductController extends Controller
                 'error'   => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
+    }
+
+    private function postStockBalanceIn(string $productId, ?string $cpnyid, string $expiredDate, string $whsId, float $qty, \Illuminate\Support\Carbon $postDate, string $username): void
+    {
+        $year = $postDate->year;
+        $mm   = str_pad((string) $postDate->month, 2, '0', STR_PAD_LEFT);
+        $col  = "period{$mm}in";
+
+        $bal = MsVplProductBal::where('year', $year)
+            ->where('product_id', $productId)
+            ->where('expired_date', $expiredDate)
+            ->where('whs_id', $whsId)
+            ->first();
+
+        if ($bal) {
+            $bal->{$col}      = ($bal->{$col} ?? 0) + $qty;
+            $bal->updated_user = $username;
+            $bal->save();
+            return;
+        }
+
+        MsVplProductBal::create([
+            'year'         => $year,
+            'perpost'      => $year.$mm,
+            'product_id'   => $productId,
+            'expired_date' => $expiredDate,
+            'cpnyid'       => $cpnyid,
+            'whs_id'       => $whsId,
+            'begqty'       => 0,
+            $col           => $qty,
+            'status'       => 'A',
+            'created_user' => $username,
+        ]);
     }
 
     // -------------------------------------------------------
