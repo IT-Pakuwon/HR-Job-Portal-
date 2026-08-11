@@ -199,7 +199,7 @@ class VplReportController extends Controller
                 'product_id'     => $product->product_id,
                 'tenant'         => $product->product_name,
                 'category_label' => $categoryLabel,
-                'expired_date'   => $bal->expired_date,
+                'expired_date'   => $this->expiredKey($bal->expired_date) === 'NULL' ? null : $bal->expired_date->format('Y-m-d'),
                 'nominal'        => (float) $product->product_value,
                 'beginning'      => $beginning,
                 'in_total'       => $monthIn,

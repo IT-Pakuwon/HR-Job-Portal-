@@ -374,6 +374,8 @@ const VplTransferForm = {
             return;
         }
 
+        if (!VplTransferForm.validateRows('c')) return;
+
         const rows = VplTransferForm.collectRows('c');
         if (rows.length === 0) {
             Swal.fire({ icon: 'warning', title: 'No Items', text: 'Please add at least one product before submitting.' });
@@ -436,6 +438,31 @@ const VplTransferForm = {
             });
         });
         return rows;
+    },
+
+    // Blocks submit with a toast if any row with a product picked is missing From WHS, To WHS, or Qty.
+    validateRows(prefix) {
+        let error = null;
+        document.querySelectorAll(`#${prefix}_detailBody tr[id^="${prefix}_row_"]`).forEach((row, i) => {
+            if (error) return;
+            const productEl = row.querySelector(`.${prefix}-product-display`);
+            const product    = productEl?.title?.trim() || productEl?.textContent.trim() || '';
+            if (!product || product === '— Select —') return;
+
+            const fromWhs = row.querySelector(`.${prefix}-from-whs-input`)?.value;
+            const toWhs   = row.querySelector(`.${prefix}-to-whs-input`)?.value;
+            const qty     = row.querySelector(`.${prefix}-qty-transfer-input`)?.value;
+
+            if (!fromWhs) error = `Row ${i + 1}: From WHS is required.`;
+            else if (!toWhs) error = `Row ${i + 1}: To WHS is required.`;
+            else if (!qty) error = `Row ${i + 1}: Transfer Qty is required.`;
+        });
+
+        if (error) {
+            VplTransfer.toast('error', error);
+            return false;
+        }
+        return true;
     },
 
     // Already-saved detail lines shown in the Edit modal's "Existing Details" table
@@ -692,6 +719,8 @@ const VplTransferForm = {
             VplTransfer.toast('error', 'Please enter a remark before submitting.');
             return;
         }
+
+        if (!VplTransferForm.validateRows('e')) return;
 
         const transType = document.getElementById('e_transfertype')?.value ?? '';
         const typeLabel = transType === 'ReturnTf' ? 'Return Transfer' : 'Transfer';

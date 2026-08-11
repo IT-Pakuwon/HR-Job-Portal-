@@ -798,7 +798,7 @@ class VplUsageController extends Controller
             $breakdown[] = [
                 'product_id' => $productId,
                 'product_name' => $productName,
-                'expired_date' => $batch->expired_date,
+                'expired_date' => $batch->expired_date->format('Y-m-d'),
                 'whs_id' => $batch->whs_id,
                 'qty' => $take,
                 'qty_stock' => $batch->qty_available,

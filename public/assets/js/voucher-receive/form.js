@@ -221,6 +221,29 @@ const VplReceiveForm = {
         return rows;
     },
 
+    // Blocks submit with a toast if any row with a product selected is missing Qty or Dest. WHS.
+    validateRows(prefix) {
+        let error = null;
+        $(`#${prefix}_detailBody tr`).each(function (i) {
+            if (error) return;
+            const $row    = $(this);
+            const product = $row.find(`.${prefix}-product-sel option:selected`).text().trim();
+            if (!product || product === 'Select Product') return;
+
+            const qty = $row.find('input[name*="[qty]"]').val();
+            const whs = $row.find(`.${prefix}-whs-sel`).val();
+
+            if (!qty) error = `Row ${i + 1}: Qty is required.`;
+            else if (!whs) error = `Row ${i + 1}: Dest. WHS is required.`;
+        });
+
+        if (error) {
+            VplReceive.toast('error', error);
+            return false;
+        }
+        return true;
+    },
+
     // Already-saved detail lines shown in the Edit modal's "Existing Details" table
     collectExistingRows() {
         const rows = [];
@@ -286,6 +309,8 @@ const VplReceiveForm = {
             Swal.fire({ icon: 'warning', title: 'Remark Required', text: 'Please enter a remark before submitting.' });
             return;
         }
+
+        if (!VplReceiveForm.validateRows('c')) return;
 
         const rows = VplReceiveForm.collectRows('c');
 
@@ -461,6 +486,8 @@ const VplReceiveForm = {
             Swal.fire({ icon: 'warning', title: 'Remark Required', text: 'Please enter a remark before submitting.' });
             return;
         }
+
+        if (!VplReceiveForm.validateRows('e')) return;
 
         const doSubmit = () => {
             const id   = VplReceive.state.currentViewId;

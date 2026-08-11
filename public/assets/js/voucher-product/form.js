@@ -44,6 +44,7 @@ const VplMasterForm = {
     },
 
     showError(msg) {
+        VplMaster.toast('error', msg);
         const el = document.getElementById('formError');
         if (!el) return;
         el.textContent = msg;

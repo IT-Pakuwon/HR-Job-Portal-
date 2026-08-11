@@ -283,6 +283,25 @@ const VplSettlementForm = {
     // PREVIEW STEP — client-side only, no server round trip
     // ------------------------------------------------------------------
 
+    // Blocks submit with a toast if any settlement line is missing its Qty Settlement value.
+    validateLines(prefix) {
+        let error = null;
+        document.querySelectorAll(`#${prefix}_detailBody tr[id^="${prefix}_row_"]`).forEach((row, i) => {
+            if (error) return;
+            const input = row.querySelector(`.${prefix}-qty-settlement-input`);
+            if (!input) return;
+            if (input.value === '' || input.value === null) {
+                error = `Row ${i + 1}: Qty Settlement is required.`;
+            }
+        });
+
+        if (error) {
+            VplSettlement.toast('error', error);
+            return false;
+        }
+        return true;
+    },
+
     collectLines(prefix) {
         const rows = [];
         document.querySelectorAll(`#${prefix}_detailBody tr[id^="${prefix}_row_"]`).forEach((row) => {
@@ -322,6 +341,8 @@ const VplSettlementForm = {
             VplSettlement.toast('error', 'No settlement lines to submit.');
             return;
         }
+
+        if (!VplSettlementForm.validateLines(prefix)) return;
 
         const cpnyid = document.getElementById(`${prefix}_cpnyid`)?.value ?? document.getElementById('e_cpnyid_display')?.value ?? '';
         const dept   = document.getElementById(`${prefix}_department`)?.value ?? document.getElementById('e_dept_display')?.value ?? '';

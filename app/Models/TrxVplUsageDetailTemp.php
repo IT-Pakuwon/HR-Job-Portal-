@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\NoTimezoneShift;
 use Illuminate\Database\Eloquent\Model;
 
 class TrxVplUsageDetailTemp extends Model
 {
+    use NoTimezoneShift;
+
     protected $connection = 'pgsql5';
 
     protected $table = 'tr_vpl_usage_detail_temp';

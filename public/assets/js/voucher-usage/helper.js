@@ -13,53 +13,75 @@ const VplUsageHelper = {
     },
 
     renderTimeline(approvals) {
-        if (!approvals?.length) {
-            return '<p class="text-sm text-slate-400 p-4">No approval workflow.</p>';
+        if (!approvals || approvals.length === 0) {
+            return `<div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500 dark:border-white/10 dark:bg-white/[0.02]">No approval records.</div>`;
         }
 
-        return approvals.map((ap, i) => {
-            const statusCls = {
-                A: 'bg-green-500',
-                R: 'bg-red-500',
-                D: 'bg-yellow-500',
-                X: 'bg-slate-400',
-                P: 'bg-slate-300 dark:bg-slate-600',
-            }[ap.status] ?? 'bg-slate-300';
+        const badgeColor = (s) => {
+            switch (s) {
+                case 'A': return 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400';
+                case 'R': return 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400';
+                case 'D': return 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400';
+                case 'P': return 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400';
+                default:  return 'bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-400';
+            }
+        };
 
-            const statusIcon = {
-                A: '<i class="fa-solid fa-check text-[10px] text-white"></i>',
-                R: '<i class="fa-solid fa-xmark text-[10px] text-white"></i>',
-                D: '<i class="fa-solid fa-rotate-left text-[10px] text-white"></i>',
-                X: '<i class="fa-solid fa-minus text-[10px] text-white"></i>',
-                P: '',
-            }[ap.status] ?? '';
+        const icon = (s) => {
+            switch (s) {
+                case 'A': return '<i class="fa-solid fa-check text-xs"></i>';
+                case 'R': return '<i class="fa-solid fa-xmark text-xs"></i>';
+                case 'D': return '<i class="fa-solid fa-rotate-left text-xs"></i>';
+                default:  return '<i class="fa-solid fa-clock text-xs"></i>';
+            }
+        };
 
-            const dateAfter = ap.aprvdateafter
-                ? `<div class="text-[11px] text-slate-400 mt-0.5">${ap.aprvdateafter}</div>`
-                : '';
-            const dateBefore = ap.aprvdatebefore
-                ? `<div class="text-[11px] text-slate-400">Assigned: ${ap.aprvdatebefore}</div>`
-                : '';
+        const pill = (s) => {
+            switch (s) {
+                case 'A': return `<span class="inline-flex shrink-0 rounded-lg bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">Approved</span>`;
+                case 'R': return `<span class="inline-flex shrink-0 rounded-lg bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700 dark:bg-red-500/20 dark:text-red-300">Rejected</span>`;
+                case 'D': return `<span class="inline-flex shrink-0 rounded-lg bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">Revise</span>`;
+                default:  return `<span class="inline-flex shrink-0 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:bg-white/10 dark:text-slate-400">Waiting</span>`;
+            }
+        };
 
-            const connector = i < approvals.length - 1
-                ? '<div class="ml-[11px] h-6 w-0.5 bg-slate-200 dark:bg-white/10"></div>'
-                : '';
+        const items = approvals.map((ap, index) => {
+            const isLast = index === approvals.length - 1;
+            const s      = (ap.status ?? '').toUpperCase();
+            const title  = `Approval Level ${ap.aprvid}`;
+            const by     = ap.name || ap.aprvusername || null;
+            const at     = ap.aprvdateafter || ap.aprvdatebefore || null;
 
             return `
-                <div class="flex items-start gap-3">
-                    <div class="mt-0.5 flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full ${statusCls}">
-                        ${statusIcon}
+                <div class="relative flex gap-4">
+                    <div class="flex flex-col items-center">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${badgeColor(s)}">
+                            ${icon(s)}
+                        </div>
+                        ${!isLast ? '<div class="mt-1 min-h-6 w-px flex-1 bg-slate-200 dark:bg-white/10"></div>' : ''}
                     </div>
-                    <div class="flex-1 pb-1">
-                        <div class="text-sm font-semibold text-slate-800 dark:text-white">${ap.name ?? ap.aprvusername}</div>
-                        <div class="text-[11px] text-slate-500">${ap.aprvusername}</div>
-                        ${dateBefore}
-                        ${dateAfter}
+                    <div class="min-w-0 flex-1 pb-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">${title}</p>
+                                ${by ? `<p class="mt-1 text-sm font-semibold text-slate-700 dark:text-slate-200">${by}</p>` : ''}
+                                ${at ? `<p class="mt-1 text-xs text-slate-400 dark:text-slate-500">${at}</p>` : ''}
+                            </div>
+                            ${pill(s)}
+                        </div>
                     </div>
-                </div>
-                ${connector}
-            `;
+                </div>`;
         }).join('');
+
+        return `
+            <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                <div class="border-b border-slate-200 px-5 py-4 dark:border-white/10">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">Approval Workflow</h3>
+                </div>
+                <div class="space-y-2 p-4">
+                    ${items}
+                </div>
+            </div>`;
     },
 
     /**
