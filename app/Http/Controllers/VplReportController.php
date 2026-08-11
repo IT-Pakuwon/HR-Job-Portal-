@@ -103,6 +103,7 @@ class VplReportController extends Controller
 
         return view('pages.report-vpl.partials.stock-voucher-table', [
             'groups' => $groups,
+            'cpnyid' => $cpnyid,
             'year'   => $year,
             'month'  => $month,
         ]);

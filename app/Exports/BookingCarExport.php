@@ -32,6 +32,7 @@ class BookingCarExport implements
             'End Time',
             'Requester',
             'Department',
+            'Company Expense',
             'Purpose',
             'Route',
             'Passenger',
@@ -51,6 +52,11 @@ class BookingCarExport implements
         $departments = \App\Models\MsDepartment::pluck(
             'department_name',
             'department_id'
+        );
+
+        $companies = \App\Models\MsCompany::pluck(
+            'cpny_name',
+            'cpny_id'
         );
 
         $users = User::pluck('name', 'username');
@@ -83,6 +89,8 @@ class BookingCarExport implements
                 'bc.booking_date',
 
                 'bc.department_id',
+
+                'bc.cpny_id_site',
 
                 'bc.user_peminta',
 
@@ -158,7 +166,8 @@ class BookingCarExport implements
 
             ->map(function ($group) use (
                 $users,
-                $departments
+                $departments,
+                $companies
             ) {
 
                 $row = $group->first();
@@ -231,6 +240,9 @@ class BookingCarExport implements
                         ?? $row->user_peminta,
 
                     'department' => $departments[$row->department_id]
+                        ?? '-',
+
+                    'company_expense' => $companies[$row->cpny_id_site]
                         ?? '-',
 
                     'purpose' => $row->purpose_descr

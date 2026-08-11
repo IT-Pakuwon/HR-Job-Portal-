@@ -541,6 +541,11 @@ class ReportGeneralGAController extends Controller
             'department_id'
         );
 
+        $companies = \App\Models\MsCompany::pluck(
+            'cpny_name',
+            'cpny_id'
+        );
+
         $users = User::pluck('name', 'username');
 
         $user = auth()->user();
@@ -714,6 +719,11 @@ class ReportGeneralGAController extends Controller
 
             ->addColumn('department', function ($row) use ($departments) {
                 return $departments[$row->department_id]
+                    ?? '-';
+            })
+
+            ->addColumn('company_expense', function ($row) use ($companies) {
+                return $companies[$row->cpny_id_site]
                     ?? '-';
             })
 

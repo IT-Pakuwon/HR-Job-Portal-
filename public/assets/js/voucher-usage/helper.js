@@ -144,8 +144,9 @@ const VplUsageHelper = {
                     <span class="${prefix}-exp-display block rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500 dark:bg-white/[0.04] dark:text-slate-400">—</span>
                 </td>
                 <td class="px-3 py-2">
-                    <input type="number" name="addmore[${idx}][qty]" min="1" placeholder="0"
-                        class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-white/10 dark:bg-[#0b1220] dark:text-white">
+                    <input type="number" name="addmore[${idx}][qty]" min="1" placeholder="0" readonly
+                        class="w-full cursor-not-allowed rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400"
+                        title="Qty is set when the product is added — remove and re-add to change it.">
                 </td>
                 <td class="px-3 py-2">
                     <select name="addmore[${idx}][purpose_id]"

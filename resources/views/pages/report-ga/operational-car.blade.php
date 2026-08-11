@@ -182,6 +182,7 @@
                         <th>End</th>
                         <th>Requester</th>
                         <th>Department</th>
+                        <th>Company Expense</th>
                         <th>Purpose</th>
                         <th>Route</th>
                         <th>Passenger</th>
@@ -257,6 +258,9 @@
                 },
                 {
                     data: 'department'
+                },
+                {
+                    data: 'company_expense'
                 },
                 {
                     data: 'purpose_descr'
