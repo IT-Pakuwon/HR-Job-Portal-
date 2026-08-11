@@ -389,9 +389,9 @@
         const myUrl = "{{ route('training-list.my') }}";
         const certificateUrl = "{{ route('training-list.certificate', ['id' => '__ID__']) }}";
         const colleaguesUrl = "{{ route('training-list.colleagues') }}";
+        const pendingApprovalsUrl = "{{ route('training-list.pending-approvals') }}";
         @if (Auth::user()->hasRole('HCDEVACCESS'))
         const waitlistUrl = "{{ route('training-list.waitlist') }}";
-        const pendingApprovalsUrl = "{{ route('training-list.pending-approvals') }}";
         @endif
         const csrfHeaders = { 'X-CSRF-TOKEN': '{{ csrf_token() }}' };
         const initialEid = @json($initialEid);

@@ -1,7 +1,7 @@
-<div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
-    <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
-        <thead class="bg-gray-100 dark:bg-gray-800">
-            <tr class="text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300">
+<div class="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <thead class="bg-gray-100">
+            <tr class="text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
                 <th class="px-3 py-2">No</th>
                 <th class="px-3 py-2">Tenant</th>
                 <th class="px-3 py-2">Expiry Date</th>
@@ -21,11 +21,11 @@
                 <th class="px-3 py-2">Transfer/Usage No (DAS)</th>
             </tr>
         </thead>
-        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+        <tbody class="divide-y divide-gray-100 bg-white">
             @forelse($groups as $group)
                 @if($group['is_first_of_category'])
-                    <tr class="bg-purple-50 dark:bg-purple-900/20">
-                        <td colspan="17" class="px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-purple-700 dark:text-purple-300">
+                    <tr class="bg-purple-50">
+                        <td colspan="17" class="px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-purple-700">
                             {{ $group['category_label'] }}
                         </td>
                     </tr>
@@ -34,7 +34,7 @@
                 @php $groupRows = count($group['rows']) ? $group['rows'] : [null]; @endphp
 
                 @foreach($groupRows as $rIndex => $row)
-                    <tr class="text-gray-700 dark:text-gray-300">
+                    <tr class="bg-white text-gray-700">
                         @if($rIndex === 0)
                             @if($group['is_first_of_tenant'])
                                 <td class="px-3 py-2 align-top font-medium" rowspan="{{ $group['tenant_rowspan'] }}">
@@ -79,8 +79,8 @@
                     </tr>
                 @endforeach
             @empty
-                <tr>
-                    <td colspan="17" class="px-3 py-8 text-center text-gray-500 dark:text-gray-400">
+                <tr class="bg-white">
+                    <td colspan="17" class="px-3 py-8 text-center text-gray-500">
                         No data for the selected company/period.
                     </td>
                 </tr>
