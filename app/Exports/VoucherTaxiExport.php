@@ -143,6 +143,7 @@ class VoucherTaxiExport implements FromCollection, WithHeadings
                     'R' => 'Rejected',
                     'D' => 'Revise',
                     'X' => 'Cancelled',
+                    'F' => 'Processed',
                     default => $row->status,
                 },
             ];

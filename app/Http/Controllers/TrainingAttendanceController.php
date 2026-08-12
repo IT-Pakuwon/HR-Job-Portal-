@@ -142,6 +142,20 @@ class TrainingAttendanceController extends Controller
         ]);
     }
 
+    /**
+     * Three barcode/QR formats can be scanned here:
+     * - "TRN-xxxxxxxxxx" — per-registration code (User::attendance_code),
+     *   good for exactly one event; looked up directly and cross-checked
+     *   against the selected schedule.
+     * - "USR-<username>" — a person's own permanent badge (User::barcode_code,
+     *   shown on their account page), valid at any event. Since it isn't
+     *   tied to one registration, it's resolved by finding *this* username's
+     *   Approved/seated registration for the currently selected schedule.
+     * - A vCard (from the account page's QR, ProfileController::qrImage()) —
+     *   a phone camera reads this as a normal contact card, but it carries
+     *   the same USR- code in a custom X-USERCODE field just for this
+     *   scanner to find, so it doubles as valid check-in input.
+     */
     public function scan(Request $request)
     {
         $request->validate([
@@ -150,18 +164,37 @@ class TrainingAttendanceController extends Controller
         ]);
 
         $detail = MsLndTrainingSchedule::where('schedule_id', $request->schedule_id)->firstOrFail();
+        $code = trim($request->code);
 
-        $registration = TrLndTrainingRegistration::where('attendance_code', trim($request->code))
-            ->where('status', TrLndTrainingRegistration::STATUS_APPROVED)
-            ->seated()
-            ->first();
-
-        if (!$registration) {
-            return response()->json(['success' => false, 'message' => 'Barcode tidak dikenali'], 404);
+        if (stripos($code, 'BEGIN:VCARD') !== false && preg_match('/X-USERCODE:\s*(\S+)/i', $code, $m)) {
+            $code = trim($m[1]);
         }
 
-        if (strcasecmp((string) $registration->schedule_id, (string) $detail->schedule_id) !== 0) {
-            return response()->json(['success' => false, 'message' => 'Barcode ini bukan untuk event yang dipilih'], 422);
+        if (stripos($code, 'USR-') === 0) {
+            $username = substr($code, 4);
+
+            $registration = TrLndTrainingRegistration::whereRaw('lower(user_registration) = ?', [strtolower($username)])
+                ->where('schedule_id', $detail->schedule_id)
+                ->where('status', TrLndTrainingRegistration::STATUS_APPROVED)
+                ->seated()
+                ->first();
+
+            if (!$registration) {
+                return response()->json(['success' => false, 'message' => 'Peserta ini tidak terdaftar/disetujui untuk event ini'], 404);
+            }
+        } else {
+            $registration = TrLndTrainingRegistration::where('attendance_code', $code)
+                ->where('status', TrLndTrainingRegistration::STATUS_APPROVED)
+                ->seated()
+                ->first();
+
+            if (!$registration) {
+                return response()->json(['success' => false, 'message' => 'Barcode tidak dikenali'], 404);
+            }
+
+            if (strcasecmp((string) $registration->schedule_id, (string) $detail->schedule_id) !== 0) {
+                return response()->json(['success' => false, 'message' => 'Barcode ini bukan untuk event yang dipilih'], 422);
+            }
         }
 
         if (!$this->isWithinAttendanceWindow($detail)) {

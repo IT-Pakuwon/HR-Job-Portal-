@@ -17,7 +17,7 @@ trait HasAttendanceWindow
         $from = Carbon::parse($detail->schedule_date)->startOfDay();
 
         $until = $detail->schedule_end_time
-            ? Carbon::parse($detail->schedule_date . ' ' . $detail->schedule_end_time)
+            ? Carbon::parse($detail->schedule_date->format('Y-m-d') . ' ' . $detail->schedule_end_time)
             : $from->copy()->endOfDay();
 
         return ['from' => $from, 'until' => $until->addDay()];

@@ -1,3 +1,12 @@
+@php
+    $statusLabel = match ($ticket->status) {
+        'P' => 'Open',
+        'C' => 'Completed',
+        'X' => 'Cancelled',
+        default => $ticket->status,
+    };
+@endphp
+
 {{-- Ticket ID highlight box --}}
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;">
     <tr>
@@ -25,7 +34,7 @@
             Ticket Type
         </td>
         <td style="padding:11px 0;font-size:13px;color:#334155;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
-            {{ $ticket->ticket_type }}
+            {{ $ticket->type->ticket_type_name ?? $ticket->ticket_type }}
         </td>
     </tr>
 
@@ -85,7 +94,7 @@
         </td>
         <td style="padding:11px 0;vertical-align:middle;">
             <span style="display:inline-block;padding:3px 14px;border-radius:999px;background:#dbeafe;border:1.5px solid #93c5fd;color:#1d4ed8;font-size:11px;font-weight:700;letter-spacing:0.04em;">
-                {{ $ticket->status }}
+                {{ $statusLabel }}
             </span>
         </td>
     </tr>

@@ -431,12 +431,6 @@
                                         ({{ rtrim(rtrim(number_format($taxRate, 2), '0'), '.') }}%)
                                     @endif
                                 </span>
-                                <span class="b-line">
-                                    DPP: Rp {{ number_format((float) ($d->amount_request_dpp ?? 0), 2, ',', '.') }}
-                                </span>
-                                <span class="b-line">
-                                    Tax: Rp {{ number_format((float) ($d->amount_request_taxamt ?? 0), 2, ',', '.') }}
-                                </span>
                             </td>
                         @endif
 

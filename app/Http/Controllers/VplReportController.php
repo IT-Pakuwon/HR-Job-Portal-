@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\VplStockSummaryExport;
 use App\Exports\VplStockVoucherExport;
+use App\Models\MsVplAging;
 use App\Models\MsVplProduct;
 use App\Models\MsVplProductBal;
 use App\Models\TrxVplReceiveDetail;
@@ -11,6 +13,7 @@ use App\Models\TrxVplUsageDetail;
 use App\Models\Usercpny;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
@@ -20,6 +23,26 @@ class VplReportController extends Controller
     private const WHS_COLLECTION = 'WHCOLLECTION';
     private const WHS_LOYALTY    = 'WHLOYALTY';
     private const WHS_PROMOTION  = 'WHPROMOTION';
+
+    /** tr_vpl_receive.receive_type -> display grouping for the Stock Summary report's "Voucher Sources" block. */
+    private const SOURCE_MAP = [
+        'Media Promo'   => ['group' => 'Promotion', 'column' => 'CL Media promo', 'row_label' => 'MP'],
+        'Event'         => ['group' => 'Promotion', 'column' => 'Event/TR', 'row_label' => 'EVT'],
+        'Promo Levy'    => ['group' => 'Leasing', 'column' => 'Promo Levy', 'row_label' => 'PL'],
+        'Rent/Discount' => ['group' => 'Leasing', 'column' => 'Rent/Discount', 'row_label' => 'RENT'],
+    ];
+
+    /** tr_vpl_usage_detail.purpose_id -> "Voucher Used in Current Period" bucket. Unmapped purposes fold into Internal Use. */
+    private const PURPOSE_MAP = [
+        'Redeem PG Card' => 'Loyalty',
+        'Promotion'      => 'Promotion',
+        'Entertaiment'   => 'Entertainment',
+        'Management'     => 'Internal Use',
+        'Dijual'         => 'Internal Use',
+        'Write Off'      => 'Internal Use',
+    ];
+
+    private const USED_COLUMNS = ['Loyalty', 'Promotion', 'Entertainment', 'Internal Use'];
 
     /*
     |--------------------------------------------------------------------------
@@ -38,7 +61,7 @@ class VplReportController extends Controller
         $hasVPPRMTNACCESS   = $user->hasRole('VPPRMTNACCESS');
         $hasVPLOYALTYACCESS = $user->hasRole('VPLOYALTYACCESS');
 
-        $tabCount = 1;
+        $tabCount = 2;
 
         $defaultReport = 'stock-voucher';
 
@@ -69,6 +92,9 @@ class VplReportController extends Controller
             case 'stock-voucher':
                 return $this->stockVoucherJson($request);
 
+            case 'stock-summary':
+                return $this->stockSummaryJson($request);
+
             default:
                 abort(404);
         }
@@ -84,6 +110,9 @@ class VplReportController extends Controller
         switch ($type) {
             case 'stock-voucher':
                 return $this->stockVoucherExport($request);
+
+            case 'stock-summary':
+                return $this->stockSummaryExport($request);
 
             default:
                 abort(404);
@@ -117,7 +146,7 @@ class VplReportController extends Controller
 
         $filename = "stock-voucher-{$cpnyid}-{$year}-".str_pad((string) $month, 2, '0', STR_PAD_LEFT).'.xlsx';
 
-        return Excel::download(new VplStockVoucherExport($groups, $year, $month), $filename);
+        return Excel::download(new VplStockVoucherExport($groups, $cpnyid, $year, $month), $filename);
     }
 
     /** @return array{0: string, 1: int, 2: int} */
@@ -140,6 +169,60 @@ class VplReportController extends Controller
         $monthStart = Carbon::create($year, $month, 1)->startOfMonth();
         $monthEnd   = Carbon::create($year, $month, 1)->endOfMonth();
 
+        $batchRows = $this->batchStockRows($cpnyid, $year, $month);
+
+        if (empty($batchRows)) {
+            return [];
+        }
+
+        $inRows  = $this->inMovementRows($cpnyid, $monthStart, $monthEnd);
+        $outRows = $this->outMovementRows($cpnyid, $monthStart, $monthEnd);
+
+        $groups = [];
+
+        foreach ($batchRows as $key => $row) {
+            $product = $row['product'];
+            $bal     = $row['bal'];
+
+            $rows = array_merge(
+                $inRows[$key] ?? [],
+                $outRows[$key] ?? []
+            );
+
+            usort($rows, fn ($a, $b) => $a['date'] <=> $b['date']);
+
+            $groups[] = [
+                'product_id'     => $product->product_id,
+                'tenant'         => $product->product_name,
+                'category_label' => $row['category_label'],
+                'expired_date'   => $this->expiredKey($bal->expired_date) === 'NULL' ? null : $bal->expired_date,
+                'nominal'        => (float) $product->product_value,
+                'beginning'      => $row['beginning'],
+                'in_total'       => $row['month_in'],
+                'out_total'      => $row['month_out'],
+                'ending'         => $row['ending'],
+                'total_nominal'  => $row['ending'] * (float) $product->product_value,
+                'rows'           => $rows,
+            ];
+        }
+
+        usort($groups, function ($a, $b) {
+            return [$a['category_label'], $a['tenant'], $a['expired_date']]
+                <=> [$b['category_label'], $b['tenant'], $b['expired_date']];
+        });
+
+        return $this->attachRowspans($groups);
+    }
+
+    /**
+     * Per-product+expiry-batch beginning/in/out/ending for the given month, keyed by
+     * "product_id|expiredKey". Shared by the detail (Stock Voucher) and summary
+     * (Stock Summary) reports so the balance/cumulative math only lives in one place.
+     *
+     * @return array<string, array{product: MsVplProduct, bal: MsVplProductBal, category_label: string, beginning: float, month_in: float, month_out: float, ending: float}>
+     */
+    private function batchStockRows(string $cpnyid, int $year, int $month): array
+    {
         // Universe of tenant+expiry batches tracked at WHCOLLECTION this year.
         $balances = MsVplProductBal::where('cpnyid', $cpnyid)
             ->where('year', $year)
@@ -159,10 +242,7 @@ class VplReportController extends Controller
         // WHCOLLECTION's own balance at transfer time.
         [$monthlyIn, $monthlyOutAmt] = $this->ledgerMonthlyInOut($cpnyid, $year);
 
-        $inRows  = $this->inMovementRows($cpnyid, $monthStart, $monthEnd);
-        $outRows = $this->outMovementRows($cpnyid, $monthStart, $monthEnd);
-
-        $groups = [];
+        $rows = [];
 
         foreach ($balances as $bal) {
             $key = $bal->product_id.'|'.$this->expiredKey($bal->expired_date);
@@ -184,38 +264,342 @@ class VplReportController extends Controller
 
             $monthIn  = $in[$month] ?? 0;
             $monthOut = $out[$month] ?? 0;
-            $ending   = $beginning + $monthIn - $monthOut;
 
-            $rows = array_merge(
-                $inRows[$key] ?? [],
-                $outRows[$key] ?? []
-            );
-
-            usort($rows, fn ($a, $b) => $a['date'] <=> $b['date']);
-
-            $categoryLabel = $product->product_category === 'F&B' ? 'F&B' : 'NON F&B';
-
-            $groups[] = [
-                'product_id'     => $product->product_id,
-                'tenant'         => $product->product_name,
-                'category_label' => $categoryLabel,
-                'expired_date'   => $this->expiredKey($bal->expired_date) === 'NULL' ? null : $bal->expired_date->format('Y-m-d'),
-                'nominal'        => (float) $product->product_value,
+            $rows[$key] = [
+                'product'        => $product,
+                'bal'            => $bal,
+                'category_label' => $product->product_category === 'F&B' ? 'F&B' : 'NON F&B',
                 'beginning'      => $beginning,
-                'in_total'       => $monthIn,
-                'out_total'      => $monthOut,
-                'ending'         => $ending,
-                'total_nominal'  => $ending * (float) $product->product_value,
-                'rows'           => $rows,
+                'month_in'       => $monthIn,
+                'month_out'      => $monthOut,
+                'ending'         => $beginning + $monthIn - $monthOut,
             ];
         }
 
-        usort($groups, function ($a, $b) {
-            return [$a['category_label'], $a['tenant'], $a['expired_date']]
-                <=> [$b['category_label'], $b['tenant'], $b['expired_date']];
+        return $rows;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | STOCK SUMMARY REPORT (aging + voucher sources + voucher used)
+    |--------------------------------------------------------------------------
+    */
+    private function stockSummaryJson(Request $request)
+    {
+        [$cpnyid, $year, $month] = $this->resolveStockVoucherParams($request);
+
+        $rows = $this->buildStockSummaryReport($cpnyid, $year, $month);
+
+        return view('pages.report-vpl.partials.stock-summary-table', [
+            'rows'   => $rows,
+            'meta'   => $this->summaryColumnMeta(),
+            'cpnyid' => $cpnyid,
+            'year'   => $year,
+            'month'  => $month,
+        ]);
+    }
+
+    private function stockSummaryExport(Request $request)
+    {
+        [$cpnyid, $year, $month] = $this->resolveStockVoucherParams($request);
+
+        $rows = $this->buildStockSummaryReport($cpnyid, $year, $month);
+
+        $filename = "stock-summary-{$cpnyid}-{$year}-".str_pad((string) $month, 2, '0', STR_PAD_LEFT).'.xlsx';
+
+        return Excel::download(
+            new VplStockSummaryExport($rows, $this->summaryColumnMeta(), $cpnyid, $year, $month),
+            $filename
+        );
+    }
+
+    /** Column metadata (aging bucket labels, voucher-source columns, usage-purpose columns) for the summary table's header + cell iteration. */
+    private function summaryColumnMeta(): array
+    {
+        $agingLabels = MsVplAging::where('status', 'A')->orderBy('order_age')->pluck('age_descr')->all();
+
+        $sourceColumns = [];
+        foreach (self::SOURCE_MAP as $meta) {
+            $sourceColumns[$meta['column']] = $meta['group'];
+        }
+
+        return [
+            'aging'   => $agingLabels,
+            'sources' => $sourceColumns,
+            'used'    => self::USED_COLUMNS,
+        ];
+    }
+
+    private function buildStockSummaryReport(string $cpnyid, int $year, int $month): array
+    {
+        $monthStart = Carbon::create($year, $month, 1)->startOfMonth();
+        $monthEnd   = Carbon::create($year, $month, 1)->endOfMonth();
+
+        // For a period still in progress (or in the future), age against today rather than
+        // a month-end that hasn't happened yet; only a fully-elapsed past period ages as of
+        // its own month-end.
+        $agingAsOf = Carbon::now()->lt($monthEnd) ? Carbon::now() : $monthEnd;
+
+        $batchRows = $this->batchStockRows($cpnyid, $year, $month);
+
+        if (empty($batchRows)) {
+            return [];
+        }
+
+        $sources        = $this->batchSourceTypes($cpnyid);
+        $purposeOut     = $this->batchPurposeOut($cpnyid, $monthStart, $monthEnd);
+        $loyaltyTransfer = $this->batchLoyaltyTransferOut($cpnyid, $monthStart, $monthEnd);
+        $agingBuckets   = MsVplAging::where('status', 'A')->orderBy('order_age')->get();
+
+        $rows = [];
+
+        foreach ($batchRows as $key => $row) {
+            $product     = $row['product'];
+            $bal         = $row['bal'];
+            $receiveType = $sources[$key] ?? null;
+            $sourceMeta  = self::SOURCE_MAP[$receiveType] ?? null;
+            $nominal     = (float) $product->product_value;
+            $expiredDate = $this->expiredKey($bal->expired_date) === 'NULL' ? null : $bal->expired_date;
+
+            // Usage/redemption-based split — feeds "Voucher Used in Current Period" (value).
+            $used = array_fill_keys(self::USED_COLUMNS, 0.0);
+            foreach ($purposeOut[$key] ?? [] as $bucket => $qty) {
+                $used[$bucket] += $qty;
+            }
+
+            // Stock roll-forward's Out Loy (qty) is the WHCOLLECTION->WHLOYALTY transfer —
+            // distinct from $used['Loyalty'] above, which is actual usage recorded at
+            // WHLOYALTY and may lag behind the transfer by one or more periods.
+            $loyaltyTransferQty = $loyaltyTransfer[$key] ?? 0;
+
+            $rows[] = [
+                'product_id'     => $product->product_id,
+                'tenant'         => $product->product_name,
+                'category_label' => $row['category_label'],
+                'source_group'   => $sourceMeta['group'] ?? 'Other',
+                'source_column'  => $sourceMeta['column'] ?? ($receiveType ?? 'Unknown'),
+                'source_label'   => $sourceMeta['row_label'] ?? ($receiveType ?? '-'),
+                'expired_date'   => $expiredDate,
+                'nominal'        => $nominal,
+                'beginning'      => $row['beginning'],
+                'in_total'       => $row['month_in'],
+                'out_loyalty'    => $loyaltyTransferQty,
+                'out_promotion'  => $used['Promotion'],
+                'out_entertain'  => $used['Entertainment'],
+                'out_internal'   => $used['Internal Use'],
+                'out_total'      => $row['month_out'],
+                'ending'         => $row['ending'],
+                'value'          => $row['ending'] * $nominal,
+                'aging_bucket'   => $this->resolveAgingBucket(
+                    $expiredDate ? Carbon::parse($expiredDate) : null,
+                    $agingAsOf,
+                    $agingBuckets
+                ),
+                'source_value'   => $row['month_in'] * $nominal,
+                'used_value'     => [
+                    'Loyalty'       => $used['Loyalty'] * $nominal,
+                    'Promotion'     => $used['Promotion'] * $nominal,
+                    'Entertainment' => $used['Entertainment'] * $nominal,
+                    'Internal Use'  => $used['Internal Use'] * $nominal,
+                ],
+            ];
+        }
+
+        usort($rows, function ($a, $b) {
+            return [$a['category_label'], $a['tenant'], $a['source_label'], $a['expired_date']]
+                <=> [$b['category_label'], $b['tenant'], $b['source_label'], $b['expired_date']];
         });
 
-        return $this->attachRowspans($groups);
+        return $this->attachSummaryGroupingAndTotals($rows, $agingBuckets);
+    }
+
+    /**
+     * Latest receive_type per product+expiry batch, from completed receives landing at
+     * WHCOLLECTION. If a batch was topped up under more than one source over time, the
+     * most recent receive's type wins (edge case — batches are expected to share one source).
+     *
+     * @return array<string, string>
+     */
+    private function batchSourceTypes(string $cpnyid): array
+    {
+        $receives = TrxVplReceiveDetail::query()
+            ->join('tr_vpl_receive', 'tr_vpl_receive.receive_id', '=', 'tr_vpl_receive_detail.receive_id')
+            ->where('tr_vpl_receive.cpnyid', $cpnyid)
+            ->where('tr_vpl_receive.status', 'C')
+            ->where('tr_vpl_receive_detail.whs_id', self::WHS_COLLECTION)
+            ->select([
+                'tr_vpl_receive_detail.product_id',
+                'tr_vpl_receive_detail.expired_date',
+                'tr_vpl_receive.receive_type',
+                'tr_vpl_receive.receive_date',
+            ])
+            ->orderBy('tr_vpl_receive.receive_date')
+            ->get();
+
+        $sources = [];
+
+        foreach ($receives as $r) {
+            $key = $r->product_id.'|'.$this->expiredKey($r->expired_date);
+            $sources[$key] = $r->receive_type;
+        }
+
+        return $sources;
+    }
+
+    /**
+     * Net usage qty in the given month, per product+expiry batch and "Voucher Used"
+     * bucket — this is a redemption/consumption metric, independent of the stock
+     * roll-forward's Out Loy (which tracks the WHCOLLECTION->WHLOYALTY transfer, not
+     * whether that stock has actually been redeemed yet). Usage at WHLOYALTY (recorded
+     * by the CUSTOMERSERVICE department) always buckets as Loyalty; usage at WHPROMOTION
+     * buckets via PURPOSE_MAP.
+     *
+     * @return array<string, array<string, float>>
+     */
+    private function batchPurposeOut(string $cpnyid, Carbon $monthStart, Carbon $monthEnd): array
+    {
+        $usages = TrxVplUsageDetail::query()
+            ->join('tr_vpl_usage', 'tr_vpl_usage.usage_id', '=', 'tr_vpl_usage_detail.usage_id')
+            ->where('tr_vpl_usage.cpnyid', $cpnyid)
+            ->where('tr_vpl_usage.status', 'C')
+            ->whereIn('tr_vpl_usage_detail.whs_id', [self::WHS_PROMOTION, self::WHS_LOYALTY])
+            ->whereBetween('tr_vpl_usage.usage_date', [$monthStart, $monthEnd])
+            ->select([
+                'tr_vpl_usage_detail.product_id',
+                'tr_vpl_usage_detail.expired_date',
+                'tr_vpl_usage_detail.whs_id',
+                'tr_vpl_usage_detail.purpose_id',
+                'tr_vpl_usage_detail.qty_usage',
+                'tr_vpl_usage_detail.qty_return_usage',
+            ])
+            ->get();
+
+        $out = [];
+
+        foreach ($usages as $u) {
+            $key    = $u->product_id.'|'.$this->expiredKey($u->expired_date);
+            $bucket = $u->whs_id === self::WHS_LOYALTY ? 'Loyalty' : (self::PURPOSE_MAP[$u->purpose_id] ?? 'Internal Use');
+            $qty    = (float) $u->qty_usage - (float) $u->qty_return_usage;
+
+            $out[$key][$bucket] = ($out[$key][$bucket] ?? 0) + $qty;
+        }
+
+        return $out;
+    }
+
+    /**
+     * Qty transferred WHCOLLECTION -> WHLOYALTY in the given month, per product+expiry
+     * batch. This is the actual mechanism Loyalty vouchers leave WHCOLLECTION by (there's
+     * no 'Redeem PG Card' purpose_id usage in practice) — folded into the Loyalty bucket
+     * alongside batchPurposeOut() so Out Loy+Prm+Ent+Internal reconciles to out_total.
+     *
+     * @return array<string, float>
+     */
+    private function batchLoyaltyTransferOut(string $cpnyid, Carbon $monthStart, Carbon $monthEnd): array
+    {
+        $transfers = TrxVplTransferDetail::query()
+            ->join('tr_vpl_transfer', 'tr_vpl_transfer.transfer_id', '=', 'tr_vpl_transfer_detail.transfer_id')
+            ->where('tr_vpl_transfer.cpnyid', $cpnyid)
+            ->where('tr_vpl_transfer.status', 'C')
+            ->where('tr_vpl_transfer_detail.from_whs_id', self::WHS_COLLECTION)
+            ->where('tr_vpl_transfer_detail.to_whs_id', self::WHS_LOYALTY)
+            ->whereBetween('tr_vpl_transfer.transfer_date', [$monthStart, $monthEnd])
+            ->select([
+                'tr_vpl_transfer_detail.product_id',
+                'tr_vpl_transfer_detail.expired_date',
+                'tr_vpl_transfer_detail.qty_transfer',
+            ])
+            ->get();
+
+        $out = [];
+
+        foreach ($transfers as $t) {
+            $key = $t->product_id.'|'.$this->expiredKey($t->expired_date);
+            $out[$key] = ($out[$key] ?? 0) + abs((float) $t->qty_transfer);
+        }
+
+        return $out;
+    }
+
+    /** Bucket a batch's expiry against ms_vpl_aging ranges, measured in days from the period's month-end. */
+    private function resolveAgingBucket(?Carbon $expiredDate, Carbon $monthEnd, Collection $agingBuckets): string
+    {
+        if ($agingBuckets->isEmpty()) {
+            return '-';
+        }
+
+        // No expiry date tracked for this batch: treat as the longest-lived bucket.
+        if (!$expiredDate) {
+            return $agingBuckets->last()->age_descr;
+        }
+
+        $ageDays = $monthEnd->diffInDays($expiredDate, false);
+
+        foreach ($agingBuckets as $bucket) {
+            if ($ageDays >= $bucket->start_age && $ageDays <= $bucket->end_age) {
+                return $bucket->age_descr;
+            }
+        }
+
+        return $agingBuckets->last()->age_descr;
+    }
+
+    /** Turn the flat, sorted batch rows into category-header / tenant-subtotal / detail render rows. */
+    private function attachSummaryGroupingAndTotals(array $rows, Collection $agingBuckets): array
+    {
+        if (empty($rows)) {
+            return [];
+        }
+
+        $agingLabels = $agingBuckets->pluck('age_descr')->all();
+        $sourceCols  = collect(self::SOURCE_MAP)->pluck('column')->unique()->all();
+
+        $output = [];
+
+        foreach (collect($rows)->groupBy('category_label') as $categoryLabel => $categoryRows) {
+            $output[] = ['type' => 'category_header', 'category_label' => $categoryLabel];
+
+            foreach ($categoryRows->groupBy('tenant') as $tenant => $tenantRows) {
+                $subtotal = [
+                    'type'          => 'tenant_subtotal',
+                    'tenant'        => $tenant,
+                    'nominal'       => $tenantRows->first()['nominal'],
+                    'beginning'     => $tenantRows->sum('beginning'),
+                    'in_total'      => $tenantRows->sum('in_total'),
+                    'out_loyalty'   => $tenantRows->sum('out_loyalty'),
+                    'out_promotion' => $tenantRows->sum('out_promotion'),
+                    'out_entertain' => $tenantRows->sum('out_entertain'),
+                    'out_internal'  => $tenantRows->sum('out_internal'),
+                    'out_total'     => $tenantRows->sum('out_total'),
+                    'ending'        => $tenantRows->sum('ending'),
+                    'value'         => $tenantRows->sum('value'),
+                    'aging'         => array_fill_keys($agingLabels, 0.0),
+                    'sources'       => array_fill_keys($sourceCols, 0.0),
+                    'used'          => array_fill_keys(self::USED_COLUMNS, 0.0),
+                ];
+
+                foreach ($tenantRows as $r) {
+                    $subtotal['aging'][$r['aging_bucket']] += $r['value'];
+
+                    if (isset($subtotal['sources'][$r['source_column']])) {
+                        $subtotal['sources'][$r['source_column']] += $r['source_value'];
+                    }
+
+                    foreach ($r['used_value'] as $bucket => $val) {
+                        $subtotal['used'][$bucket] += $val;
+                    }
+                }
+
+                $output[] = $subtotal;
+
+                foreach ($tenantRows as $r) {
+                    $r['type'] = 'detail';
+                    $output[] = $r;
+                }
+            }
+        }
+
+        return $output;
     }
 
     /**

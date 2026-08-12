@@ -15,7 +15,7 @@
 
                     {{-- Header --}}
                     <tr>
-                        <td style="background:linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 55%,#3b82f6 100%);border-radius:16px 16px 0 0;padding:32px 40px 28px;">
+                        <td style="background-color:#1d4ed8;background:linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 55%,#3b82f6 100%);border-radius:16px 16px 0 0;padding:32px 40px 28px;">
                             <table cellpadding="0" cellspacing="0" border="0" width="100%">
                                 <tr>
                                     <td>

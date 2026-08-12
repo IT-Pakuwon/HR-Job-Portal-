@@ -102,6 +102,18 @@ class User extends Authenticatable
     }
 
     /**
+     * Personal check-in barcode value — one per user, valid at any training
+     * event (unlike TrLndTrainingRegistration::attendance_code, which is
+     * minted per-registration/per-event). The USR- prefix keeps it visually
+     * and programmatically distinct from those TRN- codes so a scanner can
+     * tell which lookup path to use (see TrainingAttendanceController::scan()).
+     */
+    public function getBarcodeCodeAttribute(): string
+    {
+        return 'USR-' . strtoupper($this->username);
+    }
+
+    /**
      * Auth (session, remember-me, Auth::id()) identifies users by username instead of
      * the auto-increment id, because `id` is a pgsql2 surrogate key that can drift or be
      * reused across environments/DB copies while `username` stays stable — see other

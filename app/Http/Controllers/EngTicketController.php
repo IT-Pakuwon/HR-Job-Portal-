@@ -75,7 +75,7 @@ class EngTicketController extends Controller
         ],
 
         'process' => [
-            'APPROVED',
+            'RESPONSE',
             'REOPEN',
             'PENDING',
         ],
@@ -366,9 +366,9 @@ class EngTicketController extends Controller
                 'RESPONSE'
             )->count(),
 
-            'approved' => $baseCount()->where(
+            'complete_requested' => $baseCount()->where(
                 'status_pekerjaan',
-                'APPROVED'
+                'COMPLETE_REQUESTED'
             )->count(),
 
             'process' => $baseCount()->where(
@@ -870,7 +870,7 @@ class EngTicketController extends Controller
                 'nullable',
                 'file',
                 'max:5120',
-                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx',
+                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx,dwg,dxf',
             ],
         ]);
 
@@ -1485,22 +1485,6 @@ class EngTicketController extends Controller
             'Selected PIC is invalid.'
         );
 
-        $approvalCondition = $this->approvalConditionFor($ticket);
-
-        $approvalCtl = app(ApprovalController::class);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Validate approval line setup exists before mutating anything
-        |--------------------------------------------------------------------------
-        */
-
-        $approvalCtl->loadLines(
-            self::DOCTYPE,
-            $ticket->cpny_id,
-            $ticket->department_id
-        );
-
         DB::connection('pgsql5')->beginTransaction();
 
         try {
@@ -1549,16 +1533,6 @@ class EngTicketController extends Controller
                 'created_by' => auth()->user()->username,
             ]);
 
-            [$firstApprover, $linesCount] = $approvalCtl->generateForDocument(
-                $ticket->ticketid,
-                self::DOCTYPE,
-                $ticket->cpny_id,
-                $ticket->department_id,
-                auth()->user()->username,
-                ['approval_condition' => $approvalCondition],
-                now()
-            );
-
             $ticket->refresh();
 
             DB::connection('pgsql5')->commit();
@@ -1570,21 +1544,6 @@ class EngTicketController extends Controller
                 $ticket,
                 'RESPONSE',
                 "PIC : {$ticket->pic_ticket}\nPriority : {$ticket->ticket_priority}"
-            );
-
-            $eid = Hashids::encode($ticket->id);
-
-            $approvalCtl->notifyFirstApprover(
-                $ticket->ticketid,
-                self::DOCTYPE,
-                'P',
-                'Eng Ticket',
-                url('/showoprtekticket/'.$eid),
-                [
-                    'info' => $ticket->issue_summary,
-                    'createdby' => $ticket->created_by,
-                    'date' => now()->toDateTimeString(),
-                ]
             );
 
             return response()->json([
@@ -1628,7 +1587,10 @@ class EngTicketController extends Controller
             // all approval levels done
             function (string $refnbr, Carbon $now) use ($ticket, $docUrl) {
                 $ticket->update([
-                    'status_pekerjaan' => 'APPROVED',
+                    'status' => 'C',
+                    'status_pekerjaan' => 'COMPLETED',
+                    'completed_by' => $ticket->pic_ticket,
+                    'completed_at' => $now,
                     'updated_by' => auth()->user()->username,
                 ]);
 
@@ -1638,9 +1600,9 @@ class EngTicketController extends Controller
                     'department_id' => $ticket->department_id,
                     'pic_ticket' => $ticket->pic_ticket,
                     'response_date' => $now,
-                    'response_summary' => 'Ticket Fully Approved',
-                    'response_descr' => 'All approval levels have approved this ticket.',
-                    'status_pekerjaan' => 'APPROVED',
+                    'response_summary' => 'Ticket Completion Approved',
+                    'response_descr' => 'All approval levels have approved this ticket completion.',
+                    'status_pekerjaan' => 'COMPLETED',
                     'status' => 'A',
                     'created_by' => auth()->user()->username,
                 ]);
@@ -1656,6 +1618,15 @@ class EngTicketController extends Controller
                         'deptname' => $ticket->department_id,
                         'info' => $ticket->issue_summary,
                     ]
+                );
+
+                $this->notificationService
+                    ->ticketCompleted($ticket);
+
+                $this->notificationService->ticketWhatsapp(
+                    $ticket,
+                    'COMPLETED',
+                    "Solution : {$ticket->solution_descr}"
                 );
             },
 
@@ -1716,7 +1687,7 @@ class EngTicketController extends Controller
             function (string $refnbr, Carbon $now) use ($ticket, $request, $docUrl) {
                 $ticket->update([
                     'status' => 'P',
-                    'status_pekerjaan' => 'CREATED',
+                    'status_pekerjaan' => 'PROCESS',
                     'updated_by' => auth()->user()->username,
                 ]);
 
@@ -1726,9 +1697,9 @@ class EngTicketController extends Controller
                     'department_id' => $ticket->department_id,
                     'pic_ticket' => auth()->user()->username,
                     'response_date' => $now,
-                    'response_summary' => 'Ticket Approval Rejected',
+                    'response_summary' => 'Ticket Completion Rejected',
                     'response_descr' => $request->response_descr,
-                    'status_pekerjaan' => 'CREATED',
+                    'status_pekerjaan' => 'PROCESS',
                     'status' => 'A',
                     'created_by' => auth()->user()->username,
                 ]);
@@ -1799,7 +1770,7 @@ class EngTicketController extends Controller
                 'nullable',
                 'file',
                 'max:5120',
-                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx',
+                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx,dwg,dxf',
             ],
         ]);
 
@@ -1963,7 +1934,7 @@ class EngTicketController extends Controller
                 'nullable',
                 'file',
                 'max:5120',
-                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx',
+                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx,dwg,dxf',
             ],
         ]);
 
@@ -2340,9 +2311,25 @@ class EngTicketController extends Controller
                 'nullable',
                 'file',
                 'max:5120',
-                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx',
+                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx,dwg,dxf',
             ],
         ]);
+
+        $approvalCondition = $this->approvalConditionFor($ticket);
+
+        $approvalCtl = app(ApprovalController::class);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validate approval line setup exists before mutating anything
+        |--------------------------------------------------------------------------
+        */
+
+        $approvalCtl->loadLines(
+            self::DOCTYPE,
+            $ticket->cpny_id,
+            $ticket->department_id
+        );
 
         DB::connection('pgsql5')->beginTransaction();
 
@@ -2350,10 +2337,8 @@ class EngTicketController extends Controller
             $ticket->update([
                 'solution_descr' => $request->solution_descr,
                 'pic_completed_ticket' => $request->working_end_date ?? now(),
-                'completed_by' => auth()->user()->username,
-                'completed_at' => now(),
-                'status' => 'C',
-                'status_pekerjaan' => 'COMPLETED',
+                'status' => 'P',
+                'status_pekerjaan' => 'COMPLETE_REQUESTED',
                 'updated_by' => auth()->user()->username,
             ]);
 
@@ -2363,14 +2348,24 @@ class EngTicketController extends Controller
                 'department_id' => $ticket->department_id,
                 'pic_ticket' => auth()->user()->username,
                 'response_date' => now(),
-                'response_summary' => 'Ticket Completed',
+                'response_summary' => 'Ticket Completion Requested',
                 'response_descr' => $request->solution_descr,
                 'working_start_date' => $request->working_start_date,
                 'working_end_date' => $request->working_end_date,
-                'status_pekerjaan' => 'COMPLETED',
+                'status_pekerjaan' => 'COMPLETE_REQUESTED',
                 'status' => 'A',
                 'created_by' => auth()->user()->username,
             ]);
+
+            [$firstApprover, $linesCount] = $approvalCtl->generateForDocument(
+                $ticket->ticketid,
+                self::DOCTYPE,
+                $ticket->cpny_id,
+                $ticket->department_id,
+                auth()->user()->username,
+                ['approval_condition' => $approvalCondition],
+                now()
+            );
 
             if ($request->hasFile('attachments')) {
                 $meta = [
@@ -2418,18 +2413,30 @@ class EngTicketController extends Controller
 
             DB::connection('pgsql5')->commit();
 
-            $this->notificationService
-                ->ticketCompleted($ticket);
-
             $this->notificationService->ticketWhatsapp(
                 $ticket,
-                'COMPLETED',
+                'PENDING APPROVAL',
                 "Solution : {$ticket->solution_descr}"
+            );
+
+            $eid = Hashids::encode($ticket->id);
+
+            $approvalCtl->notifyFirstApprover(
+                $ticket->ticketid,
+                self::DOCTYPE,
+                'P',
+                'Eng Ticket',
+                url('/showoprtekticket/'.$eid),
+                [
+                    'info' => $ticket->issue_summary,
+                    'createdby' => $ticket->created_by,
+                    'date' => now()->toDateTimeString(),
+                ]
             );
 
             return response()->json([
                 'success' => true,
-                'message' => 'Ticket completed successfully.',
+                'message' => 'Ticket completion submitted for approval.',
             ]);
         } catch (\Throwable $th) {
             DB::connection('pgsql5')->rollBack();
@@ -2619,7 +2626,7 @@ class EngTicketController extends Controller
                 'nullable',
                 'file',
                 'max:5120',
-                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx',
+                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx,dwg,dxf',
             ],
         ]);
 
@@ -3272,7 +3279,7 @@ class EngTicketController extends Controller
 
         $isEng = $this->canActOnTicketType($ticket->ticket_type);
 
-        $isApprover = $ticket->status_pekerjaan === 'RESPONSE'
+        $isApprover = $ticket->status_pekerjaan === 'COMPLETE_REQUESTED'
             && $this->isApprover($ticket);
 
         return [
@@ -3300,7 +3307,7 @@ class EngTicketController extends Controller
             'can_process' => $isPIC
                 && $ticket->status === 'P'
                 && in_array($ticket->status_pekerjaan, [
-                    'APPROVED',
+                    'RESPONSE',
                     'PENDING',
                     'REOPEN',
                 ]),

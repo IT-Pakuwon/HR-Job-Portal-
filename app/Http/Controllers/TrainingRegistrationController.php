@@ -952,6 +952,55 @@ class TrainingRegistrationController extends Controller
     }
 
     /**
+     * HCDEVACCESS-only: every training registration across all employees, so
+     * HR can see who has registered and where each one currently stands
+     * (waiting approval, approved, waitlisted, offered, rejected, cancelled)
+     * without being limited to just what's actively pending their own
+     * approval action (that's pendingApprovals() above).
+     */
+    public function allRegistrations(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user->hasRole('HCDEVACCESS')) {
+            abort(403, 'Anda tidak memiliki akses HCDEVACCESS');
+        }
+
+        $registrations = TrLndTrainingRegistration::query()
+            ->with('schedule.schedule.training')
+            ->orderByDesc('created_at')
+            ->get();
+
+        $usernames = $registrations->pluck('user_registration')->unique();
+        $names = $usernames->isEmpty() ? collect() : User::whereIn('username', $usernames)->pluck('name', 'username');
+
+        $cpnyIds = $registrations->pluck('cpny_id')->filter()->unique();
+        $companyNames = $cpnyIds->isEmpty() ? collect() : MsCompany::whereIn('cpny_id', $cpnyIds)->pluck('cpny_name', 'cpny_id');
+
+        $deptIds = $registrations->pluck('department_id')->filter()->unique();
+        $departmentNames = $deptIds->isEmpty() ? collect() : MsDepartment::whereIn('department_id', $deptIds)->pluck('department_name', 'department_id');
+
+        $data = $registrations->map(function ($r) use ($names, $companyNames, $departmentNames) {
+            return [
+                'id' => $r->id,
+                'docid' => $r->training_regist_id,
+                'training_name' => $r->schedule?->schedule?->training?->training_name ?? null,
+                'username' => $r->user_registration,
+                'name' => $names[$r->user_registration] ?? $r->user_registration,
+                'cpny_id' => $r->cpny_id,
+                'cpny_name' => $companyNames[$r->cpny_id] ?? $r->cpny_id,
+                'department_id' => $r->department_id,
+                'department_name' => $departmentNames[$r->department_id] ?? $r->department_id,
+                'schedule_date' => $r->schedule_date ?? $r->schedule?->schedule_date,
+                'status' => $r->effective_status,
+                'registered_at' => $r->created_at,
+            ];
+        })->values();
+
+        return response()->json(['data' => $data]);
+    }
+
+    /**
      * HCDEVACCESS-only: waitlisted people, with every company quota row for
      * their schedule (available seats) so HR can also reassign which
      * company's quota a person consumes when accepting post-close.

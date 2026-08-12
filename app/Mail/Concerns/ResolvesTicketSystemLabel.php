@@ -11,7 +11,8 @@ trait ResolvesTicketSystemLabel
         return match ($ticket->ticket_type) {
             'ENGSUPPORTTICKET', 'BA_ENG' => 'Engineering Ticketing System',
             'BSFOSUPPORTTICKET', 'BA_BS' => 'BS-FO Ticketing System',
-            default => 'Engineering & BS Ticketing System',
+            'ITSUPPORTTICKET' => 'IT Support Ticketing System',
+            default => 'Ticketing System',
         };
     }
 }

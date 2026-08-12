@@ -981,6 +981,7 @@ class ReportGeneralGAController extends Controller
                     'R' => 'Rejected',
                     'D' => 'Revise',
                     'X' => 'Cancelled',
+                    'F' => 'Processed',
                     default => '-',
                 };
             })

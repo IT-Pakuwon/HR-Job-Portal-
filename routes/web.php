@@ -409,6 +409,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/my/{id}/barcode-image', [TrainingRegistrationController::class, 'barcodeImage'])->name('training-list.barcode.image')->where('id', '[0-9]+');
             Route::get('/waitlist', [TrainingRegistrationController::class, 'waitlistForOffer'])->name('training-list.waitlist');
             Route::get('/pending-approvals', [TrainingRegistrationController::class, 'pendingApprovals'])->name('training-list.pending-approvals');
+            Route::get('/all-registrations', [TrainingRegistrationController::class, 'allRegistrations'])->name('training-list.all-registrations');
             Route::get('/my/{id}/feedback', [TrainingFeedbackController::class, 'show'])->name('training-list.feedback.show')->where('id', '[0-9]+');
             Route::get('/my/{id}/certificate', [TrainingRegistrationController::class, 'myCertificate'])->name('training-list.certificate')->where('id', '[0-9]+');
             Route::get('/{eid}', [TrainingRegistrationController::class, 'show'])->name('training-list.show')->where('eid', '[A-Za-z0-9]+');
@@ -2201,6 +2202,8 @@ Route::middleware(['auth'])->group(function () {
         // so these stay outside the 'admin' middleware group below.
         Route::post('/settings/darkmode', [UsersController::class, 'updateDarkmode'])->name('darkmode.update.custom');
         Route::post('/settings/profile-photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo.update');
+        Route::get('/settings/account/barcode-image', [ProfileController::class, 'barcodeImage'])->name('profile.barcode.image');
+        Route::get('/settings/account/qr-image', [ProfileController::class, 'qrImage'])->name('profile.qr.image');
 
         Route::prefix('approval-dashboard')->controller(ApprovalDashboardController::class)->group(function () {
             Route::get('/summary-json', 'summaryJson');

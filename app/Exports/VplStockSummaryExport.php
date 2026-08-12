@@ -5,10 +5,11 @@ namespace App\Exports;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
 
-class VplStockVoucherExport implements FromView
+class VplStockSummaryExport implements FromView
 {
     public function __construct(
-        private array $groups,
+        private array $rows,
+        private array $meta,
         private string $cpnyid,
         private int $year,
         private int $month
@@ -17,8 +18,9 @@ class VplStockVoucherExport implements FromView
 
     public function view(): View
     {
-        return view('pages.report-vpl.partials.stock-voucher-table', [
-            'groups' => $this->groups,
+        return view('pages.report-vpl.partials.stock-summary-table', [
+            'rows'   => $this->rows,
+            'meta'   => $this->meta,
             'cpnyid' => $this->cpnyid,
             'year'   => $this->year,
             'month'  => $this->month,

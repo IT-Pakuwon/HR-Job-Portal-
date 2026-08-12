@@ -22,6 +22,9 @@
                     <button class="tabBtn border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="waitlist">
                         Waitlist Management
                     </button>
+                    <button class="tabBtn border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="allregs">
+                        List Registration
+                    </button>
                 @endif
             </div>
 
@@ -54,7 +57,7 @@
                     You have no registrations yet.
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                    <table class="responsive-table min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
                         <thead>
                             <tr class="text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 <th class="py-2 pr-4">Doc ID</th>
@@ -75,7 +78,7 @@
                     Training registrations currently waiting on your approval.
                 </p>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                    <table class="responsive-table min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
                         <thead>
                             <tr class="text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 <th class="py-2 pr-4">Doc ID</th>
@@ -102,7 +105,7 @@
                         Slots forfeited after a schedule closes (H-3) don't auto-requeue — pick who to accept into the freed seat. You can also choose a different company's quota for the person.
                     </p>
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                        <table class="responsive-table min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
                             <thead>
                                 <tr class="text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     <th class="py-2 pr-4">Doc ID</th>
@@ -119,6 +122,48 @@
                         </table>
                         <div id="waitlistEmpty" class="hidden rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
                             No one is waitlisted right now.
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            {{-- List Registration (HCDEVACCESS) --}}
+            @if (Auth::user()->hasRole('HCDEVACCESS'))
+                <div id="tab-allregs" class="tab-panel hidden space-y-3">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                        Every training registration across all employees, with its current status.
+                    </p>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <input id="allRegsSearch" type="text" placeholder="Search by employee or doc ID"
+                            class="rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                        <select id="allRegsStatusFilter" class="rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                            <option value="">All Statuses</option>
+                            <option value="P">Waiting Approval</option>
+                            <option value="C">Approved</option>
+                            <option value="R">Rejected</option>
+                            <option value="W">Waiting List</option>
+                            <option value="O">Slot Offered</option>
+                            <option value="X">Cancelled</option>
+                        </select>
+                        <button id="allRegsResetBtn" class="text-xs font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white">Reset</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="responsive-table min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                            <thead>
+                                <tr class="text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                    <th class="py-2 pr-4">Doc ID</th>
+                                    <th class="py-2 pr-4">Employee</th>
+                                    <th class="py-2 pr-4">Company / Dept</th>
+                                    <th class="py-2 pr-4">Training</th>
+                                    <th class="py-2 pr-4">Schedule Date</th>
+                                    <th class="py-2 pr-4">Registered On</th>
+                                    <th class="py-2 pr-4">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allRegsBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
+                        </table>
+                        <div id="allRegsEmpty" class="hidden rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
+                            No registrations found.
                         </div>
                     </div>
                 </div>
@@ -164,6 +209,88 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
+        /* Below 640px, data tables stack into label/value cards instead of
+           squeezing every column into an unreadably narrow cell — the
+           overflow-x-auto scroll wrapper alone still left headers/badges
+           wrapping mid-word. Each <td> needs a data-label attribute (set in
+           the JS render functions) for the ::before to pick up. */
+        @media (max-width: 640px) {
+            .responsive-table thead {
+                display: none;
+            }
+            .responsive-table, .responsive-table tbody {
+                display: block;
+                width: 100%;
+            }
+            .responsive-table tbody > * + * {
+                border-top-width: 0 !important;
+            }
+            /* Grid instead of plain block stacking so Doc ID can share a row
+               with its table's date cell (pinned via grid-row/grid-column
+               below) while every other cell still spans the full width. */
+            .responsive-table tr {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px 12px;
+                margin-bottom: 10px;
+                padding: 10px 12px;
+                border: 1px solid #e5e7eb;
+                border-radius: 12px;
+            }
+            html.dark .responsive-table tr {
+                border-color: #374151;
+            }
+            .responsive-table td {
+                grid-column: 1 / -1;
+                padding: 0 !important;
+                border: none !important;
+            }
+            .responsive-table td[data-label]::before {
+                content: attr(data-label);
+                display: block;
+                font-size: 10px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: .03em;
+                color: #9ca3af;
+                margin-bottom: 2px;
+            }
+            /* Doc ID pairs with its table's date column on one row — pinned
+               to explicit row/column so it holds regardless of where the
+               date cell actually falls in DOM/source order. */
+            #tab-mine .responsive-table td[data-label="Doc ID"],
+            #tab-approvals .responsive-table td[data-label="Doc ID"],
+            #tab-waitlist .responsive-table td[data-label="Doc ID"],
+            #tab-allregs .responsive-table td[data-label="Doc ID"] {
+                grid-row: 1;
+                grid-column: 1;
+            }
+            #tab-mine .responsive-table td[data-label="Date"],
+            #tab-waitlist .responsive-table td[data-label="Date"],
+            #tab-approvals .responsive-table td[data-label="Schedule Date"],
+            #tab-allregs .responsive-table td[data-label="Schedule Date"] {
+                grid-row: 1;
+                grid-column: 2;
+            }
+            /* Actions/Action cells hold tap targets — stack them full-width
+               and enlarge instead of leaving them at desktop's compact
+               inline-row size, which reads as cramped on a touch screen. */
+            .responsive-table td[data-label="Actions"] > div,
+            .responsive-table td[data-label="Action"] > div {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .responsive-table td[data-label="Actions"] button,
+            .responsive-table td[data-label="Actions"] a,
+            .responsive-table td[data-label="Action"] button,
+            .responsive-table td[data-label="Action"] a {
+                width: 100%;
+                padding-top: 11px;
+                padding-bottom: 11px;
+                font-size: 13px;
+                text-align: center;
+            }
+        }
         .select2-container--default .select2-selection--single {
             height: 38px;
             border: 1px solid #d1d5db;
@@ -383,6 +510,120 @@
             width: 100%;
             object-fit: contain;
         }
+        .approveModalPopup {
+            padding: 0 !important;
+            border-radius: 16px !important;
+            width: 380px !important;
+            max-width: calc(100vw - 32px) !important;
+        }
+        .approveModalPopup .swal2-html-container {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .approveModalPopup .swal2-actions {
+            flex-direction: column;
+            width: 100%;
+            gap: 8px;
+            margin: 0 !important;
+            padding: 16px 24px 20px !important;
+            border-top: 1px solid #f0f1f3;
+            background: #fafafa;
+            border-radius: 0 0 16px 16px;
+        }
+        .approveModal-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 28px 24px 20px;
+        }
+        .approveModal-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
+        .approveModal-icon.approve {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        .approveModal-icon.reject {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .approveModal-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #111827;
+            margin: 0;
+        }
+        .approveModal-card {
+            margin: 0 24px 24px;
+            padding: 6px 16px;
+            border-radius: 12px;
+            background: #f9fafb;
+            border: 1px solid #f0f1f3;
+            text-align: left;
+        }
+        .approveModal-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 12px;
+            padding: 9px 0;
+        }
+        .approveModal-row + .approveModal-row {
+            border-top: 1px solid #eef0f2;
+        }
+        .approveModal-key {
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: .03em;
+            text-transform: uppercase;
+            color: #9ca3af;
+            flex-shrink: 0;
+        }
+        .approveModal-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: #111827;
+            text-align: right;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+        .approveConfirmBtn {
+            background: #16a34a !important;
+            color: #fff !important;
+            border: none !important;
+            padding: 11px 0 !important;
+            width: 100%;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            border-radius: 8px !important;
+            box-shadow: none !important;
+        }
+        .approveConfirmBtn:hover {
+            background: #15803d !important;
+        }
+        .rejectConfirmBtn {
+            background: #dc2626 !important;
+            color: #fff !important;
+            border: none !important;
+            padding: 11px 0 !important;
+            width: 100%;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            border-radius: 8px !important;
+            box-shadow: none !important;
+        }
+        .rejectConfirmBtn:hover {
+            background: #b91c1c !important;
+        }
     </style>
     <script>
         const jsonUrl = "{{ route('training-list.json') }}";
@@ -392,6 +633,7 @@
         const pendingApprovalsUrl = "{{ route('training-list.pending-approvals') }}";
         @if (Auth::user()->hasRole('HCDEVACCESS'))
         const waitlistUrl = "{{ route('training-list.waitlist') }}";
+        const allRegistrationsUrl = "{{ route('training-list.all-registrations') }}";
         @endif
         const csrfHeaders = { 'X-CSRF-TOKEN': '{{ csrf_token() }}' };
         const initialEid = @json($initialEid);
@@ -464,6 +706,7 @@
             if (tab === 'mine') loadMine();
             if (tab === 'approvals') loadPendingApprovals();
             if (tab === 'waitlist') loadWaitlist();
+            if (tab === 'allregs') loadAllRegistrations();
         });
 
         function toast(icon, title) {
@@ -1053,11 +1296,11 @@
 
                     $body.append(`
                         <tr>
-                            <td class="py-2 pr-4 font-mono text-xs">${r.docid}</td>
-                            <td class="py-2 pr-4 wrap-break-word text-sm text-gray-800 dark:text-gray-100">${r.training_name ?? '-'}</td>
-                            <td class="py-2 pr-4 whitespace-nowrap">${fmtDate(r.schedule_date)}</td>
-                            <td class="py-2 pr-4">${statusBadge(r.status)}</td>
-                            <td class="py-2 pr-4">
+                            <td class="py-2 pr-4 font-mono text-xs" data-label="Doc ID">${r.docid}</td>
+                            <td class="py-2 pr-4 wrap-break-word text-sm text-gray-800 dark:text-gray-100" data-label="Training">${r.training_name ?? '-'}</td>
+                            <td class="py-2 pr-4 whitespace-nowrap" data-label="Date">${fmtDate(r.schedule_date)}</td>
+                            <td class="py-2 pr-4" data-label="Status">${statusBadge(r.status)}</td>
+                            <td class="py-2 pr-4" data-label="Actions">
                                 <div class="flex flex-wrap items-center gap-1.5">
                                     ${actionHtml}
                                     ${feedbackHtml}
@@ -1168,16 +1411,16 @@
                 rows.forEach(function (r) {
                     $body.append(`
                         <tr>
-                            <td class="py-2 pr-4 font-mono text-xs">${r.docid}</td>
-                            <td class="py-2 pr-4">
+                            <td class="py-2 pr-4 font-mono text-xs" data-label="Doc ID">${r.docid}</td>
+                            <td class="py-2 pr-4" data-label="Employee">
                                 <span class="block text-xs font-semibold text-gray-800 dark:text-gray-100">${r.name ?? r.username}</span>
                                 <span class="block text-[11px] text-gray-400">${r.username}</span>
                             </td>
-                            <td class="py-2 pr-4">${r.cpny_name ?? r.cpny_id} / ${r.department_name ?? r.department_id}</td>
-                            <td class="py-2 pr-4">${r.training_name ?? '-'}</td>
-                            <td class="py-2 pr-4 whitespace-nowrap">${fmtDate(r.schedule_date)}</td>
-                            <td class="py-2 pr-4 whitespace-nowrap">${fmtDate(r.waiting_since)}</td>
-                            <td class="py-2 pr-4">
+                            <td class="py-2 pr-4" data-label="Company / Dept">${r.cpny_name ?? r.cpny_id} / ${r.department_name ?? r.department_id}</td>
+                            <td class="py-2 pr-4" data-label="Training">${r.training_name ?? '-'}</td>
+                            <td class="py-2 pr-4 whitespace-nowrap" data-label="Schedule Date">${fmtDate(r.schedule_date)}</td>
+                            <td class="py-2 pr-4 whitespace-nowrap" data-label="Waiting Since">${fmtDate(r.waiting_since)}</td>
+                            <td class="py-2 pr-4" data-label="Action">
                                 <div class="flex items-center gap-1.5">
                                     <button class="approveRegBtn rounded-lg bg-green-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-green-700" data-id="${r.id}">Approve</button>
                                     <button class="rejectRegBtn rounded-lg border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${r.id}">Reject</button>
@@ -1195,19 +1438,28 @@
             const r = pendingApprovalRows.find((x) => String(x.id) === String(id));
 
             Swal.fire({
-                title: isApprove ? 'Approve this registration?' : 'Reject this registration?',
-                html: r ? `
-                    <div style="text-align:left;font-size:13px;">
-                        <p><strong>Doc ID:</strong> ${r.docid}</p>
-                        <p><strong>Employee:</strong> ${r.name ?? r.username}</p>
-                        <p><strong>Training:</strong> ${r.training_name ?? '-'}</p>
+                html: `
+                    <div class="approveModal-header">
+                        <div class="approveModal-icon ${isApprove ? 'approve' : 'reject'}">${isApprove ? '✓' : '✕'}</div>
+                        <h3 class="approveModal-title">${isApprove ? 'Approve this registration?' : 'Reject this registration?'}</h3>
                     </div>
-                ` : '',
-                icon: isApprove ? 'question' : 'warning',
+                    ${r ? `
+                        <div class="approveModal-card">
+                            <div class="approveModal-row"><span class="approveModal-key">Doc ID</span><span class="approveModal-value">${r.docid}</span></div>
+                            <div class="approveModal-row"><span class="approveModal-key">Employee</span><span class="approveModal-value">${r.name ?? r.username}</span></div>
+                            <div class="approveModal-row"><span class="approveModal-key">Training</span><span class="approveModal-value">${r.training_name ?? '-'}</span></div>
+                        </div>
+                    ` : ''}
+                `,
                 showCancelButton: true,
+                buttonsStyling: false,
                 confirmButtonText: isApprove ? 'Yes, approve' : 'Yes, reject',
-                confirmButtonColor: isApprove ? '#16a34a' : '#dc2626',
                 cancelButtonText: 'Cancel',
+                customClass: {
+                    popup: 'approveModalPopup',
+                    confirmButton: isApprove ? 'approveConfirmBtn' : 'rejectConfirmBtn',
+                    cancelButton: 'ticketCancelBtn',
+                },
             }).then((result) => {
                 if (!result.isConfirmed) return;
 
@@ -1336,17 +1588,17 @@
 
                     $body.append(`
                         <tr>
-                            <td class="py-2 pr-4 font-mono text-xs">${r.docid}</td>
-                            <td class="py-2 pr-4">
+                            <td class="py-2 pr-4 font-mono text-xs" data-label="Doc ID">${r.docid}</td>
+                            <td class="py-2 pr-4" data-label="Employee">
                                 <span class="block text-xs font-semibold text-gray-800 dark:text-gray-100">${r.name ?? r.username}</span>
                                 <span class="block text-[11px] text-gray-400">${r.username}</span>
                             </td>
-                            <td class="py-2 pr-4">${r.cpny_id}</td>
-                            <td class="py-2 pr-4">${r.training_name ?? '-'}</td>
-                            <td class="py-2 pr-4">${fmtDate(r.schedule_date)}</td>
-                            <td class="py-2 pr-4">${r.schedule_status ?? '-'}</td>
-                            <td class="py-2 pr-4">${approvalHtml}</td>
-                            <td class="py-2 pr-4">${actionHtml}</td>
+                            <td class="py-2 pr-4" data-label="Company">${r.cpny_id}</td>
+                            <td class="py-2 pr-4" data-label="Training">${r.training_name ?? '-'}</td>
+                            <td class="py-2 pr-4" data-label="Date">${fmtDate(r.schedule_date)}</td>
+                            <td class="py-2 pr-4" data-label="Schedule Status">${r.schedule_status ?? '-'}</td>
+                            <td class="py-2 pr-4" data-label="Approval">${approvalHtml}</td>
+                            <td class="py-2 pr-4" data-label="Action">${actionHtml}</td>
                         </tr>
                     `);
                 });
@@ -1402,6 +1654,57 @@
                     },
                 });
             });
+        });
+
+        let allRegistrationRows = [];
+
+        function loadAllRegistrations() {
+            $.get(allRegistrationsUrl, function (res) {
+                allRegistrationRows = res.data || [];
+                renderAllRegistrations();
+            });
+        }
+
+        function renderAllRegistrations() {
+            const search = ($('#allRegsSearch').val() || '').toLowerCase().trim();
+            const statusFilter = $('#allRegsStatusFilter').val();
+
+            const rows = allRegistrationRows.filter((r) => {
+                if (statusFilter && r.status !== statusFilter) return false;
+                if (search) {
+                    const haystack = `${r.docid} ${r.name} ${r.username} ${r.training_name ?? ''}`.toLowerCase();
+                    if (!haystack.includes(search)) return false;
+                }
+                return true;
+            });
+
+            $('#allRegsEmpty').toggleClass('hidden', rows.length > 0);
+            const $body = $('#allRegsBody').empty();
+
+            rows.forEach(function (r) {
+                $body.append(`
+                    <tr>
+                        <td class="py-2 pr-4 font-mono text-xs" data-label="Doc ID">${r.docid}</td>
+                        <td class="py-2 pr-4" data-label="Employee">
+                            <span class="block text-xs font-semibold text-gray-800 dark:text-gray-100">${r.name ?? r.username}</span>
+                            <span class="block text-[11px] text-gray-400">${r.username}</span>
+                        </td>
+                        <td class="py-2 pr-4" data-label="Company / Dept">${r.cpny_name ?? r.cpny_id} / ${r.department_name ?? r.department_id}</td>
+                        <td class="py-2 pr-4" data-label="Training">${r.training_name ?? '-'}</td>
+                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Schedule Date">${fmtDate(r.schedule_date)}</td>
+                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Registered On">${fmtDate(r.registered_at)}</td>
+                        <td class="py-2 pr-4" data-label="Status">${statusBadge(r.status)}</td>
+                    </tr>
+                `);
+            });
+        }
+
+        $('#allRegsSearch').on('input', renderAllRegistrations);
+        $('#allRegsStatusFilter').on('change', renderAllRegistrations);
+        $('#allRegsResetBtn').on('click', function () {
+            $('#allRegsSearch').val('');
+            $('#allRegsStatusFilter').val('');
+            renderAllRegistrations();
         });
         @endif
 

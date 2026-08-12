@@ -192,10 +192,10 @@
             </button>
 
             @if ($isEng)
-                {{-- Approved --}}
+                {{-- Complete Requested --}}
                 <button type="button" class="text-left">
 
-                    <a href="#" class="ticket-status-filter group block h-full" data-status="APPROVED">
+                    <a href="#" class="ticket-status-filter group block h-full" data-status="COMPLETE_REQUESTED">
 
                         <div
                             class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-teal-700 bg-teal-200/20 p-3 text-teal-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-teal-100 hover:shadow-md active:scale-95">
@@ -207,13 +207,13 @@
                             <div class="flex min-w-0 flex-grow flex-col leading-tight">
 
                                 <p class="whitespace-normal break-words text-sm font-medium">
-                                    Approved
+                                    Awaiting Approval
                                 </p>
 
                             </div>
 
-                            <p class="shrink-0 text-base font-bold" data-count="approved">
-                                {{ $counts['approved'] ?? 0 }}
+                            <p class="shrink-0 text-base font-bold" data-count="complete_requested">
+                                {{ $counts['complete_requested'] ?? 0 }}
                             </p>
 
                         </div>
@@ -481,9 +481,9 @@
                             <option value="">All Workflow</option>
                             <option value="CREATED">Created</option>
                             <option value="RESPONSE">Response</option>
-                            <option value="APPROVED">Approved</option>
                             <option value="PROCESS">Process</option>
                             <option value="PENDING">Pending</option>
+                            <option value="COMPLETE_REQUESTED">Awaiting Approval</option>
                             <option value="TRANSFER">Transfer</option>
                             <option value="REOPEN">Reopen</option>
                             <option value="COMPLETED">Completed</option>
