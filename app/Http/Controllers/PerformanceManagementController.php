@@ -233,7 +233,7 @@ class PerformanceManagementController extends Controller
         $local = Users_talenta::query()->get()->keyBy('user_id');
         $count = 0;
 
-        DB::connection('mysql')->beginTransaction();
+        DB::connection('mysql2')->beginTransaction();
 
         try {
             ViewUsersTalenta::query()->orderBy('user_id')->chunk(200, function ($views) use ($local, &$count) {
@@ -248,9 +248,9 @@ class PerformanceManagementController extends Controller
                 }
             });
 
-            DB::connection('mysql')->commit();
+            DB::connection('mysql2')->commit();
         } catch (\Exception $e) {
-            DB::connection('mysql')->rollBack();
+            DB::connection('mysql2')->rollBack();
 
             return response()->json(['success' => false, 'message' => 'Gagal sync semua data', 'error' => $e->getMessage()], 500);
         }
@@ -504,7 +504,7 @@ class PerformanceManagementController extends Controller
         $notes = [];
         $username = Auth::user()->username ?? 'system';
 
-        // --- Step 1: repoint das `users` accounts (mysql2/das_voucher) linked to any source NPK ---
+        // --- Step 1: repoint das `users` accounts (mysql2) linked to any source NPK ---
         foreach ($sources as $source) {
             $accounts = UserDas::where('user_id_talenta', $source->user_id)->get();
 
@@ -520,24 +520,24 @@ class PerformanceManagementController extends Controller
             }
         }
 
-        // --- Step 2: deactivate the source(s) in the local cache (mysql/das) ---
+        // --- Step 2: deactivate the source(s) in the local cache (mysql2) ---
         foreach ($sources as $source) {
             Users_talenta::where('user_id', $source->user_id)
                 ->where('status', '!=', 'X')
                 ->update(['status' => 'X', 'updated_user' => $username]);
         }
 
-        // --- Step 3: migrate hr_ms_approval (mysql/das) ---
-        DB::connection('mysql')->beginTransaction();
+        // --- Step 3: migrate hr_ms_approval (mysql2) ---
+        DB::connection('mysql2')->beginTransaction();
 
         try {
             foreach ($sources as $source) {
-                $oldRow = DB::connection('mysql')->table('hr_ms_approval')
+                $oldRow = DB::connection('mysql2')->table('hr_ms_approval')
                     ->where('employee_id', $source->employee_id)
                     ->first();
 
                 if ($oldRow) {
-                    $newRow = DB::connection('mysql')->table('hr_ms_approval')
+                    $newRow = DB::connection('mysql2')->table('hr_ms_approval')
                         ->where('employee_id', $target->employee_id)
                         ->first();
 
@@ -565,12 +565,12 @@ class PerformanceManagementController extends Controller
                         ];
 
                         if ($newRow) {
-                            DB::connection('mysql')->table('hr_ms_approval')
+                            DB::connection('mysql2')->table('hr_ms_approval')
                                 ->where('employee_id', $target->employee_id)
                                 ->update($payload);
                             $notes[] = "hr_ms_approval NPK {$target->employee_id} sudah ada tapi kosong — diisi dari NPK lama {$source->employee_id}";
                         } else {
-                            DB::connection('mysql')->table('hr_ms_approval')->insert($payload + [
+                            DB::connection('mysql2')->table('hr_ms_approval')->insert($payload + [
                                 'employee_id' => $target->employee_id,
                                 'created_user' => $username,
                                 'created_at' => now(),
@@ -581,7 +581,7 @@ class PerformanceManagementController extends Controller
                         $notes[] = "hr_ms_approval untuk NPK {$target->employee_id} sudah ada dan terisi — tidak ditimpa";
                     }
 
-                    DB::connection('mysql')->table('hr_ms_approval')
+                    DB::connection('mysql2')->table('hr_ms_approval')
                         ->where('employee_id', $source->employee_id)
                         ->update(['status' => 'X', 'updated_user' => $username, 'updated_at' => now()]);
                     $notes[] = "hr_ms_approval NPK lama {$source->employee_id} di-nonaktifkan (status X)";
@@ -590,7 +590,7 @@ class PerformanceManagementController extends Controller
                 // Anyone using the old NPK as an approver (approval_line1-4) gets repointed
                 // to the new NPK, so their approval chain doesn't silently break.
                 foreach (['approval_line1', 'approval_line2', 'approval_line3', 'approval_line4'] as $col) {
-                    $updated = DB::connection('mysql')->table('hr_ms_approval')
+                    $updated = DB::connection('mysql2')->table('hr_ms_approval')
                         ->where('employee_id', '!=', $source->employee_id)
                         ->where($col, $source->employee_id)
                         ->update([$col => $target->employee_id, 'updated_user' => $username, 'updated_at' => now()]);
@@ -601,9 +601,9 @@ class PerformanceManagementController extends Controller
                 }
             }
 
-            DB::connection('mysql')->commit();
+            DB::connection('mysql2')->commit();
         } catch (\Exception $e) {
-            DB::connection('mysql')->rollBack();
+            DB::connection('mysql2')->rollBack();
 
             return response()->json([
                 'success' => false,

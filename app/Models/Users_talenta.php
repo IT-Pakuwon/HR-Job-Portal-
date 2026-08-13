@@ -7,10 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Users_talenta extends Model
 {
-    // Points at the `das` database (default `mysql` connection), not das_voucher/mysql2 —
-    // das_voucher's copy of this table lacks old_organization_*/old_job_position_*/
-    // old_job_level, and das's Talenta sync (updated_talenta) is more current here.
-    protected $connection = 'mysql';
+    // Points at the `das` database via the `mysql2` connection — NOT the generic
+    // `mysql` (default) connection, which means different things per environment
+    // (locally it can be pointed at `das` for convenience, but on production it's
+    // `iamsys`, an unrelated database). `mysql2` is the connection name that
+    // consistently resolves to `das` in both places — same one UserDas/hr_ms_approval
+    // use, since on production they're all one database.
+    protected $connection = 'mysql2';
     protected $table = "users_talenta";
     protected $fillable = [
     'user_id',
