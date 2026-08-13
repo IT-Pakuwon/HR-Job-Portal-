@@ -2,7 +2,7 @@
     @php
         $isHcbp = auth()->user()->hasRole('HCBPACCESS');
 
-        $xlCols = 5; // default jumlah card
+        $xlCols = 6; // default jumlah card
 
         if ($isHcbp) {
             $xlCols++; // tambah 1 untuk HCBP All
@@ -87,6 +87,21 @@
                     <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
                 </div>
             </a>
+
+            {{-- Draft --}}
+            <a href="#" class="status-filter group block h-full" data-status="H">
+                <div
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-slate-700 bg-slate-200/20 p-3 text-slate-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95 dark:border-slate-400 dark:text-slate-300">
+
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🗂️</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-sm font-medium">Draft</p>
+                    </div>
+
+                    <p class="shrink-0 text-base font-bold">{{ $draft }}</p>
+                </div>
+            </a>
             @if($isHcbp)
             <a href="#" class="status-filter group block h-full" data-hcbp="1">
                 <div
@@ -119,6 +134,7 @@
                             <option value="R">Reject</option>
                             <option value="D">Revise</option>
                             <option value="C">Completed</option>
+                            <option value="H">Draft</option>
                         </select>
 
                         <select id="filterDept" class="border rounded px-3 py-2 text-sm">
@@ -378,13 +394,20 @@
                                 'inline-flex justify-center items-center min-w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-600 hover:bg-gray-700';
                             const buttonText = row.docid;
 
-                            const isReviseOwner = row.status === 'D' && row.created_user === currentUser;
+                            const isReviseOwner = (row.status === 'D' || row.status === 'H') && row.created_user === currentUser;
 
                             if (isReviseOwner) {
                                 mainUrl = `/editpersonnels/${row.eid}`;
                                 buttonClass =
                                     'inline-flex justify-center items-center min-w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
                             }
+
+                            const copyBtnHtml = row.status === 'C' ? `
+                                <button type="button" class="copyTemplateBtn inline-flex h-9 w-9 items-center justify-center rounded bg-teal-500 text-white transition-colors duration-200 hover:bg-teal-600"
+                                    title="Copy Template" data-eid="${row.eid}">
+                                    <i class="fas fa-copy text-sm"></i>
+                                </button>
+                            ` : '';
 
                             if (isReviseOwner) {
                                 return `
@@ -398,14 +421,18 @@
                                         title="View">
                                             <i class="fas fa-eye text-sm"></i>
                                         </a>
+                                        ${copyBtnHtml}
                                     </div>
                                 `;
                             }
 
                             return `
-                                <a href="${mainUrl}" class="${buttonClass}">
-                                    ${buttonText}
-                                </a>
+                                <div class="flex items-center gap-2">
+                                    <a href="${mainUrl}" class="${buttonClass}">
+                                        ${buttonText}
+                                    </a>
+                                    ${copyBtnHtml}
+                                </div>
                             `;
                         }
                     },
@@ -475,6 +502,10 @@
                                 statusText = "Completed";
                                 badgeClass =
                                     "w-32 bg-green-200/60 text-green-800 dark:bg-green-300/40 dark:text-green-900 pointer-events-none border border-green-600/40 font-semibold px-4 py-2 text-center rounded";
+                            } else if (data === 'H') {
+                                statusText = "Draft";
+                                badgeClass =
+                                    "w-32 bg-slate-200/60 text-slate-800 dark:bg-slate-300/40 dark:text-slate-900 pointer-events-none border border-slate-600/40 font-semibold px-4 py-2 text-center rounded";
                             } else if (data === 'X') {
                                 statusText = "Cancel";
                                 badgeClass =
@@ -663,6 +694,49 @@
                         text: reason,
                         icon: 'info',
                         confirmButtonColor: '#f59e0b',
+                    });
+                });
+
+                // Copy Template (Completed PRF -> new draft)
+                $('#personnelsTable').on('click', '.copyTemplateBtn', function(e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+
+                    const $btn = $(this);
+                    const eid = $btn.data('eid');
+
+                    Swal.fire({
+                        title: 'Copy this PRF?',
+                        text: 'A new draft PRF will be created with all fields copied from this one.',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes, Copy',
+                        confirmButtonColor: '#0d9488',
+                    }).then((result) => {
+                        if (!result.isConfirmed) return;
+
+                        $btn.prop('disabled', true);
+
+                        $.ajax({
+                            url: `/personnels/${eid}/copy`,
+                            type: 'POST',
+                            data: {
+                                _token: '{{ csrf_token() }}'
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    toastr.success('Draft PRF created from template.');
+                                    window.location.href = `/editpersonnels/${response.hash}`;
+                                } else {
+                                    toastr.error(response.message || 'Failed to copy PRF.');
+                                    $btn.prop('disabled', false);
+                                }
+                            },
+                            error: function(xhr) {
+                                toastr.error(xhr.responseJSON?.message || 'Failed to copy PRF.');
+                                $btn.prop('disabled', false);
+                            }
+                        });
                     });
                 });
 

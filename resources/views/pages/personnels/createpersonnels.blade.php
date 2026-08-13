@@ -6,6 +6,7 @@
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
                 <form id="personnelForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                     @csrf
+                    <input type="hidden" name="is_draft" id="isDraftField" value="0">
                     <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
                         <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create Personnel
@@ -484,6 +485,10 @@
                                 <span>Back</span>
                             </button>
                             <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                <button type="button" id="saveDraftBtn"
+                                    class="flex items-center justify-center gap-2 rounded-md bg-gray-500 px-4 py-2 text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                    <span id="draftBtnText">Save as Draft</span>
+                                </button>
                                 <button type="submit" id="submitBtn"
                                     class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                     <span id="btnText">Submit Approval</span>
@@ -538,15 +543,19 @@
 
     <script>
         $(document).ready(function() {
-            $('#personnelForm').submit(function(e) {
-                e.preventDefault();
+            function submitPersonnelForm(isDraft) {
+                $('#isDraftField').val(isDraft ? '1' : '0');
 
-                let formData = new FormData(this);
+                let formData = new FormData(document.getElementById('personnelForm'));
 
                 // Tampilkan Loading, Disable Button
-                $('#submitBtn').attr('disabled', true); // Disable tombol
-                $('#btnText').text('Processing...'); // Ubah teks tombol
-                showOverlay('Submitting');
+                $('#submitBtn, #saveDraftBtn').attr('disabled', true);
+                if (isDraft) {
+                    $('#draftBtnText').text('Saving...');
+                } else {
+                    $('#btnText').text('Processing...');
+                }
+                showOverlay(isDraft ? 'Saving Draft' : 'Submitting');
 
                 $.ajax({
                     url: "{{ route('personnels.store') }}",
@@ -558,11 +567,9 @@
                         $('#successMessage').removeClass('hidden'); // Tampilkan pesan sukses
                         $('#personnelForm')[0].reset(); // Reset form setelah submit
 
-                        // Reset Tombol ke Semula
-                        $('#submitBtn').attr('disabled', false);
-                        $('#btnText').text('Submit Approval');
-                        $('#loadingSpinner').addClass('hidden'); // Sembunyikan spinner
-                        toastr.success("Personnel Requisition Submit Successfully!");
+                        toastr.success(response.message || (isDraft ?
+                            "Personnel Requisition Saved as Draft!" :
+                            "Personnel Requisition Submit Successfully!"));
                         window.location.href = "/personnels";
                     },
                     error: function(xhr) {
@@ -571,14 +578,26 @@
                         } else {
                             alert('Error! Please check the input.');
                         }
-
+                    },
+                    complete: function() {
                         // Reset Tombol ke Semula
-                        $('#submitBtn').attr('disabled', false);
+                        $('#submitBtn, #saveDraftBtn').attr('disabled', false);
                         $('#btnText').text('Submit Approval');
+                        $('#draftBtnText').text('Save as Draft');
                         $('#loadingSpinner').addClass('hidden');
                         hideOverlay();
                     }
                 });
+            }
+
+            $('#personnelForm').submit(function(e) {
+                e.preventDefault();
+                submitPersonnelForm(false);
+            });
+
+            $('#saveDraftBtn').click(function(e) {
+                e.preventDefault();
+                submitPersonnelForm(true);
             });
 
             $('#cancelBtn').click(function() {

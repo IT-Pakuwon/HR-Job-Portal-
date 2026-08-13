@@ -7,6 +7,7 @@
 
                 <form id="personnelForm" class="flex flex-col gap-4" enctype="multipart/form-data" method="POST">
                     @csrf
+                    <input type="hidden" name="is_draft" id="isDraftField" value="0">
 
                     {{-- HEADER --}}
                     <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
@@ -518,6 +519,10 @@
                             </button>
 
                             <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                <button type="button" id="saveDraftBtn"
+                                    class="flex items-center justify-center gap-2 rounded-md bg-gray-500 px-4 py-2 text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                    <span id="draftBtnText">Save as Draft</span>
+                                </button>
                                 <button type="submit" id="submitBtn"
                                     class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                     <span id="btnText">Submit Approval</span>
@@ -582,16 +587,20 @@
     <script>
         $(document).ready(function() {
             // ========= SUBMIT (AJAX PUT) =========
-            $('#personnelForm').submit(function(e) {
-                e.preventDefault();
+            function submitPersonnelForm(isDraft) {
+                $('#isDraftField').val(isDraft ? '1' : '0');
 
-                let formData = new FormData(this);
+                let formData = new FormData(document.getElementById('personnelForm'));
                 let personnelHash = @json($hash);
                 let updateUrl = `/personnels/${personnelHash}`;
 
-                $('#submitBtn').attr('disabled', true);
-                $('#btnText').text('Processing...');
-                showOverlay('Updating');
+                $('#submitBtn, #saveDraftBtn').attr('disabled', true);
+                if (isDraft) {
+                    $('#draftBtnText').text('Saving...');
+                } else {
+                    $('#btnText').text('Processing...');
+                }
+                showOverlay(isDraft ? 'Saving Draft' : 'Updating');
 
                 $.ajax({
                     url: updateUrl,
@@ -605,7 +614,9 @@
                     },
                     success: function(response) {
                         $('#successMessage').removeClass('hidden');
-                        toastr.success("Personnel Requisition Updated Successfully!");
+                        toastr.success(response.message || (isDraft ?
+                            "Personnel Requisition Saved as Draft!" :
+                            "Personnel Requisition Updated Successfully!"));
                         window.location.href = "/personnels";
                     },
                     error: function(xhr) {
@@ -614,12 +625,25 @@
                         } else {
                             alert('Error! Please check the input.');
                         }
-                        $('#submitBtn').attr('disabled', false);
+                    },
+                    complete: function() {
+                        $('#submitBtn, #saveDraftBtn').attr('disabled', false);
                         $('#btnText').text('Submit Approval');
+                        $('#draftBtnText').text('Save as Draft');
                         $('#loadingSpinner').addClass('hidden');
                         hideOverlay();
                     }
                 });
+            }
+
+            $('#personnelForm').submit(function(e) {
+                e.preventDefault();
+                submitPersonnelForm(false);
+            });
+
+            $('#saveDraftBtn').click(function(e) {
+                e.preventDefault();
+                submitPersonnelForm(true);
             });
 
             $('#cancelBtn').click(function() {

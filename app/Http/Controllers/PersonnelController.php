@@ -211,7 +211,8 @@ class PersonnelController extends Controller
             SUM(CASE WHEN status = 'P' THEN 1 ELSE 0 END) AS on_progress,
             SUM(CASE WHEN status = 'R' THEN 1 ELSE 0 END) AS reject,
             SUM(CASE WHEN status = 'D' THEN 1 ELSE 0 END) AS revise,
-            SUM(CASE WHEN status = 'C' THEN 1 ELSE 0 END) AS completed
+            SUM(CASE WHEN status = 'C' THEN 1 ELSE 0 END) AS completed,
+            SUM(CASE WHEN status = 'H' THEN 1 ELSE 0 END) AS draft
         ")->first();
 
         // =========================================================
@@ -234,6 +235,7 @@ class PersonnelController extends Controller
             'reject' => (int) ($counts->reject ?? 0),
             'revise' => (int) ($counts->revise ?? 0),
             'completed' => (int) ($counts->completed ?? 0),
+            'draft' => (int) ($counts->draft ?? 0),
             'hcbpAll' => (int) ($hcbpAll ?? 0), // 🔥 tambahan
             'departments' => $departments,
             'hasAllDeptAccess' => $hasAllDeptAccess,
@@ -460,53 +462,78 @@ class PersonnelController extends Controller
         // Validasi input
         $user = $request->user();
         $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
+        $isDraft = $request->boolean('is_draft');
 
-        $request->validate([
+        $rules = [
             'cpnyid' => 'required|string',
             'departementid' => 'required|string',
-            // 'division' => 'required|string',
-            'job_title' => 'required|string',
-            'subgrade_id' => 'required|string',
-            'immediate_superior' => 'required|string',
-            'state_position' => 'required|string',
-            'job_type' => 'required|string',
-            'reason_vacancy' => 'required|string',
-            'required' => 'required|integer',
-            'actual' => 'required|integer',
-            'total_actual' => 'required|integer',
             'attachments.*' => 'file|max:2048', // Validasi file, max 2MB
-            'budget_entity_id' => $groupCompanyId === 'SBY' ? 'required|string' : 'nullable|string',
-        ]);
+        ];
 
-        if ($groupCompanyId === 'SBY') {
-            $hasCompanyBudget = HrCompanyBudget::query()
+        if ($isDraft) {
+            $rules += [
+                'job_title' => 'nullable|string',
+                'subgrade_id' => 'nullable|string',
+                'immediate_superior' => 'nullable|string',
+                'state_position' => 'nullable|string',
+                'job_type' => 'nullable|string',
+                'reason_vacancy' => 'nullable|string',
+                'required' => 'nullable|integer',
+                'actual' => 'nullable|integer',
+                'total_actual' => 'nullable|integer',
+                'budget_entity_id' => 'nullable|string',
+            ];
+        } else {
+            $rules += [
+                'job_title' => 'required|string',
+                'subgrade_id' => 'required|string',
+                'immediate_superior' => 'required|string',
+                'state_position' => 'required|string',
+                'job_type' => 'required|string',
+                'reason_vacancy' => 'required|string',
+                'required' => 'required|integer',
+                'actual' => 'required|integer',
+                'total_actual' => 'required|integer',
+                'budget_entity_id' => $groupCompanyId === 'SBY' ? 'required|string' : 'nullable|string',
+            ];
+        }
+
+        $request->validate($rules);
+
+        if (!$isDraft) {
+            if ($groupCompanyId === 'SBY') {
+                $hasCompanyBudget = HrCompanyBudget::query()
+                    ->where('group_cpny_id', $groupCompanyId)
+                    ->where('cpnyid', $request->cpnyid)
+                    ->where('budget_entity_id', $request->budget_entity_id)
+                    ->where('status', 'A')
+                    ->whereNull('deleted_at')
+                    ->exists();
+
+                if (!$hasCompanyBudget) {
+                    return response()->json(['message' => 'Budget Company tidak valid untuk Company yang dipilih.'], 422);
+                }
+            }
+
+            $hasSite = CompanyAddress::query()
                 ->where('group_cpny_id', $groupCompanyId)
-                ->where('cpnyid', $request->cpnyid)
-                ->where('budget_entity_id', $request->budget_entity_id)
-                ->where('status', 'A')
-                ->whereNull('deleted_at')
+                ->where('sitelocation', $request->siteid)
                 ->exists();
 
-            if (!$hasCompanyBudget) {
-                return response()->json(['message' => 'Budget Company tidak valid untuk Company yang dipilih.'], 422);
+            if (!$hasSite) {
+                return response()->json(['message' => 'Placement Location tidak valid untuk group company user.'], 422);
             }
         }
 
-        $hasSite = CompanyAddress::query()
-            ->where('group_cpny_id', $groupCompanyId)
-            ->where('sitelocation', $request->siteid)
-            ->exists();
-
-        if (!$hasSite) {
-            return response()->json(['message' => 'Placement Location tidak valid untuk group company user.'], 422);
+        $grading = null;
+        if ($request->filled('subgrade_id')) {
+            $grading = StoSubGrading::where('subgrade_id', $request->subgrade_id)
+                ->where('status', 'A')
+                ->where('group_cpny_id', $groupCompanyId)
+                ->first();
         }
 
-        $grading = StoSubGrading::where('subgrade_id', $request->subgrade_id)
-            ->where('status', 'A')
-            ->where('group_cpny_id', $groupCompanyId)
-            ->first();
-
-        if (!$grading) {
+        if (!$isDraft && !$grading) {
             return response()->json([
                 'message' => 'Job level tidak valid untuk subgrade yang dipilih.',
             ], 422);
@@ -524,24 +551,26 @@ class PersonnelController extends Controller
         $datestamp = $dt->toDateTimeString();
         $datenow = Carbon::now()->format('Y-m-d');
 
-        // cek availability approval line (Normal atau Condition yg cocok)
-        $count_approval = MsApproval::where('status', 'A')
-            ->where('aprv_cpnyid', $request->cpnyid)
-            ->where('aprv_departementid', $request->departementid)
-            ->where('aprv_doctype', $doctype)
-            ->where(function ($q) use ($positionCondition) {
-                $q->where('aprv_type', 'Normal')
-                ->orWhere(function ($q2) use ($positionCondition) {
-                    $q2->where('aprv_type', 'Condition')
-                        ->where('aprv_condition', $positionCondition);
-                });
-            })
-            ->count();
+        if (!$isDraft) {
+            // cek availability approval line (Normal atau Condition yg cocok)
+            $count_approval = MsApproval::where('status', 'A')
+                ->where('aprv_cpnyid', $request->cpnyid)
+                ->where('aprv_departementid', $request->departementid)
+                ->where('aprv_doctype', $doctype)
+                ->where(function ($q) use ($positionCondition) {
+                    $q->where('aprv_type', 'Normal')
+                    ->orWhere(function ($q2) use ($positionCondition) {
+                        $q2->where('aprv_type', 'Condition')
+                            ->where('aprv_condition', $positionCondition);
+                    });
+                })
+                ->count();
 
-        if ($count_approval === 0) {
-            return response()->json([
-                'message' => 'Approval line belum di-setup untuk kombinasi ini (Normal/Condition). Please contact IT!',
-            ], 422);
+            if ($count_approval === 0) {
+                return response()->json([
+                    'message' => 'Approval line belum di-setup untuk kombinasi ini (Normal/Condition). Please contact IT!',
+                ], 422);
+            }
         }
 
         DB::beginTransaction();
@@ -601,60 +630,62 @@ class PersonnelController extends Controller
                 'user' => $user->username,
                 'job_title' => $request->job_title,
                 'subgrade_id' => $request->subgrade_id,
-                'job_level' => $grading->subgrade_name,
+                'job_level' => $grading->subgrade_name ?? null,
                 'immediate_superior' => $request->immediate_superior,
                 'state_position' => $request->state_position,
                 'immediate_replacement' => $request->immediate_replacement,
                 'job_type' => $request->job_type,
                 'reason_vacancy' => $request->reason_vacancy,
-                'required' => $request->required,
-                'actual' => $request->actual,
-                'total_actual' => $request->total_actual,
+                'required' => $request->required ?? 0,
+                'actual' => $request->actual ?? 0,
+                'total_actual' => $request->total_actual ?? 0,
                 'education' => $request->education,
                 'education_jurusan' => $request->education_jurusan,
                 'experience_start' => $request->experience_start,
                 'experience_end' => $request->experience_end,
                 'experience_position' => $request->experience_position,
                 'created_user' => $user->username,
-                'status' => $request->status ?? 'P',
+                'status' => $isDraft ? 'H' : ($request->status ?? 'P'),
             ]);
 
-            $msApprovalLines = MsApproval::where('status', 'A')
-                ->where('aprv_cpnyid', $request->cpnyid)
-                ->where('aprv_departementid', $request->departementid)
-                ->where('aprv_doctype', $doctype)
-                ->where(function ($q) use ($positionCondition) {
-                    $q->where('aprv_type', 'Normal')
-                    ->orWhere(function ($q2) use ($positionCondition) {
-                        $q2->where('aprv_type', 'Condition')
-                            ->whereRaw('LOWER(TRIM(aprv_condition)) = ?', [trim($positionCondition)]);
-                    });
-                })
-                ->orderBy('aprv_leveling', 'ASC')
-                ->get();
+            if (!$isDraft) {
+                $msApprovalLines = MsApproval::where('status', 'A')
+                    ->where('aprv_cpnyid', $request->cpnyid)
+                    ->where('aprv_departementid', $request->departementid)
+                    ->where('aprv_doctype', $doctype)
+                    ->where(function ($q) use ($positionCondition) {
+                        $q->where('aprv_type', 'Normal')
+                        ->orWhere(function ($q2) use ($positionCondition) {
+                            $q2->where('aprv_type', 'Condition')
+                                ->whereRaw('LOWER(TRIM(aprv_condition)) = ?', [trim($positionCondition)]);
+                        });
+                    })
+                    ->orderBy('aprv_leveling', 'ASC')
+                    ->get();
 
-            // insert tr_approval
-            foreach ($msApprovalLines as $line) {
-                $isFirstLevel = ((int) $line->aprv_leveling === 1);
+                // insert tr_approval
+                foreach ($msApprovalLines as $line) {
+                    $isFirstLevel = ((int) $line->aprv_leveling === 1);
 
-                TrApproval::create([
-                    'refnbr' => $docid,
-                    'aprv_leveling' => $line->aprv_leveling,
-                    'aprv_doctype' => $line->aprv_doctype,
-                    'aprv_cpnyid' => $line->aprv_cpnyid,
-                    'aprv_departementid' => $line->aprv_departementid,
-                    'aprv_username' => $line->aprv_username,   // bisa comma-separated
-                    'aprv_name' => $line->aprv_name,
-                    'aprv_datebefore' => $isFirstLevel ? $datestamp : null,
-                    'aprv_dateafter' => null,
-                    'aprv_type' => $line->aprv_type,       // Normal / Condition
-                    'aprv_condition' => $line->aprv_condition,  // null / Staff / Manager
-                    'aprv_start_nominal' => $line->aprv_start_nominal,
-                    'aprv_end_nominal' => $line->aprv_end_nominal,
-                    'status' => 'P',                    // Pending
-                    'created_by' => $user->username,
-                    'updated_by' => null,
-                ]);
+                    TrApproval::create([
+                        'refnbr' => $docid,
+                        'aprv_leveling' => $line->aprv_leveling,
+                        'aprv_doctype' => $line->aprv_doctype,
+                        'aprv_cpnyid' => $line->aprv_cpnyid,
+                        'aprv_departementid' => $line->aprv_departementid,
+                        'aprv_username' => $line->aprv_username,   // bisa comma-separated
+                        'aprv_name' => $line->aprv_name,
+                        'aprv_datebefore' => $isFirstLevel ? $datestamp : null,
+                        'aprv_dateafter' => null,
+                        'aprv_type' => $line->aprv_type,       // Normal / Condition
+                        'aprv_condition' => $line->aprv_condition,  // null / Staff / Manager
+                        'aprv_start_nominal' => $line->aprv_start_nominal,
+                        'aprv_end_nominal' => $line->aprv_end_nominal,
+                        'status' => 'P',                    // Pending
+                        'created_by' => $user->username,
+                        'updated_by' => null,
+                    ]);
+                }
             }
 
             if ($request->has('responsibilities')) {
@@ -784,47 +815,56 @@ class PersonnelController extends Controller
                 }
             }
 
-            $t_approval_next = TrApproval::where('refnbr', $docid)
-                ->where('status', 'P')
-                ->orderBy('aprv_leveling', 'ASC')
-                ->first();
+            if (!$isDraft) {
+                $t_approval_next = TrApproval::where('refnbr', $docid)
+                    ->where('status', 'P')
+                    ->orderBy('aprv_leveling', 'ASC')
+                    ->first();
 
-            $eid = Hashids::encode($task->id);
-            $mailMaster = $this->personnelMailMasterNames($task);
+                $eid = Hashids::encode($task->id);
+                $mailMaster = $this->personnelMailMasterNames($task);
 
-            $data = [
-                'docid' => $t_approval_next->refnbr,
-                'cpnyid' => $mailMaster['company'],
-                'deptname' => $mailMaster['department'],
-                'date' => $t_approval_next->aprv_datebefore,
-                'name' => '-',
-                'createdby' => $mailMaster['creator'],
-                'docname' => 'Personnel Requisition',
-                'status' => 'P',
-                'info' => $request->job_title,
-                'url' => url('/showpersonnels/'.$eid),
-            ];
+                $data = [
+                    'docid' => $t_approval_next->refnbr,
+                    'cpnyid' => $mailMaster['company'],
+                    'deptname' => $mailMaster['department'],
+                    'date' => $t_approval_next->aprv_datebefore,
+                    'name' => '-',
+                    'createdby' => $mailMaster['creator'],
+                    'docname' => 'Personnel Requisition',
+                    'status' => 'P',
+                    'info' => $request->job_title,
+                    'url' => url('/showpersonnels/'.$eid),
+                ];
 
-            // kirim email ke semua approver di level ini (bisa multi username)
-            $multiapp = array_map('trim', explode(',', (string) $t_approval_next->aprv_username));
+                // kirim email ke semua approver di level ini (bisa multi username)
+                $multiapp = array_map('trim', explode(',', (string) $t_approval_next->aprv_username));
 
-            $email_it = User::whereIn('username', $multiapp)
-                ->where('group_cpny_id', $task->group_cpny_id)
-                ->where('status', 'A')
-                ->get();
+                $email_it = User::whereIn('username', $multiapp)
+                    ->where('group_cpny_id', $task->group_cpny_id)
+                    ->where('status', 'A')
+                    ->get();
 
-            foreach ($email_it as $emailsit) {
-                $recipientData = array_merge($data, ['name' => $emailsit->name ?: 'User']);
-                \Mail::send('emails.mailapproveprf', $recipientData, function ($message) use ($recipientData, $emailsit) {
-                    $message->to($emailsit->notification_email)
-                            ->subject($recipientData['docid'].' - Waiting Approval Personnel');
-                    $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                });
+                foreach ($email_it as $emailsit) {
+                    $recipientData = array_merge($data, ['name' => $emailsit->name ?: 'User']);
+                    \Mail::send('emails.mailapproveprf', $recipientData, function ($message) use ($recipientData, $emailsit) {
+                        $message->to($emailsit->notification_email)
+                                ->subject($recipientData['docid'].' - Waiting Approval Personnel');
+                        $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
+                    });
+                }
             }
 
             DB::commit();
 
-            return response()->json(['success' => true, 'task' => $task]);
+            return response()->json([
+                'success' => true,
+                'task' => $task,
+                'is_draft' => $isDraft,
+                'message' => $isDraft
+                    ? 'Personnel Requisition saved as draft'
+                    : 'Personnel Requisition submitted successfully',
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -982,45 +1022,68 @@ class PersonnelController extends Controller
         abort_if(!$id, 404);
         $user = $request->user();
         $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
+        $isDraft = $request->boolean('is_draft');
 
         // Validasi utama
-        $request->validate([
+        $rules = [
             'cpnyid' => 'required|string',
             'departementid' => 'required|string',
-            'job_title' => 'required|string',
-            'subgrade_id' => 'required|string',
-            'immediate_superior' => 'required|string',
-            'state_position' => 'required|string',
-            'job_type' => 'required|string|in:Replacement,New',
-            'reason_vacancy' => 'required|string',
-            'required' => 'required|integer|min:0',
-            'actual' => 'required|integer|min:0',
-            'total_actual' => 'required|integer|min:0',
-            'budget_entity_id' => $groupCompanyId === 'SBY' ? 'required|string' : 'nullable|string',
             // 'attachments.*' => 'file|max:20480', // opsional, 20MB
-        ]);
+        ];
 
-        if ($groupCompanyId === 'SBY') {
-            $hasCompanyBudget = HrCompanyBudget::query()
-                ->where('group_cpny_id', $groupCompanyId)
-                ->where('cpnyid', $request->cpnyid)
-                ->where('budget_entity_id', $request->budget_entity_id)
-                ->where('status', 'A')
-                ->whereNull('deleted_at')
-                ->exists();
-
-            if (!$hasCompanyBudget) {
-                return response()->json(['message' => 'Budget Company tidak valid untuk Company yang dipilih.'], 422);
-            }
+        if ($isDraft) {
+            $rules += [
+                'job_title' => 'nullable|string',
+                'subgrade_id' => 'nullable|string',
+                'immediate_superior' => 'nullable|string',
+                'state_position' => 'nullable|string',
+                'job_type' => 'nullable|string|in:Replacement,New',
+                'reason_vacancy' => 'nullable|string',
+                'required' => 'nullable|integer|min:0',
+                'actual' => 'nullable|integer|min:0',
+                'total_actual' => 'nullable|integer|min:0',
+                'budget_entity_id' => 'nullable|string',
+            ];
+        } else {
+            $rules += [
+                'job_title' => 'required|string',
+                'subgrade_id' => 'required|string',
+                'immediate_superior' => 'required|string',
+                'state_position' => 'required|string',
+                'job_type' => 'required|string|in:Replacement,New',
+                'reason_vacancy' => 'required|string',
+                'required' => 'required|integer|min:0',
+                'actual' => 'required|integer|min:0',
+                'total_actual' => 'required|integer|min:0',
+                'budget_entity_id' => $groupCompanyId === 'SBY' ? 'required|string' : 'nullable|string',
+            ];
         }
 
-        $hasSite = CompanyAddress::query()
-            ->where('group_cpny_id', $groupCompanyId)
-            ->where('sitelocation', $request->siteid)
-            ->exists();
+        $request->validate($rules);
 
-        if (!$hasSite) {
-            return response()->json(['message' => 'Placement Location tidak valid untuk group company user.'], 422);
+        if (!$isDraft) {
+            if ($groupCompanyId === 'SBY') {
+                $hasCompanyBudget = HrCompanyBudget::query()
+                    ->where('group_cpny_id', $groupCompanyId)
+                    ->where('cpnyid', $request->cpnyid)
+                    ->where('budget_entity_id', $request->budget_entity_id)
+                    ->where('status', 'A')
+                    ->whereNull('deleted_at')
+                    ->exists();
+
+                if (!$hasCompanyBudget) {
+                    return response()->json(['message' => 'Budget Company tidak valid untuk Company yang dipilih.'], 422);
+                }
+            }
+
+            $hasSite = CompanyAddress::query()
+                ->where('group_cpny_id', $groupCompanyId)
+                ->where('sitelocation', $request->siteid)
+                ->exists();
+
+            if (!$hasSite) {
+                return response()->json(['message' => 'Placement Location tidak valid untuk group company user.'], 422);
+            }
         }
 
         DB::beginTransaction();
@@ -1036,12 +1099,15 @@ class PersonnelController extends Controller
             $originalGroupCompanyId = $personnel->group_cpny_id ?: $groupCompanyId;
 
             // Ambil grading (termasuk group_grade untuk logika approval)
-            $grading = StoSubGrading::where('subgrade_id', $request->subgrade_id)
-                ->where('status', 'A')
-                ->where('group_cpny_id', $groupCompanyId)
-                ->first();
+            $grading = null;
+            if ($request->filled('subgrade_id')) {
+                $grading = StoSubGrading::where('subgrade_id', $request->subgrade_id)
+                    ->where('status', 'A')
+                    ->where('group_cpny_id', $groupCompanyId)
+                    ->first();
+            }
 
-            if (!$grading) {
+            if (!$isDraft && !$grading) {
                 return response()->json([
                     'error' => 'Gagal menyimpan personnel',
                     'message' => 'Subgrading tidak ditemukan/Non-aktif',
@@ -1065,76 +1131,77 @@ class PersonnelController extends Controller
                 // 'user' => $user->username,
                 'job_title' => $request->job_title,
                 'subgrade_id' => $request->subgrade_id,
-                'job_level' => $grading->subgrade_name,
+                'job_level' => $grading->subgrade_name ?? null,
                 'immediate_superior' => $request->immediate_superior,
                 'state_position' => $request->state_position,
                 'immediate_replacement' => $request->immediate_replacement,
                 'job_type' => $request->job_type,
                 'reason_vacancy' => $request->reason_vacancy,
-                'required' => $request->required,
-                'actual' => $request->actual,
-                'total_actual' => $request->total_actual,
+                'required' => $request->required ?? 0,
+                'actual' => $request->actual ?? 0,
+                'total_actual' => $request->total_actual ?? 0,
                 'education' => $request->education,
                 'experience_start' => $request->experience_start,
                 'experience_end' => $request->experience_end,
                 // 'created_user' => $user->username,
-                'status' => $request->status ?? 'P',
+                'status' => $isDraft ? 'H' : 'P',
             ]);
 
             $docid = $personnel->docid;
 
             // ===== Rebuild Approval Lines (hapus pending lama, build ulang dari master) =====
             // Ambil baris approval: Normal + Condition yang cocok dengan group_grade
+            if (!$isDraft) {
+                $msApproval = MsApproval::where('aprv_doctype', $doctype)
+                    ->where('aprv_cpnyid', $request->cpnyid)
+                    ->where('aprv_departementid', $request->departementid)
+                    ->where('status', 'A')
+                    ->where(function ($q) use ($positionCondition) {
+                        $q->where('aprv_type', 'Normal')
+                        ->orWhere(function ($q2) use ($positionCondition) {
+                            $q2->where('aprv_type', 'Condition')
+                                ->whereRaw('LOWER(TRIM(aprv_condition)) = ?', [trim($positionCondition)]);
+                        });
+                    })
+                    ->orderBy('aprv_leveling', 'asc')
+                    ->get();
 
-            $msApproval = MsApproval::where('aprv_doctype', $doctype)
-                ->where('aprv_cpnyid', $request->cpnyid)
-                ->where('aprv_departementid', $request->departementid)
-                ->where('status', 'A')
-                ->where(function ($q) use ($positionCondition) {
-                    $q->where('aprv_type', 'Normal')
-                    ->orWhere(function ($q2) use ($positionCondition) {
-                        $q2->where('aprv_type', 'Condition')
-                            ->whereRaw('LOWER(TRIM(aprv_condition)) = ?', [trim($positionCondition)]);
-                    });
-                })
-                ->orderBy('aprv_leveling', 'asc')
-                ->get();
+                if ($msApproval->isEmpty()) {
+                    DB::rollBack();
 
-            if ($msApproval->isEmpty()) {
-                DB::rollBack();
+                    return response()->json([
+                        'message' => 'Approval line belum di-setup (Normal/Condition) untuk kombinasi ini. Hubungi IT.',
+                    ], 422);
+                }
 
-                return response()->json([
-                    'message' => 'Approval line belum di-setup (Normal/Condition) untuk kombinasi ini. Hubungi IT.',
-                ], 422);
-            }
+                $canEdit = GroupAccspecific::where('username', $user->username)
+                    ->where('group_cpny_id', $groupCompanyId)
+                    ->where('group_access_id', 'EDIT')
+                    ->where('status', 'A')
+                    ->exists();
 
-            $canEdit = GroupAccspecific::where('username', $user->username)
-                ->where('group_cpny_id', $groupCompanyId)
-                ->where('group_access_id', 'EDIT')
-                ->where('status', 'A')
-                ->exists();
+                if (!$canEdit) {
+                    // Hapus pending lama agar tidak dobel
+                    // TrApproval::where('refnbr', $docid)->where('status', 'P')->delete();
 
-            if (!$canEdit) {
-                // Hapus pending lama agar tidak dobel
-                // TrApproval::where('refnbr', $docid)->where('status', 'P')->delete();
-
-                // Sisipkan approval baru
-                foreach ($msApproval as $row) {
-                    $isFirstLevel = ((int) $row->aprv_leveling === (int) $msApproval->min('aprv_leveling'));
-                    TrApproval::create([
-                        'refnbr' => $docid,
-                        'aprv_leveling' => $row->aprv_leveling,
-                        'aprv_doctype' => $row->aprv_doctype,
-                        'aprv_cpnyid' => $row->aprv_cpnyid,
-                        'aprv_departementid' => $row->aprv_departementid,
-                        'aprv_username' => $row->aprv_username,
-                        'aprv_name' => $row->aprv_name,
-                        'aprv_datebefore' => $isFirstLevel ? $datestamp : null,
-                        'aprv_type' => $row->aprv_type,        // Normal / Condition
-                        'aprv_condition' => $row->aprv_condition,   // Staff / Manager (jika ada)
-                        'status' => 'P',
-                        'created_by' => $user->username,
-                    ]);
+                    // Sisipkan approval baru
+                    foreach ($msApproval as $row) {
+                        $isFirstLevel = ((int) $row->aprv_leveling === (int) $msApproval->min('aprv_leveling'));
+                        TrApproval::create([
+                            'refnbr' => $docid,
+                            'aprv_leveling' => $row->aprv_leveling,
+                            'aprv_doctype' => $row->aprv_doctype,
+                            'aprv_cpnyid' => $row->aprv_cpnyid,
+                            'aprv_departementid' => $row->aprv_departementid,
+                            'aprv_username' => $row->aprv_username,
+                            'aprv_name' => $row->aprv_name,
+                            'aprv_datebefore' => $isFirstLevel ? $datestamp : null,
+                            'aprv_type' => $row->aprv_type,        // Normal / Condition
+                            'aprv_condition' => $row->aprv_condition,   // Staff / Manager (jika ada)
+                            'status' => 'P',
+                            'created_by' => $user->username,
+                        ]);
+                    }
                 }
             }
 
@@ -1274,55 +1341,213 @@ class PersonnelController extends Controller
             }
 
             // ===== Notifikasi ke approver berikutnya =====
-            $next = TrApproval::where('refnbr', $docid)
-                ->where('status', 'P')
-                ->orderBy('aprv_leveling', 'ASC')
-                ->first();
+            if (!$isDraft) {
+                $next = TrApproval::where('refnbr', $docid)
+                    ->where('status', 'P')
+                    ->orderBy('aprv_leveling', 'ASC')
+                    ->first();
 
-            $eid = Hashids::encode($personnel->id);
-            $mailMaster = $this->personnelMailMasterNames($personnel);
+                $eid = Hashids::encode($personnel->id);
+                $mailMaster = $this->personnelMailMasterNames($personnel);
 
-            if (!$canEdit) {
-                if ($next) {
-                    // jika multi user dipisah comma
-                    $usernames = array_map('trim', explode(',', $next->aprv_username));
-                    $emailTargets = User::whereIn('username', $usernames)
-                        ->where('group_cpny_id', $personnel->group_cpny_id)
-                        ->where('status', 'A')
-                        ->get();
+                if (!$canEdit) {
+                    if ($next) {
+                        // jika multi user dipisah comma
+                        $usernames = array_map('trim', explode(',', $next->aprv_username));
+                        $emailTargets = User::whereIn('username', $usernames)
+                            ->where('group_cpny_id', $personnel->group_cpny_id)
+                            ->where('status', 'A')
+                            ->get();
 
-                    $mailData = [
-                        'docid' => $next->refnbr,
-                        'cpnyid' => $mailMaster['company'],
-                        'deptname' => $mailMaster['department'],
-                        'date' => $next->aprv_datebefore,
-                        'name' => '-',
-                        'createdby' => $mailMaster['creator'],
-                        'docname' => 'Personnel Requisition',
-                        'status' => 'P',
-                        'info' => $request->job_title,
-                        'url' => url('/showpersonnels/'.$eid),
-                    ];
+                        $mailData = [
+                            'docid' => $next->refnbr,
+                            'cpnyid' => $mailMaster['company'],
+                            'deptname' => $mailMaster['department'],
+                            'date' => $next->aprv_datebefore,
+                            'name' => '-',
+                            'createdby' => $mailMaster['creator'],
+                            'docname' => 'Personnel Requisition',
+                            'status' => 'P',
+                            'info' => $request->job_title,
+                            'url' => url('/showpersonnels/'.$eid),
+                        ];
 
-                    foreach ($emailTargets as $recipient) {
-                        $recipientData = array_merge($mailData, ['name' => $recipient->name ?: 'User']);
-                        \Mail::send('emails.mailapproveprf', $recipientData, function ($message) use ($recipientData, $recipient) {
-                            $message->to($recipient->notification_email)
-                                ->subject($recipientData['docid'].' - Waiting Approval Personnel')
-                                ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                        });
+                        foreach ($emailTargets as $recipient) {
+                            $recipientData = array_merge($mailData, ['name' => $recipient->name ?: 'User']);
+                            \Mail::send('emails.mailapproveprf', $recipientData, function ($message) use ($recipientData, $recipient) {
+                                $message->to($recipient->notification_email)
+                                    ->subject($recipientData['docid'].' - Waiting Approval Personnel')
+                                    ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+                            });
+                        }
                     }
                 }
             }
 
             DB::commit();
 
-            return response()->json(['success' => true, 'personnel' => $personnel]);
+            return response()->json([
+                'success' => true,
+                'personnel' => $personnel,
+                'is_draft' => $isDraft,
+                'message' => $isDraft
+                    ? 'Personnel Requisition saved as draft'
+                    : 'Personnel Requisition updated successfully',
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
 
             return response()->json([
                 'error' => 'Gagal menyimpan personnel',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function copyPersonnel(Request $request, $hash)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $source = Personnel::findOrFail($id);
+
+        if ($source->status !== 'C') {
+            return response()->json([
+                'message' => 'Only a Completed PRF can be copied.',
+            ], 422);
+        }
+
+        $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
+        $userCpnyIds = $this->userCpnyIds($user);
+
+        if (
+            strtoupper(trim((string) $source->group_cpny_id)) !== $groupCompanyId
+            || !in_array($source->cpnyid, $userCpnyIds, true)
+        ) {
+            return response()->json([
+                'message' => 'You do not have access to copy this PRF.',
+            ], 403);
+        }
+
+        $doctype = 'PRF';
+        $username = $user->username ?? 'system';
+        $dt = Carbon::now();
+        $year = (int) $dt->year;
+        $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $datenow = $dt->format('Y-m-d');
+
+        DB::beginTransaction();
+        try {
+            $auto = $this->nextAutonbrByGroupCpnyid(
+                $doctype,
+                $year,
+                $month,
+                $groupCompanyId,
+                $username,
+                'PRF'
+            );
+            $urutan = (int) $auto['next'];
+            $tglbln = substr((string) $year, 2).$month;
+            $docid = $doctype.$tglbln.sprintf('%04d', $urutan);
+
+            $copy = Personnel::create([
+                'docid' => $docid,
+                'cpnyid' => $source->cpnyid,
+                'group_cpny_id' => $source->group_cpny_id,
+                'departementid' => $source->departementid,
+                'division_id' => $source->division_id,
+                'locationname' => $source->locationname,
+                'budget_entity_id' => $source->budget_entity_id,
+                'date' => $datenow,
+                'user' => $username,
+                'job_title' => $source->job_title,
+                'subgrade_id' => $source->subgrade_id,
+                'job_level' => $source->job_level,
+                'immediate_superior' => $source->immediate_superior,
+                'state_position' => $source->state_position,
+                'immediate_replacement' => $source->immediate_replacement,
+                'job_type' => $source->job_type,
+                'reason_vacancy' => $source->reason_vacancy,
+                'required' => $source->required,
+                'actual' => $source->actual,
+                'total_actual' => $source->total_actual,
+                'education' => $source->education,
+                'education_jurusan' => $source->education_jurusan,
+                'experience_start' => $source->experience_start,
+                'experience_end' => $source->experience_end,
+                'experience_position' => $source->experience_position,
+                'created_user' => $username,
+                'status' => 'H',
+            ]);
+
+            $jobres = JobResponsiblities::where('docid', $source->docid)
+                ->where('cpnyid', $source->cpnyid)
+                ->where('group_cpny_id', $source->group_cpny_id)
+                ->orderBy('no_job_responsiblities')
+                ->get();
+
+            foreach ($jobres as $row) {
+                JobResponsiblities::create([
+                    'docid' => $docid,
+                    'cpnyid' => $source->cpnyid,
+                    'group_cpny_id' => $source->group_cpny_id,
+                    'no_job_responsiblities' => $row->no_job_responsiblities,
+                    'job_responsibilities_descr' => $row->job_responsibilities_descr,
+                    'created_user' => $username,
+                    'status' => 'P',
+                ]);
+            }
+
+            $jobqua = JobQualification::where('docid', $source->docid)
+                ->where('cpnyid', $source->cpnyid)
+                ->where('group_cpny_id', $source->group_cpny_id)
+                ->orderBy('no_job_qualification')
+                ->get();
+
+            foreach ($jobqua as $row) {
+                JobQualification::create([
+                    'docid' => $docid,
+                    'cpnyid' => $source->cpnyid,
+                    'group_cpny_id' => $source->group_cpny_id,
+                    'no_job_qualification' => $row->no_job_qualification,
+                    'job_qualification_descr' => $row->job_qualification_descr,
+                    'created_user' => $username,
+                    'status' => 'P',
+                ]);
+            }
+
+            $jobtags = TrJobtag::where('docid', $source->docid)
+                ->where('cpnyid', $source->cpnyid)
+                ->where('group_cpny_id', $source->group_cpny_id)
+                ->get();
+
+            foreach ($jobtags as $row) {
+                TrJobtag::create([
+                    'docid' => $docid,
+                    'cpnyid' => $source->cpnyid,
+                    'group_cpny_id' => $source->group_cpny_id,
+                    'job_tags' => $row->job_tags,
+                    'created_user' => $username,
+                    'status' => 'P',
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'hash' => Hashids::encode($copy->id),
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'error' => 'Gagal menyalin PRF',
                 'message' => $e->getMessage(),
             ], 500);
         }
