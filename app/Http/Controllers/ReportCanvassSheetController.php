@@ -150,6 +150,10 @@ class ReportCanvassSheetController extends Controller
             $query->where('h.status', $request->status);
         }
 
+        if ($request->department) {
+            $query->where('h.department_id', $request->department);
+        }
+
         return $query;
     }
 

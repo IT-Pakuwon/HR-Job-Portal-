@@ -1,9 +1,30 @@
+<style>
+    /* Match Select2 with the other filter inputs */
+    .select2-container .select2-selection--single {
+        height: 38px !important;
+        border-radius: 0.5rem !important;
+        border: 1px solid #e5e7eb !important;
+        padding: 4px 8px !important;
+        display: flex;
+        align-items: center;
+    }
+
+    .select2-selection__rendered {
+        line-height: normal !important;
+        font-size: 14px;
+        color: #374151;
+    }
+
+    .select2-selection__arrow {
+        height: 100% !important;
+    }
+</style>
 <div class="space-y-4">
 
     <!-- FILTER PANEL -->
     <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800/60">
 
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-9">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-10">
 
             <!-- Date From -->
             <div>
@@ -55,6 +76,19 @@
                 </label>
                 <input type="text" id="inventoryid" placeholder="Item code"
                     class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
+            </div>
+
+            <div>
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
+                    Department
+                </label>
+                <select id="cs_department"
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
+                    <option value=""></option>
+                    @foreach ($departments as $id => $name)
+                        <option value="{{ $id }}">{{ $name }}</option>
+                    @endforeach
+                </select>
             </div>
 
             <div>
@@ -177,6 +211,12 @@
 <script>
     $(function() {
 
+        $('#cs_department').select2({
+            width: '100%',
+            placeholder: 'All Departments',
+            allowClear: true
+        });
+
         var table = $('#reportTable').DataTable({
 
             processing: true,
@@ -207,6 +247,7 @@
 
                     d.sppbjktid = $('#sppbjktid').val();
                     d.inventoryid = $('#inventoryid').val();
+                    d.department = $('#cs_department').val();
 
                 }
             },
@@ -397,6 +438,7 @@
             $('#sppbjktid').val('');
             $('#inventoryid').val('');
             $('#status').val('');
+            $('#cs_department').val('').trigger('change');
 
 
             table.ajax.reload();
@@ -413,6 +455,7 @@
             url += "&sppbjktid=" + $('#sppbjktid').val();
             url += "&inventoryid=" + $('#inventoryid').val();
             url += "&status=" + $('#status').val();
+            url += "&department=" + $('#cs_department').val();
 
             window.location.href = url;
 

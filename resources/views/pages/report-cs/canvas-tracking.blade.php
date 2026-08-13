@@ -24,7 +24,7 @@
     <!-- FILTER PANEL -->
     <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800/60">
 
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-12">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-9">
             <div>
                 <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Date From
@@ -500,7 +500,8 @@
         $('#btnFilter').click(() => table.ajax.reload());
 
         $('#btnReset').click(() => {
-            $('#f_date_from,#f_date_to,#f_csid,#f_sppbjkt').val('');
+            $('#f_date_from,#f_date_to,#f_csid,#f_sppbjkt,#f_requester,#f_doc_type').val('');
+            $('#f_department').val('').trigger('change');
             table.ajax.reload();
         });
     });
