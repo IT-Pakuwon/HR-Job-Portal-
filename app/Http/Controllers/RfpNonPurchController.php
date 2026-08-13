@@ -938,32 +938,7 @@ class RfpNonPurchController extends Controller
                     ->filter()
                     ->toArray();
 
-                // =========================
-                // KEPADA (TO tambahan)
-                // =========================
-                $kepadaUsers = explode(',', (string)$header->imnonpurchase_kepada);
-
-                $kepadaEmails = User::query()
-                    ->whereIn('username', $kepadaUsers)
-                    ->pluck('notification_email')
-                    ->filter()
-                    ->toArray();
-
-                // =========================
-                // TEMBUSAN (CC)
-                // =========================
-                $tembusanUsers = explode(',', (string)$header->imnonpurchase_tembusan);
-
-                $ccEmails = User::query()
-                    ->whereIn('username', $tembusanUsers)
-                    ->pluck('notification_email')
-                    ->filter()
-                    ->toArray();
-
-                // =========================
-                // MERGE EMAIL
-                // =========================
-                $toEmails = array_unique(array_merge($approverEmails, $kepadaEmails));
+                $toEmails = array_unique($approverEmails);
 
                 // =========================
                 // EMAIL DATA
@@ -987,13 +962,9 @@ class RfpNonPurchController extends Controller
                 // SEND EMAIL
                 // =========================
                 if (!empty($toEmails)) {
-                    Mail::send('emails.mailapprovenew', $mailData, function ($message) use ($toEmails, $ccEmails, $docid, $docName) {
+                    Mail::send('emails.mailapprovenew', $mailData, function ($message) use ($toEmails, $docid, $docName) {
 
                         $message->to($toEmails);
-
-                        if (!empty($ccEmails)) {
-                            $message->cc($ccEmails);
-                        }
 
                         $message->subject($docid . ' - WaitingApproval ' . $docName)
                             ->from(config('mail.from.address'), config('app.name'));
@@ -3026,9 +2997,42 @@ class RfpNonPurchController extends Controller
 
         $requesterEmail = trim((string) $requesterEmail);
 
-        if ($requesterEmail === '') {
+        $kepadaUsers = array_values(array_filter(array_map(
+            fn ($username) => trim((string) $username),
+            explode(',', (string) $rfpnonpurch->imnonpurchase_kepada)
+        )));
+
+        $kepadaEmails = User::query()
+            ->whereIn('username', $kepadaUsers)
+            ->where('status', 'A')
+            ->pluck('notification_email')
+            ->filter(fn ($email) => trim((string) $email) !== '')
+            ->unique()
+            ->values()
+            ->toArray();
+
+        $toEmails = array_values(array_unique(array_filter(array_merge(
+            [$requesterEmail],
+            $kepadaEmails
+        ), fn ($email) => trim((string) $email) !== '')));
+
+        if (empty($toEmails)) {
             return;
         }
+
+        $tembusanUsers = array_values(array_filter(array_map(
+            fn ($username) => trim((string) $username),
+            explode(',', (string) $rfpnonpurch->imnonpurchase_tembusan)
+        )));
+
+        $tembusanEmails = User::query()
+            ->whereIn('username', $tembusanUsers)
+            ->where('status', 'A')
+            ->pluck('notification_email')
+            ->filter(fn ($email) => trim((string) $email) !== '')
+            ->unique()
+            ->values()
+            ->toArray();
 
         $ccUsernames = SysUserRole::query()
             ->where('role_id', 'APFINACCESS')
@@ -3055,6 +3059,11 @@ class RfpNonPurchController extends Controller
             ->values()
             ->toArray();
 
+        $ccEmails = array_values(array_diff(
+            array_unique(array_merge($ccEmails, $tembusanEmails)),
+            $toEmails
+        ));
+
         $mailData = [
             'docid'     => $rfpnonpurch->rfpnonpurchaseid,
             'cpnyid'    => $rfpnonpurch->cpny_id ?? '',
@@ -3072,14 +3081,14 @@ class RfpNonPurchController extends Controller
         $pdfFilename = 'RFP_' . $rfpnonpurch->rfpnonpurchaseid . '.pdf';
 
         Mail::send('emails.mailapprovehold', $mailData, function ($message) use (
-            $requesterEmail,
+            $toEmails,
             $ccEmails,
             $rfpnonpurch,
             $docName,
             $pdf,
             $pdfFilename
         ) {
-            $message->to($requesterEmail);
+            $message->to($toEmails);
 
             if (!empty($ccEmails)) {
                 $message->cc($ccEmails);
