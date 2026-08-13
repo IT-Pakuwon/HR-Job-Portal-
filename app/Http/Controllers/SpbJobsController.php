@@ -684,6 +684,10 @@ class SpbJobsController extends Controller
 
     public function completeRemainingQty(Request $request, string $spbid)
     {
+        $request->validate([
+            'reason' => ['required', 'string', 'max:500'],
+        ]);
+
         $spb = TrSPB::where('spbid', $spbid)->first();
 
         if (!$spb) {
@@ -727,6 +731,15 @@ class SpbJobsController extends Controller
 
                 $this->recalcSpbHeaderAndStatus($spb->spbid);
             });
+
+            try {
+                $request->merge([
+                    'doc_no' => $spb->spbid,
+                    'reason' => 'SPB Completed : ' . $request->input('reason'),
+                ]);
+                app('App\Http\Controllers\SendCommentController')->sendmsg($spb->id, 'RB', request());
+            } catch (\Throwable $e) {
+            }
 
             return response()->json([
                 'ok' => true,
