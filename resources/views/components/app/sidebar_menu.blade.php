@@ -553,7 +553,7 @@
                                 <!-- ================================================= -->
                                 <!-- HRGA SETUP -->
                                 <!-- ================================================= -->
-                                @php $hrgaSetup = ['grading', 'kendaraan', 'group-acc-specific']; @endphp
+                                @php $hrgaSetup = ['grading', 'kendaraan', 'group-acc-specific', 'performance-management']; @endphp
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $hrgaSetup) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
@@ -581,6 +581,10 @@
                                         <li><a href="{{ route('group_acc_specific') }}"
                                                 class="{{ Request::segment(1) === 'group-acc-specific' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Group
                                                 Access Specific</a>
+                                        </li>
+                                        <li><a href="{{ route('performance-management') }}"
+                                                class="{{ Request::segment(1) === 'performance-management' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Performance
+                                                Management</a>
                                         </li>
                                     </ul>
                                 </li>
