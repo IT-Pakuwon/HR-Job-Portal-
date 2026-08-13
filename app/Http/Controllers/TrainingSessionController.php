@@ -10,7 +10,9 @@ use App\Models\StoGrading;
 use App\Models\MsLndTrainingDetail;
 use App\Models\MsLndTrainingSchedule;
 use App\Models\MsLndTrainingQuota;
+use App\Models\TrLndTrainingRegistration;
 use App\Models\User;
+use App\Services\TrainingWaitlistNotifier;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -441,6 +443,90 @@ class TrainingSessionController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Move the date/time of a schedule that's already PUBLISHED or CLOSED —
+     * unlike updateSchedule() this doesn't touch level/batch/quota, cascades
+     * schedule_date onto every still-active registration (it's denormalized
+     * on tr_lnd_training_registration), and notifies those registrants so a
+     * silently-kept seat can't strand someone who can't make the new date.
+     */
+    public function reschedule(Request $request, $id)
+    {
+        $detail = MsLndTrainingSchedule::findOrFail($id);
+        $currentLabel = self::STATUS_LABEL_MAP[$detail->status] ?? $detail->status;
+
+        if (!in_array($currentLabel, ['PUBLISHED', 'CLOSED'], true)) {
+            $message = $currentLabel === 'DRAFT'
+                ? 'Schedule berstatus DRAFT belum perlu di-reschedule — gunakan Edit'
+                : "Schedule berstatus {$currentLabel} tidak dapat di-reschedule";
+
+            return response()->json(['success' => false, 'message' => $message], 422);
+        }
+
+        $request->validate([
+            'schedule_date' => 'required|date|after_or_equal:today',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i|after:start_time',
+            'reason' => 'required|string|max:500',
+        ]);
+
+        $oldDate = $detail->schedule_date?->toDateString();
+        $newDate = $request->schedule_date;
+        $reason = trim($request->reason);
+
+        DB::connection('pgsql5')->beginTransaction();
+
+        try {
+            $user = Auth::user();
+            $updatedBy = $user->username ?? 'system';
+
+            $detail->update([
+                'schedule_date' => $newDate,
+                'schedule_start_time' => $request->start_time,
+                'schedule_end_time' => $request->end_time,
+                'updated_by' => $updatedBy,
+            ]);
+
+            // Same "active registration" filter used by register()'s duplicate
+            // check: seated (null), waitlisted ('W') or offered ('O') — never
+            // cancelled, never a rejected approval.
+            $registrations = TrLndTrainingRegistration::where('schedule_id', $detail->schedule_id)
+                ->where(function ($q) {
+                    $q->whereNull('status_registration')
+                        ->orWhere('status_registration', '!=', TrLndTrainingRegistration::REG_STATUS_CANCELLED);
+                })
+                ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
+                ->get();
+
+            foreach ($registrations as $registration) {
+                $registration->schedule_date = $newDate;
+                $registration->updated_by = $updatedBy;
+                $registration->save();
+            }
+
+            DB::connection('pgsql5')->commit();
+        } catch (\Throwable $e) {
+            DB::connection('pgsql5')->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal reschedule',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+
+        foreach ($registrations as $registration) {
+            TrainingWaitlistNotifier::notifyReschedule($registration->fresh(['schedule.schedule.training']), $oldDate, $newDate, $reason);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => count($registrations) > 0
+                ? 'Schedule berhasil di-reschedule, ' . count($registrations) . ' peserta telah diberi notifikasi'
+                : 'Schedule berhasil di-reschedule',
+        ]);
     }
 
     private function syncQuota(

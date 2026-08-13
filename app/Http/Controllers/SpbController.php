@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exports\SpbDetailExport;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\Budget;
+use App\Models\BudgetDetail;
 use App\Models\BusinessUnit;
 use App\Models\MsCompany;
 use App\Models\SysUserRole;
@@ -1462,6 +1463,7 @@ class SpbController extends Controller
                 'budget_account_id',
                 'budget_activity_descr',
                 'budget_business_unit_id',
+                'budget_perpost',
                 'created_by',
                 'created_at',
                 'updated_by',
@@ -1486,6 +1488,73 @@ class SpbController extends Controller
             ->where('spbid', $spb->spbid)
             ->orderBy('spb_no', 'ASC')
             ->get();
+
+        // --- Budget data (for tooltip on Budget column) ---
+        $budgets = BudgetDetail::leftJoin('ms_coa', function ($join) {
+            $join->on('ms_budget.account_id', '=', 'ms_coa.account_id')
+                ->on('ms_budget.cpny_id', '=', 'ms_coa.cpny_id');
+        })
+            ->where('ms_budget.status', 'C')
+            ->select(
+                'ms_budget.cpny_id',
+                'ms_budget.business_unit_id',
+                'ms_budget.department_fin_id',
+                'ms_budget.account_id',
+                'ms_budget.activity_id',
+                'ms_budget.activity_descr',
+                'ms_budget.perpost',
+                'ms_budget.totalbudget',
+                'ms_budget.totalbudget_add',
+                'ms_budget.total_reserve',
+                'ms_budget.total_used',
+                'ms_coa.account_descr as account_descr'
+            )
+            ->get();
+
+        $budgetMap = [];
+
+        foreach ($budgets as $b) {
+            $key = implode('|', [
+                $b->cpny_id,
+                $b->business_unit_id,
+                $b->department_fin_id,
+                $b->account_id,
+                $b->activity_descr,
+                $b->perpost,
+            ]);
+
+            $budgetMap[$key] = $b;
+        }
+
+        foreach ($spbdetail as $item) {
+            $key = implode('|', [
+                $item->budget_cpny_id,
+                $item->budget_business_unit_id,
+                $item->budget_department_fin_id,
+                $item->budget_account_id,
+                $item->budget_activity_descr,
+                $item->budget_perpost,
+            ]);
+
+            if (isset($budgetMap[$key])) {
+                $budget = $budgetMap[$key];
+
+                $item->budget_data = $budget;
+                $item->account_descr = $budget->account_descr;
+
+                $budgetValue = (float) ($budget->totalbudget ?? 0);
+                $additional = (float) ($budget->totalbudget_add ?? 0);
+                $reserved = (float) ($budget->total_reserve ?? 0);
+                $used = (float) ($budget->total_used ?? 0);
+
+                $item->budget_remaining =
+                    $budgetValue + $additional - $reserved - $used;
+            } else {
+                $item->budget_data = null;
+                $item->account_descr = null;
+                $item->budget_remaining = 0;
+            }
+        }
 
         // --- Attachments (GCS signed URL) ---
         // $rows = TrAttachment::where('refnbr', $spb->spbid)

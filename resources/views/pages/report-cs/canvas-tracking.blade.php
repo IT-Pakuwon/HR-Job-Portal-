@@ -1,3 +1,24 @@
+<style>
+    /* Match Select2 with the other filter inputs */
+    .select2-container .select2-selection--single {
+        height: 38px !important;
+        border-radius: 0.5rem !important;
+        border: 1px solid #e5e7eb !important;
+        padding: 4px 8px !important;
+        display: flex;
+        align-items: center;
+    }
+
+    .select2-selection__rendered {
+        line-height: normal !important;
+        font-size: 14px;
+        color: #374151;
+    }
+
+    .select2-selection__arrow {
+        height: 100% !important;
+    }
+</style>
 <div class="space-y-4">
 
     <!-- FILTER PANEL -->
@@ -54,7 +75,7 @@
                     Department
                 </label>
                 <select id="f_department" class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
-                    <option value="">All</option>
+                    <option value=""></option>
                     @foreach ($departments as $id => $name)
                         <option value="{{ $id }}">{{ $name }}</option>
                     @endforeach
@@ -237,6 +258,12 @@
 
 <script>
     $(function() {
+
+        $('#f_department').select2({
+            width: '100%',
+            placeholder: 'All Departments',
+            allowClear: true
+        });
 
         let currentStatus = '';
         let table = $('#trackingTable').DataTable({

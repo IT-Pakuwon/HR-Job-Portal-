@@ -427,37 +427,123 @@
                                         </div>
                                     </td>
 
-                                    <!-- Budget -->
+                                    <!-- Budget with Tooltip -->
                                     <td class="px-4 py-3">
 
-                                        <div class="flex items-center gap-2 text-sm">
+                                        <div class="group relative inline-block cursor-help">
+                                            @php
+                                                $budgetData = $item->budget_data;
 
-                                            <!-- Department -->
-                                            <span
-                                                class="rounded-md bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-800/30 dark:text-indigo-300">
-                                                {{ $item->budget_department_fin_id }}
-                                            </span>
+                                                $budget = (float) ($budgetData->totalbudget ?? 0);
+                                                $additional = (float) ($budgetData->totalbudget_add ?? 0);
+                                                $reserved = (float) ($budgetData->total_reserve ?? 0);
+                                                $used = (float) ($budgetData->total_used ?? 0);
 
-                                            <!-- Business Unit -->
-                                            <span
-                                                class="rounded-md bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700 dark:bg-purple-800/30 dark:text-purple-300">
-                                                {{ $item->budget_business_unit_id }}
-                                            </span>
+                                                $totalBudget = $budget + $additional;
 
-                                            <!-- Account -->
-                                            <span class="font-medium text-gray-700 dark:text-gray-200">
-                                                {{ $item->budget_account_id }}
-                                            </span>
+                                                $available = $totalBudget - $reserved - $used;
+                                            @endphp
 
-                                            <span class="text-gray-400">•</span>
+                                            <div class="budget-trigger" data-budget="{{ $budget }}"
+                                                data-additional="{{ $additional }}"
+                                                data-reserved="{{ $reserved }}" data-used="{{ $used }}"
+                                                data-available="{{ $available }}"
+                                                data-desc="{{ $item->budget_activity_descr }}"
+                                                data-account="{{ $item->budget_account_id }}"
+                                                data-coa="{{ optional($item->budget_data)->account_descr }}"
+                                                data-bu="{{ $item->budget_business_unit_id }}">
 
-                                            <!-- Activity -->
-                                            <span class="truncate text-gray-500 dark:text-gray-400">
-                                                {{ $item->budget_activity_descr }}
-                                            </span>
+                                                <div class="flex items-center gap-2 text-sm">
+
+                                                    {{-- Department --}}
+                                                    @if (!empty($item->budget_department_fin_id))
+                                                        <span
+                                                            class="rounded-md bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-800/30 dark:text-indigo-300">
+                                                            {{ $item->budget_department_fin_id }}
+                                                        </span>
+                                                    @endif
+
+                                                    {{-- Business Unit --}}
+                                                    @if (!empty($item->budget_business_unit_id))
+                                                        <span
+                                                            class="rounded-md bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700 dark:bg-purple-800/30 dark:text-purple-300">
+                                                            {{ $item->budget_business_unit_id }}
+                                                        </span>
+                                                    @endif
+
+                                                    {{-- Account --}}
+                                                    <span class="font-semibold text-gray-700 dark:text-gray-200">
+                                                        {{ $item->budget_account_id ?? '-' }}
+                                                    </span>
+
+                                                    <span class="text-gray-400 dark:text-gray-500">•</span>
+
+                                                    {{-- Activity --}}
+                                                    <span
+                                                        class="max-w-[240px] truncate text-gray-500 dark:text-gray-400">
+                                                        {{ $item->budget_activity_descr ?? '-' }}
+                                                    </span>
+
+                                                </div>
+                                            </div>
+
+                                            <!-- Tooltip -->
+                                            <div id="budgetTooltip"
+                                                class="fixed z-[9999] hidden w-72 rounded-xl border border-gray-200 bg-white p-4 text-sm shadow-sm dark:border-gray-700 dark:bg-gray-900">
+
+                                                <div class="space-y-1">
+
+                                                    <div id="ttDesc"
+                                                        class="font-semibold text-gray-900 dark:text-white"></div>
+
+                                                    <div class="text-xs text-gray-500 dark:text-gray-400">
+
+                                                        <span id="ttAccount"></span>
+                                                        <span class="mx-1 text-gray-300">|</span>
+                                                        <span id="ttCoa"></span>
+                                                        <span class="mx-1 text-gray-300">|</span>
+                                                        <span id="ttBU"></span>
+
+                                                    </div>
+                                                </div>
+
+                                                <div class="my-3 border-t border-gray-200 dark:border-gray-700"></div>
+
+                                                <div class="space-y-1.5">
+
+                                                    <div class="flex justify-between text-gray-600 dark:text-gray-400">
+                                                        <span>Budget</span>
+                                                        <span id="ttBudget"></span>
+                                                    </div>
+
+                                                    <div class="flex justify-between text-gray-600 dark:text-gray-400">
+                                                        <span>Additional</span>
+                                                        <span id="ttAdditional"></span>
+                                                    </div>
+
+                                                    <div class="flex justify-between">
+                                                        <span class="text-gray-500 dark:text-gray-400">Reserved</span>
+                                                        <span id="ttReserved" class="text-red-500"></span>
+                                                    </div>
+
+                                                    <div class="flex justify-between">
+                                                        <span class="text-gray-500 dark:text-gray-400">Used</span>
+                                                        <span id="ttUsed" class="text-red-500"></span>
+                                                    </div>
+
+                                                    <div class="my-2 border-t border-gray-200 dark:border-gray-700">
+                                                    </div>
+
+                                                    <div class="flex justify-between font-semibold">
+                                                        <span class="text-gray-700 dark:text-gray-300">Available</span>
+                                                        <span id="ttAvailable"></span>
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
 
                                         </div>
-
                                     </td>
 
                                     <!-- Issue -->
@@ -1904,6 +1990,95 @@
                 $tr.find('.picked-coa-text').text(`${accountId} - ${activityDescr}`);
 
                 closePicker();
+            });
+
+        });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+
+            const tooltip = document.getElementById("budgetTooltip");
+
+            document.querySelectorAll(".budget-trigger").forEach(el => {
+
+                el.addEventListener("mouseenter", function() {
+
+                    const desc = this.dataset.desc || "";
+                    const account = this.dataset.account || "";
+                    const coa = this.dataset.coa || "";
+                    const bu = this.dataset.bu || "";
+
+                    const budget = Number(this.dataset.budget || 0);
+                    const additional = Number(this.dataset.additional || 0);
+                    const reserved = Number(this.dataset.reserved || 0);
+                    const used = Number(this.dataset.used || 0);
+                    const available = Number(this.dataset.available || 0);
+
+                    document.getElementById("ttDesc").innerText = desc;
+                    document.getElementById("ttAccount").innerText = account;
+                    document.getElementById("ttCoa").innerText = coa;
+                    document.getElementById("ttBU").innerText = bu;
+
+                    document.getElementById("ttBudget").innerText =
+                        budget.toLocaleString("id-ID");
+
+                    document.getElementById("ttAdditional").innerText =
+                        additional.toLocaleString("id-ID");
+
+                    document.getElementById("ttReserved").innerText =
+                        reserved.toLocaleString("id-ID");
+
+                    document.getElementById("ttUsed").innerText =
+                        used.toLocaleString("id-ID");
+
+                    const availableEl = document.getElementById("ttAvailable");
+                    availableEl.innerText = available.toLocaleString("id-ID");
+
+                    if (available < 0) {
+                        availableEl.classList.remove("text-emerald-500");
+                        availableEl.classList.add("text-red-500");
+                    } else {
+                        availableEl.classList.remove("text-red-500");
+                        availableEl.classList.add("text-emerald-500");
+                    }
+
+                    tooltip.classList.remove("hidden");
+
+                });
+                el.addEventListener("mousemove", function(e) {
+
+                    const tooltipWidth = tooltip.offsetWidth;
+                    const tooltipHeight = tooltip.offsetHeight;
+
+                    const padding = 20;
+
+                    let left = e.pageX + 15;
+                    let top = e.pageY + 15;
+
+                    const viewportWidth = window.innerWidth;
+                    const viewportHeight = window.innerHeight;
+
+                    // 👉 Prevent overflow RIGHT
+                    if (left + tooltipWidth + padding > viewportWidth) {
+                        left = e.pageX - tooltipWidth - 15;
+                    }
+
+                    // 👉 Prevent overflow BOTTOM
+                    if (top + tooltipHeight + padding > viewportHeight) {
+                        top = e.pageY - tooltipHeight - 15;
+                    }
+
+                    tooltip.style.left = left + "px";
+                    tooltip.style.top = top + "px";
+                });
+
+                el.addEventListener("mouseleave", function() {
+
+                    tooltip.classList.add("hidden");
+
+                });
+
             });
 
         });

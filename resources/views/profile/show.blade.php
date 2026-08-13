@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-        <div class="mx-auto max-w-9xl space-y-6 px-2 py-2 sm:px-6 lg:px-8 flex flex-col">
+        <div class="mx-auto max-w-9xl space-y-6 p-4 sm:p-6 lg:p-8">
 
             <!-- Profile -->
             <div class="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
@@ -13,11 +13,13 @@
                     class="flex flex-col gap-4 border-b border-blue-100 bg-blue-50 p-6 dark:border-blue-500/20 dark:bg-blue-500/10 sm:flex-row sm:items-start sm:justify-between">
                     <div class="flex items-start gap-4">
                         <div class="relative shrink-0">
-                            <img id="profilePhotoPreview"
-                                class="h-16 w-16 rounded-full border border-gray-200 object-cover dark:border-gray-600"
-                                src="{{ Auth::user()->profile_photo_url }}" alt="User avatar">
+                            <div class="bg-linear-to-br rounded-full from-blue-500 via-indigo-500 to-purple-500 p-0.75 shadow-sm">
+                                <img id="profilePhotoPreview"
+                                    class="h-16 w-16 rounded-full border-2 border-white object-cover dark:border-gray-800"
+                                    src="{{ Auth::user()->profile_photo_url }}" alt="User avatar">
+                            </div>
                             <button type="button" id="btnChangePhoto"
-                                class="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-gray-900 text-white transition hover:bg-gray-700 dark:border-gray-800 dark:bg-gray-100 dark:text-gray-900"
+                                class="bg-linear-to-br absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white from-blue-600 to-indigo-600 text-white shadow transition hover:scale-110 dark:border-gray-800"
                                 title="Change photo">
                                 <i class="fa-solid fa-camera text-[10px]"></i>
                             </button>
@@ -30,7 +32,8 @@
                                 <h3 class="text-base font-semibold text-gray-900 dark:text-white">
                                     {{ Auth::user()->name }}</h3>
                                 <span
-                                    class="inline-flex items-center rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-medium text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-500/10 dark:text-green-400 dark:ring-green-500/20">
+                                    class="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-semibold text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-500/10 dark:text-green-400 dark:ring-green-500/20">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
                                     Employee</span>
                             </div>
                             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -42,13 +45,19 @@
 
                     <div class="flex shrink-0 items-center gap-2">
                         <button type="button" id="btnShowBarcode"
-                            class="inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
-                            <i class="fa-solid fa-barcode"></i>
+                            class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                            <span
+                                class="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300">
+                                <i class="fa-solid fa-barcode text-[9px]"></i>
+                            </span>
                             Barcode
                         </button>
                         <button type="button" id="btnShowQr"
-                            class="inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
-                            <i class="fa-solid fa-qrcode"></i>
+                            class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                            <span
+                                class="flex h-5 w-5 items-center justify-center rounded-full bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-purple-300">
+                                <i class="fa-solid fa-qrcode text-[9px]"></i>
+                            </span>
                             QR Code
                         </button>
                     </div>
@@ -57,36 +66,70 @@
                 <div
                     class="grid grid-cols-1 divide-y divide-gray-100 dark:divide-gray-700 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
                     <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
-                        <div>
-                            <p class="text-sm font-medium text-gray-800 dark:text-gray-100">Password</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Change your account password</p>
+                        <div class="flex items-center gap-3">
+                            <span
+                                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+                                <i class="fa-solid fa-key text-xs"></i>
+                            </span>
+                            <div>
+                                <p class="text-sm font-medium text-gray-800 dark:text-gray-100">Password</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Change your account password</p>
+                            </div>
                         </div>
                         <button type="button" id="btnChangePassword"
-                            class="inline-flex items-center gap-2 rounded-md border border-blue-500 px-3 py-1.5 text-xs font-medium text-blue-600 transition hover:bg-blue-500 hover:text-white dark:text-blue-400 dark:hover:bg-blue-500 dark:hover:text-white">
+                            class="bg-linear-to-r inline-flex items-center gap-2 rounded-full from-blue-600 to-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm shadow-blue-500/30 transition hover:-translate-y-0.5 hover:shadow-md hover:shadow-blue-500/40">
                             <i class="fa-solid fa-key text-[10px]"></i>
                             Change Password
                         </button>
                     </div>
                     <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
-                        <div>
-                            <p class="text-sm font-medium text-gray-800 dark:text-gray-100">Dark Mode</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Use dark mode by default whenever you
-                                sign in</p>
-                        </div>
-                        <label class="relative inline-flex cursor-pointer items-center">
-                            <input type="checkbox" id="darkmodeDefaultSwitch" class="peer sr-only"
-                                {{ Auth::user()->is_darkmode ? 'checked' : '' }}>
-                            <div
-                                class="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none dark:border-gray-600 dark:bg-gray-700">
+                        <div class="flex items-center gap-3">
+                            <span
+                                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
+                                <i class="fa-solid fa-moon text-xs"></i>
+                            </span>
+                            <div>
+                                <p class="text-sm font-medium text-gray-800 dark:text-gray-100">Dark Mode</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Use dark mode by default whenever
+                                    you sign in</p>
                             </div>
-                        </label>
+                        </div>
+                        <span
+                            class="bg-linear-to-r has-checked:from-indigo-700 has-checked:to-blue-700 relative inline-flex h-7 w-14 shrink-0 items-center rounded-full from-amber-200 to-amber-100 shadow-inner transition-colors duration-300 dark:from-gray-600 dark:to-gray-600">
+                            <input type="checkbox" id="darkmodeDefaultSwitch"
+                                class="peer absolute inset-0 z-20 cursor-pointer opacity-0"
+                                {{ Auth::user()->is_darkmode ? 'checked' : '' }}>
+                            <i
+                                class="fa-solid fa-sun absolute left-1.75 text-[10px] text-amber-500 transition-opacity duration-300 peer-checked:opacity-0"></i>
+                            <i
+                                class="fa-solid fa-moon absolute right-1.75 text-[10px] text-white opacity-0 transition-opacity duration-300 peer-checked:opacity-100"></i>
+                            <span
+                                class="pointer-events-none relative z-10 inline-block h-5 w-5 translate-x-1 rounded-full bg-white shadow-md transition-transform duration-300 peer-checked:translate-x-8"></span>
+                        </span>
                     </div>
                 </div>
             </div>
 
             <!-- Company Access -->
+            @php
+                $tagPalette = [
+                    'bg-blue-50 text-blue-700 ring-blue-600/15 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-400/20',
+                    'bg-purple-50 text-purple-700 ring-purple-600/15 dark:bg-purple-500/10 dark:text-purple-300 dark:ring-purple-400/20',
+                    'bg-pink-50 text-pink-700 ring-pink-600/15 dark:bg-pink-500/10 dark:text-pink-300 dark:ring-pink-400/20',
+                    'bg-amber-50 text-amber-700 ring-amber-600/15 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-400/20',
+                    'bg-teal-50 text-teal-700 ring-teal-600/15 dark:bg-teal-500/10 dark:text-teal-300 dark:ring-teal-400/20',
+                    'bg-emerald-50 text-emerald-700 ring-emerald-600/15 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-400/20',
+                    'bg-indigo-50 text-indigo-700 ring-indigo-600/15 dark:bg-indigo-500/10 dark:text-indigo-300 dark:ring-indigo-400/20',
+                    'bg-rose-50 text-rose-700 ring-rose-600/15 dark:bg-rose-500/10 dark:text-rose-300 dark:ring-rose-400/20',
+                ];
+                $tagClass = fn (string $label) => $tagPalette[crc32(trim($label)) % count($tagPalette)];
+            @endphp
             <div class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-                <div class="border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                <div class="flex items-center gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                    <span
+                        class="bg-linear-to-br flex h-8 w-8 items-center justify-center rounded-lg from-blue-600 to-indigo-500 text-white shadow-sm shadow-blue-500/30">
+                        <i class="fa-solid fa-building text-xs"></i>
+                    </span>
                     <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Company Access</h4>
                 </div>
                 <div class="divide-y divide-gray-100 dark:divide-gray-700">
@@ -95,21 +138,24 @@
                         <div class="flex flex-wrap gap-1.5 sm:col-span-3">
                             @foreach (explode(',', $talenta->cpny_id) as $c)
                                 <span
-                                    class="rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-700 dark:border-gray-600 dark:bg-gray-700/40 dark:text-gray-200">{{ trim($c) }}</span>
+                                    class="rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset transition hover:scale-105 {{ $tagClass($c) }}">{{ trim($c) }}</span>
                             @endforeach
                         </div>
                     </div>
                     <div class="grid grid-cols-1 gap-2 px-6 py-4 sm:grid-cols-4 sm:items-center sm:gap-4">
                         <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Department</p>
-                        <p class="text-sm text-gray-800 dark:text-gray-100 sm:col-span-3">
-                            {{ $talenta->department_id }}</p>
+                        <p
+                            class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-800 dark:text-gray-100 sm:col-span-3">
+                            <i class="fa-solid fa-sitemap text-[11px] text-indigo-500"></i>
+                            {{ $talenta->department_id }}
+                        </p>
                     </div>
                     <div class="grid grid-cols-1 gap-2 px-6 py-4 sm:grid-cols-4 sm:items-start sm:gap-4">
                         <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Business Unit</p>
                         <div class="flex flex-wrap gap-1.5 sm:col-span-3">
                             @foreach (explode(',', $talenta->business_unit_id) as $bu)
                                 <span
-                                    class="rounded-md bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">{{ trim($bu) }}</span>
+                                    class="rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset transition hover:scale-105 {{ $tagClass($bu) }}">{{ trim($bu) }}</span>
                             @endforeach
                         </div>
                     </div>

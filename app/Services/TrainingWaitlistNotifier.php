@@ -172,6 +172,55 @@ class TrainingWaitlistNotifier
     }
 
     /**
+     * A PUBLISHED/CLOSED schedule's date moved while this registration still
+     * held a seat/waitlist slot/offer. Unlike the other notices here this
+     * carries a cancel link front and center — a kept seat that silently
+     * follows the new date can strand someone who can't make it.
+     */
+    public static function notifyReschedule(TrLndTrainingRegistration $registration, ?string $oldDate, string $newDate, string $reason): void
+    {
+        $trainingName = $registration->schedule?->schedule?->training?->training_name ?? 'Training';
+
+        $eid = Hashids::encode($registration->id);
+        $url = url('/training-list/my/' . $eid);
+
+        TrMessage::create([
+            'refnbr' => $registration->training_regist_id,
+            'doctype' => 'TRN',
+            'message_date' => now(),
+            'message_type' => 'SYSTEM',
+            'cpny_id' => $registration->cpny_id,
+            'department_id' => $registration->department_id,
+            'username' => 'system',
+            'name' => 'System',
+            'message' => "Jadwal {$trainingName} diubah" . ($oldDate ? " dari {$oldDate}" : '') . " ke {$newDate}. Alasan: {$reason}",
+            'status' => 'A',
+            'created_by' => 'system',
+        ]);
+
+        $user = User::where('username', $registration->user_registration)->where('status', 'A')->first();
+        $to = $user ? ($user->notification_email ?: $user->email) : null;
+
+        if (!$to) {
+            return;
+        }
+
+        Mail::send('emails.trainingreschedule', [
+            'name' => $user->name ?: $user->username,
+            'docid' => $registration->training_regist_id,
+            'training_name' => $trainingName,
+            'old_date' => $oldDate,
+            'new_date' => $newDate,
+            'reason' => $reason,
+            'url' => $url,
+        ], function ($m) use ($to, $registration) {
+            $m->to($to)
+                ->subject($registration->training_regist_id . ' - Jadwal Training Diubah')
+                ->from(config('mail.from.address'), config('app.name'));
+        });
+    }
+
+    /**
      * One-shot notice (see NotifyCertificateReady command) that a
      * participant's certificate has crossed the H+1 eligibility window and
      * can now be downloaded from My Registration. No file is attached — the

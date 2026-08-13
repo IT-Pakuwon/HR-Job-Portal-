@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\VplLedgerExport;
+use App\Exports\VplLoyaltyUsageExport;
+use App\Exports\VplProductStockExport;
 use App\Exports\VplStockSummaryExport;
 use App\Exports\VplStockVoucherExport;
 use App\Models\MsVplAging;
@@ -17,6 +20,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
+use Vinkla\Hashids\Facades\Hashids;
 
 class VplReportController extends Controller
 {
@@ -61,7 +65,7 @@ class VplReportController extends Controller
         $hasVPPRMTNACCESS   = $user->hasRole('VPPRMTNACCESS');
         $hasVPLOYALTYACCESS = $user->hasRole('VPLOYALTYACCESS');
 
-        $tabCount = 2;
+        $tabCount = 4 + ($hasVPLOYALTYACCESS ? 1 : 0);
 
         $defaultReport = 'stock-voucher';
 
@@ -95,6 +99,9 @@ class VplReportController extends Controller
             case 'stock-summary':
                 return $this->stockSummaryJson($request);
 
+            case 'loyalty-usage':
+                return $this->loyaltyUsageJson($request);
+
             default:
                 abort(404);
         }
@@ -114,9 +121,321 @@ class VplReportController extends Controller
             case 'stock-summary':
                 return $this->stockSummaryExport($request);
 
+            case 'loyalty-usage':
+                return $this->loyaltyUsageExport($request);
+
             default:
                 abort(404);
         }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | IN & OUT VOUCHER PRODUCT (raw tr_vpl_ledger browser — every movement,
+    | every warehouse, server-side DataTable)
+    |--------------------------------------------------------------------------
+    */
+
+    /** DataTables per-column Type filter (exact match, see inOutData()). */
+    private const LEDGER_TYPE_OPTIONS = ['Receive', 'Transfer In', 'Transfer Out', 'Usage', 'Return'];
+
+    /** Shared select list/joins for the ledger browser, scoped to one company+period — used by both the DataTable and the Excel export. */
+    private function ledgerBaseQuery(string $cpnyid, int $year, int $month)
+    {
+        $perpost = $year.str_pad((string) $month, 2, '0', STR_PAD_LEFT);
+
+        return DB::connection('pgsql5')->table('tr_vpl_ledger as l')
+            ->leftJoin('ms_vpl_product as p', 'p.product_id', '=', 'l.product_id')
+            ->leftJoin('tr_vpl_usage as u', function ($join) {
+                $join->on('u.usage_id', '=', 'l.refnbr')
+                    ->where('l.transaction_source', '=', 'Usage');
+            })
+            ->where('l.cpnyid', $cpnyid)
+            ->where('l.perpost', $perpost)
+            ->where('l.status', 'A')
+            ->select([
+                'l.refnbr',
+                DB::raw("to_char(l.created_at, 'YYYY-MM-DD HH24:MI') as create_date"),
+                'l.cpnyid',
+                'l.transaction_source',
+                'u.usagetype',
+                DB::raw("to_char(l.postdate, 'YYYY-MM-DD') as post_date"),
+                'l.product_id',
+                DB::raw("COALESCE(to_char(l.expired_date, 'YYYY-MM-DD'), 'No Expired') as expired_date_fmt"),
+                'p.product_name',
+                'l.qty',
+                DB::raw("COALESCE(l.reference_refnbr, '-') as reference_refnbr"),
+                DB::raw("COALESCE(l.purpose_id, '-') as purpose_id"),
+                'l.whs_id',
+            ]);
+    }
+
+    private function ledgerTypeLabel(object $r): string
+    {
+        if ($r->transaction_source !== 'Usage') {
+            return $r->transaction_source;
+        }
+
+        return $r->usagetype === 'Return' ? 'Return' : 'Usage';
+    }
+
+    /** Optional Select2 filters (Ref No / Product Name / Type / Reference Refnbr) shared by the DataTable and the Excel export. */
+    private function applyLedgerFilters($query, Request $request)
+    {
+        if ($request->filled('refnbr')) {
+            $query->where('l.refnbr', $request->input('refnbr'));
+        }
+
+        if ($request->filled('product_name')) {
+            $query->where('p.product_name', $request->input('product_name'));
+        }
+
+        if ($request->filled('reference_refnbr')) {
+            $query->where('l.reference_refnbr', $request->input('reference_refnbr'));
+        }
+
+        if ($request->filled('type')) {
+            $type = $request->input('type');
+
+            if ($type === 'Return') {
+                $query->where('l.transaction_source', 'Usage')->where('u.usagetype', 'Return');
+            } elseif ($type === 'Usage') {
+                $query->where('l.transaction_source', 'Usage')
+                    ->where(function ($q2) {
+                        $q2->whereNull('u.usagetype')->orWhere('u.usagetype', '<>', 'Return');
+                    });
+            } elseif (in_array($type, self::LEDGER_TYPE_OPTIONS, true)) {
+                $query->where('l.transaction_source', $type);
+            }
+        }
+
+        return $query;
+    }
+
+    /** Select2 remote-search options for the ledger browser's Ref No / Product Name / Reference Refnbr filters. */
+    public function inOutOptions(Request $request)
+    {
+        [$cpnyid, $year, $month] = $this->resolveStockVoucherParams($request);
+        $perpost = $year.str_pad((string) $month, 2, '0', STR_PAD_LEFT);
+
+        $columnMap = [
+            'refnbr'           => 'l.refnbr',
+            'product_name'     => 'p.product_name',
+            'reference_refnbr' => 'l.reference_refnbr',
+        ];
+
+        $field = $request->input('field');
+        abort_unless(isset($columnMap[$field]), 404);
+        $column = $columnMap[$field];
+
+        $term = trim((string) $request->input('term', ''));
+
+        $query = DB::connection('pgsql5')->table('tr_vpl_ledger as l')
+            ->leftJoin('ms_vpl_product as p', 'p.product_id', '=', 'l.product_id')
+            ->where('l.cpnyid', $cpnyid)
+            ->where('l.perpost', $perpost)
+            ->where('l.status', 'A')
+            ->whereNotNull($column);
+
+        if ($term !== '') {
+            $query->where($column, 'like', '%'.$term.'%');
+        }
+
+        $values = $query->distinct()->orderBy($column)->limit(50)->pluck($column);
+
+        return response()->json(['results' => $values->map(fn ($v) => ['id' => $v, 'text' => $v])]);
+    }
+
+    public function inOutData(Request $request)
+    {
+        [$cpnyid, $year, $month] = $this->resolveStockVoucherParams($request);
+
+        $query = $this->applyLedgerFilters($this->ledgerBaseQuery($cpnyid, $year, $month), $request);
+
+        return \DataTables::of($query)
+            ->addColumn('type_label', fn ($r) => $this->ledgerTypeLabel($r))
+            ->filterColumn('type_label', function ($q, $keyword) {
+                if ($keyword === 'Return') {
+                    $q->where('l.transaction_source', 'Usage')->where('u.usagetype', 'Return');
+                } elseif ($keyword === 'Usage') {
+                    $q->where('l.transaction_source', 'Usage')
+                        ->where(function ($q2) {
+                            $q2->whereNull('u.usagetype')->orWhere('u.usagetype', '<>', 'Return');
+                        });
+                } elseif (in_array($keyword, self::LEDGER_TYPE_OPTIONS, true)) {
+                    $q->where('l.transaction_source', $keyword);
+                }
+            })
+            // Postgres can't reference a SELECT-list alias inside WHERE, so every column
+            // above that's a DB::raw()/COALESCE() alias needs an explicit filterColumn()
+            // pointing back at the real expression — Yajra's default per-column search
+            // would otherwise emit "WHERE create_date LIKE ?" and 500.
+            ->filterColumn('create_date', function ($q, $keyword) {
+                $q->whereRaw("to_char(l.created_at, 'YYYY-MM-DD HH24:MI') LIKE ?", ['%'.$keyword.'%']);
+            })
+            ->filterColumn('post_date', function ($q, $keyword) {
+                $q->whereRaw("to_char(l.postdate, 'YYYY-MM-DD') LIKE ?", ['%'.$keyword.'%']);
+            })
+            ->filterColumn('expired_date_fmt', function ($q, $keyword) {
+                $q->whereRaw("COALESCE(to_char(l.expired_date, 'YYYY-MM-DD'), 'No Expired') LIKE ?", ['%'.$keyword.'%']);
+            })
+            ->filterColumn('reference_refnbr', function ($q, $keyword) {
+                $q->where('l.reference_refnbr', 'like', '%'.$keyword.'%');
+            })
+            ->filterColumn('purpose_id', function ($q, $keyword) {
+                $q->where('l.purpose_id', 'like', '%'.$keyword.'%');
+            })
+            ->editColumn('qty', fn ($r) => number_format((float) $r->qty, 0, ',', '.'))
+            ->orderColumn('type_label', 'l.transaction_source $1')
+            ->make(true);
+    }
+
+    public function inOutExport(Request $request)
+    {
+        [$cpnyid, $year, $month] = $this->resolveStockVoucherParams($request);
+
+        $rows = $this->applyLedgerFilters($this->ledgerBaseQuery($cpnyid, $year, $month), $request)
+            ->orderByDesc('l.created_at')
+            ->get()
+            ->map(fn ($r) => [
+                $r->refnbr,
+                $r->create_date,
+                $r->cpnyid,
+                $this->ledgerTypeLabel($r),
+                $r->post_date,
+                $r->product_id,
+                $r->expired_date_fmt,
+                $r->product_name,
+                (float) $r->qty,
+                $r->reference_refnbr,
+                $r->purpose_id,
+                $r->whs_id,
+            ]);
+
+        $filename = "in-out-{$cpnyid}-{$year}-".str_pad((string) $month, 2, '0', STR_PAD_LEFT).'.xlsx';
+
+        return Excel::download(new VplLedgerExport($rows), $filename);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | VOUCHER & PRODUCT STOCK (stock as of a period, per product/expiry/
+    | warehouse, every warehouse, server-side DataTable)
+    |--------------------------------------------------------------------------
+    */
+
+    /** Shared select list/joins for the stock browser — stock rolled forward through the selected month only (periods after it are excluded), scoped to one company+year. */
+    private function productStockBaseQuery(string $cpnyid, int $year, int $month)
+    {
+        $periods = collect(range(1, $month))->map(fn ($m) => str_pad((string) $m, 2, '0', STR_PAD_LEFT));
+        $inSum   = $periods->map(fn ($mm) => "COALESCE(b.period{$mm}in, 0)")->implode(' + ');
+        $outSum  = $periods->map(fn ($mm) => "COALESCE(b.period{$mm}out, 0)")->implode(' + ');
+        $stockExpr = "COALESCE(b.begqty, 0) + ({$inSum}) - ({$outSum}) as stock";
+
+        return DB::connection('pgsql5')->table('ms_vpl_product_bal as b')
+            ->join('ms_vpl_product as p', 'p.product_id', '=', 'b.product_id')
+            ->where('b.cpnyid', $cpnyid)
+            ->where('b.year', $year)
+            ->select([
+                'b.cpnyid',
+                'b.product_id',
+                DB::raw("COALESCE(to_char(b.expired_date, 'YYYY-MM-DD'), 'No Expired') as expired_date_fmt"),
+                'p.product_name',
+                'p.product_value',
+                'p.product_uom',
+                'b.whs_id',
+                DB::raw($stockExpr),
+            ]);
+    }
+
+    /** Optional Select2 filters (Product ID / Name / Warehouse) shared by the DataTable and the Excel export. */
+    private function applyProductStockFilters($query, Request $request)
+    {
+        if ($request->filled('product_id')) {
+            $query->where('b.product_id', $request->input('product_id'));
+        }
+
+        if ($request->filled('product_name')) {
+            $query->where('p.product_name', $request->input('product_name'));
+        }
+
+        if ($request->filled('whs_id')) {
+            $query->where('b.whs_id', $request->input('whs_id'));
+        }
+
+        return $query;
+    }
+
+    /** Select2 remote-search options for the stock browser's Product ID / Name / Warehouse filters. */
+    public function productStockOptions(Request $request)
+    {
+        [$cpnyid, $year] = $this->resolveStockVoucherParams($request);
+
+        $columnMap = [
+            'product_id'   => 'b.product_id',
+            'product_name' => 'p.product_name',
+            'whs_id'       => 'b.whs_id',
+        ];
+
+        $field = $request->input('field');
+        abort_unless(isset($columnMap[$field]), 404);
+        $column = $columnMap[$field];
+
+        $term = trim((string) $request->input('term', ''));
+
+        $query = DB::connection('pgsql5')->table('ms_vpl_product_bal as b')
+            ->join('ms_vpl_product as p', 'p.product_id', '=', 'b.product_id')
+            ->where('b.cpnyid', $cpnyid)
+            ->where('b.year', $year)
+            ->whereNotNull($column);
+
+        if ($term !== '') {
+            $query->where($column, 'like', '%'.$term.'%');
+        }
+
+        $values = $query->distinct()->orderBy($column)->limit(50)->pluck($column);
+
+        return response()->json(['results' => $values->map(fn ($v) => ['id' => $v, 'text' => $v])]);
+    }
+
+    public function productStockData(Request $request)
+    {
+        [$cpnyid, $year, $month] = $this->resolveStockVoucherParams($request);
+
+        $query = $this->applyProductStockFilters($this->productStockBaseQuery($cpnyid, $year, $month), $request);
+
+        return \DataTables::of($query)
+            // Same Postgres alias-in-WHERE restriction as inOutData() — filterColumn()
+            // re-targets the real expression instead of the SELECT alias.
+            ->filterColumn('expired_date_fmt', function ($q, $keyword) {
+                $q->whereRaw("COALESCE(to_char(b.expired_date, 'YYYY-MM-DD'), 'No Expired') LIKE ?", ['%'.$keyword.'%']);
+            })
+            ->editColumn('product_value', fn ($r) => number_format((float) $r->product_value, 2, '.', ''))
+            ->editColumn('stock', fn ($r) => number_format((float) $r->stock, 0, ',', '.'))
+            ->make(true);
+    }
+
+    public function productStockExport(Request $request)
+    {
+        [$cpnyid, $year, $month] = $this->resolveStockVoucherParams($request);
+
+        $rows = $this->applyProductStockFilters($this->productStockBaseQuery($cpnyid, $year, $month), $request)
+            ->orderBy('b.product_id')
+            ->get()
+            ->map(fn ($r) => [
+                $r->cpnyid,
+                $r->product_id,
+                $r->expired_date_fmt,
+                $r->product_name,
+                (float) $r->product_value,
+                $r->product_uom,
+                $r->whs_id,
+                (float) $r->stock,
+            ]);
+
+        $filename = "product-stock-{$cpnyid}-{$year}-".str_pad((string) $month, 2, '0', STR_PAD_LEFT).'.xlsx';
+
+        return Excel::download(new VplProductStockExport($rows), $filename);
     }
 
     /*
@@ -340,16 +659,15 @@ class VplReportController extends Controller
         // its own month-end.
         $agingAsOf = Carbon::now()->lt($monthEnd) ? Carbon::now() : $monthEnd;
 
-        $batchRows = $this->batchStockRows($cpnyid, $year, $month);
+        $batchRows = $this->batchStockRowsRedemptionBased($cpnyid, $year, $month);
 
         if (empty($batchRows)) {
             return [];
         }
 
-        $sources        = $this->batchSourceTypes($cpnyid);
-        $purposeOut     = $this->batchPurposeOut($cpnyid, $monthStart, $monthEnd);
-        $loyaltyTransfer = $this->batchLoyaltyTransferOut($cpnyid, $monthStart, $monthEnd);
-        $agingBuckets   = MsVplAging::where('status', 'A')->orderBy('order_age')->get();
+        $sources      = $this->batchSourceTypes($cpnyid);
+        $purposeOut   = $this->batchPurposeOut($cpnyid, $monthStart, $monthEnd);
+        $agingBuckets = MsVplAging::where('status', 'A')->orderBy('order_age')->get();
 
         $rows = [];
 
@@ -361,16 +679,13 @@ class VplReportController extends Controller
             $nominal     = (float) $product->product_value;
             $expiredDate = $this->expiredKey($bal->expired_date) === 'NULL' ? null : $bal->expired_date;
 
-            // Usage/redemption-based split — feeds "Voucher Used in Current Period" (value).
+            // Usage/redemption-based split, at WHPROMOTION or WHLOYALTY — drives both the
+            // stock roll-forward's Out columns and "Voucher Used in Current Period" (value).
+            // Stock transferred but not yet redeemed still counts as Ending stock.
             $used = array_fill_keys(self::USED_COLUMNS, 0.0);
             foreach ($purposeOut[$key] ?? [] as $bucket => $qty) {
                 $used[$bucket] += $qty;
             }
-
-            // Stock roll-forward's Out Loy (qty) is the WHCOLLECTION->WHLOYALTY transfer —
-            // distinct from $used['Loyalty'] above, which is actual usage recorded at
-            // WHLOYALTY and may lag behind the transfer by one or more periods.
-            $loyaltyTransferQty = $loyaltyTransfer[$key] ?? 0;
 
             $rows[] = [
                 'product_id'     => $product->product_id,
@@ -383,7 +698,7 @@ class VplReportController extends Controller
                 'nominal'        => $nominal,
                 'beginning'      => $row['beginning'],
                 'in_total'       => $row['month_in'],
-                'out_loyalty'    => $loyaltyTransferQty,
+                'out_loyalty'    => $used['Loyalty'],
                 'out_promotion'  => $used['Promotion'],
                 'out_entertain'  => $used['Entertainment'],
                 'out_internal'   => $used['Internal Use'],
@@ -488,37 +803,121 @@ class VplReportController extends Controller
     }
 
     /**
-     * Qty transferred WHCOLLECTION -> WHLOYALTY in the given month, per product+expiry
-     * batch. This is the actual mechanism Loyalty vouchers leave WHCOLLECTION by (there's
-     * no 'Redeem PG Card' purpose_id usage in practice) — folded into the Loyalty bucket
-     * alongside batchPurposeOut() so Out Loy+Prm+Ent+Internal reconciles to out_total.
+     * Like batchStockRows(), but Ending tracks total un-redeemed stock across
+     * WHCOLLECTION+WHLOYALTY+WHPROMOTION instead of just WHCOLLECTION's own balance —
+     * a WHCOLLECTION->WHLOYALTY transfer doesn't reduce Ending until it's actually
+     * redeemed (usage recorded) at WHLOYALTY. Used only by the Stock Summary report;
+     * Stock Voucher report keeps the WHCOLLECTION-balance convention via batchStockRows().
      *
-     * @return array<string, float>
+     * @return array<string, array{product: MsVplProduct, bal: MsVplProductBal, category_label: string, beginning: float, month_in: float, month_out: float, ending: float}>
      */
-    private function batchLoyaltyTransferOut(string $cpnyid, Carbon $monthStart, Carbon $monthEnd): array
+    private function batchStockRowsRedemptionBased(string $cpnyid, int $year, int $month): array
     {
-        $transfers = TrxVplTransferDetail::query()
-            ->join('tr_vpl_transfer', 'tr_vpl_transfer.transfer_id', '=', 'tr_vpl_transfer_detail.transfer_id')
-            ->where('tr_vpl_transfer.cpnyid', $cpnyid)
-            ->where('tr_vpl_transfer.status', 'C')
-            ->where('tr_vpl_transfer_detail.from_whs_id', self::WHS_COLLECTION)
-            ->where('tr_vpl_transfer_detail.to_whs_id', self::WHS_LOYALTY)
-            ->whereBetween('tr_vpl_transfer.transfer_date', [$monthStart, $monthEnd])
+        $balances = MsVplProductBal::where('cpnyid', $cpnyid)
+            ->where('year', $year)
+            ->where('whs_id', self::WHS_COLLECTION)
+            ->get();
+
+        if ($balances->isEmpty()) {
+            return [];
+        }
+
+        $products = MsVplProduct::where('cpnyid', $cpnyid)
+            ->get()
+            ->keyBy('product_id');
+
+        [$monthlyIn, $monthlyOut] = $this->redemptionMonthlyInOut($cpnyid, $year);
+
+        $rows = [];
+
+        foreach ($balances as $bal) {
+            $key = $bal->product_id.'|'.$this->expiredKey($bal->expired_date);
+
+            $product = $products->get($bal->product_id);
+
+            if (!$product) {
+                continue;
+            }
+
+            $in  = $monthlyIn[$key] ?? [];
+            $out = $monthlyOut[$key] ?? [];
+
+            $beginning = (float) $bal->begqty;
+
+            for ($m = 1; $m < $month; $m++) {
+                $beginning += ($in[$m] ?? 0) - ($out[$m] ?? 0);
+            }
+
+            $monthIn  = $in[$month] ?? 0;
+            $monthOut = $out[$month] ?? 0;
+
+            $rows[$key] = [
+                'product'        => $product,
+                'bal'            => $bal,
+                'category_label' => $product->product_category === 'F&B' ? 'F&B' : 'NON F&B',
+                'beginning'      => $beginning,
+                'month_in'       => $monthIn,
+                'month_out'      => $monthOut,
+                'ending'         => $beginning + $monthIn - $monthOut,
+            ];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * In = Receive/Transfer-In landing at WHCOLLECTION (same as report 1). Out = actual
+     * usage/return recorded at WHPROMOTION or WHLOYALTY (redemption), for every month of
+     * the year — mirrors batchPurposeOut() but year-wide, so Beginning's cumulative math
+     * stays consistent with the redemption-based Ending.
+     *
+     * @return array{0: array<string, array<int, float>>, 1: array<string, array<int, float>>}
+     */
+    private function redemptionMonthlyInOut(string $cpnyid, int $year): array
+    {
+        $monthlyIn = [];
+
+        $receives = DB::connection('pgsql5')->table('tr_vpl_ledger')
+            ->where('cpnyid', $cpnyid)
+            ->where('perpost', 'like', $year.'%')
+            ->where('status', 'A')
+            ->where('whs_id', self::WHS_COLLECTION)
+            ->whereIn('transaction_source', ['Receive', 'Transfer In'])
+            ->select('product_id', 'expired_date', 'perpost', 'qty')
+            ->get();
+
+        foreach ($receives as $row) {
+            $key   = $row->product_id.'|'.$this->expiredKey($row->expired_date);
+            $month = (int) substr((string) $row->perpost, 4, 2);
+            $monthlyIn[$key][$month] = ($monthlyIn[$key][$month] ?? 0) + (float) $row->qty;
+        }
+
+        $monthlyOut = [];
+
+        $usages = TrxVplUsageDetail::query()
+            ->join('tr_vpl_usage', 'tr_vpl_usage.usage_id', '=', 'tr_vpl_usage_detail.usage_id')
+            ->where('tr_vpl_usage.cpnyid', $cpnyid)
+            ->where('tr_vpl_usage.status', 'C')
+            ->whereIn('tr_vpl_usage_detail.whs_id', [self::WHS_PROMOTION, self::WHS_LOYALTY])
+            ->whereYear('tr_vpl_usage.usage_date', $year)
             ->select([
-                'tr_vpl_transfer_detail.product_id',
-                'tr_vpl_transfer_detail.expired_date',
-                'tr_vpl_transfer_detail.qty_transfer',
+                'tr_vpl_usage_detail.product_id',
+                'tr_vpl_usage_detail.expired_date',
+                'tr_vpl_usage_detail.qty_usage',
+                'tr_vpl_usage_detail.qty_return_usage',
+                'tr_vpl_usage.usage_date',
             ])
             ->get();
 
-        $out = [];
+        foreach ($usages as $u) {
+            $key   = $u->product_id.'|'.$this->expiredKey($u->expired_date);
+            $month = Carbon::parse($u->usage_date)->month;
+            $qty   = (float) $u->qty_usage - (float) $u->qty_return_usage;
 
-        foreach ($transfers as $t) {
-            $key = $t->product_id.'|'.$this->expiredKey($t->expired_date);
-            $out[$key] = ($out[$key] ?? 0) + abs((float) $t->qty_transfer);
+            $monthlyOut[$key][$month] = ($monthlyOut[$key][$month] ?? 0) + $qty;
         }
 
-        return $out;
+        return [$monthlyIn, $monthlyOut];
     }
 
     /** Bucket a batch's expiry against ms_vpl_aging ranges, measured in days from the period's month-end. */
@@ -596,6 +995,190 @@ class VplReportController extends Controller
                     $r['type'] = 'detail';
                     $output[] = $r;
                 }
+            }
+        }
+
+        return $output;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | LOYALTY USAGE REPORT (usage at WHLOYALTY / ending stock at WHLOYALTY)
+    |--------------------------------------------------------------------------
+    */
+    private function loyaltyUsageJson(Request $request)
+    {
+        [$cpnyid, $year, $month] = $this->resolveStockVoucherParams($request);
+
+        $rows = $this->buildLoyaltyUsageReport($cpnyid, $year, $month);
+
+        return view('pages.report-vpl.partials.loyalty-usage-table', [
+            'rows'      => $rows,
+            'cpnyid'    => $cpnyid,
+            'year'      => $year,
+            'month'     => $month,
+            'forExport' => false,
+        ]);
+    }
+
+    private function loyaltyUsageExport(Request $request)
+    {
+        [$cpnyid, $year, $month] = $this->resolveStockVoucherParams($request);
+
+        $rows = $this->buildLoyaltyUsageReport($cpnyid, $year, $month);
+
+        $filename = "loyalty-usage-{$cpnyid}-{$year}-".str_pad((string) $month, 2, '0', STR_PAD_LEFT).'.xlsx';
+
+        return Excel::download(new VplLoyaltyUsageExport($rows, $cpnyid, $year, $month), $filename);
+    }
+
+    /**
+     * Per-tenant Usage Rate at WHLOYALTY = usage qty this month / ending stock this
+     * month, both scoped to the WHLOYALTY warehouse. Ending stock is rolled forward
+     * straight off ms_vpl_product_bal's own period columns (the same table
+     * postStockBalanceIn()/sp_process_vpl write to for WHLOYALTY), no ledger lookup
+     * needed. Usage qty reuses batchPurposeOut()'s 'Loyalty' bucket (qty_usage minus
+     * qty_return_usage recorded at WHLOYALTY), the same number already shown as
+     * "Loyalty" under Stock & Aging Summary's Voucher Used columns.
+     */
+    private function buildLoyaltyUsageReport(string $cpnyid, int $year, int $month): array
+    {
+        $balances = MsVplProductBal::where('cpnyid', $cpnyid)
+            ->where('year', $year)
+            ->where('whs_id', self::WHS_LOYALTY)
+            ->get();
+
+        if ($balances->isEmpty()) {
+            return [];
+        }
+
+        $products = MsVplProduct::where('cpnyid', $cpnyid)->get()->keyBy('product_id');
+
+        $monthStart = Carbon::create($year, $month, 1)->startOfMonth();
+        $monthEnd   = Carbon::create($year, $month, 1)->endOfMonth();
+
+        $usageOut  = $this->batchPurposeOut($cpnyid, $monthStart, $monthEnd);
+        $usageDocs = $this->batchLoyaltyUsageDocs($cpnyid, $monthStart, $monthEnd);
+
+        $mm = str_pad((string) $month, 2, '0', STR_PAD_LEFT);
+
+        $batchRows = [];
+
+        foreach ($balances as $bal) {
+            $product = $products->get($bal->product_id);
+
+            if (!$product) {
+                continue;
+            }
+
+            $beginning = (float) $bal->begqty;
+
+            for ($m = 1; $m < $month; $m++) {
+                $pm = str_pad((string) $m, 2, '0', STR_PAD_LEFT);
+                $beginning += (float) ($bal->{"period{$pm}in"} ?? 0) - (float) ($bal->{"period{$pm}out"} ?? 0);
+            }
+
+            $monthIn  = (float) ($bal->{"period{$mm}in"} ?? 0);
+            $monthOut = (float) ($bal->{"period{$mm}out"} ?? 0);
+            $ending   = $beginning + $monthIn - $monthOut;
+
+            $key      = $bal->product_id.'|'.$this->expiredKey($bal->expired_date);
+            $usageQty = $usageOut[$key]['Loyalty'] ?? 0.0;
+
+            $batchRows[] = [
+                'product_id'     => $product->product_id,
+                'tenant'         => $product->product_name,
+                'category_label' => $product->product_category === 'F&B' ? 'F&B' : 'NON F&B',
+                'expired_date'   => $this->expiredKey($bal->expired_date) === 'NULL' ? null : $bal->expired_date,
+                'ending_stock'   => $ending,
+                'usage_qty'      => $usageQty,
+                'usage_rate'     => $ending > 0 ? $usageQty / $ending : null,
+            ];
+        }
+
+        if (empty($batchRows)) {
+            return [];
+        }
+
+        usort($batchRows, function ($a, $b) {
+            return [$a['category_label'], $a['tenant'], $a['expired_date']]
+                <=> [$b['category_label'], $b['tenant'], $b['expired_date']];
+        });
+
+        return $this->attachLoyaltyUsageGrouping($batchRows, $usageDocs);
+    }
+
+    /**
+     * Individual usage documents behind a product's usage_qty at WHLOYALTY this
+     * month — one entry per usage doc (lines for the same product on the same doc
+     * are summed), so the report's Action button can list "which DOCID(s) made up
+     * this number" and link straight to each one (showusagevp, same route the
+     * usagevp list's own view-record links use).
+     *
+     * @return array<string, array<int, array{id: int, usage_id: string, usage_date: ?string, qty: float, link: string}>>
+     */
+    private function batchLoyaltyUsageDocs(string $cpnyid, Carbon $monthStart, Carbon $monthEnd): array
+    {
+        $usages = TrxVplUsageDetail::query()
+            ->join('tr_vpl_usage', 'tr_vpl_usage.usage_id', '=', 'tr_vpl_usage_detail.usage_id')
+            ->where('tr_vpl_usage.cpnyid', $cpnyid)
+            ->where('tr_vpl_usage.status', 'C')
+            ->where('tr_vpl_usage_detail.whs_id', self::WHS_LOYALTY)
+            ->whereBetween('tr_vpl_usage.usage_date', [$monthStart, $monthEnd])
+            ->select([
+                'tr_vpl_usage.id',
+                'tr_vpl_usage.usage_id',
+                'tr_vpl_usage.usage_date',
+                'tr_vpl_usage_detail.product_id',
+                'tr_vpl_usage_detail.qty_usage',
+                'tr_vpl_usage_detail.qty_return_usage',
+            ])
+            ->get();
+
+        $byProductDoc = [];
+
+        foreach ($usages as $u) {
+            $qty = (float) $u->qty_usage - (float) $u->qty_return_usage;
+
+            if (!isset($byProductDoc[$u->product_id][$u->usage_id])) {
+                $byProductDoc[$u->product_id][$u->usage_id] = [
+                    'id'         => $u->id,
+                    'usage_id'   => $u->usage_id,
+                    'usage_date' => $u->usage_date ? Carbon::parse($u->usage_date)->format('Y-m-d') : null,
+                    'qty'        => 0.0,
+                    'link'       => route('showusagevp', Hashids::encode($u->id)),
+                ];
+            }
+
+            $byProductDoc[$u->product_id][$u->usage_id]['qty'] += $qty;
+        }
+
+        return array_map(fn ($docs) => array_values($docs), $byProductDoc);
+    }
+
+    /**
+     * Turn the flat, sorted per-batch rows into category-header / per-expiry-batch
+     * detail render rows — no tenant subtotal row; each batch stands on its own,
+     * with the grand total left to the table footer. The Action (related DOCIDs)
+     * button lives on every detail row since batchLoyaltyUsageDocs() doesn't split
+     * by expiry batch, only by product — batches of the same product share the
+     * same doc list.
+     */
+    private function attachLoyaltyUsageGrouping(array $rows, array $usageDocs): array
+    {
+        if (empty($rows)) {
+            return [];
+        }
+
+        $output = [];
+
+        foreach (collect($rows)->groupBy('category_label') as $categoryLabel => $categoryRows) {
+            $output[] = ['type' => 'category_header', 'category_label' => $categoryLabel];
+
+            foreach ($categoryRows as $r) {
+                $r['type'] = 'detail';
+                $r['docs'] = $usageDocs[$r['product_id']] ?? [];
+                $output[]  = $r;
             }
         }
 

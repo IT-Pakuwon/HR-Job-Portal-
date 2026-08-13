@@ -244,10 +244,10 @@ class VplUsageController extends Controller
             return response()->json(['error' => 'Remark is required.'], 422);
         }
 
-        // CUSTOMERSERVICE Usage docs may be backdated up to H-3 (e.g. logging usage
-        // recorded late); every other department/type is always dated "today".
+        // CUSTOMERSERVICE Usage/Return docs may be backdated up to H-3 (e.g. logging
+        // usage recorded late); every other department is always dated "today".
         $usageDate = $dt->copy();
-        if ($request->department === 'CUSTOMERSERVICE' && $usagetype === 'Usage' && $request->filled('usage_date')) {
+        if ($request->department === 'CUSTOMERSERVICE' && in_array($usagetype, ['Usage', 'Return'], true) && $request->filled('usage_date')) {
             $usageDate = Carbon::parse($request->usage_date)->startOfDay();
             $today = $dt->copy()->startOfDay();
             if ($usageDate->lt($today->copy()->subDays(3)) || $usageDate->gt($today)) {

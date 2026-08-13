@@ -277,6 +277,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/createpersonnels', [PersonnelController::class, 'createPersonnel']);
         Route::post('/personnels', [PersonnelController::class, 'storePersonnel'])->name('personnels.store');
         Route::get('/createpersonnelsx', [PersonnelController::class, 'createPersonnelx']);
+        Route::post('/personnels/{hash}/copy', [PersonnelController::class, 'copyPersonnel'])->name('personnels.copy');
     });
 
     Route::middleware('access:PRF,EDIT')->group(function () {
@@ -395,6 +396,7 @@ Route::middleware(['auth'])->group(function () {
         Route::middleware('access:MASTERTRAINING,EDIT')->group(function () {
             Route::put('/sessions/schedules/{id}', [TrainingSessionController::class, 'updateSchedule'])->name('mastertraining.sessions.schedules.update');
             Route::put('/sessions/schedules/{id}/status', [TrainingSessionController::class, 'scheduleStatus'])->name('mastertraining.sessions.schedules.status');
+            Route::put('/sessions/schedules/{id}/reschedule', [TrainingSessionController::class, 'reschedule'])->name('mastertraining.sessions.schedules.reschedule');
         });
     });
 
@@ -3200,6 +3202,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [VplReportController::class, 'index'])->name('reportvpl');
         Route::get('/json/{type}', [VplReportController::class, 'json'])->name('report.vpl.json');
         Route::get('/export/{type}', [VplReportController::class, 'export'])->name('report.vpl.export');
+        Route::get('/in-out/data', [VplReportController::class, 'inOutData'])->name('report.vpl.inout.data');
+        Route::get('/in-out/export', [VplReportController::class, 'inOutExport'])->name('report.vpl.inout.export');
+        Route::get('/in-out/options', [VplReportController::class, 'inOutOptions'])->name('report.vpl.inout.options');
+        Route::get('/product-stock/data', [VplReportController::class, 'productStockData'])->name('report.vpl.productstock.data');
+        Route::get('/product-stock/export', [VplReportController::class, 'productStockExport'])->name('report.vpl.productstock.export');
+        Route::get('/product-stock/options', [VplReportController::class, 'productStockOptions'])->name('report.vpl.productstock.options');
     });
 
     // ── Usage Product / Voucher (usagevp) ─────────────────────────────────

@@ -178,6 +178,66 @@
         </div>
     </div>
 
+    {{-- Reschedule Modal --}}
+    <div id="rescheduleModal"
+        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+        <div class="relative flex w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-800">
+            <div class="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                <div>
+                    <h2 class="text-base font-bold text-gray-900 dark:text-white">Reschedule</h2>
+                    <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                        Registered participants keep their seat / waitlist spot and are notified of the new date.
+                    </p>
+                </div>
+                <button type="button" id="closeRescheduleModalX"
+                    class="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form id="rescheduleForm" class="flex flex-col gap-4 px-6 py-5">
+                <input type="hidden" id="reschedule_id">
+                <div>
+                    <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">New Date</label>
+                    <input type="date" id="reschedule_date"
+                        class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-900 dark:text-white"
+                        min="{{ now()->format('Y-m-d') }}" required>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Start</label>
+                        <input type="time" id="reschedule_start_time"
+                            class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-900 dark:text-white"
+                            required>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">End</label>
+                        <input type="time" id="reschedule_end_time"
+                            class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-900 dark:text-white"
+                            required>
+                    </div>
+                </div>
+                <div>
+                    <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Reason</label>
+                    <textarea id="reschedule_reason" rows="2"
+                        class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-900 dark:text-white"
+                        placeholder="Why is this schedule moving?" required></textarea>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" id="closeRescheduleModal"
+                        class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-700 focus:outline-none active:scale-95">
+                        Reschedule &amp; Notify
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="loadingOverlay" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
         <div class="flex items-center gap-3 rounded-xl bg-white px-6 py-4 shadow-lg dark:bg-gray-800">
             <svg class="h-6 w-6 animate-spin text-gray-900 dark:text-white" viewBox="0 0 24 24">
@@ -631,9 +691,12 @@
                         menuItems += '<div class="my-1 border-t border-gray-100 dark:border-gray-700"></div>';
                         menuItems += actionItem('statusScheduleBtn', s.id, 'CANCELLED', iconCancel, 'Cancel', 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20');
                     } else if (s.status === 'PUBLISHED') {
+                        menuItems += actionItem('rescheduleScheduleBtn', s.id, null, iconReschedule, 'Reschedule', 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20');
                         menuItems += actionItem('statusScheduleBtn', s.id, 'CLOSED', iconClose, 'Close', 'text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20');
                         menuItems += '<div class="my-1 border-t border-gray-100 dark:border-gray-700"></div>';
                         menuItems += actionItem('statusScheduleBtn', s.id, 'CANCELLED', iconCancel, 'Cancel', 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20');
+                    } else if (s.status === 'CLOSED') {
+                        menuItems += actionItem('rescheduleScheduleBtn', s.id, null, iconReschedule, 'Reschedule', 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20');
                     }
 
                     let actions = menuItems ? `
@@ -704,6 +767,7 @@
         const iconPublish = '<svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19V5m0 0l-5 5m5-5l5 5"/></svg>';
         const iconClose = '<svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-12V7a4 4 0 10-8 0v4h8z"/></svg>';
         const iconCancel = '<svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 9l6 6m0-6l-6 6M12 21a9 9 0 100-18 9 9 0 000 18z"/></svg>';
+        const iconReschedule = '<svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3M4 11h16M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2zm4-6l2 2 4-4"/></svg>';
 
         function actionItem(btnClass, id, status, icon, label, colorClasses) {
             let statusAttr = status ? ` data-status="${status}"` : '';
@@ -862,6 +926,68 @@
                             Swal.fire({ icon: 'error', title: 'Error', text: xhr.responseJSON?.message || 'Gagal update status' });
                         }
                     });
+                });
+            });
+
+            $(document).on('click', '.rescheduleScheduleBtn', function() {
+                let id = $(this).data('id');
+                let s = allSchedules.find(row => row.id == id);
+                if (!s) return;
+
+                $('#reschedule_id').val(s.id);
+                $('#reschedule_date').val(s.schedule_date);
+                $('#reschedule_start_time').val(s.start_time ? s.start_time.slice(0, 5) : '');
+                $('#reschedule_end_time').val(s.end_time ? s.end_time.slice(0, 5) : '');
+                $('#reschedule_reason').val('');
+                $('#rescheduleModal').removeClass('hidden');
+            });
+
+            $('#closeRescheduleModal, #closeRescheduleModalX').click(function() {
+                $('#rescheduleModal').addClass('hidden');
+            });
+
+            $('#rescheduleForm').submit(function(e) {
+                e.preventDefault();
+
+                let id = $('#reschedule_id').val();
+                let $submitBtn = $(this).find('button[type="submit"]');
+
+                showLoading();
+                $submitBtn.prop('disabled', true);
+
+                $.ajax({
+                    url: `/mastertraining/sessions/schedules/${id}/reschedule`,
+                    type: 'PUT',
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    data: {
+                        schedule_date: $('#reschedule_date').val(),
+                        start_time: $('#reschedule_start_time').val(),
+                        end_time: $('#reschedule_end_time').val(),
+                        reason: $('#reschedule_reason').val(),
+                    },
+                    success: function(res) {
+                        hideLoading();
+                        $submitBtn.prop('disabled', false);
+                        $('#rescheduleModal').addClass('hidden');
+                        loadSchedules();
+                        showToast('success', (res && res.message) || 'Schedule rescheduled');
+                    },
+                    error: function(xhr) {
+                        hideLoading();
+                        $submitBtn.prop('disabled', false);
+
+                        let msg = 'Gagal reschedule';
+                        if (xhr.status === 422 && xhr.responseJSON) {
+                            if (xhr.responseJSON.errors) {
+                                msg = Object.values(xhr.responseJSON.errors).map(a => a.join(', ')).join('\n');
+                            } else if (xhr.responseJSON.message) {
+                                msg = xhr.responseJSON.message;
+                            }
+                        }
+
+                        Swal.fire({ icon: 'error', title: 'Error', text: msg });
+                        console.error(xhr.responseText);
+                    }
                 });
             });
 

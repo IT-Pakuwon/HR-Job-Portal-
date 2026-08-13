@@ -278,7 +278,7 @@ const VplUsageForm = {
     toggleUsageDateSection() {
         const dept      = document.getElementById('c_department')?.value ?? '';
         const usageType = document.getElementById('c_usagetype')?.value ?? '';
-        const show      = dept === 'CUSTOMERSERVICE' && usageType === 'Usage';
+        const show      = dept === 'CUSTOMERSERVICE' && (usageType === 'Usage' || usageType === 'Return');
 
         const wrapper = document.getElementById('c_usage_date_wrapper');
         const input   = document.getElementById('c_usage_date');
