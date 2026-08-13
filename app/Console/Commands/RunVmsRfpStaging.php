@@ -12,6 +12,12 @@ class RunVmsRfpStaging extends Command
 
     public function handle()
     {
+        $startedAt = now();
+
+        \Log::info('Command staging:vms-rfp started', [
+            'started_at' => $startedAt->toDateTimeString(),
+        ]);
+
         try {
             $controller = app(VmsRfpStagingController::class);
             $response = $controller->run();
@@ -20,6 +26,13 @@ class RunVmsRfpStaging extends Command
 
             if (!($data['success'] ?? false)) {
                 $this->error($data['message'] ?? 'VMS RFP staging failed.');
+
+                \Log::warning('Command staging:vms-rfp failed', [
+                    'started_at'  => $startedAt->toDateTimeString(),
+                    'finished_at' => now()->toDateTimeString(),
+                    'result'      => $data,
+                ]);
+
                 return self::FAILURE;
             }
 
@@ -28,6 +41,12 @@ class RunVmsRfpStaging extends Command
             if ($data) {
                 $this->line(json_encode($data, JSON_PRETTY_PRINT));
             }
+
+            \Log::info('Command staging:vms-rfp completed', [
+                'started_at'  => $startedAt->toDateTimeString(),
+                'finished_at' => now()->toDateTimeString(),
+                'result'      => $data,
+            ]);
 
             return self::SUCCESS;
         } catch (\Throwable $e) {

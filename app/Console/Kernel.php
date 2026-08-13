@@ -90,7 +90,6 @@ class Kernel extends ConsoleKernel
         $schedule->command('staging:vms-rfp')
             ->dailyAt('11:00')
             ->withoutOverlapping()
-            ->runInBackground()
             ->appendOutputTo(storage_path('logs/staging_vms_rfp.log'));
 
         // Expire training waitlist offers past their 24h window, cascade to next
