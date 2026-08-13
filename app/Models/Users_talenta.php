@@ -7,9 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Users_talenta extends Model
 {
-    protected $connection = 'mysql2';
-    protected $table = "users_talenta"; 
-    protected $fillable = [       
+    // Points at the `das` database (default `mysql` connection), not das_voucher/mysql2 —
+    // das_voucher's copy of this table lacks old_organization_*/old_job_position_*/
+    // old_job_level, and das's Talenta sync (updated_talenta) is more current here.
+    protected $connection = 'mysql';
+    protected $table = "users_talenta";
+    protected $fillable = [
     'user_id',
     'created_talenta',
     'updated_talenta',
@@ -34,9 +37,14 @@ class Users_talenta extends Model
     'company_id',
     'organization_id',
     'organization_name',
+    'old_organization_id',
+    'old_organization_name',
     'job_position_id',
     'job_position',
+    'old_job_position_id',
+    'old_job_position',
     'job_level',
+    'old_job_level',
     'employment_status',
     'end_date',
     'branch_id',
@@ -50,8 +58,8 @@ class Users_talenta extends Model
     'resign_date',
     'avatar_local',
     'status',
-    'created_user',    
+    'created_user',
     'updated_user'
-                   
+
     ];
 }
