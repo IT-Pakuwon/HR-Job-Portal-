@@ -82,6 +82,13 @@ class AppServiceProvider extends ServiceProvider
                         ->pluck('menu_id')
                         ->unique();
 
+                    // sys_role_menu.status can drift out of sync with sys_menu.status
+                    // (e.g. toggling a menu off doesn't always retroactively touch every
+                    // role's row), so re-verify the leaf itself is still active.
+                    $explicitMenuIds = SysMenu::whereIn('menu_id', $explicitMenuIds)
+                        ->where('status', 'A')
+                        ->pluck('menu_id');
+
                     $allAllowedMenuIds = collect($explicitMenuIds);
                     $current = $explicitMenuIds;
 

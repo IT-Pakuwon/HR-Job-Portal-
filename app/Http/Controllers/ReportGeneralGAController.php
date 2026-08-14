@@ -747,6 +747,11 @@ class ReportGeneralGAController extends Controller
                     ?? '-';
             })
 
+            ->addColumn('company', function ($row) use ($companies) {
+                return $companies[$row->cpny_id]
+                    ?? '-';
+            })
+
             ->addColumn('company_expense', function ($row) use ($companies) {
                 return $companies[$row->cpny_id_site]
                     ?? '-';
@@ -853,6 +858,7 @@ class ReportGeneralGAController extends Controller
 
                 'vt.user_peminta_expense',
                 'vt.department_id_expense',
+                'vt.cpny_id',
                 'vt.cpny_id_expense',
 
                 'vt.origin',
@@ -946,6 +952,11 @@ class ReportGeneralGAController extends Controller
             })
 
             ->addColumn('company', function ($row) use ($companies) {
+                return $companies[$row->cpny_id]
+                    ?? '-';
+            })
+
+            ->addColumn('company_expense', function ($row) use ($companies) {
                 return $companies[$row->cpny_id_expense]
                     ?? '-';
             })

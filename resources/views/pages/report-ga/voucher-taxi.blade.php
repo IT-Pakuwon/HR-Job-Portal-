@@ -160,6 +160,7 @@
                         <th>Created User</th>
                         <th>Requester</th>
                         <th>Department</th>
+                        <th>Company</th>
                         <th>Company Expense</th>
                         <th>Origin</th>
                         <th>Destination</th>
@@ -253,6 +254,11 @@
                 {
                     data: 'company',
                     name: 'company',
+                    orderable: false
+                },
+                {
+                    data: 'company_expense',
+                    name: 'company_expense',
                     orderable: false
                 },
                 {

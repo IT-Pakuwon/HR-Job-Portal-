@@ -42,6 +42,14 @@ const VoucherTaxiDetailModal = {
                 if (eid) window.open(VoucherTaxi.routes.print(eid), '_blank');
             });
 
+        document.getElementById('privateNoteVoucherBtn')
+            ?.addEventListener('click', (e) => {
+                e.preventDefault();
+                const voucher = VoucherTaxiDetailModal.state.currentVoucher;
+                if (!voucher || !window.PrivateNote) return;
+                window.PrivateNote.open('VCR', voucher.docid, voucher.docid);
+            });
+
         document.getElementById('processVoucherBtn')
             ?.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -118,6 +126,10 @@ const VoucherTaxiDetailModal = {
         } else {
             VoucherTaxiHelper.hide('reviseReasonWrapper');
         }
+
+        // ── PRIVATE NOTE (GAACCESS on the approval line only) ─
+        document.getElementById('privateNoteVoucherBtn')
+            ?.classList.toggle('hidden', !voucher.can_private_note);
 
         // ── ACTION BUTTONS ───────────────────────────────────
         VoucherTaxiDetailModal.renderActionButtons(voucher);

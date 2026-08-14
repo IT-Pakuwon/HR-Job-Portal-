@@ -362,4 +362,6 @@
     }
 </style>
 
+@include('partials.private-note-widget', ['doctype' => 'VCR', 'floatingButton' => false, 'akses_cc' => $isGA ?? false])
+
 <script src="{{ asset('assets/js/multidashboard/dashga.js') }}?v={{ filemtime(public_path('assets/js/multidashboard/dashga.js')) }}"></script>

@@ -9,16 +9,73 @@ use App\Models\TrMessage;
 use App\Models\User;
 use App\Services\DocumentNotificationService;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class SendCommentController extends Controller
 {
+    // Doctypes where GAACCESS users (not just COSTCTRLACCESS) can use private notes,
+    // scoped to documents they're actually on the approval line for.
+    private const GA_NOTE_DOCTYPES = ['VCR', 'BCR'];
+
     private function hasCostCtrlAccess(string $username): bool
     {
         return SysUserRole::where('username', $username)
             ->where('role_id', 'COSTCTRLACCESS')
             ->exists();
+    }
+
+    // Whether this user has private-note capability for this doctype at all
+    // (regardless of which specific document), used to gate the UI/endpoints.
+    private function canUsePrivateNotesForDoctype(?User $user, string $doctype): bool
+    {
+        $username = $user->username ?? ($user->email ?? null);
+        if (!$username) {
+            return false;
+        }
+
+        return $this->hasCostCtrlAccess($username)
+            || (in_array($doctype, self::GA_NOTE_DOCTYPES, true) && $user->hasRole('GAACCESS'));
+    }
+
+    // Whether this user can see/post private notes on this specific document.
+    // COSTCTRLACCESS: any document. GAACCESS: only VCR/BCR docs they're on the approval line for.
+    private function hasPrivateNoteAccess(?User $user, string $doctype, $refnbr): bool
+    {
+        $username = $user->username ?? ($user->email ?? null);
+        if (!$username) {
+            return false;
+        }
+
+        if ($this->hasCostCtrlAccess($username)) {
+            return true;
+        }
+
+        if (in_array($doctype, self::GA_NOTE_DOCTYPES, true) && $user->hasRole('GAACCESS')) {
+            return DocumentNotificationService::isOnApprovalLine($doctype, $refnbr, $username);
+        }
+
+        return false;
+    }
+
+    // Subset of $refnbrs this user may see private-note counts for.
+    private function privateNoteAllowedRefnbrs(?User $user, string $doctype, array $refnbrs): Collection
+    {
+        $username = $user->username ?? ($user->email ?? null);
+        if (!$username || empty($refnbrs)) {
+            return collect();
+        }
+
+        if ($this->hasCostCtrlAccess($username)) {
+            return collect($refnbrs);
+        }
+
+        if (in_array($doctype, self::GA_NOTE_DOCTYPES, true) && $user->hasRole('GAACCESS')) {
+            return DocumentNotificationService::approvalLineRefnbrs($doctype, $refnbrs, $username);
+        }
+
+        return collect();
     }
 
     // Generic @mention-audience resolver for the "creator + approval line (+ optional PIC)"
@@ -172,7 +229,7 @@ class SendCommentController extends Controller
         $user = Auth::user();
         $username = $user->username ?? ($user->email ?? null);
 
-        if (!$username || !$this->hasCostCtrlAccess($username)) {
+        if (!$this->hasPrivateNoteAccess($user, $doctype, $id)) {
             return response()->json([
                 'status'  => 'error',
                 'message' => 'You do not have access to private notes.',
@@ -198,7 +255,7 @@ class SendCommentController extends Controller
         $user = Auth::user();
         $username = $user->username ?? ($user->email ?? null);
 
-        if (!$username || !$this->hasCostCtrlAccess($username)) {
+        if (!$this->canUsePrivateNotesForDoctype($user, $doctype)) {
             return response()->json([
                 'status'  => 'error',
                 'message' => 'You do not have access to private notes.',
@@ -214,10 +271,20 @@ class SendCommentController extends Controller
             ]);
         }
 
+        // GAACCESS users only get counts for refnbrs they're actually on the approval line for.
+        $allowedRefnbrs = $this->privateNoteAllowedRefnbrs($user, $doctype, $refnbrs);
+
+        if ($allowedRefnbrs->isEmpty()) {
+            return response()->json([
+                'status' => 'success',
+                'counts' => (object) [],
+            ]);
+        }
+
         $counts = TrMessage::where('doctype', $doctype)
             ->where('message_type', 'Private')
             ->where('username', $username)
-            ->whereIn('refnbr', $refnbrs)
+            ->whereIn('refnbr', $allowedRefnbrs)
             ->selectRaw('refnbr, count(*) as total')
             ->groupBy('refnbr')
             ->pluck('total', 'refnbr');
@@ -238,7 +305,7 @@ class SendCommentController extends Controller
         $user = $request->user();
         $username = $user->username ?? ($user->email ?? null);
 
-        if (!$username || !$this->hasCostCtrlAccess($username)) {
+        if (!$this->hasPrivateNoteAccess($user, $doctype, $id)) {
             return response()->json([
                 'status'  => 'error',
                 'message' => 'You do not have access to private notes.',

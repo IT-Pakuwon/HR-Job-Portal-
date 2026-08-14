@@ -883,6 +883,13 @@
 
                 <div class="flex items-center gap-3">
 
+                    <button type="button" id="privateNoteVoucherBtn"
+                        class="hidden h-10 rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08]">
+
+                        🗒️ Private Note
+
+                    </button>
+
                     <a id="printVoucherBtn" href="#" target="_blank"
                         class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-red-600 px-4 text-sm font-semibold text-white transition hover:bg-red-500">
 
@@ -1515,6 +1522,9 @@
         </div>
 
     </div>
+
+    @include('partials.private-note-widget', ['doctype' => 'VCR', 'floatingButton' => false, 'akses_cc' => $isGA ?? false])
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script src="{{ asset('assets/js/vouchertaxi/core.js') }}"></script>

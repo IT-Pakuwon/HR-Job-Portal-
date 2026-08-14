@@ -111,7 +111,8 @@ class VoucherTaxiController extends Controller
             'requesters',
             'company',
             'departments',
-            'purposes'
+            'purposes',
+            'isGA'
         ));
     }
 
@@ -847,6 +848,10 @@ class VoucherTaxiController extends Controller
                 $canProcess = true;
             }
 
+            // GAACCESS can only leave a private note on a voucher they're on the approval line for.
+            $canPrivateNote = $user->hasRole('GAACCESS')
+                && \App\Services\DocumentNotificationService::isOnApprovalLine('VCR', $voucher->docid, $user->username);
+
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -925,6 +930,7 @@ class VoucherTaxiController extends Controller
                     'can_revise' => $canRevise,
 
                     'can_process' => $canProcess,
+                    'can_private_note' => $canPrivateNote,
                 ]
             ]);
         } catch (\Throwable $e) {

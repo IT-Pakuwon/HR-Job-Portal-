@@ -174,6 +174,58 @@
         return `<span class="inline-block shrink-0 rounded-full border px-2.5 py-0.5 text-center text-[11px] font-semibold whitespace-nowrap ${badgeClass}">${label}</span>`;
     }
 
+    // ── Private note (GAACCESS, VCR/BCR docs they're on the approval line for) ──
+    function privateNoteButton(row, doctype) {
+        return `
+            <button type="button" class="private-note-btn relative inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-600 text-white shadow transition hover:bg-gray-700"
+                data-doctype="${doctype}" data-refnbr="${row.docid}" title="Private Note">
+                🗒️
+                <span class="note-count-badge absolute -top-1 -right-1 hidden min-w-4 rounded-full bg-red-500 px-1 text-[10px] font-bold leading-4 text-white" data-refnbr="${row.docid}"></span>
+            </button>`;
+    }
+
+    function refreshPrivateNoteCounts() {
+        const byDoctype = {};
+
+        Array.from(document.querySelectorAll(".private-note-btn")).forEach((el) => {
+            const doctype = el.dataset.doctype;
+            const refnbr = el.dataset.refnbr;
+            if (!doctype || !refnbr) return;
+            if (!byDoctype[doctype]) byDoctype[doctype] = [];
+            byDoctype[doctype].push(refnbr);
+        });
+
+        Object.keys(byDoctype).forEach((doctype) => {
+            const refnbrs = byDoctype[doctype];
+
+            fetch(`/private-notes-counts/${doctype}?refnbrs=${encodeURIComponent(refnbrs.join(","))}`, {
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                    Accept: "application/json",
+                },
+            })
+                .then((r) => r.json())
+                .then((res) => {
+                    const counts = res.counts || {};
+                    Object.keys(counts).forEach((refnbr) => {
+                        applyPrivateNoteCount(refnbr, counts[refnbr]);
+                    });
+                })
+                .catch((err) => console.error("Error loading private note counts:", err));
+        });
+    }
+
+    function applyPrivateNoteCount(refnbr, count) {
+        const badge = document.querySelector(`.note-count-badge[data-refnbr="${CSS.escape(refnbr)}"]`);
+        if (!badge) return;
+        if (count > 0) {
+            badge.textContent = count > 99 ? "99+" : count;
+            badge.classList.remove("hidden");
+        } else {
+            badge.classList.add("hidden");
+        }
+    }
+
     // ── Per-tab card field mapping ──
     const tabConfig = {
         approval: {
@@ -206,6 +258,7 @@
             icon: "🚕", badgeBg: "bg-amber-100 dark:bg-amber-900/30",
             title: row => row.docid,
             link: row => `${row.url}/${row.eid}`,
+            extra: row => privateNoteButton(row, "VCR"),
             fields: row => [
                 { label: "Date", value: row.voucher_date },
                 { label: "Requester", value: row.user_peminta },
@@ -220,6 +273,7 @@
             icon: "🚗", badgeBg: "bg-blue-100 dark:bg-blue-900/30",
             title: row => row.docid,
             link: row => `${row.url}/${row.eid}`,
+            extra: row => privateNoteButton(row, "BCR"),
             fields: row => [
                 { label: "Date", value: row.booking_date },
                 { label: "Requester", value: row.user_peminta },
@@ -249,6 +303,7 @@
         const title = cfg.title(row) || "-";
         const href = cfg.link ? cfg.link(row) : null;
         const statusHtml = cfg.status ? cfg.status(row) : "";
+        const extraHtml = cfg.extra ? cfg.extra(row) : "";
 
         const fieldsHtml = cfg.fields(row)
             .filter(f => f.value)
@@ -263,7 +318,7 @@
             <div class="min-w-0 flex-1">
                 <div class="flex items-center justify-between gap-2">
                     <span class="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">${title}</span>
-                    ${statusHtml}
+                    <div class="flex shrink-0 items-center gap-2">${statusHtml}${extraHtml}</div>
                 </div>
                 <div class="mt-1 grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-slate-500 dark:text-slate-400 sm:grid-cols-3">
                     ${fieldsHtml}
@@ -401,6 +456,8 @@
 
         $("#prevPage").prop("disabled", currentPage === 0);
         $("#nextPage").prop("disabled", currentPage >= totalPages - 1);
+
+        if (tab === "voucher-taxi" || tab === "booking-car") refreshPrivateNoteCounts();
     }
 
     function renderCardList(rows, tab, resetPage = true) {
@@ -604,6 +661,18 @@
                 const href = cfg.link ? cfg.link(row) : null;
                 if (href) window.open(href, "_blank");
             });
+        });
+
+        $(document).on("click", ".private-note-btn", function () {
+            if (!window.PrivateNote) return;
+            const doctype = this.dataset.doctype;
+            const refnbr  = this.dataset.refnbr;
+            window.PrivateNote.open(doctype, refnbr, refnbr);
+        });
+
+        $(document).on("privatenote:count-updated", function (e, doctype, refnbr, count) {
+            if (!refnbr) return;
+            applyPrivateNoteCount(refnbr, count);
         });
 
         bindHoverPause();

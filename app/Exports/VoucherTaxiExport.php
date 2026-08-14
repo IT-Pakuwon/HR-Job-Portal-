@@ -126,7 +126,10 @@ class VoucherTaxiExport implements FromCollection, WithHeadings
                 'DEPARTMENT' => $departments[$row->department_id_expense]
                     ?? $row->department_id_expense,
 
-                'COMPANY' => $companies[$row->cpny_id_expense]
+                'COMPANY' => $companies[$row->cpny_id]
+                    ?? $row->cpny_id,
+
+                'COMPANY EXPENSE' => $companies[$row->cpny_id_expense]
                     ?? $row->cpny_id_expense,
 
                 'ORIGIN' => is_array($row->origin)
@@ -170,6 +173,7 @@ class VoucherTaxiExport implements FromCollection, WithHeadings
             'REQUESTER',
             'DEPARTMENT',
             'COMPANY',
+            'COMPANY EXPENSE',
             'ORIGIN',
             'DESTINATION',
             'PURPOSE',

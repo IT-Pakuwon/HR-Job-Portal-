@@ -206,7 +206,8 @@ class BookingCarController extends Controller
                 'drivers',
                 'kendaraan',
                 'purposes',
-                'statusPerjalanan'
+                'statusPerjalanan',
+                'isGA'
             )
         );
     }
@@ -1261,6 +1262,10 @@ class BookingCarController extends Controller
                             strtolower(trim(Auth::user()->username))
                         );
                     }),
+
+                // GAACCESS can only leave a private note on a booking they're on the approval line for.
+                'can_private_note' => Auth::user()->hasRole('GAACCESS')
+                    && \App\Services\DocumentNotificationService::isOnApprovalLine('BCR', $booking->docid, Auth::user()->username),
             ],
         ]);
     }

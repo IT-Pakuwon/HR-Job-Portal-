@@ -32,6 +32,7 @@ class BookingCarExport implements
             'End Time',
             'Requester',
             'Department',
+            'Company',
             'Company Expense',
             'Purpose',
             'Route',
@@ -92,6 +93,8 @@ class BookingCarExport implements
                 'bc.booking_date',
 
                 'bc.department_id',
+
+                'bc.cpny_id',
 
                 'bc.cpny_id_site',
 
@@ -250,6 +253,9 @@ class BookingCarExport implements
                         ?? $row->user_peminta,
 
                     'department' => $departments[$row->department_id]
+                        ?? '-',
+
+                    'company' => $companies[$row->cpny_id]
                         ?? '-',
 
                     'company_expense' => $companies[$row->cpny_id_site]

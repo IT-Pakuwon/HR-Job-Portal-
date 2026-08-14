@@ -205,6 +205,7 @@
                         <th>End</th>
                         <th>Requester</th>
                         <th>Department</th>
+                        <th>Company</th>
                         <th>Company Expense</th>
                         <th>Purpose</th>
                         <th>Route</th>
@@ -283,6 +284,9 @@
                 },
                 {
                     data: 'department'
+                },
+                {
+                    data: 'company'
                 },
                 {
                     data: 'company_expense'
