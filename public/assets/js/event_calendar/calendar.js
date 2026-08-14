@@ -142,6 +142,7 @@ const EventCalendarApp = {
             resourceOrder: 'group_key,sort_key',
             resourceGroupField: 'group_key',
             resourceAreaHeaderContent: 'Location',
+            selectable: Boolean((window.EventCalendarCurrentUser || {}).canCreate),
             // group_key is "Company|||Department" (see calendar.blade.php) so the
             // two combine into one full-width header row, with locations nested
             // directly beneath it — no separate staircased columns.
@@ -160,7 +161,6 @@ const EventCalendarApp = {
 
                 return { html: companyHtml + deptHtml };
             },
-            selectable: true,
             selectMirror: true,
             editable: false,
             eventDisplay: 'block',
@@ -254,6 +254,18 @@ const EventCalendarApp = {
         return div.innerHTML;
     },
 
+    // Indonesian-style thousand separator for the Total Contract input while typing
+    // (e.g. "1000000" -> "1.000.000"). Digits only — decimals aren't supported here.
+    formatThousands(value) {
+        const digits = String(value ?? '').replace(/\D/g, '');
+        if (!digits) return '';
+        return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    },
+
+    parseThousands(value) {
+        return String(value ?? '').replace(/\D/g, '');
+    },
+
     formatCurrency(amount) {
         if (amount === null || amount === undefined || amount === '' || Number.isNaN(Number(amount))) return '-';
 
@@ -269,9 +281,9 @@ const EventCalendarApp = {
         if (typeof tippy === 'undefined') return;
 
         const props = arg.event.extendedProps;
-        const colors = EventCalendarApp.statusColors[props.event_status] || { bg: '#eef0f2', text: '#475569' };
         const pics = (props.pic_event || '').split(',').map((v) => v.trim()).filter(Boolean);
 
+        // Per spec: Name Event, event_company_name, internal PIC, Event Type, Description, Created at.
         const html = `
             <div class="ecap-tip">
                 <div class="ecap-tip-title">${EventCalendarApp.escapeHtml(arg.event.title)}</div>
@@ -284,12 +296,17 @@ const EventCalendarApp = {
                     <span>${pics.length ? EventCalendarApp.escapeHtml(pics.join(', ')) : '-'}</span>
                 </div>
                 <div class="ecap-tip-row">
-                    <i class="fa-solid fa-file-contract"></i>
-                    <span>${EventCalendarApp.escapeHtml(EventCalendarApp.formatCurrency(props.event_total_contract))}</span>
+                    <i class="fa-solid fa-shapes"></i>
+                    <span>${EventCalendarApp.escapeHtml(props.event_type || '-')}</span>
                 </div>
-                <span class="ecap-tip-status" style="background:${colors.bg};color:${colors.text}">
-                    ${EventCalendarApp.escapeHtml(props.event_status || '-')}
-                </span>
+                <div class="ecap-tip-row">
+                    <i class="fa-solid fa-align-left"></i>
+                    <span>${EventCalendarApp.escapeHtml(props.event_description || '-')}</span>
+                </div>
+                <div class="ecap-tip-row">
+                    <i class="fa-solid fa-clock"></i>
+                    <span>${EventCalendarApp.escapeHtml(props.created_at || '-')}</span>
+                </div>
             </div>
         `;
 
@@ -298,7 +315,7 @@ const EventCalendarApp = {
             allowHTML: true,
             theme: 'light-border',
             placement: 'top',
-            maxWidth: 260,
+            maxWidth: 280,
             animation: 'shift-away',
         });
     },
@@ -349,6 +366,10 @@ const EventCalendarApp = {
 
         document.getElementById('eventForm')?.addEventListener('submit', EventCalendarApp.handleSubmit);
         document.getElementById('deleteEventBtn')?.addEventListener('click', EventCalendarApp.handleDelete);
+
+        document.getElementById('event_total_contract')?.addEventListener('input', (e) => {
+            e.target.value = EventCalendarApp.formatThousands(e.target.value);
+        });
 
         document.getElementById('closeEventViewModal')?.addEventListener('click', EventCalendarApp.closeViewModal);
         document.getElementById('closeEventViewBtn')?.addEventListener('click', EventCalendarApp.closeViewModal);
@@ -437,8 +458,22 @@ const EventCalendarApp = {
         document.getElementById('view_event_start_date').textContent = props.event_start_date || '-';
         document.getElementById('view_event_end_date').textContent = props.event_end_date || '-';
         document.getElementById('view_event_total_area').textContent = props.event_total_area || '-';
-        document.getElementById('view_event_total_contract').textContent = EventCalendarApp.formatCurrency(props.event_total_contract);
         document.getElementById('view_created_by').textContent = props.created_by_name || props.created_by || '-';
+
+        // Total Contract / PIC External / PIC External Phone are commercially sensitive —
+        // hidden from this read-only view for everyone except GM. The Edit modal still
+        // receives the real values from the same API payload (see calendar.js openEditModal)
+        // since the creator needs them intact when saving other changes.
+        const canSeeSensitive = Boolean((window.EventCalendarCurrentUser || {}).isGM);
+
+        document.getElementById('view_event_total_contract_card').classList.toggle('hidden', !canSeeSensitive);
+        document.getElementById('view_event_total_contract').textContent = EventCalendarApp.formatCurrency(props.event_total_contract);
+
+        document.getElementById('view_pic_event_external_card').classList.toggle('hidden', !canSeeSensitive);
+        document.getElementById('view_pic_event_external').textContent = props.pic_event_external || '-';
+
+        document.getElementById('view_pic_event_external_hp_card').classList.toggle('hidden', !canSeeSensitive);
+        document.getElementById('view_pic_event_external_hp').textContent = props.pic_event_external_hp || '-';
 
         const picNames = (props.pic_event || '').split(',').map((v) => v.trim()).filter(Boolean);
         document.getElementById('view_pic_event').innerHTML = picNames.length
@@ -451,7 +486,7 @@ const EventCalendarApp = {
         if (dot) dot.style.background = statusColors.text;
 
         const currentUser = window.EventCalendarCurrentUser || {};
-        const canModify = currentUser.isAdmin || (currentUser.username && currentUser.username === props.created_by);
+        const canModify = currentUser.canManageAll || (currentUser.username && currentUser.username === props.created_by);
         document.getElementById('editEventFromViewBtn').classList.toggle('hidden', !canModify);
 
         EventCalendarApp.showViewModal();
@@ -463,9 +498,14 @@ const EventCalendarApp = {
         document.getElementById('event_row_id').value = '';
         document.getElementById('status').value = 'A';
         document.getElementById('status_active').checked = true;
+        // Only relevant once an event exists to reactivate/deactivate — on
+        // create, status is always 'A', so the toggle has nothing to do yet.
+        document.getElementById('statusActiveField').classList.add('hidden');
+        document.getElementById('statusActiveField').classList.remove('flex');
         document.getElementById('deleteEventBtn').classList.add('hidden');
         $('#eventModal .select2').val('').trigger('change');
         EventCalendarApp.state.locationTom?.clear(true);
+        EventCalendarApp.state.locationTom?.enable();
         EventCalendarApp.state.picTom?.clear(true);
     },
 
@@ -478,7 +518,14 @@ const EventCalendarApp = {
 
         if (prefill.event_start_date) document.getElementById('event_start_date').value = prefill.event_start_date;
         if (prefill.event_end_date) document.getElementById('event_end_date').value = prefill.event_end_date;
-        if (prefill.location_row_id) EventCalendarApp.state.locationTom?.setValue(String(prefill.location_row_id), true);
+
+        if (prefill.location_row_id) {
+            // Opened by clicking a specific location's row on the calendar grid —
+            // that location choice is locked in. Opened via the "New Event" button
+            // instead (no prefill), the location stays a free, searchable pick.
+            EventCalendarApp.state.locationTom?.setValue(String(prefill.location_row_id), true);
+            EventCalendarApp.state.locationTom?.disable();
+        }
 
         EventCalendarApp.showModal();
     },
@@ -503,14 +550,19 @@ const EventCalendarApp = {
         document.getElementById('event_start_date').value = props.event_start_date || '';
         document.getElementById('event_end_date').value = props.event_end_date || '';
         document.getElementById('product_check_exp').value = props.product_check_exp || '';
-        document.getElementById('event_total_contract').value = props.event_total_contract ?? '';
+        document.getElementById('event_total_contract').value = EventCalendarApp.formatThousands(props.event_total_contract);
         document.getElementById('event_description').value = props.event_description || '';
 
         const picNames = (props.pic_event || '').split(',').map((v) => v.trim()).filter(Boolean);
         EventCalendarApp.state.picTom?.setValue(picNames, true);
 
+        document.getElementById('pic_event_external').value = props.pic_event_external || '';
+        document.getElementById('pic_event_external_hp').value = props.pic_event_external_hp || '';
+
         document.getElementById('status').value = props.status || 'A';
         document.getElementById('status_active').checked = props.status !== 'X';
+        document.getElementById('statusActiveField').classList.remove('hidden');
+        document.getElementById('statusActiveField').classList.add('flex');
 
         document.getElementById('deleteEventBtn').classList.remove('hidden');
 
@@ -538,6 +590,7 @@ const EventCalendarApp = {
         delete payload._token;
         delete payload['pic_event[]'];
         payload.pic_event = (EventCalendarApp.state.picTom?.getValue() || []).join(',');
+        payload.event_total_contract = EventCalendarApp.parseThousands(payload.event_total_contract);
 
         const id = document.getElementById('event_row_id').value;
         const isEdit = EventCalendarApp.state.modalMode === 'edit' && id;

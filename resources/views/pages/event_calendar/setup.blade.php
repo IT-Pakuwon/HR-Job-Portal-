@@ -44,24 +44,35 @@
 
     <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-white/10">
-            <thead class="bg-gray-50 dark:bg-white/[0.03]">
-                <tr>
-                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Location ID</th>
-                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Location Name</th>
-                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Total Area (m²)</th>
-                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Company</th>
-                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Department</th>
-                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Status</th>
-                    <th class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="locationTableBody" class="divide-y divide-gray-200 dark:divide-white/10">
-                <tr>
-                    <td colspan="7" class="px-5 py-8 text-center text-sm text-gray-400">Loading...</td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="flex items-center gap-3 border-b border-gray-200 px-5 py-3 dark:border-white/10">
+            <label for="filterCompany" class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                Company
+            </label>
+            <select id="filterCompany"
+                class="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
+                <option value="">All Companies</option>
+                @foreach ($companies as $c)
+                    <option value="{{ $c->cpny_name }}">{{ $c->cpny_name }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="overflow-x-auto px-5 py-4">
+            <table id="locationTable" class="w-full min-w-full text-sm">
+                <thead class="bg-gray-50 dark:bg-white/[0.03]">
+                    <tr>
+                        <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Location ID</th>
+                        <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Location Name</th>
+                        <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Total Area (m²)</th>
+                        <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Company</th>
+                        <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Department</th>
+                        <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Status</th>
+                        <th class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-white/10"></tbody>
+            </table>
+        </div>
 
     </div>
 
