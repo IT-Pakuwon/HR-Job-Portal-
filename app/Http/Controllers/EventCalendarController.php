@@ -30,6 +30,19 @@ class EventCalendarController extends Controller
         return $user && $user->hasRole('ADEVENTACCESS');
     }
 
+    /**
+     * GM has the same cross-department reach as admins within their own
+     * company — sees every department's locations (Promotion, Casual Leasing,
+     * Loyalty) and can modify any event there, via assertCanModify() — but
+     * does NOT get the front-end isAdmin flag, which is admin-only UI chrome.
+     */
+    private function canSeeAllDepartments(): bool
+    {
+        $user = auth()->user();
+
+        return $this->isAdmin() || ($user && $user->hasRole('GMACCESS'));
+    }
+
     private function userCpnyIds(): array
     {
         $user = auth()->user();
@@ -55,9 +68,9 @@ class EventCalendarController extends Controller
 
     /**
      * Locations the current user is allowed to see/book. Everyone — admins
-     * included — is scoped to their own company; admins additionally see
-     * every department within that company, while everyone else also needs
-     * a department overlap with the location's allowed list.
+     * and GM included — is scoped to their own company; admins and GM
+     * additionally see every department within that company, while everyone
+     * else also needs a department overlap with the location's allowed list.
      */
     private function visibleLocations(): \Illuminate\Support\Collection
     {
@@ -72,7 +85,7 @@ class EventCalendarController extends Controller
             $query->whereIn('cpny_id', $cpnyIds);
         }
 
-        if ($this->isAdmin()) {
+        if ($this->canSeeAllDepartments()) {
             return $query->get()->sortBy('event_location_name')->values();
         }
 
@@ -238,14 +251,14 @@ class EventCalendarController extends Controller
     }
 
     /**
-     * Anyone may edit/delete events they created themselves. Admins may
+     * Anyone may edit/delete events they created themselves. Admins and GM may
      * additionally edit/delete any event within their own assigned
      * company/companies, but never outside of it.
      */
     private function assertCanModify(MsEvent $event): void
     {
         $canModify = $event->created_user === auth()->user()->username
-            || ($this->isAdmin() && in_array($event->cpnyid, $this->userCpnyIds(), true));
+            || ($this->canSeeAllDepartments() && in_array($event->cpnyid, $this->userCpnyIds(), true));
 
         abort_unless($canModify, 403, 'You can only edit or delete events you created.');
     }
