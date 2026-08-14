@@ -5,6 +5,7 @@ import './bootstrap';
 import collapse from '@alpinejs/collapse';
 
 import loginHero from './login';
+import { sidebarMenuSearch, sidebarFavourites } from './sidebar';
 
 import Swal from 'sweetalert2';
 
@@ -30,6 +31,8 @@ Alpine.plugin(collapse);
 
 // Register Alpine Components
 Alpine.data('loginHero', loginHero);
+Alpine.data('sidebarMenuSearch', sidebarMenuSearch);
+Alpine.data('sidebarFavourites', sidebarFavourites);
 
 /* --------------------------------------------------------------------------
 | Chart.js

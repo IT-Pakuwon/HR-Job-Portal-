@@ -2777,6 +2777,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/performance-management/users', [PerformanceManagementController::class, 'storeUser'])->name('performance-management.users.store');
     Route::get('/performance-management/users/resigned/json', [PerformanceManagementController::class, 'resignedUsersJson'])->name('performance-management.users.resigned.json');
     Route::post('/performance-management/users/deactivate', [PerformanceManagementController::class, 'deactivateUser'])->name('performance-management.users.deactivate');
+    Route::get('/performance-management/users/missing-link/json', [PerformanceManagementController::class, 'missingLinkUsersJson'])->name('performance-management.users.missing-link.json');
+    Route::post('/performance-management/users/link', [PerformanceManagementController::class, 'linkUserTalenta'])->name('performance-management.users.link');
+    Route::post('/performance-management/users/deactivate-unlinked', [PerformanceManagementController::class, 'deactivateUnlinkedUser'])->name('performance-management.users.deactivate-unlinked');
     Route::get('/performance-management/duplicates/local/json', [PerformanceManagementController::class, 'duplicatesLocalJson'])->name('performance-management.duplicates.local.json');
     Route::get('/performance-management/duplicates/live/json', [PerformanceManagementController::class, 'duplicatesLiveJson'])->name('performance-management.duplicates.live.json');
     Route::post('/performance-management/duplicates/migrate', [PerformanceManagementController::class, 'migrateDuplicate'])->name('performance-management.duplicates.migrate');

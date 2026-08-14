@@ -153,6 +153,30 @@
                         <tbody></tbody>
                     </table>
                 </div>
+
+                <div class="flex items-center justify-between border-b border-t border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
+                        🔗 das Users with user_id_talenta = NULL
+                    </h2>
+                    <span class="text-xs text-gray-400 dark:text-gray-500">Matched to Local Cache (users_talenta) where employee_id = NPK</span>
+                </div>
+
+                <div class="relative overflow-x-auto">
+                    <table id="missingLinkTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                <th class="w-8 px-2 py-3 text-center"></th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
+                                <th class="px-4 py-3 text-left font-medium">Name</th>
+                                <th class="px-4 py-3 text-left font-medium">Username</th>
+                                <th class="px-4 py-3 text-left font-medium">NPK</th>
+                                <th class="px-4 py-3 text-left font-medium">Matched Talenta Name</th>
+                                <th class="px-4 py-3 text-left font-medium">Employment Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
 
             {{-- ── TAB 3: Duplicates ───────────────────────────────────────────── --}}
@@ -336,7 +360,7 @@
             if (!initedPmTabs[tab]) {
                 initedPmTabs[tab] = true;
                 if (tab === 'compare') { initLiveTable(); initLocalTable(); }
-                if (tab === 'user') { initCandidatesTable(); initResignedUsersTable(); }
+                if (tab === 'user') { initCandidatesTable(); initResignedUsersTable(); initMissingLinkTable(); }
                 if (tab === 'duplicates') { initDupLocalTable(); initDupLiveTable(); }
             } else if (tab === 'compare') {
                 window.liveTable && window.liveTable.columns.adjust();
@@ -344,6 +368,7 @@
             } else if (tab === 'user') {
                 window.candidatesTable && window.candidatesTable.columns.adjust();
                 window.resignedUsersTable && window.resignedUsersTable.columns.adjust();
+                window.missingLinkTable && window.missingLinkTable.columns.adjust();
             } else if (tab === 'duplicates') {
                 window.dupLocalTable && window.dupLocalTable.columns.adjust();
                 window.dupLiveTable && window.dupLiveTable.columns.adjust();
@@ -647,6 +672,54 @@
                 });
             }
 
+            window.initMissingLinkTable = function() {
+                window.missingLinkTable = $('#missingLinkTable').DataTable({
+                    ajax: {
+                        url: "{{ route('performance-management.users.missing-link.json') }}",
+                        type: "GET",
+                        dataSrc: 'data',
+                        error: function(xhr) { console.error('AJAX Error:', xhr.responseText); }
+                    },
+                    processing: true,
+                    serverSide: false,
+                    autoWidth: false,
+                    lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']],
+                    responsive: { details: { type: 'column', target: 0 } },
+                    columnDefs: [
+                        { targets: 0, className: 'dtr-control', orderable: false, searchable: false, width: '28px', defaultContent: '' },
+                        { targets: 1, orderable: false, searchable: false, className: 'text-center' },
+                    ],
+                    columns: [
+                        { data: null, defaultContent: '' },
+                        {
+                            data: 'id',
+                            render: function(data, type, row) {
+                                if (row.is_resigned) {
+                                    return `<button class="deactivateUnlinkedBtn bg-red-600 text-white px-2 py-1 rounded"
+                                        data-id="${data}" data-name="${row.name}">Deactivate</button>`;
+                                }
+                                if (!row.match_user_id) {
+                                    const title = row.npk
+                                        ? 'No users_talenta record with a matching NPK'
+                                        : 'No NPK, and no unique users_talenta record with a matching name';
+                                    return `<span class="text-xs text-gray-400" title="${title}">No match</span>`;
+                                }
+                                const label = row.match_by === 'name' ? 'Link (by name)' : 'Link';
+                                return `<button class="linkUserBtn bg-emerald-600 text-white px-2 py-1 rounded"
+                                    data-id="${data}" data-talenta-user-id="${row.match_user_id}"
+                                    data-name="${row.name}" data-match-name="${row.match_name ?? ''}"
+                                    data-match-by="${row.match_by ?? ''}" data-match-npk="${row.match_npk ?? ''}">${label}</button>`;
+                            }
+                        },
+                        { data: 'name' },
+                        { data: 'username', defaultContent: '-' },
+                        { data: 'npk', defaultContent: '-' },
+                        { data: 'match_name', defaultContent: '-' },
+                        { data: 'match_status', render: (d) => pmEmploymentStatusBadge(d) },
+                    ]
+                });
+            }
+
             // =========================================================
             // Duplicates
             // =========================================================
@@ -778,6 +851,85 @@
                         success: function() {
                             hideLoading();
                             window.resignedUsersTable.ajax.reload(null, false);
+                        },
+                        error: function(xhr) {
+                            hideLoading();
+                            Swal.fire({ icon: 'error', title: 'Error', text: xhr.responseJSON?.message || 'Gagal deactivate user' });
+                        }
+                    });
+                });
+            });
+
+            $(document).on('click', '.linkUserBtn', function() {
+                const id = $(this).data('id');
+                const talentaUserId = $(this).data('talenta-user-id');
+                const name = $(this).data('name');
+                const matchName = $(this).data('match-name');
+                const matchBy = $(this).data('match-by');
+                const matchNpk = $(this).data('match-npk');
+
+                const byNameNote = matchBy === 'name'
+                    ? `<br><br>This account had no NPK, matched by <b>name</b> instead — NPK <b>${matchNpk}</b> will also be copied onto it.`
+                    : '';
+
+                Swal.fire({
+                    icon: 'question',
+                    title: 'Link this user to Talenta?',
+                    html: `<div class="text-left text-sm">
+                        Links das account <b>${name}</b> to Talenta record <b>${matchName}</b> (matched by ${matchBy === 'name' ? 'name' : 'NPK'}).${byNameNote}<br><br>
+                        This sets <code>user_id_talenta</code>${matchBy === 'name' ? ' and <code>npk</code>' : ''} on the account — it does not change any other data.
+                    </div>`,
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, link',
+                    confirmButtonColor: '#059669',
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    showLoading();
+                    $.ajax({
+                        url: "{{ route('performance-management.users.link') }}",
+                        type: 'POST',
+                        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                        data: { id: id, talenta_user_id: talentaUserId },
+                        success: function() {
+                            hideLoading();
+                            window.missingLinkTable.ajax.reload(null, false);
+                            window.candidatesTable && window.candidatesTable.ajax.reload(null, false);
+                            Swal.fire({ icon: 'success', title: 'Linked', timer: 1200, showConfirmButton: false });
+                        },
+                        error: function(xhr) {
+                            hideLoading();
+                            Swal.fire({ icon: 'error', title: 'Error', text: xhr.responseJSON?.message || 'Gagal link user' });
+                        }
+                    });
+                });
+            });
+
+            $(document).on('click', '.deactivateUnlinkedBtn', function() {
+                const id = $(this).data('id');
+                const name = $(this).data('name');
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Deactivate this user?',
+                    html: `<div class="text-left text-sm">
+                        Sets das account <b>${name}</b>'s status to X because the Talenta record matching its NPK is Resigned.
+                    </div>`,
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, deactivate',
+                    confirmButtonColor: '#dc2626',
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    showLoading();
+                    $.ajax({
+                        url: "{{ route('performance-management.users.deactivate-unlinked') }}",
+                        type: 'POST',
+                        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                        data: { id: id },
+                        success: function() {
+                            hideLoading();
+                            window.missingLinkTable.ajax.reload(null, false);
                         },
                         error: function(xhr) {
                             hideLoading();

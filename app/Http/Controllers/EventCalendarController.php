@@ -146,8 +146,13 @@ class EventCalendarController extends Controller
 
     public function index()
     {
+        $eventRoleUsernames = SysUserRole::whereIn('role_id', ['VIEWEVENTACCESS', 'EVENTACCESS', 'GMACCESS'])
+            ->where('status', 'A')
+            ->pluck('username');
+
         $users = User::query()
             ->where('status', 'A')
+            ->whereIn('username', $eventRoleUsernames)
             ->orderBy('name')
             ->get(['username', 'name']);
 

@@ -391,6 +391,184 @@ class PerformanceManagementController extends Controller
         return response()->json(['success' => true]);
     }
 
+    // Normalizes a Users_talenta row's name the same way on both sides of the name-match
+    // fallback in missingLinkUsersJson()/linkUserTalenta() — lowercase, trimmed, single
+    // string — so "Ali  Hasan" (das) and "ali hasan" (Talenta) compare equal.
+    private function talentaFullName(Users_talenta $t): string
+    {
+        return strtolower(trim("{$t->first_name} {$t->last_name}"));
+    }
+
+    // Existing das `users` accounts with no Talenta link at all (user_id_talenta IS
+    // NULL) — as opposed to storeUser()/resignedUsersJson() above, which only deal
+    // with accounts that already have the link. These are typically accounts created
+    // before the link existed. Matched against Local Cache (users_talenta, mysql2) by
+    // NPK ⇄ employee_id, since that's the only field both sides reliably carry — that
+    // match is what Link actually copies user_id from.
+    //
+    // Employment status/name additionally fall back to Talenta Live (view_users_talenta,
+    // pgsql2) when there's no Local Cache match, since Local Cache is only a manually
+    // synced snapshot (Tab 1) and can lag or be missing rows that Live already has —
+    // e.g. someone who resigned before ever getting synced locally. Live is the same
+    // source resignedUsersJson() trusts for linked accounts.
+    //
+    // When the das account has no NPK at all, there's nothing to match on that way, so
+    // it falls back to matching by full name against Local Cache instead — but only when
+    // exactly one Local Cache person has that name. das has no identity_number/birth_date
+    // to disambiguate a shared name the way Tab 3's duplicate detection can, so a name
+    // shared by 2+ Talenta people is left unmatched rather than guessed at.
+    public function missingLinkUsersJson()
+    {
+        $talenta = Users_talenta::query()->get();
+
+        $talentaByNpk = $talenta->filter(fn ($t) => $t->employee_id)->keyBy('employee_id');
+
+        $talentaByName = $talenta
+            ->groupBy(fn ($t) => $this->talentaFullName($t))
+            ->filter(fn ($group) => $group->count() === 1)
+            ->map(fn ($group) => $group->first());
+
+        $liveByNpk = ViewUsersTalenta::query()
+            ->whereNotNull('employee_id')
+            ->where('employee_id', '!=', '')
+            ->get()
+            ->keyBy('employee_id');
+
+        $rows = UserDas::query()
+            ->whereNull('user_id_talenta')
+            ->orderBy('name')
+            ->get()
+            ->map(function ($user) use ($talentaByNpk, $talentaByName, $liveByNpk) {
+                $npkMatch = $user->npk ? $talentaByNpk->get($user->npk) : null;
+                $nameMatch = (!$user->npk && $user->name) ? $talentaByName->get(strtolower(trim($user->name))) : null;
+                $match = $npkMatch ?? $nameMatch;
+
+                $live = $user->npk ? $liveByNpk->get($user->npk) : null;
+                $statusTalenta = $live->status_talenta ?? $match->status_talenta ?? null;
+                $displayFrom = $npkMatch ?? $live ?? $nameMatch;
+
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'username' => $user->username,
+                    'npk' => $user->npk,
+                    'position' => $user->position,
+                    'job_level' => $user->job_level,
+                    'match_user_id' => $match->user_id ?? null,
+                    'match_npk' => $match->employee_id ?? null,
+                    'match_by' => $npkMatch ? 'npk' : ($nameMatch ? 'name' : null),
+                    'match_name' => $displayFrom ? trim("{$displayFrom->first_name} {$displayFrom->last_name}") : null,
+                    'match_status' => $statusTalenta,
+                    // Deactivate-in-place only makes sense once an NPK is already on file —
+                    // a name-matched row with no NPK yet should Link first (which sets the
+                    // NPK too); it'll surface in the Resigned panel afterwards if needed.
+                    'is_resigned' => $user->npk && $this->isResigned($statusTalenta),
+                ];
+            });
+
+        return response()->json(['data' => $rows]);
+    }
+
+    // Copies user_id (and, for a name-matched account with no NPK yet, employee_id too)
+    // from a matched users_talenta (Local Cache, mysql2) record into this das `users`
+    // account, linking the two. Re-validates the match server-side rather than trusting
+    // the client's suggested pairing:
+    // - if the account already has an NPK, it must exactly equal the Talenta record's NPK
+    // - if it doesn't, the Talenta record's name must be the *unique* Local Cache match
+    //   for this account's name (recomputed here, not just trusted from the listing)
+    public function linkUserTalenta(Request $request)
+    {
+        $request->validate([
+            'id' => 'required',
+            'talenta_user_id' => 'required',
+        ]);
+
+        $user = UserDas::find($request->id);
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'User tidak ditemukan'], 404);
+        }
+
+        if ($user->user_id_talenta) {
+            return response()->json(['success' => false, 'message' => 'User ini sudah terhubung ke data Talenta'], 422);
+        }
+
+        $talenta = Users_talenta::where('user_id', $request->talenta_user_id)->first();
+
+        if (!$talenta) {
+            return response()->json(['success' => false, 'message' => 'Data Talenta tidak ditemukan di Local Cache'], 404);
+        }
+
+        $npkToSave = $user->npk;
+
+        if ($user->npk) {
+            if ($user->npk !== $talenta->employee_id) {
+                return response()->json(['success' => false, 'message' => 'NPK user tidak cocok dengan NPK data Talenta — dibatalkan demi keamanan data'], 422);
+            }
+        } else {
+            if (!$user->name) {
+                return response()->json(['success' => false, 'message' => 'User ini tidak memiliki NPK maupun nama untuk dicocokkan'], 422);
+            }
+
+            $userName = strtolower(trim($user->name));
+            $nameMatches = Users_talenta::query()->get()->filter(fn ($t) => $this->talentaFullName($t) === $userName);
+
+            if ($nameMatches->count() !== 1 || $nameMatches->first()->user_id != $talenta->user_id) {
+                return response()->json(['success' => false, 'message' => 'Nama tidak unik atau tidak cocok dengan data Talenta — dibatalkan demi keamanan data'], 422);
+            }
+
+            $npkToSave = $talenta->employee_id;
+        }
+
+        $user->update([
+            'user_id_talenta' => $talenta->user_id,
+            'npk' => $npkToSave,
+            'updated_user' => Auth::user()->username ?? 'system',
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
+    // Deactivates a das `users` account that has no user_id_talenta (so
+    // deactivateUser()'s user_id_talenta-based lookup doesn't apply) by matching its
+    // NPK against Talenta Live (view_users_talenta, pgsql2) and confirming Resigned
+    // there — re-validated server-side, same as deactivateUser().
+    public function deactivateUnlinkedUser(Request $request)
+    {
+        $request->validate(['id' => 'required']);
+
+        $user = UserDas::find($request->id);
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'User tidak ditemukan'], 404);
+        }
+
+        if ($user->user_id_talenta) {
+            return response()->json(['success' => false, 'message' => 'User ini sudah terhubung ke data Talenta'], 422);
+        }
+
+        if (!$user->npk) {
+            return response()->json(['success' => false, 'message' => 'User ini tidak memiliki NPK untuk dicocokkan'], 422);
+        }
+
+        $view = ViewUsersTalenta::where('employee_id', $user->npk)->first();
+
+        if (!$view || !$this->isResigned($view->status_talenta)) {
+            return response()->json(['success' => false, 'message' => 'Data Talenta untuk NPK ini belum berstatus Resigned'], 422);
+        }
+
+        if ($user->status === 'X') {
+            return response()->json(['success' => false, 'message' => 'User ini sudah non-aktif'], 422);
+        }
+
+        $user->update([
+            'status' => 'X',
+            'updated_user' => Auth::user()->username ?? 'system',
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
     // =========================================================
     // Tab 3: Duplicates (same name + birth_date + identity_number, 2+ records)
     // =========================================================
