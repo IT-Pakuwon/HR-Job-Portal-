@@ -3313,6 +3313,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/transfervp/ajax/to-whs', [VplTransferController::class, 'getToWhs'])->name('transfervp.to-whs');
         Route::post('/transfervp/ajax/products', [VplTransferController::class, 'getTransferProducts'])->name('transfervp.products');
         Route::post('/transfervp/ajax/ref-options', [VplTransferController::class, 'getRefOptions'])->name('transfervp.ref-options');
+        Route::post('/transfervp/ajax/ref-details', [VplTransferController::class, 'getRefDetails'])->name('transfervp.ref-details');
         Route::post('/transfervp/{id}/approve', [VplTransferController::class, 'approve'])->name('transfervp.approve');
         Route::post('/transfervp/{id}/reject', [VplTransferController::class, 'reject'])->name('transfervp.reject');
         Route::post('/transfervp/{id}/revise', [VplTransferController::class, 'revise'])->name('transfervp.revise');

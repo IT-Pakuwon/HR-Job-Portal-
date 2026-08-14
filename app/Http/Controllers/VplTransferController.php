@@ -296,7 +296,8 @@ class VplTransferController extends Controller
                 ]);
 
                 // Details
-                $lineCount = 0;
+                $lineCount       = 0;
+                $returnedTracker = []; // ReturnTf only — per product+expiry running total claimed within this request
                 if ($request->has('addmore')) {
                     $line = 1;
                     foreach ($request->addmore as $detail) {
@@ -304,13 +305,33 @@ class VplTransferController extends Controller
                             || !is_numeric($detail['qty_transfer'] ?? null) || (float) $detail['qty_transfer'] <= 0) {
                             continue;
                         }
+
+                        $exp      = $detail['expired_date'] ?: '1900-01-01';
+                        $qty      = (float) $detail['qty_transfer'];
+                        $pickable = $this->pickableQty($detail['product_id'], $exp, $detail['from_whs_id']);
+                        if ($qty > $pickable) {
+                            $productName = MsVplProduct::where('product_id', $detail['product_id'])->value('product_name') ?? $detail['product_id'];
+                            throw new \RuntimeException('Transfer qty for ' . $productName . ' exceeds available quantity (' . $pickable . ').');
+                        }
+
+                        if ($transfertype === 'ReturnTf' && !empty($request->ref_transfer_id)) {
+                            $key       = $detail['product_id'] . '|' . $exp;
+                            $claimed   = $returnedTracker[$key] ?? 0;
+                            $returnable = $this->returnableQty($request->ref_transfer_id, $detail['product_id'], $exp);
+                            if ($qty + $claimed > $returnable) {
+                                $productName = MsVplProduct::where('product_id', $detail['product_id'])->value('product_name') ?? $detail['product_id'];
+                                throw new \RuntimeException('Return qty for ' . $productName . ' exceeds returnable quantity (' . max(0, $returnable - $claimed) . ').');
+                            }
+                            $returnedTracker[$key] = $claimed + $qty;
+                        }
+
                         TrxVplTransferDetail::create([
                             'transfer_id'    => $docid,
                             'linenbr'        => $line++,
                             'product_id'     => $detail['product_id'],
                             'qty_available'  => $detail['qty_available'] ?? 0,
                             'qty_transfer'   => $detail['qty_transfer'],
-                            'expired_date'   => $detail['expired_date'] ?: '1900-01-01',
+                            'expired_date'   => $exp,
                             'from_whs_id'    => $detail['from_whs_id'],
                             'to_whs_id'      => $detail['to_whs_id'],
                             'ref_transfer_id'=> $request->ref_transfer_id ?? null,
@@ -411,11 +432,29 @@ class VplTransferController extends Controller
                         $exp = $detail['expired_date'] ?: '1900-01-01';
                         $newQty = (float) $detail['qty_transfer'];
 
+                        $pickable = $this->pickableQty($detail['product_id'], $exp, $detail['from_whs_id']);
+                        if ($newQty > $pickable) {
+                            $productName = MsVplProduct::where('product_id', $detail['product_id'])->value('product_name') ?? $detail['product_id'];
+                            throw new \RuntimeException('Transfer qty for ' . $productName . ' exceeds available quantity (' . $pickable . ').');
+                        }
+
+                        // Looked up before the returnable check (and re-queried fresh each
+                        // iteration) so a prior bump earlier in this same request/loop is
+                        // already reflected in qty_transfer — no separate running tracker needed.
                         $existing = TrxVplTransferDetail::where('transfer_id', $transfer->transfer_id)
                             ->where('product_id', $detail['product_id'])
                             ->where('expired_date', $exp)
                             ->where('to_whs_id', $detail['to_whs_id'])
                             ->first();
+
+                        if ($transfer->transfertype === 'ReturnTf' && !empty($transfer->ref_transfer_id)) {
+                            $alreadyOnLine = $existing ? (float) $existing->qty_transfer : 0;
+                            $returnable    = $this->returnableQty($transfer->ref_transfer_id, $detail['product_id'], $exp, $transfer->id);
+                            if ($newQty + $alreadyOnLine > $returnable) {
+                                $productName = MsVplProduct::where('product_id', $detail['product_id'])->value('product_name') ?? $detail['product_id'];
+                                throw new \RuntimeException('Return qty for ' . $productName . ' exceeds returnable quantity (' . max(0, $returnable - $alreadyOnLine) . ').');
+                            }
+                        }
 
                         if ($existing) {
                             $existing->qty_transfer += $newQty;
@@ -863,6 +902,74 @@ class VplTransferController extends Controller
     }
 
     /**
+     * Returns every still-returnable line from a completed reference Transfer, so the
+     * Return Transfer form can auto-populate its detail table instead of the user
+     * manually adding/searching for each product. Direction is reversed from the
+     * original: from_whs_id becomes the dept warehouse (original to_whs_id), to_whs_id
+     * becomes the central warehouse (original from_whs_id). Lines fully claimed already
+     * (qty_returnable <= 0) are omitted, and — when editing (exclude_transfer_id given) —
+     * lines already present in that document's own saved details are omitted too, since
+     * those are shown (and removable) in the "Existing Details" section instead.
+     */
+    public function getRefDetails(Request $request)
+    {
+        $refTransferId = $request->ref_transfer_id;
+        $excludeId     = $request->exclude_transfer_id ? (int) $request->exclude_transfer_id : null;
+
+        if (!$refTransferId) {
+            return response()->json([]);
+        }
+
+        $selfExistingKeys = [];
+        if ($excludeId) {
+            $selfTransferId = TrxVplTransfer::find($excludeId)?->transfer_id;
+            if ($selfTransferId) {
+                $selfExistingKeys = TrxVplTransferDetail::where('transfer_id', $selfTransferId)
+                    ->get(['product_id', 'expired_date'])
+                    ->map(fn ($d) => $d->product_id . '|' . $d->expired_date->format('Y-m-d'))
+                    ->all();
+            }
+        }
+
+        $origLines = TrxVplTransferDetail::join('ms_vpl_product', 'tr_vpl_transfer_detail.product_id', '=', 'ms_vpl_product.product_id')
+            ->select(
+                'tr_vpl_transfer_detail.product_id',
+                DB::raw("CONCAT(ms_vpl_product.product_name,' / ',ms_vpl_product.product_value,' / ',ms_vpl_product.product_uom) AS product_name"),
+                'tr_vpl_transfer_detail.expired_date',
+                'tr_vpl_transfer_detail.to_whs_id AS from_whs_id',
+                'tr_vpl_transfer_detail.from_whs_id AS to_whs_id'
+            )
+            ->where('tr_vpl_transfer_detail.transfer_id', $refTransferId)
+            ->orderBy('tr_vpl_transfer_detail.linenbr')
+            ->get()
+            ->unique(fn ($l) => $l->product_id . '|' . $l->expired_date);
+
+        $result = [];
+        foreach ($origLines as $line) {
+            $exp = $line->expired_date->format('Y-m-d');
+            if (in_array($line->product_id . '|' . $exp, $selfExistingKeys, true)) {
+                continue;
+            }
+
+            $returnable = $this->returnableQty($refTransferId, $line->product_id, $exp, $excludeId);
+            if ($returnable <= 0) {
+                continue;
+            }
+
+            $result[] = [
+                'product_id'     => $line->product_id,
+                'product_name'   => $line->product_name,
+                'expired_date'   => $exp,
+                'from_whs_id'    => $line->from_whs_id,
+                'to_whs_id'      => $line->to_whs_id,
+                'qty_returnable' => $returnable,
+            ];
+        }
+
+        return response()->json($result);
+    }
+
+    /**
      * Returns completed transfer IDs that can be referenced for ReturnTf.
      */
     public function getRefOptions(Request $request)
@@ -897,11 +1004,49 @@ class VplTransferController extends Controller
     }
 
     /**
-     * $qtyOverride lets a caller reserve/release a specific amount instead of
-     * the detail row's full current qty_transfer — needed when bumping an
-     * existing line's qty, where qty_transfer is already the new cumulative
-     * total and only the added delta should be (un)reserved.
+     * Current pickable qty (available - already reserved) for a product/expiry/warehouse.
      */
+    private function pickableQty(string $productId, string $expiredDate, string $whsId): float
+    {
+        $stock = MsVplProductDetail::where('product_id', $productId)
+            ->where('expired_date', $expiredDate)
+            ->where('whs_id', $whsId)
+            ->first();
+
+        if (!$stock) {
+            return 0;
+        }
+
+        return (float) $stock->qty_available - (float) ($stock->qty_reserved ?? 0);
+    }
+
+    /**
+     * How much of a product/expiry line from a completed reference Transfer can still
+     * be returned: the original transferred qty minus everything already claimed by
+     * other Return Transfer documents referencing it (status P or C — a pending return
+     * already holds its claim, same as stock reservation does for regular transfers).
+     * $excludeTransferDbId excludes a document's own detail rows from the "already
+     * claimed" sum, so re-opening that document for edit doesn't count its own lines
+     * against itself.
+     */
+    private function returnableQty(string $refTransferId, string $productId, string $expiredDate, ?int $excludeTransferDbId = null): float
+    {
+        $originalQty = (float) TrxVplTransferDetail::where('transfer_id', $refTransferId)
+            ->where('product_id', $productId)
+            ->where('expired_date', $expiredDate)
+            ->sum('qty_transfer');
+
+        $returnedQty = (float) TrxVplTransferDetail::join('tr_vpl_transfer', 'tr_vpl_transfer_detail.transfer_id', '=', 'tr_vpl_transfer.transfer_id')
+            ->where('tr_vpl_transfer_detail.ref_transfer_id', $refTransferId)
+            ->where('tr_vpl_transfer_detail.product_id', $productId)
+            ->where('tr_vpl_transfer_detail.expired_date', $expiredDate)
+            ->whereIn('tr_vpl_transfer.status', ['P', 'C'])
+            ->when($excludeTransferDbId, fn ($q) => $q->where('tr_vpl_transfer.id', '<>', $excludeTransferDbId))
+            ->sum('tr_vpl_transfer_detail.qty_transfer');
+
+        return max(0, $originalQty - $returnedQty);
+    }
+
     private function reserveDetail(TrxVplTransferDetail $detail, int $delta, ?float $qtyOverride = null): void
     {
         $qty = $qtyOverride ?? $detail->qty_transfer;

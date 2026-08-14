@@ -648,6 +648,7 @@
         toWhs:     '{{ route("transfervp.to-whs") }}',
         products:  '{{ route("transfervp.products") }}',
         refOpts:   '{{ route("transfervp.ref-options") }}',
+        refDetails:'{{ route("transfervp.ref-details") }}',
         delDetail: '{{ route("transfervp.detail.delete") }}',
         delAttach: '{{ route("transfervp.attachment.delete") }}',
         data: (id) => `{{ url("transfervp") }}/${id}/data`,
@@ -662,11 +663,11 @@
     };
 </script>
 
-<script src="{{ asset('assets/js/voucher-transfer/core.js') }}"></script>
-<script src="{{ asset('assets/js/voucher-transfer/helper.js') }}"></script>
-<script src="{{ asset('assets/js/voucher-transfer/datalist.js') }}"></script>
-<script src="{{ asset('assets/js/voucher-transfer/modal.js') }}"></script>
-<script src="{{ asset('assets/js/voucher-transfer/form.js') }}"></script>
-<script src="{{ asset('assets/js/voucher-transfer/init.js') }}"></script>
+<script src="{{ asset('assets/js/voucher-transfer/core.js') }}?v={{ filemtime(public_path('assets/js/voucher-transfer/core.js')) }}"></script>
+<script src="{{ asset('assets/js/voucher-transfer/helper.js') }}?v={{ filemtime(public_path('assets/js/voucher-transfer/helper.js')) }}"></script>
+<script src="{{ asset('assets/js/voucher-transfer/datalist.js') }}?v={{ filemtime(public_path('assets/js/voucher-transfer/datalist.js')) }}"></script>
+<script src="{{ asset('assets/js/voucher-transfer/modal.js') }}?v={{ filemtime(public_path('assets/js/voucher-transfer/modal.js')) }}"></script>
+<script src="{{ asset('assets/js/voucher-transfer/form.js') }}?v={{ filemtime(public_path('assets/js/voucher-transfer/form.js')) }}"></script>
+<script src="{{ asset('assets/js/voucher-transfer/init.js') }}?v={{ filemtime(public_path('assets/js/voucher-transfer/init.js')) }}"></script>
 
 </x-app-layout>
