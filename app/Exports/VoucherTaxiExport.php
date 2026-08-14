@@ -49,7 +49,10 @@ class VoucherTaxiExport implements FromCollection, WithHeadings
             ->toArray();
 
         $query = TrVoucherTaxi::query()
-            ->whereIn('cpny_id', $companyIds);
+            ->where(function ($q) use ($companyIds) {
+                $q->whereIn('cpny_id', $companyIds)
+                    ->orWhereIn('cpny_id_expense', $companyIds);
+            });
 
         if ($request->date_from) {
             $query->whereDate(
@@ -81,6 +84,13 @@ class VoucherTaxiExport implements FromCollection, WithHeadings
 
         if ($request->status === 'X') {
             $query->where('status', 'X');
+        }
+
+        if ($request->company) {
+            $query->where(function ($q) use ($request) {
+                $q->where('cpny_id', $request->company)
+                    ->orWhere('cpny_id_expense', $request->company);
+            });
         }
 
         $rows = $query

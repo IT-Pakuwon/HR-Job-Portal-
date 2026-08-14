@@ -45,11 +45,26 @@ class CarExpenseSheetExport implements FromArray, WithHeadings, WithTitle, Shoul
         $companies   = \App\Models\MsCompany::pluck('cpny_name', 'cpny_id');
         $departments = \App\Models\MsDepartment::pluck('department_name', 'department_id');
 
+        $user = auth()->user();
+
+        $companyIds = collect(
+            explode(',', (string) $user->cpny_id)
+        )
+            ->map(fn ($x) => trim($x))
+            ->filter()
+            ->values()
+            ->toArray();
+
         $query = DB::connection('pgsql5')
             ->table('tr_car_expense')
             ->whereNull('deleted_at')
             ->where('cost_type', $this->costTypeId)
+            ->whereIn('cpny_id', $companyIds)
             ->select(['refnbr', 'ref_date', 'cpny_id', 'department_id', 'nopol', 'driver', 'kilometer', 'cost_descr', 'cost_qty', 'cost_amount']);
+
+        if ($request->company) {
+            $query->where('cpny_id', $request->company);
+        }
 
         if ($request->date_from) {
             $query->whereDate('ref_date', '>=', $request->date_from);
