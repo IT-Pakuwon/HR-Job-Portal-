@@ -57,6 +57,11 @@ class Kernel extends ConsoleKernel
             ->at('07:10')
             ->withoutOverlapping();
 
+        // Email reminder H-7 for Paid events (PIC internal, creator, GMACCESS)
+        $schedule->command('email:event-h7-paid-reminder')
+            ->dailyAt('07:15')
+            ->withoutOverlapping();
+
         // Auto Process IFCA Supplier
         $schedule->command('ifca:supplier-auto-process')
             ->everySixHours()

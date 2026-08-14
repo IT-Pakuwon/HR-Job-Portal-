@@ -248,12 +248,12 @@ class EventCalendarController extends Controller
         ]);
     }
 
-    // National holidays + Cuti Bersama, so the timeline can tint them like weekends.
+    // National holidays only (Cuti Bersama excluded), so the timeline can tint them like weekends.
     public function holidays()
     {
         $dates = SysCalendar::query()
             ->where('status', 'A')
-            ->whereIn('date_calendar_type', ['LIBUR_NASIONAL', 'CUTI_BERSAMA'])
+            ->where('date_calendar_type', 'LIBUR_NASIONAL')
             ->whereNull('deleted_at')
             ->pluck('date_calendar')
             ->map(fn ($d) => \Carbon\Carbon::parse($d)->format('Y-m-d'))

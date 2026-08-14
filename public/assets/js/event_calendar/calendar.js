@@ -141,9 +141,11 @@ const EventCalendarApp = {
 
         EventCalendarApp.state.picTom = new TomSelect(el, {
             plugins: ['remove_button'],
-            create: true,
+            // No free text — PIC must be a real ms_user so the H-7 reminder email
+            // (SendEventH7PaidReminder) can resolve a name back to an address.
+            create: false,
             persist: false,
-            placeholder: 'Select or type person(s) in charge',
+            placeholder: 'Select person(s) in charge',
             maxOptions: 1000,
         });
     },
@@ -629,6 +631,10 @@ const EventCalendarApp = {
         delete payload._token;
         delete payload['pic_event[]'];
         payload.pic_event = (EventCalendarApp.state.picTom?.getValue() || []).join(',');
+        // A drag-select locks this field via locationTom.disable() (see openCreateModal) —
+        // disabled <select> elements are excluded from FormData per the HTML spec, so pull
+        // the value straight from TomSelect instead of trusting the form-serialized payload.
+        payload.location_row_id = EventCalendarApp.state.locationTom?.getValue() || '';
         payload.event_total_contract = EventCalendarApp.parseThousands(payload.event_total_contract);
 
         const id = document.getElementById('event_row_id').value;
