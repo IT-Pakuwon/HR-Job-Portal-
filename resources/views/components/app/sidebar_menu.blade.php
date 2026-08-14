@@ -213,6 +213,10 @@
 
                         $visibleMenus = $rootMenu->children->filter(function ($menu) use ($allowedIds) {
 
+                            if ($menu->status !== 'A') {
+                                return false;
+                            }
+
                             $children = $menu->children->whereIn('menu_id', $allowedIds);
 
                             return $children->isNotEmpty()
