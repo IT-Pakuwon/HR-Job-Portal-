@@ -11,6 +11,7 @@ const EventCalendarApp = {
         locationTom: null,
         picTom: null,
         viewingEvent: null,
+        holidaySet: new Set(), // 'YYYY-MM-DD' — national holidays + Cuti Bersama from sys_calendar_exception
     },
 
     statusColors: {
@@ -67,13 +68,43 @@ const EventCalendarApp = {
         });
     },
 
-    init() {
+    async init() {
+        await EventCalendarApp.loadHolidays();
         EventCalendarApp.initCalendar();
         EventCalendarApp.initSelect2();
         EventCalendarApp.initLocationTomSelect();
         EventCalendarApp.initPicTomSelect();
         EventCalendarApp.bindModalEvents();
         EventCalendarApp.bindStatusToggle();
+    },
+
+    // --------------------------------------------------------
+    // HOLIDAYS (Libur Nasional / Cuti Bersama from sys_calendar_exception)
+    // --------------------------------------------------------
+    async loadHolidays() {
+        try {
+            const response = await EventCalendarApp.request(window.EventCalendarRoutes.holidays);
+            const dates = Array.isArray(response.data) ? response.data : [];
+            EventCalendarApp.state.holidaySet = new Set(dates);
+        } catch (err) {
+            console.error('[EventCalendar] load holidays error:', err);
+        }
+    },
+
+    // Formats a FullCalendar slot date the same way sys_calendar_exception
+    // stores it ('YYYY-MM-DD'), using local getters to match the getDay()
+    // check below (FullCalendar normalizes these slots to local midnight).
+    dateKey(date) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    },
+
+    isOffDay(date) {
+        const day = date.getDay();
+        if (day === 0 || day === 6) return true;
+        return EventCalendarApp.state.holidaySet.has(EventCalendarApp.dateKey(date));
     },
 
     // --------------------------------------------------------
@@ -139,7 +170,10 @@ const EventCalendarApp = {
             eventLongPressDelay: 0,
             selectLongPressDelay: 0,
             resources: window.EventCalendarResources || [],
-            resourceOrder: 'group_key,sort_key',
+            // cpny_name+dept_rank (not group_key) decides group order, so PROMOTION,CASUALLEASING
+            // (rank 0) lands before LOYALTY (rank 1) within each company instead of the alphabetical
+            // "LOYALTY" < "PROMOTION..." order group_key would otherwise produce.
+            resourceOrder: 'cpny_name,dept_rank,sort_key',
             resourceGroupField: 'group_key',
             resourceAreaHeaderContent: 'Location',
             selectable: Boolean((window.EventCalendarCurrentUser || {}).canCreate),
@@ -170,15 +204,20 @@ const EventCalendarApp = {
                 // FullCalendar only recognizes a bare function as a custom formatter (an object is
                 // passed straight to Intl.DateTimeFormat, which ignores unknown keys).
                 (arg) => 'Week ' + Math.ceil(arg.date.day / 7),
-                { day: 'numeric', weekday: 'narrow' },
+                // Weekday-initial tier. Narrow weekday letters repeat (Sun/Sat are both "S"),
+                // and FullCalendar auto-merges adjacent slots whose formatted text is identical —
+                // so a Saturday->Sunday boundary would collapse into one spanning "S" cell. A
+                // trailing run of zero-width spaces (keyed to the day of month) keeps every day's
+                // text unique without changing what's visually shown.
+                (arg) => arg.date.marker.toLocaleDateString('en-US', { weekday: 'narrow', timeZone: 'UTC' })
+                    + '\u200B'.repeat(arg.date.day),
+                { day: 'numeric' },
             ],
             slotLabelClassNames(arg) {
-                const day = arg.date.getDay();
-                return (day === 0 || day === 6) ? ['fc-weekend-slot'] : [];
+                return EventCalendarApp.isOffDay(arg.date) ? ['fc-offday-slot'] : [];
             },
             slotLaneClassNames(arg) {
-                const day = arg.date.getDay();
-                return (day === 0 || day === 6) ? ['fc-weekend-slot'] : [];
+                return EventCalendarApp.isOffDay(arg.date) ? ['fc-offday-slot'] : [];
             },
             eventContent(arg) {
                 const wrapper = document.createElement('div');

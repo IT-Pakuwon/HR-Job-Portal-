@@ -1648,6 +1648,7 @@ Route::middleware(['auth'])->group(function () {
                 Route::middleware('access:EVENTCAL,VIEW')->group(function () {
                     Route::middleware('ajax')->group(function () {
                         Route::get('/json', 'json')->name('json');
+                        Route::get('/holidays', 'holidays')->name('holidays');
                     });
                 });
 

@@ -25,14 +25,14 @@
             <div class="flex items-center gap-2">
 
                 <div class="flex flex-wrap items-center gap-x-4 gap-y-2 px-1">
-                    <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                        <span class="h-2.5 w-2.5 rounded-full bg-[#E0A800]"></span> Booked
+                    <span class="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
+                        <span class="h-3.5 w-3.5 rounded-full bg-[#E0A800]"></span> Booked
                     </span>
-                    <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                        <span class="h-2.5 w-2.5 rounded-full bg-[#2E9E5B]"></span> Confirmed
+                    <span class="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
+                        <span class="h-3.5 w-3.5 rounded-full bg-[#2E9E5B]"></span> Confirmed
                     </span>
-                    <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                        <span class="h-2.5 w-2.5 rounded-full bg-[#2F6FED]"></span> Paid
+                    <span class="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
+                        <span class="h-3.5 w-3.5 rounded-full bg-[#2F6FED]"></span> Paid
                     </span>
                 </div>
 
@@ -117,21 +117,21 @@
             line-height: 1;
         }
 
-        /* Weekend (Sat/Sun) date columns: header label + body lane, both tinted red */
-        #calendar .fc-weekend-slot {
+        /* Off-day date columns (weekends + Libur Nasional / Cuti Bersama): header label + body lane, both tinted red */
+        #calendar .fc-offday-slot {
             background: rgba(220, 38, 38, 0.08) !important;
         }
 
-        #calendar .fc-timeline-header .fc-weekend-slot .fc-timeline-slot-cushion {
+        #calendar .fc-timeline-header .fc-offday-slot .fc-timeline-slot-cushion {
             color: #dc2626;
             font-weight: 700;
         }
 
-        .dark #calendar .fc-weekend-slot {
+        .dark #calendar .fc-offday-slot {
             background: rgba(248, 113, 113, 0.12) !important;
         }
 
-        .dark #calendar .fc-timeline-header .fc-weekend-slot .fc-timeline-slot-cushion {
+        .dark #calendar .fc-timeline-header .fc-offday-slot .fc-timeline-slot-cushion {
             color: #f87171;
         }
 
@@ -182,33 +182,15 @@
             border-left-color: rgba(255, 255, 255, 0.1);
         }
 
-        /* Department group header: small color dot + muted text, no filled tag */
+        /* Department group header: muted text, no filled tag */
         #calendar .fc-dept-loyalty,
         #calendar .fc-dept-promo {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
             font-size: 11px;
             font-weight: 600;
             letter-spacing: 0.02em;
             color: #64748b;
-        }
-
-        #calendar .fc-dept-loyalty::before,
-        #calendar .fc-dept-promo::before {
-            content: '';
-            width: 6px;
-            height: 6px;
-            border-radius: 9999px;
-            flex-shrink: 0;
-        }
-
-        #calendar .fc-dept-loyalty::before {
-            background: #a855f7;
-        }
-
-        #calendar .fc-dept-promo::before {
-            background: #3b82f6;
         }
 
         .dark #calendar .fc-dept-loyalty,
@@ -679,6 +661,9 @@
                 // full-width group header with locations nested directly
                 // beneath it, instead of separate staircased columns.
                 'group_key' => "{$cpnyName}|||{$deptLabel}",
+                // PROMOTION/CASUALLEASING group before LOYALTY within each company
+                // (alphabetical group_key order would put LOYALTY first otherwise).
+                'dept_rank' => strtoupper(trim($deptLabel)) === 'LOYALTY' ? 1 : 0,
                 // Sort by insertion order (id) rather than name, so locations
                 // land in whatever sequence they were set up in (e.g. floor
                 // order: LG, GF, UG, 1st FL...) instead of alphabetically.
@@ -699,6 +684,7 @@
 
         window.EventCalendarRoutes = {
             json: '{{ route('event-calendar.json') }}',
+            holidays: '{{ route('event-calendar.holidays') }}',
             store: '{{ route('event-calendar.store') }}',
             update: (id) => `{{ url('event-calendar/update') }}/${id}`,
             status: (id) => `{{ url('event-calendar/status') }}/${id}`,

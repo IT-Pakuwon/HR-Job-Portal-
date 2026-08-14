@@ -6,6 +6,7 @@ use App\Models\MsDepartment;
 use App\Models\MsEvent;
 use App\Models\MsEventLocation;
 use App\Models\SysAccessRight;
+use App\Models\SysCalendar;
 use App\Models\SysUserRole;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -245,6 +246,20 @@ class EventCalendarController extends Controller
                 ];
             }),
         ]);
+    }
+
+    // National holidays + Cuti Bersama, so the timeline can tint them like weekends.
+    public function holidays()
+    {
+        $dates = SysCalendar::query()
+            ->where('status', 'A')
+            ->whereIn('date_calendar_type', ['LIBUR_NASIONAL', 'CUTI_BERSAMA'])
+            ->whereNull('deleted_at')
+            ->pluck('date_calendar')
+            ->map(fn ($d) => \Carbon\Carbon::parse($d)->format('Y-m-d'))
+            ->values();
+
+        return response()->json(['data' => $dates]);
     }
 
     private function nextEventId(): string
