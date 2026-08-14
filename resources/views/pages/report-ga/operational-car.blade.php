@@ -3,7 +3,7 @@
     {{-- FILTER PANEL --}}
     <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm dark:border-gray-700">
 
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-8 items-end">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-9 items-end">
 
             {{-- DATE FROM --}}
             <div class="space-y-1">
@@ -132,6 +132,29 @@
                 </select>
             </div>
 
+            {{-- COMPANY --}}
+            <div class="space-y-1">
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                    Company
+                </label>
+
+                <select
+                    id="company_bookingcar"
+                    class="form-input w-full">
+
+                    <option value="">
+                        All Company
+                    </option>
+
+                    @foreach ($companies as $cpny)
+                        <option value="{{ $cpny->cpny_id }}">
+                            {{ $cpny->cpny_name }}
+                        </option>
+                    @endforeach
+
+                </select>
+            </div>
+
             {{-- ACTION BUTTONS --}}
             <div class="flex items-end justify-end gap-2">
 
@@ -237,6 +260,8 @@
                     d.driver = $('#driver_bookingcar').val();
 
                     d.vehicle = $('#vehicle_bookingcar').val();
+
+                    d.company = $('#company_bookingcar').val();
                 }
             },
 
@@ -307,6 +332,8 @@
 
             $('#vehicle_bookingcar').val('');
 
+            $('#company_bookingcar').val('');
+
             table.ajax.reload();
         });
 
@@ -325,6 +352,8 @@
             url += '&driver=' + $('#driver_bookingcar').val();
 
             url += '&vehicle=' + $('#vehicle_bookingcar').val();
+
+            url += '&company=' + $('#company_bookingcar').val();
 
             window.location.href = url;
         });

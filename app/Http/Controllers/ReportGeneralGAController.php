@@ -72,6 +72,18 @@ class ReportGeneralGAController extends Controller
             ->orderBy('category_name')
             ->get(['categoryid', 'category_name']);
 
+        $userCompanyIds = collect(
+            explode(',', (string) $user->cpny_id)
+        )
+            ->map(fn ($x) => trim($x))
+            ->filter()
+            ->values()
+            ->toArray();
+
+        $companies = \App\Models\MsCompany::whereIn('cpny_id', $userCompanyIds)
+            ->orderBy('cpny_name')
+            ->get(['cpny_id', 'cpny_name']);
+
         $hasCSACCESS = $user->hasRole('CSACCESS');
         $hasADMIN    = $user->isAdmin();
         $hasGAACCESS = $user->hasRole('GAACCESS');
@@ -97,6 +109,8 @@ class ReportGeneralGAController extends Controller
             'parkingTypes' => $parkingTypes,
 
             'workerTypes' => $workerTypes,
+
+            'companies' => $companies,
 
             'hasCSACCESS'   => $hasCSACCESS,
 
@@ -561,7 +575,10 @@ class ReportGeneralGAController extends Controller
         $query = DB::connection('pgsql5')
             ->table('tr_booking_car as bc')
 
-            ->whereIn('bc.cpny_id', $companyIds)
+            ->where(function ($q) use ($companyIds) {
+                $q->whereIn('bc.cpny_id', $companyIds)
+                    ->orWhereIn('bc.cpny_id_site', $companyIds);
+            })
             ->leftJoin(
                 'tr_booking_car_detail as bcd',
                 'bcd.docid',
@@ -674,6 +691,14 @@ class ReportGeneralGAController extends Controller
                 'bc.no_polisi',
                 $request->vehicle
             );
+        }
+
+        if ($request->company) {
+
+            $query->where(function ($q) use ($request) {
+                $q->where('bc.cpny_id', $request->company)
+                    ->orWhere('bc.cpny_id_site', $request->company);
+            });
         }
         /*
         |--------------------------------------------------------------------------
@@ -813,7 +838,10 @@ class ReportGeneralGAController extends Controller
 
         $query = DB::connection('pgsql5')
             ->table('tr_voucher_taxi as vt')
-            ->whereIn('vt.cpny_id', $companyIds)
+            ->where(function ($q) use ($companyIds) {
+                $q->whereIn('vt.cpny_id', $companyIds)
+                    ->orWhereIn('vt.cpny_id_expense', $companyIds);
+            })
             ->select([
                 'vt.docid',
 
@@ -877,6 +905,13 @@ class ReportGeneralGAController extends Controller
                 'vt.type_trip',
                 $request->type_trip
             );
+        }
+
+        if ($request->company) {
+            $query->where(function ($q) use ($request) {
+                $q->where('vt.cpny_id', $request->company)
+                    ->orWhere('vt.cpny_id_expense', $request->company);
+            });
         }
 
         return DataTables::of($query)
@@ -1356,8 +1391,19 @@ class ReportGeneralGAController extends Controller
         $companies   = \App\Models\MsCompany::pluck('cpny_name', 'cpny_id');
         $departments = \App\Models\MsDepartment::pluck('department_name', 'department_id');
 
+        $user = auth()->user();
+
+        $companyIds = collect(
+            explode(',', (string) $user->cpny_id)
+        )
+            ->map(fn ($x) => trim($x))
+            ->filter()
+            ->values()
+            ->toArray();
+
         $query = DB::connection('pgsql5')->table('tr_car_expense')
             ->whereNull('deleted_at')
+            ->whereIn('cpny_id', $companyIds)
             ->select([
                 'refnbr',
                 'ref_date',
@@ -1386,6 +1432,10 @@ class ReportGeneralGAController extends Controller
 
         if ($request->driver) {
             $query->where('driver', 'ilike', "%{$request->driver}%");
+        }
+
+        if ($request->company) {
+            $query->where('cpny_id', $request->company);
         }
 
         return DataTables::of($query)

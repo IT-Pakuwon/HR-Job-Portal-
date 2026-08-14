@@ -74,7 +74,10 @@ class BookingCarExport implements
         $query = DB::connection('pgsql5')
             ->table('tr_booking_car as bc')
 
-            ->whereIn('bc.cpny_id', $companyIds)
+            ->where(function ($q) use ($companyIds) {
+                $q->whereIn('bc.cpny_id', $companyIds)
+                    ->orWhereIn('bc.cpny_id_site', $companyIds);
+            })
 
             ->leftJoin(
                 'tr_booking_car_detail as bcd',
@@ -155,6 +158,13 @@ class BookingCarExport implements
 
         if ($request->status === 'X') {
             $query->where('bc.status', 'X');
+        }
+
+        if ($request->company) {
+            $query->where(function ($q) use ($request) {
+                $q->where('bc.cpny_id', $request->company)
+                    ->orWhere('bc.cpny_id_site', $request->company);
+            });
         }
 
         return $query

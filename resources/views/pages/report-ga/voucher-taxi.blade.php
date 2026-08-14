@@ -3,7 +3,7 @@
     {{-- FILTER PANEL --}}
     <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm dark:border-gray-700">
 
-        <div class="grid grid-cols-1 items-end gap-4 md:grid-cols-2 lg:grid-cols-6">
+        <div class="grid grid-cols-1 items-end gap-4 md:grid-cols-2 lg:grid-cols-7">
 
             {{-- DATE FROM --}}
             <div class="space-y-1">
@@ -87,6 +87,27 @@
                     <option value="X">
                         Cancelled
                     </option>
+
+                </select>
+            </div>
+
+            {{-- COMPANY --}}
+            <div class="space-y-1">
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                    Company
+                </label>
+
+                <select id="voucher_company" class="form-input w-full">
+
+                    <option value="">
+                        All Company
+                    </option>
+
+                    @foreach ($companies as $cpny)
+                        <option value="{{ $cpny->cpny_id }}">
+                            {{ $cpny->cpny_name }}
+                        </option>
+                    @endforeach
 
                 </select>
             </div>
@@ -197,6 +218,9 @@
 
                     d.status =
                         $('#voucher_status').val();
+
+                    d.company =
+                        $('#voucher_company').val();
                 }
             },
 
@@ -276,6 +300,7 @@
             $('#voucher_requester').val('');
             $('#voucher_type_trip').val('');
             $('#voucher_status').val('');
+            $('#voucher_company').val('');
 
             table.ajax.reload();
         });
@@ -304,6 +329,10 @@
             url +=
                 '&status=' +
                 $('#voucher_status').val();
+
+            url +=
+                '&company=' +
+                $('#voucher_company').val();
 
             window.location.href = url;
         });
