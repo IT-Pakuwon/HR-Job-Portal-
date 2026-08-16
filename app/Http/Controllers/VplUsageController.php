@@ -233,11 +233,14 @@ class VplUsageController extends Controller
             return response()->json(['error' => 'Reference Usage Doc is required for Return.'], 422);
         }
 
-        // Once a Usage doc has been settled, it's closed off — no further Returns
-        // against it (settlement and return both write to qty_settlement/qty_remain
-        // on tr_vpl_usage_detail, so letting both touch the same line would corrupt it).
-        if ($usagetype === 'Return' && TrxVplSettlement::where('usage_id', $request->ref_usage_id)->whereIn('status', ['P', 'D', 'C'])->exists()) {
-            return response()->json(['error' => 'Cannot return: the referenced Usage document has already been settled.'], 422);
+        // A settlement still in flight (Pending/Hold) locks out Returns entirely — its
+        // qty_settlement is provisional and could still change or get rejected. Once
+        // it's Completed, a Return is allowed again for whatever qty is still
+        // returnable — returnableUsageQty() (used below, per line) computes that off
+        // qty_return_usage rather than the shared qty_settlement field, so it stays
+        // correct regardless of settlement state.
+        if ($usagetype === 'Return' && TrxVplSettlement::where('usage_id', $request->ref_usage_id)->whereIn('status', ['P', 'D'])->exists()) {
+            return response()->json(['error' => 'Cannot return: the referenced Usage document has a settlement in progress.'], 422);
         }
 
         if (!$request->filled('usage_remark')) {
@@ -266,23 +269,37 @@ class VplUsageController extends Controller
             return response()->json(['error' => 'Category condition "'.$conditionName.'" not found. Please contact IT!'], 422);
         }
 
-        // Validate returnable qty per line before touching anything
-        if ($usagetype === 'Return' && $request->has('addmore')) {
+        // Validate qty per line before touching anything: Usage lines can't exceed
+        // pickable warehouse stock, Return lines can't exceed the origin line's
+        // remaining returnable qty. A running per-key claim total catches duplicate
+        // lines in one request that would otherwise each pass independently and
+        // jointly over-claim.
+        if ($request->has('addmore')) {
+            $claimTracker = [];
             foreach ($request->addmore as $detail) {
-                if (empty($detail['product_id']) || empty($detail['qty'])) {
+                if (empty($detail['product_id']) || empty($detail['qty']) || empty($detail['whs_id'])) {
                     continue;
                 }
-                $exp = $detail['expired_date'] ?: '1900-01-01';
-                $origin = TrxVplUsageDetail::where('usage_id', $request->ref_usage_id)
-                    ->where('product_id', $detail['product_id'])
-                    ->where('expired_date', $exp)
-                    ->where('whs_id', $detail['whs_id'])
-                    ->first();
-                $remaining = $origin ? ($origin->qty_usage - ($origin->qty_settlement ?? 0)) : 0;
-                if ($detail['qty'] > $remaining) {
-                    $productName = MsVplProduct::where('product_id', $detail['product_id'])->value('product_name') ?? $detail['product_id'];
-                    return response()->json(['error' => 'Return qty for '.$productName.' exceeds the remaining returnable qty ('.$remaining.').'], 422);
+                $exp     = $detail['expired_date'] ?: '1900-01-01';
+                $qty     = (float) $detail['qty'];
+                $key     = $detail['product_id'].'|'.$exp.'|'.$detail['whs_id'];
+                $claimed = $claimTracker[$key] ?? 0;
+
+                if ($usagetype === 'Usage') {
+                    $pickable = $this->pickableQty($detail['product_id'], $exp, $detail['whs_id']);
+                    if ($qty + $claimed > $pickable) {
+                        $productName = MsVplProduct::where('product_id', $detail['product_id'])->value('product_name') ?? $detail['product_id'];
+                        return response()->json(['error' => 'Usage qty for '.$productName.' exceeds available quantity ('.max(0, $pickable - $claimed).').'], 422);
+                    }
+                } else {
+                    $remaining = $this->returnableUsageQty($request->ref_usage_id, $detail['product_id'], $exp, $detail['whs_id']);
+                    if ($qty + $claimed > $remaining) {
+                        $productName = MsVplProduct::where('product_id', $detail['product_id'])->value('product_name') ?? $detail['product_id'];
+                        return response()->json(['error' => 'Return qty for '.$productName.' exceeds the remaining returnable qty ('.max(0, $remaining - $claimed).').'], 422);
+                    }
                 }
+
+                $claimTracker[$key] = $claimed + $qty;
             }
         }
 
@@ -386,17 +403,37 @@ class VplUsageController extends Controller
             return response()->json(['error' => 'Remark is required.'], 422);
         }
 
-        if ($usage->usagetype === 'Return' && TrxVplSettlement::where('usage_id', $usage->ref_usage_id)->whereIn('status', ['P', 'D', 'C'])->exists()) {
-            return response()->json(['error' => 'Cannot return: the referenced Usage document has already been settled.'], 422);
+        if ($usage->usagetype === 'Return' && TrxVplSettlement::where('usage_id', $usage->ref_usage_id)->whereIn('status', ['P', 'D'])->exists()) {
+            return response()->json(['error' => 'Cannot return: the referenced Usage document has a settlement in progress.'], 422);
         }
 
         if ($request->has('addmore')) {
             $line = TrxVplUsageDetail::where('usage_id', $usage->usage_id)->max('linenbr') ?? 0;
+            $claimTracker = [];
             foreach ($request->addmore as $detail) {
                 if (empty($detail['product_id']) || empty($detail['qty']) || empty($detail['whs_id'])) {
                     continue;
                 }
-                $exp = $detail['expired_date'] ?: '1900-01-01';
+                $exp     = $detail['expired_date'] ?: '1900-01-01';
+                $qty     = (float) $detail['qty'];
+                $key     = $detail['product_id'].'|'.$exp.'|'.$detail['whs_id'];
+                $claimed = $claimTracker[$key] ?? 0;
+
+                if ($usage->usagetype === 'Usage') {
+                    $pickable = $this->pickableQty($detail['product_id'], $exp, $detail['whs_id']);
+                    if ($qty + $claimed > $pickable) {
+                        $productName = MsVplProduct::where('product_id', $detail['product_id'])->value('product_name') ?? $detail['product_id'];
+                        return response()->json(['error' => 'Usage qty for '.$productName.' exceeds available quantity ('.max(0, $pickable - $claimed).').'], 422);
+                    }
+                } else {
+                    $remaining = $this->returnableUsageQty($usage->ref_usage_id, $detail['product_id'], $exp, $detail['whs_id'], $usage->id);
+                    if ($qty + $claimed > $remaining) {
+                        $productName = MsVplProduct::where('product_id', $detail['product_id'])->value('product_name') ?? $detail['product_id'];
+                        return response()->json(['error' => 'Return qty for '.$productName.' exceeds the remaining returnable qty ('.max(0, $remaining - $claimed).').'], 422);
+                    }
+                }
+
+                $claimTracker[$key] = $claimed + $qty;
 
                 $newDetail = TrxVplUsageDetail::create([
                     'usage_id' => $usage->usage_id,
@@ -826,20 +863,40 @@ class VplUsageController extends Controller
         return response()->json($refs);
     }
 
+    /**
+     * Detail lines of a Usage doc still eligible for Return, with the true
+     * remaining-returnable qty (returnableUsageQty() — counts sibling Return docs
+     * with status P or C, not just qty_settlement) so the picker's displayed/max
+     * qty always matches what store()/update() will actually accept.
+     */
     public function getReturnRefDetails(Request $request)
     {
-        $lines = TrxVplUsageDetail::join('ms_vpl_product', 'tr_vpl_usage_detail.product_id', '=', 'ms_vpl_product.product_id')
-            ->select(
-                'tr_vpl_usage_detail.*',
-                'ms_vpl_product.product_name',
-                DB::raw('(tr_vpl_usage_detail.qty_usage - COALESCE(tr_vpl_usage_detail.qty_settlement, 0)) AS qty_remaining')
-            )
-            ->where('tr_vpl_usage_detail.usage_id', $request->ref_usage_id)
-            ->whereRaw('(tr_vpl_usage_detail.qty_usage - COALESCE(tr_vpl_usage_detail.qty_settlement, 0)) > 0')
-            ->orderBy('tr_vpl_usage_detail.linenbr')
-            ->get();
+        $refUsageId = $request->ref_usage_id;
+        if (!$refUsageId) {
+            return response()->json([]);
+        }
 
-        return response()->json($lines);
+        $excludeId = $request->exclude_usage_id ? (int) $request->exclude_usage_id : null;
+
+        $origLines = TrxVplUsageDetail::join('ms_vpl_product', 'tr_vpl_usage_detail.product_id', '=', 'ms_vpl_product.product_id')
+            ->select('tr_vpl_usage_detail.*', 'ms_vpl_product.product_name')
+            ->where('tr_vpl_usage_detail.usage_id', $refUsageId)
+            ->orderBy('tr_vpl_usage_detail.linenbr')
+            ->get()
+            ->unique(fn ($l) => $l->product_id.'|'.$l->expired_date.'|'.$l->whs_id);
+
+        $result = [];
+        foreach ($origLines as $line) {
+            $exp = $line->expired_date->format('Y-m-d');
+            $remaining = $this->returnableUsageQty($refUsageId, $line->product_id, $exp, $line->whs_id, $excludeId);
+            if ($remaining <= 0) {
+                continue;
+            }
+            $line->qty_remaining = $remaining;
+            $result[] = $line;
+        }
+
+        return response()->json($result);
     }
 
     // -------------------------------------------------------
@@ -942,6 +999,54 @@ class VplUsageController extends Controller
     }
 
     /**
+     * Current pickable qty (available - already reserved) for a product/expiry/warehouse.
+     */
+    private function pickableQty(string $productId, string $expiredDate, string $whsId): float
+    {
+        $stock = MsVplProductDetail::where('product_id', $productId)
+            ->where('expired_date', $expiredDate)
+            ->where('whs_id', $whsId)
+            ->first();
+
+        if (!$stock) {
+            return 0;
+        }
+
+        return (float) $stock->qty_available - (float) ($stock->qty_reserved ?? 0);
+    }
+
+    /**
+     * How much of a product/expiry/warehouse line from a Usage doc can still be
+     * returned: qty_usage minus everything already claimed by OTHER Return Usage
+     * documents referencing it (status P or C — a pending return already holds its
+     * claim, mirroring VplTransferController::returnableQty()). Unlike the older
+     * qty_usage - qty_settlement check, this counts pending (not just completed)
+     * sibling returns, so two returns submitted before either is approved can't
+     * jointly claim more than the line ever had. $excludeUsageDbId excludes a
+     * document's own detail rows from the "already claimed" sum, so re-opening
+     * that document for edit doesn't count its own lines against itself.
+     */
+    private function returnableUsageQty(string $refUsageId, string $productId, string $expiredDate, string $whsId, ?int $excludeUsageDbId = null): float
+    {
+        $originalQty = (float) TrxVplUsageDetail::where('usage_id', $refUsageId)
+            ->where('product_id', $productId)
+            ->where('expired_date', $expiredDate)
+            ->where('whs_id', $whsId)
+            ->sum('qty_usage');
+
+        $returnedQty = (float) TrxVplUsageDetail::join('tr_vpl_usage', 'tr_vpl_usage_detail.usage_id', '=', 'tr_vpl_usage.usage_id')
+            ->where('tr_vpl_usage_detail.ref_usage_id', $refUsageId)
+            ->where('tr_vpl_usage_detail.product_id', $productId)
+            ->where('tr_vpl_usage_detail.expired_date', $expiredDate)
+            ->where('tr_vpl_usage_detail.whs_id', $whsId)
+            ->whereIn('tr_vpl_usage.status', ['P', 'C'])
+            ->when($excludeUsageDbId, fn ($q) => $q->where('tr_vpl_usage.id', '<>', $excludeUsageDbId))
+            ->sum('tr_vpl_usage_detail.qty_return_usage');
+
+        return max(0, $originalQty - $returnedQty);
+    }
+
+    /**
      * Usage  -> qty_reserved += (sign * qty)
      * Return -> qty_reserved -= (sign * qty)
      */
@@ -962,10 +1067,21 @@ class VplUsageController extends Controller
     }
 
     /**
-     * Return-only completion side effects that sp_process_vpl does not own:
-     * bumps qty_reserved alongside the qty_available it just restocked (the SP
-     * never touches qty_reserved for any doctype), and caps qty_settlement on
-     * the referenced original Usage line so it can't be double-returned.
+     * Return-only completion side effect that sp_process_vpl does not own: bumps
+     * qty_reserved alongside the qty_available it just restocked (the SP never
+     * touches qty_reserved for any doctype).
+     *
+     * Deliberately does NOT write anything back onto the referenced original Usage
+     * line. Two candidate fields were considered and rejected: qty_settlement is
+     * owned by the Settlement module (it overwrites, not accumulates — conflating
+     * the two was what forced the old blanket "already settled -> no further
+     * returns" block), and qty_return_usage is read by several VplReportController
+     * queries (batchPurposeOut, redemptionMonthlyInOut, batchLoyaltyUsageDocs) that
+     * iterate Usage-type and Return-type rows together assuming it's always 0 on a
+     * Usage row and only ever set on a Return doc's own row — the return's own row
+     * already nets the usage out in those reports, so mirroring the qty here too
+     * would double-count it. returnableUsageQty() doesn't need this write either;
+     * it computes remaining qty live by summing sibling Return docs directly.
      */
     private function applyReturnHoldAndCap(int $id): void
     {
@@ -986,20 +1102,6 @@ class VplUsageController extends Controller
                 $stock->updated_user = $user->username;
                 $stock->updated_at = $datestamp;
                 $stock->save();
-            }
-
-            // Cap the original usage line so it can't be returned twice
-            if ($usage->ref_usage_id) {
-                $origin = TrxVplUsageDetail::where('usage_id', $usage->ref_usage_id)
-                    ->where('product_id', $detail->product_id)
-                    ->where('expired_date', $detail->expired_date)
-                    ->where('whs_id', $detail->whs_id)
-                    ->first();
-                if ($origin) {
-                    $origin->qty_settlement = ($origin->qty_settlement ?? 0) + $qty;
-                    $origin->updated_user = $user->username;
-                    $origin->save();
-                }
             }
         }
     }
