@@ -2834,6 +2834,7 @@ class EngTicketController extends Controller
 
         $companies = MsCompany::query()
             ->where('status', 'A')
+            ->where('group_cpny_id', strtoupper(trim((string) $user->group_cpny_id)))
             ->orderBy('cpny_name')
             ->get(['cpny_id', 'cpny_name']);
 
@@ -3110,8 +3111,11 @@ class EngTicketController extends Controller
 
     public function companiesSearch(Request $request)
     {
+        $user = auth()->user();
+
         $companies = MsCompany::query()
             ->where('status', 'A')
+            ->where('group_cpny_id', strtoupper(trim((string) $user->group_cpny_id)))
             ->orderBy('cpny_name')
             ->get(['cpny_id', 'cpny_name']);
 

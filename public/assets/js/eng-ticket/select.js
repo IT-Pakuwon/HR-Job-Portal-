@@ -512,9 +512,12 @@ function initIssueSummarySelect() {
             $(Ticket.modal.create),
 
         placeholder:
-            'Select Issue Summary',
+            'Select or type Issue Summary',
 
         allowClear:
+            true,
+
+        tags:
             true,
 
         ajax: {
