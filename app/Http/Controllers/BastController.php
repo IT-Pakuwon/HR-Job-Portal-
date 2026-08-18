@@ -8,6 +8,7 @@ use App\Models\MsBASTRating;
 use App\Models\MsBASTRatingLegend;
 use App\Models\MsCompany;
 use App\Models\MsPenalty;
+use App\Models\MsTopdetail;
 use App\Models\SysCalendar;
 use App\Models\TrApproval;
 use App\Models\TrBast;
@@ -1071,6 +1072,45 @@ class BastController extends Controller
         // Company
         $company = MsCompany::where('cpny_id', $bast->cpny_id)->first();
 
+        $termDetailQuery = MsTopdetail::query()
+            ->where('terms_id', $bast->terms_id);
+
+        if (!empty($bast->topid)) {
+            $termDetailQuery->where('topid', $bast->topid);
+        }
+
+        $termDetail = $termDetailQuery->first()
+            ?: MsTopdetail::query()->where('terms_id', $bast->terms_id)->first();
+
+        $termsType = trim((string) ($termDetail->terms_type ?? ''));
+        $title = 'Berita Acara Serah Terima';
+
+        if (strcasecmp($termsType, 'Retensi') === 0) {
+            $title = 'Berita Acara Retensi';
+        } elseif (strcasecmp($termsType, 'TERMIN') === 0) {
+            $terminQuery = MsTopdetail::query()
+                ->whereRaw('UPPER(terms_type) = ?', ['TERMIN']);
+
+            if (!empty($termDetail->topid ?? null)) {
+                $terminQuery->where('topid', $termDetail->topid);
+            }
+
+            if (!empty($termDetail->top_type ?? null)) {
+                $terminQuery->where('top_type', $termDetail->top_type);
+            }
+
+            $terminRows = $terminQuery
+                ->orderByRaw('CAST(order_term AS numeric) ASC')
+                ->orderBy('id', 'asc')
+                ->get(['id', 'terms_id']);
+
+            $terminNo = $terminRows->search(function ($row) use ($bast, $termDetail) {
+                return (string) $row->terms_id === (string) ($bast->terms_id ?? $termDetail->terms_id ?? '');
+            });
+
+            $title = 'Berita Acara Progres ' . ($terminNo === false ? 1 : $terminNo + 1);
+        }
+
         // Mapping status dokumen
         switch ($bast->status) {
             case 'R':
@@ -1091,7 +1131,7 @@ class BastController extends Controller
         }
 
         $data = [
-            'title' => 'Berita Acara Serah Terima',
+            'title' => $title,
             'doc_type' => 'BAST',
             'docid' => $bast->bastid,
             'department_id' => $bast->department_id,
@@ -1140,6 +1180,7 @@ class BastController extends Controller
             'realize_amount' => $bast->realize_amount,
             'spkpic' => $bast->spkpic,
             'spkwarranty' => $bast->spkwarranty,
+            'terms_name' => $termDetail->terms_name ?? '',
         ];
 
         // Kirim ke view

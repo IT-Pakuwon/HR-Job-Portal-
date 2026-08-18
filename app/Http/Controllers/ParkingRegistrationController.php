@@ -1989,6 +1989,7 @@ class ParkingRegistrationController extends Controller
             $names = $request->input('detail_name', []);
 
             foreach ($names as $i => $detailName) {
+                $rowNo = $i + 1;
                 $detailUsername = $request->input("detail_username.$i");
 
                 if ($detailUsername && str_contains($detailUsername, '|')) {

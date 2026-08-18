@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Berita Acara Serah Terima (BAST)</title>
+    <title>{{ $title ?? 'Berita Acara Serah Terima' }} (BAST)</title>
     <style>
         @page {
             size: A4;
@@ -129,7 +129,7 @@
             </th>
         </tr>
         <tr>
-            <th>Berita Acara Serah Terima</th>
+            <th>{{ $title ?? 'Berita Acara Serah Terima' }}</th>
         </tr>
         <tr>
             <th>
@@ -267,6 +267,13 @@
             <td class="label">Total Penalty</td>
             <td class="value">
                 : {{ number_format($total_penalty ?? 0, 0, ',', '.') }}
+            </td>
+        </tr>
+
+        <tr class="item-row">
+            <td class="label">Terms</td>
+            <td class="value">
+                : {{ $terms_name ?? '' }}
             </td>
         </tr>
     </table>
