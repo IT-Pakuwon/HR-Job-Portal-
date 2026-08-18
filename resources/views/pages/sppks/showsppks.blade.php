@@ -153,8 +153,9 @@
                 </div>
 
                 {{-- Right card (Tabs) --}}
-                <div class="flex h-[400px] flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
-                    <div x-data="{ activeTab: 'attachment' }" class="flex max-h-[100%] flex-1 flex-col overflow-y-auto">
+                <div x-data="{ activeTab: 'attachment', tabsOpen: true }" class="flex flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800"
+                    :class="tabsOpen ? 'h-[400px]' : 'h-auto lg:h-[400px]'">
+                    <div class="flex max-h-[100%] flex-1 flex-col overflow-y-auto">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                             <nav class="flex flex-grow">
@@ -183,10 +184,15 @@
                                     Comments
                                 </button>
                             </nav>
+                            <button type="button" @click="tabsOpen = !tabsOpen"
+                                class="ml-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-yellow-400 text-[10px] font-bold leading-none text-yellow-900 shadow-sm ring-1 ring-inset ring-yellow-500/50 transition hover:bg-yellow-300 lg:hidden dark:bg-yellow-500 dark:text-yellow-950 dark:ring-yellow-600/50 dark:hover:bg-yellow-400"
+                                x-text="tabsOpen ? '−' : '+'" :title="tabsOpen ? 'Minimize' : 'Restore'">
+                            </button>
                         </header>
 
                         {{-- Approval tab --}}
-                        <div x-show="activeTab === 'approval'" class="flex-1 p-2 transition-all">
+                        <div x-show="activeTab === 'approval'" class="flex-1 p-2 transition-all"
+                            :class="{ 'hidden lg:block': !tabsOpen }">
                             <table class="w-full text-sm">
                                 <thead>
                                     <tr
@@ -246,7 +252,8 @@
                         </div>
 
                         {{-- Attachment tab --}}
-                        <div x-show="activeTab === 'attachment'" class="flex-1 p-2 transition-all">
+                        <div x-show="activeTab === 'attachment'" class="flex-1 p-2 transition-all"
+                            :class="{ 'hidden lg:block': !tabsOpen }">
                             <table class="w-full text-sm">
                                 <thead class="text-gray-600 dark:text-gray-300">
                                     <tr class="border-b border-gray-200 dark:border-gray-700">
@@ -320,7 +327,8 @@
                         </div>
 
                         {{-- Comments tab --}}
-                        <div x-show="activeTab === 'comments'" class="flex-1 p-2 transition-all">
+                        <div x-show="activeTab === 'comments'" class="flex-1 p-2 transition-all"
+                            :class="{ 'hidden lg:block': !tabsOpen }">
                             <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
                                 <div id="commentList"
                                     class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
@@ -856,7 +864,7 @@
                     Cancel
                 </button>
                 <button id="confirmReviseBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     Revise
                 </button>
 

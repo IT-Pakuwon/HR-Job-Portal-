@@ -48,7 +48,7 @@ class TicketNotificationService
 
     protected function ticketDoctypeFor(TrTicket $ticket): string
     {
-        return in_array($ticket->ticket_type, ['ENGSUPPORTTICKET', 'BSFOSUPPORTTICKET'], true)
+        return in_array($ticket->ticket_type, ['ENGSUPPORTTICKET', 'BSSUPPORTTICKET', 'FOSUPPORTTICKET', 'BA_BS', 'BA_ENG', 'BA_FO'], true)
             ? 'TOK'
             : 'TIC';
     }
@@ -603,9 +603,9 @@ ORDER/MONTHLY : Monthly
     }
 
     /**
-     * Eng/BSFO Ticket WhatsApp notification (Response, Process, Completed).
+     * Eng/BS Ticket WhatsApp notification (Response, Process, Completed).
      * Chat group is resolved from ms_wa_setting scoped by the ticket's own
-     * ticket_type (ENGSUPPORTTICKET / BSFOSUPPORTTICKET).
+     * ticket_type (ENGSUPPORTTICKET / BSSUPPORTTICKET).
      */
     public function ticketWhatsapp(
         TrTicket $ticket,
@@ -649,14 +649,16 @@ ORDER/MONTHLY : Monthly
         );
 
         $ticketTypeLabel = match ($ticket->ticket_type) {
-            'BSFOSUPPORTTICKET' => 'Ticket BS-FO Support',
+            'BSSUPPORTTICKET' => 'Ticket Building Service Support',
+            'FOSUPPORTTICKET' => 'Ticket Fit Out Support',
             'ENGSUPPORTTICKET' => 'Ticket Engineering Support',
             default => 'TICKET OPR TEKNIK',
         };
 
-        // BA_BS / BA_ENG store a ms_location id in location_id, everything
-        // else (ENGSUPPORTTICKET / BSFOSUPPORTTICKET) stores a ms_site id.
-        $isBaTicket = in_array($ticket->ticket_type, ['BA_BS', 'BA_ENG'], true);
+        // BA_BS / BA_ENG / BA_FO store a ms_location id in location_id,
+        // everything else (ENGSUPPORTTICKET / BSSUPPORTTICKET /
+        // FOSUPPORTTICKET) stores a ms_site id.
+        $isBaTicket = in_array($ticket->ticket_type, ['BA_BS', 'BA_ENG', 'BA_FO'], true);
 
         $locationName = $isBaTicket
             ? $ticket->location?->location_name

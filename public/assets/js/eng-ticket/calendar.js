@@ -193,7 +193,11 @@ const EngTicketCalendar = {
             .filter((ticket) => !!ticket.event_start)
             .map((ticket) => {
                 const colors = EngTicketCalendar.getEventColors(ticket.calendar_state);
-                const prefix = ticket.ticket_type === 'BSFOSUPPORTTICKET' ? '[BSFO]' : '[ENG]';
+                const prefix = ticket.ticket_type === 'BSSUPPORTTICKET'
+                    ? '[BS]'
+                    : ticket.ticket_type === 'FOSUPPORTTICKET'
+                        ? '[FO]'
+                        : '[ENG]';
 
                 return {
                     id:              ticket.eid,

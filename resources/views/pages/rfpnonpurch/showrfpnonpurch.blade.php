@@ -405,7 +405,7 @@
                 {{-- RIGHT CARD --}}
                 <div class="flex flex-1 flex-col gap-6 xl:col-span-2">
                     <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
-                        <div x-data="{ activeTab: 'attachment' }" class="flex max-h-[100%] flex-1 flex-col overflow-y-auto">
+                        <div x-data="{ activeTab: 'attachment', tabsOpen: true }" class="flex max-h-[100%] flex-1 flex-col overflow-y-auto">
                             <header class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                                 <nav class="flex flex-grow">
                                     <button @click="activeTab = 'attachment'"
@@ -430,9 +430,13 @@
                                         Comments
                                     </button>
                                 </nav>
+                                <button type="button" @click="tabsOpen = !tabsOpen"
+                                    class="ml-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-yellow-400 text-[10px] font-bold leading-none text-yellow-900 shadow-sm ring-1 ring-inset ring-yellow-500/50 transition hover:bg-yellow-300 lg:hidden dark:bg-yellow-500 dark:text-yellow-950 dark:ring-yellow-600/50 dark:hover:bg-yellow-400"
+                                    x-text="tabsOpen ? '−' : '+'" :title="tabsOpen ? 'Minimize' : 'Restore'">
+                                </button>
                             </header>
 
-                            <div class="flex flex-1 flex-col">
+                            <div class="flex flex-1 flex-col" :class="{ 'hidden lg:flex': !tabsOpen }">
                                 <div x-show="activeTab === 'approval'" class="flex-1 overflow-y-auto px-4">
                                     <table class="w-full text-sm">
                                         <thead>
@@ -727,7 +731,7 @@
                     <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
                         Cancel
                     </button>
-                    <button id="confirmReviseBtn" class="rounded-lg bg-gray-500 px-4 py-2 text-white hover:bg-gray-600">
+                    <button id="confirmReviseBtn" class="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
                         Revise
                     </button>
                 </div>

@@ -951,7 +951,7 @@ class DocumentNotificationService
     // each with its own "show" route — the show URL depends on ticket_type.
     private static function ticketShowUrl(?string $ticketType): string
     {
-        return in_array($ticketType, ['ENGSUPPORTTICKET', 'BSFOSUPPORTTICKET'], true)
+        return in_array($ticketType, ['ENGSUPPORTTICKET', 'BSSUPPORTTICKET', 'FOSUPPORTTICKET', 'BA_BS', 'BA_ENG', 'BA_FO'], true)
             ? '/showoprtekticket'
             : '/showticket';
     }

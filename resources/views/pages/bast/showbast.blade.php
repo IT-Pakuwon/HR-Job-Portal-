@@ -254,8 +254,9 @@
 
                 <div class="flex flex-col gap-4">
                     {{-- Right card (Tabs) --}}
-                    <div class="flex h-[235px] flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
-                        <div x-data="{ activeTab: 'attachment' }" class="flex-1 flex-col overflow-y-auto">
+                    <div x-data="{ activeTab: 'attachment', tabsOpen: true }" class="flex flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800"
+                        :class="tabsOpen ? 'h-[235px]' : 'h-auto lg:h-[235px]'">
+                        <div class="flex-1 flex-col overflow-y-auto">
                             <header
                                 class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                                 <nav class="flex flex-grow">
@@ -280,9 +281,13 @@
                                             'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
                                         class="flex-1 px-4 py-2 text-center text-sm font-medium">Comments</button>
                                 </nav>
+                                <button type="button" @click="tabsOpen = !tabsOpen"
+                                    class="ml-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-yellow-400 text-[10px] font-bold leading-none text-yellow-900 shadow-sm ring-1 ring-inset ring-yellow-500/50 transition hover:bg-yellow-300 lg:hidden dark:bg-yellow-500 dark:text-yellow-950 dark:ring-yellow-600/50 dark:hover:bg-yellow-400"
+                                    x-text="tabsOpen ? '−' : '+'" :title="tabsOpen ? 'Minimize' : 'Restore'">
+                                </button>
                             </header>
 
-                            <div class="flex flex-1 flex-col">
+                            <div class="flex flex-1 flex-col" :class="{ 'hidden lg:flex': !tabsOpen }">
                                 <div x-show="activeTab === 'approval'" class="flex-1 overflow-y-auto px-4">
                                     <table class="w-full text-sm">
                                         <thead>
@@ -548,7 +553,7 @@
                     Cancel
                 </button>
                 <button id="confirmReviseBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     Revise
                 </button>
             </div>

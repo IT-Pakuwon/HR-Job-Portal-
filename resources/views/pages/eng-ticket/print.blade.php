@@ -3,9 +3,11 @@
 <head>
     <meta charset="utf-8">
     <title>{{ $ticket->ticketid }} — {{ match($ticket->ticket_type) {
-        'BA_BS' => 'Berita Acara BSFO',
+        'BA_BS' => 'Request For Approval',
         'BA_ENG' => 'Berita Acara ENG',
-        'BSFOSUPPORTTICKET' => 'BS&FO Support Ticket',
+        'BA_FO' => 'Document Approval',
+        'BSSUPPORTTICKET' => 'Building Service Support Ticket',
+        'FOSUPPORTTICKET' => 'Fit Out Support Ticket',
         default => 'Engineering Support Ticket',
     } }}</title>
 
@@ -257,9 +259,11 @@
         $pLower = strtolower($pName);
 
         $moduleLabel = match($ticket->ticket_type) {
-            'BA_BS' => 'BERITA ACARA BSFO',
+            'BA_BS' => 'REQUEST FOR APPROVAL',
             'BA_ENG' => 'BERITA ACARA ENG',
-            'BSFOSUPPORTTICKET' => 'BS&FO SUPPORT TICKET',
+            'BA_FO' => 'DOCUMENT APPROVAL',
+            'BSSUPPORTTICKET' => 'BUILDING SERVICE SUPPORT TICKET',
+            'FOSUPPORTTICKET' => 'FIT OUT SUPPORT TICKET',
             default => 'ENGINEERING SUPPORT TICKET',
         };
     @endphp
@@ -272,7 +276,7 @@
                 <td>
                     <div class="title">{{ $moduleLabel }}</div>
                     <div class="company">{{ $ticket->cpny_id ?? '-' }} &nbsp;·&nbsp; {{ $ticket->department_id ?? '-' }}</div>
-                    @if (in_array($ticket->ticket_type, ['BA_ENG', 'BA_BS'], true))
+                    @if (in_array($ticket->ticket_type, ['BA_ENG', 'BA_BS', 'BA_FO'], true))
                         <div class="company" style="margin-top:2px;">{{ optional($ticket->ticketdate)->format('d F Y') ?? '-' }}</div>
                     @endif
                 </td>
@@ -281,7 +285,7 @@
                     @if ($baAutoNumber)
                         <div style="font-size:10px; color:#888; margin-top:2px;">{{ $ticket->ticketid }}</div>
                     @endif
-                    @unless (in_array($ticket->ticket_type, ['BA_ENG', 'BA_BS'], true))
+                    @unless (in_array($ticket->ticket_type, ['BA_ENG', 'BA_BS', 'BA_FO'], true))
                         <div class="doc-date">{{ optional($ticket->ticketdate)->format('d F Y') ?? '-' }}</div>
                         <div class="doc-status">{{ $statusLabel }}</div>
                     @endunless
@@ -450,7 +454,7 @@
         @endif
 
         {{-- SECTION: APPROVAL (BA_ENG / BA_BS only) --}}
-        @if (in_array($ticket->ticket_type, ['BA_ENG', 'BA_BS'], true) && !empty($approval))
+        @if (in_array($ticket->ticket_type, ['BA_ENG', 'BA_BS', 'BA_FO'], true) && !empty($approval))
             @php
                 $aprvStatusLabel = fn ($s) => match ($s) {
                     'A' => 'Approved',

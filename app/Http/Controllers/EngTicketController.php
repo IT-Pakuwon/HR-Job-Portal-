@@ -39,12 +39,14 @@ class EngTicketController extends Controller
     |--------------------------------------------------------------------------
     | Eng Ticket reuses the tr_ticket / tr_ticket_activity tables from the IT
     | Ticket module. Rows are scoped by ticket_type (ENGSUPPORTTICKET /
-    | BSFOSUPPORTTICKET) directly rather than a dedicated table.
+    | BSSUPPORTTICKET) directly rather than a dedicated table.
     */
 
     protected const DOCTYPE = 'TOK';
 
-    protected const BSFO_TICKET_TYPE = 'BSFOSUPPORTTICKET';
+    protected const BS_TICKET_TYPE = 'BSSUPPORTTICKET';
+
+    protected const FO_TICKET_TYPE = 'FOSUPPORTTICKET';
 
     protected const ENG_TICKET_TYPE = 'ENGSUPPORTTICKET';
 
@@ -52,9 +54,13 @@ class EngTicketController extends Controller
 
     protected const BA_ENG_TICKET_TYPE = 'BA_ENG';
 
+    protected const BA_FO_TICKET_TYPE = 'BA_FO';
+
     protected const ENG_ROLE_ID = 'OPRTEKNIKENG';
 
-    protected const BSFO_ROLE_ID = 'OPRTEKNIKBS';
+    protected const BS_ROLE_ID = 'OPRTEKNIKBS';
+
+    protected const FO_ROLE_ID = 'OPRTEKNIKFO';
 
     protected const MGR_ROLE_ID = 'MGROPRTEKNIKACCESS';
 
@@ -127,9 +133,11 @@ class EngTicketController extends Controller
         return MsTicketType::query()
             ->whereIn('ticket_type', [
                 self::ENG_TICKET_TYPE,
-                self::BSFO_TICKET_TYPE,
+                self::BS_TICKET_TYPE,
+                self::FO_TICKET_TYPE,
                 self::BA_BSFO_TICKET_TYPE,
                 self::BA_ENG_TICKET_TYPE,
+                self::BA_FO_TICKET_TYPE,
             ])
             ->where('status', 'A')
             ->pluck('ticket_type')
@@ -139,15 +147,30 @@ class EngTicketController extends Controller
     protected function approvalConditionFor(TrTicket $ticket): string
     {
         if ($ticket->ticket_type === self::BA_BSFO_TICKET_TYPE) {
-            return 'BA BS';
+            // BA_BS routes approval by category — New/Improvement and
+            // Repair/Maintenance have their own approval lines. Any other
+            // (future) category falls back to the flat 'BA BS' condition.
+            return match ($ticket->ticket_categoryid) {
+                'BA_BS_NEWPURCHASE' => 'BA BS NEW',
+                'BA_BS_REPLACEMENT' => 'BA BS REPAIR',
+                default => 'BA BS',
+            };
         }
 
         if ($ticket->ticket_type === self::BA_ENG_TICKET_TYPE) {
             return 'BA ENG';
         }
 
-        return $ticket->ticket_type === self::BSFO_TICKET_TYPE
-            ? 'BSFO'
+        if ($ticket->ticket_type === self::BA_FO_TICKET_TYPE) {
+            return 'BA FO';
+        }
+
+        if ($ticket->ticket_type === self::FO_TICKET_TYPE) {
+            return 'FO';
+        }
+
+        return $ticket->ticket_type === self::BS_TICKET_TYPE
+            ? 'BS'
             : 'Engineering';
     }
 
@@ -156,6 +179,7 @@ class EngTicketController extends Controller
         return match ($ticketType) {
             self::BA_BSFO_TICKET_TYPE => 'BS',
             self::BA_ENG_TICKET_TYPE  => 'ENG',
+            self::BA_FO_TICKET_TYPE   => 'FO',
             default => '',
         };
     }
@@ -182,14 +206,14 @@ class EngTicketController extends Controller
 
     protected function isBaTicketType(string $ticketType): bool
     {
-        return in_array($ticketType, [self::BA_BSFO_TICKET_TYPE, self::BA_ENG_TICKET_TYPE], true);
+        return in_array($ticketType, [self::BA_BSFO_TICKET_TYPE, self::BA_ENG_TICKET_TYPE, self::BA_FO_TICKET_TYPE], true);
     }
 
     /*
     |--------------------------------------------------------------------------
     | Location display
     |--------------------------------------------------------------------------
-    | ENGSUPPORTTICKET / BSFOSUPPORTTICKET store a ms_site id in location_id.
+    | ENGSUPPORTTICKET / BSSUPPORTTICKET store a ms_site id in location_id.
     | BA_BS / BA_ENG store a ms_location id in location_id plus a ms_sub_location
     | id in sub_location_id — same columns, different lookup table depending on
     | ticket_type.
@@ -228,11 +252,20 @@ class EngTicketController extends Controller
             ->exists();
     }
 
-    protected function isBSFO(): bool
+    protected function isBS(): bool
     {
         return MsTicketCategoryDept::query()
             ->where('username', auth()->user()->username)
-            ->where('ticket_type', self::BSFO_TICKET_TYPE)
+            ->where('ticket_type', self::BS_TICKET_TYPE)
+            ->where('status', 'A')
+            ->exists();
+    }
+
+    protected function isFO(): bool
+    {
+        return MsTicketCategoryDept::query()
+            ->where('username', auth()->user()->username)
+            ->where('ticket_type', self::FO_TICKET_TYPE)
             ->where('status', 'A')
             ->exists();
     }
@@ -246,11 +279,20 @@ class EngTicketController extends Controller
             ->exists();
     }
 
-    protected function isBSFORole(): bool
+    protected function isFORole(): bool
     {
         return SysUserRole::query()
             ->where('username', auth()->user()->username)
-            ->where('role_id', self::BSFO_ROLE_ID)
+            ->where('role_id', self::FO_ROLE_ID)
+            ->where('status', 'A')
+            ->exists();
+    }
+
+    protected function isBSRole(): bool
+    {
+        return SysUserRole::query()
+            ->where('username', auth()->user()->username)
+            ->where('role_id', self::BS_ROLE_ID)
             ->where('status', 'A')
             ->exists();
     }
@@ -266,8 +308,12 @@ class EngTicketController extends Controller
             return true;
         }
 
-        if (in_array($ticketType, [self::BSFO_TICKET_TYPE, self::BA_BSFO_TICKET_TYPE], true)) {
-            return $this->isBSFORole();
+        if (in_array($ticketType, [self::BS_TICKET_TYPE, self::BA_BSFO_TICKET_TYPE], true)) {
+            return $this->isBSRole();
+        }
+
+        if (in_array($ticketType, [self::FO_TICKET_TYPE, self::BA_FO_TICKET_TYPE], true)) {
+            return $this->isFORole();
         }
 
         if (in_array($ticketType, [self::ENG_TICKET_TYPE, self::BA_ENG_TICKET_TYPE], true)) {
@@ -278,13 +324,13 @@ class EngTicketController extends Controller
     }
 
     /**
-     * Ticket types (ENGSUPPORTTICKET / BSFOSUPPORTTICKET) the user has broad
+     * Ticket types (ENGSUPPORTTICKET / BSSUPPORTTICKET) the user has broad
      * (non-owner) access to, based on dept-membership, role, or manager access.
      */
     protected function broadAccessTicketTypes(): array
     {
         if ($this->isMgrOprTeknik()) {
-            return [self::ENG_TICKET_TYPE, self::BSFO_TICKET_TYPE, self::BA_BSFO_TICKET_TYPE, self::BA_ENG_TICKET_TYPE];
+            return [self::ENG_TICKET_TYPE, self::BS_TICKET_TYPE, self::FO_TICKET_TYPE, self::BA_BSFO_TICKET_TYPE, self::BA_ENG_TICKET_TYPE, self::BA_FO_TICKET_TYPE];
         }
 
         $types = [];
@@ -294,9 +340,14 @@ class EngTicketController extends Controller
             $types[] = self::BA_ENG_TICKET_TYPE;
         }
 
-        if ($this->isBSFO() || $this->isBSFORole()) {
-            $types[] = self::BSFO_TICKET_TYPE;
+        if ($this->isBS() || $this->isBSRole()) {
+            $types[] = self::BS_TICKET_TYPE;
             $types[] = self::BA_BSFO_TICKET_TYPE;
+        }
+
+        if ($this->isFO() || $this->isFORole()) {
+            $types[] = self::FO_TICKET_TYPE;
+            $types[] = self::BA_FO_TICKET_TYPE;
         }
 
         return array_values(array_unique($types));
@@ -617,7 +668,13 @@ class EngTicketController extends Controller
 
             'created_by' => $ticket->created_by,
 
-            'ticketdate' => optional($ticket->ticketdate)->toISOString(),
+            // ticketdate is a pure calendar date with no time-of-day.
+            // toISOString() would convert Asia/Jakarta midnight to UTC,
+            // shifting it to the previous day once the frontend's
+            // `new Date(...)` re-parses that as UTC and renders in local
+            // time. Sending "Y-m-d H:i:s" (no T/Z) makes the browser parse
+            // it as local time instead, so no conversion ever happens.
+            'ticketdate' => optional($ticket->ticketdate)->format('Y-m-d H:i:s'),
 
             'ticket_priority' => $ticket->ticket_priority,
         ]);
@@ -734,7 +791,15 @@ class EngTicketController extends Controller
 
                 'sub_location_name' => $locationDisplay['sub_location_name'],
 
-                'event_start' => optional($eventStart)->toISOString(),
+                // Unscheduled tickets fall back to ticketdate, a pure
+                // calendar date with no time-of-day. Sending it through
+                // toISOString() converts Asia/Jakarta midnight to UTC,
+                // which lands on the previous day for any viewer not in
+                // UTC+7 — so send the bare date instead, immune to
+                // timezone conversion.
+                'event_start' => $hasSchedule
+                    ? optional($eventStart)->toISOString()
+                    : optional($eventStart)->toDateString(),
 
                 'event_end' => optional($eventEnd)->toISOString(),
 
@@ -2810,8 +2875,9 @@ class EngTicketController extends Controller
     protected function ensureBaMasterData(): void
     {
         $baTypes = [
-            self::BA_BSFO_TICKET_TYPE => 'Berita Acara BSFO',
+            self::BA_BSFO_TICKET_TYPE => 'Request For Approval',
             self::BA_ENG_TICKET_TYPE  => 'Berita Acara ENG',
+            self::BA_FO_TICKET_TYPE   => 'Document Approval',
         ];
 
         foreach ($baTypes as $code => $name) {
