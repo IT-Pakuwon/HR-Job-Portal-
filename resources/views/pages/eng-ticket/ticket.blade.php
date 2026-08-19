@@ -1,6 +1,60 @@
 <x-app-layout>
     @include('pages.ticket.partial.style')
 
+    <style>
+        /* Event hover tooltip (tippy.js) */
+        .ectk-tip {
+            min-width: 200px;
+            padding: 2px;
+            text-align: left;
+        }
+
+        .ectk-tip-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 6px;
+        }
+
+        .ectk-tip-status {
+            display: inline-block;
+            margin-bottom: 6px;
+            padding: 2px 9px;
+            border-radius: 9999px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        .ectk-tip-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #475569;
+            margin-bottom: 4px;
+        }
+
+        .ectk-tip-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .ectk-tip-row i {
+            width: 12px;
+            flex-shrink: 0;
+            opacity: 0.65;
+        }
+
+        .dark .ectk-tip-title {
+            color: #e2e8f0;
+        }
+
+        .dark .ectk-tip-row {
+            color: #cbd5e1;
+        }
+    </style>
+
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- Status Filter --}}
@@ -630,6 +684,21 @@
                     </h2>
 
                     <div class="flex flex-wrap items-center gap-4">
+
+                        <div class="w-56 shrink-0">
+                            <select id="filter_calendar_ticket_type"
+                                class="filter-select2 w-full rounded-lg border border-gray-300 bg-white text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+
+                                <option value="">All Ticket Type</option>
+
+                                @foreach ($ticketTypes as $type)
+                                    <option value="{{ $type->ticket_type }}">
+                                        {{ $type->ticket_type_name }}
+                                    </option>
+                                @endforeach
+
+                            </select>
+                        </div>
 
                         <button type="button"
                             class="js-toggle-ticket-view inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
@@ -1797,9 +1866,11 @@
 
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light-border.css" />
 
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
     <script>

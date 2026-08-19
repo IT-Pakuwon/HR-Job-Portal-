@@ -963,6 +963,7 @@ $(document).on('click', '#btn_reset_filter', function () {
     $('#filter_status_pekerjaan').val('').trigger('change');
     $('#filter_category_id').val('').trigger('change');
     $('#filter_company_id').val('').trigger('change');
+    $('#filter_calendar_ticket_type').val('').trigger('change');
     $('#filter_date_from').val('');
     $('#filter_date_to').val('');
     ticketStatusFilter = '';

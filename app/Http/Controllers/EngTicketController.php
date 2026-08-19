@@ -302,6 +302,34 @@ class EngTicketController extends Controller
         return (bool) auth()->user()?->hasRole(self::MGR_ROLE_ID);
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Same company/department visibility
+    |--------------------------------------------------------------------------
+    | cpny_id / department_id on the user record are comma-separated lists
+    | (a user can belong to more than one of either). Anyone can see a ticket
+    | created by someone else in one of their own companies + departments,
+    | on top of their own tickets and whatever broadAccessTicketTypes() grants.
+    */
+
+    protected function userScopeCompanyIds(): array
+    {
+        return collect(explode(',', (string) auth()->user()->cpny_id))
+            ->filter()
+            ->map(fn ($item) => trim($item))
+            ->values()
+            ->toArray();
+    }
+
+    protected function userScopeDepartmentIds(): array
+    {
+        return collect(explode(',', (string) auth()->user()->department_id))
+            ->filter()
+            ->map(fn ($item) => trim($item))
+            ->values()
+            ->toArray();
+    }
+
     protected function canActOnTicketType(string $ticketType): bool
     {
         if ($this->isMgrOprTeknik()) {
@@ -387,14 +415,16 @@ class EngTicketController extends Controller
 
         $engTypes = $this->engTicketTypes();
 
-        $userCompanies    = $companies->pluck('cpny_id')->toArray();
-        $userDepartments  = $departments->pluck('department_id')->toArray();
+        $userCompanies    = $this->userScopeCompanyIds();
+        $userDepartments  = $this->userScopeDepartmentIds();
 
-        $baseCount = function () use ($broadTypes, $userCompanies, $userDepartments, $engTypes) {
+        $baseCount = function () use ($broadTypes, $userCompanies, $userDepartments, $engTypes, $user) {
             $q = TrTicket::query()->whereIn('ticket_type', $engTypes);
 
-            $q->where(function ($q2) use ($broadTypes, $userCompanies, $userDepartments) {
+            $q->where(function ($q2) use ($broadTypes, $userCompanies, $userDepartments, $user) {
                 $q2->whereIn('ticket_type', $broadTypes)
+                    ->orWhere('created_by', $user->username)
+                    ->orWhere('pic_ticket', $user->username)
                     ->orWhere(function ($q3) use ($userCompanies, $userDepartments) {
                         $q3->whereIn('cpny_id', $userCompanies)
                             ->whereIn('department_id', $userDepartments);
@@ -469,6 +499,12 @@ class EngTicketController extends Controller
             ->orderBy('cpny_name')
             ->get(['cpny_id', 'cpny_name']);
 
+        $ticketTypes = MsTicketType::query()
+            ->whereIn('ticket_type', $engTypes)
+            ->where('status', 'A')
+            ->orderBy('ticket_type_name')
+            ->get(['ticket_type', 'ticket_type_name']);
+
         return view('pages.eng-ticket.ticket', [
             'title' => 'Eng Ticket',
             'eid' => $eid,
@@ -477,6 +513,7 @@ class EngTicketController extends Controller
             'counts' => $counts,
             'categories' => $categories,
             'allCompanies' => $allCompanies,
+            'ticketTypes' => $ticketTypes,
             'isEng' => $isEng,
             'isMgrOprTeknik' => $isMgrOprTeknik,
         ]);
@@ -502,10 +539,17 @@ class EngTicketController extends Controller
             ->whereNull('deleted_at')
             ->whereIn('ticket_type', $engTypes);
 
-        $query->where(function ($q) use ($broadTypes, $user) {
+        $userCompanies = $this->userScopeCompanyIds();
+        $userDepartments = $this->userScopeDepartmentIds();
+
+        $query->where(function ($q) use ($broadTypes, $user, $userCompanies, $userDepartments) {
             $q->whereIn('ticket_type', $broadTypes)
                 ->orWhere('created_by', $user->username)
-                ->orWhere('pic_ticket', $user->username);
+                ->orWhere('pic_ticket', $user->username)
+                ->orWhere(function ($q2) use ($userCompanies, $userDepartments) {
+                    $q2->whereIn('cpny_id', $userCompanies)
+                        ->whereIn('department_id', $userDepartments);
+                });
         });
 
         if ($request->filled('status')) {
@@ -694,12 +738,19 @@ class EngTicketController extends Controller
 
         $engTypes = $this->engTicketTypes();
 
+        $userCompanies = $this->userScopeCompanyIds();
+        $userDepartments = $this->userScopeDepartmentIds();
+
         $query = TrTicket::with(['responseActivity', 'site', 'location', 'subLocation'])
             ->whereIn('ticket_type', $engTypes)
-            ->where(function ($q) use ($broadTypes, $user) {
+            ->where(function ($q) use ($broadTypes, $user, $userCompanies, $userDepartments) {
                 $q->whereIn('ticket_type', $broadTypes)
                     ->orWhere('created_by', $user->username)
-                    ->orWhere('pic_ticket', $user->username);
+                    ->orWhere('pic_ticket', $user->username)
+                    ->orWhere(function ($q2) use ($userCompanies, $userDepartments) {
+                        $q2->whereIn('cpny_id', $userCompanies)
+                            ->whereIn('department_id', $userDepartments);
+                    });
             });
 
         if ($request->filled('search')) {
@@ -732,6 +783,10 @@ class EngTicketController extends Controller
 
         if ($request->filled('cpny_id')) {
             $query->where('cpny_id', $request->cpny_id);
+        }
+
+        if ($request->filled('ticket_type')) {
+            $query->where('ticket_type', $request->ticket_type);
         }
 
         if ($request->filled('date_from')) {
