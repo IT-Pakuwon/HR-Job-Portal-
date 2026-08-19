@@ -592,12 +592,14 @@
                 ],
 
                 rowCallback: function(row, data) {
+                    const isDark = document.documentElement.classList.contains('dark');
+
                     if (data.status === 'R') {
-                        $(row).css('color', '#dc2626');
+                        $(row).css('color', isDark ? '#f87171' : '#dc2626');
                     } else if (!data.is_read || data.is_read === 'N') {
-                        $(row).css('color', '#2563eb');
+                        $(row).css('color', isDark ? '#60a5fa' : '#2563eb');
                     } else {
-                        $(row).css('color', 'black');
+                        $(row).css('color', isDark ? '#e5e7eb' : 'black');
                     }
                 }
             });

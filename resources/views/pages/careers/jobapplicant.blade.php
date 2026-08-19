@@ -792,14 +792,17 @@
                     // reset dulu
                     $(row).css('color', '');
 
+                    const isDark = document.documentElement.classList.contains('dark');
+
                     if (data.status === 'R') {
-                        // merah (Tailwind red-600)
-                        $(row).css('color', '#dc2626');
+                        // merah (Tailwind red-600 / red-400 on dark)
+                        $(row).css('color', isDark ? '#f87171' : '#dc2626');
                     } else if (data.is_read === 'N') {
-                        // biru (Tailwind blue-600)
-                        $(row).css('color', '#2563eb');
+                        // biru (Tailwind blue-600 / blue-400 on dark)
+                        $(row).css('color', isDark ? '#60a5fa' : '#2563eb');
                     } else {
-                        $(row).css('color', 'black');
+                        // checked: hitam di light mode, putih di dark mode
+                        $(row).css('color', isDark ? '#e5e7eb' : 'black');
                     }
                 },
                 initComplete: function() {
