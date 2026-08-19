@@ -166,11 +166,11 @@ class EngTicketController extends Controller
         }
 
         if ($ticket->ticket_type === self::FO_TICKET_TYPE) {
-            return 'FO';
+            return 'FO SUPPORT';
         }
 
         return $ticket->ticket_type === self::BS_TICKET_TYPE
-            ? 'BS'
+            ? 'BS SUPPORT'
             : 'Engineering';
     }
 
@@ -1027,6 +1027,8 @@ class EngTicketController extends Controller
                 'created_by' => $username,
             ]);
 
+            DB::connection('pgsql5')->commit();
+
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr' => $ticket->ticketid,
@@ -1054,22 +1056,15 @@ class EngTicketController extends Controller
                         $files
                     );
                 } catch (\Throwable $e) {
-                    DB::connection('pgsql5')
-                        ->rollBack();
-
-                    return response()->json([
-                        'success' => false,
-
-                        'message' => 'Failed upload attachment',
-
-                        'error' => config('app.debug')
-                            ? $e->getMessage()
-                            : null,
-                    ], 500);
+                    \Log::error(
+                        'Ticket created but attachment upload failed',
+                        [
+                            'ticketid' => $ticket->ticketid,
+                            'error' => $e->getMessage(),
+                        ]
+                    );
                 }
             }
-
-            DB::connection('pgsql5')->commit();
 
             $this->notificationService
                 ->ticketCreated($ticket);
@@ -1105,6 +1100,12 @@ class EngTicketController extends Controller
             $ticket->status !== 'P'
                 || $ticket->status_pekerjaan !== 'CREATED',
             403
+        );
+
+        abort_if(
+            $request->has('status') || $request->has('status_pekerjaan'),
+            403,
+            'Status fields cannot be modified directly.'
         );
 
         $request->validate([
@@ -1154,6 +1155,8 @@ class EngTicketController extends Controller
                 'created_by' => auth()->user()->username,
             ]);
 
+            DB::connection('pgsql5')->commit();
+
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr' => $ticket->ticketid,
@@ -1181,22 +1184,15 @@ class EngTicketController extends Controller
                         $files
                     );
                 } catch (\Throwable $e) {
-                    DB::connection('pgsql5')
-                        ->rollBack();
-
-                    return response()->json([
-                        'success' => false,
-
-                        'message' => 'Failed upload attachment',
-
-                        'error' => config('app.debug')
-                            ? $e->getMessage()
-                            : null,
-                    ], 500);
+                    \Log::error(
+                        'Ticket updated but attachment upload failed',
+                        [
+                            'ticketid' => $ticket->ticketid,
+                            'error' => $e->getMessage(),
+                        ]
+                    );
                 }
             }
-
-            DB::connection('pgsql5')->commit();
 
             return response()->json([
                 'success' => true,
@@ -1232,6 +1228,12 @@ class EngTicketController extends Controller
                 || ($isEng && $ticket->status_pekerjaan !== 'COMPLETED')
             ),
             403
+        );
+
+        abort_if(
+            $ticket->status === 'C',
+            403,
+            'Completed tickets cannot be cancelled.'
         );
 
         DB::connection('pgsql5')->beginTransaction();
@@ -1810,6 +1812,11 @@ class EngTicketController extends Controller
             403
         );
 
+        abort_unless(
+            $this->canActOnTicketType($ticket->ticket_type),
+            403
+        );
+
         abort_if(
             $ticket->status !== 'P',
             403
@@ -1896,6 +1903,8 @@ class EngTicketController extends Controller
                 'created_by' => auth()->user()->username,
             ]);
 
+            DB::connection('pgsql5')->commit();
+
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr' => $ticket->ticketid,
@@ -1923,22 +1932,15 @@ class EngTicketController extends Controller
                         $files
                     );
                 } catch (\Throwable $e) {
-                    DB::connection('pgsql5')
-                        ->rollBack();
-
-                    return response()->json([
-                        'success' => false,
-
-                        'message' => 'Failed upload attachment',
-
-                        'error' => config('app.debug')
-                            ? $e->getMessage()
-                            : null,
-                    ], 500);
+                    \Log::error(
+                        'Ticket processed but attachment upload failed',
+                        [
+                            'ticketid' => $ticket->ticketid,
+                            'error' => $e->getMessage(),
+                        ]
+                    );
                 }
             }
-
-            DB::connection('pgsql5')->commit();
 
             $this->notificationService->ticketWhatsapp(
                 $ticket,
@@ -2052,6 +2054,8 @@ class EngTicketController extends Controller
                 'created_by' => auth()->user()->username,
             ]);
 
+            DB::connection('pgsql5')->commit();
+
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr' => $ticket->ticketid,
@@ -2079,22 +2083,21 @@ class EngTicketController extends Controller
                         $files
                     );
                 } catch (\Throwable $e) {
-                    DB::connection('pgsql5')
-                        ->rollBack();
-
-                    return response()->json([
-                        'success' => false,
-
-                        'message' => 'Failed upload attachment',
-
-                        'error' => config('app.debug')
-                            ? $e->getMessage()
-                            : null,
-                    ], 500);
+                    \Log::error(
+                        'Ticket pending but attachment upload failed',
+                        [
+                            'ticketid' => $ticket->ticketid,
+                            'error' => $e->getMessage(),
+                        ]
+                    );
                 }
             }
 
-            DB::connection('pgsql5')->commit();
+            $this->notificationService->ticketWhatsapp(
+                $ticket,
+                'PENDING',
+                "Ticket is pending. Reason: {$request->response_descr}"
+            );
 
             return response()->json([
                 'success' => true,
@@ -2358,6 +2361,11 @@ class EngTicketController extends Controller
         );
 
         abort_if(
+            $ticket->status !== 'P',
+            403
+        );
+
+        abort_if(
             !$this->canTransition(
                 $ticket->status_pekerjaan,
                 'complete'
@@ -2432,6 +2440,10 @@ class EngTicketController extends Controller
                 now()
             );
 
+            $ticket->refresh();
+
+            DB::connection('pgsql5')->commit();
+
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr' => $ticket->ticketid,
@@ -2459,24 +2471,15 @@ class EngTicketController extends Controller
                         $files
                     );
                 } catch (\Throwable $e) {
-                    DB::connection('pgsql5')
-                        ->rollBack();
-
-                    return response()->json([
-                        'success' => false,
-
-                        'message' => 'Failed upload attachment',
-
-                        'error' => config('app.debug')
-                            ? $e->getMessage()
-                            : null,
-                    ], 500);
+                    \Log::error(
+                        'Ticket completion requested but attachment upload failed',
+                        [
+                            'ticketid' => $ticket->ticketid,
+                            'error' => $e->getMessage(),
+                        ]
+                    );
                 }
             }
-
-            $ticket->refresh();
-
-            DB::connection('pgsql5')->commit();
 
             $this->notificationService->ticketWhatsapp(
                 $ticket,
@@ -2743,6 +2746,8 @@ class EngTicketController extends Controller
                 'created_by' => auth()->user()->username,
             ]);
 
+            DB::connection('pgsql5')->commit();
+
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr' => $ticket->ticketid,
@@ -2770,22 +2775,15 @@ class EngTicketController extends Controller
                         $files
                     );
                 } catch (\Throwable $e) {
-                    DB::connection('pgsql5')
-                        ->rollBack();
-
-                    return response()->json([
-                        'success' => false,
-
-                        'message' => 'Failed upload attachment',
-
-                        'error' => config('app.debug')
-                            ? $e->getMessage()
-                            : null,
-                    ], 500);
+                    \Log::error(
+                        'Ticket comment added but attachment upload failed',
+                        [
+                            'ticketid' => $ticket->ticketid,
+                            'error' => $e->getMessage(),
+                        ]
+                    );
                 }
             }
-
-            DB::connection('pgsql5')->commit();
 
             /*
         |--------------------------------------------------------------------------
@@ -3457,7 +3455,8 @@ class EngTicketController extends Controller
             $ext = strtolower($att['extention'] ?? '');
             if (in_array($ext, $imageExts) && !empty($att['url'])) {
                 try {
-                    $bytes = file_get_contents($att['url']);
+                    $path = parse_url($att['url'], PHP_URL_PATH);
+                    $bytes = \Storage::get($path);
                     $mime  = $ext === 'png' ? 'image/png' : 'image/jpeg';
                     $att['base64'] = 'data:'.$mime.';base64,'.base64_encode($bytes);
                 } catch (\Throwable $e) {
@@ -3476,8 +3475,9 @@ class EngTicketController extends Controller
                         $src = $m[2];
                         if (str_starts_with($src, 'data:')) return $m[0];
                         try {
-                            $bytes = file_get_contents($src);
-                            $ext   = strtolower(pathinfo(parse_url($src, PHP_URL_PATH), PATHINFO_EXTENSION));
+                            $path = parse_url($src, PHP_URL_PATH);
+                            $bytes = \Storage::get($path);
+                            $ext   = strtolower(pathinfo($path, PATHINFO_EXTENSION));
                             $mime  = $ext === 'png' ? 'image/png' : ($ext === 'gif' ? 'image/gif' : 'image/jpeg');
                             $b64   = 'data:'.$mime.';base64,'.base64_encode($bytes);
                             return '<img'.$m[1].'src="'.$b64.'"'.$m[3].'>';

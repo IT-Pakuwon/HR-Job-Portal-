@@ -48,6 +48,7 @@ function initReopenTicket() {
                             );
 
                     if (!exists) {
+                        if (!validateTicketAttachment(file)) return;
 
                         Ticket.state.reopenAttachments
                             .push(file);

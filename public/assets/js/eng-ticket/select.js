@@ -190,7 +190,7 @@ function renderLocationDropdown(
 // from ms_sub_location, instead of ms_site like every other ticket type.
 function isBaTicketType(ticketType) {
 
-    return ticketType === 'BA_BS' || ticketType === 'BA_ENG';
+    return ticketType === 'BA_BS' || ticketType === 'BA_ENG' || ticketType === 'BA_FO';
 
 }
 

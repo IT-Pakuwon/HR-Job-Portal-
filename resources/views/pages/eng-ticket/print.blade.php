@@ -22,6 +22,23 @@
 
         .page {
             padding: 28px 34px;
+            position: relative;
+        }
+
+        /* DRAFT watermark for unapproved BA tickets */
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 72px;
+            font-weight: bold;
+            color: rgba(200, 200, 200, 0.25);
+            letter-spacing: 12px;
+            text-transform: uppercase;
+            pointer-events: none;
+            z-index: 0;
+            white-space: nowrap;
         }
 
         table {
@@ -269,6 +286,12 @@
     @endphp
 
     <div class="page">
+
+        {{-- DRAFT WATERMARK for unapproved BA tickets --}}
+        @if (in_array($ticket->ticket_type, ['BA_ENG', 'BA_BS', 'BA_FO'], true)
+              && !in_array($ticket->status, ['C', 'A'], true))
+            <div class="watermark">DRAFT / PENDING APPROVAL</div>
+        @endif
 
         {{-- HEADER --}}
         <table class="header">

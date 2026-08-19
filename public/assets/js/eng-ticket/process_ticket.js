@@ -159,6 +159,7 @@ function bindProcessAttachment() {
                         (f) => f.name + "_" + f.size === key,
                     )
                 ) {
+                    if (!validateTicketAttachment(file)) return;
                     Ticket.state.processAttachments.push(file);
                 }
             });
