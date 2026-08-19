@@ -20,6 +20,8 @@ const EngTicketCalendar = {
         // States excluded from the default (no-filter) view — only shown
         // once the user explicitly clicks that state's legend card.
         hiddenByDefaultStates: new Set(['CANCELLED', 'REJECTED']),
+        // Single reusable element for the event hover tooltip.
+        tooltipEl:     null,
     },
 
     // --------------------------------------------------------
@@ -208,11 +210,15 @@ const EngTicketCalendar = {
             .filter((ticket) => !!ticket.event_start)
             .map((ticket) => {
                 const colors = EngTicketCalendar.getEventColors(ticket.calendar_state);
-                const prefix = ticket.ticket_type === 'BSSUPPORTTICKET'
-                    ? '[BS]'
-                    : ticket.ticket_type === 'FOSUPPORTTICKET'
-                        ? '[FO]'
-                        : '[ENG]';
+                const prefixByType = {
+                    BSSUPPORTTICKET:  '[BS]',
+                    FOSUPPORTTICKET:  '[FO]',
+                    ENGSUPPORTTICKET: '[ENG]',
+                    BA_BS:            '[BA BS]',
+                    BA_ENG:           '[BA ENG]',
+                    BA_FO:            '[BA FO]',
+                };
+                const prefix = prefixByType[ticket.ticket_type] || '[ENG]';
 
                 return {
                     id:              ticket.eid,
@@ -319,12 +325,11 @@ const EngTicketCalendar = {
     },
 
     // --------------------------------------------------------
-    // EVENT TOOLTIP (tippy.js) — falls back to nothing if the
-    // tippy script failed to load.
+    // EVENT TOOLTIP — plain CSS/JS, no external library. Replaces a
+    // prior tippy.js-based implementation that threw an unrelated
+    // "reading 'applyStyles'" error on rapid calendar re-renders.
     // --------------------------------------------------------
     attachEventTooltip(info) {
-        if (typeof tippy === 'undefined') return;
-
         const event = info.event;
         const props = event.extendedProps;
         const colors = EngTicketCalendar.getEventColors(props.calendar_state);
@@ -347,14 +352,52 @@ const EngTicketCalendar = {
             </div>
         `;
 
-        tippy(info.el, {
-            content:    html,
-            allowHTML:  true,
-            theme:      'light-border',
-            placement:  'top',
-            maxWidth:   280,
-            animation:  'shift-away',
+        info.el.addEventListener('mouseenter', () => {
+            EngTicketCalendar.showTooltip(info.el, html);
         });
+
+        info.el.addEventListener('mouseleave', () => {
+            EngTicketCalendar.hideTooltip();
+        });
+    },
+
+    getTooltipEl() {
+        if (!EngTicketCalendar.state.tooltipEl) {
+            const el = document.createElement('div');
+            el.className = 'ectk-tip-wrapper';
+            document.body.appendChild(el);
+            EngTicketCalendar.state.tooltipEl = el;
+        }
+        return EngTicketCalendar.state.tooltipEl;
+    },
+
+    showTooltip(target, html) {
+        const tip = EngTicketCalendar.getTooltipEl();
+
+        tip.innerHTML = html;
+        tip.style.visibility = 'hidden';
+        tip.style.display = 'block';
+
+        const rect = target.getBoundingClientRect();
+        const tipRect = tip.getBoundingClientRect();
+
+        let top = rect.top - tipRect.height - 8;
+        if (top < 8) {
+            top = rect.bottom + 8;
+        }
+
+        let left = rect.left + (rect.width / 2) - (tipRect.width / 2);
+        left = Math.max(8, Math.min(left, window.innerWidth - tipRect.width - 8));
+
+        tip.style.top = `${top}px`;
+        tip.style.left = `${left}px`;
+        tip.style.visibility = 'visible';
+    },
+
+    hideTooltip() {
+        if (EngTicketCalendar.state.tooltipEl) {
+            EngTicketCalendar.state.tooltipEl.style.display = 'none';
+        }
     },
 
     escapeHtml(value) {

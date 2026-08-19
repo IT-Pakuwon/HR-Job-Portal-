@@ -30,7 +30,7 @@
                 class="applicant-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-indigo-600 dark:border-gray-700 dark:bg-gray-800 dark:text-indigo-400">
                 📄 Applicant List
             </button>
-            @if(auth()->user()->hasRole('RECACCALLDEPT'))
+            @if(auth()->user()->canViewApplicantDuplicates())
             <button type="button" id="tabBtnDuplicates"
                 class="applicant-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
                 🧬 Duplicate Applicant
@@ -258,7 +258,7 @@
         </div>
         </div>
 
-        @if(auth()->user()->hasRole('RECACCALLDEPT'))
+        @if(auth()->user()->canViewApplicantDuplicates())
         <div id="tabPanelDuplicates"
             class="mt-2 hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
             <div class="border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
@@ -354,6 +354,7 @@
     <script>
         var currentUser = "{{ auth()->user()->username }}";
         var canRemap = {{ auth()->user()->hasRole('RECACCALLDEPT') ? 'true' : 'false' }};
+        var canViewDuplicates = {{ auth()->user()->canViewApplicantDuplicates() ? 'true' : 'false' }};
     </script>
 
 
@@ -1033,6 +1034,7 @@
             // panel terpisah di bawah tabel. Kalau tidak ada duplikat, tidak
             // terjadi apa-apa.
             $('#applicantsTable tbody').on('click', 'tr', function(e) {
+                if (!canViewDuplicates) return;
                 if ($(e.target).closest('a, button, .dtr-control').length) return;
 
                 const $tr = $(this);
@@ -1089,7 +1091,7 @@
                 $('#rowDupPanel').addClass('hidden');
             });
 
-            @if(auth()->user()->hasRole('RECACCALLDEPT'))
+            @if(auth()->user()->canViewApplicantDuplicates())
             function initDupApplicantTable() {
                 if (dupApplicantTableLoaded) return;
                 dupApplicantTableLoaded = true;

@@ -611,7 +611,7 @@ class JobapplicantController extends Controller
                 return response()->json(['message' => 'Your session has expired. Please sign in again.'], 401);
             }
 
-            if (!$this->hasRole($user, 'RECACCALLDEPT')) {
+            if (!$user->canViewApplicantDuplicates()) {
                 return response()->json(['message' => 'Forbidden'], 403);
             }
 
@@ -722,6 +722,10 @@ class JobapplicantController extends Controller
 
             if (!$user) {
                 return response()->json(['message' => 'Your session has expired. Please sign in again.'], 401);
+            }
+
+            if (!$user->canViewApplicantDuplicates()) {
+                return response()->json(['message' => 'Forbidden'], 403);
             }
 
             $docid = trim((string) $request->query('docid', ''));

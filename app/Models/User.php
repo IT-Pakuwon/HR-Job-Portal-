@@ -102,6 +102,17 @@ class User extends Authenticatable
     }
 
     /**
+     * Gate for the job applicant duplicate tools. Either path grants access:
+     *   1. role_id RECACCALLDEPT AND group_cpny_id = SBY, OR
+     *   2. the 'admin' role (user_role) on its own.
+     */
+    public function canViewApplicantDuplicates(): bool
+    {
+        return ($this->hasRole('RECACCALLDEPT') && strtoupper(trim((string) $this->group_cpny_id)) === 'SBY')
+            || in_array('admin', $this->roles(), true);
+    }
+
+    /**
      * True for roles that should see every transaction across every company/department and
      * be let into every screen their menu access grants — bypassing cpny_id/department_id
      * scoping AND any hard hasRole('XACCESS') view gate. Distinct from isAdmin() because
