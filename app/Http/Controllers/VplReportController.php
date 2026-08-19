@@ -1188,15 +1188,28 @@ class VplReportController extends Controller
     /**
      * @return array{0: array<string, array<int, float>>, 1: array<string, array<int, float>>}
      */
+    /**
+     * A "Transfer In" ledger row at WHCOLLECTION only counts as Voucher stock coming back
+     * (Return Transfer) when it was actually sourced from WHLOYALTY — the ledger row itself
+     * doesn't carry the source warehouse, so this joins back to the transfer line that
+     * produced it (matched by refnbr=transfer_id + linenbr) to read from_whs_id. A
+     * Collection<->Promotion transfer is a different, out-of-scope movement type for this
+     * report and is intentionally left uncounted on both the in and out side.
+     */
     private function ledgerMonthlyInOut(string $cpnyid, int $year): array
     {
-        $rows = DB::connection('pgsql5')->table('tr_vpl_ledger')
-            ->where('cpnyid', $cpnyid)
-            ->where('perpost', 'like', $year.'%')
-            ->where('status', 'A')
-            ->whereIn('whs_id', [self::WHS_COLLECTION, self::WHS_LOYALTY, self::WHS_PROMOTION])
-            ->whereIn('transaction_source', ['Receive', 'Transfer In', 'Usage', 'Return'])
-            ->select('product_id', 'expired_date', 'whs_id', 'transaction_source', 'perpost', 'qty')
+        $rows = DB::connection('pgsql5')->table('tr_vpl_ledger as l')
+            ->leftJoin('tr_vpl_transfer_detail as td', function ($join) {
+                $join->on('td.transfer_id', '=', 'l.refnbr')
+                    ->on('td.linenbr', '=', 'l.linenbr')
+                    ->where('l.transaction_source', '=', 'Transfer In');
+            })
+            ->where('l.cpnyid', $cpnyid)
+            ->where('l.perpost', 'like', $year.'%')
+            ->where('l.status', 'A')
+            ->whereIn('l.whs_id', [self::WHS_COLLECTION, self::WHS_LOYALTY, self::WHS_PROMOTION])
+            ->whereIn('l.transaction_source', ['Receive', 'Transfer In', 'Usage', 'Return'])
+            ->select('l.product_id', 'l.expired_date', 'l.whs_id', 'l.transaction_source', 'l.perpost', 'l.qty', 'td.from_whs_id')
             ->get();
 
         $monthlyIn  = [];
@@ -1207,7 +1220,9 @@ class VplReportController extends Controller
             $month = (int) substr((string) $row->perpost, 4, 2);
             $qty   = (float) $row->qty;
 
-            if ($row->whs_id === self::WHS_COLLECTION && in_array($row->transaction_source, ['Receive', 'Transfer In'], true)) {
+            if ($row->whs_id === self::WHS_COLLECTION && $row->transaction_source === 'Receive') {
+                $monthlyIn[$key][$month] = ($monthlyIn[$key][$month] ?? 0) + $qty;
+            } elseif ($row->whs_id === self::WHS_COLLECTION && $row->transaction_source === 'Transfer In' && $row->from_whs_id === self::WHS_LOYALTY) {
                 $monthlyIn[$key][$month] = ($monthlyIn[$key][$month] ?? 0) + $qty;
             } elseif ($row->whs_id === self::WHS_LOYALTY && $row->transaction_source === 'Transfer In') {
                 $monthlyOut[$key][$month] = ($monthlyOut[$key][$month] ?? 0) + $qty;
@@ -1253,6 +1268,7 @@ class VplReportController extends Controller
                 'untuk_pembayaran'  => $r->untuk_pembayaran,
                 'diambil_oleh'      => null,
                 'keperluan'         => null,
+                'keterangan'        => null,
             ];
         }
 
@@ -1260,6 +1276,8 @@ class VplReportController extends Controller
             ->join('tr_vpl_transfer', 'tr_vpl_transfer.transfer_id', '=', 'tr_vpl_transfer_detail.transfer_id')
             ->where('tr_vpl_transfer.cpnyid', $cpnyid)
             ->where('tr_vpl_transfer.status', 'C')
+            ->where('tr_vpl_transfer.transfertype', 'ReturnTf')
+            ->where('tr_vpl_transfer_detail.from_whs_id', self::WHS_LOYALTY)
             ->where('tr_vpl_transfer_detail.to_whs_id', self::WHS_COLLECTION)
             ->whereBetween('tr_vpl_transfer.transfer_date', [$monthStart, $monthEnd])
             ->select([
@@ -1269,6 +1287,7 @@ class VplReportController extends Controller
                 'tr_vpl_transfer.transfer_date as doc_date',
                 'tr_vpl_transfer.transfer_id as doc_no',
                 'tr_vpl_transfer.department as diterima_dari',
+                'tr_vpl_transfer.created_user as diambil_oleh',
             ])
             ->get();
 
@@ -1282,8 +1301,9 @@ class VplReportController extends Controller
                 'qty'               => abs((float) $r->qty),
                 'diterima_dari'     => $r->diterima_dari,
                 'untuk_pembayaran'  => null,
-                'diambil_oleh'      => null,
-                'keperluan'         => null,
+                'diambil_oleh'      => $r->diambil_oleh,
+                'keperluan'         => $r->diterima_dari,
+                'keterangan'        => 'Retur ke Collection',
             ];
         }
 
@@ -1299,6 +1319,7 @@ class VplReportController extends Controller
             ->join('tr_vpl_transfer', 'tr_vpl_transfer.transfer_id', '=', 'tr_vpl_transfer_detail.transfer_id')
             ->where('tr_vpl_transfer.cpnyid', $cpnyid)
             ->where('tr_vpl_transfer.status', 'C')
+            ->where('tr_vpl_transfer.transfertype', 'Transfer')
             ->where('tr_vpl_transfer_detail.from_whs_id', self::WHS_COLLECTION)
             ->where('tr_vpl_transfer_detail.to_whs_id', self::WHS_LOYALTY)
             ->whereBetween('tr_vpl_transfer.transfer_date', [$monthStart, $monthEnd])
@@ -1325,6 +1346,7 @@ class VplReportController extends Controller
                 'untuk_pembayaran'  => null,
                 'diambil_oleh'      => $t->diambil_oleh,
                 'keperluan'         => $t->keperluan,
+                'keterangan'        => null,
             ];
         }
 
@@ -1351,15 +1373,16 @@ class VplReportController extends Controller
             $key = $u->product_id.'|'.$this->expiredKey($u->expired_date);
             $isReturn = $u->usagetype === 'Return';
             $rows[$key][] = [
-                'direction'         => 'out',
+                'direction'         => $isReturn ? 'in' : 'out',
                 'doc_label'         => $isReturn ? 'Return' : 'Usage',
                 'doc_no'            => $u->doc_no,
                 'date'              => Carbon::parse($u->doc_date),
-                'qty'               => $isReturn ? -abs((float) $u->qty_return_usage) : abs((float) $u->qty_usage),
+                'qty'               => $isReturn ? abs((float) $u->qty_return_usage) : abs((float) $u->qty_usage),
                 'diterima_dari'     => null,
                 'untuk_pembayaran'  => null,
                 'diambil_oleh'      => $u->diambil_oleh,
                 'keperluan'         => $u->keperluan,
+                'keterangan'        => $isReturn ? 'Retur ke Collection' : null,
             ];
         }
 
