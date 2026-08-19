@@ -129,6 +129,7 @@ class AgendaController extends Controller
             'cpnyid' => 'required|string',
             'departementid' => 'required|string',
             'title' => 'required|string',
+            'reftype' => 'required|in:IH,IU,IHU',
             'startdate' => 'nullable|date',
             'enddate' => 'nullable|date|after_or_equal:startdate',
             'attachments.*' => 'file|max:2048' // Validasi file, max 2MB
@@ -215,6 +216,7 @@ class AgendaController extends Controller
             $agenda = Agenda::create([
                 'docid' => $docid,
                 'cpnyid' => $request->cpnyid,
+                'group_cpny_id' => strtoupper(trim((string) $user->group_cpny_id)),
                 'departementid' => $request->departementid,
                 'agendadate' => $datenow,
                 'title' => $request->title,
@@ -232,39 +234,31 @@ class AgendaController extends Controller
                 'participant'       => $participantCsv,
             ]);
 
-            // Simpan Attachments ke attachments
-            // if ($request->hasfile('attachments')) {
-            //     foreach ($request->file('attachments') as $file) {
-            //         $randomNumber = random_int(10000000, 99999999);
-            //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
+            $jobapply = JobApply::where('docid', $agenda->refid)
+                ->where('group_cpny_id', $groupCompanyId)
+                ->firstOrFail();
 
-            //         $originalName = str_replace('%', '', $file->getClientOriginalName());
-            //         $attachfile = md5($randomNumber) . '-' . $originalName;
+            $stepOrdersByInterviewType = [
+                'IH' => [3, 4],
+                'IHU' => [3, 4, 5, 6],
+                'IU' => [5, 6],
+            ];
 
-            //         //attach to folder
-            //         $folder_attach = public_path() . '/attachments/'.$year;
-            //         $config['upload_path'] = $folder_attach;
-            //         if(!is_dir($folder_attach))
-            //         {
-            //             mkdir($folder_attach, 0777);
-            //         }
+            JobApplyStep::where('docid', $jobapply->docid)
+                ->where('jobid', $jobapply->jobid)
+                ->where('cpnyid', $request->cpnyid)
+                ->where('group_cpny_id', $groupCompanyId)
+                ->whereIn('step_order', $stepOrdersByInterviewType[$request->reftype])
+                ->where('status', 'P')
+                ->update([
+                    'status' => 'A',
+                    'aprvusername' => $user->username,
+                    'aprvuserdate' => $datestamp,
+                    'updated_user' => $user->username,
+                ]);
 
-            //         $folder_upload = $folder_attach;
-            //         // $folder_upload = public_path() . '/attachments';
-            //         $file->move($folder_upload, $attachfile);
-
-            //         //insert to table attachments
-            //         $attach = new Attachment();
-            //         $attach->docid = $docid;
-            //         $attach->name = $filename;
-            //         $attach->attachfile = $attachfile;
-            //         $attach->status = 'A';
-            //         $attach->extention = $file->getClientOriginalExtension();
-            //         $attach->created_user = $user->username;
-            //         $attach->save();
-            //     }
-            // }
-
+    
             $docidagenda = $docid;
 
             if($roomId && $accId){
@@ -276,26 +270,7 @@ class AgendaController extends Controller
             }else{
 
 
-                // if (!empty($participants)) {
-                //     $rows = [];
-                //     foreach ($participants as $i => $uname) {
-                //         $rows[] = [
-                //             'docid'          => $docid,
-                //             'aprvid'         => 1, // atau ($i+1) kalau ingin urut 1..n
-                //             'aprvdoctype'    => 'AGD',
-                //             'aprvcpnyid'     => $request->cpnyid,        // <- pastikan tidak terbalik
-                //             'aprvdeptid'     => $request->departementid, // <-
-                //             'aprvusername'   => $uname,                                  // username
-                //             'name'           => $userMap->get($uname, $uname),           // NAMA LENGKAP
-                //             'aprvtotalday'   => 1,
-                //             // 'aprvdatebefore' => $datestamp,
-                //             'status'         => 'P',
-                //             'created_user'   => $user->username,
-
-                //         ];
-                //     }
-                //     T_approval::insert($rows); // lebih efisien daripada create() di-loop
-                // }
+                
                 if (!empty($participants)) {
                     $rows = [];
                     foreach ($participants as $i => $uname) {
@@ -325,57 +300,18 @@ class AgendaController extends Controller
 
                 // $this->insert_JobApplySch($agenda, $user);
 
-                $jobapply = JobApply::where('docid', $agenda->refid)->first();
-                $applicant = Applicant::where('applicant_id', $jobapply->applicant_id)->first();
-                $jobposting = Jobposting::where('docid', $jobapply->jobid)->first();
-
-                $step3 = JobApplyStep::where('docid', $jobapply->docid)
-                    ->where('status', 'P')
-                    ->where('step_order', 3)
+                $applicant = Applicant::where('applicant_id', $jobapply->applicant_id)
+                    ->where('group_cpny_id', $groupCompanyId)
+                    ->first();
+                $jobposting = Jobposting::where('docid', $jobapply->jobid)
+                    ->where('group_cpny_id', $groupCompanyId)
                     ->first();
 
-                if($step3){
-                    $step3->status = 'A';
-                    $step3->aprvuserdate = $datestamp;
-                    $step3->aprvusername = $user->username;
-                    $step3->save();
-                }
-
-                $step4 = JobApplyStep::where('docid', $jobapply->docid)
-                    ->where('status', 'A')
-                    ->where('step_order', 4)
-                    ->first();
-
-                if($step4){
-                    $step5 = JobApplyStep::where('docid', $jobapply->docid)
-                        ->where('status', 'P')
-                        ->where('step_order', 5)
-                        ->first();
-
-
-                    if($step5){
-
-                        $step5->status = 'A';
-                        $step5->aprvuserdate = $datestamp;
-                        $step5->aprvusername = $user->username;
-                        $step5->save();
-                    }else{
-
-                    }
-
-                }
-
-
-
-                // $t_approval_all = T_approval::where('docid', $docid)
-                //     ->where('status', 'P')
-                //     ->orderby('aprvid', 'ASC')
-                //     ->get();
 
                 $t_approval_all = TrApproval::where('refnbr', $docid)
-                ->where('status', 'P')
-                ->orderBy('aprv_leveling', 'ASC')
-                ->get();
+                    ->where('status', 'P')
+                    ->orderBy('aprv_leveling', 'ASC')
+                    ->get();
 
 
                 if (!$t_approval_all->isEmpty()) {
@@ -1374,7 +1310,15 @@ class AgendaController extends Controller
 
     public function getBySite($site)
     {
-        $address = CompanyAddress::where('site', $site)->first();
+        $user = Auth::user();
+
+        abort_unless($user, 401);
+
+        $address = CompanyAddress::where('site', $site)
+            ->where('group_cpny_id', strtoupper(trim((string) $user->group_cpny_id)))
+            ->where('status', 'A')
+            ->first();
+
         return response()->json($address);
     }
 

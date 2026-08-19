@@ -12,6 +12,7 @@ class ApplicantCourse extends Model
    
     protected $fillable = [     
         'applicant_id',
+        'group_cpny_id',
         'course_name',
         'course_type',
         'start_year',

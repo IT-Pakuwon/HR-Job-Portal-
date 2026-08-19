@@ -11,7 +11,8 @@ class ApplicantSW extends Model
     protected $table = "hr_ms_applicant_sw";
    
     protected $fillable = [     
-        'applicant_id',       
+        'applicant_id',    
+        'group_cpny_id',   
         'sw_descr',
         'sw_type',             
         'status',

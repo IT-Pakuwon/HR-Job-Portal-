@@ -199,6 +199,8 @@ class JobapplicantController extends Controller
                 : redirect()->route('login')->with('error', 'Your session has expired. Please sign in again.');
         }
 
+        $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
+
         $userCpnyIds = Usercpny::where('username', $user->username)
             ->pluck('cpny_id')
             ->filter()
@@ -226,6 +228,7 @@ class JobapplicantController extends Controller
         }
 
         $base = ViewCareer::query()
+            ->where('group_cpny_id', $groupCompanyId)
             ->where('status', '!=', 'X')
             ->when(!empty($userCpnyIds), function ($q) use ($userCpnyIds) {
                 $q->whereIn('cpnyid', $userCpnyIds);
@@ -281,6 +284,8 @@ class JobapplicantController extends Controller
                 ], 401);
             }
 
+            $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
+
             $userCpnyIds = Usercpny::where('username', $user->username)
                 ->pluck('cpny_id')
                 ->filter()
@@ -313,9 +318,19 @@ class JobapplicantController extends Controller
             $base = DB::connection('mysql3')
                 ->table('viewtrxcareer as vc')
                 ->leftJoin('viewtrxcareer_scoring as vs', 'vc.docid', '=', 'vs.docid')
-                ->leftJoin('hr_trx_jobposting as jp', 'jp.docid', '=', 'vc.docidposting')
-                ->leftJoin('hr_ms_department as dept', 'dept.department_id', '=', 'jp.departementid')
-                ->leftJoin('hr_ms_division as div', 'div.division_id', '=', 'dept.division_id')
+                ->leftJoin('hr_trx_jobposting as jp', function ($join) {
+                    $join->on('jp.docid', '=', 'vc.docidposting')
+                        ->on('jp.group_cpny_id', '=', 'vc.group_cpny_id');
+                })
+                ->leftJoin('hr_ms_department as dept', function ($join) {
+                    $join->on('dept.department_id', '=', 'jp.departementid')
+                        ->on('dept.group_cpny_id', '=', 'vc.group_cpny_id');
+                })
+                ->leftJoin('hr_ms_division as div', function ($join) {
+                    $join->on('div.division_id', '=', 'dept.division_id')
+                        ->on('div.group_cpny_id', '=', 'vc.group_cpny_id');
+                })
+                ->where('vc.group_cpny_id', $groupCompanyId)
                 ->where('vc.status', '!=', 'X')
                 ->when(!empty($userCpnyIds), function ($q) use ($userCpnyIds) {
                     $q->whereIn('vc.cpnyid', $userCpnyIds);
@@ -839,9 +854,16 @@ class JobapplicantController extends Controller
 
     public function jobTitleLevels(Request $request)
     {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Your session has expired. Please sign in again.'], 401);
+        }
+
+        $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
         $q = trim((string) $request->query('q', ''));
 
         $rows = DB::connection('mysql3')->table('viewtrxcareer as vc')
+            ->where('vc.group_cpny_id', $groupCompanyId)
             ->when($q !== '', function ($qq) use ($q) {
                 $qq->where(function ($w) use ($q) {
                     $w->where('vc.job_title', 'like', "%{$q}%")
@@ -1008,4 +1030,3 @@ class JobapplicantController extends Controller
     }
 
 }
-

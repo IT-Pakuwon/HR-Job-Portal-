@@ -300,8 +300,10 @@ class PersonnelController extends Controller
             ->get();
 
         $refids = $rows->pluck('docid')->toArray();
+        $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
 
         $jobpostingMap = Jobposting::whereIn('refid', $refids)
+            ->where('group_cpny_id', $groupCompanyId)
             ->get()
             ->keyBy('refid');
 
@@ -311,7 +313,6 @@ class PersonnelController extends Controller
             ->where('status', 'A') // optional kalau ada status aktif
             ->exists();
 
-        $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
         $companyNames = MsCompany::query()
             ->where('group_cpny_id', $groupCompanyId)
             ->whereIn('cpny_id', $rows->pluck('cpnyid')->filter()->unique())
@@ -933,9 +934,17 @@ class PersonnelController extends Controller
 
         $departments = DepartmentHR::query()
             ->select('department_id', 'department_name', 'division_id')
-            ->where('status', 'A')
             ->where('group_cpny_id', $groupCompanyId)
-            ->where('division_id', $personnel->division_id)
+            ->where(function ($query) use ($personnel) {
+                $query->where(function ($active) use ($personnel) {
+                    $active->where('division_id', $personnel->division_id)
+                        ->where('status', 'A');
+                });
+
+                if (!empty($personnel->departementid)) {
+                    $query->orWhere('department_id', $personnel->departementid);
+                }
+            })
             ->orderBy('department_name')
             ->get();
 
@@ -2596,15 +2605,26 @@ class PersonnelController extends Controller
     public function byDivision(Request $request)
     {
         $divisionId = $request->query('division_id');
+        $selectedDepartmentId = $request->query('selected_department_id');
+        $groupCompanyId = strtoupper(trim((string) ($request->user()->group_cpny_id ?? '')));
 
-        if (!$divisionId) {
+        if (!$divisionId || !$groupCompanyId) {
             return response()->json([], 200);
         }
 
         $departments = DepartmentHR::query()
             ->select('department_id', 'department_name', 'division_id')
-            ->where('division_id', $divisionId)
-            ->where('status', 'A')
+            ->where('group_cpny_id', $groupCompanyId)
+            ->where(function ($query) use ($divisionId, $selectedDepartmentId) {
+                $query->where(function ($active) use ($divisionId) {
+                    $active->where('division_id', $divisionId)
+                        ->where('status', 'A');
+                });
+
+                if ($selectedDepartmentId) {
+                    $query->orWhere('department_id', $selectedDepartmentId);
+                }
+            })
             ->orderBy('department_name')
             ->get();
 
@@ -2621,10 +2641,12 @@ class PersonnelController extends Controller
         ]);
 
         // 2. CHECK ACCESS
-        $username = auth()->user()->username;
+        $user = $request->user();
+        $username = $user->username;
+        $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
 
         $hasAccess = GroupAccspecific::where('username', $username)
-            ->where('group_cpny_id', strtoupper(trim((string) auth()->user()->group_cpny_id)))
+            ->where('group_cpny_id', $groupCompanyId)
             ->where('group_access_id', 'POSTING')
             ->where('status', 'A')
             ->exists();
@@ -2634,7 +2656,9 @@ class PersonnelController extends Controller
         }
 
         // 3. FIND DATA
-        $job = Jobposting::where('refid', $request->docid)->first();
+        $job = Jobposting::where('refid', $request->docid)
+            ->where('group_cpny_id', $groupCompanyId)
+            ->first();
 
         if (!$job) {
             return response()->json(['message' => 'Not found'], 404);

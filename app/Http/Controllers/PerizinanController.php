@@ -9,6 +9,8 @@ use App\Models\MsSite;
 use App\Models\TrPerizinan;
 use App\Models\TrPerizinanActivity;
 use App\Models\TrPerizinanDetail;
+use App\Models\TrCS;
+use App\Models\TrSPPJ;
 use App\Models\User;
 use App\Models\Usercpny;
 use Illuminate\Http\Request;
@@ -17,6 +19,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Vinkla\Hashids\Facades\Hashids;
 
 class PerizinanController extends Controller
 {
@@ -80,6 +83,11 @@ class PerizinanController extends Controller
         $categories = MsPerizinanCategory::query()->where('status', 'A')
             ->orderBy('perizinancategory_descr')
             ->get(['perizinan_category', 'perizinancategory_descr']);
+        $sites = MsSite::query()->where('status', 'A')
+            ->whereIn('cpny_id', $companies)
+            ->orderBy('cpny_id')
+            ->orderBy('site_name')
+            ->get(['siteid', 'site_name', 'cpny_id']);
         $approvers = User::query()->where('status', 'A')->orderBy('name')->get(['username', 'name']);
         $expiryPeriods = TrPerizinan::query()
             ->whereIn('cpny_id', $companies)
@@ -96,7 +104,7 @@ class PerizinanController extends Controller
             'expiringPerizinan',
             'expiredPerizinan',
             'completedPerizinan', 'expiry30To60', 'expiry60To90', 'expiry90Plus',
-            'companies', 'categories', 'approvers', 'expiryPeriods'
+            'companies', 'categories', 'sites', 'approvers', 'expiryPeriods'
         ));
     }
 
@@ -114,6 +122,7 @@ class PerizinanController extends Controller
         $expiryYear = (int) $request->input('expiry_year', 0);
         $expiryMonth = (int) $request->input('expiry_month', 0);
         $category = trim((string) $request->input('category', ''));
+        $siteId = trim((string) $request->input('site_id', ''));
         $today = now()->startOfDay();
         $companyIds = Usercpny::query()->where('username', Auth::user()->username)
             ->where('status', 'A')->pluck('cpny_id')->unique()->values();
@@ -170,6 +179,9 @@ class PerizinanController extends Controller
         }
         if ($category !== '') {
             $query->where('perizinan_category', $category);
+        }
+        if ($siteId !== '') {
+            $query->where('site_id', $siteId);
         }
 
         $recordsTotal = (clone $query)->count();
@@ -308,6 +320,28 @@ class PerizinanController extends Controller
             $activity->attachment_refnbr = $permit->perizinan_id;
             $activity->attachment_doctype = 'ACT-'.$activity->id;
         });
+
+        $permit->sppbjkt_url = null;
+        if (filled($permit->sppbjktid)) {
+            $sppjId = TrSPPJ::query()
+                ->where('sppjid', $permit->sppbjktid)
+                ->value('id');
+
+            if ($sppjId) {
+                $permit->sppbjkt_url = url('/showsppjs/'.Hashids::encode($sppjId));
+            }
+        }
+
+        $permit->cs_url = null;
+        if (filled($permit->csid)) {
+            $csId = TrCS::query()
+                ->where('csid', $permit->csid)
+                ->value('id');
+
+            if ($csId) {
+                $permit->cs_url = url('/showcs/'.Hashids::encode($csId));
+            }
+        }
 
         return response()->json(['data' => $permit]);
     }
@@ -489,8 +523,12 @@ class PerizinanController extends Controller
             'submission_channel' => ['nullable', 'string', 'max:255'],
             'no_kontrak_legal' => ['nullable', 'string', 'max:255'],
             'issue_date' => ['nullable', 'date'],
-            'user_approval' => ['required', 'array', 'min:1'],
-            'user_approval.*' => ['required', 'string', Rule::exists('pgsql2.ms_user', 'username')->where('status', 'A')],
+            'user_dept_approval' => ['required', 'array', 'min:1'],
+            'user_dept_approval.*' => ['required', 'string', Rule::exists('pgsql2.ms_user', 'username')->where('status', 'A')],
+            'user_dept_peminta' => ['required', 'array', 'min:1'],
+            'user_dept_peminta.*' => ['required', 'string', Rule::exists('pgsql2.ms_user', 'username')->where('status', 'A')],
+            'sppbjktid' => ['nullable', 'string', 'max:255'],
+            'csid' => ['nullable', 'string', 'max:255'],
             'item_perizinan' => ['required', 'array', 'min:1'],
             'item_perizinan.*' => ['required', 'string', 'max:255'],
             'qty_perizinan' => ['required', 'array', 'min:1'],
@@ -533,7 +571,8 @@ class PerizinanController extends Controller
             $header->site_id = $validated['site_id'];
             $header->department_fin_id = $validated['departementid'];
             $header->user_peminta = $user->username;
-            $header->user_approval = implode(',', $validated['user_approval']);
+            $header->user_dept_approval = implode(',', $validated['user_dept_approval']);
+            $header->user_dept_peminta = implode(',', $validated['user_dept_peminta']);
             $header->perizinan_category = $validated['perizinan_category'];
             $header->perizinan_title = $validated['perizinan_title'];
             $header->perizinan_descr = $validated['perizinan_descr'] ?? null;
@@ -548,6 +587,8 @@ class PerizinanController extends Controller
             $header->issuing_authority = $validated['issuing_authority'] ?? null;
             $header->submission_channel = $validated['submission_channel'] ?? null;
             $header->no_kontrak_legal = $validated['no_kontrak_legal'] ?? null;
+            $header->sppbjktid = $validated['sppbjktid'] ?? null;
+            $header->csid = $validated['csid'] ?? null;
             $header->issue_date = $validated['issue_date'] ?? null;
             $header->qty_item_perizinan = array_sum(array_map('floatval', $validated['qty_perizinan']));
             $header->status = 'P';

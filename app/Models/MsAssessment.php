@@ -11,6 +11,7 @@ class MsAssessment extends Model
     protected $table = "hr_ms_interview_assessment";   
     protected $fillable = [        
         'assessment_id',
+        'group_cpny_id',
         'assessment_group',
         'assessment_descr',
         'assessment_score',

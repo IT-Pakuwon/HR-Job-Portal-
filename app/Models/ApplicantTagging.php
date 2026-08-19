@@ -12,6 +12,7 @@ class ApplicantTagging extends Model
     protected $fillable = [
         'docid',
         'applicant_id',
+        'group_cpny_id',
         'departementid_tagging',
         'division_id_tagging',
         'status',

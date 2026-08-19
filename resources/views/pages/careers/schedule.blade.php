@@ -108,7 +108,9 @@
                         class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white">
                         <option value="">Select site</option>
                         @foreach ($companyaddress as $site)
-                            <option value="{{ $site->site }}">{{ $site->site }}</option>
+                            <option value="{{ $site->site }}">
+                                {{ $site->site }}{{ $site->sitelocation ? ' (' . $site->sitelocation . ')' : '' }}
+                            </option>
                         @endforeach
                     </select>
                 </div>

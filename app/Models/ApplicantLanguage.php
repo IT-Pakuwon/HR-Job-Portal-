@@ -11,7 +11,8 @@ class ApplicantLanguage extends Model
     protected $table = "hr_ms_applicant_language";
    
     protected $fillable = [     
-        'applicant_id',       
+        'applicant_id',     
+        'group_cpny_id',  
         'language_descr',
         'language_score',           
         'status',

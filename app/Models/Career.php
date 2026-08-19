@@ -11,6 +11,9 @@ class Career extends Model
     protected $table = "hr_trx_job_apply";   
     protected $fillable = [  
         'docid',
+        'cpnyid',
+        'group_cpny_id',
+        'jobid',
         'applicant_id',
         'apply_date',
         'apply_step',

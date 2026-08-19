@@ -44,9 +44,15 @@
                         {{-- Photo + Name --}}
                         <div class="px-6 pb-6">
                             <div class="relative z-10 -mt-14 mb-4">
-                                <img src="{{ $photo }}" alt="{{ $applicant->full_name }}"
-                                    onerror="this.onerror=null;this.src='{{ asset('images/sample.png') }}';"
-                                    class="h-28 w-28 rounded-lg border-4 border-white object-cover   dark:border-gray-800">
+                                <a href="{{ $photo ?: asset('images/sample.png') }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title="Open full photo"
+                                    class="inline-block cursor-zoom-in">
+                                    <img src="{{ $photo ?: asset('images/sample.png') }}" alt="{{ $applicant->full_name }}"
+                                        onerror="this.onerror=null;this.src='{{ asset('images/sample.png') }}';this.closest('a').href=this.src;"
+                                        class="h-28 w-28 rounded-lg border-4 border-white object-cover transition hover:opacity-90 dark:border-gray-800">
+                                </a>
                             </div>
 
                             <h1 class="text-xl font-bold leading-tight text-gray-900 dark:text-white">{{ $applicant->full_name }}</h1>
@@ -786,4 +792,3 @@
 
         <script src="https://unpkg.com/lucide@latest"></script>
         <script>if(typeof lucide !== 'undefined') lucide.createIcons();</script>
-

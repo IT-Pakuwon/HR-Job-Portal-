@@ -7,7 +7,7 @@
     <style>
         @page {
             size: A4;
-            margin: 12mm;
+            margin: 10mm 12mm 17mm;
         }
 
         body {
@@ -36,7 +36,7 @@
         }
 
         .signature-table td {
-            padding-top: 30px;
+            padding-top: 20px;
             /* was 40px */
         }
 
@@ -70,10 +70,15 @@
     } */
 
         .pdf-footer {
-            ;
+            position: fixed;
+            right: 0;
+            bottom: -11mm;
+            left: 0;
             font-size: 10px;
+            line-height: 1.2;
             text-align: center;
-            margin-top: 25px;
+            margin: 0;
+            page-break-inside: avoid;
         }
 
         .pdf-footer .pt-name {

@@ -12,6 +12,8 @@ class TrAssessmentdetail extends Model
     protected $fillable = [   
         'docid',
         'jobapply_id',
+        'cpnyid',
+        'group_cpny_id',
         'jobid',
         'applicant_id',
         'assessment_id',

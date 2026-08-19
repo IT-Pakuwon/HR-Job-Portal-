@@ -48,13 +48,18 @@
 
     <form id="checklistForm">
         @csrf
+        <input type="hidden" name="cpnyid" value="{{ $career->cpnyid ?? '' }}">
         <div id="checklistArea" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         </div>
 
         <div class="mt-8 flex justify-end">
-            <button type="submit"
-                class="inline-flex items-center rounded-lg bg-gray-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900">
-                Save Checklist
+            <button type="submit" id="btnSaveChecklist"
+                class="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-gray-900">
+                <svg class="checklist-spin hidden h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
+                <span class="checklist-text">Save Checklist</span>
             </button>
         </div>
     </form>
@@ -62,8 +67,10 @@
     {{-- ===== Jadwal Onboarding (Form Terpisah) ===== --}}
     <form id="scheduleForm" class="mt-10 rounded-xl border border-gray-200 p-4 dark:border-gray-700">
         @csrf
+        @php($schedulePayroll = $payrolls->first())
         <input type="hidden" name="applicant_id" value="{{ $applicant->applicant_id ?? '' }}">
         <input type="hidden" name="jobapply_id" value="{{ $career->docid ?? '' }}">
+        <input type="hidden" name="cpnyid" value="{{ $career->cpnyid ?? '' }}">
 
         <h3 class="mb-4 text-sm font-semibold text-gray-800 dark:text-gray-100">Jadwal Onboarding</h3>
 
@@ -72,6 +79,7 @@
                 <label for="sch_work_start_date"
                     class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Tanggal Mulai Kerja</label>
                 <input type="date" id="sch_work_start_date" name="work_start_date"
+                    value="{{ optional($schedulePayroll)->work_start_date ? \Carbon\Carbon::parse($schedulePayroll->work_start_date)->format('Y-m-d') : '' }}"
                     class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                     required>
             </div>
@@ -79,6 +87,7 @@
                 <label for="sch_availability_date"
                     class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Tanggal Selesai Kerja</label>
                 <input type="date" id="sch_availability_date" name="availability_date"
+                    value="{{ optional($schedulePayroll)->availability_date ? \Carbon\Carbon::parse($schedulePayroll->availability_date)->format('Y-m-d') : '' }}"
                     class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                     required>
             </div>
@@ -155,51 +164,53 @@
 </script>
 
 <script>
-    // $(document).ready(function() {
-    //     const docidOnboarding = $('#docid_onboarding').data('docid');
-    //     console.log('docid:', docidOnboarding);
-
-    //     // Fetch data dari controller
-    //     $.get(`/onboarding/${docidOnboarding}`, function(data) {
-    //         let html = '';
-    //         data.forEach(item => {
-    //             const checked = item.checklist_onboarding_receive ? 'checked' : '';
-    //             html += `
-    //         <label>
-    //           <input type="checkbox" name="checklist[]" value="${item.id}" ${checked}>
-    //           ${item.checklist_onboarding_descr}
-    //         </label>
-    //       `;
-    //         });
-    //         $('#checklistArea').html(html);
-    //     });
-
-    //     // Submit perubahan
-    //     $('#checklistForm').submit(function(e) {
-    //         e.preventDefault();
-    //         const checked = [];
-    //         $('#checklistForm input[type=checkbox]:checked').each(function() {
-    //             checked.push($(this).val());
-    //         });
-
-    //         $.post("{{ route('onboarding.checklist.update') }}", {
-    //             _token: $('input[name="_token"]').val(),
-    //             docid_onboarding: docidOnboarding,
-    //             checked: checked
-    //         }, function(response) {
-    //             if (response.success) {
-    //                 toastr.success('Checklist berhasil disimpan.');
-    //             } else {
-    //                 toastr.error('Gagal menyimpan checklist.');
-    //             }
-    //         }).fail(function() {
-    //             toastr.error('Terjadi kesalahan saat menyimpan.');
-    //         });
-    //     });
-    // });
     $(document).ready(function() {
         const docidOnboarding = $('#docid_onboarding').data('docid');
-        console.log('docid:', docidOnboarding);
+
+        function setChecklistSaving(isSaving) {
+            const $button = $('#btnSaveChecklist');
+            $button.prop('disabled', isSaving);
+            $button.find('.checklist-spin').toggleClass('hidden', !isSaving);
+            $button.find('.checklist-text').text(isSaving ? 'Saving...' : 'Save Checklist');
+        }
+
+        $('#checklistForm').off('submit.checklist').on('submit.checklist', function(event) {
+            event.preventDefault();
+
+            if (!docidOnboarding) {
+                toastr.error('Onboarding belum dibuat atau DocID tidak tersedia.');
+                return;
+            }
+
+            const checked = $('#checklistArea input[name="checklist[]"]:checked')
+                .map(function() { return this.value; })
+                .get();
+
+            setChecklistSaving(true);
+
+            $.ajax({
+                url: "{{ route('onboarding.checklist.update') }}",
+                type: 'POST',
+                headers: { 'Accept': 'application/json' },
+                data: {
+                    _token: $('#checklistForm input[name="_token"]').val(),
+                    docid_onboarding: docidOnboarding,
+                    cpnyid: $('#checklistForm input[name="cpnyid"]').val(),
+                    checked: checked
+                }
+            }).done(function(response) {
+                if (response && response.success) {
+                    toastr.success('Checklist berhasil disimpan.');
+                } else {
+                    toastr.error(response.message || response.error || 'Gagal menyimpan checklist.');
+                }
+            }).fail(function(xhr) {
+                toastr.error(xhr.responseJSON?.message || xhr.responseJSON?.error ||
+                    'Terjadi kesalahan saat menyimpan checklist.');
+            }).always(function() {
+                setChecklistSaving(false);
+            });
+        });
 
         if (!docidOnboarding) {
             $('#checklistArea').html(
@@ -243,6 +254,7 @@
                 _token: $(this).find('input[name="_token"]').val(),
                 applicant_id: $(this).find('input[name="applicant_id"]').val(),
                 jobapply_id: $(this).find('input[name="jobapply_id"]').val(),
+                cpnyid: $(this).find('input[name="cpnyid"]').val(),
                 availability_date: $('#sch_availability_date').val(),
                 work_start_date: $('#sch_work_start_date').val()
             };

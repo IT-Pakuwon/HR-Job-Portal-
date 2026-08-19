@@ -268,7 +268,8 @@
                 </form>
 
                 <template id="signRowTemplate">
-                    <div class="sign-row relative grid grid-cols-1 items-end gap-4 md:grid-cols-[120px_1fr_1fr]">
+                    <div class="sign-row grid items-end gap-3"
+                        style="grid-template-columns: 72px minmax(0, 1.15fr) minmax(0, 0.85fr) 36px;">
                         <div class="flex flex-col">
                             <label class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Urutan</label>
                             <select name="aprvid[]"
@@ -283,11 +284,11 @@
                         <div class="flex flex-col">
                             <label class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Nama</label>
                             <select name="aprvusername[]"
-                                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                class="sign-employee-select w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                 required>
-                                <option value="" disabled selected>Select Employee</option>
+                                <option value="">Select Employee</option>
                                 @foreach ($userlist as $u)
-                                    <option value="{{ $u->username }}" data-npk="{{ $u->name }}">{{ $u->name }}</option>
+                                    <option value="{{ $u->username }}" data-name="{{ $u->name }}">{{ $u->name }}</option>
                                 @endforeach
                             </select>
                             <input type="hidden" name="aprvname[]" class="aprvname-input">
@@ -299,8 +300,16 @@
                                 required>
                         </div>
                         <button type="button"
-                            class="removeSignRow absolute -right-3 -top-3 rounded-full bg-red-500 px-2 py-0.5 text-xs font-semibold text-white hover:bg-red-600">
-                            ×
+                            class="removeSignRow inline-flex h-[38px] w-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-500 transition hover:border-red-300 hover:bg-red-100 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-200 dark:border-red-900/60 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40"
+                            title="Delete row" aria-label="Delete row">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+                                aria-hidden="true">
+                                <path d="M3 6h18" />
+                                <path d="M8 6V4h8v2" />
+                                <path d="M19 6l-1 14H6L5 6" />
+                                <path d="M10 11v5M14 11v5" />
+                            </svg>
                         </button>
                     </div>
                 </template>
@@ -640,9 +649,26 @@
         const rows = $('#signRows');
         const tpl = document.getElementById('signRowTemplate');
 
+        function initEmployeeSelect($scope) {
+            $scope.find('.sign-employee-select').each(function() {
+                const $select = $(this);
+                if ($select.hasClass('select2-hidden-accessible')) {
+                    $select.select2('destroy');
+                }
+
+                $select.select2({
+                    dropdownParent: $('#signModal'),
+                    placeholder: 'Search Employee',
+                    allowClear: true,
+                    width: '100%'
+                });
+            });
+        }
+
         function addRow() {
             const node = tpl.content.cloneNode(true);
             rows.append(node);
+            initEmployeeSelect(rows.find('.sign-row').last());
             toggleRemoveButtons();
         }
 
@@ -656,7 +682,12 @@
 
         // Remove Row (event delegation)
         $(document).on('click', '.removeSignRow', function() {
-            $(this).closest('.sign-row').remove();
+            const $row = $(this).closest('.sign-row');
+            const $employeeSelect = $row.find('.sign-employee-select');
+            if ($employeeSelect.hasClass('select2-hidden-accessible')) {
+                $employeeSelect.select2('destroy');
+            }
+            $row.remove();
             toggleRemoveButtons();
         });
 
@@ -676,7 +707,7 @@
                 addRow();
                 const row = rows.find('.sign-row').first();
                 row.find('[name="aprvid[]"]').val(data.aprvid);
-                row.find('[name="aprvusername[]"]').val(data.aprvusername ?? data.aprvusername);
+                row.find('[name="aprvusername[]"]').val(data.aprvusername).trigger('change');
                 row.find('[name="jabatan[]"]').val(data.jabatan);
                 $('#sign_id').val(data.id);
                 $('#signModal').removeClass('hidden');

@@ -13,6 +13,7 @@ class ApplicantDriverLicense extends Model
 
     protected $fillable = [
         'applicant_id',
+        'group_cpny_id',
         'driver_license_id',
         'driver_license_descr',
         'status',

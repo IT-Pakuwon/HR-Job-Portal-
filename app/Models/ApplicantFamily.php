@@ -11,7 +11,8 @@ class ApplicantFamily extends Model
     protected $table = "hr_ms_applicant_family_background";
    
     protected $fillable = [     
-        'applicant_id',       
+        'applicant_id',   
+        'group_cpny_id',    
         'family_name',
         'family_type',
         'family_gender',

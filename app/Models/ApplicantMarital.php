@@ -11,6 +11,7 @@ class ApplicantMarital extends Model
 
     protected $fillable = [
         'applicant_id',
+        'group_cpny_id',
         'company_name',
         'job_title',
         'start_date',

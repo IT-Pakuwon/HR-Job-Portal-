@@ -736,6 +736,9 @@
             // }
 
             const currentDeptId = @json(old('departementid', $personnel->departementid ?? ''));
+            const currentDivisionId = String(@json(old('division_id', $personnel->division_id ?? '')) || '');
+            let activeDivisionId = currentDivisionId;
+            let departmentRequest = null;
 
             function resetDept(message = 'Select Department') {
                 $('#departementid').html(`<option value="" disabled selected>${message}</option>`);
@@ -743,11 +746,19 @@
             }
 
             function loadDepartments(divisionId, selectedDeptId = null) {
-                $.ajax({
+                if (departmentRequest) {
+                    departmentRequest.abort();
+                }
+
+                resetDept('Loading...');
+                departmentRequest = $.ajax({
                     url: `/hr/departments`,
                     type: 'GET',
                     dataType: 'json',
-                    data: { division_id: divisionId },
+                    data: {
+                        division_id: divisionId,
+                        selected_department_id: selectedDeptId || ''
+                    },
                     success: function(rows) {
                         let html = `<option value="" disabled>Select Department</option>`;
 
@@ -762,21 +773,35 @@
                             resetDept('No department found');
                         }
                     },
-                    error: function() {
+                    error: function(xhr, status) {
+                        if (status === 'abort') return;
                         resetDept('Error loading department');
+                    },
+                    complete: function() {
+                        departmentRequest = null;
                     }
                 });
             }
 
             $('#division_id').on('change', function() {
-                const divisionId = $(this).val();
+                const divisionId = String($(this).val() || '');
                 if (!divisionId) {
+                    activeDivisionId = '';
                     resetDept();
                     return;
                 }
 
+                // Select2 dapat memicu change ketika halaman edit baru dibuka.
+                // Jangan muat ulang tanpa nilai terpilih jika division tidak berubah.
+                if (divisionId === activeDivisionId) return;
+
+                activeDivisionId = divisionId;
                 loadDepartments(divisionId, null);
             });
+
+            if (currentDivisionId) {
+                loadDepartments(currentDivisionId, currentDeptId);
+            }
 
             // ========= COMPANY -> SITE (AJAX like create) =========
             const currentSiteValue = @json($personnel->locationname); // samakan dengan yang kamu simpan (id/site)

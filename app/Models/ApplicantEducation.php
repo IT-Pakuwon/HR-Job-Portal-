@@ -12,6 +12,7 @@ class ApplicantEducation extends Model
    
     protected $fillable = [     
         'applicant_id', 
+        'group_cpny_id',
         'education_name',
         'education_type',
         'start_year',

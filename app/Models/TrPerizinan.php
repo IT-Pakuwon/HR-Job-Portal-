@@ -13,16 +13,19 @@ class TrPerizinan extends Model
         'expired_date' => 'boolean',
     ];
 
-    protected $fillable = [        
+    protected $fillable = [
         'perizinan_id',
         'renewal_sequence',
         'perizinan_date',
         'prev_perizinan_id',
         'cpny_id',
         'site_id',
+        'csid',
+        'sppbjktid',
         'department_fin_id',
         'user_peminta',
-        'user_approval',
+        'user_dept_peminta',
+        'user_dept_approval',
         'perizinan_category',
         'perizinan_title',
         'perizinan_descr',
@@ -47,7 +50,7 @@ class TrPerizinan extends Model
         'deleted_by',
         'deleted_at',
         'completed_by',
-        'completed_at'
+        'completed_at',
     ];
 
     public function site()

@@ -51,6 +51,12 @@
                             <option value="{{ $category->perizinan_category }}">{{ $category->perizinancategory_descr ?: $category->perizinan_category }}</option>
                         @endforeach
                     </select>
+                    <select id="filterSite" class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700">
+                        <option value="">All Sites</option>
+                        @foreach ($sites as $site)
+                            <option value="{{ $site->siteid }}">{{ $site->cpny_id }} - {{ $site->site_name }}</option>
+                        @endforeach
+                    </select>
                     <button type="button" id="btnResetFilters" class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Reset</button>
                 </div>
                 <button type="button" id="btnCreatePerizinan"
@@ -83,7 +89,7 @@
     </div>
 
     <div id="perizinanModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
-        <div class="max-h-[95vh] w-full max-w-5xl overflow-y-auto rounded-xl bg-white shadow-xl dark:bg-gray-800">
+        <div class="max-h-[95vh] w-full max-w-7xl overflow-y-auto rounded-xl bg-white shadow-xl dark:bg-gray-800">
             <div class="flex items-center justify-between border-b px-5 py-4 dark:border-gray-700">
                 <h2 id="modalTitle" class="text-lg font-bold text-gray-800 dark:text-white">Create Permit</h2>
                 <button type="button" class="btnCloseModal text-2xl text-gray-500 hover:text-gray-800 dark:text-gray-400">&times;</button>
@@ -92,8 +98,8 @@
             <form id="perizinanForm" enctype="multipart/form-data">
                 @csrf
                 <input type="hidden" id="editPerizinanId">
-                <div class="grid grid-cols-1 gap-4 p-5 md:grid-cols-2">
-                    <div class="grid grid-cols-1 gap-4 md:col-span-2 md:grid-cols-3">
+                <input type="hidden" id="reminder_days_before_end" name="reminder_days_before_end" value="90">
+                <div class="grid grid-cols-1 gap-4 p-5 md:grid-cols-4">
                     <div>
                         <label class="mb-1 block text-sm font-semibold">Company <span class="text-red-500">*</span></label>
                         <select id="cpnyid" name="cpnyid" class="w-full rounded-lg border px-3 py-2" required>
@@ -115,7 +121,6 @@
                             <option value="">Select Company first</option>
                         </select>
                     </div>
-                    </div>
                     <div>
                         <label class="mb-1 block text-sm font-semibold">Permit Category <span class="text-red-500">*</span></label>
                         <select id="perizinan_category" name="perizinan_category" class="w-full rounded-lg border px-3 py-2" required>
@@ -127,19 +132,27 @@
                             @endforeach
                         </select>
                     </div>
+                    <div class="md:col-span-2">
+                        <label class="mb-1 block text-sm font-semibold">Permit Title <span class="text-red-500">*</span></label>
+                        <input type="text" id="perizinan_title" name="perizinan_title" class="w-full rounded-lg border px-3 py-2" maxlength="255" required>
+                    </div>
                     <div>
                         <label class="mb-1 block text-sm font-semibold">User Approval <span class="text-red-500">*</span></label>
-                        <select id="user_approval" name="user_approval[]"
+                        <select id="user_dept_approval" name="user_dept_approval[]"
                             class="user-select2 w-full rounded-lg border px-3 py-2" multiple required>
                             @foreach ($approvers as $approver)
                                 <option value="{{ $approver->username }}">{{ $approver->name }}</option>
                             @endforeach
                         </select>
-                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">You can select more than one user.</p>
                     </div>
-                    <div class="md:col-span-2">
-                        <label class="mb-1 block text-sm font-semibold">Permit Title <span class="text-red-500">*</span></label>
-                        <input type="text" id="perizinan_title" name="perizinan_title" class="w-full rounded-lg border px-3 py-2" maxlength="255" required>
+                    <div>
+                        <label class="mb-1 block text-sm font-semibold">User Peminta Dept <span class="text-red-500">*</span></label>
+                        <select id="user_dept_peminta" name="user_dept_peminta[]"
+                            class="user-select2 w-full rounded-lg border px-3 py-2" multiple required>
+                            @foreach ($approvers as $approver)
+                                <option value="{{ $approver->username }}">{{ $approver->name }}</option>
+                            @endforeach
+                        </select>
                     </div>
                     <div class="md:col-span-2">
                         <label class="mb-1 block text-sm font-semibold">Description</label>
@@ -152,24 +165,15 @@
                     <div>
                         <div class="mb-1 flex items-center justify-between gap-3">
                             <label for="enddate" class="block text-sm font-semibold">End Date</label>
-                            <label class="inline-flex cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                            <label class="inline-flex cursor-pointer items-center gap-2 text-xs text-gray-700 dark:text-gray-300">
                                 <input type="hidden" name="expired_date" value="0">
                                 <input type="checkbox" id="expired_date" name="expired_date" value="1"
                                     class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-700" checked>
-                                <span>Has an expiration date</span>
+                                <span>Has expiration</span>
                             </label>
                         </div>
                         <input type="date" id="enddate" name="enddate" class="w-full rounded-lg border px-3 py-2" required>
                         <p id="noExpiryHint" class="mt-1 hidden text-xs text-gray-500 dark:text-gray-400">This permit has no expiration date.</p>
-                    </div>
-                    <div>
-                        <label class="mb-1 block text-sm font-semibold">Reminder Before End Date <span class="text-red-500">*</span></label>
-                        <select id="reminder_days_before_end" name="reminder_days_before_end" class="w-full rounded-lg border px-3 py-2" required>
-                            <option value="120">120 Days</option>
-                            <option value="90" selected>90 Days</option>
-                            <option value="60">60 Days</option>
-                            <option value="30">30 Days</option>
-                        </select>
                     </div>
                     <div>
                         <label class="mb-1 block text-sm font-semibold">Issue Date</label>
@@ -194,6 +198,14 @@
                     <div>
                         <label class="mb-1 block text-sm font-semibold">Legal Contract Number</label>
                         <input type="text" id="no_kontrak_legal" name="no_kontrak_legal" class="w-full rounded-lg border px-3 py-2" maxlength="255">
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-semibold">SPPBJKT ID</label>
+                        <input type="text" id="sppbjktid" name="sppbjktid" class="w-full rounded-lg border px-3 py-2" maxlength="255">
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-semibold">CS ID</label>
+                        <input type="text" id="csid" name="csid" class="w-full rounded-lg border px-3 py-2" maxlength="255">
                     </div>
                 </div>
 
@@ -270,24 +282,15 @@
                         <div><p class="text-xs text-gray-400">Start Date</p><p id="detailStartDate" class="mt-1 text-sm font-medium">-</p></div>
                         <div><p class="text-xs text-gray-400">End Date</p><p id="detailEndDate" class="mt-1 text-sm font-medium">-</p></div>
                         <div><p class="text-xs text-gray-400">Issue Date</p><p id="detailIssueDate" class="mt-1 text-sm font-medium">-</p></div>
-                        <div><p class="text-xs text-gray-400">Reminder</p><p id="detailReminder" class="mt-1 text-sm font-medium">-</p></div>
                         <div><p class="text-xs text-gray-400">Handling Method</p><p id="detailHandlingMethod" class="mt-1 text-sm font-medium">-</p></div>
                         <div><p class="text-xs text-gray-400">Issuing Authority</p><p id="detailIssuingAuthority" class="mt-1 text-sm font-medium">-</p></div>
                         <div><p class="text-xs text-gray-400">Submission Channel</p><p id="detailSubmissionChannel" class="mt-1 text-sm font-medium">-</p></div>
                         <div><p class="text-xs text-gray-400">Legal Contract Number</p><p id="detailLegalContract" class="mt-1 text-sm font-medium">-</p></div>
-                        <div class="sm:col-span-2"><p class="text-xs text-gray-400">Approvers</p><p id="detailApprovers" class="mt-1 text-sm font-medium">-</p></div>
+                        <div><p class="text-xs text-gray-400">SPPBJKT ID</p><p id="detailSppbjktId" class="mt-1 text-sm font-medium">-</p></div>
+                        <div><p class="text-xs text-gray-400">CS ID</p><p id="detailCsId" class="mt-1 text-sm font-medium">-</p></div>
+                        <div><p class="text-xs text-gray-400">User Approval</p><p id="detailApprovers" class="mt-1 text-sm font-medium">-</p></div>
+                        <div><p class="text-xs text-gray-400">User Peminta Dept</p><p id="detailDeptRequesters" class="mt-1 text-sm font-medium">-</p></div>
                         <div class="sm:col-span-2"><p class="text-xs text-gray-400">Description</p><div id="detailDescription" class="mt-2 rounded-lg bg-gray-50 p-4 text-sm whitespace-pre-wrap dark:bg-gray-700">-</div></div>
-                    </div>
-
-                    <div class="mb-2 mt-6 flex items-center gap-2">
-                        <h3 class="font-bold">Permit Items</h3>
-                        <span id="detailItemTotal" class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">0</span>
-                    </div>
-                    <div class="overflow-hidden rounded-lg border dark:border-gray-700">
-                        <table class="w-full text-sm">
-                            <thead class="bg-gray-50 dark:bg-gray-700"><tr><th class="px-3 py-2 text-left">Item</th><th class="w-28 px-3 py-2 text-right">Quantity</th></tr></thead>
-                            <tbody id="detailItems"></tbody>
-                        </table>
                     </div>
 
                     <div class="mb-2 mt-6 flex items-center gap-2">
@@ -309,9 +312,31 @@
                     </div>
                 </div>
 
-                <div class="overflow-y-auto p-6">
-                    <h3 class="mb-5 font-bold text-gray-800 dark:text-white">Tracking Timeline</h3>
-                    <div id="activityTimeline" class="space-y-4"></div>
+                <div class="flex min-h-0 flex-col">
+                    <div class="flex gap-2 border-b px-6 pt-4 dark:border-gray-700">
+                        <button type="button" data-detail-tab="items" class="detail-tab-btn rounded-t-lg border-b-2 border-transparent px-4 py-3 text-sm font-semibold text-gray-500 hover:text-indigo-600">
+                            Permit Items <span id="detailItemTotal" class="ml-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">0</span>
+                        </button>
+                        <button type="button" data-detail-tab="tracking" class="detail-tab-btn rounded-t-lg border-b-2 border-indigo-600 px-4 py-3 text-sm font-semibold text-indigo-600">
+                            Tracking Timeline
+                        </button>
+                    </div>
+
+                    <div class="min-h-0 flex-1 overflow-y-auto p-6">
+                        <div id="detailTabItems" class="detail-tab-panel hidden">
+                            <div class="overflow-hidden rounded-lg border dark:border-gray-700">
+                                <table class="w-full text-sm">
+                                    <thead class="bg-gray-50 dark:bg-gray-700">
+                                        <tr><th class="px-3 py-3 text-left">Permit Item</th><th class="w-32 px-3 py-3 text-right">Quantity</th></tr>
+                                    </thead>
+                                    <tbody id="detailItems"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div id="detailTabTracking" class="detail-tab-panel">
+                            <div id="activityTimeline" class="space-y-4"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -409,7 +434,7 @@
                     P: { label: 'On Progress', color: 'bg-blue-100 text-blue-700' },
                     C: { label: 'Completed', color: 'bg-emerald-100 text-emerald-700' },
                     R: { label: 'Rejected', color: 'bg-red-100 text-red-700' },
-                    X: { label: 'Cancelled', color: 'bg-gray-200 text-gray-700' }
+                    X: { label: 'Cancelled', color: 'bg-red-100 text-red-700' }
                 };
                 return statuses[status] || { label: status, color: 'bg-gray-100 text-gray-700' };
             };
@@ -430,6 +455,7 @@
                         data.expiry_year = $('#filterExpiryYear').val();
                         data.expiry_month = $('#filterExpiryMonth').val();
                         data.category = $('#filterCategory').val();
+                        data.site_id = $('#filterSite').val();
                     }
                 },
                 order: [[8, 'asc']],
@@ -438,19 +464,24 @@
                     {
                         data: 'perizinan_id', orderable: false, searchable: false,
                         render: (value, _type, row) => {
-                            const editButton = String(row.status || '').toUpperCase() === 'C' ? '' : `
+                            const status = String(row.status || '').toUpperCase();
+                            const isOnProgress = status === 'P';
+                            const canRenew = ['C', 'R', 'X'].includes(status) && !row.has_blocking_renewal;
+                            const editButton = !isOnProgress ? '' : `
                             <button type="button" class="btnEdit inline-flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 text-white hover:bg-amber-600" data-id="${escapeHtml(value)}" title="Edit permit" aria-label="Edit permit">
                                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z"/></svg>
                             </button>`;
-                            const renewButton = row.has_blocking_renewal ? '' : `
+                            const activityButton = !isOnProgress ? '' : `
+                            <button type="button" class="btnActivity inline-flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white hover:bg-indigo-700" data-id="${escapeHtml(value)}" title="Permit action" aria-label="Permit action">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg>
+                            </button>`;
+                            const renewButton = !canRenew ? '' : `
                             <button type="button" class="btnRenew inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white hover:bg-emerald-700" data-id="${escapeHtml(value)}" title="Renew permit" aria-label="Renew permit">
                                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 11a8.1 8.1 0 00-15.5-2M4 4v5h5"/><path d="M4 13a8.1 8.1 0 0015.5 2M20 20v-5h-5"/></svg>
                             </button>`;
                             return `<div class="flex items-center gap-1">
                             ${editButton}
-                            <button type="button" class="btnActivity inline-flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white hover:bg-indigo-700" data-id="${escapeHtml(value)}" title="Permit action" aria-label="Permit action">
-                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg>
-                            </button>
+                            ${activityButton}
                             ${renewButton}
                         </div>`;
                         }
@@ -510,11 +541,11 @@
                 updateExpiryMonths();
                 table.ajax.reload();
             });
-            $('#filterExpiryMonth, #filterCategory').on('change', function () {
+            $('#filterExpiryMonth, #filterCategory, #filterSite').on('change', function () {
                 table.ajax.reload();
             });
             $('#btnResetFilters').on('click', function () {
-                $('#filterExpiryYear, #filterCategory').val('');
+                $('#filterExpiryYear, #filterCategory, #filterSite').val('');
                 updateExpiryMonths();
                 $('#filterExpiryMonth').val('');
                 table.ajax.reload();
@@ -531,11 +562,13 @@
             const attachmentListUrlTemplate = @json($attachmentListUrlTemplate);
             const activityAttachmentListUrlTemplate = @json($activityAttachmentListUrlTemplate);
 
-            $('#user_approval').select2({
-                placeholder: 'Search user approval...',
-                allowClear: true,
-                width: '100%',
-                dropdownParent: $modal
+            $('#user_dept_approval, #user_dept_peminta').each(function () {
+                $(this).select2({
+                    placeholder: $(this).is('#user_dept_approval') ? 'Search user approval...' : 'Search user peminta dept...',
+                    allowClear: true,
+                    width: '100%',
+                    dropdownParent: $modal
+                });
             });
 
             const formatDateTime = (value) => {
@@ -682,6 +715,17 @@
                 $activityModal.addClass('hidden').removeClass('flex');
             }
 
+            function activateDetailTab(tab) {
+                $('.detail-tab-panel').addClass('hidden');
+                $(`#detailTab${tab === 'items' ? 'Items' : 'Tracking'}`).removeClass('hidden');
+                $('.detail-tab-btn')
+                    .removeClass('border-indigo-600 text-indigo-600')
+                    .addClass('border-transparent text-gray-500');
+                $(`.detail-tab-btn[data-detail-tab="${tab}"]`)
+                    .removeClass('border-transparent text-gray-500')
+                    .addClass('border-indigo-600 text-indigo-600');
+            }
+
             async function showPermit(permitId) {
                 const response = await $.get(`${baseUrl}/${encodeURIComponent(permitId)}`);
                 const permit = response.data;
@@ -700,16 +744,38 @@
                 $('#detailStartDate').text(formatLongDateId(permit.startdate));
                 $('#detailEndDate').text(permit.expired_date ? formatLongDateId(permit.enddate) : 'No expiration date');
                 $('#detailIssueDate').text(formatLongDateId(permit.issue_date));
-                $('#detailReminder').text(permit.reminder_days_before_end ? `${permit.reminder_days_before_end} Days Before End Date` : '-');
                 $('#detailHandlingMethod').text(permit.application_handling_method
                     ? permit.application_handling_method.charAt(0).toUpperCase() + permit.application_handling_method.slice(1).toLowerCase()
                     : '-');
                 $('#detailIssuingAuthority').text(permit.issuing_authority || '-');
                 $('#detailSubmissionChannel').text(permit.submission_channel || '-');
                 $('#detailLegalContract').text(permit.no_kontrak_legal || '-');
-                $('#detailApprovers').text((permit.user_approval || '').split(',').filter(Boolean).join(', ') || '-');
+                if (permit.sppbjktid && permit.sppbjkt_url) {
+                    $('#detailSppbjktId').html(`
+                        <a href="${escapeHtml(permit.sppbjkt_url)}" target="_blank" rel="noopener noreferrer"
+                            class="font-semibold text-indigo-600 hover:text-indigo-800 hover:underline dark:text-indigo-400">
+                            ${escapeHtml(permit.sppbjktid)}
+                            <span aria-hidden="true">&#8599;</span>
+                        </a>`);
+                } else {
+                    $('#detailSppbjktId').text(permit.sppbjktid || '-');
+                }
+                if (permit.csid && permit.cs_url) {
+                    $('#detailCsId').html(`
+                        <a href="${escapeHtml(permit.cs_url)}" target="_blank" rel="noopener noreferrer"
+                            class="font-semibold text-indigo-600 hover:text-indigo-800 hover:underline dark:text-indigo-400">
+                            ${escapeHtml(permit.csid)}
+                            <span aria-hidden="true">&#8599;</span>
+                        </a>`);
+                } else {
+                    $('#detailCsId').text(permit.csid || '-');
+                }
+                $('#detailApprovers').text((permit.user_dept_approval || '').split(',').filter(Boolean).join(', ') || '-');
+                $('#detailDeptRequesters').text((permit.user_dept_peminta || '').split(',').filter(Boolean).join(', ') || '-');
                 $('#detailDescription').text(permit.perizinan_descr || '-');
-                $('#btnDetailAction').data('id', permit.perizinan_id);
+                $('#btnDetailAction')
+                    .data('id', permit.perizinan_id)
+                    .toggleClass('hidden', String(permit.status || '').toUpperCase() !== 'P');
                 loadPermitAttachments(permit.perizinan_id);
 
                 const items = permit.details || [];
@@ -740,6 +806,7 @@
                 }).join('') : '<div class="rounded-lg border border-dashed p-8 text-center text-sm text-gray-500 dark:text-gray-400">No tracking activity yet.</div>');
 
                 activities.forEach(loadActivityAttachments);
+                activateDetailTab('tracking');
 
                 $detailModal.removeClass('hidden').addClass('flex');
                 $('body').addClass('overflow-hidden');
@@ -750,7 +817,16 @@
                     <tr class="border-t detail-row">
                         <td class="p-2"><input type="text" name="item_perizinan[]" value="${escapeHtml(detail.item_perizinan || '')}" class="w-full rounded-lg border px-3 py-2" maxlength="255" required></td>
                         <td class="p-2"><input type="number" name="qty_perizinan[]" value="${escapeHtml(detail.qty_perizinan || 1)}" class="w-full rounded-lg border px-3 py-2" min="0.01" step="0.01" required></td>
-                        <td class="p-2 text-center"><button type="button" class="btnRemoveRow rounded bg-red-500 px-2 py-1 text-white">&times;</button></td>
+                        <td class="p-2 text-center">
+                            <button type="button" class="btnRemoveRow inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-red-600 transition hover:bg-red-100 dark:bg-red-950/40 dark:text-red-400" title="Remove permit item" aria-label="Remove permit item">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M3 6h18"/>
+                                    <path d="M8 6V4h8v2"/>
+                                    <path d="M19 6l-1 14H6L5 6"/>
+                                    <path d="M10 11v5M14 11v5"/>
+                                </svg>
+                            </button>
+                        </td>
                     </tr>`);
             }
 
@@ -806,7 +882,7 @@
 
             function resetForm() {
                 $('#perizinanForm')[0].reset();
-                $('#user_approval').val(null).trigger('change');
+                $('#user_dept_approval, #user_dept_peminta').val(null).trigger('change');
                 $('#expired_date').prop('checked', true);
                 $('#reminder_days_before_end').val('90');
                 syncExpiryField();
@@ -931,6 +1007,9 @@
                 $('body').removeClass('overflow-hidden');
             });
             $('.btnCloseActivity').on('click', closeActivityModal);
+            $(document).on('click', '.detail-tab-btn', function () {
+                activateDetailTab($(this).data('detail-tab'));
+            });
 
             $('#activityForm').on('submit', function (event) {
                 event.preventDefault();
@@ -993,7 +1072,10 @@
                     $('#submission_channel').val(data.submission_channel || '');
                     $('#no_kontrak_legal').val(data.no_kontrak_legal || '');
                     $('#issue_date').val((data.issue_date || '').substring(0, 10));
-                    $('#user_approval').val((data.user_approval || '').split(',').filter(Boolean)).trigger('change');
+                    $('#user_dept_approval').val((data.user_dept_approval || '').split(',').filter(Boolean)).trigger('change');
+                    $('#user_dept_peminta').val((data.user_dept_peminta || '').split(',').filter(Boolean)).trigger('change');
+                    $('#sppbjktid').val(data.sppbjktid || '');
+                    $('#csid').val(data.csid || '');
                     $('#detailRows').empty();
                     (response.details.length ? response.details : [{}]).forEach(addDetailRow);
                     openModal();

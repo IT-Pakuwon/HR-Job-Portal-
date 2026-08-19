@@ -11,6 +11,7 @@ class ApplicantReference extends Model
 
     protected $fillable = [
         'applicant_id',
+        'group_cpny_id',
         'reference_name',
         'reference_company_name',
         'reference_job_position',

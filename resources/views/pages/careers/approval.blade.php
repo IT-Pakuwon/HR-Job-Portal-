@@ -25,7 +25,7 @@
         </div>
         <div class="rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-700/30">
             <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Company</p>
-            <p class="text-sm font-semibold text-gray-700 dark:text-gray-200">{{ $career->cpnyid ?? '-' }}</p>
+            <p class="text-sm font-semibold text-gray-700 dark:text-gray-200">{{ $companyName ?? $career->cpnyid ?? '-' }}</p>
         </div>
         <div class="rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-700/30">
             <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Position</p>
@@ -323,13 +323,13 @@
         </div>
     </div>
 
-    <div id="loadingSpinnerContainer" class="flex h-16 items-center justify-center pt-8">
-        <svg class="h-10 w-10 animate-spin text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none"
-            viewBox="0 0 24 24" stroke="currentColor">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
-            </circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-        </svg>
+    <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
+        <div class="loading-card">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">
+                Processing<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>
+            </div>
+        </div>
     </div>
 
     <!-- Reject Modal — same style as other show pages -->
@@ -574,9 +574,13 @@
         $(document).on("click", "#confirmRejectBtn", function() {
             let reason = $("#rejectReason").val().trim();
             if (!reason) { toastr.error("Please provide a reason for rejection."); return; }
+            let $spinner = $("#loadingSpinnerContainer");
+            $("#rejectTaskModal").addClass("hidden");
+            $spinner.fadeIn();
             $.post(`/career/${docid}/reject`, { _token: "{{ csrf_token() }}", docid, reason })
                 .done(function(r) { if (r.success) { location.reload(); } else { toastr.error("Failed to reject."); } })
-                .fail(function(xhr) { toastr.error(xhr.status === 403 ? "You can't reject!" : "Error rejecting."); });
+                .fail(function(xhr) { toastr.error(xhr.status === 403 ? "You can't reject!" : "Error rejecting."); })
+                .always(function() { $spinner.fadeOut(); });
         });
 
         // Rollback
@@ -584,16 +588,20 @@
             $("#rollbackReason").val("");
             $.get(`/career/${docid}/check-rollback-permission`, function(res) {
                 if (res.canRollback) checkApproval(docid, "rollback");
-                else toastr.warning("You are not allowed to rollback at this step.");
+                else toastr.warning(res.message || "You are not allowed to rollback at this step.");
             }).fail(function() { toastr.error("Failed to verify rollback permission."); });
         });
         $(document).on("click", "#cancelRollbackBtn", function() { $("#rollbackTaskModal").addClass("hidden"); });
         $(document).on("click", "#confirmRollbackBtn", function() {
             let reason = $("#rollbackReason").val().trim();
             if (!reason) { toastr.error("Please provide a reason for rollback."); return; }
+            let $spinner = $("#loadingSpinnerContainer");
+            $("#rollbackTaskModal").addClass("hidden");
+            $spinner.fadeIn();
             $.post(`/career/${docid}/rollback`, { _token: "{{ csrf_token() }}", docid, reason })
                 .done(function(r) { if (r.success) { location.reload(); } else { toastr.error("Failed to rollback."); } })
-                .fail(function(xhr) { toastr.error(xhr.status === 403 ? "You can't rollback!" : "Error rolling back."); });
+                .fail(function(xhr) { toastr.error(xhr.status === 403 ? "You can't rollback!" : "Error rolling back."); })
+                .always(function() { $spinner.fadeOut(); });
         });
 
         // checkApproval
@@ -644,29 +652,3 @@
         });
     });
 </script>
-<style>
-    /* Styling untuk loading spinner di kanan bawah */
-    #loadingSpinnerContainer {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: rgba(0, 0, 0, 0.7);
-        padding: 10px;
-        border-radius: 50%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 50px;
-        height: 50px;
-        z-index: 1000;
-        display: none;
-        /* Tersembunyi saat tidak digunakan */
-    }
-
-    #loadingSpinnerContainer svg {
-        width: 30px;
-        height: 30px;
-        color: white;
-    }
-</style>
-

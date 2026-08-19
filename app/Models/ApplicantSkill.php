@@ -12,6 +12,7 @@ class ApplicantSkill extends Model
    
     protected $fillable = [     
         'applicant_id',       
+        'group_cpny_id',
         'skill_descr',
         'skill_type',             
         'status',
