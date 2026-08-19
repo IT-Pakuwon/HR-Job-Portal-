@@ -78,9 +78,12 @@ class ReportGeneralGAController extends Controller
             ->orderBy('cpny_name')
             ->get(['cpny_id', 'cpny_name']);
 
-        $hasCSACCESS = $user->hasRole('CSACCESS');
-        $hasADMIN    = $user->isAdmin();
-        $hasGAACCESS = $user->hasRole('GAACCESS');
+        // DIRECTORACCESS (or other hasFullDataScope() roles) sees every tab —
+        // none of CSACCESS/isAdmin/GAACCESS individually, but the UI gates each
+        // tab on exactly those flags, so treat it as having all three here.
+        $hasCSACCESS = $user->hasRole('CSACCESS') || $user->hasFullDataScope();
+        $hasADMIN    = $user->isAdmin() || $user->hasFullDataScope();
+        $hasGAACCESS = $user->hasRole('GAACCESS') || $user->hasFullDataScope();
 
         $tabCount = ($hasCSACCESS ? 1 : 0) + ($hasADMIN ? 1 : 0) + ($hasGAACCESS ? 4 : 0);
 

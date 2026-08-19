@@ -1,7 +1,7 @@
 <x-app-layout>
 @php
     $user = auth()->user();
-    $hasPurchAccess = $user->hasRole('PURCHACCESS');
+    $hasPurchAccess = $user->hasRole('PURCHACCESS') || $user->hasFullDataScope();
 @endphp
 
 
