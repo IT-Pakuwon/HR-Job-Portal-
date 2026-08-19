@@ -36,6 +36,7 @@
                     <th class="px-3 py-3 text-left font-semibold">Keperluan</th>
                     <th class="px-3 py-3 text-left font-semibold">Receive No (DAS)</th>
                     <th class="px-3 py-3 text-left font-semibold">Transfer/Usage No (DAS)</th>
+                    <th class="px-3 py-3 text-left font-semibold">Keterangan</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-700/60">
@@ -43,7 +44,7 @@
                 @forelse($groups as $group)
                     @if($group['is_first_of_category'])
                         <tr class="bg-linear-to-r from-purple-50 to-purple-50/30 dark:from-purple-900/25 dark:to-purple-900/5">
-                            <td colspan="17" class="px-3 py-2">
+                            <td colspan="18" class="px-3 py-2">
                                 <div class="flex items-center gap-2">
                                     <span class="h-3.5 w-1 rounded-full bg-purple-500"></span>
                                     <span class="text-xs font-bold uppercase tracking-wide text-purple-700 dark:text-purple-300">
@@ -125,11 +126,16 @@
                                     <span class="inline-flex rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">{{ $row['doc_no'] }}</span>
                                 @endif
                             </td>
+                            <td class="px-3 py-2.5">
+                                @if($row && $row['keterangan'])
+                                    <span class="inline-flex rounded-md bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-700 dark:bg-sky-900/30 dark:text-sky-300">{{ $row['keterangan'] }}</span>
+                                @endif
+                            </td>
                         </tr>
                     @endforeach
                 @empty
                     <tr>
-                        <td colspan="17" class="px-3 py-16 text-center">
+                        <td colspan="18" class="px-3 py-16 text-center">
                             <div class="flex flex-col items-center gap-2 text-gray-400 dark:text-gray-500">
                                 <i class="fa-solid fa-box-open text-2xl"></i>
                                 <span class="text-sm">No data for the selected company/period.</span>
@@ -144,7 +150,7 @@
                         <td colspan="9" class="px-3 py-3 text-right">Grand Total</td>
                         <td class="px-3 py-3 text-right tabular-nums text-purple-700 dark:text-purple-300">{{ number_format(collect($groups)->sum('ending'), 0, ',', '.') }}</td>
                         <td class="px-3 py-3 text-right tabular-nums text-purple-700 dark:text-purple-300">{{ number_format(collect($groups)->sum('total_nominal'), 0, ',', '.') }}</td>
-                        <td colspan="6"></td>
+                        <td colspan="7"></td>
                     </tr>
                 </tfoot>
             @endif
