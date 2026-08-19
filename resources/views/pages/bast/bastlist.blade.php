@@ -130,21 +130,21 @@
 
             <div class="grid grid-cols-1 gap-3 px-5 pt-4 md:grid-cols-5">
 
-                <select id="filter_vendor" class="w-full rounded border px-3 py-2 text-sm">
+                <select id="filter_vendor" class="w-full rounded border px-3 py-2 text-sm dark:border-white/6 dark:bg-[#0f172a] dark:text-white">
                     <option value="">All Vendor</option>
                 </select>
 
-                <select id="filter_terms" class="w-full rounded border px-3 py-2 text-sm">
+                <select id="filter_terms" class="w-full rounded border px-3 py-2 text-sm dark:border-white/6 dark:bg-[#0f172a] dark:text-white">
                     <option value="">All Terms</option>
                 </select>
 
                 {{-- Start Date --}}
-                <input type="date" id="filter_start" class="w-full rounded border px-3 py-2 text-sm">
+                <input type="date" id="filter_start" class="w-full rounded border px-3 py-2 text-sm scheme-light dark:border-white/6 dark:bg-[#0f172a] dark:text-white dark:scheme-dark">
 
                 {{-- End Date --}}
-                <input type="date" id="filter_end" class="w-full rounded border px-3 py-2 text-sm">
+                <input type="date" id="filter_end" class="w-full rounded border px-3 py-2 text-sm scheme-light dark:border-white/6 dark:bg-[#0f172a] dark:text-white dark:scheme-dark">
 
-                <button type="button" id="reset_filters" class="rounded bg-gray-500 px-3 py-2 text-white">
+                <button type="button" id="reset_filters" class="rounded bg-gray-500 px-3 py-2 text-white hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700">
                     Reset
                 </button>
             </div>
@@ -443,25 +443,10 @@
 
                 table.on('xhr', function() {
                     const json = table.ajax.json();
-                    if (!json || !json.data) return;
+                    if (!json) return;
 
-                    const vendors = new Set();
-
-                    json.data.forEach(row => {
-                        if (row.vendorname) {
-                            vendors.add(row.vendorname);
-                        }
-                    });
-
-                    const $vendor = $('#filter_vendor');
-
-                    // prevent re-append
-                    if ($vendor.children().length <= 1) {
-                        vendors.forEach(v => {
-                            $vendor.append(`<option value="${v}">${v}</option>`);
-                        });
-                        initSelect2($vendor, 'All Vendor');
-                    }
+                    populateFilterOptions($('#filter_vendor'), json.vendorOptions, 'All Vendor');
+                    populateFilterOptions($('#filter_terms'), json.termsOptions, 'All Terms');
                 });
 
             }
@@ -477,6 +462,21 @@
                 });
             }
 
+            function populateFilterOptions($el, options, allLabel) {
+                const current = $el.val();
+                $el.empty().append(`<option value="">${allLabel}</option>`);
+
+                (options || []).forEach(v => {
+                    $el.append(`<option value="${v}">${v}</option>`);
+                });
+
+                if (current && options && options.includes(current)) {
+                    $el.val(current);
+                }
+
+                initSelect2($el, allLabel);
+            }
+
             initSelect2($('#filter_vendor'), 'All Vendor');
             initSelect2($('#filter_terms'), 'All Terms');
 
@@ -484,41 +484,11 @@
                 .on('change keyup', function() {
                     table.ajax.reload();
                 });
-            $('#filter_vendor').on('change', function() {
-                const selectedVendor = $(this).val();
-
-                const json = table.ajax.json();
-                const termsSet = new Set();
-
-                json.data.forEach(row => {
-                    if (!selectedVendor || row.vendorname === selectedVendor) {
-                        if (row.terms_name && row.terms_name !== '-') {
-                            termsSet.add(row.terms_name);
-                        }
-                    }
-                });
-
-                const $terms = $('#filter_terms');
-                $terms.empty().append('<option value="">All Terms</option>');
-
-                termsSet.forEach(t => {
-                    $terms.append(`<option value="${t}">${t}</option>`);
-                });
-
-                initSelect2($terms, 'All Terms');
-
-                table.ajax.reload();
-            });
-
-            $('#filter_vendor, #filter_terms, #filter_start, #filter_end')
-                .on('change', function() {
-                    table.ajax.reload();
-                });
 
 
             function resetFilters() {
-                $('#filter_vendor').val('').trigger('change');
-                $('#filter_terms').val('').trigger('change');
+                $('#filter_vendor').val(null).trigger('change.select2');
+                $('#filter_terms').val(null).trigger('change.select2');
                 $('#filter_start').val('');
                 $('#filter_end').val('');
 

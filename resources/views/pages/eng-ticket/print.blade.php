@@ -334,7 +334,7 @@
                             <td class="meta-label">Department</td>
                             <td class="meta-value">{{ $ticket->department_id ?? '-' }}</td>
                             <td class="meta-label">Status</td>
-                            <td class="meta-value">{{ $statusLabel }} / {{ $ticket->status_pekerjaan ?? '-' }}</td>
+                            <td class="meta-value">{{ $statusLabel }} / {{ $workflowStatusLabel ?? $ticket->status_pekerjaan ?? '-' }}</td>
                         </tr>
                         <tr>
                             <td class="meta-label">Ticket Type</td>

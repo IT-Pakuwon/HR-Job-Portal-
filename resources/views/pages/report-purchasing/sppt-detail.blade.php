@@ -1,6 +1,6 @@
 <div class="space-y-4">
   <!-- FILTER PANEL -->
-  <div class="p-6 bg-gray-50/60 rounded-2xl border border-gray-200 shadow-sm dark:border-gray-700">
+  <div class="p-6 bg-gray-50/60 rounded-2xl border border-gray-200 shadow-sm dark:border-gray-700 dark:bg-gray-800/40">
     <div class="grid grid-cols-1 gap-4 md:grid-cols-7">
       <div>
         <label class="text-xs text-gray-500 dark:text-gray-400">Date From</label>
@@ -72,7 +72,7 @@
 
         <button
           id="exportSppt"
-          class="px-4 py-2 text-sm text-emerald-700 bg-emerald-50 rounded-lg border border-emerald-200"
+          class="px-4 py-2 text-sm text-emerald-700 bg-emerald-50 rounded-lg border border-emerald-200 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20"
         >
           Export
         </button>

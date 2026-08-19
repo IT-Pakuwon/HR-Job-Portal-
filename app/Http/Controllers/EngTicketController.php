@@ -302,34 +302,6 @@ class EngTicketController extends Controller
         return (bool) auth()->user()?->hasRole(self::MGR_ROLE_ID);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Same company/department visibility
-    |--------------------------------------------------------------------------
-    | cpny_id / department_id on the user record are comma-separated lists
-    | (a user can belong to more than one of either). Anyone can see a ticket
-    | created by someone else in one of their own companies + departments,
-    | on top of their own tickets and whatever broadAccessTicketTypes() grants.
-    */
-
-    protected function userScopeCompanyIds(): array
-    {
-        return collect(explode(',', (string) auth()->user()->cpny_id))
-            ->filter()
-            ->map(fn ($item) => trim($item))
-            ->values()
-            ->toArray();
-    }
-
-    protected function userScopeDepartmentIds(): array
-    {
-        return collect(explode(',', (string) auth()->user()->department_id))
-            ->filter()
-            ->map(fn ($item) => trim($item))
-            ->values()
-            ->toArray();
-    }
-
     protected function canActOnTicketType(string $ticketType): bool
     {
         if ($this->isMgrOprTeknik()) {
@@ -415,23 +387,8 @@ class EngTicketController extends Controller
 
         $engTypes = $this->engTicketTypes();
 
-        $userCompanies    = $this->userScopeCompanyIds();
-        $userDepartments  = $this->userScopeDepartmentIds();
-
-        $baseCount = function () use ($broadTypes, $userCompanies, $userDepartments, $engTypes, $user) {
-            $q = TrTicket::query()->whereIn('ticket_type', $engTypes);
-
-            $q->where(function ($q2) use ($broadTypes, $userCompanies, $userDepartments, $user) {
-                $q2->whereIn('ticket_type', $broadTypes)
-                    ->orWhere('created_by', $user->username)
-                    ->orWhere('pic_ticket', $user->username)
-                    ->orWhere(function ($q3) use ($userCompanies, $userDepartments) {
-                        $q3->whereIn('cpny_id', $userCompanies)
-                            ->whereIn('department_id', $userDepartments);
-                    });
-            });
-
-            return $q;
+        $baseCount = function () use ($engTypes) {
+            return TrTicket::query()->whereIn('ticket_type', $engTypes);
         };
 
         $counts = [
@@ -523,8 +480,6 @@ class EngTicketController extends Controller
     {
         $user = auth()->user();
 
-        $broadTypes = $this->broadAccessTicketTypes();
-
         $engTypes = $this->engTicketTypes();
 
         $query = TrTicket::with([
@@ -538,19 +493,6 @@ class EngTicketController extends Controller
         ])
             ->whereNull('deleted_at')
             ->whereIn('ticket_type', $engTypes);
-
-        $userCompanies = $this->userScopeCompanyIds();
-        $userDepartments = $this->userScopeDepartmentIds();
-
-        $query->where(function ($q) use ($broadTypes, $user, $userCompanies, $userDepartments) {
-            $q->whereIn('ticket_type', $broadTypes)
-                ->orWhere('created_by', $user->username)
-                ->orWhere('pic_ticket', $user->username)
-                ->orWhere(function ($q2) use ($userCompanies, $userDepartments) {
-                    $q2->whereIn('cpny_id', $userCompanies)
-                        ->whereIn('department_id', $userDepartments);
-                });
-        });
 
         if ($request->filled('status')) {
             if ($request->status === 'MY_TICKET') {
@@ -732,26 +674,10 @@ class EngTicketController extends Controller
 
     public function calendarJson(Request $request)
     {
-        $user = auth()->user();
-
-        $broadTypes = $this->broadAccessTicketTypes();
-
         $engTypes = $this->engTicketTypes();
 
-        $userCompanies = $this->userScopeCompanyIds();
-        $userDepartments = $this->userScopeDepartmentIds();
-
         $query = TrTicket::with(['responseActivity', 'site', 'location', 'subLocation'])
-            ->whereIn('ticket_type', $engTypes)
-            ->where(function ($q) use ($broadTypes, $user, $userCompanies, $userDepartments) {
-                $q->whereIn('ticket_type', $broadTypes)
-                    ->orWhere('created_by', $user->username)
-                    ->orWhere('pic_ticket', $user->username)
-                    ->orWhere(function ($q2) use ($userCompanies, $userDepartments) {
-                        $q2->whereIn('cpny_id', $userCompanies)
-                            ->whereIn('department_id', $userDepartments);
-                    });
-            });
+            ->whereIn('ticket_type', $engTypes);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -806,11 +732,27 @@ class EngTicketController extends Controller
             ->get()
             ->groupBy('ticketid');
 
-        $data = $tickets->map(function ($ticket) use ($scheduledActivities) {
+        // Latest non-comment activity per ticket, used to tell a ticket
+        // sitting at PROCESS because its completion was rejected apart from
+        // one sitting at PROCESS for any other reason (normal Process action,
+        // a Reopen, etc). Comments never change the workflow state, so they're
+        // excluded here the same way buildTracking() excludes them.
+        $latestWorkflowActivities = TrTicketActivity::query()
+            ->whereIn('ticketid', $tickets->pluck('ticketid'))
+            ->where('response_summary', '!=', 'Ticket Comment')
+            ->orderBy('id')
+            ->get()
+            ->groupBy('ticketid');
+
+        $data = $tickets->map(function ($ticket) use ($scheduledActivities, $latestWorkflowActivities) {
             $response = $ticket->responseActivity;
 
             $latestScheduled = optional(
                 $scheduledActivities->get($ticket->ticketid)
+            )->last();
+
+            $latestWorkflowActivity = optional(
+                $latestWorkflowActivities->get($ticket->ticketid)
             )->last();
 
             $hasSchedule = $latestScheduled !== null;
@@ -864,7 +806,8 @@ class EngTicketController extends Controller
                     $ticket,
                     $response,
                     $latestScheduled,
-                    $hasSchedule
+                    $hasSchedule,
+                    $latestWorkflowActivity
                 ),
 
                 'can_edit' => $this->buildActions($ticket)['can_edit'],
@@ -878,11 +821,31 @@ class EngTicketController extends Controller
         ]);
     }
 
+    // A rejected completion request drops the ticket back to PROCESS — the
+    // same status a normal Process action lands on — so PROCESS alone can't
+    // tell the two apart. The latest non-comment activity can: if nothing
+    // has happened since the reject, it's still it.
+    protected function isRejectedProcessState(TrTicket $ticket, ?TrTicketActivity $latestWorkflowActivity): bool
+    {
+        return $ticket->status_pekerjaan === 'PROCESS'
+            && optional($latestWorkflowActivity)->response_summary === 'Ticket Completion Rejected';
+    }
+
+    protected function latestNonCommentActivity(string $ticketid): ?TrTicketActivity
+    {
+        return TrTicketActivity::query()
+            ->where('ticketid', $ticketid)
+            ->where('response_summary', '!=', 'Ticket Comment')
+            ->orderByDesc('id')
+            ->first();
+    }
+
     protected function calendarState(
         TrTicket $ticket,
         ?TrTicketActivity $response,
         ?TrTicketActivity $latestScheduled,
-        bool $hasSchedule
+        bool $hasSchedule,
+        ?TrTicketActivity $latestWorkflowActivity = null
     ): string {
         if ($ticket->status_pekerjaan === 'CANCEL') {
             return 'CANCELLED';
@@ -890,6 +853,10 @@ class EngTicketController extends Controller
 
         if ($ticket->status_pekerjaan === 'COMPLETED') {
             return 'COMPLETED';
+        }
+
+        if ($this->isRejectedProcessState($ticket, $latestWorkflowActivity)) {
+            return 'REJECTED';
         }
 
         // Unscheduled means "not yet responded to" — not "no working dates
@@ -1837,6 +1804,12 @@ class EngTicketController extends Controller
                         'deptname' => $ticket->department_id,
                         'info' => $request->response_descr,
                     ]
+                );
+
+                $this->notificationService->ticketWhatsapp(
+                    $ticket,
+                    'REJECTED',
+                    "Completion request rejected. Reason : {$request->response_descr}"
                 );
             }
         );
@@ -2891,19 +2864,10 @@ class EngTicketController extends Controller
     public function counts()
     {
         $user = auth()->user();
-        $broadTypes = $this->broadAccessTicketTypes();
         $engTypes = $this->engTicketTypes();
 
-        $base = function () use ($broadTypes, $user, $engTypes) {
-            $q = TrTicket::query()->whereIn('ticket_type', $engTypes);
-
-            $q->where(function ($q2) use ($broadTypes, $user) {
-                $q2->whereIn('ticket_type', $broadTypes)
-                    ->orWhere('created_by', $user->username)
-                    ->orWhere('pic_ticket', $user->username);
-            });
-
-            return $q;
+        $base = function () use ($engTypes) {
+            return TrTicket::query()->whereIn('ticket_type', $engTypes);
         };
 
         $statuses = [
@@ -3320,8 +3284,13 @@ class EngTicketController extends Controller
                 'description' => $activity->response_descr
                     ?: '-',
 
-                'status' => $activity->status_pekerjaan
-                    ?: '-',
+                // The reject event itself is recorded with status_pekerjaan
+                // 'PROCESS' (that's the ticket's workflow status right after
+                // it happens) — show it as REJECTED here instead so this
+                // specific history entry doesn't read as a plain Process step.
+                'status' => $activity->response_summary === 'Ticket Completion Rejected'
+                    ? 'REJECTED'
+                    : ($activity->status_pekerjaan ?: '-'),
 
                 'submitted_by' => $activity->created_by
                     ?: 'System',
@@ -3552,6 +3521,11 @@ class EngTicketController extends Controller
 
         $respondedBy = $responseActivity?->created_by ?? $ticket->pic_ticket;
 
+        $workflowStatusLabel = $this->isRejectedProcessState(
+            $ticket,
+            $this->latestNonCommentActivity($ticket->ticketid)
+        ) ? 'REJECTED' : $ticket->status_pekerjaan;
+
         $baAutoNumber = $this->getBaAutoNumber($ticket);
 
         $locationDisplay = $this->locationDisplayFor($ticket);
@@ -3589,7 +3563,8 @@ class EngTicketController extends Controller
             'approval',
             'requesterName',
             'completedByName',
-            'picName'
+            'picName',
+            'workflowStatusLabel'
         ))->setPaper('a4', 'portrait');
 
         return $pdf->stream("TICKET-{$ticket->ticketid}.pdf");

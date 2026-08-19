@@ -562,6 +562,15 @@ function workflowBadgeClass(status) {
                 dark:text-red-300
             `;
 
+        case 'REJECTED':
+            return `
+                bg-rose-100
+                text-rose-700
+
+                dark:bg-rose-900/30
+                dark:text-rose-300
+            `;
+
         default:
             return `
                 bg-gray-100

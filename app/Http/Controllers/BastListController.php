@@ -135,6 +135,8 @@ class BastListController extends Controller
                 ])
                 ->orderBy('t.order_term', 'asc');
 
+            $scopedBase = clone $base;
+
             if ($vendor !== '') {
                 $base->where('t.vendorname', 'ilike', "%{$vendor}%");
             }
@@ -196,6 +198,8 @@ class BastListController extends Controller
                     'td.terms_name',
                 ]);
 
+            $scopedBase = clone $base;
+
             $orderColumns = [
                 0 => 'b.bastid',       // dtr-control (unorderable)
                 1 => 'b.bastid',
@@ -238,8 +242,33 @@ class BastListController extends Controller
             }
         }
 
-        $recordsTotal = (clone $base)->count();
+        $recordsTotal = (clone $scopedBase)->count();
         $recordsFiltered = (clone $base)->count();
+
+        $vendorColumn = $scope === 'bastjobs' ? 't.vendorname' : 'b.vendorname';
+        $termsColumn = $scope === 'bastjobs' ? 't.terms_name' : 'td.terms_name';
+
+        $vendorOptions = (clone $scopedBase)
+            ->reorder($vendorColumn, 'asc')
+            ->whereNotNull($vendorColumn)
+            ->where($vendorColumn, '!=', '')
+            ->distinct()
+            ->pluck($vendorColumn)
+            ->filter()
+            ->values();
+
+        $termsQuery = (clone $scopedBase);
+        if ($vendor !== '') {
+            $termsQuery->where($vendorColumn, 'ilike', "%{$vendor}%");
+        }
+        $termsOptions = $termsQuery
+            ->reorder($termsColumn, 'asc')
+            ->whereNotNull($termsColumn)
+            ->where($termsColumn, '!=', '')
+            ->distinct()
+            ->pluck($termsColumn)
+            ->filter()
+            ->values();
 
         $orderIdx = (int) $req->input('order.0.column', $scope === 'bastjobs' ? 1 : 1);
         $orderDir = $req->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
@@ -397,6 +426,8 @@ class BastListController extends Controller
             'recordsTotal' => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
             'data' => $rows,
+            'vendorOptions' => $vendorOptions,
+            'termsOptions' => $termsOptions,
         ]);
     }
 }

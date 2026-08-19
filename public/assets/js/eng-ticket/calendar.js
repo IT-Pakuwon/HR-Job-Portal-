@@ -15,8 +15,11 @@ const EngTicketCalendar = {
         events:        [],
         isLoading:     false,
         initialized:   false,
-        // Empty set = no filter active = show everything.
+        // Empty set = no filter active = show everything except hiddenByDefaultStates.
         activeStates:  new Set(),
+        // States excluded from the default (no-filter) view — only shown
+        // once the user explicitly clicks that state's legend card.
+        hiddenByDefaultStates: new Set(['CANCELLED', 'REJECTED']),
     },
 
     // --------------------------------------------------------
@@ -175,11 +178,18 @@ const EngTicketCalendar = {
         try {
             const activeStates = EngTicketCalendar.state.activeStates;
 
+            // Rejected / Cancelled tickets clutter the calendar and rarely
+            // need scheduling attention, so they stay hidden until the user
+            // explicitly toggles that legend card on.
+            const hiddenByDefault = EngTicketCalendar.state.hiddenByDefaultStates;
+
             const events = activeStates.size
                 ? EngTicketCalendar.state.events.filter((event) =>
                     activeStates.has(event.extendedProps.calendar_state)
                 )
-                : EngTicketCalendar.state.events;
+                : EngTicketCalendar.state.events.filter((event) =>
+                    !hiddenByDefault.has(event.extendedProps.calendar_state)
+                );
 
             successCallback(events);
         } catch (err) {
@@ -261,6 +271,11 @@ const EngTicketCalendar = {
             CANCELLED: {
                 bg:     '#475569',
                 border: '#334155',
+                text:   '#ffffff',
+            },
+            REJECTED: {
+                bg:     '#e11d48',
+                border: '#9f1239',
                 text:   '#ffffff',
             },
         };

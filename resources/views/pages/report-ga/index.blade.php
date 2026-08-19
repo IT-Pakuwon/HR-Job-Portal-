@@ -18,9 +18,9 @@
             {{-- Meeting Room --}}
             @if($hasCSACCESS)
             <a href="#" data-report="meeting-room"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700">
+                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/40 dark:hover:bg-gray-800/70">
                 <div class="flex items-center gap-4">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-lg">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-lg dark:bg-blue-500/15">
                         🏢
                     </div>
                     <div>
@@ -34,9 +34,9 @@
             {{-- Meeting Teams / Zoom --}}
             @if($hasADMIN)
             <a href="#" data-report="meeting-online"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700">
+                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/40 dark:hover:bg-gray-800/70">
                 <div class="flex items-center gap-4">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 text-lg">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 text-lg dark:bg-indigo-500/15">
                         💻
                     </div>
                     <div>
@@ -50,9 +50,9 @@
             {{-- Booking Operational Car --}}
             @if($hasGAACCESS)
             <a href="#" data-report="operational-car"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700">
+                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/40 dark:hover:bg-gray-800/70">
                 <div class="flex items-center gap-4">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-100 text-lg">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-100 text-lg dark:bg-yellow-500/15">
                         🚗
                     </div>
                     <div>
@@ -66,9 +66,9 @@
             {{-- Voucher Taxi --}}
             @if($hasGAACCESS)
             <a href="#" data-report="voucher-taxi"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700">
+                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/40 dark:hover:bg-gray-800/70">
                 <div class="flex items-center gap-4">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-pink-100 text-lg">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-pink-100 text-lg dark:bg-pink-500/15">
                         🎫
                     </div>
                     <div>
@@ -82,9 +82,9 @@
             {{-- Free Parking --}}
             @if($hasGAACCESS)
             <a href="#" data-report="free-parking"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700">
+                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/40 dark:hover:bg-gray-800/70">
                 <div class="flex items-center gap-4">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 text-lg">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 text-lg dark:bg-green-500/15">
                         🅿️
                     </div>
                     <div>
@@ -98,9 +98,9 @@
             {{-- Car Expense --}}
             @if($hasGAACCESS)
             <a href="#" data-report="car-expense"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700">
+                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/40 dark:hover:bg-gray-800/70">
                 <div class="flex items-center gap-4">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 text-lg">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 text-lg dark:bg-orange-500/15">
                         💰
                     </div>
                     <div>

@@ -18,9 +18,9 @@
 
             {{-- Stock Voucher --}}
             <a href="#" data-report="stock-voucher"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700">
+                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/40 dark:hover:bg-gray-800/70">
                 <div class="flex items-center gap-4">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 text-lg">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 text-lg dark:bg-purple-500/15">
                         🎟️
                     </div>
                     <div>
@@ -32,9 +32,9 @@
 
             {{-- Stock & Aging Summary --}}
             <a href="#" data-report="stock-summary"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700">
+                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/40 dark:hover:bg-gray-800/70">
                 <div class="flex items-center gap-4">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 text-lg">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 text-lg dark:bg-indigo-500/15">
                         📊
                     </div>
                     <div>
@@ -47,9 +47,9 @@
             @if($hasVPLOYALTYACCESS)
                 {{-- Loyalty Usage Rate --}}
                 <a href="#" data-report="loyalty-usage"
-                    class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700">
+                    class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/40 dark:hover:bg-gray-800/70">
                     <div class="flex items-center gap-4">
-                        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-lg">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-lg dark:bg-emerald-500/15">
                             🎁
                         </div>
                         <div>
@@ -62,9 +62,9 @@
 
             {{-- In & Out Voucher Product --}}
             <a href="#" data-report="in-out"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700">
+                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/40 dark:hover:bg-gray-800/70">
                 <div class="flex items-center gap-4">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-lg">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-lg dark:bg-amber-500/15">
                         🔀
                     </div>
                     <div>
@@ -76,9 +76,9 @@
 
             {{-- Voucher & Product Stock --}}
             <a href="#" data-report="product-stock"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700">
+                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/40 dark:hover:bg-gray-800/70">
                 <div class="flex items-center gap-4">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100 text-lg">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100 text-lg dark:bg-sky-500/15">
                         📦
                     </div>
                     <div>

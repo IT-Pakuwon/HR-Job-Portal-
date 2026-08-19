@@ -142,26 +142,26 @@
         </div>
 
         <!-- PROCESS -->
-        <div class="status-card group flex cursor-pointer items-center gap-3 rounded-xl border border-yellow-200 bg-yellow-50 p-2 shadow-sm transition hover:shadow-md"
+        <div class="status-card group flex cursor-pointer items-center gap-3 rounded-xl border border-yellow-200 bg-yellow-50 p-2 shadow-sm transition hover:shadow-md dark:border-yellow-500/30 dark:bg-yellow-500/10"
             data-key="process">
-            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-100 text-lg">
+            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-100 text-lg dark:bg-yellow-500/15">
                 ⏳
             </div>
             <div class="flex w-full justify-between">
-                <div class="text-sm text-yellow-700">On Progress</div>
-                <div class="count text-lg font-bold text-yellow-800">0</div>
+                <div class="text-sm text-yellow-700 dark:text-yellow-400">On Progress</div>
+                <div class="count text-lg font-bold text-yellow-800 dark:text-yellow-300">0</div>
             </div>
         </div>
 
         <!-- REJECT -->
-        <div class="status-card group flex cursor-pointer items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-2 shadow-sm transition hover:shadow-md"
+        <div class="status-card group flex cursor-pointer items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-2 shadow-sm transition hover:shadow-md dark:border-red-500/30 dark:bg-red-500/10"
             data-key="rejected">
-            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100 text-lg">
+            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100 text-lg dark:bg-red-500/15">
                 ⛔
             </div>
             <div class="flex w-full justify-between">
-                <div class="text-sm text-red-600">Rejected</div>
-                <div class="count text-lg font-bold text-red-700">0</div>
+                <div class="text-sm text-red-600 dark:text-red-400">Rejected</div>
+                <div class="count text-lg font-bold text-red-700 dark:text-red-300">0</div>
             </div>
         </div>
 
@@ -178,14 +178,14 @@
         </div>
 
         <!-- COMPLETED -->
-        <div class="status-card group flex cursor-pointer items-center gap-3 rounded-xl border border-green-200 bg-green-50 p-2 shadow-sm transition hover:shadow-md"
+        <div class="status-card group flex cursor-pointer items-center gap-3 rounded-xl border border-green-200 bg-green-50 p-2 shadow-sm transition hover:shadow-md dark:border-green-500/30 dark:bg-green-500/10"
             data-key="completed">
-            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 text-lg">
+            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 text-lg dark:bg-green-500/15">
                 ✅
             </div>
             <div class="flex w-full justify-between">
-                <div class="text-sm text-green-600">Completed</div>
-                <div class="count text-lg font-bold text-green-700">0</div>
+                <div class="text-sm text-green-600 dark:text-green-400">Completed</div>
+                <div class="count text-lg font-bold text-green-700 dark:text-green-300">0</div>
             </div>
         </div>
 
