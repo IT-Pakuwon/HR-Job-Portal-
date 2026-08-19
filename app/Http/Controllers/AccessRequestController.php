@@ -57,6 +57,7 @@ class AccessRequestController extends Controller
         if (
             !$user->hasRole('ITHARDWARE')
             && !$user->hasRole('ITSOFTWARE')
+            && !$user->hasFullDataScope()
         ) {
             $allQuery->whereIn('cpny_id', $cpnyIds)
                 ->whereIn('department_id', $deptIds);
@@ -72,7 +73,7 @@ class AccessRequestController extends Controller
         $reviseQuery = TrAccess::where('status', 'D');
         $finishedQuery = TrAccess::where('status', 'F');
 
-        if (!$isItRole) {
+        if (!$isItRole && !$user->hasFullDataScope()) {
             $pendingQuery->whereIn('cpny_id', $cpnyIds)->whereIn('department_id', $deptIds);
             $completedQuery->whereIn('cpny_id', $cpnyIds)->whereIn('department_id', $deptIds);
             $rejectQuery->whereIn('cpny_id', $cpnyIds)->whereIn('department_id', $deptIds);
@@ -186,6 +187,7 @@ class AccessRequestController extends Controller
         if (
             !$user->hasRole('ITHARDWARE')
             && !$user->hasRole('ITSOFTWARE')
+            && !$user->hasFullDataScope()
         ) {
             $base->whereIn('ta.cpny_id', $cpnyIds)
                 ->whereIn('ta.department_id', $deptIds);

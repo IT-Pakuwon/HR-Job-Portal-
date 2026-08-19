@@ -1,7 +1,7 @@
 <div class="space-y-4">
 
     <!-- FILTER PANEL -->
-    <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm dark:border-gray-700">
+    <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800/40">
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-6">
 
@@ -43,7 +43,7 @@
                 </button>
 
                 <button id="opExport"
-                    class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-700">
+                    class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20">
                     Export
                 </button>
 
@@ -166,13 +166,13 @@
                     render: function(data) {
 
                         let color = {
-                            'Pending': 'bg-yellow-100 text-yellow-700',
-                            'Completed': 'bg-green-100 text-green-700',
-                            'Cancelled': 'bg-red-100 text-red-700',
-                            'Rejected': 'bg-red-100 text-red-700',
+                            'Pending': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-400',
+                            'Completed': 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400',
+                            'Cancelled': 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400',
+                            'Rejected': 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400',
                         };
 
-                        return `<span class="px-2 py-1 text-xs rounded ${color[data] ?? 'bg-gray-100'}">${data}</span>`;
+                        return `<span class="px-2 py-1 text-xs rounded ${color[data] ?? 'bg-gray-100 dark:bg-gray-500/15 dark:text-gray-400'}">${data}</span>`;
                     }
                 },
                 {
@@ -180,13 +180,13 @@
                     render: function(data) {
 
                         let color = {
-                            'Progress': 'bg-blue-100 text-blue-700',
-                            'On Hold': 'bg-orange-100 text-orange-700',
-                            'Done': 'bg-green-100 text-green-700',
-                            'Cancelled': 'bg-red-100 text-red-700',
+                            'Progress': 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400',
+                            'On Hold': 'bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400',
+                            'Done': 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400',
+                            'Cancelled': 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400',
                         };
 
-                        return `<span class="px-2 py-1 text-xs rounded ${color[data] ?? 'bg-gray-100'}">${data}</span>`;
+                        return `<span class="px-2 py-1 text-xs rounded ${color[data] ?? 'bg-gray-100 dark:bg-gray-500/15 dark:text-gray-400'}">${data}</span>`;
                     }
                 },
                 {

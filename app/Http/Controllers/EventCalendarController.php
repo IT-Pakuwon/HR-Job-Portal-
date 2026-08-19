@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\MsDepartment;
 use App\Models\MsEvent;
 use App\Models\MsEventLocation;
+use App\Models\SysAccessRight;
+use App\Models\SysCalendar;
+use App\Models\SysUserRole;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,9 +15,9 @@ use Illuminate\Support\Facades\DB;
 class EventCalendarController extends Controller
 {
     public const EVENT_TYPES = [
-        'Casual Leasing' => 'Casual Leasing',
+        'Casual Leasing Exhibition' => 'Casual Leasing Exhibition',
         'Promotion Event' => 'Promotion Event',
-        'Operation/Internal Event' => 'Operation/Internal Event',
+        'Mall Sales Promotion' => 'Mall Sales Promotion',
     ];
 
     public const EVENT_STATUSES = [
@@ -30,13 +33,47 @@ class EventCalendarController extends Controller
         return $user && $user->hasRole('ADEVENTACCESS');
     }
 
-    private function userCpnyIds(): array
+    /**
+     * GM has the same cross-department reach as admins within their own
+     * company — sees every department's locations (Promotion, Casual Leasing,
+     * Loyalty) and can modify any event there, via assertCanModify() — but
+     * does NOT get the front-end isAdmin flag, which is admin-only UI chrome.
+     */
+    private function canSeeAllDepartments(): bool
     {
         $user = auth()->user();
 
-        return is_string($user->cpny_id)
-            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
-            : (array) $user->cpny_id;
+        return $this->isAdmin() || ($user && ($user->hasRole('GMACCESS') || $user->hasFullDataScope()));
+    }
+
+    /**
+     * Mirrors AccessRightMiddleware's own check, so the UI (New Event button,
+     * calendar cell selection) can hide actions the user's roles don't grant
+     * on EVENTCAL, instead of letting them hit a 403 after the fact.
+     */
+    private function hasEventCalRight(string $action): bool
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return false;
+        }
+
+        $roleIds = SysUserRole::where('username', $user->username)
+            ->where('status', 'A')
+            ->pluck('role_id');
+
+        return SysAccessRight::whereIn('role_id', $roleIds)
+            ->where('screen_id', 'EVENTCAL')
+            ->where('access_name', $action)
+            ->where('access_right', true)
+            ->where('status', 'A')
+            ->exists();
+    }
+
+    private function userCpnyIds(): array
+    {
+        return auth()->user()->scopedCompanyIds();
     }
 
     private function userDepartmentIds(): array
@@ -55,9 +92,9 @@ class EventCalendarController extends Controller
 
     /**
      * Locations the current user is allowed to see/book. Everyone — admins
-     * included — is scoped to their own company; admins additionally see
-     * every department within that company, while everyone else also needs
-     * a department overlap with the location's allowed list.
+     * and GM included — is scoped to their own company; admins and GM
+     * additionally see every department within that company, while everyone
+     * else also needs a department overlap with the location's allowed list.
      */
     private function visibleLocations(): \Illuminate\Support\Collection
     {
@@ -72,7 +109,7 @@ class EventCalendarController extends Controller
             $query->whereIn('cpny_id', $cpnyIds);
         }
 
-        if ($this->isAdmin()) {
+        if ($this->canSeeAllDepartments()) {
             return $query->get()->sortBy('event_location_name')->values();
         }
 
@@ -106,8 +143,13 @@ class EventCalendarController extends Controller
 
     public function index()
     {
+        $eventRoleUsernames = SysUserRole::whereIn('role_id', ['VIEWEVENTACCESS', 'EVENTACCESS', 'GMACCESS'])
+            ->where('status', 'A')
+            ->pluck('username');
+
         $users = User::query()
             ->where('status', 'A')
+            ->whereIn('username', $eventRoleUsernames)
             ->orderBy('name')
             ->get(['username', 'name']);
 
@@ -119,6 +161,7 @@ class EventCalendarController extends Controller
                 'eventTypes' => self::EVENT_TYPES,
                 'eventStatuses' => self::EVENT_STATUSES,
                 'isAdmin' => $this->isAdmin(),
+                'canCreate' => $this->hasEventCalRight('CREATE'),
                 'users' => $users,
                 'departmentNames' => $departmentNames,
             ])
@@ -128,7 +171,10 @@ class EventCalendarController extends Controller
 
     public function json(Request $request)
     {
-        $query = MsEvent::query()->whereNull('deleted_at');
+        // status = 'X' covers both a soft-deleted event (destroy() also stamps
+        // deleted_at) and one flipped inactive via the Edit form's Active toggle —
+        // either way it must disappear from the calendar grid.
+        $query = MsEvent::query()->whereNull('deleted_at')->where('status', 'A');
 
         $cpnyIds = $this->userCpnyIds();
 
@@ -167,6 +213,10 @@ class EventCalendarController extends Controller
                     'start' => optional($event->event_start_date)->format('Y-m-d'),
                     'end' => optional($event->event_end_date)->addDay()->format('Y-m-d'),
                     'allDay' => true,
+                    // event_total_contract / pic_event_external(_hp) are sent to everyone here —
+                    // the Edit modal reuses this same payload and needs the real values to avoid
+                    // silently wiping them out on save. GM-only visibility is enforced purely in
+                    // the read-only View modal (see calendar.js openViewModal), not at the API layer.
                     'extendedProps' => [
                         'event_id' => $event->event_id,
                         'cpnyid' => $event->cpnyid,
@@ -182,14 +232,30 @@ class EventCalendarController extends Controller
                         'event_description' => $event->event_description,
                         'event_total_contract' => $event->event_total_contract,
                         'pic_event' => $event->pic_event,
-                        'product_check_exp' => $event->product_check_exp,
+                        'pic_event_external' => $event->pic_event_external,
+                        'pic_event_external_hp' => $event->pic_event_external_hp,
                         'status' => $event->status,
                         'created_by' => $event->created_user,
                         'created_by_name' => $creatorNames->get($event->created_user, $event->created_user),
+                        'created_at' => optional($event->created_at)->format('Y-m-d H:i'),
                     ],
                 ];
             }),
         ]);
+    }
+
+    // National holidays only (Cuti Bersama excluded), so the timeline can tint them like weekends.
+    public function holidays()
+    {
+        $dates = SysCalendar::query()
+            ->where('status', 'A')
+            ->where('date_calendar_type', 'LIBUR_NASIONAL')
+            ->whereNull('deleted_at')
+            ->pluck('date_calendar')
+            ->map(fn ($d) => \Carbon\Carbon::parse($d)->format('Y-m-d'))
+            ->values();
+
+        return response()->json(['data' => $dates]);
     }
 
     private function nextEventId(): string
@@ -221,9 +287,31 @@ class EventCalendarController extends Controller
             'event_description' => 'nullable|string',
             'event_total_contract' => 'nullable|numeric',
             'pic_event' => 'nullable|string|max:255',
+            'pic_event_external' => 'nullable|string|max:255',
+            'pic_event_external_hp' => 'nullable|string|max:50',
             'product_check_exp' => 'nullable|date',
             'status' => 'required|in:A,X',
         ];
+    }
+
+    /**
+     * A single location can host at most 5 concurrently-active events on any
+     * given day. "Concurrent" means date-range overlap, not an exact date
+     * match, so a long-running event counts against every day it spans.
+     */
+    private function assertUnderEventCap(string $cpnyId, string $eventLocationId, string $startDate, string $endDate, ?int $excludeId = null): void
+    {
+        $overlapping = MsEvent::query()
+            ->whereNull('deleted_at')
+            ->where('status', 'A')
+            ->where('cpnyid', $cpnyId)
+            ->where('event_location_id', $eventLocationId)
+            ->where('event_start_date', '<=', $endDate)
+            ->where('event_end_date', '>=', $startDate)
+            ->when($excludeId, fn ($q) => $q->where('id', '!=', $excludeId))
+            ->count();
+
+        abort_if($overlapping >= 5, 422, 'This location already has 5 events scheduled during the selected dates.');
     }
 
     private function assertLocationVisible(int $locationRowId): void
@@ -238,14 +326,14 @@ class EventCalendarController extends Controller
     }
 
     /**
-     * Anyone may edit/delete events they created themselves. Admins may
+     * Anyone may edit/delete events they created themselves. Admins and GM may
      * additionally edit/delete any event within their own assigned
      * company/companies, but never outside of it.
      */
     private function assertCanModify(MsEvent $event): void
     {
         $canModify = $event->created_user === auth()->user()->username
-            || ($this->isAdmin() && in_array($event->cpnyid, $this->userCpnyIds(), true));
+            || ($this->canSeeAllDepartments() && in_array($event->cpnyid, $this->userCpnyIds(), true));
 
         abort_unless($canModify, 403, 'You can only edit or delete events you created.');
     }

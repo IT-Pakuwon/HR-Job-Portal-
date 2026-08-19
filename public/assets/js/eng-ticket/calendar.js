@@ -15,8 +15,11 @@ const EngTicketCalendar = {
         events:        [],
         isLoading:     false,
         initialized:   false,
-        // Empty set = no filter active = show everything.
+        // Empty set = no filter active = show everything except hiddenByDefaultStates.
         activeStates:  new Set(),
+        // States excluded from the default (no-filter) view — only shown
+        // once the user explicitly clicks that state's legend card.
+        hiddenByDefaultStates: new Set(['CANCELLED', 'REJECTED']),
     },
 
     // --------------------------------------------------------
@@ -43,6 +46,10 @@ const EngTicketCalendar = {
         $(document).on('click', '#btn_apply_filter, #btn_reset_filter', function () {
             EngTicketCalendar.loadEvents();
         });
+
+        $(document).on('change', '#filter_calendar_ticket_type', function () {
+            EngTicketCalendar.loadEvents();
+        });
     },
 
     getFilterParams() {
@@ -52,6 +59,7 @@ const EngTicketCalendar = {
             status_pekerjaan: $('#filter_status_pekerjaan').val() || '',
             category_id:      $('#filter_category_id').val() || '',
             cpny_id:          $('#filter_company_id').val() || '',
+            ticket_type:      $('#filter_calendar_ticket_type').val() || '',
             date_from:        $('#filter_date_from').val() || '',
             date_to:          $('#filter_date_to').val() || '',
         };
@@ -126,7 +134,7 @@ const EngTicketCalendar = {
                 info.el.style.minHeight = '100px';
             },
             eventDidMount: (info) => {
-                info.el.title = EngTicketCalendar.getEventTooltip(info.event);
+                EngTicketCalendar.attachEventTooltip(info);
             },
             dateClick: () => {
                 EngTicketCalendar.handleDateClick();
@@ -170,11 +178,18 @@ const EngTicketCalendar = {
         try {
             const activeStates = EngTicketCalendar.state.activeStates;
 
+            // Rejected / Cancelled tickets clutter the calendar and rarely
+            // need scheduling attention, so they stay hidden until the user
+            // explicitly toggles that legend card on.
+            const hiddenByDefault = EngTicketCalendar.state.hiddenByDefaultStates;
+
             const events = activeStates.size
                 ? EngTicketCalendar.state.events.filter((event) =>
                     activeStates.has(event.extendedProps.calendar_state)
                 )
-                : EngTicketCalendar.state.events;
+                : EngTicketCalendar.state.events.filter((event) =>
+                    !hiddenByDefault.has(event.extendedProps.calendar_state)
+                );
 
             successCallback(events);
         } catch (err) {
@@ -193,7 +208,11 @@ const EngTicketCalendar = {
             .filter((ticket) => !!ticket.event_start)
             .map((ticket) => {
                 const colors = EngTicketCalendar.getEventColors(ticket.calendar_state);
-                const prefix = ticket.ticket_type === 'BSFOSUPPORTTICKET' ? '[BSFO]' : '[ENG]';
+                const prefix = ticket.ticket_type === 'BSSUPPORTTICKET'
+                    ? '[BS]'
+                    : ticket.ticket_type === 'FOSUPPORTTICKET'
+                        ? '[FO]'
+                        : '[ENG]';
 
                 return {
                     id:              ticket.eid,
@@ -254,6 +273,11 @@ const EngTicketCalendar = {
                 border: '#334155',
                 text:   '#ffffff',
             },
+            REJECTED: {
+                bg:     '#e11d48',
+                border: '#9f1239',
+                text:   '#ffffff',
+            },
         };
 
         return colorMap[state] || colorMap['UNSCHEDULED'];
@@ -295,16 +319,48 @@ const EngTicketCalendar = {
     },
 
     // --------------------------------------------------------
-    // GET EVENT TOOLTIP
+    // EVENT TOOLTIP (tippy.js) — falls back to nothing if the
+    // tippy script failed to load.
     // --------------------------------------------------------
-    getEventTooltip(event) {
+    attachEventTooltip(info) {
+        if (typeof tippy === 'undefined') return;
+
+        const event = info.event;
         const props = event.extendedProps;
-        return `
-${event.title}
-Status: ${props.status_pekerjaan}
-PIC: ${props.pic_ticket || '-'}
-Location: ${props.location_name || '-'}
-`.trim();
+        const colors = EngTicketCalendar.getEventColors(props.calendar_state);
+        const statusLabel = (props.status_pekerjaan || '-').replace(/_/g, ' ');
+
+        const html = `
+            <div class="ectk-tip">
+                <div class="ectk-tip-title">${EngTicketCalendar.escapeHtml(event.title)}</div>
+                <span class="ectk-tip-status" style="background:${colors.bg};color:${colors.text}">
+                    ${EngTicketCalendar.escapeHtml(statusLabel)}
+                </span>
+                <div class="ectk-tip-row">
+                    <i class="ti ti-user"></i>
+                    <span>${EngTicketCalendar.escapeHtml(props.pic_ticket || '-')}</span>
+                </div>
+                <div class="ectk-tip-row">
+                    <i class="ti ti-map-pin"></i>
+                    <span>${EngTicketCalendar.escapeHtml(props.location_name || '-')}</span>
+                </div>
+            </div>
+        `;
+
+        tippy(info.el, {
+            content:    html,
+            allowHTML:  true,
+            theme:      'light-border',
+            placement:  'top',
+            maxWidth:   280,
+            animation:  'shift-away',
+        });
+    },
+
+    escapeHtml(value) {
+        const div = document.createElement('div');
+        div.textContent = value ?? '';
+        return div.innerHTML;
     },
 
     // --------------------------------------------------------

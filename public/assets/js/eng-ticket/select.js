@@ -190,7 +190,7 @@ function renderLocationDropdown(
 // from ms_sub_location, instead of ms_site like every other ticket type.
 function isBaTicketType(ticketType) {
 
-    return ticketType === 'BA_BS' || ticketType === 'BA_ENG';
+    return ticketType === 'BA_BS' || ticketType === 'BA_ENG' || ticketType === 'BA_FO';
 
 }
 
@@ -512,9 +512,12 @@ function initIssueSummarySelect() {
             $(Ticket.modal.create),
 
         placeholder:
-            'Select Issue Summary',
+            'Select or type Issue Summary',
 
         allowClear:
+            true,
+
+        tags:
             true,
 
         ajax: {
@@ -561,6 +564,97 @@ function initIssueSummarySelect() {
 
 }
 
+// When a select's AJAX-backed option list resolves to exactly one result,
+// auto-pick it instead of leaving the user to open the dropdown and click
+// the only choice available. Used for Category / Sub Category, both of
+// which can be scoped down (by ticket type) to a single option.
+function autoSelectIfSingleResult(selectEl, url, params, onEmpty) {
+
+    $.ajax({
+
+        url: url,
+
+        type: 'GET',
+
+        data: params,
+
+        success: function (data) {
+
+            const results = data.results || [];
+
+            if (results.length === 1) {
+
+                const option =
+                    new Option(
+                        results[0].text,
+                        results[0].id,
+                        true,
+                        true
+                    );
+
+                selectEl
+                    .append(option)
+                    .trigger('change');
+
+            } else {
+
+                onEmpty();
+
+            }
+
+        },
+
+        error: onEmpty,
+
+    });
+
+}
+
+function refreshCategorySelection() {
+
+    const ticketType =
+        $('#ticket_type').val();
+
+    if (!ticketType) {
+        $('#ticket_categoryid').val(null).trigger('change');
+        return;
+    }
+
+    autoSelectIfSingleResult(
+        $('#ticket_categoryid'),
+        Ticket.routes.categorySearch,
+        { ticket_type: ticketType },
+        function () {
+            $('#ticket_categoryid').val(null).trigger('change');
+        }
+    );
+
+}
+
+function refreshSubcategorySelection() {
+
+    const ticketType =
+        $('#ticket_type').val();
+
+    const categoryId =
+        $('#ticket_categoryid').val();
+
+    if (!ticketType || !categoryId) {
+        $('#ticket_subcategoryid').val(null).trigger('change');
+        return;
+    }
+
+    autoSelectIfSingleResult(
+        $('#ticket_subcategoryid'),
+        Ticket.routes.subcategorySearch,
+        { ticket_type: ticketType, ticket_categoryid: categoryId },
+        function () {
+            $('#ticket_subcategoryid').val(null).trigger('change');
+        }
+    );
+
+}
+
 function bindTicketSelectEvents() {
 
     $('#ticket_type').on(
@@ -571,13 +665,7 @@ function bindTicketSelectEvents() {
                 return;
             }
 
-            $('#ticket_categoryid')
-                .val(null)
-                .trigger('change');
-
-            $('#ticket_subcategoryid')
-                .val(null)
-                .trigger('change');
+            refreshCategorySelection();
 
             refreshLocationDropdown();
 
@@ -613,9 +701,7 @@ function bindTicketSelectEvents() {
                 return;
             }
 
-            $('#ticket_subcategoryid')
-                .val(null)
-                .trigger('change');
+            refreshSubcategorySelection();
 
         }
     );

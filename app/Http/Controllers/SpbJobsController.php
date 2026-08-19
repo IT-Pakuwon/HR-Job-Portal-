@@ -32,9 +32,7 @@ class SpbJobsController extends Controller
         }
 
         $u = $user->username ?? '';
-        // user->cpny_id bisa "AW" atau "AW,GPS,..."
-        $cpnyRaw = $user->cpny_id ?? '';
-        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
+        $cpnyList = $user->scopedCompanyIds();
         $isAdmin = $user->isAdmin();
 
         // status label yang mau ditampilkan di card
@@ -126,8 +124,7 @@ class SpbJobsController extends Controller
         $scope = strtolower((string) $req->query('scope', 'issuejobsnew'));
         $user = Auth::user();
         $u = $user->username ?? '';
-        $cpnyRaw = $user->cpny_id ?? '';
-        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
+        $cpnyList = $user->scopedCompanyIds();
         $isAdmin = $user->isAdmin();
 
         $draw = (int) $req->input('draw', 1);
@@ -684,6 +681,10 @@ class SpbJobsController extends Controller
 
     public function completeRemainingQty(Request $request, string $spbid)
     {
+        $request->validate([
+            'reason' => ['required', 'string', 'max:500'],
+        ]);
+
         $spb = TrSPB::where('spbid', $spbid)->first();
 
         if (!$spb) {
@@ -727,6 +728,15 @@ class SpbJobsController extends Controller
 
                 $this->recalcSpbHeaderAndStatus($spb->spbid);
             });
+
+            try {
+                $request->merge([
+                    'doc_no' => $spb->spbid,
+                    'reason' => 'SPB Completed : ' . $request->input('reason'),
+                ]);
+                app('App\Http\Controllers\SendCommentController')->sendmsg($spb->id, 'RB', request());
+            } catch (\Throwable $e) {
+            }
 
             return response()->json([
                 'ok' => true,

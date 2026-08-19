@@ -289,7 +289,7 @@ class ReportWarehouseController extends Controller
     private function applyFilters($query, Request $request, $report = 'spb')
     {
         $user = auth()->user();
-        $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
+        $cpnyIds = $user->scopedCompanyIds();
 
         // ✅ COMPANY FILTER
         if ($report === 'movement') {
@@ -933,7 +933,7 @@ class ReportWarehouseController extends Controller
             ->table('v_inventory_movement_detail');
 
         $user = auth()->user();
-        $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
+        $cpnyIds = $user->scopedCompanyIds();
 
         $query->whereIn('cpny_id', $cpnyIds);
 

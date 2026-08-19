@@ -58,11 +58,8 @@ class IMBudgetController extends Controller
         }
 
         $u        = $user->username ?? '';
-        $cpnyRaw  = $user->cpny_id ?? '';
-        $deptRaw  = $user->department_id ?? '';
-
-        $cpnyList = $cpnyRaw !== '' ? array_values(array_filter(array_map('trim', explode(',', $cpnyRaw)))) : [];
-        $deptList = $deptRaw !== '' ? array_values(array_filter(array_map('trim', explode(',', $deptRaw)))) : [];
+        $cpnyList = $user->scopedCompanyIds();
+        $deptList = $user->scopedDepartmentIds();
 
         $isFinanceAccess = SysUserRole::where('username', $u)
             ->where('role_id', 'FINACCESS')
@@ -129,11 +126,8 @@ class IMBudgetController extends Controller
         }
 
         $u        = $user->username ?? '';
-        $cpnyRaw  = $user->cpny_id ?? '';
-        $deptRaw  = $user->department_id ?? '';
-
-        $cpnyList = $cpnyRaw !== '' ? array_values(array_filter(array_map('trim', explode(',', $cpnyRaw)))) : [];
-        $deptList = $deptRaw !== '' ? array_values(array_filter(array_map('trim', explode(',', $deptRaw)))) : [];
+        $cpnyList = $user->scopedCompanyIds();
+        $deptList = $user->scopedDepartmentIds();
 
         $isFinanceAccess = SysUserRole::where('username', $u)
             ->where('role_id', 'FINACCESS')

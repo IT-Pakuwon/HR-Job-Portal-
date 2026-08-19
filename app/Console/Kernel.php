@@ -65,6 +65,11 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/perizinan-renewal-reminder.log'));
 
+        // Email reminder H-7 for Paid events (PIC internal, creator, GMACCESS)
+        $schedule->command('email:event-h7-paid-reminder')
+            ->dailyAt('07:15')
+            ->withoutOverlapping();
+
         // Auto Process IFCA Supplier
         $schedule->command('ifca:supplier-auto-process')
             ->everySixHours()
@@ -98,7 +103,6 @@ class Kernel extends ConsoleKernel
         $schedule->command('staging:vms-rfp')
             ->dailyAt('11:00')
             ->withoutOverlapping()
-            ->runInBackground()
             ->appendOutputTo(storage_path('logs/staging_vms_rfp.log'));
 
         // Expire training waitlist offers past their 24h window, cascade to next

@@ -1384,6 +1384,22 @@ function getTimelineIconStyle(workflow) {
                     `
             };
 
+        case 'REJECTED':
+            return {
+                icon: 'fa-solid fa-bolt',
+                wrap:
+                    `
+                        bg-rose-600
+
+                        text-white
+
+                        ring-rose-100
+                        dark:ring-rose-500/10
+
+                        shadow-rose-500/20
+                    `
+            };
+
         default:
             return {
                 icon: 'fa-solid fa-bolt',

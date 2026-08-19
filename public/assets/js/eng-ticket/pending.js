@@ -235,6 +235,7 @@ function bindPendingAttachment() {
                 );
 
             files.forEach(file => {
+                if (!validateTicketAttachment(file)) return;
 
                 Ticket.state.pendingAttachments
                     .push(file);

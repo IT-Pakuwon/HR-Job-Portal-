@@ -56,6 +56,14 @@ const BookingCarDetailModal = {
                 }
             });
 
+        document.getElementById('privateNoteBookingBtn')
+            ?.addEventListener('click', (e) => {
+                e.preventDefault();
+                const booking = BookingCarDetailModal.state.currentBooking;
+                if (!booking || !window.PrivateNote) return;
+                window.PrivateNote.open('BCR', booking.docid, booking.docid);
+            });
+
         // Change expense button (GA only)
         document.getElementById('changeExpenseBtn')
             ?.addEventListener('click', (e) => {
@@ -137,6 +145,10 @@ const BookingCarDetailModal = {
         } else {
             BookingCarHelper.hide('reviseReasonWrapper');
         }
+
+        // ── PRIVATE NOTE (GAACCESS on the approval line only) ─
+        document.getElementById('privateNoteBookingBtn')
+            ?.classList.toggle('hidden', !booking.can_private_note);
 
         // ── ACTION BUTTONS ───────────────────────────────────
         BookingCarDetailModal.renderActionButtons(booking);

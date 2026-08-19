@@ -224,14 +224,17 @@ class ReportPurchasingController extends Controller
     {
         $user = auth()->user();
 
+        $isFullScope = $user->hasFullDataScope();
         $isCostCtrl = $user->hasRole('COSTCTRLACCESS');
         $isWarehouse = $user->hasRole('WHSACCESS');
 
-        // Company scope (always applied)
-        $companyIds = Usercpny::where('username', $user->username)
-            ->pluck('cpny_id');
+        // Company scope (always applied, except full-scope roles like DIRECTORACCESS)
+        if (!$isFullScope) {
+            $companyIds = Usercpny::where('username', $user->username)
+                ->pluck('cpny_id');
 
-        $query->whereIn('h.cpny_id', $companyIds);
+            $query->whereIn('h.cpny_id', $companyIds);
+        }
 
         // Department list
         $deptIds = Userdept::where('username', $user->username)
@@ -241,8 +244,8 @@ class ReportPurchasingController extends Controller
         ROLE RULES
         */
 
-        // Cost Control → see everything
-        if ($isCostCtrl) {
+        // Full scope / Cost Control → see everything
+        if ($isFullScope || $isCostCtrl) {
             return $query;
         }
 

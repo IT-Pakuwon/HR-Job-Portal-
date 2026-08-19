@@ -241,8 +241,11 @@ class VplSettlementController extends Controller
             return response()->json(['error' => 'Please provide at least one settlement line.'], 422);
         }
 
-        // Validate every line against its source usage detail before touching anything
+        // Validate every line against its source usage detail before touching anything.
+        // A running per-line claim total catches duplicate usage_detail_id lines in one
+        // request that would otherwise each pass independently and jointly over-claim.
         $usageDetails = TrxVplUsageDetail::where('usage_id', $usage->usage_id)->get()->keyBy('id');
+        $claimTracker = [];
         foreach ($lines as $line) {
             $detail = $usageDetails->get($line['usage_detail_id'] ?? null);
             if (!$detail) {
@@ -250,10 +253,12 @@ class VplSettlementController extends Controller
             }
             $qtySettlement = (float) ($line['qty_settlement'] ?? 0);
             $remaining = $detail->qty_usage - ($detail->qty_return_usage ?? 0);
-            if ($qtySettlement < 0 || $qtySettlement > $remaining) {
+            $claimed = $claimTracker[$detail->id] ?? 0;
+            if ($qtySettlement < 0 || ($qtySettlement + $claimed) > $remaining) {
                 $productName = MsVplProduct::where('product_id', $detail->product_id)->value('product_name') ?? $detail->product_id;
-                return response()->json(['error' => 'Qty Settlement for '.$productName.' must be between 0 and '.$remaining.'.'], 422);
+                return response()->json(['error' => 'Qty Settlement for '.$productName.' must be between 0 and '.max(0, $remaining - $claimed).'.'], 422);
             }
+            $claimTracker[$detail->id] = $claimed + $qtySettlement;
         }
 
         $conditionName = $this->resolveConditionName($usage->vp_type);
@@ -367,6 +372,7 @@ class VplSettlementController extends Controller
         $settlementDetails = TrxVplSettlementDetail::where('settlement_id', $settlement->settlement_id)->get()->keyBy('id');
         $usageDetails = TrxVplUsageDetail::where('usage_id', $settlement->usage_id)->get()->keyBy('id');
 
+        $claimTracker = [];
         foreach ($lines as $line) {
             $sDetail = $settlementDetails->get($line['settlement_detail_id'] ?? null);
             if (!$sDetail) {
@@ -378,10 +384,12 @@ class VplSettlementController extends Controller
             }
             $qtySettlement = (float) ($line['qty_settlement'] ?? 0);
             $remaining = $uDetail->qty_usage - ($uDetail->qty_return_usage ?? 0);
-            if ($qtySettlement < 0 || $qtySettlement > $remaining) {
+            $claimed = $claimTracker[$uDetail->id] ?? 0;
+            if ($qtySettlement < 0 || ($qtySettlement + $claimed) > $remaining) {
                 $productName = MsVplProduct::where('product_id', $uDetail->product_id)->value('product_name') ?? $uDetail->product_id;
-                return response()->json(['error' => 'Qty Settlement for '.$productName.' must be between 0 and '.$remaining.'.'], 422);
+                return response()->json(['error' => 'Qty Settlement for '.$productName.' must be between 0 and '.max(0, $remaining - $claimed).'.'], 422);
             }
+            $claimTracker[$uDetail->id] = $claimed + $qtySettlement;
 
             $qtyRemain = $remaining - $qtySettlement;
 

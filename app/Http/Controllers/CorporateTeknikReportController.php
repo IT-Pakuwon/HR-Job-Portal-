@@ -20,7 +20,7 @@ use Vinkla\Hashids\Facades\Hashids;
 | Corporate Teknik card-list dashboard uses — see CorporateTeknikDashboardController.
 |
 | "Ticket Type" is a single-select toggle between:
-|   - Support Ticket : ENGSUPPORTTICKET + BSFOSUPPORTTICKET, located via ms_site
+|   - Support Ticket : ENGSUPPORTTICKET + BSSUPPORTTICKET, located via ms_site
 |   - Berita Acara    : BA_ENG + BA_BS, located via ms_location + sub_location
 |
 | Access is entirely DB-driven via sys_access_right (screen_id REPORTCORPTEK,
@@ -31,7 +31,7 @@ use Vinkla\Hashids\Facades\Hashids;
 */
 class CorporateTeknikReportController extends Controller
 {
-    protected const SUPPORT_TYPES = ['ENGSUPPORTTICKET', 'BSFOSUPPORTTICKET'];
+    protected const SUPPORT_TYPES = ['ENGSUPPORTTICKET', 'BSSUPPORTTICKET', 'FOSUPPORTTICKET'];
 
     protected const BA_TYPES = ['BA_ENG', 'BA_BS'];
 

@@ -123,19 +123,8 @@ class BudgetController extends Controller
     {
         $user = Auth::user();
 
-        // cpny_id bisa "AW" atau "AW,EP,PSA,GPS"
-        if (is_string($user->cpny_id)) {
-            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
-        } else {
-            $cpnyIds = (array) $user->cpny_id;
-        }
-
-        // department_id juga bisa multi, tapi di debug sudah "IT"
-        if (is_string($user->department_id)) {
-            $deptIds = array_map('trim', explode(',', $user->department_id));
-        } else {
-            $deptIds = (array) $user->department_id;
-        }
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         // Normal: ambil mapping dept -> dept_fin
         $departmentFinIds = MsDepartment::whereIn('department_id', $deptIds)
@@ -143,7 +132,7 @@ class BudgetController extends Controller
             ->pluck('department_fin_id')
             ->toArray();
 
-        $full = $this->hasFullAccess();
+        $full = $this->hasFullAccess() || $user->hasFullDataScope();
 
 
         // Kalau FULLACCESS → filter company saja

@@ -78,13 +78,8 @@ class RfpNonPurchController extends Controller
         $user = Auth::user();
         if (!$user) return redirect()->route('login');
 
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
-            : (array) $user->cpny_id;
-
-        $deptIds = is_string($user->department_id)
-            ? array_filter(array_map('trim', explode(',', $user->department_id)))
-            : (array) $user->department_id;
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $baseQuery = TrRfpNonPurch::query()
             ->whereIn('cpny_id', $cpnyIds)
@@ -155,13 +150,8 @@ class RfpNonPurchController extends Controller
     {
         $user = Auth::user();
 
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
-            : (array) $user->cpny_id;
-
-        $deptIds = is_string($user->department_id)
-            ? array_filter(array_map('trim', explode(',', $user->department_id)))
-            : (array) $user->department_id;
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $draw   = (int) $request->input('draw', 1);
         $start  = (int) $request->input('start', 0);

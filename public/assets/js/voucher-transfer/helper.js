@@ -136,6 +136,50 @@ const VplTransferHelper = {
         `;
     },
 
+    /**
+     * Builds a Return Transfer detail row pre-filled from a reference transfer line
+     * (see VplTransferController::getRefDetails). Warehouses and product are fixed
+     * (read-only) — a return can only go back to where the product came from — the
+     * user only edits Qty Transfer. Always removable, including the first row.
+     */
+    buildRefDetailRow(prefix, idx, line) {
+        const exp        = (line.expired_date ?? '').substring(0, 10);
+        const expDisplay = (exp === '' || exp === '1900-01-01') ? '—' : exp;
+        const avail      = Number(line.qty_returnable ?? 0);
+        const nameEsc    = String(line.product_name ?? '').replace(/"/g, '&quot;');
+        return `
+            <tr id="${prefix}_row_${idx}" data-idx="${idx}">
+                <td class="px-3 py-2">
+                    <input type="hidden" name="addmore[${idx}][from_whs_id]" class="${prefix}-from-whs-input" value="${line.from_whs_id ?? ''}">
+                    <span class="block rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600 dark:bg-white/[0.04] dark:text-slate-300">${line.from_whs_id ?? '—'}</span>
+                </td>
+                <td class="px-3 py-2">
+                    <input type="hidden" name="addmore[${idx}][product_id]"    class="${prefix}-product-id-input" value="${line.product_id ?? ''}">
+                    <input type="hidden" name="addmore[${idx}][qty_available]" class="${prefix}-qty-avail-input"  value="${avail}">
+                    <input type="hidden" name="addmore[${idx}][expired_date]"  class="${prefix}-exp-input"        value="${line.expired_date ?? ''}">
+                    <span class="${prefix}-product-display block truncate rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-700 dark:bg-white/[0.04] dark:text-slate-200" title="${nameEsc}">${line.product_name ?? ''}</span>
+                </td>
+                <td class="px-3 py-2">
+                    <span class="${prefix}-qty-avail-display block rounded-lg bg-slate-50 px-3 py-2 text-xs text-right text-slate-500 dark:bg-white/[0.04] dark:text-slate-400">${avail.toLocaleString()}</span>
+                </td>
+                <td class="px-3 py-2">
+                    <span class="${prefix}-exp-display block rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500 dark:bg-white/[0.04] dark:text-slate-400">${expDisplay}</span>
+                </td>
+                <td class="px-3 py-2">
+                    <input type="number" name="addmore[${idx}][qty_transfer]" min="1" max="${avail}" placeholder="0"
+                        class="${prefix}-qty-transfer-input w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-white/10 dark:bg-[#0b1220] dark:text-white">
+                </td>
+                <td class="px-3 py-2">
+                    <input type="hidden" name="addmore[${idx}][to_whs_id]" class="${prefix}-to-whs-input" value="${line.to_whs_id ?? ''}">
+                    <span class="block rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600 dark:bg-white/[0.04] dark:text-slate-300">${line.to_whs_id ?? '—'}</span>
+                </td>
+                <td class="px-3 py-2 text-center">
+                    <button type="button" class="${prefix}-remove-row-btn text-red-400 hover:text-red-600" data-idx="${idx}"><i class="fa-solid fa-trash-can text-sm"></i></button>
+                </td>
+            </tr>
+        `;
+    },
+
     buildAttachRow(prefix, idx) {
         return `
             <tr id="${prefix}_attach_${idx}">

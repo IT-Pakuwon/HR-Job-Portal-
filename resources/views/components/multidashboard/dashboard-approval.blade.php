@@ -342,4 +342,13 @@
     }
 </style>
 
+@include('partials.private-note-widget', ['doctype' => 'VCR', 'floatingButton' => false, 'akses_cc' => ($akses_cc ?? false) || ($isGA ?? false)])
+
+<script>
+    window.privateNoteAccess = {
+        costCtrl: @json($akses_cc ?? false),
+        ga: @json($isGA ?? false),
+    };
+</script>
+
 <script src="{{ asset('assets/js/multidashboard/dashapproval.js') }}?v={{ filemtime(public_path('assets/js/multidashboard/dashapproval.js')) }}"></script>

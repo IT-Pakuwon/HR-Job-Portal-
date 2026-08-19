@@ -482,11 +482,25 @@
                     title: 'Completed Qty SPB?',
                     text: 'Apakah Anda yakin ingin meng-complete seluruh qty sisa SPB ini?',
                     icon: 'warning',
+                    input: 'textarea',
+                    inputLabel: 'Reason',
+                    inputPlaceholder: 'Masukkan reason complete qty SPB...',
+                    inputAttributes: {
+                        'aria-label': 'Reason complete qty SPB',
+                        maxlength: 500
+                    },
+                    inputValidator: (value) => {
+                        if (!value || !value.trim()) {
+                            return 'Reason wajib diisi.';
+                        }
+                    },
                     showCancelButton: true,
                     confirmButtonText: 'Ya, Complete',
                     cancelButtonText: 'Batal'
                 }).then((result) => {
                     if (!result.isConfirmed) return;
+
+                    const reason = result.value.trim();
 
                     showOverlay('Completing remaining...');
 
@@ -494,7 +508,8 @@
                             url: url,
                             type: 'POST',
                             data: {
-                                _token: '{{ csrf_token() }}'
+                                _token: '{{ csrf_token() }}',
+                                reason: reason
                             }
                         })
                         .done(function(res) {

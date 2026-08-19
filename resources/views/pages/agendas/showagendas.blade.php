@@ -289,7 +289,7 @@
 
                     <div class="mt-4 flex justify-between">
                         <button id="cancelRejectBtn"
-                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
+                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
                             Cancel
                         </button>
                         <button id="confirmRejectBtn"
@@ -309,7 +309,7 @@
 
                     <div class="mt-4 flex justify-between">
                         <button id="cancelReviseBtn"
-                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:text-gray-300">
+                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
                             Cancel
                         </button>
                         <button id="confirmReviseBtn"

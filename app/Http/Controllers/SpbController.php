@@ -43,19 +43,8 @@ class SpbController extends Controller
             return redirect()->route('login');
         }
 
-        // Bisa single / array → paksa ke array biar aman
-        if (is_string($user->cpny_id)) {
-            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
-        } else {
-            $cpnyIds = (array) $user->cpny_id;
-        }
-
-        // department_id juga bisa multi, tapi di debug sudah "IT"
-        if (is_string($user->department_id)) {
-            $deptIds = array_map('trim', explode(',', $user->department_id));
-        } else {
-            $deptIds = (array) $user->department_id;
-        }
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $isAdmin = $user->isAdmin();
 
@@ -115,18 +104,10 @@ class SpbController extends Controller
         }
 
         // ==============================
-        // USER COMPANY
+        // USER COMPANY / DEPARTMENT
         // ==============================
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_map('trim', explode(',', $user->cpny_id))
-            : (array) $user->cpny_id;
-
-        // ==============================
-        // USER DEPARTMENT (NORMAL MODE)
-        // ==============================
-        $deptIds = is_string($user->department_id)
-            ? array_map('trim', explode(',', $user->department_id))
-            : (array) $user->department_id;
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         // ==============================
         // DATATABLE PARAMS
@@ -280,13 +261,8 @@ class SpbController extends Controller
     {
         $user = Auth::user();
 
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_values(array_filter(array_map('trim', explode(',', $user->cpny_id))))
-            : array_values(array_filter((array) $user->cpny_id));
-
-        $deptIds = is_string($user->department_id)
-            ? array_values(array_filter(array_map('trim', explode(',', $user->department_id))))
-            : array_values(array_filter((array) $user->department_id));
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $draw = (int) $request->input('draw', 1);
         $start = (int) $request->input('start', 0);

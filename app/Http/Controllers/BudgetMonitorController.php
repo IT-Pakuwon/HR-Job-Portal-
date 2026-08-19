@@ -49,13 +49,15 @@ class BudgetMonitorController extends Controller
 
         $isCostCtrl  = $username ? $this->hasRole($username, 'COSTCTRLACCESS') : false;
         $isUserAccess = $username ? $this->hasRole($username, 'USERACCESS') : false;
+        $isFullScope = $authUser && $authUser->hasFullDataScope();
 
         // Default: kalau bukan COSTCTRL, tapi USERACCESS -> apply filter.
         // Kalau dua-duanya false, kamu bisa pilih:
         // - treat as USERACCESS dengan filter user
         // - atau abort 403
         // Saya pilih: kalau tidak COSTCTRL, tetap dibatasi user (lebih aman).
-        $mode = $isCostCtrl ? 'COSTCTRL' : 'USERACCESS';
+        // FULLSCOPE (e.g. DIRECTORACCESS): no hard limit at all, only optional dropdown filters.
+        $mode = $isFullScope ? 'FULLSCOPE' : ($isCostCtrl ? 'COSTCTRL' : 'USERACCESS');
 
         // Ambil user full record (pgsql2.ms_user) supaya pasti dapat cpny_id dll
         $u = User::query()->where('username', $username)->first();
@@ -81,6 +83,25 @@ class BudgetMonitorController extends Controller
 
     private function applyUserAccessFilters($q, array $policy, Request $request, bool $useRequestFilters = true)
     {
+        // FULLSCOPE (e.g. DIRECTORACCESS): no hard limit, only optional dropdown filters.
+        if (($policy['mode'] ?? '') === 'FULLSCOPE') {
+            if ($useRequestFilters) {
+                if ($request->filled('cpny_id')) {
+                    $q->where('cpny_id', $request->cpny_id);
+                }
+
+                if ($request->filled('business_unit_id')) {
+                    $q->where('business_unit_id', $request->business_unit_id);
+                }
+
+                if ($request->filled('department_fin_id')) {
+                    $q->where('department_fin_id', $request->department_fin_id);
+                }
+            }
+
+            return $q;
+        }
+
         // Kalau COSTCTRL, pakai filter request normal (tidak dipaksa)
         if (($policy['mode'] ?? '') === 'COSTCTRL') {
 

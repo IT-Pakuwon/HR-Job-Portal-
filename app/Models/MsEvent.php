@@ -27,6 +27,8 @@ class MsEvent extends Model
         'event_description',
         'event_total_contract',
         'pic_event',
+        'pic_event_external',
+        'pic_event_external_hp',
         'status',
         'created_user',
         'updated_user',

@@ -3,9 +3,11 @@
 <head>
     <meta charset="utf-8">
     <title>{{ $ticket->ticketid }} — {{ match($ticket->ticket_type) {
-        'BA_BS' => 'Berita Acara BSFO',
+        'BA_BS' => 'Request For Approval',
         'BA_ENG' => 'Berita Acara ENG',
-        'BSFOSUPPORTTICKET' => 'BS&FO Support Ticket',
+        'BA_FO' => 'Document Approval',
+        'BSSUPPORTTICKET' => 'Building Service Support Ticket',
+        'FOSUPPORTTICKET' => 'Fit Out Support Ticket',
         default => 'Engineering Support Ticket',
     } }}</title>
 
@@ -20,6 +22,23 @@
 
         .page {
             padding: 28px 34px;
+            position: relative;
+        }
+
+        /* DRAFT watermark for unapproved BA tickets */
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 72px;
+            font-weight: bold;
+            color: rgba(200, 200, 200, 0.25);
+            letter-spacing: 12px;
+            text-transform: uppercase;
+            pointer-events: none;
+            z-index: 0;
+            white-space: nowrap;
         }
 
         table {
@@ -257,14 +276,22 @@
         $pLower = strtolower($pName);
 
         $moduleLabel = match($ticket->ticket_type) {
-            'BA_BS' => 'BERITA ACARA BSFO',
+            'BA_BS' => 'REQUEST FOR APPROVAL',
             'BA_ENG' => 'BERITA ACARA ENG',
-            'BSFOSUPPORTTICKET' => 'BS&FO SUPPORT TICKET',
+            'BA_FO' => 'DOCUMENT APPROVAL',
+            'BSSUPPORTTICKET' => 'BUILDING SERVICE SUPPORT TICKET',
+            'FOSUPPORTTICKET' => 'FIT OUT SUPPORT TICKET',
             default => 'ENGINEERING SUPPORT TICKET',
         };
     @endphp
 
     <div class="page">
+
+        {{-- DRAFT WATERMARK for unapproved BA tickets --}}
+        @if (in_array($ticket->ticket_type, ['BA_ENG', 'BA_BS', 'BA_FO'], true)
+              && !in_array($ticket->status, ['C', 'A'], true))
+            <div class="watermark">DRAFT / PENDING APPROVAL</div>
+        @endif
 
         {{-- HEADER --}}
         <table class="header">
@@ -272,7 +299,7 @@
                 <td>
                     <div class="title">{{ $moduleLabel }}</div>
                     <div class="company">{{ $ticket->cpny_id ?? '-' }} &nbsp;·&nbsp; {{ $ticket->department_id ?? '-' }}</div>
-                    @if (in_array($ticket->ticket_type, ['BA_ENG', 'BA_BS'], true))
+                    @if (in_array($ticket->ticket_type, ['BA_ENG', 'BA_BS', 'BA_FO'], true))
                         <div class="company" style="margin-top:2px;">{{ optional($ticket->ticketdate)->format('d F Y') ?? '-' }}</div>
                     @endif
                 </td>
@@ -281,7 +308,7 @@
                     @if ($baAutoNumber)
                         <div style="font-size:10px; color:#888; margin-top:2px;">{{ $ticket->ticketid }}</div>
                     @endif
-                    @unless (in_array($ticket->ticket_type, ['BA_ENG', 'BA_BS'], true))
+                    @unless (in_array($ticket->ticket_type, ['BA_ENG', 'BA_BS', 'BA_FO'], true))
                         <div class="doc-date">{{ optional($ticket->ticketdate)->format('d F Y') ?? '-' }}</div>
                         <div class="doc-status">{{ $statusLabel }}</div>
                     @endunless
@@ -307,7 +334,7 @@
                             <td class="meta-label">Department</td>
                             <td class="meta-value">{{ $ticket->department_id ?? '-' }}</td>
                             <td class="meta-label">Status</td>
-                            <td class="meta-value">{{ $statusLabel }} / {{ $ticket->status_pekerjaan ?? '-' }}</td>
+                            <td class="meta-value">{{ $statusLabel }} / {{ $workflowStatusLabel ?? $ticket->status_pekerjaan ?? '-' }}</td>
                         </tr>
                         <tr>
                             <td class="meta-label">Ticket Type</td>
@@ -450,7 +477,7 @@
         @endif
 
         {{-- SECTION: APPROVAL (BA_ENG / BA_BS only) --}}
-        @if (in_array($ticket->ticket_type, ['BA_ENG', 'BA_BS'], true) && !empty($approval))
+        @if (in_array($ticket->ticket_type, ['BA_ENG', 'BA_BS', 'BA_FO'], true) && !empty($approval))
             @php
                 $aprvStatusLabel = fn ($s) => match ($s) {
                     'A' => 'Approved',

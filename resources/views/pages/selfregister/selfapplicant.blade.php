@@ -20,6 +20,14 @@
         .select2-dropdown {
             z-index: 99999 !important;
         }
+
+        #applicantsTable tr.row-checked td { color: #000000; }
+        #applicantsTable tr.row-unchecked td { color: #2563eb; }
+        #applicantsTable tr.row-reject td { color: #dc2626; }
+
+        .dark #applicantsTable tr.row-checked td { color: #ffffff; }
+        .dark #applicantsTable tr.row-unchecked td { color: #22d3ee; }
+        .dark #applicantsTable tr.row-reject td { color: #f87171; }
     </style>
     <div class="max-w-9xl mx-auto p-2">
 
@@ -592,12 +600,14 @@
                 ],
 
                 rowCallback: function(row, data) {
+                    $(row).removeClass('row-checked row-unchecked row-reject');
+
                     if (data.status === 'R') {
-                        $(row).css('color', '#dc2626');
+                        $(row).addClass('row-reject');
                     } else if (!data.is_read || data.is_read === 'N') {
-                        $(row).css('color', '#2563eb');
+                        $(row).addClass('row-unchecked');
                     } else {
-                        $(row).css('color', 'black');
+                        $(row).addClass('row-checked');
                     }
                 }
             });

@@ -6,6 +6,22 @@
         tr.group-alt {
             background-color: rgba(250, 204, 21, 0.06);
         }
+
+        #applicantsTable tr.row-checked td { color: #000000; }
+        #applicantsTable tr.row-unchecked td { color: #2563eb; }
+        #applicantsTable tr.row-reject td { color: #dc2626; }
+
+        .dark #applicantsTable tr.row-checked td { color: #ffffff; }
+        .dark #applicantsTable tr.row-unchecked td { color: #22d3ee; }
+        .dark #applicantsTable tr.row-reject td { color: #f87171; }
+
+        .legend-dot-checked { background-color: #000000; }
+        .legend-dot-unchecked { background-color: #2563eb; }
+        .legend-dot-reject { background-color: #dc2626; }
+
+        .dark .legend-dot-checked { background-color: #ffffff; }
+        .dark .legend-dot-unchecked { background-color: #22d3ee; }
+        .dark .legend-dot-reject { background-color: #f87171; }
     </style>
     <div class="max-w-9xl mx-auto p-2">
         {{-- Tab nav --}}
@@ -123,6 +139,20 @@
             <div
                 class="flex flex-col items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
                 <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Applicant List</h2>
+                <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                    <span class="flex items-center gap-1.5">
+                        <span class="legend-dot-checked h-2 w-2 rounded-full"></span>
+                        Checked
+                    </span>
+                    <span class="flex items-center gap-1.5">
+                        <span class="legend-dot-unchecked h-2 w-2 rounded-full"></span>
+                        Unchecked
+                    </span>
+                    <span class="flex items-center gap-1.5">
+                        <span class="legend-dot-reject h-2 w-2 rounded-full"></span>
+                        Reject
+                    </span>
+                </div>
             </div>
 
             <div id="applicantsFilters" class="grid grid-cols-1 gap-3 px-5 pt-4 sm:grid-cols-6 lg:grid-cols-12">
@@ -766,7 +796,7 @@
                         name: 'apply_step',
                         render: function(data) {
                             const label = stepLabelMap[data] || data;
-                            return `<span class="inline-flex justify-center items-center w-[120px] bg-blue-300/30 text-blue-600 text-sm font-semibold px-3 py-1.5 text-center rounded whitespace-normal break-words"> ${label} </span>`;
+                            return `<span class="inline-flex justify-center items-center w-[120px] bg-blue-300/30 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300 text-sm font-semibold px-3 py-1.5 text-center rounded whitespace-normal break-words"> ${label} </span>`;
                         }
                     },
                     {
@@ -789,17 +819,15 @@
                     }
                 ],
                 rowCallback: function(row, data) {
-                    // reset dulu
-                    $(row).css('color', '');
+                    // reset dulu — pakai custom class (lihat <style> di atas), reaktif ke toggle .dark tanpa redraw
+                    $(row).removeClass('row-checked row-unchecked row-reject');
 
                     if (data.status === 'R') {
-                        // merah (Tailwind red-600)
-                        $(row).css('color', '#dc2626');
+                        $(row).addClass('row-reject');
                     } else if (data.is_read === 'N') {
-                        // biru (Tailwind blue-600)
-                        $(row).css('color', '#2563eb');
+                        $(row).addClass('row-unchecked');
                     } else {
-                        $(row).css('color', 'black');
+                        $(row).addClass('row-checked');
                     }
                 },
                 initComplete: function() {

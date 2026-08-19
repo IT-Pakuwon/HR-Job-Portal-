@@ -1,9 +1,9 @@
 <div class="space-y-4">
 
     {{-- FILTER PANEL --}}
-    <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm dark:border-gray-700">
+    <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800/40">
 
-        <div class="grid grid-cols-1 items-end gap-4 md:grid-cols-2 lg:grid-cols-6">
+        <div class="grid grid-cols-1 items-end gap-4 md:grid-cols-2 lg:grid-cols-7">
 
             {{-- DATE FROM --}}
             <div class="space-y-1">
@@ -91,6 +91,27 @@
                 </select>
             </div>
 
+            {{-- COMPANY --}}
+            <div class="space-y-1">
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                    Company
+                </label>
+
+                <select id="voucher_company" class="form-input w-full">
+
+                    <option value="">
+                        All Company
+                    </option>
+
+                    @foreach ($companies as $cpny)
+                        <option value="{{ $cpny->cpny_id }}">
+                            {{ $cpny->cpny_name }}
+                        </option>
+                    @endforeach
+
+                </select>
+            </div>
+
             {{-- ACTION --}}
             <div class="flex items-end justify-end gap-2">
 
@@ -107,7 +128,7 @@
                 </button>
 
                 <button id="voucherExportBtn"
-                    class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100">
+                    class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20">
 
                     Export
                 </button>
@@ -139,6 +160,7 @@
                         <th>Created User</th>
                         <th>Requester</th>
                         <th>Department</th>
+                        <th>Company</th>
                         <th>Company Expense</th>
                         <th>Origin</th>
                         <th>Destination</th>
@@ -197,6 +219,9 @@
 
                     d.status =
                         $('#voucher_status').val();
+
+                    d.company =
+                        $('#voucher_company').val();
                 }
             },
 
@@ -229,6 +254,11 @@
                 {
                     data: 'company',
                     name: 'company',
+                    orderable: false
+                },
+                {
+                    data: 'company_expense',
+                    name: 'company_expense',
                     orderable: false
                 },
                 {
@@ -276,6 +306,7 @@
             $('#voucher_requester').val('');
             $('#voucher_type_trip').val('');
             $('#voucher_status').val('');
+            $('#voucher_company').val('');
 
             table.ajax.reload();
         });
@@ -304,6 +335,10 @@
             url +=
                 '&status=' +
                 $('#voucher_status').val();
+
+            url +=
+                '&company=' +
+                $('#voucher_company').val();
 
             window.location.href = url;
         });

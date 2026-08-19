@@ -1,9 +1,9 @@
 <div class="space-y-4">
 
     {{-- FILTER PANEL --}}
-    <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm dark:border-gray-700">
+    <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800/40">
 
-        <div class="grid grid-cols-1 items-end gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <div class="grid grid-cols-1 items-end gap-4 md:grid-cols-2 lg:grid-cols-6">
 
             {{-- DATE FROM --}}
             <div class="space-y-1">
@@ -54,6 +54,27 @@
                     class="form-input w-full">
             </div>
 
+            {{-- COMPANY --}}
+            <div class="space-y-1">
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                    Company
+                </label>
+
+                <select id="ce_company" class="form-input w-full">
+
+                    <option value="">
+                        All Company
+                    </option>
+
+                    @foreach ($companies as $cpny)
+                        <option value="{{ $cpny->cpny_id }}">
+                            {{ $cpny->cpny_name }}
+                        </option>
+                    @endforeach
+
+                </select>
+            </div>
+
             {{-- ACTION --}}
             <div class="flex items-end justify-end gap-2">
 
@@ -68,7 +89,7 @@
                 </button>
 
                 <button id="ceExportBtn"
-                    class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100">
+                    class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20">
                     Export
                 </button>
 
@@ -144,6 +165,7 @@
                     d.date_to   = $('#ce_date_to').val();
                     d.nopol     = $('#ce_nopol').val();
                     d.driver    = $('#ce_driver').val();
+                    d.company   = $('#ce_company').val();
                 }
             },
 
@@ -175,6 +197,7 @@
             $('#ce_date_to').val('');
             $('#ce_nopol').val('');
             $('#ce_driver').val('');
+            $('#ce_company').val('');
             table.ajax.reload();
         });
 
@@ -186,6 +209,7 @@
             url += '&date_to='   + $('#ce_date_to').val();
             url += '&nopol='     + $('#ce_nopol').val();
             url += '&driver='    + $('#ce_driver').val();
+            url += '&company='   + $('#ce_company').val();
 
             window.location.href = url;
         });

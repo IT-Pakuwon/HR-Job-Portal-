@@ -166,7 +166,7 @@
             <ul class="space-y-1">
 
                 <!-- ================= FAVORITES ================= -->
-                <li class="mt-0" x-data="sidebarFavourites()" x-init="init()" x-show="items.length > 0" x-cloak>
+                <li class="mt-0" x-data="sidebarFavourites('{{ route('menu-favourites.index') }}', '{{ route('menu-favourites.toggle') }}')" x-init="init()" x-show="items.length > 0" x-cloak>
 
                     <button @click="open = !open"
                         class="flex w-full items-center justify-between min-h-11 rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-amber-700 bg-amber-50 transition-all duration-200 hover:bg-amber-100 dark:text-amber-300 dark:bg-amber-900/20 dark:hover:bg-amber-900/30">
@@ -212,6 +212,10 @@
                         $allowedIds = isset($allowedMenuIds) ? $allowedMenuIds->toArray() : [];
 
                         $visibleMenus = $rootMenu->children->filter(function ($menu) use ($allowedIds) {
+
+                            if ($menu->status !== 'A') {
+                                return false;
+                            }
 
                             $children = $menu->children->whereIn('menu_id', $allowedIds);
 
@@ -553,7 +557,7 @@
                                 <!-- ================================================= -->
                                 <!-- HRGA SETUP -->
                                 <!-- ================================================= -->
-                                @php $hrgaSetup = ['grading', 'kendaraan', 'group-acc-specific']; @endphp
+                                @php $hrgaSetup = ['grading', 'kendaraan', 'group-acc-specific', 'performance-management']; @endphp
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $hrgaSetup) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
@@ -581,6 +585,10 @@
                                         <li><a href="{{ route('group_acc_specific') }}"
                                                 class="{{ Request::segment(1) === 'group-acc-specific' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Group
                                                 Access Specific</a>
+                                        </li>
+                                        <li><a href="{{ route('performance-management') }}"
+                                                class="{{ Request::segment(1) === 'performance-management' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Performance
+                                                Management</a>
                                         </li>
                                     </ul>
                                 </li>
@@ -764,65 +772,6 @@
 </div>
 
 <script>
-function sidebarMenuSearch(index) {
-    return {
-        index: index,
-        query: '',
-        open: false,
-
-        get results() {
-            const term = this.query.trim().toLowerCase();
-            if (!term) return [];
-
-            return this.index.filter(item =>
-                item.menu_name.toLowerCase().includes(term) ||
-                (item.parent_name || '').toLowerCase().includes(term)
-            ).slice(0, 8);
-        }
-    };
-}
-
-function sidebarFavourites() {
-    return {
-        items: [],
-        open: true,
-
-        init() {
-            this.load();
-            window.addEventListener('favourites-changed', () => this.load());
-        },
-
-        async load() {
-            try {
-                const res = await fetch('{{ route('menu-favourites.index') }}', { headers: { 'Accept': 'application/json' } });
-                if (!res.ok) return;
-                const { data = [] } = await res.json();
-                this.items = data;
-            } catch (e) {
-                console.error('sidebar favourites load failed', e);
-            }
-        },
-
-        async removeItem(item) {
-            try {
-                await fetch('{{ route('menu-favourites.toggle') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ screen_id: item.screen_id, application_id: item.application_id })
-                });
-                this.items = this.items.filter(i => i.id !== item.id);
-                window.dispatchEvent(new CustomEvent('favourites-changed'));
-            } catch (e) {
-                console.error('sidebar remove favourite failed', e);
-            }
-        }
-    };
-}
-
 document.addEventListener('click', function (e) {
     const btn = e.target.closest('.favourite-star');
     if (!btn) return;

@@ -118,6 +118,7 @@ function submitTicketComment() {
 
     Array.from(files).forEach(
         function (file) {
+            if (!validateTicketAttachment(file)) return;
 
             formData.append(
                 'attachments[]',

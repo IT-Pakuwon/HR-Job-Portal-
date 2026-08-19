@@ -20,6 +20,8 @@ class MultiDashboardController extends Controller
                 ->exists()
             : false;
 
+        $isGA = $user ? $user->hasRole('GAACCESS') : false;
+
         $isItStaff = $user && $user->isAdmin();
 
         $dataFeed = new DataFeed();
@@ -44,6 +46,7 @@ class MultiDashboardController extends Controller
             'tr_approval' => collect(),
             'doctypes' => $doctypes,
             'akses_cc' => $akses_cc,
+            'isGA' => $isGA,
             'isItStaff' => $isItStaff,
         ]);
     }

@@ -7,7 +7,7 @@ const EventLocationSetupApp = {
 
     state: {
         modalMode: 'create', // 'create' | 'edit'
-        rows: [],
+        table: null,
         departmentTom: null,
     },
 
@@ -55,9 +55,10 @@ const EventLocationSetupApp = {
     init() {
         EventLocationSetupApp.initSelect2();
         EventLocationSetupApp.initDepartmentTom();
+        EventLocationSetupApp.initTable();
         EventLocationSetupApp.bindModalEvents();
         EventLocationSetupApp.bindStatusToggle();
-        EventLocationSetupApp.loadRows();
+        EventLocationSetupApp.bindCompanyFilter();
     },
 
     // --------------------------------------------------------
@@ -88,61 +89,68 @@ const EventLocationSetupApp = {
     },
 
     // --------------------------------------------------------
-    // TABLE
+    // TABLE (DataTables: built-in search + pagination)
     // --------------------------------------------------------
-    async loadRows() {
-        const tbody = document.getElementById('locationTableBody');
-
-        try {
-            const response = await EventLocationSetupApp.request(window.EventLocationSetupRoutes.json);
-            EventLocationSetupApp.state.rows = Array.isArray(response.data) ? response.data : [];
-            EventLocationSetupApp.renderRows();
-        } catch (err) {
-            tbody.innerHTML = '<tr><td colspan="7" class="px-5 py-8 text-center text-sm text-red-500">Failed to load locations</td></tr>';
-        }
-    },
-
-    renderRows() {
-        const tbody = document.getElementById('locationTableBody');
-        const rows = EventLocationSetupApp.state.rows;
-
-        if (rows.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="px-5 py-8 text-center text-sm text-gray-400">No event locations yet</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = rows.map((row) => `
-            <tr class="hover:bg-gray-50 dark:hover:bg-white/[0.03]">
-                <td class="px-5 py-3 text-sm font-medium text-slate-900 dark:text-white">${EventLocationSetupApp.escape(row.event_location_id)}</td>
-                <td class="px-5 py-3 text-sm text-slate-700 dark:text-slate-200">${EventLocationSetupApp.escape(row.event_location_name)}</td>
-                <td class="px-5 py-3 text-sm text-slate-500 dark:text-slate-400">${EventLocationSetupApp.escape(row.event_total_area || '-')}</td>
-                <td class="px-5 py-3 text-sm text-slate-500 dark:text-slate-400">${EventLocationSetupApp.escape(row.cpny_name || '-')}</td>
-                <td class="px-5 py-3 text-sm text-slate-500 dark:text-slate-400">${EventLocationSetupApp.escape(row.department_names || '-')}</td>
-                <td class="px-5 py-3 text-sm">
-                    ${row.status === 'A'
+    initTable() {
+        EventLocationSetupApp.state.table = $('#locationTable').DataTable({
+            ajax: {
+                url: window.EventLocationSetupRoutes.json,
+                dataSrc: 'data',
+            },
+            processing: true,
+            responsive: true,
+            order: [[1, 'asc']],
+            columns: [
+                {
+                    data: 'event_location_id',
+                    className: 'px-5 py-3 text-sm font-medium text-slate-900 dark:text-white',
+                    render: $.fn.dataTable.render.text(),
+                },
+                {
+                    data: 'event_location_name',
+                    className: 'px-5 py-3 text-sm text-slate-700 dark:text-slate-200',
+                    render: $.fn.dataTable.render.text(),
+                },
+                {
+                    data: 'event_total_area',
+                    className: 'px-5 py-3 text-sm text-slate-500 dark:text-slate-400',
+                    render: (data) => data || '-',
+                },
+                { data: 'cpny_name', className: 'px-5 py-3 text-sm text-slate-500 dark:text-slate-400', render: (data) => data || '-' },
+                { data: 'department_names', className: 'px-5 py-3 text-sm text-slate-500 dark:text-slate-400', render: (data) => data || '-' },
+                {
+                    data: 'status',
+                    className: 'px-5 py-3 text-sm',
+                    render: (data) => data === 'A'
                         ? '<span class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">Active</span>'
-                        : '<span class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-500">Inactive</span>'}
-                </td>
-                <td class="px-5 py-3 text-right text-sm">
-                    <button type="button" class="edit-location-btn font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white" data-id="${row.id}">
-                        Edit
-                    </button>
-                </td>
-            </tr>
-        `).join('');
+                        : '<span class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-500">Inactive</span>',
+                },
+                {
+                    data: null,
+                    orderable: false,
+                    searchable: false,
+                    className: 'px-5 py-3 text-right text-sm',
+                    render: (data, type, row) => `<button type="button" class="edit-location-btn font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white" data-id="${row.id}">Edit</button>`,
+                },
+            ],
+        });
 
-        tbody.querySelectorAll('.edit-location-btn').forEach((btn) => {
-            btn.addEventListener('click', () => {
-                const row = EventLocationSetupApp.state.rows.find((r) => String(r.id) === btn.dataset.id);
-                if (row) EventLocationSetupApp.openEditModal(row);
-            });
+        // Rows are redrawn on every page/search, so bind once via delegation
+        // rather than re-attaching a listener per row after each draw.
+        $('#locationTable tbody').on('click', '.edit-location-btn', function () {
+            const id = $(this).data('id');
+            const row = EventLocationSetupApp.state.table.rows().data().toArray().find((r) => String(r.id) === String(id));
+            if (row) EventLocationSetupApp.openEditModal(row);
         });
     },
 
-    escape(value) {
-        const div = document.createElement('div');
-        div.textContent = value ?? '';
-        return div.innerHTML;
+    bindCompanyFilter() {
+        const companyColumnIndex = 3; // 0-based: id, name, area, company, department, status, actions
+        document.getElementById('filterCompany')?.addEventListener('change', (e) => {
+            const value = e.target.value;
+            const table = EventLocationSetupApp.state.table;
+            table.column(companyColumnIndex).search(value ? `^${$.fn.dataTable.util.escapeRegex(value)}$` : '', true, false).draw();
+        });
     },
 
     // --------------------------------------------------------

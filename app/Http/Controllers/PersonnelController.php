@@ -116,11 +116,16 @@ class PersonnelController extends Controller
 
     private function personnelScopeForUser($user)
     {
-        $cpnyIds = $this->userCpnyIds($user);
         $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
 
         $q = Personnel::query()
             ->where('group_cpny_id', $groupCompanyId);
+
+        if ($user->hasFullDataScope()) {
+            return $q;
+        }
+
+        $cpnyIds = $this->userCpnyIds($user);
 
         // wajib punya cpny
         if (empty($cpnyIds)) {
@@ -155,7 +160,7 @@ class PersonnelController extends Controller
         // ==============================
         // CHECK ACCESS RECACCESS
         // ==============================
-        $hasAccess = SysUserRole::query()
+        $hasAccess = $user->hasFullDataScope() || SysUserRole::query()
             ->where('username', $user->username)
             ->where('role_id', 'RECACCESS')
             ->where('status', 'A')
@@ -368,7 +373,7 @@ class PersonnelController extends Controller
         // ==============================
         // CHECK ACCESS RECACCESS
         // ==============================
-        $hasAccess = SysUserRole::query()
+        $hasAccess = $user->hasFullDataScope() || SysUserRole::query()
             ->where('username', $user->username)
             ->where('role_id', 'RECACCESS')
             ->where('status', 'A')

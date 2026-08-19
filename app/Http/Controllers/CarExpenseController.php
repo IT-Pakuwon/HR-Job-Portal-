@@ -37,6 +37,26 @@ class CarExpenseController extends Controller
         return $user;
     }
 
+    /**
+     * Same as gateGA() but also lets hasFullDataScope() roles (e.g. DIRECTORACCESS) view —
+     * only for read endpoints. Never use this for store/update/destroy/import: those must
+     * stay GAACCESS-only, since DIRECTORACCESS is granted visibility, not edit rights.
+     */
+    private function gateGAView()
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return null;
+        }
+
+        if (!$user->hasRole('GAACCESS') && !$user->hasFullDataScope()) {
+            return null;
+        }
+
+        return $user;
+    }
+
     public function index()
     {
         $user = Auth::user();
@@ -45,7 +65,7 @@ class CarExpenseController extends Controller
             return redirect()->route('login');
         }
 
-        if (!$user->hasRole('GAACCESS')) {
+        if (!$user->hasRole('GAACCESS') && !$user->hasFullDataScope()) {
             abort(403, 'Unauthorized');
         }
 
@@ -98,7 +118,7 @@ class CarExpenseController extends Controller
 
     public function json(Request $request)
     {
-        $user = $this->gateGA();
+        $user = $this->gateGAView();
 
         if (!$user) {
             return response()->json(['message' => 'Unauthorized'], 401);
@@ -272,7 +292,7 @@ class CarExpenseController extends Controller
 
     public function show($eid)
     {
-        $user = $this->gateGA();
+        $user = $this->gateGAView();
 
         if (!$user) {
             return response()->json(['message' => 'Unauthorized'], 401);
@@ -462,7 +482,7 @@ class CarExpenseController extends Controller
 
     public function getAttachments($eid)
     {
-        $user = $this->gateGA();
+        $user = $this->gateGAView();
 
         if (!$user) {
             return response()->json(['message' => 'Unauthorized'], 401);

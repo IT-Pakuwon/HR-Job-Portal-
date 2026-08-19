@@ -199,9 +199,11 @@
     function ticketTypeLabel(type) {
         const map = {
             ENGSUPPORTTICKET: "Engineering",
-            BSFOSUPPORTTICKET: "BS-FO",
+            BSSUPPORTTICKET: "Building Service",
+            FOSUPPORTTICKET: "Fit Out",
             BA_ENG: "Berita Acara ENG",
-            BA_BS: "Berita Acara BS",
+            BA_BS: "Request For Approval",
+            BA_FO: "Document Approval",
         };
         return map[type] || type;
     }

@@ -60,6 +60,7 @@ function initCompleteTicket() {
                             );
 
                     if (!exists) {
+                        if (!validateTicketAttachment(file)) return;
 
                         Ticket.state.completeAttachments
                             .push(file);

@@ -16,35 +16,58 @@ class InventoryUserController extends Controller
         $user = Auth::user();
         abort_if(!$user, 401);
 
-        // ✅ company dari usercpny
-        $cpnyIds = Usercpny::where('username', $user->username)
-            ->where('status', 'A')
-            ->pluck('cpny_id')
-            ->map(fn ($v) => strtoupper(trim((string) $v)))
-            ->filter()
-            ->unique()
-            ->values()
-            ->toArray();
+        if ($user->hasFullDataScope()) {
+            // Full scope (e.g. DIRECTORACCESS): every company / business unit, not just assigned ones.
+            $cpnyIds = \App\Models\MsCompany::pluck('cpny_id')
+                ->map(fn ($v) => strtoupper(trim((string) $v)))
+                ->filter()
+                ->unique()
+                ->values()
+                ->toArray();
 
-        // ✅ BU dari ms_user_business_unit (hanya yang user punya)
-        // lalu join ke ms_business_unit untuk ambil nama + integration fields
-        $buList = Userbusinessunit::query()
-    ->where('ms_user_business_unit.username', $user->username)
-    ->where('ms_user_business_unit.status', 'A') // ✅ FIX
-    ->join('ms_business_unit as bu', function ($join) {
-        $join->on('bu.business_unit_id', '=', 'ms_user_business_unit.business_unit_id');
-    })
-    ->where('bu.status', 'A')
-    ->get([
-        'ms_user_business_unit.cpny_id as cpny_id',
-        'ms_user_business_unit.business_unit_id as business_unit_id',
-        'bu.business_unit_name',
-        'bu.integration_type',
-        'bu.ifca_entity_cd',
-        'bu.solomon_cpny_id',
-        'bu.cpny_id as bu_cpny_id',
-    ])
-            ->map(function ($r) {
+            $buList = BusinessUnit::query()
+                ->where('status', 'A')
+                ->get([
+                    'cpny_id',
+                    'business_unit_id',
+                    'business_unit_name',
+                    'integration_type',
+                    'ifca_entity_cd',
+                    'solomon_cpny_id',
+                    'cpny_id as bu_cpny_id',
+                ]);
+        } else {
+            // ✅ company dari usercpny
+            $cpnyIds = Usercpny::where('username', $user->username)
+                ->where('status', 'A')
+                ->pluck('cpny_id')
+                ->map(fn ($v) => strtoupper(trim((string) $v)))
+                ->filter()
+                ->unique()
+                ->values()
+                ->toArray();
+
+            // ✅ BU dari ms_user_business_unit (hanya yang user punya)
+            // lalu join ke ms_business_unit untuk ambil nama + integration fields
+            $buList = Userbusinessunit::query()
+                ->where('ms_user_business_unit.username', $user->username)
+                ->where('ms_user_business_unit.status', 'A') // ✅ FIX
+                ->join('ms_business_unit as bu', function ($join) {
+                    $join->on('bu.business_unit_id', '=', 'ms_user_business_unit.business_unit_id');
+                })
+                ->where('bu.status', 'A')
+                ->get([
+                    'ms_user_business_unit.cpny_id as cpny_id',
+                    'ms_user_business_unit.business_unit_id as business_unit_id',
+                    'bu.business_unit_name',
+                    'bu.integration_type',
+                    'bu.ifca_entity_cd',
+                    'bu.solomon_cpny_id',
+                    'bu.cpny_id as bu_cpny_id',
+                ]);
+        }
+
+        $buList = $buList->map(function ($r) {
                 // rapikan
                 $r->cpny_id = strtoupper(trim((string) $r->cpny_id));
                 $r->business_unit_id = trim((string) $r->business_unit_id);

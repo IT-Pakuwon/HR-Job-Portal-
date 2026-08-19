@@ -292,10 +292,79 @@
         return sortDirection === "desc" ? sorted.reverse() : sorted;
     }
 
+    // ── Private note (COSTCTRLACCESS: any doctype below; GAACCESS: VCR/BCR
+    // docs they're on the approval line for — server enforces the actual scoping) ──
+    const COST_CTRL_NOTE_DOCTYPES = ["CS", "PB", "PJ", "PK", "PT", "IM"];
+    const GA_NOTE_DOCTYPES = ["VCR", "BCR"];
+
+    function canShowPrivateNote(doctype) {
+        const access = window.privateNoteAccess || {};
+        if (access.costCtrl && COST_CTRL_NOTE_DOCTYPES.includes(doctype)) return true;
+        if (access.ga && GA_NOTE_DOCTYPES.includes(doctype)) return true;
+        return false;
+    }
+
+    function privateNoteButton(row) {
+        const doctype = (row.docid || "").match(/^[A-Z]+/)?.[0];
+        if (!doctype || !canShowPrivateNote(doctype)) return "";
+
+        return `
+            <button type="button" class="private-note-btn relative inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-600 text-white shadow transition hover:bg-gray-700"
+                data-doctype="${doctype}" data-refnbr="${row.docid}" title="Private Note">
+                🗒️
+                <span class="note-count-badge absolute -top-1 -right-1 hidden min-w-4 rounded-full bg-red-500 px-1 text-[10px] font-bold leading-4 text-white" data-refnbr="${row.docid}"></span>
+            </button>`;
+    }
+
+    function refreshPrivateNoteCounts() {
+        const byDoctype = {};
+
+        Array.from(document.querySelectorAll(".private-note-btn")).forEach((el) => {
+            const doctype = el.dataset.doctype;
+            const refnbr = el.dataset.refnbr;
+            if (!doctype || !refnbr) return;
+            if (!byDoctype[doctype]) byDoctype[doctype] = [];
+            byDoctype[doctype].push(refnbr);
+        });
+
+        Object.keys(byDoctype).forEach((doctype) => {
+            const refnbrs = byDoctype[doctype];
+
+            fetch(`/private-notes-counts/${doctype}?refnbrs=${encodeURIComponent(refnbrs.join(","))}`, {
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                    Accept: "application/json",
+                },
+            })
+                .then((r) => r.json())
+                .then((res) => {
+                    const counts = res.counts || {};
+                    Object.keys(counts).forEach((refnbr) => {
+                        applyPrivateNoteCount(refnbr, counts[refnbr]);
+                    });
+                })
+                .catch((err) => console.error("Error loading private note counts:", err));
+        });
+    }
+
+    function applyPrivateNoteCount(refnbr, count) {
+        const badge = document.querySelector(`.note-count-badge[data-refnbr="${CSS.escape(refnbr)}"]`);
+        if (!badge) return;
+        if (count > 0) {
+            badge.textContent = count > 99 ? "99+" : count;
+            badge.classList.remove("hidden");
+        } else {
+            badge.classList.add("hidden");
+        }
+    }
+
     function renderApprovalTable(rows, tab) {
         const dateLabel = tab === "history" ? "Date" : "Since";
+        const showNoteCol = tab === "waiting" && rows.some(row => privateNoteButton(row) !== "");
+
         const rowsHtml = rows.map(row => {
             const href = `${row.url}/${row.hid}`;
+            const noteHtml = showNoteCol ? privateNoteButton(row) : "";
 
             return `
                 <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-700/30">
@@ -307,6 +376,7 @@
                     <td class="whitespace-nowrap px-3 py-2 align-top text-slate-600 dark:text-slate-300">${row.docdate || "-"}</td>
                     <td class="px-3 py-2 align-top text-slate-600 dark:text-slate-300">${row.infohd || "-"}</td>
                     <td class="whitespace-nowrap px-3 py-2 align-top">${approvalStatusBadge(row)}</td>
+                    ${showNoteCol ? `<td class="whitespace-nowrap px-3 py-2 align-top">${noteHtml}</td>` : ""}
                 </tr>
             `;
         }).join("");
@@ -322,6 +392,7 @@
                             ${sortableHeader("date", dateLabel)}
                             ${sortableHeader("desc", "Desc")}
                             ${sortableHeader("status", "Status")}
+                            ${showNoteCol ? `<th class="px-3 py-2 font-semibold"></th>` : ""}
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
@@ -380,6 +451,8 @@
 
         $("#approvalPrevPage").prop("disabled", currentPage === 0);
         $("#approvalNextPage").prop("disabled", currentPage >= totalPages - 1);
+
+        if (activeTab === "waiting") refreshPrivateNoteCounts();
     }
 
     function renderCardList(rows, resetPage = true) {
@@ -580,6 +653,18 @@
         bindPagination();
         bindOpenAll();
         bindHoverPause();
+
+        $(document).on("click", ".private-note-btn", function () {
+            if (!window.PrivateNote) return;
+            const doctype = this.dataset.doctype;
+            const refnbr  = this.dataset.refnbr;
+            window.PrivateNote.open(doctype, refnbr, refnbr);
+        });
+
+        $(document).on("privatenote:count-updated", function (e, doctype, refnbr, count) {
+            if (!refnbr) return;
+            applyPrivateNoteCount(refnbr, count);
+        });
     }
 
     function init() {

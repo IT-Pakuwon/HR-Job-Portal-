@@ -241,6 +241,39 @@ const VplTransferForm = {
     },
 
     // ------------------------------------------------------------------
+    // RETURN TRANSFER — auto-populate detail rows from the reference transfer
+    // ------------------------------------------------------------------
+
+    // Replaces the detail table with one row per still-returnable line from the chosen
+    // reference transfer. excludeTransferId (edit mode) is the DB id of the document
+    // being resubmitted, so its own already-claimed qty doesn't shrink its own options.
+    loadRefDetails(mode, excludeTransferId = null) {
+        const prefix = mode === 'create' ? 'c' : 'e';
+        const key    = mode === 'create' ? 'cRowIdx' : 'eRowIdx';
+        const refId  = document.getElementById(`${prefix}_ref_transfer_id`)?.value ?? '';
+        const body   = document.getElementById(`${prefix}_detailBody`);
+
+        body.innerHTML = '';
+        VplTransfer.state[key] = -1;
+
+        if (!refId) return;
+
+        $.post(VplTransfer.routes.refDetails, {
+            _token: VplTransfer.csrf(),
+            ref_transfer_id: refId,
+            exclude_transfer_id: excludeTransferId,
+        }).done((lines) => {
+            lines.forEach((line) => {
+                VplTransfer.state[key]++;
+                body.insertAdjacentHTML('beforeend', VplTransferHelper.buildRefDetailRow(prefix, VplTransfer.state[key], line));
+            });
+            if (lines.length === 0) {
+                VplTransfer.toast('warning', 'Nothing left to return on this reference transfer.');
+            }
+        }).fail(() => VplTransfer.toast('warning', 'Could not load reference transfer details.'));
+    },
+
+    // ------------------------------------------------------------------
     // RELOAD all existing rows after a header field changes
     // ------------------------------------------------------------------
 
@@ -298,7 +331,9 @@ const VplTransferForm = {
         });
 
         ['closeCreateModal', 'closeCreateModalFooter'].forEach((id) => {
-            document.getElementById(id)?.addEventListener('click', () => VplTransferForm.hideModal('createModal'));
+            document.getElementById(id)?.addEventListener('click', () => {
+                VplTransferForm.hideModal('createModal', () => VplTransferForm.resetCreateModal());
+            });
         });
 
         // Add row
@@ -328,15 +363,36 @@ const VplTransferForm = {
 
         // Header selects reload — use jQuery .on() so Select2 .trigger('change') is captured
         $('#c_cpnyid, #c_department, #c_vp_type').on('change', () => {
-            VplTransferForm.reloadAllRows('create');
+            if (document.getElementById('c_transfertype')?.value === 'ReturnTf') {
+                // Ref options depend on cpny/dept/vp_type — the previous pick may no longer be valid
+                $('#c_ref_transfer_id').val('').trigger('change.select2');
+                VplTransferForm.loadRefOptions('create');
+                VplTransferForm.loadRefDetails('create');
+            } else {
+                VplTransferForm.reloadAllRows('create');
+            }
         });
 
         $('#c_transfertype').on('change', function () {
             const isReturn = $(this).val() === 'ReturnTf';
             document.getElementById('c_ref_wrapper').classList.toggle('hidden', !isReturn);
-            VplTransferForm.reloadAllRows('create');
-            if (isReturn) VplTransferForm.loadRefOptions('create');
+            document.getElementById('c_addRow').classList.toggle('hidden', isReturn);
+
+            const body = document.getElementById('c_detailBody');
+            body.innerHTML = '';
+            VplTransfer.state.cRowIdx = 0;
+
+            if (isReturn) {
+                VplTransferForm.loadRefOptions('create');
+                // Rows populate once a reference transfer is picked — see c_ref_transfer_id below
+            } else {
+                body.insertAdjacentHTML('beforeend', VplTransferHelper.buildDetailRow('c', 0));
+                VplTransferForm.reloadAllRows('create');
+            }
         });
+
+        // Reference Transfer picked — auto-populate all its still-returnable lines
+        $('#c_ref_transfer_id').on('change', () => VplTransferForm.loadRefDetails('create'));
 
         // Pick product (delegated) — opens product search modal
         document.getElementById('c_detailBody').addEventListener('click', (e) => {
@@ -452,10 +508,12 @@ const VplTransferForm = {
             const fromWhs = row.querySelector(`.${prefix}-from-whs-input`)?.value;
             const toWhs   = row.querySelector(`.${prefix}-to-whs-input`)?.value;
             const qty     = row.querySelector(`.${prefix}-qty-transfer-input`)?.value;
+            const avail   = row.querySelector(`.${prefix}-qty-avail-input`)?.value;
 
             if (!fromWhs) error = `Row ${i + 1}: From WHS is required.`;
             else if (!toWhs) error = `Row ${i + 1}: To WHS is required.`;
             else if (!qty) error = `Row ${i + 1}: Transfer Qty is required.`;
+            else if (Number(qty) > Number(avail)) error = `Row ${i + 1}: Transfer Qty (${qty}) cannot exceed Available Qty (${avail}).`;
         });
 
         if (error) {
@@ -547,6 +605,7 @@ const VplTransferForm = {
             </tr>`;
         VplTransfer.state.cAttachIdx = 1;
         document.getElementById('c_ref_wrapper').classList.add('hidden');
+        document.getElementById('c_addRow').classList.remove('hidden');
     },
 
     // ------------------------------------------------------------------
@@ -625,12 +684,22 @@ const VplTransferForm = {
         });
 
         // Reset new rows
-        const newDetailBody = document.getElementById('e_detailBody');
-        newDetailBody.innerHTML = '';
-        VplTransfer.state.eRowIdx = 0;
-        newDetailBody.insertAdjacentHTML('beforeend', VplTransferHelper.buildDetailRow('e', 0));
-        VplTransferForm.loadFromWhs('edit', 0);
-        VplTransferForm.loadToWhs('edit', 0);
+        const isReturn = t.transfertype === 'ReturnTf';
+        document.getElementById('e_addRow').classList.toggle('hidden', isReturn);
+
+        if (isReturn && t.ref_transfer_id) {
+            // Auto-populate remaining returnable lines from the reference transfer, excluding
+            // this document's own already-saved lines (shown above in "Existing Details") from
+            // the "already returned" calc so its own prior claim doesn't shrink its own options.
+            VplTransferForm.loadRefDetails('edit', t.id);
+        } else {
+            const newDetailBody = document.getElementById('e_detailBody');
+            newDetailBody.innerHTML = '';
+            VplTransfer.state.eRowIdx = 0;
+            newDetailBody.insertAdjacentHTML('beforeend', VplTransferHelper.buildDetailRow('e', 0));
+            VplTransferForm.loadFromWhs('edit', 0);
+            VplTransferForm.loadToWhs('edit', 0);
+        }
 
         VplTransferForm.showModal('editModal');
     },
@@ -639,7 +708,9 @@ const VplTransferForm = {
         const modal = document.getElementById('editModal');
 
         ['closeEditModal', 'closeEditModalFooter'].forEach((id) => {
-            document.getElementById(id)?.addEventListener('click', () => VplTransferForm.hideModal('editModal'));
+            document.getElementById(id)?.addEventListener('click', () => {
+                VplTransferForm.hideModal('editModal', () => VplTransferForm.resetEditModal());
+            });
         });
 
         // Add row
@@ -741,7 +812,7 @@ const VplTransferForm = {
             })
             .done((r) => {
                 VplTransfer.toast('success', r.success ?? 'Resubmitted!');
-                VplTransferForm.hideModal('editModal');
+                VplTransferForm.hideModal('editModal', () => VplTransferForm.resetEditModal());
                 VplTransferDatalist.refresh();
             })
             .fail((x) => {
@@ -757,6 +828,29 @@ const VplTransferForm = {
         VplTransferForm.confirmRows(rows, typeLabel).then((result) => {
             if (result.isConfirmed) doSubmit();
         });
+    },
+
+    resetEditModal() {
+        document.getElementById('editForm').reset();
+        document.getElementById('e_existDetailBody').innerHTML = '';
+        document.getElementById('e_existAttachBody').innerHTML = '';
+
+        const body = document.getElementById('e_detailBody');
+        body.innerHTML = '';
+        VplTransfer.state.eRowIdx = 0;
+        body.insertAdjacentHTML('beforeend', VplTransferHelper.buildDetailRow('e', 0));
+
+        document.getElementById('e_attachBody').innerHTML = `
+            <tr id="e_attach_0">
+                <td class="py-1 pr-2">
+                    <input type="file" name="attachment[]" class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm dark:border-white/10">
+                </td>
+                <td class="py-1 pl-1"></td>
+            </tr>`;
+        VplTransfer.state.eAttachIdx = 1;
+
+        document.getElementById('e_ref_display_wrapper').classList.add('hidden');
+        document.getElementById('e_addRow').classList.remove('hidden');
     },
 
     // ------------------------------------------------------------------
@@ -792,6 +886,10 @@ const VplTransferForm = {
             row.querySelector(`.${prefix}-exp-input`).value                     = expDate;
             row.querySelector(`.${prefix}-exp-display`).textContent             = expDate ? expDate.substring(0, 10) : '—';
 
+            const qtyInput = row.querySelector(`.${prefix}-qty-transfer-input`);
+            qtyInput.max   = qtyAvail;
+            if (Number(qtyInput.value) > Number(qtyAvail)) qtyInput.value = qtyAvail;
+
             // If from_whs came back from product search, fill it
             if (fromWhs) {
                 row.querySelector(`.${prefix}-from-whs-input`).value = fromWhs;
@@ -821,7 +919,9 @@ const VplTransferForm = {
         });
     },
 
-    hideModal(modalId) {
+    // onHidden fires after the fade-out completes, so a form reset doesn't flash
+    // visibly mid-transition — used to clear Create/Edit modals on Close/X/Cancel.
+    hideModal(modalId, onHidden) {
         const modal    = document.getElementById(modalId);
         const backdrop = modal.querySelector('.modal-backdrop');
         const panel    = modal.querySelector('.modal-panel');
@@ -833,6 +933,7 @@ const VplTransferForm = {
             modal.classList.add('hidden');
             modal.classList.remove('flex');
             if (modalId === 'createModal') VplTransfer.clearUrl();
+            onHidden?.();
         }, 200);
     },
 };

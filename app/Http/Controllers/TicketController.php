@@ -131,9 +131,9 @@ class TicketController extends Controller
         $userCompanies    = $companies->pluck('cpny_id')->toArray();
         $userDepartments  = $departments->pluck('department_id')->toArray();
 
-        $baseCount = function () use ($isIT, $userCompanies, $userDepartments, $itTypes) {
+        $baseCount = function () use ($isIT, $userCompanies, $userDepartments, $itTypes, $user) {
             $q = TrTicket::query()->whereIn('ticket_type', $itTypes);
-            if (!$isIT) {
+            if (!$isIT && !$user->hasFullDataScope()) {
                 $q->whereIn('cpny_id', $userCompanies)
                   ->whereIn('department_id', $userDepartments);
             }
@@ -242,7 +242,7 @@ class TicketController extends Controller
             ->whereNull('deleted_at')
             ->whereIn('ticket_type', $itTypes);
 
-        if (!$isIT) {
+        if (!$isIT && !$user->hasFullDataScope()) {
             $query->where(function ($q) use ($user) {
                 $q->where('created_by', $user->username)
                     ->orWhere('pic_ticket', $user->username);
@@ -2347,7 +2347,7 @@ class TicketController extends Controller
 
         $base = function () use ($isIT, $userCompanies, $userDepartments, $user, $itTypes) {
             $q = TrTicket::query()->whereIn('ticket_type', $itTypes);
-            if (!$isIT) {
+            if (!$isIT && !$user->hasFullDataScope()) {
                 $q->where(function ($q2) use ($user) {
                     $q2->where('created_by', $user->username)
                        ->orWhere('pic_ticket', $user->username);
@@ -3016,7 +3016,7 @@ class TicketController extends Controller
 
     public function serviceOrderJson(Request $request)
     {
-        abort_unless($this->isITRole(), 403);
+        abort_unless($this->isITRole() || auth()->user()->hasFullDataScope(), 403);
 
         $query = TrServiceorderEnvision::query()
             ->whereNull('deleted_at');

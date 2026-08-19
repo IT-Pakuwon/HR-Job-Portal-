@@ -46,8 +46,8 @@ class VoucherTaxiController extends Controller
         // 🔹 Base query
         $q = TrVoucherTaxi::query();
 
-        // 🔥 APPLY FILTER ONLY IF NOT GA
-        if (!$isGA) {
+        // 🔥 APPLY FILTER ONLY IF NOT GA (and not a full-scope role like DIRECTORACCESS)
+        if (!$isGA && !$user->hasFullDataScope()) {
             if (!empty($cpnyIds)) {
                 $q->whereIn(DB::raw('TRIM(cpny_id)'), $cpnyIds);
             }
@@ -111,7 +111,8 @@ class VoucherTaxiController extends Controller
             'requesters',
             'company',
             'departments',
-            'purposes'
+            'purposes',
+            'isGA'
         ));
     }
 
@@ -157,7 +158,8 @@ class VoucherTaxiController extends Controller
 
         $isGA      = $authUser->hasRole('GAACCESS');
         $isAdmin   = $authUser->isAdmin();
-        $showAll   = $isAdmin && $request->input('all_transactions') === '1';
+        $showAll   = ($isAdmin && $request->input('all_transactions') === '1')
+            || $authUser->hasFullDataScope();
 
         $cpnyIds = is_string($authUser->cpny_id)
             ? array_filter(array_map('trim', explode(',', $authUser->cpny_id)))
@@ -284,7 +286,9 @@ class VoucherTaxiController extends Controller
                 'cpny_id', 'cpny_id_expense', 'department_id', 'created_by',
             ]);
 
-        if ($isGA) {
+        if ($user->hasFullDataScope()) {
+            // Full scope (e.g. DIRECTORACCESS): every voucher, no company/creator filter.
+        } elseif ($isGA) {
             // GA: all vouchers for their assigned company (requester or expense company)
             if (!empty($cpnyIds)) {
                 $base->where(function ($q) use ($cpnyIds) {
@@ -847,6 +851,10 @@ class VoucherTaxiController extends Controller
                 $canProcess = true;
             }
 
+            // GAACCESS can only leave a private note on a voucher they're on the approval line for.
+            $canPrivateNote = $user->hasRole('GAACCESS')
+                && \App\Services\DocumentNotificationService::isOnApprovalLine('VCR', $voucher->docid, $user->username);
+
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -925,6 +933,7 @@ class VoucherTaxiController extends Controller
                     'can_revise' => $canRevise,
 
                     'can_process' => $canProcess,
+                    'can_private_note' => $canPrivateNote,
                 ]
             ]);
         } catch (\Throwable $e) {

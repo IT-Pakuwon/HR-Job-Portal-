@@ -49,19 +49,8 @@ class SppkController extends Controller
             return redirect()->route('login');
         }
 
-        // bisa single / array, maksa ke array biar aman
-        if (is_string($user->cpny_id)) {
-            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
-        } else {
-            $cpnyIds = (array) $user->cpny_id;
-        }
-
-        // department_id juga bisa multi, tapi di debug sudah "IT"
-        if (is_string($user->department_id)) {
-            $deptIds = array_map('trim', explode(',', $user->department_id));
-        } else {
-            $deptIds = (array) $user->department_id;
-        }
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $all = TrSPPK::whereIn('cpny_id', $cpnyIds)
                     ->whereIn('department_id', $deptIds)
@@ -107,22 +96,10 @@ class SppkController extends Controller
         }
 
         // ==============================
-        // USER COMPANY
+        // USER COMPANY / DEPARTMENT
         // ==============================
-        if (is_string($user->cpny_id)) {
-            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
-        } else {
-            $cpnyIds = (array) $user->cpny_id;
-        }
-
-        // ==============================
-        // USER DEPARTMENT (NORMAL MODE ONLY)
-        // ==============================
-        if (is_string($user->department_id)) {
-            $deptIds = array_map('trim', explode(',', $user->department_id));
-        } else {
-            $deptIds = (array) $user->department_id;
-        }
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         // ==============================
         // DATATABLE PARAMETERS

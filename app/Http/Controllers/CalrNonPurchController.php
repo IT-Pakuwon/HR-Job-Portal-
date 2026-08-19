@@ -62,13 +62,8 @@ class CalrNonPurchController extends Controller
 
         $u = $user->username ?? '';
 
-        $cpnyList = is_string($user->cpny_id)
-            ? array_values(array_filter(array_map('trim', explode(',', $user->cpny_id))))
-            : (array) $user->cpny_id;
-
-        $deptList = is_string($user->department_id)
-            ? array_values(array_filter(array_map('trim', explode(',', $user->department_id))))
-            : (array) $user->department_id;
+        $cpnyList = $user->scopedCompanyIds();
+        $deptList = $user->scopedDepartmentIds();
 
         $isFinanceAccess = SysUserRole::where('username', $u)
             ->where('role_id', 'FINACCESS')
@@ -297,13 +292,8 @@ class CalrNonPurchController extends Controller
         $scope = strtolower((string) $req->query('scope', 'calrjobs'));
         $u = $user->username ?? '';
 
-        $cpnyList = is_string($user->cpny_id)
-            ? array_values(array_filter(array_map('trim', explode(',', $user->cpny_id))))
-            : (array) $user->cpny_id;
-
-        $deptList = is_string($user->department_id)
-            ? array_values(array_filter(array_map('trim', explode(',', $user->department_id))))
-            : (array) $user->department_id;
+        $cpnyList = $user->scopedCompanyIds();
+        $deptList = $user->scopedDepartmentIds();
 
         $draw = (int) $req->input('draw', 1);
         $start = (int) $req->input('start', 0);

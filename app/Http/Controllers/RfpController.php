@@ -51,17 +51,8 @@ class RfpController extends Controller
             return redirect()->route('login');
         }
 
-        if (is_string($user->cpny_id)) {
-            $cpnyIds = array_filter(array_map('trim', explode(',', $user->cpny_id)));
-        } else {
-            $cpnyIds = (array) $user->cpny_id;
-        }
-
-        if (is_string($user->department_id)) {
-            $deptIds = array_filter(array_map('trim', explode(',', $user->department_id)));
-        } else {
-            $deptIds = (array) $user->department_id;
-        }
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $hasRfpAllAccess = $user->hasRole('FINACCESS');
         $hasApFinAccess = $user->hasRole('APFINACCESS');
@@ -128,17 +119,8 @@ class RfpController extends Controller
     {
         $user = Auth::user();
 
-        if (is_string($user->cpny_id)) {
-            $cpnyIds = array_filter(array_map('trim', explode(',', $user->cpny_id)));
-        } else {
-            $cpnyIds = (array) $user->cpny_id;
-        }
-
-        if (is_string($user->department_id)) {
-            $deptIds = array_filter(array_map('trim', explode(',', $user->department_id)));
-        } else {
-            $deptIds = (array) $user->department_id;
-        }
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $draw   = (int) $request->input('draw', 1);
         $start  = (int) $request->input('start', 0);
@@ -1970,6 +1952,19 @@ class RfpController extends Controller
         $company = MsCompany::where('cpny_id', $rfp->cpny_id)->first();
         $cpny_name = $company->cpny_name ?? '';
 
+        $isKontrak = strtoupper(trim((string) $rfp->type_po)) === 'KONTRAK';
+
+        $kontrakBudgets = collect();
+        if ($isKontrak) {
+            $kontrakBudgets = TrRfpKontrakBudget::where('rfp_id', $rfp->rfp_id)
+                ->where('status', '<>', 'X')
+                ->orderBy('budget_perpost')
+                ->orderBy('budget_account_id')
+                ->get();
+
+            $this->attachKontrakBudgetRemaining($kontrakBudgets);
+        }
+
         $pdf = PDF::loadView('pages.rfp.pdf_rfp', [
             'rfp' => $rfp,
             'approval' => $approval,
@@ -1979,6 +1974,8 @@ class RfpController extends Controller
             'created_by_username' => $created_by_username,
             'req_date_fmt' => $req_date_fmt,
             'cpny_name' => $cpny_name,
+            'isKontrak' => $isKontrak,
+            'kontrakBudgets' => $kontrakBudgets,
         ]);
 
         $pdf->setPaper('A4', 'portrait');
@@ -2290,6 +2287,22 @@ class RfpController extends Controller
         $cpny_name = $company->cpny_name ?? '';
 
         // =========================
+        // KONTRAK BUDGET DETAIL
+        // =========================
+        $isKontrak = strtoupper(trim((string) $rfp->type_po)) === 'KONTRAK';
+
+        $kontrakBudgets = collect();
+        if ($isKontrak) {
+            $kontrakBudgets = TrRfpKontrakBudget::where('rfp_id', $rfp->rfp_id)
+                ->where('status', '<>', 'X')
+                ->orderBy('budget_perpost')
+                ->orderBy('budget_account_id')
+                ->get();
+
+            $this->attachKontrakBudgetRemaining($kontrakBudgets);
+        }
+
+        // =========================
         // LOAD PDF
         // =========================
         $pdf = \PDF::loadView('pages.rfp.pdf_rfp', [
@@ -2301,6 +2314,8 @@ class RfpController extends Controller
             'created_by_username' => $created_by_username,
             'req_date_fmt' => $req_date_fmt,
             'cpny_name' => $cpny_name,
+            'isKontrak' => $isKontrak,
+            'kontrakBudgets' => $kontrakBudgets,
         ]);
 
         $pdf->setPaper('A4', 'portrait');

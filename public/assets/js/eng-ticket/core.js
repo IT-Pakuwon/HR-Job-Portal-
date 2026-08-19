@@ -51,6 +51,8 @@ Ticket.upload = {
         'xlsx',
         'doc',
         'docx',
+        'dwg',
+        'dxf',
     ],
 
 };

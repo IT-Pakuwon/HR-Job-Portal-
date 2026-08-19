@@ -16,7 +16,7 @@
                         Event Calendar
                     </h1>
                     <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
-                        Manage casual leasing, promotion, and operation/internal events
+                        Manage casual leasing exhibition, promotion, and mall sales promotion events
                     </p>
                 </div>
 
@@ -25,14 +25,14 @@
             <div class="flex items-center gap-2">
 
                 <div class="flex flex-wrap items-center gap-x-4 gap-y-2 px-1">
-                    <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                        <span class="h-2.5 w-2.5 rounded-full bg-[#E0A800]"></span> Booked
+                    <span class="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
+                        <span class="h-3.5 w-3.5 rounded-full bg-[#E0A800]"></span> Booked
                     </span>
-                    <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                        <span class="h-2.5 w-2.5 rounded-full bg-[#2E9E5B]"></span> Confirmed
+                    <span class="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
+                        <span class="h-3.5 w-3.5 rounded-full bg-[#2E9E5B]"></span> Confirmed
                     </span>
-                    <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                        <span class="h-2.5 w-2.5 rounded-full bg-[#2F6FED]"></span> Paid
+                    <span class="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
+                        <span class="h-3.5 w-3.5 rounded-full bg-[#2F6FED]"></span> Paid
                     </span>
                 </div>
 
@@ -44,11 +44,13 @@
                     </a>
                 @endif
 
-                <button type="button" id="openCreateEventModal"
-                    class="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
-                    <i class="fa-solid fa-plus text-xs"></i>
-                    New Event
-                </button>
+                @if ($canCreate)
+                    <button type="button" id="openCreateEventModal"
+                        class="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                        New Event
+                    </button>
+                @endif
 
             </div>
 
@@ -115,21 +117,21 @@
             line-height: 1;
         }
 
-        /* Weekend (Sat/Sun) date columns: header label + body lane, both tinted red */
-        #calendar .fc-weekend-slot {
+        /* Off-day date columns (weekends + Libur Nasional / Cuti Bersama): header label + body lane, both tinted red */
+        #calendar .fc-offday-slot {
             background: rgba(220, 38, 38, 0.08) !important;
         }
 
-        #calendar .fc-timeline-header .fc-weekend-slot .fc-timeline-slot-cushion {
+        #calendar .fc-timeline-header .fc-offday-slot .fc-timeline-slot-cushion {
             color: #dc2626;
             font-weight: 700;
         }
 
-        .dark #calendar .fc-weekend-slot {
+        .dark #calendar .fc-offday-slot {
             background: rgba(248, 113, 113, 0.12) !important;
         }
 
-        .dark #calendar .fc-timeline-header .fc-weekend-slot .fc-timeline-slot-cushion {
+        .dark #calendar .fc-timeline-header .fc-offday-slot .fc-timeline-slot-cushion {
             color: #f87171;
         }
 
@@ -180,33 +182,15 @@
             border-left-color: rgba(255, 255, 255, 0.1);
         }
 
-        /* Department group header: small color dot + muted text, no filled tag */
+        /* Department group header: muted text, no filled tag */
         #calendar .fc-dept-loyalty,
         #calendar .fc-dept-promo {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
             font-size: 11px;
             font-weight: 600;
             letter-spacing: 0.02em;
             color: #64748b;
-        }
-
-        #calendar .fc-dept-loyalty::before,
-        #calendar .fc-dept-promo::before {
-            content: '';
-            width: 6px;
-            height: 6px;
-            border-radius: 9999px;
-            flex-shrink: 0;
-        }
-
-        #calendar .fc-dept-loyalty::before {
-            background: #a855f7;
-        }
-
-        #calendar .fc-dept-promo::before {
-            background: #3b82f6;
         }
 
         .dark #calendar .fc-dept-loyalty,
@@ -376,6 +360,24 @@
 
                         <div>
                             <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                PIC External
+                            </label>
+                            <input type="text" id="pic_event_external" name="pic_event_external"
+                                placeholder="e.g. John Doe"
+                                class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                PIC External Phone Number
+                            </label>
+                            <input type="text" id="pic_event_external_hp" name="pic_event_external_hp"
+                                placeholder="e.g. 0812xxxxxxx"
+                                class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
                                 Event Type *
                             </label>
                             <select id="event_type" name="event_type" required
@@ -428,12 +430,12 @@
                             <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
                                 Total Contract
                             </label>
-                            <input type="number" id="event_total_contract" name="event_total_contract" step="any" min="0"
-                                placeholder="e.g. 1"
+                            <input type="text" inputmode="numeric" id="event_total_contract" name="event_total_contract"
+                                placeholder="e.g. 1.000.000"
                                 class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
                         </div>
 
-                        <div class="flex items-end">
+                        <div id="statusActiveField" class="hidden items-end">
                             <label class="inline-flex cursor-pointer items-center gap-2.5">
                                 <input type="checkbox" id="status_active" checked
                                     class="h-4 w-4 rounded border-slate-300 text-emerald-500 focus:ring-emerald-400 dark:border-white/20">
@@ -574,7 +576,7 @@
                         <p id="view_event_end_date" class="mt-1.5 text-sm font-medium text-slate-800 dark:text-slate-100">-</p>
                     </div>
 
-                    <div class="rounded-lg border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                    <div id="view_event_total_contract_card" class="hidden rounded-lg border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03]">
                         <p class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
                             <i class="fa-solid fa-file-contract text-[10px]"></i> Total Contract
                         </p>
@@ -586,6 +588,20 @@
                             <i class="fa-solid fa-user text-[10px]"></i> PIC Event
                         </p>
                         <p id="view_pic_event" class="mt-1.5 text-sm text-slate-800 dark:text-slate-100">-</p>
+                    </div>
+
+                    <div id="view_pic_event_external_card" class="hidden rounded-lg border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                        <p class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                            <i class="fa-solid fa-user-tie text-[10px]"></i> PIC External
+                        </p>
+                        <p id="view_pic_event_external" class="mt-1.5 text-sm text-slate-800 dark:text-slate-100">-</p>
+                    </div>
+
+                    <div id="view_pic_event_external_hp_card" class="hidden rounded-lg border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                        <p class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                            <i class="fa-solid fa-phone text-[10px]"></i> PIC External Phone Number
+                        </p>
+                        <p id="view_pic_event_external_hp" class="mt-1.5 text-sm text-slate-800 dark:text-slate-100">-</p>
                     </div>
 
                     <div class="rounded-lg border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03] sm:col-span-2">
@@ -645,6 +661,9 @@
                 // full-width group header with locations nested directly
                 // beneath it, instead of separate staircased columns.
                 'group_key' => "{$cpnyName}|||{$deptLabel}",
+                // PROMOTION/CASUALLEASING group before LOYALTY within each company
+                // (alphabetical group_key order would put LOYALTY first otherwise).
+                'dept_rank' => strtoupper(trim($deptLabel)) === 'LOYALTY' ? 1 : 0,
                 // Sort by insertion order (id) rather than name, so locations
                 // land in whatever sequence they were set up in (e.g. floor
                 // order: LG, GF, UG, 1st FL...) instead of alphabetically.
@@ -658,10 +677,14 @@
         window.EventCalendarCurrentUser = {
             username: @json(auth()->user()->username),
             isAdmin: @json($isAdmin),
+            isGM: @json(auth()->user() && auth()->user()->hasRole('GMACCESS')),
+            canManageAll: @json($isAdmin || (auth()->user() && auth()->user()->hasRole('GMACCESS'))),
+            canCreate: @json($canCreate),
         };
 
         window.EventCalendarRoutes = {
             json: '{{ route('event-calendar.json') }}',
+            holidays: '{{ route('event-calendar.holidays') }}',
             store: '{{ route('event-calendar.store') }}',
             update: (id) => `{{ url('event-calendar/update') }}/${id}`,
             status: (id) => `{{ url('event-calendar/status') }}/${id}`,

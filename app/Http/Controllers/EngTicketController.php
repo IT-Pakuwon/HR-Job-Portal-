@@ -39,12 +39,14 @@ class EngTicketController extends Controller
     |--------------------------------------------------------------------------
     | Eng Ticket reuses the tr_ticket / tr_ticket_activity tables from the IT
     | Ticket module. Rows are scoped by ticket_type (ENGSUPPORTTICKET /
-    | BSFOSUPPORTTICKET) directly rather than a dedicated table.
+    | BSSUPPORTTICKET) directly rather than a dedicated table.
     */
 
     protected const DOCTYPE = 'TOK';
 
-    protected const BSFO_TICKET_TYPE = 'BSFOSUPPORTTICKET';
+    protected const BS_TICKET_TYPE = 'BSSUPPORTTICKET';
+
+    protected const FO_TICKET_TYPE = 'FOSUPPORTTICKET';
 
     protected const ENG_TICKET_TYPE = 'ENGSUPPORTTICKET';
 
@@ -52,9 +54,13 @@ class EngTicketController extends Controller
 
     protected const BA_ENG_TICKET_TYPE = 'BA_ENG';
 
+    protected const BA_FO_TICKET_TYPE = 'BA_FO';
+
     protected const ENG_ROLE_ID = 'OPRTEKNIKENG';
 
-    protected const BSFO_ROLE_ID = 'OPRTEKNIKBS';
+    protected const BS_ROLE_ID = 'OPRTEKNIKBS';
+
+    protected const FO_ROLE_ID = 'OPRTEKNIKFO';
 
     protected const MGR_ROLE_ID = 'MGROPRTEKNIKACCESS';
 
@@ -127,9 +133,11 @@ class EngTicketController extends Controller
         return MsTicketType::query()
             ->whereIn('ticket_type', [
                 self::ENG_TICKET_TYPE,
-                self::BSFO_TICKET_TYPE,
+                self::BS_TICKET_TYPE,
+                self::FO_TICKET_TYPE,
                 self::BA_BSFO_TICKET_TYPE,
                 self::BA_ENG_TICKET_TYPE,
+                self::BA_FO_TICKET_TYPE,
             ])
             ->where('status', 'A')
             ->pluck('ticket_type')
@@ -139,15 +147,30 @@ class EngTicketController extends Controller
     protected function approvalConditionFor(TrTicket $ticket): string
     {
         if ($ticket->ticket_type === self::BA_BSFO_TICKET_TYPE) {
-            return 'BA BS';
+            // BA_BS routes approval by category — New/Improvement and
+            // Repair/Maintenance have their own approval lines. Any other
+            // (future) category falls back to the flat 'BA BS' condition.
+            return match ($ticket->ticket_categoryid) {
+                'BA_BS_NEWPURCHASE' => 'BA BS NEW',
+                'BA_BS_REPLACEMENT' => 'BA BS REPAIR',
+                default => 'BA BS',
+            };
         }
 
         if ($ticket->ticket_type === self::BA_ENG_TICKET_TYPE) {
             return 'BA ENG';
         }
 
-        return $ticket->ticket_type === self::BSFO_TICKET_TYPE
-            ? 'BSFO'
+        if ($ticket->ticket_type === self::BA_FO_TICKET_TYPE) {
+            return 'BA FO';
+        }
+
+        if ($ticket->ticket_type === self::FO_TICKET_TYPE) {
+            return 'FO SUPPORT';
+        }
+
+        return $ticket->ticket_type === self::BS_TICKET_TYPE
+            ? 'BS SUPPORT'
             : 'Engineering';
     }
 
@@ -156,6 +179,7 @@ class EngTicketController extends Controller
         return match ($ticketType) {
             self::BA_BSFO_TICKET_TYPE => 'BS',
             self::BA_ENG_TICKET_TYPE  => 'ENG',
+            self::BA_FO_TICKET_TYPE   => 'FO',
             default => '',
         };
     }
@@ -182,14 +206,14 @@ class EngTicketController extends Controller
 
     protected function isBaTicketType(string $ticketType): bool
     {
-        return in_array($ticketType, [self::BA_BSFO_TICKET_TYPE, self::BA_ENG_TICKET_TYPE], true);
+        return in_array($ticketType, [self::BA_BSFO_TICKET_TYPE, self::BA_ENG_TICKET_TYPE, self::BA_FO_TICKET_TYPE], true);
     }
 
     /*
     |--------------------------------------------------------------------------
     | Location display
     |--------------------------------------------------------------------------
-    | ENGSUPPORTTICKET / BSFOSUPPORTTICKET store a ms_site id in location_id.
+    | ENGSUPPORTTICKET / BSSUPPORTTICKET store a ms_site id in location_id.
     | BA_BS / BA_ENG store a ms_location id in location_id plus a ms_sub_location
     | id in sub_location_id — same columns, different lookup table depending on
     | ticket_type.
@@ -228,11 +252,20 @@ class EngTicketController extends Controller
             ->exists();
     }
 
-    protected function isBSFO(): bool
+    protected function isBS(): bool
     {
         return MsTicketCategoryDept::query()
             ->where('username', auth()->user()->username)
-            ->where('ticket_type', self::BSFO_TICKET_TYPE)
+            ->where('ticket_type', self::BS_TICKET_TYPE)
+            ->where('status', 'A')
+            ->exists();
+    }
+
+    protected function isFO(): bool
+    {
+        return MsTicketCategoryDept::query()
+            ->where('username', auth()->user()->username)
+            ->where('ticket_type', self::FO_TICKET_TYPE)
             ->where('status', 'A')
             ->exists();
     }
@@ -246,11 +279,20 @@ class EngTicketController extends Controller
             ->exists();
     }
 
-    protected function isBSFORole(): bool
+    protected function isFORole(): bool
     {
         return SysUserRole::query()
             ->where('username', auth()->user()->username)
-            ->where('role_id', self::BSFO_ROLE_ID)
+            ->where('role_id', self::FO_ROLE_ID)
+            ->where('status', 'A')
+            ->exists();
+    }
+
+    protected function isBSRole(): bool
+    {
+        return SysUserRole::query()
+            ->where('username', auth()->user()->username)
+            ->where('role_id', self::BS_ROLE_ID)
             ->where('status', 'A')
             ->exists();
     }
@@ -266,8 +308,12 @@ class EngTicketController extends Controller
             return true;
         }
 
-        if (in_array($ticketType, [self::BSFO_TICKET_TYPE, self::BA_BSFO_TICKET_TYPE], true)) {
-            return $this->isBSFORole();
+        if (in_array($ticketType, [self::BS_TICKET_TYPE, self::BA_BSFO_TICKET_TYPE], true)) {
+            return $this->isBSRole();
+        }
+
+        if (in_array($ticketType, [self::FO_TICKET_TYPE, self::BA_FO_TICKET_TYPE], true)) {
+            return $this->isFORole();
         }
 
         if (in_array($ticketType, [self::ENG_TICKET_TYPE, self::BA_ENG_TICKET_TYPE], true)) {
@@ -278,13 +324,13 @@ class EngTicketController extends Controller
     }
 
     /**
-     * Ticket types (ENGSUPPORTTICKET / BSFOSUPPORTTICKET) the user has broad
+     * Ticket types (ENGSUPPORTTICKET / BSSUPPORTTICKET) the user has broad
      * (non-owner) access to, based on dept-membership, role, or manager access.
      */
     protected function broadAccessTicketTypes(): array
     {
         if ($this->isMgrOprTeknik()) {
-            return [self::ENG_TICKET_TYPE, self::BSFO_TICKET_TYPE, self::BA_BSFO_TICKET_TYPE, self::BA_ENG_TICKET_TYPE];
+            return [self::ENG_TICKET_TYPE, self::BS_TICKET_TYPE, self::FO_TICKET_TYPE, self::BA_BSFO_TICKET_TYPE, self::BA_ENG_TICKET_TYPE, self::BA_FO_TICKET_TYPE];
         }
 
         $types = [];
@@ -294,9 +340,14 @@ class EngTicketController extends Controller
             $types[] = self::BA_ENG_TICKET_TYPE;
         }
 
-        if ($this->isBSFO() || $this->isBSFORole()) {
-            $types[] = self::BSFO_TICKET_TYPE;
+        if ($this->isBS() || $this->isBSRole()) {
+            $types[] = self::BS_TICKET_TYPE;
             $types[] = self::BA_BSFO_TICKET_TYPE;
+        }
+
+        if ($this->isFO() || $this->isFORole()) {
+            $types[] = self::FO_TICKET_TYPE;
+            $types[] = self::BA_FO_TICKET_TYPE;
         }
 
         return array_values(array_unique($types));
@@ -336,21 +387,8 @@ class EngTicketController extends Controller
 
         $engTypes = $this->engTicketTypes();
 
-        $userCompanies    = $companies->pluck('cpny_id')->toArray();
-        $userDepartments  = $departments->pluck('department_id')->toArray();
-
-        $baseCount = function () use ($broadTypes, $userCompanies, $userDepartments, $engTypes) {
-            $q = TrTicket::query()->whereIn('ticket_type', $engTypes);
-
-            $q->where(function ($q2) use ($broadTypes, $userCompanies, $userDepartments) {
-                $q2->whereIn('ticket_type', $broadTypes)
-                    ->orWhere(function ($q3) use ($userCompanies, $userDepartments) {
-                        $q3->whereIn('cpny_id', $userCompanies)
-                            ->whereIn('department_id', $userDepartments);
-                    });
-            });
-
-            return $q;
+        $baseCount = function () use ($engTypes) {
+            return TrTicket::query()->whereIn('ticket_type', $engTypes);
         };
 
         $counts = [
@@ -418,6 +456,12 @@ class EngTicketController extends Controller
             ->orderBy('cpny_name')
             ->get(['cpny_id', 'cpny_name']);
 
+        $ticketTypes = MsTicketType::query()
+            ->whereIn('ticket_type', $engTypes)
+            ->where('status', 'A')
+            ->orderBy('ticket_type_name')
+            ->get(['ticket_type', 'ticket_type_name']);
+
         return view('pages.eng-ticket.ticket', [
             'title' => 'Eng Ticket',
             'eid' => $eid,
@@ -426,6 +470,7 @@ class EngTicketController extends Controller
             'counts' => $counts,
             'categories' => $categories,
             'allCompanies' => $allCompanies,
+            'ticketTypes' => $ticketTypes,
             'isEng' => $isEng,
             'isMgrOprTeknik' => $isMgrOprTeknik,
         ]);
@@ -434,8 +479,6 @@ class EngTicketController extends Controller
     public function json(Request $request)
     {
         $user = auth()->user();
-
-        $broadTypes = $this->broadAccessTicketTypes();
 
         $engTypes = $this->engTicketTypes();
 
@@ -450,12 +493,6 @@ class EngTicketController extends Controller
         ])
             ->whereNull('deleted_at')
             ->whereIn('ticket_type', $engTypes);
-
-        $query->where(function ($q) use ($broadTypes, $user) {
-            $q->whereIn('ticket_type', $broadTypes)
-                ->orWhere('created_by', $user->username)
-                ->orWhere('pic_ticket', $user->username);
-        });
 
         if ($request->filled('status')) {
             if ($request->status === 'MY_TICKET') {
@@ -617,7 +654,13 @@ class EngTicketController extends Controller
 
             'created_by' => $ticket->created_by,
 
-            'ticketdate' => optional($ticket->ticketdate)->toISOString(),
+            // ticketdate is a pure calendar date with no time-of-day.
+            // toISOString() would convert Asia/Jakarta midnight to UTC,
+            // shifting it to the previous day once the frontend's
+            // `new Date(...)` re-parses that as UTC and renders in local
+            // time. Sending "Y-m-d H:i:s" (no T/Z) makes the browser parse
+            // it as local time instead, so no conversion ever happens.
+            'ticketdate' => optional($ticket->ticketdate)->format('Y-m-d H:i:s'),
 
             'ticket_priority' => $ticket->ticket_priority,
         ]);
@@ -631,19 +674,10 @@ class EngTicketController extends Controller
 
     public function calendarJson(Request $request)
     {
-        $user = auth()->user();
-
-        $broadTypes = $this->broadAccessTicketTypes();
-
         $engTypes = $this->engTicketTypes();
 
         $query = TrTicket::with(['responseActivity', 'site', 'location', 'subLocation'])
-            ->whereIn('ticket_type', $engTypes)
-            ->where(function ($q) use ($broadTypes, $user) {
-                $q->whereIn('ticket_type', $broadTypes)
-                    ->orWhere('created_by', $user->username)
-                    ->orWhere('pic_ticket', $user->username);
-            });
+            ->whereIn('ticket_type', $engTypes);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -677,6 +711,10 @@ class EngTicketController extends Controller
             $query->where('cpny_id', $request->cpny_id);
         }
 
+        if ($request->filled('ticket_type')) {
+            $query->where('ticket_type', $request->ticket_type);
+        }
+
         if ($request->filled('date_from')) {
             $query->whereDate('ticketdate', '>=', $request->date_from);
         }
@@ -694,11 +732,27 @@ class EngTicketController extends Controller
             ->get()
             ->groupBy('ticketid');
 
-        $data = $tickets->map(function ($ticket) use ($scheduledActivities) {
+        // Latest non-comment activity per ticket, used to tell a ticket
+        // sitting at PROCESS because its completion was rejected apart from
+        // one sitting at PROCESS for any other reason (normal Process action,
+        // a Reopen, etc). Comments never change the workflow state, so they're
+        // excluded here the same way buildTracking() excludes them.
+        $latestWorkflowActivities = TrTicketActivity::query()
+            ->whereIn('ticketid', $tickets->pluck('ticketid'))
+            ->where('response_summary', '!=', 'Ticket Comment')
+            ->orderBy('id')
+            ->get()
+            ->groupBy('ticketid');
+
+        $data = $tickets->map(function ($ticket) use ($scheduledActivities, $latestWorkflowActivities) {
             $response = $ticket->responseActivity;
 
             $latestScheduled = optional(
                 $scheduledActivities->get($ticket->ticketid)
+            )->last();
+
+            $latestWorkflowActivity = optional(
+                $latestWorkflowActivities->get($ticket->ticketid)
             )->last();
 
             $hasSchedule = $latestScheduled !== null;
@@ -734,7 +788,15 @@ class EngTicketController extends Controller
 
                 'sub_location_name' => $locationDisplay['sub_location_name'],
 
-                'event_start' => optional($eventStart)->toISOString(),
+                // Unscheduled tickets fall back to ticketdate, a pure
+                // calendar date with no time-of-day. Sending it through
+                // toISOString() converts Asia/Jakarta midnight to UTC,
+                // which lands on the previous day for any viewer not in
+                // UTC+7 — so send the bare date instead, immune to
+                // timezone conversion.
+                'event_start' => $hasSchedule
+                    ? optional($eventStart)->toISOString()
+                    : optional($eventStart)->toDateString(),
 
                 'event_end' => optional($eventEnd)->toISOString(),
 
@@ -744,7 +806,8 @@ class EngTicketController extends Controller
                     $ticket,
                     $response,
                     $latestScheduled,
-                    $hasSchedule
+                    $hasSchedule,
+                    $latestWorkflowActivity
                 ),
 
                 'can_edit' => $this->buildActions($ticket)['can_edit'],
@@ -758,11 +821,31 @@ class EngTicketController extends Controller
         ]);
     }
 
+    // A rejected completion request drops the ticket back to PROCESS — the
+    // same status a normal Process action lands on — so PROCESS alone can't
+    // tell the two apart. The latest non-comment activity can: if nothing
+    // has happened since the reject, it's still it.
+    protected function isRejectedProcessState(TrTicket $ticket, ?TrTicketActivity $latestWorkflowActivity): bool
+    {
+        return $ticket->status_pekerjaan === 'PROCESS'
+            && optional($latestWorkflowActivity)->response_summary === 'Ticket Completion Rejected';
+    }
+
+    protected function latestNonCommentActivity(string $ticketid): ?TrTicketActivity
+    {
+        return TrTicketActivity::query()
+            ->where('ticketid', $ticketid)
+            ->where('response_summary', '!=', 'Ticket Comment')
+            ->orderByDesc('id')
+            ->first();
+    }
+
     protected function calendarState(
         TrTicket $ticket,
         ?TrTicketActivity $response,
         ?TrTicketActivity $latestScheduled,
-        bool $hasSchedule
+        bool $hasSchedule,
+        ?TrTicketActivity $latestWorkflowActivity = null
     ): string {
         if ($ticket->status_pekerjaan === 'CANCEL') {
             return 'CANCELLED';
@@ -770,6 +853,10 @@ class EngTicketController extends Controller
 
         if ($ticket->status_pekerjaan === 'COMPLETED') {
             return 'COMPLETED';
+        }
+
+        if ($this->isRejectedProcessState($ticket, $latestWorkflowActivity)) {
+            return 'REJECTED';
         }
 
         // Unscheduled means "not yet responded to" — not "no working dates
@@ -962,6 +1049,8 @@ class EngTicketController extends Controller
                 'created_by' => $username,
             ]);
 
+            DB::connection('pgsql5')->commit();
+
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr' => $ticket->ticketid,
@@ -989,22 +1078,15 @@ class EngTicketController extends Controller
                         $files
                     );
                 } catch (\Throwable $e) {
-                    DB::connection('pgsql5')
-                        ->rollBack();
-
-                    return response()->json([
-                        'success' => false,
-
-                        'message' => 'Failed upload attachment',
-
-                        'error' => config('app.debug')
-                            ? $e->getMessage()
-                            : null,
-                    ], 500);
+                    \Log::error(
+                        'Ticket created but attachment upload failed',
+                        [
+                            'ticketid' => $ticket->ticketid,
+                            'error' => $e->getMessage(),
+                        ]
+                    );
                 }
             }
-
-            DB::connection('pgsql5')->commit();
 
             $this->notificationService
                 ->ticketCreated($ticket);
@@ -1040,6 +1122,12 @@ class EngTicketController extends Controller
             $ticket->status !== 'P'
                 || $ticket->status_pekerjaan !== 'CREATED',
             403
+        );
+
+        abort_if(
+            $request->has('status') || $request->has('status_pekerjaan'),
+            403,
+            'Status fields cannot be modified directly.'
         );
 
         $request->validate([
@@ -1089,6 +1177,8 @@ class EngTicketController extends Controller
                 'created_by' => auth()->user()->username,
             ]);
 
+            DB::connection('pgsql5')->commit();
+
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr' => $ticket->ticketid,
@@ -1116,22 +1206,15 @@ class EngTicketController extends Controller
                         $files
                     );
                 } catch (\Throwable $e) {
-                    DB::connection('pgsql5')
-                        ->rollBack();
-
-                    return response()->json([
-                        'success' => false,
-
-                        'message' => 'Failed upload attachment',
-
-                        'error' => config('app.debug')
-                            ? $e->getMessage()
-                            : null,
-                    ], 500);
+                    \Log::error(
+                        'Ticket updated but attachment upload failed',
+                        [
+                            'ticketid' => $ticket->ticketid,
+                            'error' => $e->getMessage(),
+                        ]
+                    );
                 }
             }
-
-            DB::connection('pgsql5')->commit();
 
             return response()->json([
                 'success' => true,
@@ -1167,6 +1250,12 @@ class EngTicketController extends Controller
                 || ($isEng && $ticket->status_pekerjaan !== 'COMPLETED')
             ),
             403
+        );
+
+        abort_if(
+            $ticket->status === 'C',
+            403,
+            'Completed tickets cannot be cancelled.'
         );
 
         DB::connection('pgsql5')->beginTransaction();
@@ -1716,6 +1805,12 @@ class EngTicketController extends Controller
                         'info' => $request->response_descr,
                     ]
                 );
+
+                $this->notificationService->ticketWhatsapp(
+                    $ticket,
+                    'REJECTED',
+                    "Completion request rejected. Reason : {$request->response_descr}"
+                );
             }
         );
 
@@ -1742,6 +1837,11 @@ class EngTicketController extends Controller
 
         abort_if(
             $ticket->pic_ticket !== auth()->user()->username,
+            403
+        );
+
+        abort_unless(
+            $this->canActOnTicketType($ticket->ticket_type),
             403
         );
 
@@ -1831,6 +1931,8 @@ class EngTicketController extends Controller
                 'created_by' => auth()->user()->username,
             ]);
 
+            DB::connection('pgsql5')->commit();
+
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr' => $ticket->ticketid,
@@ -1858,22 +1960,15 @@ class EngTicketController extends Controller
                         $files
                     );
                 } catch (\Throwable $e) {
-                    DB::connection('pgsql5')
-                        ->rollBack();
-
-                    return response()->json([
-                        'success' => false,
-
-                        'message' => 'Failed upload attachment',
-
-                        'error' => config('app.debug')
-                            ? $e->getMessage()
-                            : null,
-                    ], 500);
+                    \Log::error(
+                        'Ticket processed but attachment upload failed',
+                        [
+                            'ticketid' => $ticket->ticketid,
+                            'error' => $e->getMessage(),
+                        ]
+                    );
                 }
             }
-
-            DB::connection('pgsql5')->commit();
 
             $this->notificationService->ticketWhatsapp(
                 $ticket,
@@ -1987,6 +2082,8 @@ class EngTicketController extends Controller
                 'created_by' => auth()->user()->username,
             ]);
 
+            DB::connection('pgsql5')->commit();
+
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr' => $ticket->ticketid,
@@ -2014,22 +2111,21 @@ class EngTicketController extends Controller
                         $files
                     );
                 } catch (\Throwable $e) {
-                    DB::connection('pgsql5')
-                        ->rollBack();
-
-                    return response()->json([
-                        'success' => false,
-
-                        'message' => 'Failed upload attachment',
-
-                        'error' => config('app.debug')
-                            ? $e->getMessage()
-                            : null,
-                    ], 500);
+                    \Log::error(
+                        'Ticket pending but attachment upload failed',
+                        [
+                            'ticketid' => $ticket->ticketid,
+                            'error' => $e->getMessage(),
+                        ]
+                    );
                 }
             }
 
-            DB::connection('pgsql5')->commit();
+            $this->notificationService->ticketWhatsapp(
+                $ticket,
+                'PENDING',
+                "Ticket is pending. Reason: {$request->response_descr}"
+            );
 
             return response()->json([
                 'success' => true,
@@ -2293,6 +2389,11 @@ class EngTicketController extends Controller
         );
 
         abort_if(
+            $ticket->status !== 'P',
+            403
+        );
+
+        abort_if(
             !$this->canTransition(
                 $ticket->status_pekerjaan,
                 'complete'
@@ -2367,6 +2468,10 @@ class EngTicketController extends Controller
                 now()
             );
 
+            $ticket->refresh();
+
+            DB::connection('pgsql5')->commit();
+
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr' => $ticket->ticketid,
@@ -2394,24 +2499,15 @@ class EngTicketController extends Controller
                         $files
                     );
                 } catch (\Throwable $e) {
-                    DB::connection('pgsql5')
-                        ->rollBack();
-
-                    return response()->json([
-                        'success' => false,
-
-                        'message' => 'Failed upload attachment',
-
-                        'error' => config('app.debug')
-                            ? $e->getMessage()
-                            : null,
-                    ], 500);
+                    \Log::error(
+                        'Ticket completion requested but attachment upload failed',
+                        [
+                            'ticketid' => $ticket->ticketid,
+                            'error' => $e->getMessage(),
+                        ]
+                    );
                 }
             }
-
-            $ticket->refresh();
-
-            DB::connection('pgsql5')->commit();
 
             $this->notificationService->ticketWhatsapp(
                 $ticket,
@@ -2678,6 +2774,8 @@ class EngTicketController extends Controller
                 'created_by' => auth()->user()->username,
             ]);
 
+            DB::connection('pgsql5')->commit();
+
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr' => $ticket->ticketid,
@@ -2705,22 +2803,15 @@ class EngTicketController extends Controller
                         $files
                     );
                 } catch (\Throwable $e) {
-                    DB::connection('pgsql5')
-                        ->rollBack();
-
-                    return response()->json([
-                        'success' => false,
-
-                        'message' => 'Failed upload attachment',
-
-                        'error' => config('app.debug')
-                            ? $e->getMessage()
-                            : null,
-                    ], 500);
+                    \Log::error(
+                        'Ticket comment added but attachment upload failed',
+                        [
+                            'ticketid' => $ticket->ticketid,
+                            'error' => $e->getMessage(),
+                        ]
+                    );
                 }
             }
-
-            DB::connection('pgsql5')->commit();
 
             /*
         |--------------------------------------------------------------------------
@@ -2773,19 +2864,10 @@ class EngTicketController extends Controller
     public function counts()
     {
         $user = auth()->user();
-        $broadTypes = $this->broadAccessTicketTypes();
         $engTypes = $this->engTicketTypes();
 
-        $base = function () use ($broadTypes, $user, $engTypes) {
-            $q = TrTicket::query()->whereIn('ticket_type', $engTypes);
-
-            $q->where(function ($q2) use ($broadTypes, $user) {
-                $q2->whereIn('ticket_type', $broadTypes)
-                    ->orWhere('created_by', $user->username)
-                    ->orWhere('pic_ticket', $user->username);
-            });
-
-            return $q;
+        $base = function () use ($engTypes) {
+            return TrTicket::query()->whereIn('ticket_type', $engTypes);
         };
 
         $statuses = [
@@ -2810,8 +2892,9 @@ class EngTicketController extends Controller
     protected function ensureBaMasterData(): void
     {
         $baTypes = [
-            self::BA_BSFO_TICKET_TYPE => 'Berita Acara BSFO',
+            self::BA_BSFO_TICKET_TYPE => 'Request For Approval',
             self::BA_ENG_TICKET_TYPE  => 'Berita Acara ENG',
+            self::BA_FO_TICKET_TYPE   => 'Document Approval',
         ];
 
         foreach ($baTypes as $code => $name) {
@@ -2834,6 +2917,7 @@ class EngTicketController extends Controller
 
         $companies = MsCompany::query()
             ->where('status', 'A')
+            ->where('group_cpny_id', strtoupper(trim((string) $user->group_cpny_id)))
             ->orderBy('cpny_name')
             ->get(['cpny_id', 'cpny_name']);
 
@@ -3110,8 +3194,11 @@ class EngTicketController extends Controller
 
     public function companiesSearch(Request $request)
     {
+        $user = auth()->user();
+
         $companies = MsCompany::query()
             ->where('status', 'A')
+            ->where('group_cpny_id', strtoupper(trim((string) $user->group_cpny_id)))
             ->orderBy('cpny_name')
             ->get(['cpny_id', 'cpny_name']);
 
@@ -3197,8 +3284,13 @@ class EngTicketController extends Controller
                 'description' => $activity->response_descr
                     ?: '-',
 
-                'status' => $activity->status_pekerjaan
-                    ?: '-',
+                // The reject event itself is recorded with status_pekerjaan
+                // 'PROCESS' (that's the ticket's workflow status right after
+                // it happens) — show it as REJECTED here instead so this
+                // specific history entry doesn't read as a plain Process step.
+                'status' => $activity->response_summary === 'Ticket Completion Rejected'
+                    ? 'REJECTED'
+                    : ($activity->status_pekerjaan ?: '-'),
 
                 'submitted_by' => $activity->created_by
                     ?: 'System',
@@ -3387,7 +3479,8 @@ class EngTicketController extends Controller
             $ext = strtolower($att['extention'] ?? '');
             if (in_array($ext, $imageExts) && !empty($att['url'])) {
                 try {
-                    $bytes = file_get_contents($att['url']);
+                    $path = parse_url($att['url'], PHP_URL_PATH);
+                    $bytes = \Storage::get($path);
                     $mime  = $ext === 'png' ? 'image/png' : 'image/jpeg';
                     $att['base64'] = 'data:'.$mime.';base64,'.base64_encode($bytes);
                 } catch (\Throwable $e) {
@@ -3406,8 +3499,9 @@ class EngTicketController extends Controller
                         $src = $m[2];
                         if (str_starts_with($src, 'data:')) return $m[0];
                         try {
-                            $bytes = file_get_contents($src);
-                            $ext   = strtolower(pathinfo(parse_url($src, PHP_URL_PATH), PATHINFO_EXTENSION));
+                            $path = parse_url($src, PHP_URL_PATH);
+                            $bytes = \Storage::get($path);
+                            $ext   = strtolower(pathinfo($path, PATHINFO_EXTENSION));
                             $mime  = $ext === 'png' ? 'image/png' : ($ext === 'gif' ? 'image/gif' : 'image/jpeg');
                             $b64   = 'data:'.$mime.';base64,'.base64_encode($bytes);
                             return '<img'.$m[1].'src="'.$b64.'"'.$m[3].'>';
@@ -3426,6 +3520,11 @@ class EngTicketController extends Controller
             ->first();
 
         $respondedBy = $responseActivity?->created_by ?? $ticket->pic_ticket;
+
+        $workflowStatusLabel = $this->isRejectedProcessState(
+            $ticket,
+            $this->latestNonCommentActivity($ticket->ticketid)
+        ) ? 'REJECTED' : $ticket->status_pekerjaan;
 
         $baAutoNumber = $this->getBaAutoNumber($ticket);
 
@@ -3464,7 +3563,8 @@ class EngTicketController extends Controller
             'approval',
             'requesterName',
             'completedByName',
-            'picName'
+            'picName',
+            'workflowStatusLabel'
         ))->setPaper('a4', 'portrait');
 
         return $pdf->stream("TICKET-{$ticket->ticketid}.pdf");

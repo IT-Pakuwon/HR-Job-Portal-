@@ -43,6 +43,22 @@ class AppServiceProvider extends ServiceProvider
         setlocale(LC_TIME, 'id_ID.UTF-8');
 
         View::composer('*', function ($view) {
+            // This composer fires for every view AND every nested Blade component
+            // (e.g. one <x-app.favourite-star> per sidebar menu item). Without this
+            // memoization, its queries below (role lookup, recursive parent-menu
+            // BFS, root menu query, favourites query) re-run on every single
+            // component instantiation — over 1000 queries and 70s+ per page load
+            // on a real menu tree. Cache per-request since the data only depends
+            // on the authenticated user, which doesn't change mid-request.
+            static $cached = null;
+
+            if ($cached !== null) {
+                $view->with('rootMenus', $cached['rootMenus']);
+                $view->with('allowedMenuIds', $cached['allowedMenuIds']);
+                $view->with('favouriteKeys', $cached['favouriteKeys']);
+                return;
+            }
+
             $rootMenus = collect();
             $allAllowedMenuIds = collect();
             $favouriteKeys = [];
@@ -65,6 +81,13 @@ class AppServiceProvider extends ServiceProvider
                         ->where('status', 'A')
                         ->pluck('menu_id')
                         ->unique();
+
+                    // sys_role_menu.status can drift out of sync with sys_menu.status
+                    // (e.g. toggling a menu off doesn't always retroactively touch every
+                    // role's row), so re-verify the leaf itself is still active.
+                    $explicitMenuIds = SysMenu::whereIn('menu_id', $explicitMenuIds)
+                        ->where('status', 'A')
+                        ->pluck('menu_id');
 
                     $allAllowedMenuIds = collect($explicitMenuIds);
                     $current = $explicitMenuIds;
@@ -95,6 +118,12 @@ class AppServiceProvider extends ServiceProvider
                     }
                 }
             }
+
+            $cached = [
+                'rootMenus' => $rootMenus,
+                'allowedMenuIds' => $allAllowedMenuIds,
+                'favouriteKeys' => $favouriteKeys,
+            ];
 
             $view->with('rootMenus', $rootMenus);
             $view->with('allowedMenuIds', $allAllowedMenuIds);

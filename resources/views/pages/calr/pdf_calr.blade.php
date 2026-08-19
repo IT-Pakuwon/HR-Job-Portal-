@@ -1,20 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $title }} ({{ $doc_type }})</title>
+    <title>{{ $docid }}</title>
 
     <style>
         @page {
-            size: A4;
-            margin: 15mm 15mm 18mm 15mm;
+            size: A4 portrait;
+            margin: 12mm;
         }
 
         body {
             font-family: Arial, sans-serif;
-            font-size: 12px;
+            font-size: 11px;
             color: #000;
         }
 
@@ -23,89 +21,158 @@
             border-collapse: collapse;
         }
 
-        /* Header */
-        .left-header th:first-child {
-            width: 70%;
-            text-align: left;
-        }
-
-        .left-header th:last-child {
-            width: 30%;
-            text-align: right;
-        }
-
-        .right-header th:first-child {
-            width: 70%;
-            text-align: left;
-        }
-
-        .right-header th:last-child {
-            width: 30%;
-            text-align: right;
-        }
-
-        .label {
-            font-weight: bold;
-        }
-
-        /* Body fields */
-        .left-body th {
-            text-align: left;
+        td, th {
             vertical-align: top;
-            padding: 4px 0;
-            font-weight: normal;
         }
 
-        .field-row {
-            display: flex;
-            gap: 6px;
+        .title {
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            white-space: nowrap;
         }
 
-        .field-label {
-            min-width: 120px;
-            /* font-weight: bold; */
+        .subtitle {
+            text-align: center;
+            font-size: 11px;
+            font-weight: bold;
+            margin-top: 2px;
         }
 
-        .field-value-wrap {
-            flex: 1;
-            white-space: normal;
+        .top-left {
+            font-size: 11px;
+            line-height: 1.25;
+        }
+
+        .doc-no {
+            font-size: 12px;
+            font-weight: bold;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .info-wrapper {
+            margin-top: 18px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .left-info {
+            width: 68%;
+        }
+
+        .right-info {
+            width: 32%;
+            padding-left: 12px;
+        }
+
+        .info-left-table,
+        .info-right-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .info-left-table td,
+        .info-right-table td {
+            font-size: 11px;
+            line-height: 1.3;
+            padding: 2px 2px;
+        }
+
+        .info-label {
+            width: 42%;
+            white-space: nowrap;
+        }
+
+        .info-label-long {
+            width: 55%;
+            white-space: nowrap;
+            font-size: 10.5px;
+        }
+
+        .info-colon {
+            width: 3%;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .info-value {
+            width: 55%;
             word-wrap: break-word;
         }
 
-        /* Expense table */
-        .exp-table {
-            width: 100%;
-            border: 1px solid #000;
-            margin-top: 15px;
+        .right-label {
+            width: 43%;
+            white-space: nowrap;
         }
 
-        .exp-table th {
+        .right-colon {
+            width: 5%;
+            text-align: center;
+        }
+
+        .right-value {
+            width: 52%;
+        }
+
+        .nowrap {
+            white-space: nowrap;
+        }
+
+        .amount-summary {
+            margin-top: 12px;
+            width: 100%;
+        }
+
+        .amount-summary td {
+            font-size: 11px;
+            padding: 3px 2px;
+        }
+
+        .detail-table {
+            margin-top: 14px;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        .detail-table th,
+        .detail-table td {
             border: 1px solid #000;
-            padding: 6px;
+            padding: 5px;
+            font-size: 10.5px;
+        }
+
+        .detail-table th {
             background: #f7f7f7;
             font-weight: bold;
-            text-align: left;
+            text-align: center;
         }
 
-        .exp-table td {
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .approval-table {
+            margin-top: 18px;
+            border-collapse: collapse;
+            font-size: 10.5px;
+        }
+
+        .approval-table th,
+        .approval-table td {
             border: 1px solid #000;
             padding: 6px;
+            vertical-align: top;
         }
 
-        /* Approval Table */
-        .sig-table {
-            width: 100%;
-            border: 1px solid #000;
-            margin-top: 15px;
-        }
-
-        .sig-table th,
-        .sig-table td {
-            border: 1px solid #000;
-            padding: 6px;
+        .approval-table th {
             text-align: left;
-            font-size: 11px;
-            word-wrap: break-word;
+            font-weight: bold;
         }
 
         .sig-name {
@@ -113,8 +180,8 @@
         }
 
         .sig-status {
-            margin-top: 2px;
-            font-size: 11px;
+            margin-top: 3px;
+            font-weight: bold;
         }
 
         .sig-num {
@@ -122,237 +189,266 @@
             margin-right: 4px;
         }
 
-        .status {
-            font-weight: bold;
-        }
-
-        .status.blue {
-            color: blue;
-        }
-
-        .status.red {
-            color: red;
-        }
-
-        .status.orange {
-            color: orange;
-        }
+        .blue { color: blue; }
+        .red { color: red; }
+        .orange { color: orange; }
+        .black { color: #000; }
     </style>
 </head>
 
 <body>
+    @php
+        $fmtDate = function ($date, $format = 'd M Y') {
+            if (empty($date)) {
+                return '-';
+            }
 
-    <!-- HEADER -->
-    <table style="margin-bottom:10px;">
-        <tr class="left-header">
-            <th>{{ $cpny_id }} - {{ $cpny_name }}</th>
-            <th><span class="label">No</span> : {{ $docid }}</th>
-        </tr>
-        <tr class="right-header">
-            <th style="padding-top:6px;">{{ $title }} ({{ $doc_type }})</th>
-            <th style="padding-top:6px;"><span class="label">Date</span> : {{ $calrdate }}</th>
-        </tr>
-    </table>
+            try {
+                return \Carbon\Carbon::parse($date)->format($format);
+            } catch (\Throwable $e) {
+                return $date;
+            }
+        };
 
-    <hr style="border:0; border-top:2px solid #000; margin-bottom:12px;">
+        $amountRfca = (float) ($rfca_amount ?? 0);
+        $amountCalr = (float) ($calr_amount ?? 0);
+        $amountBalance = (float) ($balance_amount ?? 0);
 
+        $statusColor = match (true) {
+            in_array($status_doc, ['Approved', 'Completed']) => 'blue',
+            in_array($status_doc, ['Rejected', 'Cancel']) => 'red',
+            in_array($status_doc, ['Hold', 'Revise', 'Revised', 'On Progress', 'Waiting Approval']) => 'orange',
+            default => 'black',
+        };
 
-    <!-- BODY FIELDS -->
+        $colsPerRow = $approve_count > 5 ? 4 : 3;
+        $chunks = collect($approval ?? [])->values()->chunk($colsPerRow);
+        $idx = 1;
+        $totalCols = 1 + $colsPerRow;
+    @endphp
+
+    {{-- HEADER --}}
     <table>
-        <tr class="left-body">
-            <th>
-                <div class="field-row">
-                    <span class="field-label">Dibayarkan Kpd :</span>
-                    <span class="field-value-wrap">{{ $vendorname }}</span>
+        <tr>
+            <td style="width: 30%;">
+                <div class="top-left">
+                    {{ $cpny_id }} - {{ $cpny_name }}<br>
+                    {{ $title }}<br>
+                    ({{ $doc_type }})
                 </div>
-            </th>
-            {{-- <th>
-                <div class="field-row">
-                    <span class="field-label">Lokasi :</span>
-                    <span class="field-value-wrap"></span>
-                </div>
-            </th> --}}
+            </td>
+
+            <td style="width: 45%; text-align:center;">
+                <div class="title">{{ $cpny_name ?: $cpny_id }}</div>
+            </td>
+
+            <td style="width: 25%;">
+                <div class="doc-no">No. {{ $docid }}</div>
+            </td>
         </tr>
-
-        <tr class="left-body">
-            <th>
-                <div class="field-row">
-                    <span class="field-label">Keperluan :</span>
-                    <span class="field-value-wrap whitespace-pre-line break-words">
-                        {{ $keperluan }}
-                    </span>
-                </div>
-            </th>
-            <th></th>
-        </tr>
-
-        <tr class="left-body">
-            <th>
-                <div class="field-row">
-                    <span class="field-label">RFCA ID :</span>
-                    <span class="field-value-wrap">{{ $calr->rfcaid ?? '-' }}</span>
-                </div>
-            </th>
-            <th></th>
-        </tr>
-
-        <tr class="left-body">
-            <th>
-                <div class="field-row">
-                    <span class="field-label">Total Amount :</span>
-                    <span class="field-value-wrap">{{ number_format($rfca_amount ?? 0, 0, ',', '.') }}</span>
-                </div>
-            </th>
-        </tr>
-
-        <tr class="left-body">
-            <th>
-                <div class="field-row">
-                    <span class="field-label">Total Expenses :</span>
-                    <span class="field-value-wrap">{{ number_format($calr_amount ?? 0, 0, ',', '.') }}</span>
-                </div>
-            </th>
-        </tr>
-
-
-        <tr class="left-body">
-            <th>
-                <div class="field-row">
-                    <span class="field-label">Lebih/Kurang :</span>
-                    <span class="field-value-wrap">{{ number_format($balance_amount ?? 0, 0, ',', '.') }}</span>
-                </div>
-            </th>
-            <th></th>
-        </tr>
-
     </table>
 
+    {{-- BODY INFO --}}
+    <table class="info-wrapper">
+        <tr>
+            <td class="left-info">
+                <table class="info-left-table">
+                    <tr>
+                        <td class="info-label">RFCA No</td>
+                        <td class="info-colon">:</td>
+                        <td class="info-value">{{ $calr->rfcaid ?: '-' }}</td>
+                    </tr>
+
+                    <tr>
+                        <td class="info-label">Requester</td>
+                        <td class="info-colon">:</td>
+                        <td class="info-value">{{ $created_by_name ?: $created_by_username }}</td>
+                    </tr>
+
+                    <tr>
+                        <td class="info-label">Department</td>
+                        <td class="info-colon">:</td>
+                        <td class="info-value">{{ $department_id ?: '-' }}</td>
+                    </tr>
+
+                    <tr>
+                        <td class="info-label">Dibayarkan Kpd/Vendor</td>
+                        <td class="info-colon">:</td>
+                        <td class="info-value">{{ $vendorname ?: '-' }}</td>
+                    </tr>
+
+                    <tr>
+                        <td class="info-label">Keperluan/Purpose</td>
+                        <td class="info-colon">:</td>
+                        <td class="info-value">{{ $keperluan ?: '-' }}</td>
+                    </tr>
+                </table>
+            </td>
+
+            <td class="right-info">
+                <table class="info-right-table">
+                    <tr>
+                        <td class="right-label">Tgl/Date</td>
+                        <td class="right-colon">:</td>
+                        <td class="right-value nowrap">{{ $calrdate ?: '-' }}</td>
+                    </tr>
+
+                    <tr>
+                        <td class="right-label">RFCA Amount</td>
+                        <td class="right-colon">:</td>
+                        <td class="right-value nowrap">Rp. {{ number_format($amountRfca, 0, ',', '.') }}</td>
+                    </tr>
+
+                    <tr>
+                        <td class="right-label">Calr Amount</td>
+                        <td class="right-colon">:</td>
+                        <td class="right-value nowrap">Rp. {{ number_format($amountCalr, 0, ',', '.') }}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    {{-- AMOUNT SUMMARY --}}
+    <table class="amount-summary">
+        <tr>
+            <td style="width: 25%;">Amount RFCA</td>
+            <td style="width: 2%;">:</td>
+            <td style="width: 23%;">Rp. {{ number_format($amountRfca, 0, ',', '.') }}</td>
+
+            <td style="width: 25%;">Amount Calr</td>
+            <td style="width: 2%;">:</td>
+            <td style="width: 23%;">Rp. {{ number_format($amountCalr, 0, ',', '.') }}</td>
+        </tr>
+
+        <tr>
+            <td>Lebih/Kurang</td>
+            <td>:</td>
+            <td colspan="4">Rp. {{ number_format($amountBalance, 0, ',', '.') }}</td>
+        </tr>
+    </table>
+
+    {{-- PREV RFCA --}}
     @if (!empty($rfca->prev_rfcaid))
-        <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+        <table class="detail-table">
             <thead>
                 <tr>
-                    <th style="border:1px solid #000; padding:5px 8px; background:#f7f7f7; text-align:left; width:34%;">Prev RFCA ID</th>
-                    <th style="border:1px solid #000; padding:5px 8px; background:#f7f7f7; text-align:left; width:33%;">Prev RFCA Amount</th>
-                    <th style="border:1px solid #000; padding:5px 8px; background:#f7f7f7; text-align:left; width:33%;">Add RFCA Amount</th>
+                    <th style="width: 34%;">Prev RFCA ID</th>
+                    <th style="width: 33%;">Prev RFCA Amount</th>
+                    <th style="width: 33%;">Add RFCA Amount</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td style="border:1px solid #000; padding:5px 8px;">{{ $rfca->prev_rfcaid }}</td>
-                    <td style="border:1px solid #000; padding:5px 8px;">{{ number_format($rfca->prev_rfca_amount ?? 0, 0, ',', '.') }}</td>
-                    <td style="border:1px solid #000; padding:5px 8px;">{{ number_format($rfca->add_rfca_amount ?? 0, 0, ',', '.') }}</td>
+                    <td class="text-center">{{ $rfca->prev_rfcaid }}</td>
+                    <td class="text-right">Rp. {{ number_format($rfca->prev_rfca_amount ?? 0, 0, ',', '.') }}</td>
+                    <td class="text-right">Rp. {{ number_format($rfca->add_rfca_amount ?? 0, 0, ',', '.') }}</td>
                 </tr>
             </tbody>
         </table>
     @endif
 
-
-    <!-- EXPENSE TABLE -->
-    <table class="exp-table">
+    {{-- EXPENSE / PO DETAIL --}}
+    <table class="detail-table">
         <thead>
             <tr>
-                <th style="width:70%;">Description</th>
-                <th style="width:30%;">Amount</th>
+                <th style="width: 8%;">No</th>
+                <th style="width: 67%;">Description</th>
+                <th style="width: 25%;">Amount</th>
             </tr>
         </thead>
+
         <tbody>
-            @forelse($details as $dt)
+            @forelse ($details as $i => $dt)
                 <tr>
-                    <td>{{ $dt->inventory_descr }}</td>
-                    <td>{{ number_format($dt->totalcost, 0, ',', '.') }}</td>
+                    <td class="text-center">{{ $i + 1 }}</td>
+                    <td>{{ $dt->inventory_descr ?: '-' }}</td>
+                    <td class="text-right">Rp. {{ number_format((float) ($dt->totalcost ?? 0), 0, ',', '.') }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="2" class="text-center">No data available</td>
+                    <td colspan="3" class="text-center">No data available</td>
                 </tr>
             @endforelse
+
+            <tr>
+                <td colspan="2" class="text-right"><strong>Total</strong></td>
+                <td class="text-right"><strong>Rp. {{ number_format($amountCalr, 0, ',', '.') }}</strong></td>
+            </tr>
         </tbody>
     </table>
 
-
-    <!-- CREATED BY FOOTER IS HANDLED INSIDE APPROVALS -->
-    {{-- Approvals --}}
-    @php
-        $stColor = match (true) {
-            in_array($status_doc, ['Approved', 'Completed']) => 'blue',
-            in_array($status_doc, ['Rejected', 'Cancel']) => 'red',
-            $status_doc === 'Hold' => 'orange',
-            default => 'black',
-        };
-
-        // Creator becomes approval #1
-        $prepared = collect([
-            (object) [
-                'aprv_name' => $created_by_name ?? $created_by_username,
-                'status' => 'Created',
-                'aprv_dateafter' => $req_date_fmt,
-                'is_creator' => true,
-            ],
-        ])->merge($approval);
-
-        $colsPerRow = 5;
-        $chunks = $prepared->values()->chunk($colsPerRow);
-        $idx = 1;
-    @endphp
-
-    <table class="sig-table">
+    {{-- APPROVAL --}}
+    <table class="approval-table">
         <thead>
             <tr>
-                <th colspan="{{ $colsPerRow }}">
+                <th colspan="{{ $totalCols }}">
                     Status:
-                    <span class="status {{ $stColor }}">{{ $status_doc }}</span>
+                    <span class="{{ $statusColor }}">{{ $status_doc }}</span>
                 </th>
             </tr>
         </thead>
 
         <tbody>
-            @foreach ($chunks as $chunk)
+            @forelse ($chunks as $rowIndex => $chunk)
                 <tr>
+                    @if ($rowIndex === 0)
+                        <td rowspan="{{ $chunks->count() }}" style="width: 25%;">
+                            <div class="sig-name">{{ $created_by_name ?? $created_by_username }}</div>
+                            <div class="sig-status blue">Created</div>
+                            <div>{{ $req_date_fmt }}</div>
+                        </td>
+                    @endif
+
                     @foreach ($chunk as $dt2)
                         @php
-                            if (isset($dt2->is_creator)) {
-                                $label = 'Created';
-                                $color = 'blue';
-                                $dateStr = $dt2->aprv_dateafter;
-                            } else {
-                                $label = match ($dt2->status) {
-                                    'A' => 'Approved',
-                                    'R' => 'Rejected',
-                                    'P' => 'Waiting',
-                                    default => 'Revised',
-                                };
+                            $label = match ($dt2->status) {
+                                'A' => 'Approved',
+                                'R' => 'Rejected',
+                                'P' => 'Waiting',
+                                'D' => 'Revised',
+                                default => 'Waiting',
+                            };
 
-                                $color = match ($dt2->status) {
-                                    'A' => 'blue',
-                                    'R' => 'red',
-                                    'P' => 'orange',
-                                    default => 'red',
-                                };
+                            $color = match ($dt2->status) {
+                                'A' => 'blue',
+                                'R' => 'red',
+                                'P' => 'orange',
+                                'D' => 'red',
+                                default => 'orange',
+                            };
 
-                                $dateStr = $dt2->aprv_dateafter
-                                    ? \Carbon\Carbon::parse($dt2->aprv_dateafter)->format('d M Y H:i')
-                                    : '';
-                            }
+                            $dateStr = $dt2->aprv_dateafter
+                                ? \Carbon\Carbon::parse($dt2->aprv_dateafter)->format('d M Y H:i')
+                                : '';
                         @endphp
 
-                        <td style="width:20%;">
-                            <div><span class="sig-num">{{ $idx++ }}.</span>
+                        <td>
+                            <div>
+                                <span class="sig-num">{{ $idx++ }}.</span>
                                 <span class="sig-name">{{ $dt2->aprv_name }}</span>
                             </div>
+
                             <div class="sig-status {{ $color }}">{{ $label }}</div>
+
                             <div>{{ $dateStr }}</div>
                         </td>
                     @endforeach
 
-                    {{-- Fill empty cells --}}
                     @for ($i = $chunk->count(); $i < $colsPerRow; $i++)
-                        <td style="width:20%;">&nbsp;</td>
+                        <td>&nbsp;</td>
                     @endfor
                 </tr>
-            @endforeach
+            @empty
+                <tr>
+                    <td>
+                        <div class="sig-name">{{ $created_by_name ?? $created_by_username }}</div>
+                        <div class="sig-status blue">Created</div>
+                        <div>{{ $req_date_fmt }}</div>
+                    </td>
+                </tr>
+            @endforelse
         </tbody>
     </table>
-
 </body>
-
 </html>

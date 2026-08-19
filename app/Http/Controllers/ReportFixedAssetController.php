@@ -138,10 +138,12 @@ class ReportFixedAssetController extends Controller
     {
         $user = Auth::user();
 
-        $companyIds = \App\Models\Usercpny::where('username', $user->username)
-            ->pluck('cpny_id');
+        if (!$user->hasFullDataScope()) {
+            $companyIds = \App\Models\Usercpny::where('username', $user->username)
+                ->pluck('cpny_id');
 
-        $query->whereIn('sttb.cpny_id', $companyIds);
+            $query->whereIn('sttb.cpny_id', $companyIds);
+        }
 
         return $query;
     }

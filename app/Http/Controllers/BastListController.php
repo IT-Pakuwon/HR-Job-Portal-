@@ -25,13 +25,8 @@ class BastListController extends Controller
             return redirect()->route('login');
         }
 
-        // user->cpny_id bisa "AW" atau "AW,GPS"
-        $cpnyRaw = $user->cpny_id ?? '';
-        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
-
-        // user->department_id bisa "IT" atau "IT,ENG"
-        $deptRaw = $user->department_id ?? '';
-        $deptList = $deptRaw !== '' ? array_map('trim', explode(',', $deptRaw)) : [];
+        $cpnyList = $user->scopedCompanyIds();
+        $deptList = $user->scopedDepartmentIds();
 
         // Jobs berasal dari TrPOterm
         $bastjobs = TrPOterm::query()
@@ -97,12 +92,8 @@ class BastListController extends Controller
             ], 401);
         }
 
-        // parse cpny_id & department_id multiple
-        $cpnyRaw = $user->cpny_id ?? '';
-        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
-
-        $deptRaw = $user->department_id ?? '';
-        $deptList = $deptRaw !== '' ? array_map('trim', explode(',', $deptRaw)) : [];
+        $cpnyList = $user->scopedCompanyIds();
+        $deptList = $user->scopedDepartmentIds();
 
         $draw = (int) $req->input('draw', 1);
         $start = (int) $req->input('start', 0);
@@ -143,6 +134,8 @@ class BastListController extends Controller
                     DB::raw("'HOLD' as status"),
                 ])
                 ->orderBy('t.order_term', 'asc');
+
+            $scopedBase = clone $base;
 
             if ($vendor !== '') {
                 $base->where('t.vendorname', 'ilike', "%{$vendor}%");
@@ -205,6 +198,8 @@ class BastListController extends Controller
                     'td.terms_name',
                 ]);
 
+            $scopedBase = clone $base;
+
             $orderColumns = [
                 0 => 'b.bastid',       // dtr-control (unorderable)
                 1 => 'b.bastid',
@@ -247,8 +242,33 @@ class BastListController extends Controller
             }
         }
 
-        $recordsTotal = (clone $base)->count();
+        $recordsTotal = (clone $scopedBase)->count();
         $recordsFiltered = (clone $base)->count();
+
+        $vendorColumn = $scope === 'bastjobs' ? 't.vendorname' : 'b.vendorname';
+        $termsColumn = $scope === 'bastjobs' ? 't.terms_name' : 'td.terms_name';
+
+        $vendorOptions = (clone $scopedBase)
+            ->reorder($vendorColumn, 'asc')
+            ->whereNotNull($vendorColumn)
+            ->where($vendorColumn, '!=', '')
+            ->distinct()
+            ->pluck($vendorColumn)
+            ->filter()
+            ->values();
+
+        $termsQuery = (clone $scopedBase);
+        if ($vendor !== '') {
+            $termsQuery->where($vendorColumn, 'ilike', "%{$vendor}%");
+        }
+        $termsOptions = $termsQuery
+            ->reorder($termsColumn, 'asc')
+            ->whereNotNull($termsColumn)
+            ->where($termsColumn, '!=', '')
+            ->distinct()
+            ->pluck($termsColumn)
+            ->filter()
+            ->values();
 
         $orderIdx = (int) $req->input('order.0.column', $scope === 'bastjobs' ? 1 : 1);
         $orderDir = $req->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
@@ -406,6 +426,8 @@ class BastListController extends Controller
             'recordsTotal' => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
             'data' => $rows,
+            'vendorOptions' => $vendorOptions,
+            'termsOptions' => $termsOptions,
         ]);
     }
 }

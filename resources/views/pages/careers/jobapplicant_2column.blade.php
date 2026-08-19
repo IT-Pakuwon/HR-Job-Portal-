@@ -86,6 +86,14 @@
                     overflow: hidden;
                     text-overflow: ellipsis;
                 }
+
+                #applicantsTable tr.row-checked td { color: #000000; }
+                #applicantsTable tr.row-unchecked td { color: #2563eb; }
+                #applicantsTable tr.row-reject td { color: #dc2626; }
+
+                .dark #applicantsTable tr.row-checked td { color: #ffffff; }
+                .dark #applicantsTable tr.row-unchecked td { color: #22d3ee; }
+                .dark #applicantsTable tr.row-reject td { color: #f87171; }
             </style>
 
             <style>
@@ -530,16 +538,20 @@
                                         'OFF': 'Offering',
                                         'JOIN': 'Join'
                                     };
-                                    return `<span class="w-32 bg-blue-300/30 text-blue-600 text-sm font-semibold px-4 py-2 text-center rounded">${labelMap[data] || data}</span>`;
+                                    return `<span class="w-32 bg-blue-300/30 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300 text-sm font-semibold px-4 py-2 text-center rounded">${labelMap[data] || data}</span>`;
                                 }
                             }
                         ],
 
                         rowCallback: function(row, data, index) {
-                            if (data.is_read === 'N') {
-                                $(row).css('color', 'blue'); // ❗ teks biru untuk is_read = N
+                            $(row).removeClass('row-checked row-unchecked row-reject');
+
+                            if (data.status === 'R') {
+                                $(row).addClass('row-reject');
+                            } else if (data.is_read === 'N') {
+                                $(row).addClass('row-unchecked');
                             } else {
-                                $(row).css('color', 'black'); // teks normal untuk is_read = Y
+                                $(row).addClass('row-checked');
                             }
                         }
                     });

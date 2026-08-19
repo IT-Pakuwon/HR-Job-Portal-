@@ -22,7 +22,7 @@ class ReportOperationalController extends Controller
         }
 
         abort_unless(
-            $user->hasRole('COSTCTRLACCESS') || $user->hasRole('OPRACCESS'),
+            $user->hasRole('COSTCTRLACCESS') || $user->hasRole('OPRACCESS') || $user->hasFullDataScope(),
             403
         );
 
@@ -133,23 +133,26 @@ class ReportOperationalController extends Controller
 
         $isCostCtrl = $user->hasRole('COSTCTRLACCESS');
         $isOpr = $user->hasRole('OPRACCESS');
+        $isFullScope = $user->hasFullDataScope();
 
         /*
         |--------------------------------------------
-        | Company Scope (always applied)
+        | Company Scope (always applied, except full-scope roles like DIRECTORACCESS)
         |--------------------------------------------
         */
-        $companyIds = \App\Models\Usercpny::where('username', $user->username)
-            ->pluck('cpny_id');
+        if (!$isFullScope) {
+            $companyIds = \App\Models\Usercpny::where('username', $user->username)
+                ->pluck('cpny_id');
 
-        $query->whereIn('w.cpny_id', $companyIds);
+            $query->whereIn('w.cpny_id', $companyIds);
+        }
 
         /*
         |--------------------------------------------
-        | COST CONTROL → FULL ACCESS
+        | FULL SCOPE / COST CONTROL → FULL ACCESS
         |--------------------------------------------
         */
-        if ($isCostCtrl) {
+        if ($isFullScope || $isCostCtrl) {
             return $query;
         }
 
@@ -179,7 +182,7 @@ class ReportOperationalController extends Controller
         $user = Auth::user();
 
         abort_unless(
-            $user->hasRole('COSTCTRLACCESS') || $user->hasRole('OPRACCESS'),
+            $user->hasRole('COSTCTRLACCESS') || $user->hasRole('OPRACCESS') || $user->hasFullDataScope(),
             403
         );
 

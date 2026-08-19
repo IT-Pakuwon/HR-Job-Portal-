@@ -42,13 +42,8 @@ class ItemRequestController extends Controller
             return redirect()->route('login');
         }
 
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_map('trim', explode(',', $user->cpny_id))
-            : (array) $user->cpny_id;
-
-        $deptIds = is_string($user->department_id)
-            ? array_map('trim', explode(',', $user->department_id))
-            : (array) $user->department_id;
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $isAdmin = $user->isAdmin();
 
@@ -75,13 +70,8 @@ class ItemRequestController extends Controller
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_map('trim', explode(',', $user->cpny_id))
-            : (array) $user->cpny_id;
-
-        $deptIds = is_string($user->department_id)
-            ? array_map('trim', explode(',', $user->department_id))
-            : (array) $user->department_id;
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $draw   = (int) $request->input('draw', 1);
         $start  = (int) $request->input('start', 0);

@@ -85,7 +85,7 @@
                 </button>
 
                 <button id="faExport"
-                    class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700">
+                    class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20">
                     Export
                 </button>
 
@@ -204,11 +204,11 @@
                     className: 'px-3',
                     render: function(data) {
                         let map = {
-                            'Full Received':    'bg-green-100 text-green-700',
-                            'Partial Received': 'bg-yellow-100 text-yellow-700',
-                            'ERR':              'bg-red-100 text-red-700',
+                            'Full Received':    'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400',
+                            'Partial Received': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-400',
+                            'ERR':              'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400',
                         };
-                        let cls = map[data] ?? 'bg-gray-100 text-gray-600';
+                        let cls = map[data] ?? 'bg-gray-100 text-gray-600 dark:bg-gray-500/15 dark:text-gray-400';
                         return `<span class="inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium ${cls}">${data}</span>`;
                     }
                 },

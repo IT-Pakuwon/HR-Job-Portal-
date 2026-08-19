@@ -55,6 +55,8 @@ const ticketTable = $("#ticketTable").DataTable({
 
             d.category_id = $("#filter_category_id").val();
 
+            d.ticket_type = $("#filter_ticket_type").val();
+
             d.cpny_id = $("#filter_company_id").val();
 
             d.date_from = $("#filter_date_from").val();
@@ -909,6 +911,7 @@ function saveFilterState() {
         status:            $('#filter_status').val(),
         status_pekerjaan:  $('#filter_status_pekerjaan').val(),
         category_id:       $('#filter_category_id').val(),
+        ticket_type:       $('#filter_ticket_type').val(),
         company_id:        $('#filter_company_id').val(),
         date_from:         $('#filter_date_from').val(),
         date_to:           $('#filter_date_to').val(),
@@ -929,9 +932,11 @@ function restoreFilterState() {
         if ($.fn.select2) {
             $('#filter_status').val(state.status || '').trigger('change');
             $('#filter_status_pekerjaan').val(state.status_pekerjaan || '').trigger('change');
+            $('#filter_ticket_type').val(state.ticket_type || '').trigger('change');
         } else {
             $('#filter_status').val(state.status || '');
             $('#filter_status_pekerjaan').val(state.status_pekerjaan || '');
+            $('#filter_ticket_type').val(state.ticket_type || '');
         }
 
         $('#filter_category_id').val(state.category_id || '');
@@ -962,7 +967,9 @@ $(document).on('click', '#btn_reset_filter', function () {
     $('#filter_status').val('').trigger('change');
     $('#filter_status_pekerjaan').val('').trigger('change');
     $('#filter_category_id').val('').trigger('change');
+    $('#filter_ticket_type').val('').trigger('change');
     $('#filter_company_id').val('').trigger('change');
+    $('#filter_calendar_ticket_type').val('').trigger('change');
     $('#filter_date_from').val('');
     $('#filter_date_to').val('');
     ticketStatusFilter = '';
@@ -994,6 +1001,7 @@ function doExportTicket() {
         search:      $('#filter_search').val() || '',
         status:      $('#filter_status_pekerjaan').val() || '',
         category_id: $('#filter_category_id').val() || '',
+        ticket_type: $('#filter_ticket_type').val() || '',
         date_from:   $('#filter_date_from').val() || '',
         date_to:     $('#filter_date_to').val() || '',
     });

@@ -6,11 +6,11 @@
 
             {{-- SPB --}}
             <a href="#" data-report="spb"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700">
+                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/40 dark:hover:bg-gray-800/70">
 
                 <div class="flex items-center gap-4">
 
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 text-lg">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 text-lg dark:bg-indigo-500/15">
                         📦
                     </div>
 
@@ -29,11 +29,11 @@
 
             {{-- ISSUE --}}
             <a href="#" data-report="issue"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700">
+                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/40 dark:hover:bg-gray-800/70">
 
                 <div class="flex items-center gap-4">
 
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 text-lg">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 text-lg dark:bg-orange-500/15">
                         📤
                     </div>
 
@@ -52,11 +52,11 @@
 
             {{-- RECEIPT --}}
             <a href="#" data-report="receipt"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700">
+                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/40 dark:hover:bg-gray-800/70">
 
                 <div class="flex items-center gap-4">
 
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-lg">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-lg dark:bg-emerald-500/15">
                         📥
                     </div>
 
@@ -75,11 +75,11 @@
 
             {{-- INVENTORY MOVEMENT --}}
             <a href="#" data-report="movement"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700">
+                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/40 dark:hover:bg-gray-800/70">
 
                 <div class="flex items-center gap-4">
 
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-lg">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-lg dark:bg-blue-500/15">
                         🔄
                     </div>
 

@@ -42,6 +42,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataFeedController;
 use App\Http\Controllers\DepartmentsController;
 use App\Http\Controllers\GradingController;
+use App\Http\Controllers\PerformanceManagementController;
 use App\Http\Controllers\DocumentNotificationController;
 use App\Http\Controllers\EngTicketController;
 use App\Http\Controllers\EventCalendarController;
@@ -1647,6 +1648,7 @@ Route::middleware(['auth'])->group(function () {
                 Route::middleware('access:EVENTCAL,VIEW')->group(function () {
                     Route::middleware('ajax')->group(function () {
                         Route::get('/json', 'json')->name('json');
+                        Route::get('/holidays', 'holidays')->name('holidays');
                     });
                 });
 
@@ -2766,6 +2768,23 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/kendaraan/{id}', [KendaraanController::class, 'update'])->name('kendaraan.update');
     Route::put('/kendaraan/{id}/toggle-status', [KendaraanController::class, 'toggleStatus'])->name('kendaraan.toggle-status');
 
+    Route::get('/performance-management', [PerformanceManagementController::class, 'index'])->name('performance-management');
+    Route::get('/performance-management/compare/live/json', [PerformanceManagementController::class, 'compareLiveJson'])->name('performance-management.compare.live.json');
+    Route::get('/performance-management/compare/local/json', [PerformanceManagementController::class, 'compareLocalJson'])->name('performance-management.compare.local.json');
+    Route::post('/performance-management/compare/sync', [PerformanceManagementController::class, 'syncOne'])->name('performance-management.compare.sync');
+    Route::post('/performance-management/compare/sync-all', [PerformanceManagementController::class, 'syncAll'])->name('performance-management.compare.sync-all');
+    Route::post('/performance-management/compare/deactivate', [PerformanceManagementController::class, 'deactivateLocal'])->name('performance-management.compare.deactivate');
+    Route::get('/performance-management/users/json', [PerformanceManagementController::class, 'userCandidatesJson'])->name('performance-management.users.json');
+    Route::post('/performance-management/users', [PerformanceManagementController::class, 'storeUser'])->name('performance-management.users.store');
+    Route::get('/performance-management/users/resigned/json', [PerformanceManagementController::class, 'resignedUsersJson'])->name('performance-management.users.resigned.json');
+    Route::post('/performance-management/users/deactivate', [PerformanceManagementController::class, 'deactivateUser'])->name('performance-management.users.deactivate');
+    Route::get('/performance-management/users/missing-link/json', [PerformanceManagementController::class, 'missingLinkUsersJson'])->name('performance-management.users.missing-link.json');
+    Route::post('/performance-management/users/link', [PerformanceManagementController::class, 'linkUserTalenta'])->name('performance-management.users.link');
+    Route::post('/performance-management/users/deactivate-unlinked', [PerformanceManagementController::class, 'deactivateUnlinkedUser'])->name('performance-management.users.deactivate-unlinked');
+    Route::get('/performance-management/duplicates/local/json', [PerformanceManagementController::class, 'duplicatesLocalJson'])->name('performance-management.duplicates.local.json');
+    Route::get('/performance-management/duplicates/live/json', [PerformanceManagementController::class, 'duplicatesLiveJson'])->name('performance-management.duplicates.live.json');
+    Route::post('/performance-management/duplicates/migrate', [PerformanceManagementController::class, 'migrateDuplicate'])->name('performance-management.duplicates.migrate');
+
     Route::middleware('access:INVENTORIESUSER,VIEW')->group(function () {
         Route::get('/inventories-user', [InventoryUserController::class, 'index'])->name('inventories-user');
         Route::get('/inventories-user/json', [InventoryUserController::class, 'json'])->name('inventories-user.json');
@@ -3294,6 +3313,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/transfervp/ajax/to-whs', [VplTransferController::class, 'getToWhs'])->name('transfervp.to-whs');
         Route::post('/transfervp/ajax/products', [VplTransferController::class, 'getTransferProducts'])->name('transfervp.products');
         Route::post('/transfervp/ajax/ref-options', [VplTransferController::class, 'getRefOptions'])->name('transfervp.ref-options');
+        Route::post('/transfervp/ajax/ref-details', [VplTransferController::class, 'getRefDetails'])->name('transfervp.ref-details');
         Route::post('/transfervp/{id}/approve', [VplTransferController::class, 'approve'])->name('transfervp.approve');
         Route::post('/transfervp/{id}/reject', [VplTransferController::class, 'reject'])->name('transfervp.reject');
         Route::post('/transfervp/{id}/revise', [VplTransferController::class, 'revise'])->name('transfervp.revise');

@@ -40,8 +40,7 @@ class KontrakController extends Controller
 
         $u = $user->username ?? '';
 
-        $cpnyRaw  = $user->cpny_id ?? '';
-        $cpnyList = $cpnyRaw !== '' ? array_values(array_filter(array_map('trim', explode(',', $cpnyRaw)))) : [];
+        $cpnyList = $user->scopedCompanyIds();
 
         $isFinanceAccess = SysUserRole::where('username', $u)
             ->where('role_id', 'FINACCESS')
@@ -71,8 +70,7 @@ class KontrakController extends Controller
         $budgetStatus = strtolower(trim((string) $req->query('budget_status', 'need'))); // need | done
 
         // company list user
-        $cpnyRaw  = $user->cpny_id ?? '';
-        $cpnyList = $cpnyRaw !== '' ? array_values(array_filter(array_map('trim', explode(',', $cpnyRaw)))) : [];
+        $cpnyList = $user->scopedCompanyIds();
 
         $isFinanceAccess = SysUserRole::where('username', $u)
             ->where('role_id', 'FINACCESS')
@@ -118,7 +116,7 @@ class KontrakController extends Controller
             }
         } elseif ($tab === 'my') {
             // creator filter: non-fin selalu dirinya sendiri
-            if (!$isFinanceAccess) {
+            if (!$isFinanceAccess && !$user->hasFullDataScope()) {
                 $base->where('created_by', $u);
             } else {
                 // finance boleh filter creator (kalau diisi)

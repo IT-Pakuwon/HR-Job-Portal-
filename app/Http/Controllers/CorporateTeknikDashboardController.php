@@ -24,15 +24,21 @@ class CorporateTeknikDashboardController extends Controller
 
     protected const ENG_TICKET_TYPE = 'ENGSUPPORTTICKET';
 
-    protected const BSFO_TICKET_TYPE = 'BSFOSUPPORTTICKET';
+    protected const BS_TICKET_TYPE = 'BSSUPPORTTICKET';
 
     protected const BA_ENG_TYPE = 'BA_ENG';
 
     protected const BA_BSFO_TYPE = 'BA_BS';
 
+    protected const BA_FO_TYPE = 'BA_FO';
+
     protected const ENG_ROLE_ID = 'OPRTEKNIKENG';
 
-    protected const BSFO_ROLE_ID = 'OPRTEKNIKBS';
+    protected const BS_ROLE_ID = 'OPRTEKNIKBS';
+
+    protected const FO_TICKET_TYPE = 'FOSUPPORTTICKET';
+
+    protected const FO_ROLE_ID = 'OPRTEKNIKFO';
 
     protected const MGR_ROLE_ID = 'MGROPRTEKNIKACCESS';
 
@@ -51,7 +57,7 @@ class CorporateTeknikDashboardController extends Controller
     protected function ticketTypesForUser(): array
     {
         if ($this->hasRole(self::MGR_ROLE_ID)) {
-            return [self::ENG_TICKET_TYPE, self::BSFO_TICKET_TYPE];
+            return [self::ENG_TICKET_TYPE, self::BS_TICKET_TYPE, self::FO_TICKET_TYPE];
         }
 
         $types = [];
@@ -60,8 +66,12 @@ class CorporateTeknikDashboardController extends Controller
             $types[] = self::ENG_TICKET_TYPE;
         }
 
-        if ($this->hasRole(self::BSFO_ROLE_ID)) {
-            $types[] = self::BSFO_TICKET_TYPE;
+        if ($this->hasRole(self::BS_ROLE_ID)) {
+            $types[] = self::BS_TICKET_TYPE;
+        }
+
+        if ($this->hasRole(self::FO_ROLE_ID)) {
+            $types[] = self::FO_TICKET_TYPE;
         }
 
         return $types;
@@ -70,7 +80,7 @@ class CorporateTeknikDashboardController extends Controller
     protected function baTypesForUser(): array
     {
         if ($this->hasRole(self::MGR_ROLE_ID)) {
-            return [self::BA_ENG_TYPE, self::BA_BSFO_TYPE];
+            return [self::BA_ENG_TYPE, self::BA_BSFO_TYPE, self::BA_FO_TYPE];
         }
 
         $types = [];
@@ -79,8 +89,12 @@ class CorporateTeknikDashboardController extends Controller
             $types[] = self::BA_ENG_TYPE;
         }
 
-        if ($this->hasRole(self::BSFO_ROLE_ID)) {
+        if ($this->hasRole(self::BS_ROLE_ID)) {
             $types[] = self::BA_BSFO_TYPE;
+        }
+
+        if ($this->hasRole(self::FO_ROLE_ID)) {
+            $types[] = self::BA_FO_TYPE;
         }
 
         return $types;
@@ -124,13 +138,14 @@ class CorporateTeknikDashboardController extends Controller
         return match ($ticketType) {
             self::BA_BSFO_TYPE => 'BS',
             self::BA_ENG_TYPE => 'ENG',
+            self::BA_FO_TYPE => 'FO',
             default => '',
         };
     }
 
     protected function isBaTicketType(string $ticketType): bool
     {
-        return in_array($ticketType, [self::BA_ENG_TYPE, self::BA_BSFO_TYPE], true);
+        return in_array($ticketType, [self::BA_ENG_TYPE, self::BA_BSFO_TYPE, self::BA_FO_TYPE], true);
     }
 
     protected function ticketRows(array $ticketTypes)

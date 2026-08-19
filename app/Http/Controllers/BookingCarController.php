@@ -33,13 +33,8 @@ class BookingCarController extends Controller
             return redirect()->route('login');
         }
 
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
-            : (array) $user->cpny_id;
-
-        $deptIds = is_string($user->department_id)
-            ? array_filter(array_map('trim', explode(',', $user->department_id)))
-            : (array) $user->department_id;
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $isGA = $user->hasRole('GAACCESS');
 
@@ -206,7 +201,8 @@ class BookingCarController extends Controller
                 'drivers',
                 'kendaraan',
                 'purposes',
-                'statusPerjalanan'
+                'statusPerjalanan',
+                'isGA'
             )
         );
     }
@@ -221,13 +217,8 @@ class BookingCarController extends Controller
             ], 401);
         }
 
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
-            : (array) $user->cpny_id;
-
-        $deptIds = is_string($user->department_id)
-            ? array_filter(array_map('trim', explode(',', $user->department_id)))
-            : (array) $user->department_id;
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $isGA = $user->hasRole('GAACCESS');
 
@@ -353,9 +344,7 @@ class BookingCarController extends Controller
         $isGA    = $user->hasRole('GAACCESS');
         $username = strtolower(trim($user->username));
 
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
-            : (array) $user->cpny_id;
+        $cpnyIds = $user->scopedCompanyIds();
 
         $base = TrBookingCar::from('tr_booking_car as bc')
             ->whereIn('bc.status', ['P', 'C', 'F', 'D'])
@@ -1261,6 +1250,10 @@ class BookingCarController extends Controller
                             strtolower(trim(Auth::user()->username))
                         );
                     }),
+
+                // GAACCESS can only leave a private note on a booking they're on the approval line for.
+                'can_private_note' => Auth::user()->hasRole('GAACCESS')
+                    && \App\Services\DocumentNotificationService::isOnApprovalLine('BCR', $booking->docid, Auth::user()->username),
             ],
         ]);
     }

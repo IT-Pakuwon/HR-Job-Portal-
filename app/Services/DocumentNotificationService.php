@@ -789,6 +789,40 @@ class DocumentNotificationService
             ->filter();
     }
 
+    // Whether $username appears on any tr_approval row's aprv_username list for this
+    // doctype+refnbr, regardless of step status — used to scope GAACCESS's private-note
+    // access to VCR/BCR documents they're actually an approver on.
+    public static function isOnApprovalLine(string $doctype, $refnbr, string $username): bool
+    {
+        $username = strtolower(trim($username));
+
+        return static::splitApproverUsernames(
+            TrApproval::where('aprv_doctype', $doctype)
+                ->where('refnbr', $refnbr)
+                ->pluck('aprv_username')
+        )->map(fn ($u) => strtolower($u))->contains($username);
+    }
+
+    // Subset of $refnbrs (for this doctype) where $username appears on the approval line.
+    public static function approvalLineRefnbrs(string $doctype, array $refnbrs, string $username): \Illuminate\Support\Collection
+    {
+        if (empty($refnbrs)) {
+            return collect();
+        }
+
+        $username = strtolower(trim($username));
+
+        return TrApproval::where('aprv_doctype', $doctype)
+            ->whereIn('refnbr', $refnbrs)
+            ->get(['refnbr', 'aprv_username'])
+            ->filter(fn ($row) => static::splitApproverUsernames(collect([$row->aprv_username]))
+                ->map(fn ($u) => strtolower($u))
+                ->contains($username))
+            ->pluck('refnbr')
+            ->unique()
+            ->values();
+    }
+
     // National holidays + collective leave ("cuti bersama") dates, used to expire comment/
     // mention notifications on business days rather than plain calendar days.
     private static function commentExpiryHolidays(): \Illuminate\Support\Collection
@@ -917,7 +951,7 @@ class DocumentNotificationService
     // each with its own "show" route — the show URL depends on ticket_type.
     private static function ticketShowUrl(?string $ticketType): string
     {
-        return in_array($ticketType, ['ENGSUPPORTTICKET', 'BSFOSUPPORTTICKET'], true)
+        return in_array($ticketType, ['ENGSUPPORTTICKET', 'BSSUPPORTTICKET', 'FOSUPPORTTICKET', 'BA_BS', 'BA_ENG', 'BA_FO'], true)
             ? '/showoprtekticket'
             : '/showticket';
     }
