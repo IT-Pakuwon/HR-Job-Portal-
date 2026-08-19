@@ -25,13 +25,8 @@ class BastListController extends Controller
             return redirect()->route('login');
         }
 
-        // user->cpny_id bisa "AW" atau "AW,GPS"
-        $cpnyRaw = $user->cpny_id ?? '';
-        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
-
-        // user->department_id bisa "IT" atau "IT,ENG"
-        $deptRaw = $user->department_id ?? '';
-        $deptList = $deptRaw !== '' ? array_map('trim', explode(',', $deptRaw)) : [];
+        $cpnyList = $user->scopedCompanyIds();
+        $deptList = $user->scopedDepartmentIds();
 
         // Jobs berasal dari TrPOterm
         $bastjobs = TrPOterm::query()
@@ -97,12 +92,8 @@ class BastListController extends Controller
             ], 401);
         }
 
-        // parse cpny_id & department_id multiple
-        $cpnyRaw = $user->cpny_id ?? '';
-        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
-
-        $deptRaw = $user->department_id ?? '';
-        $deptList = $deptRaw !== '' ? array_map('trim', explode(',', $deptRaw)) : [];
+        $cpnyList = $user->scopedCompanyIds();
+        $deptList = $user->scopedDepartmentIds();
 
         $draw = (int) $req->input('draw', 1);
         $start = (int) $req->input('start', 0);

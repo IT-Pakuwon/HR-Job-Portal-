@@ -50,13 +50,8 @@ class ParkingRegistrationController extends Controller
             return redirect()->route('login');
         }
 
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
-            : array_filter((array) $user->cpny_id);
-
-        $deptIds = is_string($user->department_id)
-            ? array_filter(array_map('trim', explode(',', $user->department_id)))
-            : array_filter((array) $user->department_id);
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $canParkingAccess = SysUserRole::where('username', $user->username)
             ->where('role_id', 'PARKINGACCESS')
@@ -181,13 +176,8 @@ class ParkingRegistrationController extends Controller
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
-            : array_filter((array) $user->cpny_id);
-
-        $deptIds = is_string($user->department_id)
-            ? array_filter(array_map('trim', explode(',', $user->department_id)))
-            : array_filter((array) $user->department_id);
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $canParkingAccess = SysUserRole::where('username', $user->username)
             ->where('role_id', 'PARKINGACCESS')

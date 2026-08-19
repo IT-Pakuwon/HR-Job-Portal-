@@ -30,8 +30,10 @@ class PerizinanController extends Controller
 
         $today = now()->startOfDay();
         $reminderLimit = $today->copy()->addDays(30);
-        $companies = Usercpny::query()->where('username', Auth::user()->username)
-            ->where('status', 'A')->orderBy('cpny_id')->pluck('cpny_id')->unique()->values();
+        $companies = Auth::user()->hasFullDataScope()
+            ? \App\Models\MsCompany::orderBy('cpny_id')->pluck('cpny_id')
+            : Usercpny::query()->where('username', Auth::user()->username)
+                ->where('status', 'A')->orderBy('cpny_id')->pluck('cpny_id')->unique()->values();
 
         $allPerizinan = TrPerizinan::query()->whereIn('cpny_id', $companies)->count();
         $activePerizinan = TrPerizinan::query()
@@ -115,8 +117,10 @@ class PerizinanController extends Controller
         $expiryMonth = (int) $request->input('expiry_month', 0);
         $category = trim((string) $request->input('category', ''));
         $today = now()->startOfDay();
-        $companyIds = Usercpny::query()->where('username', Auth::user()->username)
-            ->where('status', 'A')->pluck('cpny_id')->unique()->values();
+        $companyIds = Auth::user()->hasFullDataScope()
+            ? \App\Models\MsCompany::pluck('cpny_id')
+            : Usercpny::query()->where('username', Auth::user()->username)
+                ->where('status', 'A')->pluck('cpny_id')->unique()->values();
 
         $query = TrPerizinan::query()
             ->with([

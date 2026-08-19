@@ -51,7 +51,7 @@ class ItRecommendationController extends Controller
             : (array) $user->department_id;
 
         $q = TrItrecommend::query()
-            ->when(!$isITHardware, function ($query) use ($cpnyIds, $deptIds) {
+            ->when(!$isITHardware && !$user->hasFullDataScope(), function ($query) use ($cpnyIds, $deptIds) {
                 $query->whereIn('cpny_id', $cpnyIds)
                     ->whereIn('department_id', $deptIds);
             });
@@ -142,7 +142,7 @@ class ItRecommendationController extends Controller
 
         $base = TrItrecommend::query()
             ->whereNotIn('status', ['L'])
-            ->when(!$isITHardware, function ($query) use ($cpnyIds, $deptIds) {
+            ->when(!$isITHardware && !$user->hasFullDataScope(), function ($query) use ($cpnyIds, $deptIds) {
                 $query->whereIn('cpny_id', $cpnyIds)
                     ->whereIn('department_id', $deptIds);
             });

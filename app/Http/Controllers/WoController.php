@@ -38,19 +38,8 @@ class WoController extends Controller
             return redirect()->route('login');
         }
 
-        // Company multi
-        if (is_string($user->cpny_id)) {
-            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
-        } else {
-            $cpnyIds = (array) $user->cpny_id;
-        }
-
-        // Department multi
-        if (is_string($user->department_id)) {
-            $deptIds = array_map('trim', explode(',', $user->department_id));
-        } else {
-            $deptIds = (array) $user->department_id;
-        }
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         // ===============================
         // APPROVAL STATUS (existing)
@@ -131,18 +120,8 @@ class WoController extends Controller
     {
         $user = Auth::user();
 
-        if (is_string($user->cpny_id)) {
-            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
-        } else {
-            $cpnyIds = (array) $user->cpny_id;
-        }
-
-        // department_id juga bisa multi, tapi di debug sudah "IT"
-        if (is_string($user->department_id)) {
-            $deptIds = array_map('trim', explode(',', $user->department_id));
-        } else {
-            $deptIds = (array) $user->department_id;
-        }
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $draw = (int) $request->input('draw', 1);
         $start = (int) $request->input('start', 0);
@@ -2036,20 +2015,8 @@ class WoController extends Controller
             return redirect()->route('login');
         }
 
-        // 📌 Company bisa multi (cpny1,cpny2,...)
-        if (is_string($user->cpny_id)) {
-            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
-        } else {
-            $cpnyIds = (array) $user->cpny_id;
-        }
-
-        // 📌 Department juga bisa multi (IT,HRD,...)
-        if (is_string($user->department_id)) {
-            $deptIds = array_map('trim', explode(',', $user->department_id));
-        } else {
-            $deptIds = (array) $user->department_id;
-        }
-        // dd($deptIds);
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
         $isAdmin = $user->isAdmin();
 
         // Kalau salah satu kosong → tidak ada data
@@ -2104,19 +2071,8 @@ class WoController extends Controller
         $isAdmin  = $user->isAdmin();
         $adminAll = $isAdmin && (bool) $request->query('admin_all', false);
 
-        // Company multi
-        if (is_string($user->cpny_id)) {
-            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
-        } else {
-            $cpnyIds = (array) $user->cpny_id;
-        }
-
-        // Department multi
-        if (is_string($user->department_id)) {
-            $deptIds = array_map('trim', explode(',', $user->department_id));
-        } else {
-            $deptIds = (array) $user->department_id;
-        }
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         // Admin with admin_all bypasses company/dept requirement
         if (!$adminAll && (empty($cpnyIds) || empty($deptIds))) {
@@ -2262,19 +2218,14 @@ class WoController extends Controller
         $user = Auth::user();
 
         $isAdmin  = $user->isAdmin();
-        $adminAll = $isAdmin && (bool) $request->query('admin_all', false);
+        $adminAll = ($isAdmin && (bool) $request->query('admin_all', false)) || $user->hasFullDataScope();
 
         $query = TrWO::from('tr_wo as wo')
             ->whereNotNull('wo.budget_business_unit_id');
 
         if (!$adminAll) {
-            $cpnyIds = is_string($user->cpny_id)
-                ? array_map('trim', explode(',', $user->cpny_id))
-                : (array) $user->cpny_id;
-
-            $deptIds = is_string($user->department_id)
-                ? array_map('trim', explode(',', $user->department_id))
-                : (array) $user->department_id;
+            $cpnyIds = $user->scopedCompanyIds();
+            $deptIds = $user->scopedDepartmentIds();
 
             $query->join('ms_worktype_dept as wtd', function ($j) {
                     $j->on('wtd.worktypeid', '=', 'wo.worktypeid');

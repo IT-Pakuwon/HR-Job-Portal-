@@ -31,9 +31,7 @@ class RfcaListController extends Controller
         $username = $user->username ?? '';
         if (!$user) return redirect()->route('login');
 
-        // bisa berisi "AW" atau "AW,GPS"
-        $cpnyRaw  = $user->cpny_id ?? '';
-        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
+        $cpnyList = $user->scopedCompanyIds();
 
         $applyHeaderStepScope = function ($q, string $scope) {
             if ($scope === 'purchasingsubmit') {
@@ -165,8 +163,7 @@ class RfcaListController extends Controller
         $user    = Auth::user();
         $u       = $user->username ?? '';
 
-        $cpnyRaw  = $user->cpny_id ?? '';
-        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
+        $cpnyList = $user->scopedCompanyIds();
 
         $draw   = (int) $req->input('draw', 1);
         $start  = (int) $req->input('start', 0);

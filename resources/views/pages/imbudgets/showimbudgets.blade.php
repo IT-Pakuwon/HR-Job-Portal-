@@ -328,7 +328,7 @@
                                 </button>
                             </nav>
                             <button type="button" @click="tabsOpen = !tabsOpen"
-                                class="ml-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-yellow-400 text-[10px] font-bold leading-none text-yellow-900 shadow-sm ring-1 ring-inset ring-yellow-500/50 transition hover:bg-yellow-300 lg:hidden dark:bg-yellow-500 dark:text-yellow-950 dark:ring-yellow-600/50 dark:hover:bg-yellow-400"
+                                class="ml-3 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-indigo-300 via-indigo-400 to-indigo-500 text-[10px] font-bold leading-none text-indigo-950 shadow-[0_1px_2px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.6),inset_0_-1px_1px_rgba(0,0,0,0.15)] transition hover:brightness-110 lg:hidden dark:from-indigo-400 dark:via-indigo-500 dark:to-indigo-600 dark:text-indigo-50 dark:shadow-[0_1px_2px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.4),inset_0_-1px_1px_rgba(0,0,0,0.25)]"
                                 x-text="tabsOpen ? '−' : '+'" :title="tabsOpen ? 'Minimize' : 'Restore'">
                             </button>
                         </header>

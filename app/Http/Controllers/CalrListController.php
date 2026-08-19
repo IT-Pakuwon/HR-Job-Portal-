@@ -24,9 +24,7 @@ class CalrListController extends Controller
         if (!$user) return redirect()->route('login');
         
         $u        = $user->username ?? '';
-        $cpnyRaw  = $user->cpny_id ?? '';
-        // bisa "AW" atau "AW,GPS"
-        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
+        $cpnyList = $user->scopedCompanyIds();
 
         $isFinanceAccess = SysUserRole::where('username', $u)
             ->where('role_id', 'FINACCESS')
@@ -114,8 +112,7 @@ class CalrListController extends Controller
         $user    = Auth::user();
         $u       = $user->username ?? '';
 
-        $cpnyRaw  = $user->cpny_id ?? '';
-        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
+        $cpnyList = $user->scopedCompanyIds();
 
         $draw   = (int) $req->input('draw', 1);
         $start  = (int) $req->input('start', 0);

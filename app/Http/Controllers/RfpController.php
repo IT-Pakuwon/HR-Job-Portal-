@@ -51,17 +51,8 @@ class RfpController extends Controller
             return redirect()->route('login');
         }
 
-        if (is_string($user->cpny_id)) {
-            $cpnyIds = array_filter(array_map('trim', explode(',', $user->cpny_id)));
-        } else {
-            $cpnyIds = (array) $user->cpny_id;
-        }
-
-        if (is_string($user->department_id)) {
-            $deptIds = array_filter(array_map('trim', explode(',', $user->department_id)));
-        } else {
-            $deptIds = (array) $user->department_id;
-        }
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $hasRfpAllAccess = $user->hasRole('FINACCESS');
         $hasApFinAccess = $user->hasRole('APFINACCESS');
@@ -128,17 +119,8 @@ class RfpController extends Controller
     {
         $user = Auth::user();
 
-        if (is_string($user->cpny_id)) {
-            $cpnyIds = array_filter(array_map('trim', explode(',', $user->cpny_id)));
-        } else {
-            $cpnyIds = (array) $user->cpny_id;
-        }
-
-        if (is_string($user->department_id)) {
-            $deptIds = array_filter(array_map('trim', explode(',', $user->department_id)));
-        } else {
-            $deptIds = (array) $user->department_id;
-        }
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $draw   = (int) $request->input('draw', 1);
         $start  = (int) $request->input('start', 0);

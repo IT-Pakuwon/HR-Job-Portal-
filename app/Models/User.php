@@ -102,6 +102,51 @@ class User extends Authenticatable
     }
 
     /**
+     * True for roles that should see every transaction across every company/department and
+     * be let into every screen their menu access grants — bypassing cpny_id/department_id
+     * scoping AND any hard hasRole('XACCESS') view gate. Distinct from isAdmin() because
+     * isAdmin() also gates edit/delete permissions in some controllers, which this must not grant.
+     */
+    public function hasFullDataScope(): bool
+    {
+        return $this->hasRole('DIRECTORACCESS');
+    }
+
+    /**
+     * Company ids this user's transaction lists should be scoped to — every company for
+     * hasFullDataScope() roles, otherwise just the user's own comma-separated cpny_id.
+     */
+    public function scopedCompanyIds(): array
+    {
+        if ($this->hasFullDataScope()) {
+            return \App\Models\MsCompany::pluck('cpny_id')->toArray();
+        }
+
+        return collect(explode(',', (string) $this->cpny_id))
+            ->map(fn ($x) => trim($x))
+            ->filter()
+            ->values()
+            ->toArray();
+    }
+
+    /**
+     * Department ids this user's transaction lists should be scoped to — every department for
+     * hasFullDataScope() roles, otherwise just the user's own comma-separated department_id.
+     */
+    public function scopedDepartmentIds(): array
+    {
+        if ($this->hasFullDataScope()) {
+            return \App\Models\MsDepartment::pluck('department_id')->toArray();
+        }
+
+        return collect(explode(',', (string) $this->department_id))
+            ->map(fn ($x) => trim($x))
+            ->filter()
+            ->values()
+            ->toArray();
+    }
+
+    /**
      * Personal check-in barcode value — one per user, valid at any training
      * event (unlike TrLndTrainingRegistration::attendance_code, which is
      * minted per-registration/per-event). The USR- prefix keeps it visually

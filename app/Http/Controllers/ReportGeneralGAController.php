@@ -72,13 +72,7 @@ class ReportGeneralGAController extends Controller
             ->orderBy('category_name')
             ->get(['categoryid', 'category_name']);
 
-        $userCompanyIds = collect(
-            explode(',', (string) $user->cpny_id)
-        )
-            ->map(fn ($x) => trim($x))
-            ->filter()
-            ->values()
-            ->toArray();
+        $userCompanyIds = $user->scopedCompanyIds();
 
         $companies = \App\Models\MsCompany::whereIn('cpny_id', $userCompanyIds)
             ->orderBy('cpny_name')
@@ -201,13 +195,7 @@ class ReportGeneralGAController extends Controller
         $users = User::pluck('name', 'username');
         $user = auth()->user();
 
-        $companyIds = collect(
-            explode(',', (string) $user->cpny_id)
-        )
-        ->map(fn ($x) => trim($x))
-        ->filter()
-        ->values()
-        ->toArray();
+        $companyIds = $user->scopedCompanyIds();
         $query = DB::connection('pgsql5')
             ->table('tr_meeting as m')
 
@@ -389,13 +377,7 @@ class ReportGeneralGAController extends Controller
         $users = User::pluck('name', 'username');
         $user = auth()->user();
 
-        $companyIds = collect(
-            explode(',', (string) $user->cpny_id)
-        )
-        ->map(fn ($x) => trim($x))
-        ->filter()
-        ->values()
-        ->toArray();
+        $companyIds = $user->scopedCompanyIds();
 
         $query = DB::connection('pgsql5')
             ->table('tr_meeting as m')
@@ -564,13 +546,7 @@ class ReportGeneralGAController extends Controller
 
         $user = auth()->user();
 
-        $companyIds = collect(
-            explode(',', (string) $user->cpny_id)
-        )
-        ->map(fn ($x) => trim($x))
-        ->filter()
-        ->values()
-        ->toArray();
+        $companyIds = $user->scopedCompanyIds();
 
         $query = DB::connection('pgsql5')
             ->table('tr_booking_car as bc')
@@ -833,13 +809,7 @@ class ReportGeneralGAController extends Controller
 
         $user = auth()->user();
 
-        $companyIds = collect(
-            explode(',', (string) $user->cpny_id)
-        )
-            ->map(fn($x) => trim($x))
-            ->filter()
-            ->values()
-            ->toArray();
+        $companyIds = $user->scopedCompanyIds();
 
         $query = DB::connection('pgsql5')
             ->table('tr_voucher_taxi as vt')
@@ -1066,13 +1036,7 @@ class ReportGeneralGAController extends Controller
     {
         $user = auth()->user();
 
-        $companyIds = collect(
-            explode(',', (string) $user->cpny_id)
-        )
-        ->map(fn ($x) => trim($x))
-        ->filter()
-        ->values()
-        ->toArray();
+        $companyIds = $user->scopedCompanyIds();
 
         $data = DB::connection('pgsql5')
             ->table('tr_meeting as m')
@@ -1293,11 +1257,7 @@ class ReportGeneralGAController extends Controller
 
         $user = auth()->user();
 
-        $companyIds = collect(explode(',', (string) $user->cpny_id))
-            ->map(fn ($x) => trim($x))
-            ->filter()
-            ->values()
-            ->toArray();
+        $companyIds = $user->scopedCompanyIds();
 
         $query = DB::connection('pgsql5')
             ->table('tr_parking_registration_detail as pd')
@@ -1404,13 +1364,7 @@ class ReportGeneralGAController extends Controller
 
         $user = auth()->user();
 
-        $companyIds = collect(
-            explode(',', (string) $user->cpny_id)
-        )
-            ->map(fn ($x) => trim($x))
-            ->filter()
-            ->values()
-            ->toArray();
+        $companyIds = $user->scopedCompanyIds();
 
         $query = DB::connection('pgsql5')->table('tr_car_expense')
             ->whereNull('deleted_at')

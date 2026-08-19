@@ -118,7 +118,7 @@ class ReportCanvassSheetController extends Controller
     private function applyFilters($query, Request $request)
     {
         $user = auth()->user();
-        $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
+        $cpnyIds = $user->scopedCompanyIds();
 
         $query->whereIn('h.cpny_id', $cpnyIds);
 
@@ -164,18 +164,20 @@ class ReportCanvassSheetController extends Controller
         $isCostCtrl = $user->hasRole('COSTCTRLACCESS');
         $isPurch = $user->hasRole('PURCHACCESS');
 
-        $isGlobalAccess = $isCostCtrl || $isPurch;
+        $isGlobalAccess = $isCostCtrl || $isPurch || $user->hasFullDataScope();
 
         /*
         |------------------------------------------------
-        | Company scope
+        | Company scope (skipped for full-scope roles like DIRECTORACCESS)
         |------------------------------------------------
         */
 
-        $companyIds = \App\Models\Usercpny::where('username', $user->username)
-            ->pluck('cpny_id');
+        if (!$user->hasFullDataScope()) {
+            $companyIds = \App\Models\Usercpny::where('username', $user->username)
+                ->pluck('cpny_id');
 
-        $query->whereIn('h.cpny_id', $companyIds);
+            $query->whereIn('h.cpny_id', $companyIds);
+        }
 
         /*
         |------------------------------------------------
