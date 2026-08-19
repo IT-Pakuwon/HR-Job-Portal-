@@ -2,7 +2,24 @@
     @include('pages.ticket.partial.style')
 
     <style>
-        /* Event hover tooltip (tippy.js) */
+        /* Event hover tooltip */
+        .ectk-tip-wrapper {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+            padding: 10px 12px;
+            pointer-events: none;
+        }
+
+        .dark .ectk-tip-wrapper {
+            background: #0f172a;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
         .ectk-tip {
             min-width: 200px;
             padding: 2px;
@@ -1902,11 +1919,9 @@
 
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light-border.css" />
 
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
-    <script src="https://unpkg.com/tippy.js@6"></script>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
     <script>
