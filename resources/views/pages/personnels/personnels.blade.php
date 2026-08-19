@@ -1,13 +1,8 @@
 <x-app-layout>
     @php
         $isHcbp = auth()->user()->hasRole('HCBPACCESS');
-        $isSbyGroup = ($group_cpny_id ?? '') === 'SBY';
 
         $xlCols = 5; // default jumlah card
-
-        if (!$isSbyGroup) {
-            $xlCols--; // Draft card hanya untuk group SBY
-        }
 
         if ($isHcbp) {
             $xlCols++; // tambah 1 untuk HCBP All
@@ -92,23 +87,6 @@
                     <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
                 </div>
             </a>
-
-            {{-- Draft (SBY only) --}}
-            @if($isSbyGroup)
-            <a href="#" class="status-filter group block h-full" data-status="H">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-slate-700 bg-slate-200/20 p-3 text-slate-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95 dark:border-slate-400 dark:text-slate-300">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🗂️</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Draft</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $draft }}</p>
-                </div>
-            </a>
-            @endif
             @if($isHcbp)
             <a href="#" class="status-filter group block h-full" data-hcbp="1">
                 <div
@@ -253,7 +231,6 @@
     </div>
     <script>
         var currentUser = "{{ auth()->user()->username }}";
-        var isSbyGroup = @json($isSbyGroup);
         var personnelsTable;
         $(document).ready(function() {
             const hasAllDeptAccess = @json($hasAllDeptAccess ?? false);
@@ -408,13 +385,6 @@
                                 buttonClass =
                                     'inline-flex justify-center items-center min-w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
                             }
-
-                            const copyBtnHtml = (row.status === 'C' && isSbyGroup) ? `
-                                <button type="button" class="copyTemplateBtn inline-flex h-9 w-9 items-center justify-center rounded bg-teal-500 text-white transition-colors duration-200 hover:bg-teal-600"
-                                    title="Copy Template" data-eid="${row.eid}">
-                                    <i class="fas fa-copy text-sm"></i>
-                                </button>
-                            ` : '';
 
                             if (isReviseOwner) {
                                 return `
