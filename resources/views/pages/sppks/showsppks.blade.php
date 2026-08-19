@@ -154,7 +154,7 @@
 
                 {{-- Right card (Tabs) --}}
                 <div x-data="{ activeTab: 'attachment', tabsOpen: true }" class="flex flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800"
-                    :class="tabsOpen ? 'h-[400px]' : 'h-auto lg:h-[400px]'">
+                    :class="tabsOpen ? 'h-[400px]' : 'h-auto'">
                     <div class="flex max-h-[100%] flex-1 flex-col overflow-y-auto">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
@@ -185,14 +185,14 @@
                                 </button>
                             </nav>
                             <button type="button" @click="tabsOpen = !tabsOpen"
-                                class="ml-3 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-indigo-300 via-indigo-400 to-indigo-500 text-[10px] font-bold leading-none text-indigo-950 shadow-[0_1px_2px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.6),inset_0_-1px_1px_rgba(0,0,0,0.15)] transition hover:brightness-110 lg:hidden dark:from-indigo-400 dark:via-indigo-500 dark:to-indigo-600 dark:text-indigo-50 dark:shadow-[0_1px_2px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.4),inset_0_-1px_1px_rgba(0,0,0,0.25)]"
+                                class="ml-3 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-indigo-300 via-indigo-400 to-indigo-500 text-[10px] font-bold leading-none text-indigo-950 shadow-[0_1px_2px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.6),inset_0_-1px_1px_rgba(0,0,0,0.15)] transition hover:brightness-110 dark:from-indigo-400 dark:via-indigo-500 dark:to-indigo-600 dark:text-indigo-50 dark:shadow-[0_1px_2px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.4),inset_0_-1px_1px_rgba(0,0,0,0.25)]"
                                 x-text="tabsOpen ? '−' : '+'" :title="tabsOpen ? 'Minimize' : 'Restore'">
                             </button>
                         </header>
 
                         {{-- Approval tab --}}
                         <div x-show="activeTab === 'approval'" class="flex-1 p-2 transition-all"
-                            :class="{ 'hidden lg:block': !tabsOpen }">
+                            :class="{ hidden: !tabsOpen }">
                             <table class="w-full text-sm">
                                 <thead>
                                     <tr
@@ -253,7 +253,7 @@
 
                         {{-- Attachment tab --}}
                         <div x-show="activeTab === 'attachment'" class="flex-1 p-2 transition-all"
-                            :class="{ 'hidden lg:block': !tabsOpen }">
+                            :class="{ hidden: !tabsOpen }">
                             <table class="w-full text-sm">
                                 <thead class="text-gray-600 dark:text-gray-300">
                                     <tr class="border-b border-gray-200 dark:border-gray-700">
@@ -328,7 +328,7 @@
 
                         {{-- Comments tab --}}
                         <div x-show="activeTab === 'comments'" class="flex-1 p-2 transition-all"
-                            :class="{ 'hidden lg:block': !tabsOpen }">
+                            :class="{ hidden: !tabsOpen }">
                             <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
                                 <div id="commentList"
                                     class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">

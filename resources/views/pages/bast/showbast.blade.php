@@ -255,7 +255,7 @@
                 <div class="flex flex-col gap-4">
                     {{-- Right card (Tabs) --}}
                     <div x-data="{ activeTab: 'attachment', tabsOpen: true }" class="flex flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800"
-                        :class="tabsOpen ? 'h-[235px]' : 'h-auto lg:h-[235px]'">
+                        :class="tabsOpen ? 'h-[235px]' : 'h-auto'">
                         <div class="flex-1 flex-col overflow-y-auto">
                             <header
                                 class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
@@ -282,12 +282,12 @@
                                         class="flex-1 px-4 py-2 text-center text-sm font-medium">Comments</button>
                                 </nav>
                                 <button type="button" @click="tabsOpen = !tabsOpen"
-                                    class="ml-3 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-indigo-300 via-indigo-400 to-indigo-500 text-[10px] font-bold leading-none text-indigo-950 shadow-[0_1px_2px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.6),inset_0_-1px_1px_rgba(0,0,0,0.15)] transition hover:brightness-110 lg:hidden dark:from-indigo-400 dark:via-indigo-500 dark:to-indigo-600 dark:text-indigo-50 dark:shadow-[0_1px_2px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.4),inset_0_-1px_1px_rgba(0,0,0,0.25)]"
+                                    class="ml-3 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-indigo-300 via-indigo-400 to-indigo-500 text-[10px] font-bold leading-none text-indigo-950 shadow-[0_1px_2px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.6),inset_0_-1px_1px_rgba(0,0,0,0.15)] transition hover:brightness-110 dark:from-indigo-400 dark:via-indigo-500 dark:to-indigo-600 dark:text-indigo-50 dark:shadow-[0_1px_2px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.4),inset_0_-1px_1px_rgba(0,0,0,0.25)]"
                                     x-text="tabsOpen ? '−' : '+'" :title="tabsOpen ? 'Minimize' : 'Restore'">
                                 </button>
                             </header>
 
-                            <div class="flex flex-1 flex-col" :class="{ 'hidden lg:flex': !tabsOpen }">
+                            <div class="flex flex-1 flex-col" :class="{ hidden: !tabsOpen }">
                                 <div x-show="activeTab === 'approval'" class="flex-1 overflow-y-auto px-4">
                                     <table class="w-full text-sm">
                                         <thead>
