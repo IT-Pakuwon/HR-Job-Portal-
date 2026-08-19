@@ -463,13 +463,27 @@ class MsApprovalController extends Controller
     {
         $doctype = strtoupper(trim((string) $request->query('doctype', '')));
 
-        $items = MsCategory::select('category_name')
+        $query = MsCategory::query()
+            ->select('category_name')
             ->where('categoryid', 'condition')
-            ->where('status', 'A')
+            ->where('status', 'A');
+
+        $items = (clone $query)
             ->when($doctype !== '', fn($q) => $q->where('doctype', $doctype))
             ->orderBy('category_name')
             ->pluck('category_name')
             ->values();
+
+        // Some legacy doctypes do not have condition categories assigned to
+        // their doctype (for example CS). Keep the scoped list when available,
+        // but fall back to the active global list instead of showing an empty
+        // dropdown in the Add/Edit Approval forms.
+        if ($doctype !== '' && $items->isEmpty()) {
+            $items = $query
+                ->orderBy('category_name')
+                ->pluck('category_name')
+                ->values();
+        }
 
         return response()->json($items);
     }

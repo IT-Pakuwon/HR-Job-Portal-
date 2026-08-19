@@ -115,6 +115,7 @@
             border-collapse: collapse;
             width: 100%;
             font-size: 13px;
+            table-layout: fixed;
         }
 
         .detail-table th,
@@ -138,13 +139,18 @@
         }
 
         .detail-amount {
-            width: 25%;
+            width: 18%;
             text-align: right;
+        }
+
+        .detail-tax {
+            width: 14%;
+            line-height: 1.35;
+            color: #333;
         }
 
         .detail-budget {
             width: 27%;
-            font-size: 11px;
             line-height: 1.35;
             color: #333;
         }
@@ -372,8 +378,8 @@
 
         @php
             $noW = !$isRCA ? 6 : 0;
-            $amtW = 25;
-            $taxW = !empty($hasTaxDetail) ? 20 : 0;
+            $amtW = 18;
+            $taxW = !empty($hasTaxDetail) ? 14 : 0;
             $budgetW = !empty($hasBudgetDetail) ? 27 : 0;
             $descW = 100 - $noW - $amtW - $taxW - $budgetW;
         @endphp
@@ -401,7 +407,7 @@
                     <th>{{ $isRCA ? 'Keperluan' : 'Description' }}</th>
                     <th class="detail-amount">Amount Request</th>
                     @if (!empty($hasTaxDetail))
-                        <th class="detail-budget">Tax</th>
+                        <th class="detail-tax">Tax</th>
                     @endif
                     @if (!empty($hasBudgetDetail))
                         <th class="detail-budget">Budget</th>
@@ -419,7 +425,7 @@
                         <td class="detail-amount">Rp {{ number_format((float) ($d->amount_request ?? 0), 2, ',', '.') }}</td>
 
                         @if (!empty($hasTaxDetail))
-                            <td class="detail-budget">
+                            <td class="detail-tax">
                                 @php
                                     $taxData = $d->tax_data ?? null;
                                     $taxRate = (float) ($taxData->taxrate ?? 0);
