@@ -1333,6 +1333,165 @@ class PersonnelController extends Controller
         }
     }
 
+<<<<<<< Updated upstream
+=======
+    public function copyPersonnel(Request $request, $hash)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
+
+        if ($groupCompanyId !== 'SBY') {
+            return response()->json([
+                'message' => 'Copy Template is only available for SBY.',
+            ], 403);
+        }
+
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $source = Personnel::findOrFail($id);
+
+        if ($source->status !== 'C') {
+            return response()->json([
+                'message' => 'Only a Completed PRF can be copied.',
+            ], 422);
+        }
+
+        $userCpnyIds = $this->userCpnyIds($user);
+
+        if (
+            strtoupper(trim((string) $source->group_cpny_id)) !== $groupCompanyId
+            || !in_array($source->cpnyid, $userCpnyIds, true)
+        ) {
+            return response()->json([
+                'message' => 'You do not have access to copy this PRF.',
+            ], 403);
+        }
+
+        $doctype = 'PRF';
+        $username = $user->username ?? 'system';
+        $dt = Carbon::now();
+        $year = (int) $dt->year;
+        $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $datenow = $dt->format('Y-m-d');
+
+        DB::beginTransaction();
+        try {
+            $auto = $this->nextAutonbrByGroupCpnyid(
+                $doctype,
+                $year,
+                $month,
+                $groupCompanyId,
+                $username,
+                'PRF'
+            );
+            $urutan = (int) $auto['next'];
+            $tglbln = substr((string) $year, 2).$month;
+            $docid = $doctype.$tglbln.sprintf('%04d', $urutan);
+
+            $copy = Personnel::create([
+                'docid' => $docid,
+                'cpnyid' => $source->cpnyid,
+                'group_cpny_id' => $source->group_cpny_id,
+                'departementid' => $source->departementid,
+                'division_id' => $source->division_id,
+                'locationname' => $source->locationname,
+                'budget_entity_id' => $source->budget_entity_id,
+                'date' => $datenow,
+                'user' => $username,
+                'job_title' => $source->job_title,
+                'subgrade_id' => $source->subgrade_id,
+                'job_level' => $source->job_level,
+                'immediate_superior' => $source->immediate_superior,
+                'state_position' => $source->state_position,
+                'immediate_replacement' => $source->immediate_replacement,
+                'job_type' => $source->job_type,
+                'reason_vacancy' => $source->reason_vacancy,
+                'required' => $source->required,
+                'actual' => $source->actual,
+                'total_actual' => $source->total_actual,
+                'education' => $source->education,
+                'education_jurusan' => $source->education_jurusan,
+                'experience_start' => $source->experience_start,
+                'experience_end' => $source->experience_end,
+                'experience_position' => $source->experience_position,
+                'created_user' => $username,
+                'status' => 'H',
+            ]);
+
+            $jobres = JobResponsiblities::where('docid', $source->docid)
+                ->where('cpnyid', $source->cpnyid)
+                ->where('group_cpny_id', $source->group_cpny_id)
+                ->orderBy('no_job_responsiblities')
+                ->get();
+
+            foreach ($jobres as $row) {
+                JobResponsiblities::create([
+                    'docid' => $docid,
+                    'cpnyid' => $source->cpnyid,
+                    'group_cpny_id' => $source->group_cpny_id,
+                    'no_job_responsiblities' => $row->no_job_responsiblities,
+                    'job_responsibilities_descr' => $row->job_responsibilities_descr,
+                    'created_user' => $username,
+                    'status' => 'P',
+                ]);
+            }
+
+            $jobqua = JobQualification::where('docid', $source->docid)
+                ->where('cpnyid', $source->cpnyid)
+                ->where('group_cpny_id', $source->group_cpny_id)
+                ->orderBy('no_job_qualification')
+                ->get();
+
+            foreach ($jobqua as $row) {
+                JobQualification::create([
+                    'docid' => $docid,
+                    'cpnyid' => $source->cpnyid,
+                    'group_cpny_id' => $source->group_cpny_id,
+                    'no_job_qualification' => $row->no_job_qualification,
+                    'job_qualification_descr' => $row->job_qualification_descr,
+                    'created_user' => $username,
+                    'status' => 'P',
+                ]);
+            }
+
+            $jobtags = TrJobtag::where('docid', $source->docid)
+                ->where('cpnyid', $source->cpnyid)
+                ->where('group_cpny_id', $source->group_cpny_id)
+                ->get();
+
+            foreach ($jobtags as $row) {
+                TrJobtag::create([
+                    'docid' => $docid,
+                    'cpnyid' => $source->cpnyid,
+                    'group_cpny_id' => $source->group_cpny_id,
+                    'job_tags' => $row->job_tags,
+                    'created_user' => $username,
+                    'status' => 'P',
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'hash' => Hashids::encode($copy->id),
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'error' => 'Gagal menyalin PRF',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+>>>>>>> Stashed changes
     public function removeAttachment($id)
     {
         try {
