@@ -268,11 +268,34 @@ class PerformanceManagementController extends Controller
             ->whereNotNull('user_id_talenta')
             ->pluck('user_id_talenta');
 
+        // Also exclude Talenta people who already have a das account that isn't
+        // linked yet (created before the link feature existed) — same NPK/name
+        // match used by missingLinkUsersJson() — so they don't get offered again
+        // and end up with a duplicate das account.
+        $existingNpks = UserDas::query()
+            ->whereNotNull('npk')
+            ->where('npk', '!=', '')
+            ->pluck('npk');
+
+        $existingNames = UserDas::query()
+            ->whereNotNull('name')
+            ->pluck('name')
+            ->map(fn ($name) => strtolower(trim($name)))
+            ->all();
+
         $rows = Users_talenta::query()
             ->whereNotIn('user_id', $linkedUserIds)
             ->orderBy('first_name')
             ->get()
             ->reject(fn ($local) => $this->isResigned($local->status_talenta))
+            ->reject(function ($local) use ($existingNpks, $existingNames) {
+                if ($local->employee_id && $existingNpks->contains($local->employee_id)) {
+                    return true;
+                }
+
+                return in_array($this->talentaFullName($local), $existingNames, true);
+            })
+            ->values()
             ->map(function ($local) {
                 return [
                     'user_id' => $local->user_id,
