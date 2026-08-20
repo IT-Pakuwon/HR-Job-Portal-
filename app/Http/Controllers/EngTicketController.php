@@ -84,6 +84,7 @@ class EngTicketController extends Controller
             'RESPONSE',
             'REOPEN',
             'PENDING',
+            'REVISE',
         ],
 
         'pending' => [
@@ -437,6 +438,16 @@ class EngTicketController extends Controller
             'cancel' => $baseCount()->where(
                 'status_pekerjaan',
                 'CANCEL'
+            )->count(),
+
+            'revise' => $baseCount()->where(
+                'status_pekerjaan',
+                'REVISE'
+            )->count(),
+
+            'rejected' => $baseCount()->where(
+                'status_pekerjaan',
+                'REJECTED'
             )->count(),
 
             'my_ticket' => TrTicket::query()
@@ -1749,6 +1760,15 @@ class EngTicketController extends Controller
         ]);
     }
 
+    /**
+     * Terminal rejection: the ticket is permanently closed (status='R',
+     * status_pekerjaan='REJECTED') and neither the PIC nor anyone else can act
+     * on it again — buildActions() excludes 'REJECTED' from every can_* check
+     * (process/pending/complete/transfer/cancel/reopen). Both the PIC and the
+     * ticket's creator are notified, unlike reviseTicket() which only notifies
+     * the PIC (the ticket stays actionable so only the person who has to act
+     * needs the nudge).
+     */
     public function rejectTicket(Request $request, $hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
@@ -1775,8 +1795,8 @@ class EngTicketController extends Controller
 
             function (string $refnbr, Carbon $now) use ($ticket, $request, $docUrl) {
                 $ticket->update([
-                    'status' => 'P',
-                    'status_pekerjaan' => 'PROCESS',
+                    'status' => 'R',
+                    'status_pekerjaan' => 'REJECTED',
                     'updated_by' => auth()->user()->username,
                 ]);
 
@@ -1784,12 +1804,12 @@ class EngTicketController extends Controller
                     'ticketid' => $ticket->ticketid,
                     'cpny_id' => $ticket->cpny_id,
                     'department_id' => $ticket->department_id,
-                    'pic_ticket' => auth()->user()->username,
+                    'pic_ticket' => $ticket->pic_ticket,
                     'response_date' => $now,
-                    'response_summary' => 'Ticket Completion Rejected',
+                    'response_summary' => 'Ticket Rejected',
                     'response_descr' => $request->response_descr,
-                    'status_pekerjaan' => 'PROCESS',
-                    'status' => 'A',
+                    'status_pekerjaan' => 'REJECTED',
+                    'status' => 'R',
                     'created_by' => auth()->user()->username,
                 ]);
 
@@ -1806,10 +1826,28 @@ class EngTicketController extends Controller
                     ]
                 );
 
+                // PIC also needs to know the ticket they worked on is now
+                // closed — skip if they're the same person as the creator to
+                // avoid sending the same email twice.
+                if ($ticket->pic_ticket && $ticket->pic_ticket !== $ticket->created_by) {
+                    app(ApprovalController::class)->notifyRequesterOnStatus(
+                        $ticket->ticketid,
+                        'Eng Ticket',
+                        'R',
+                        $ticket->pic_ticket,
+                        $docUrl,
+                        [
+                            'cpnyid' => $ticket->cpny_id,
+                            'deptname' => $ticket->department_id,
+                            'info' => $request->response_descr,
+                        ]
+                    );
+                }
+
                 $this->notificationService->ticketWhatsapp(
                     $ticket,
                     'REJECTED',
-                    "Completion request rejected. Reason : {$request->response_descr}"
+                    "This ticket has been rejected and is now closed. Reason : {$request->response_descr}"
                 );
             }
         );
@@ -1823,7 +1861,93 @@ class EngTicketController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Ticket approval rejected.',
+            'message' => 'Ticket rejected.',
+        ]);
+    }
+
+    /**
+     * Sends the ticket back to the PIC for rework, with a required reason.
+     * Unlike rejectTicket(), the ticket stays actionable — it lands in the
+     * REVISE stage and the PIC can click "Process" again once they've seen
+     * the reason (REVISE is in $workflowTransitions['process']).
+     */
+    public function reviseTicket(Request $request, $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        abort_if(!$id, 404);
+
+        $ticket = TrTicket::findOrFail($id);
+
+        $request->validate([
+            'response_descr' => 'required',
+        ]);
+
+        $user = auth()->user();
+
+        $eid = Hashids::encode($ticket->id);
+
+        $docUrl = url('/showoprtekticket/'.$eid);
+
+        $result = app(ApprovalController::class)->reviseStep(
+            $ticket->ticketid,
+            self::DOCTYPE,
+            $user->username,
+            $user->name,
+
+            function (string $refnbr, Carbon $now) use ($ticket, $request, $docUrl) {
+                $ticket->update([
+                    'status' => 'P',
+                    'status_pekerjaan' => 'REVISE',
+                    'updated_by' => auth()->user()->username,
+                ]);
+
+                $this->createActivity([
+                    'ticketid' => $ticket->ticketid,
+                    'cpny_id' => $ticket->cpny_id,
+                    'department_id' => $ticket->department_id,
+                    'pic_ticket' => $ticket->pic_ticket,
+                    'response_date' => $now,
+                    'response_summary' => 'Ticket Completion Revised',
+                    'response_descr' => $request->response_descr,
+                    'status_pekerjaan' => 'REVISE',
+                    'status' => 'A',
+                    'created_by' => auth()->user()->username,
+                ]);
+
+                if ($ticket->pic_ticket) {
+                    app(ApprovalController::class)->notifyRequesterOnStatus(
+                        $ticket->ticketid,
+                        'Eng Ticket',
+                        'D',
+                        $ticket->pic_ticket,
+                        $docUrl,
+                        [
+                            'cpnyid' => $ticket->cpny_id,
+                            'deptname' => $ticket->department_id,
+                            'info' => $request->response_descr,
+                        ]
+                    );
+                }
+
+                $this->notificationService->ticketWhatsapp(
+                    $ticket,
+                    'REVISE',
+                    "Completion request sent back for revision. Reason : {$request->response_descr}"
+                );
+            }
+        );
+
+        if (!$result['ok']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Revise failed',
+            ], 403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Ticket sent back for revision.',
         ]);
     }
 
@@ -2872,7 +2996,7 @@ class EngTicketController extends Controller
 
         $statuses = [
             'created', 'response', 'approved', 'process', 'pending',
-            'transfer', 'completed', 'reopen', 'cancel',
+            'transfer', 'completed', 'reopen', 'cancel', 'revise', 'rejected',
         ];
 
         $counts = ['all' => $base()->count()];
@@ -3381,8 +3505,8 @@ class EngTicketController extends Controller
 
             'can_cancel' => (
                 ($isRequester && $ticket->status_pekerjaan === 'CREATED')
-                || ($isPIC && $ticket->status_pekerjaan !== 'COMPLETED')
-                || ($isEng && $ticket->status_pekerjaan !== 'COMPLETED')
+                || ($isPIC && $ticket->status_pekerjaan !== 'COMPLETED' && $ticket->status_pekerjaan !== 'REJECTED')
+                || ($isEng && $ticket->status_pekerjaan !== 'COMPLETED' && $ticket->status_pekerjaan !== 'REJECTED')
             ),
 
             'can_response' => $isEng
@@ -3396,12 +3520,15 @@ class EngTicketController extends Controller
 
             'can_reject' => $isApprover,
 
+            'can_revise' => $isApprover,
+
             'can_process' => $isPIC
                 && $ticket->status === 'P'
                 && in_array($ticket->status_pekerjaan, [
                     'RESPONSE',
                     'PENDING',
                     'REOPEN',
+                    'REVISE',
                 ]),
 
             'can_pending' => $isPIC

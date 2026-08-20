@@ -726,6 +726,22 @@ function buildTicketActions(row) {
         });
     }
 
+    if (can.can_revise) {
+
+        actions.push({
+
+            label: 'Revise Ticket',
+
+            icon: 'ti ti-rotate-2',
+
+            class:
+                'text-amber-600 dark:text-amber-400',
+
+            onclick:
+                `reviseTicket('${row.eid}')`
+        });
+    }
+
     if (can.can_reject) {
 
         actions.push({

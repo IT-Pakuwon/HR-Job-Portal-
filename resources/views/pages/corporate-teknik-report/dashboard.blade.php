@@ -181,6 +181,13 @@
     </div>
 
     <script>
+        // gm-filter.js (shared company/department filter) reads window.gmRoutes —
+        // this page has no department filter (:showDepartment="false"), so only
+        // `companies` is needed here.
+        window.gmRoutes = {
+            companies: "{{ route('corptek-report.companies') }}",
+        };
+
         window.corpTekRoutes = {
             companies: "{{ route('corptek-report.companies') }}",
             summary: "{{ route('corptek-report.summary') }}",

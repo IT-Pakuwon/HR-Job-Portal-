@@ -571,6 +571,15 @@ function workflowBadgeClass(status) {
                 dark:text-rose-300
             `;
 
+        case 'REVISE':
+            return `
+                bg-amber-100
+                text-amber-700
+
+                dark:bg-amber-900/30
+                dark:text-amber-300
+            `;
+
         default:
             return `
                 bg-gray-100
@@ -640,13 +649,13 @@ function renderTicketStatusBadge(status) {
                     text-[11px]
                     font-semibold
 
-                    bg-orange-100
-                    text-orange-700
+                    bg-rose-100
+                    text-rose-700
 
-                    dark:bg-orange-900/30
-                    dark:text-orange-300
+                    dark:bg-rose-900/30
+                    dark:text-rose-300
                 ">
-                    Reopen
+                    Rejected
                 </span>
             `;
 

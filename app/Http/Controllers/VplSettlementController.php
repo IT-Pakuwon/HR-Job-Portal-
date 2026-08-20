@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Traits\HasAutonbr;
+use App\Http\Controllers\Traits\UploadsVplAttachment;
 use App\Models\Attachment;
 use App\Models\MsCategory;
 use App\Models\MsVplProduct;
@@ -24,6 +25,7 @@ use Vinkla\Hashids\Facades\Hashids;
 class VplSettlementController extends Controller
 {
     use HasAutonbr;
+    use UploadsVplAttachment;
 
     public const DOCTYPE = 'VPS';
     public const DOCTYPE_DSC = 'Voucher Product Settlement';
@@ -755,32 +757,7 @@ class VplSettlementController extends Controller
 
     private function saveAttachments(Request $request, string $docid, int $year, $user): void
     {
-        if (!$request->hasFile('attachment')) {
-            return;
-        }
-
-        foreach ($request->file('attachment') as $file) {
-            if (!$file || !$file->isValid()) {
-                continue;
-            }
-            $rand = random_int(10000000, 99999999);
-            $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-            $attachfile = md5((string) $rand).'-'.str_replace('%', '', $file->getClientOriginalName());
-            $folder = public_path('attachment/'.$year);
-            if (!is_dir($folder)) {
-                mkdir($folder, 0777, true);
-            }
-            $file->move($folder, $attachfile);
-
-            Attachment::create([
-                'docid' => $docid,
-                'name' => $filename,
-                'attachfile' => $attachfile,
-                'status' => 'A',
-                'extention' => $file->getClientOriginalExtension(),
-                'created_user' => $user->name,
-            ]);
-        }
+        $this->saveVplAttachments($request, $docid, 'att-vpl/vps-attachment', $year, $user);
     }
 
     private function saveMessage(TrxVplSettlement $settlement, string $message, $user): void

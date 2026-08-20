@@ -171,18 +171,31 @@ class DocumentNotificationService
                 'COMPLETED'                 => ['key' => 'COMPLETED',  'label' => 'Completed',       'message' => 'Your ticket has been completed successfully.',                      'expire' => 'completed'],
                 'REOPEN'                    => ['key' => 'REOPEN',     'label' => 'Reopened',        'message' => 'Your ticket has been reopened for further action.',                 'expire' => 'attention'],
                 'CANCEL'                    => ['key' => 'CANCEL',     'label' => 'Cancelled',       'message' => 'Your ticket has been cancelled by IT. Please contact IT if needed.','expire' => 'completed'],
+                'REVISE'                    => ['key' => 'REVISE',     'label' => 'Revision Needed', 'message' => 'Your completed ticket was sent back for revision. Please review and process it again.', 'expire' => 'attention'],
+                'REJECTED'                  => ['key' => 'REJECTED',   'label' => 'Rejected',        'message' => 'Your ticket has been rejected and is now closed.',                  'expire' => 'completed'],
             ];
 
-            $oneDayStatuses  = ['CANCEL', 'COMPLETED', 'ENVISION CHECKED / SOLVED'];
+            $oneDayStatuses  = ['CANCEL', 'COMPLETED', 'ENVISION CHECKED / SOLVED', 'REJECTED'];
             $longTermStatuses = array_diff(array_keys($ticketMeta), $oneDayStatuses);
+
+            // ENVISION CHECKED / SOLVED and REVISE only ever notify the PIC (the
+            // requester isn't the one who needs to act). REJECTED is terminal and
+            // notifies both — the requester matches via the normal branch below,
+            // and gets an extra OR branch here so the PIC sees it too.
+            $picExclusiveStatuses = ['ENVISION CHECKED / SOLVED', 'REVISE'];
+            $picAlsoStatuses      = ['REJECTED'];
 
             $tickets = TrTicket::where(fn($q) =>
                     $q->where(fn($q2) =>
                         $q2->whereRaw("lower(trim(coalesce(user_peminta,''))) = ?", [$username])
                            ->orWhereRaw("lower(trim(coalesce(created_by,''))) = ?", [$username])
-                    )->where('status_pekerjaan', '!=', 'ENVISION CHECKED / SOLVED')
+                    )->whereNotIn('status_pekerjaan', $picExclusiveStatuses)
                     ->orWhere(fn($q2) =>
-                        $q2->where('status_pekerjaan', 'ENVISION CHECKED / SOLVED')
+                        $q2->whereIn('status_pekerjaan', $picExclusiveStatuses)
+                           ->whereRaw("lower(trim(coalesce(pic_ticket,''))) = ?", [$username])
+                    )
+                    ->orWhere(fn($q2) =>
+                        $q2->whereIn('status_pekerjaan', $picAlsoStatuses)
                            ->whereRaw("lower(trim(coalesce(pic_ticket,''))) = ?", [$username])
                     )
                 )
@@ -199,7 +212,7 @@ class DocumentNotificationService
                 ->select('id', 'ticketid', 'ticket_type', 'cpny_id', 'status_pekerjaan', 'pic_ticket', 'updated_at', 'updated_by')
                 ->get()
                 ->filter(fn($r) =>
-                    $r->status_pekerjaan !== 'CANCEL' ||
+                    !in_array($r->status_pekerjaan, ['CANCEL', 'REVISE', 'REJECTED'], true) ||
                     strtolower(trim((string) $r->updated_by)) !== $username
                 );
 

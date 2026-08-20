@@ -219,6 +219,14 @@ function reloadTicketComments(eid) {
                 response.data.tracking || []
             );
 
+            renderTicketAttachments(
+                response.data.attachments || []
+            );
+
+            renderAttachmentTabPanel(
+                response.data.attachments || []
+            );
+
         },
 
     });

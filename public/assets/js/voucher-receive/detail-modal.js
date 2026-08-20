@@ -105,7 +105,7 @@ const VplReceiveDetailModal = {
             d.attachments.forEach(a => {
                 const icon = VplReceiveHelper.attachIcon(a.extention);
                 attHtml += `<div class="flex items-center justify-between px-5 py-2.5 hover:bg-slate-50 dark:hover:bg-white/[0.02]">
-                    <a href="/attachment/${a.year}/${a.attachfile}" target="_blank"
+                    <a href="/requestvp/attachment/${a.id}/view" target="_blank"
                         class="flex items-center gap-2 text-sm text-indigo-600 hover:underline dark:text-indigo-400">
                         <i class="fa-solid ${icon} text-base"></i>${a.name}
                     </a>

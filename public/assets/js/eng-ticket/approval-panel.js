@@ -135,13 +135,19 @@ const EngTicketApprovalPanel = {
 
                 <div class="mt-3 flex items-center gap-2 border-t border-slate-100 pt-3 dark:border-white/[0.06]">
                     <button type="button"
-                        class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-green-500 active:scale-95"
+                        class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-green-600 px-2 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-green-500 active:scale-95"
                         onclick="approveTicket('${ticket.eid}')">
                         <i class="fa-solid fa-check text-[11px]"></i>
                         Approve
                     </button>
                     <button type="button"
-                        class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-red-500 active:scale-95"
+                        class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-amber-600 px-2 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-amber-500 active:scale-95"
+                        onclick="reviseTicket('${ticket.eid}')">
+                        <i class="fa-solid fa-rotate-left text-[11px]"></i>
+                        Revise
+                    </button>
+                    <button type="button"
+                        class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-red-600 px-2 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-red-500 active:scale-95"
                         onclick="rejectTicket('${ticket.eid}')">
                         <i class="fa-solid fa-xmark text-[11px]"></i>
                         Reject

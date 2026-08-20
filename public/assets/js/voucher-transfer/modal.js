@@ -99,7 +99,7 @@ const VplTransferDetailModal = {
         attachBody.innerHTML = '';
         if (data.attachments?.length) {
             data.attachments.forEach((a) => {
-                const url = `/attachment/${a.year ?? new Date().getFullYear()}/${a.attachfile}`;
+                const url = `/transfervp/attachment/${a.id}/view`;
                 attachBody.insertAdjacentHTML('beforeend', `
                     <div class="flex items-center justify-between px-4 py-2">
                         <a href="${url}" target="_blank" class="text-sm text-indigo-600 hover:underline dark:text-indigo-400">
