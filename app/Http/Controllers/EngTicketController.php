@@ -1113,6 +1113,18 @@ class EngTicketController extends Controller
             $this->notificationService
                 ->ticketCreated($ticket);
 
+            $plainDescr = html_entity_decode(
+                strip_tags($ticket->issue_descr),
+                ENT_QUOTES | ENT_HTML5,
+                'UTF-8'
+            );
+
+            $this->notificationService->ticketWhatsapp(
+                $ticket,
+                'CREATED',
+                "Summary : {$ticket->issue_summary}\n\n{$plainDescr}"
+            );
+
             return response()->json([
                 'success' => true,
                 'message' => 'Ticket created successfully.',
