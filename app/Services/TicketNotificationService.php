@@ -21,13 +21,42 @@ use Illuminate\Support\Facades\Mail;
 
 class TicketNotificationService
 {
+    // Ticket types that support a per-company override with a shared
+    // 'ALL' fallback row when no company-specific chat group is set.
+    protected const ALL_COMPANY_FALLBACK_TICKET_TYPES = [
+        'BSSUPPORTTICKET',
+        'FOSUPPORTTICKET',
+        'ENGSUPPORTTICKET',
+        'BA_BS',
+        'BA_ENG',
+        'BA_FO',
+    ];
+
     protected function getCompanyChatId(
         string $cpnyId,
         string $ticketType
     ): ?string {
-        return MsWaSetting::query()
+        $chatId = MsWaSetting::query()
 
             ->where('cpny_id', $cpnyId)
+
+            ->where('ticket_type', $ticketType)
+
+            ->where('status', 'A')
+
+            ->value('chat_id');
+
+        if ($chatId) {
+            return $chatId;
+        }
+
+        if (!in_array($ticketType, self::ALL_COMPANY_FALLBACK_TICKET_TYPES, true)) {
+            return null;
+        }
+
+        return MsWaSetting::query()
+
+            ->where('cpny_id', 'ALL')
 
             ->where('ticket_type', $ticketType)
 

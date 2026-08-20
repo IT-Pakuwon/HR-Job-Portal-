@@ -109,6 +109,7 @@
                 <button id="gmTab_pgcard" type="button" class="gm-section-tab">PG Card</button>
                 <button id="gmTab_isort" type="button" class="gm-section-tab">Operation - Isort</button>
                 <button id="gmTab_valet" type="button" class="gm-section-tab">Parking - Valet</button>
+                <button id="gmTab_event" type="button" class="gm-section-tab">Event</button>
             </div>
 
         </div>{{-- /gmPageHeader --}}
@@ -790,6 +791,149 @@
 
         </div>{{-- /Parking - Valet Section --}}
 
+        {{-- ── Event Section ───────────────────────────────────────────────────── --}}
+        <div id="gmSectionEvent" class="mt-2 space-y-3">
+
+            <div class="flex items-center justify-between px-0.5">
+                <span
+                    class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Event
+                    Overview</span>
+                <span id="gmEventLastUpdated"
+                    class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Last Updated: <span id="gmEventLastUpdatedVal">—</span>
+                </span>
+            </div>
+
+            {{-- ── Timeline pulse strip: Ongoing / Upcoming / Past (Paid events only) ── --}}
+            <div class="flex items-center justify-between px-0.5">
+                <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Paid Events Timeline</span>
+            </div>
+            <div class="grid grid-cols-3 gap-px overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm dark:border-slate-700/60 dark:bg-slate-700/50">
+                <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3 dark:bg-slate-900 sm:px-5">
+                    <span class="h-2 w-2 shrink-0 animate-pulse rounded-full bg-emerald-500"></span>
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-500">Ongoing Now</p>
+                        <p id="eventOngoingCount" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white sm:text-xl">—</p>
+                    </div>
+                </div>
+                <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3 dark:bg-slate-900 sm:px-5">
+                    <span class="h-2 w-2 shrink-0 rounded-full bg-blue-500"></span>
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-blue-500">Upcoming</p>
+                        <p id="eventUpcomingCount" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white sm:text-xl">—</p>
+                    </div>
+                </div>
+                <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3 dark:bg-slate-900 sm:px-5">
+                    <span class="h-2 w-2 shrink-0 rounded-full bg-slate-400"></span>
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Past</p>
+                        <p id="eventPastCount" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white sm:text-xl">—</p>
+                    </div>
+                </div>
+            </div>
+
+            {{-- ── KPI Strip ─────────────────────────────────────────────────────── --}}
+            <div class="relative overflow-hidden rounded-2xl border border-slate-200 shadow-sm dark:border-slate-700/60">
+                <div class="absolute inset-x-0 top-0 z-10 h-0.75"
+                    style="background:linear-gradient(to right,#6366F1,#10B981,#F59E0B,#8B5CF6)"></div>
+                <div class="grid grid-cols-2 gap-px bg-slate-100 dark:bg-slate-700/50 sm:grid-cols-4">
+
+                    {{-- Total Contract Value --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-500/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3v-6m-3 6v-9m-2 9h10a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Total Contract Value</p>
+                            <p id="eventTotalContract" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white sm:text-2xl">—</p>
+                            <p class="text-[10px] text-slate-400 dark:text-slate-500">Booked + Confirmed + Paid</p>
+                        </div>
+                    </div>
+
+                    {{-- Paid Revenue --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-500/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-500">Paid Revenue</p>
+                            <p id="eventPaidRevenue" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-emerald-600 dark:text-emerald-400 sm:text-2xl">—</p>
+                            <p class="text-[10px] text-slate-400 dark:text-slate-500">realized</p>
+                        </div>
+                    </div>
+
+                    {{-- Total Events --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-500/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-amber-500">Total Events</p>
+                            <p id="eventTotalCount" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-amber-600 dark:text-amber-400 sm:text-2xl">—</p>
+                        </div>
+                    </div>
+
+                    {{-- Avg Contract Value --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-50 dark:bg-violet-500/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 012-2h2a2 2 0 012 2v6m-9 0h14a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-violet-500">Avg Contract Value</p>
+                            <p id="eventAvgContract" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-violet-600 dark:text-violet-400 sm:text-2xl">—</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            {{-- ── Chart row: Events by Type + Revenue/Count by Status ─────────────── --}}
+            <div class="grid grid-cols-1 gap-3 lg:grid-cols-3" style="align-items:stretch">
+
+                <x-card-chart.card-shell subtitle="Event" title="Events by Type"
+                    class="h-full flex flex-col lg:col-span-2"
+                    gradient="linear-gradient(to right,#6366F1,#8B5CF6)">
+                    <div class="flex-1 overflow-x-auto px-3 pb-3 pt-0">
+                        <table class="w-full min-w-[420px] text-left text-xs">
+                            <thead>
+                                <tr class="border-b border-slate-200 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:border-slate-700/60 dark:text-slate-500">
+                                    <th class="py-2 pr-2">Event Type</th>
+                                    <th class="py-2 pr-2 text-right">Count</th>
+                                    <th class="py-2 pr-2 text-right">Total Contract</th>
+                                    <th class="py-2 text-right">Avg Contract</th>
+                                </tr>
+                            </thead>
+                            <tbody id="eventByTypeBody" class="divide-y divide-slate-100 dark:divide-slate-800">
+                                <tr><td colspan="4" class="py-6 text-center text-slate-400">Loading…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </x-card-chart.card-shell>
+
+                <x-card-chart.card-shell subtitle="Event" title="By Status"
+                    class="h-full flex flex-col"
+                    gradient="linear-gradient(to right,#10B981,#6366F1)">
+                    <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
+                        <div id="eventStatusChart" class="flex-1"></div>
+                    </div>
+                </x-card-chart.card-shell>
+
+            </div>
+
+        </div>{{-- /Event Section --}}
+
     </div>
 
 
@@ -822,6 +966,10 @@
             valetKpiSummary: "{{ route('gm.valet-kpi-summary') }}",
             valetVoucherRedemption: "{{ route('gm.valet-voucher-redemption') }}",
             valetPeakHours: "{{ route('gm.valet-peak-hours') }}",
+            eventSummary: "{{ route('gm.event-summary') }}",
+            eventByType: "{{ route('gm.event-by-type') }}",
+            eventStatusStrip: "{{ route('gm.event-status-strip') }}",
+            eventStatusByCompany: "{{ route('gm.event-status-by-company') }}",
         };
     </script>
 
@@ -832,7 +980,8 @@
                 budget: 'gmBudgetLastUpdatedVal',
                 pgcard: 'gmPgcardLastUpdatedVal',
                 isort: 'gmIsortLastUpdatedVal',
-                valet: 'gmValetLastUpdatedVal'
+                valet: 'gmValetLastUpdatedVal',
+                event: 'gmEventLastUpdatedVal'
             };
 
             fetch(window.gmRoutes.sectionLastUpdated)
@@ -865,6 +1014,7 @@
     <script src="{{ asset('assets/js/gm-report/gm-pgcard.js') }}?v={{ $gmAssetVer('assets/js/gm-report/gm-pgcard.js') }}"></script>
     <script src="{{ asset('assets/js/gm-report/gm-isort.js') }}?v={{ $gmAssetVer('assets/js/gm-report/gm-isort.js') }}"></script>
     <script src="{{ asset('assets/js/gm-report/gm-valet.js') }}?v={{ $gmAssetVer('assets/js/gm-report/gm-valet.js') }}"></script>
+    <script src="{{ asset('assets/js/gm-report/gm-event.js') }}?v={{ $gmAssetVer('assets/js/gm-report/gm-event.js') }}"></script>
 
     {{-- ── Export link updater ─────────────────────────────────────────────────
          Runs every time the filter changes so the download URL always carries
@@ -938,15 +1088,17 @@
                 budget: 'gmSectionBudget',
                 pgcard: 'gmSectionPgcard',
                 isort: 'gmSectionIsort',
-                valet: 'gmSectionValet'
+                valet: 'gmSectionValet',
+                event: 'gmSectionEvent'
             };
             var headers = {
                 budget: 'gmSectionBudgetHeader',
                 pgcard: 'gmSectionPgcardHeader',
                 isort: 'gmSectionIsortHeader',
-                valet: 'gmSectionValetHeader'
+                valet: 'gmSectionValetHeader',
+                event: 'gmSectionEventHeader'
             };
-            var tabIds = ['gmTab_all', 'gmTab_budget', 'gmTab_pgcard', 'gmTab_isort', 'gmTab_valet'];
+            var tabIds = ['gmTab_all', 'gmTab_budget', 'gmTab_pgcard', 'gmTab_isort', 'gmTab_valet', 'gmTab_event'];
 
             function switchTab(key) {
                 tabIds.forEach(function(id) {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exports\GmReportExport;
 use App\Models\BudgetDetail;
 use App\Models\DepartmentFin;
+use App\Models\MsEvent;
 use App\Models\User;
 use App\Services\BigQueryService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -181,19 +182,29 @@ class GmReportController extends Controller
         ));
     }
 
-    private function applyCompanyFilter($q, array $allowed, ?string $cpnyId)
+    private function applyCompanyFilter($q, array $allowed, ?string $cpnyId, string $column = 'cpny_id')
     {
         if ($cpnyId) {
             $cpnyId = strtoupper(trim($cpnyId));
             if (!empty($allowed) && !in_array($cpnyId, $allowed, true)) {
                 return $q->whereRaw('1=0');
             }
-            $q->where('cpny_id', $cpnyId);
+            $q->where($column, $cpnyId);
         } elseif (!empty($allowed)) {
-            $q->whereIn('cpny_id', $allowed);
+            $q->whereIn($column, $allowed);
         }
 
         return $q;
+    }
+
+    // ms_event.event_start_date/event_end_date describe when the event runs,
+    // not when the row changed — filtering on overlap with the selected
+    // period (rather than a single date column) matches how the event
+    // calendar itself treats an event as "in" a given range.
+    private function applyEventPeriodFilter($q, string $dateFrom, string $dateTo)
+    {
+        return $q->where('event_start_date', '<=', $dateTo)
+            ->where('event_end_date', '>=', $dateFrom);
     }
 
     private function buildExprs(string $dateFrom, string $dateTo): array
@@ -1521,6 +1532,147 @@ class GmReportController extends Controller
         }
     }
 
+    // ── API: Event ─────────────────────────────────────────────────────────────
+
+    private function baseEventQuery(string $dateFrom, string $dateTo, ?string $cpnyId)
+    {
+        $allowed = $this->allowedCompanies();
+
+        $q = MsEvent::query()->where('status', 'A');
+        $q = $this->applyCompanyFilter($q, $allowed, $cpnyId, 'cpnyid');
+        $q = $this->applyEventPeriodFilter($q, $dateFrom, $dateTo);
+
+        return $q;
+    }
+
+    public function eventSummary(Request $request)
+    {
+        ['dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
+
+        $rows = $this->baseEventQuery($dateFrom, $dateTo, $cpnyId)
+            ->selectRaw('event_status, COUNT(*) AS cnt, COALESCE(SUM(event_total_contract), 0) AS total_contract')
+            ->groupBy('event_status')
+            ->get()
+            ->keyBy('event_status');
+
+        $totalContract = 0;
+        $totalCount = 0;
+        $paidAmt = 0;
+        foreach (\App\Http\Controllers\EventCalendarController::EVENT_STATUSES as $status => $_) {
+            $row = $rows->get($status);
+            $cnt = (int) ($row->cnt ?? 0);
+            $amt = (float) ($row->total_contract ?? 0);
+            if ($status === 'Paid') {
+                $paidAmt = $amt;
+            }
+            $totalContract += $amt;
+            $totalCount += $cnt;
+        }
+
+        return response()->json([
+            'data' => [
+                'total_contract' => $totalContract,
+                'total_count' => $totalCount,
+                'total_paid' => $paidAmt,
+                'avg_contract' => $totalCount > 0 ? round($totalContract / $totalCount) : 0,
+            ],
+        ]);
+    }
+
+    /**
+     * Event count by status — when no company filter is applied, broken
+     * down per company (mirrors the Isort "stacked" pattern) so the chart
+     * can render one bar per company instead of a single aggregate bar.
+     */
+    public function eventStatusByCompany(Request $request)
+    {
+        ['dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
+        $stacked = $cpnyId === null;
+
+        $rows = $this->baseEventQuery($dateFrom, $dateTo, $cpnyId)
+            ->selectRaw('event_status, cpnyid, COUNT(*) AS cnt, COALESCE(SUM(event_total_contract), 0) AS total_contract')
+            ->groupBy('event_status', 'cpnyid')
+            ->get();
+
+        $byStatus = [];
+        foreach (\App\Http\Controllers\EventCalendarController::EVENT_STATUSES as $status => $_) {
+            $byStatus[$status] = ['status' => $status, 'total' => 0, 'total_contract' => 0, 'by_site' => []];
+        }
+
+        $companies = [];
+        foreach ($rows as $row) {
+            $status = (string) $row->event_status;
+            $cpny = (string) $row->cpnyid;
+            $cnt = (int) $row->cnt;
+
+            if (!isset($byStatus[$status])) {
+                $byStatus[$status] = ['status' => $status, 'total' => 0, 'total_contract' => 0, 'by_site' => []];
+            }
+            $byStatus[$status]['total'] += $cnt;
+            $byStatus[$status]['total_contract'] += (float) $row->total_contract;
+            $byStatus[$status]['by_site'][$cpny] = ($byStatus[$status]['by_site'][$cpny] ?? 0) + $cnt;
+            $companies[$cpny] = true;
+        }
+
+        $companies = array_keys($companies);
+        sort($companies);
+
+        return response()->json([
+            'data' => array_values($byStatus),
+            'stacked' => $stacked,
+            'all_sites' => $stacked ? $companies : [],
+        ]);
+    }
+
+    public function eventByType(Request $request)
+    {
+        ['dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
+
+        $rows = $this->baseEventQuery($dateFrom, $dateTo, $cpnyId)
+            ->selectRaw('
+                event_type,
+                COUNT(*) AS cnt,
+                COALESCE(SUM(event_total_contract), 0) AS total_contract,
+                COALESCE(AVG(event_total_contract), 0) AS avg_contract
+            ')
+            ->groupBy('event_type')
+            ->get()
+            ->keyBy('event_type');
+
+        $data = [];
+        foreach (\App\Http\Controllers\EventCalendarController::EVENT_TYPES as $type => $_) {
+            $row = $rows->get($type);
+            $data[] = [
+                'event_type' => $type,
+                'count' => (int) ($row->cnt ?? 0),
+                'total_contract' => (float) ($row->total_contract ?? 0),
+                'avg_contract' => (float) ($row->avg_contract ?? 0),
+            ];
+        }
+        usort($data, fn ($a, $b) => $b['total_contract'] <=> $a['total_contract']);
+
+        return response()->json(['data' => $data]);
+    }
+
+    public function eventStatusStrip(Request $request)
+    {
+        ['dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
+        $today = now()->toDateString();
+
+        // Only Paid events — Booked/Confirmed events aren't a confirmed
+        // commitment yet, so they'd skew the ongoing/upcoming/past pulse.
+        $ongoing = $this->baseEventQuery($dateFrom, $dateTo, $cpnyId)->where('event_status', 'Paid')
+            ->where('event_start_date', '<=', $today)->where('event_end_date', '>=', $today)->count();
+        $upcoming = $this->baseEventQuery($dateFrom, $dateTo, $cpnyId)->where('event_status', 'Paid')
+            ->where('event_start_date', '>', $today)->count();
+        $past = $this->baseEventQuery($dateFrom, $dateTo, $cpnyId)->where('event_status', 'Paid')
+            ->where('event_end_date', '<', $today)->count();
+
+        return response()->json([
+            'data' => ['ongoing' => $ongoing, 'upcoming' => $upcoming, 'past' => $past],
+        ]);
+    }
+
     // ── API: PG Card — Top 10 customers per mall ──────────────────────────────
 
     public function pgcardTopCustomers(Request $request)
@@ -2428,6 +2580,7 @@ class GmReportController extends Controller
                 'pgcard' => $this->bqDatasetLastModified($bq, self::PGCARD_PROJECT, self::PGCARD_DATASET),
                 'isort' => $this->bqDatasetLastModified($bq, self::ISORT_PROJECT, self::ISORT_DATASET),
                 'valet' => $this->bqDatasetLastModified($bq, self::VALET_PROJECT, self::VALET_DATASET),
+                'event' => MsEvent::query()->max('updated_at'),
             ];
         });
 

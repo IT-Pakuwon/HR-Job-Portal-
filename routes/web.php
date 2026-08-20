@@ -2172,6 +2172,12 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/api/valet-voucher-redemption', 'valetVoucherRedemption')->name('gm.valet-voucher-redemption');
                 Route::get('/api/valet-peak-hours', 'valetPeakHours')->name('gm.valet-peak-hours');
 
+                // Event API endpoints
+                Route::get('/api/event-summary', 'eventSummary')->name('gm.event-summary');
+                Route::get('/api/event-by-type', 'eventByType')->name('gm.event-by-type');
+                Route::get('/api/event-status-strip', 'eventStatusStrip')->name('gm.event-status-strip');
+                Route::get('/api/event-status-by-company', 'eventStatusByCompany')->name('gm.event-status-by-company');
+
                 // Export endpoints
                 Route::get('/export/pdf', 'exportPdf')->name('gm.export.pdf');
                 Route::get('/export/csv', 'exportCsv')->name('gm.export.csv');

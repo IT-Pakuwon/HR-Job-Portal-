@@ -121,7 +121,8 @@ class PersonnelController extends Controller
         $q = Personnel::query()
             ->where('group_cpny_id', $groupCompanyId);
 
-        if ($user->hasFullDataScope()) {
+        // RECACCALLDEPT / DIRECTORACCESS -> bisa lihat semua company & semua division
+        if ($user->hasFullDataScope() || $this->hasRoleAllDept($user)) {
             return $q;
         }
 
@@ -134,11 +135,6 @@ class PersonnelController extends Controller
 
         // filter cpnyid user (AW,EP,PSA,GPS)
         $q->whereIn('cpnyid', $cpnyIds);
-
-        // role all dept -> bisa lihat semua division
-        if ($this->hasRoleAllDept($user)) {
-            return $q;
-        }
 
         // selain itu: filter division_id dari user (langsung)
         $divisionIds = $this->userDivisionIds($user);
@@ -187,7 +183,6 @@ class PersonnelController extends Controller
                 ->select('cpny_id', 'cpny_name')
                 ->where('group_cpny_id', $groupCompanyId)
                 ->where('status', 'A')
-                ->whereIn('cpny_id', $this->userCpnyIds($user))
                 ->orderBy('cpny_name')
                 ->get();
 

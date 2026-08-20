@@ -65,6 +65,21 @@ class JobapplicantController extends Controller
             || $user->hasFullDataScope();
     }
 
+    // RECACCALLDEPT => bisa lihat semua company, bukan cuma company yang di-assign ke user
+    private function userCpnyIds($user): array
+    {
+        if ($user->hasFullDataScope() || $this->hasRole($user, 'RECACCALLDEPT')) {
+            return \App\Models\MsCompany::pluck('cpny_id')->toArray();
+        }
+
+        return Usercpny::where('username', $user->username)
+            ->pluck('cpny_id')
+            ->filter()
+            ->unique()
+            ->values()
+            ->toArray();
+    }
+
     // Clusters hr_ms_applicant records that are likely the same real person, so
     // the "Duplicate Users" tab and the Applicant List row-click panel always
     // agree on who's grouped together and why.
@@ -201,14 +216,7 @@ class JobapplicantController extends Controller
                 : redirect()->route('login')->with('error', 'Your session has expired. Please sign in again.');
         }
 
-        $userCpnyIds = $user->hasFullDataScope()
-            ? \App\Models\MsCompany::pluck('cpny_id')->toArray()
-            : Usercpny::where('username', $user->username)
-                ->pluck('cpny_id')
-                ->filter()
-                ->unique()
-                ->values()
-                ->toArray();
+        $userCpnyIds = $this->userCpnyIds($user);
 
         $canFilterJobTL = $this->hasFullApplicantAccess($user);
 
@@ -285,14 +293,7 @@ class JobapplicantController extends Controller
                 ], 401);
             }
 
-            $userCpnyIds = $user->hasFullDataScope()
-                ? \App\Models\MsCompany::pluck('cpny_id')->toArray()
-                : Usercpny::where('username', $user->username)
-                    ->pluck('cpny_id')
-                    ->filter()
-                    ->unique()
-                    ->values()
-                    ->toArray();
+            $userCpnyIds = $this->userCpnyIds($user);
 
             $canFilterJobTL = $this->hasFullApplicantAccess($user);
             $jobTLExact = $canFilterJobTL ? trim((string) $request->input('job_tl_exact', '')) : '';
@@ -620,14 +621,7 @@ class JobapplicantController extends Controller
                 return response()->json(['data' => []]);
             }
 
-            $userCpnyIds = $user->hasFullDataScope()
-                ? \App\Models\MsCompany::pluck('cpny_id')->toArray()
-                : Usercpny::where('username', $user->username)
-                    ->pluck('cpny_id')
-                    ->filter()
-                    ->unique()
-                    ->values()
-                    ->toArray();
+            $userCpnyIds = $this->userCpnyIds($user);
 
             $rows = DB::connection('mysql3')
                 ->table('hr_ms_applicant as a')
@@ -746,14 +740,7 @@ class JobapplicantController extends Controller
                 ? collect($applicantToGroup)->filter(fn ($g) => $g === $groupKey)->keys()->values()
                 : collect([$applicant->applicant_id]);
 
-            $userCpnyIds = $user->hasFullDataScope()
-                ? \App\Models\MsCompany::pluck('cpny_id')->toArray()
-                : Usercpny::where('username', $user->username)
-                    ->pluck('cpny_id')
-                    ->filter()
-                    ->unique()
-                    ->values()
-                    ->toArray();
+            $userCpnyIds = $this->userCpnyIds($user);
 
             $canFilterJobTL = $this->hasFullApplicantAccess($user);
 
