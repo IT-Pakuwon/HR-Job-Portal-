@@ -59,10 +59,12 @@
                     </select>
                     <button type="button" id="btnResetFilters" class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Reset</button>
                 </div>
-                <button type="button" id="btnCreatePerizinan"
-                    class="self-start rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 xl:self-auto">
-                    + Create
-                </button>
+                @if ($hasGaAccess)
+                    <button type="button" id="btnCreatePerizinan"
+                        class="self-start rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 xl:self-auto">
+                        + Create
+                    </button>
+                @endif
             </div>
 
             <div class="relative overflow-hidden">
@@ -324,10 +326,26 @@
 
                     <div class="min-h-0 flex-1 overflow-y-auto p-6">
                         <div id="detailTabItems" class="detail-tab-panel hidden">
+                            @if ($hasUserPermitAccess)
+                                <div class="mb-3 flex items-center justify-between gap-3">
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">You can update the permit items below.</p>
+                                    <div class="flex gap-2">
+                                        <button type="button" id="btnAddShowItem" class="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700">+ Add Row</button>
+                                        <button type="button" id="btnSaveShowItems" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
+                                            <span id="showItemsSpinner" class="hidden h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+                                            <span>Save Items</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            @endif
                             <div class="overflow-hidden rounded-lg border dark:border-gray-700">
                                 <table class="w-full text-sm">
                                     <thead class="bg-gray-50 dark:bg-gray-700">
-                                        <tr><th class="px-3 py-3 text-left">Permit Item</th><th class="w-32 px-3 py-3 text-right">Quantity</th></tr>
+                                        <tr>
+                                            <th class="px-3 py-3 text-left">Permit Item</th>
+                                            <th class="w-32 px-3 py-3 text-right">Quantity</th>
+                                            @if ($hasUserPermitAccess)<th class="w-16 px-3 py-3"></th>@endif
+                                        </tr>
                                     </thead>
                                     <tbody id="detailItems"></tbody>
                                 </table>
@@ -393,6 +411,8 @@
         $(document).ready(function () {
             let activeFilter = 'all';
             const expiryPeriods = @json($expiryPeriods);
+            const hasGaAccess = @json($hasGaAccess);
+            const hasUserPermitAccess = @json($hasUserPermitAccess);
             const titles = {
                 all: 'All Permits',
                 active: 'Active Permits',
@@ -448,6 +468,9 @@
                 serverSide: true,
                 responsive: true,
                 pageLength: 25,
+                columnDefs: [
+                    { targets: 1, visible: hasGaAccess }
+                ],
                 ajax: {
                     url: @json(route('perizinan.json')),
                     data: function (data) {
@@ -464,6 +487,8 @@
                     {
                         data: 'perizinan_id', orderable: false, searchable: false,
                         render: (value, _type, row) => {
+                            if (!hasGaAccess) return '';
+
                             const status = String(row.status || '').toUpperCase();
                             const isOnProgress = status === 'P';
                             const canRenew = ['C', 'R', 'X'].includes(status) && !row.has_blocking_renewal;
@@ -728,6 +753,24 @@
                     .addClass('border-indigo-600 text-indigo-600');
             }
 
+            function showDetailItemRow(item = {}) {
+                return `<tr class="show-detail-row border-t dark:border-gray-700">
+                    <td class="p-2">
+                        <input type="text" class="show-item-name w-full rounded-lg border px-3 py-2" value="${escapeHtml(item.item_perizinan || '')}" maxlength="255" required>
+                    </td>
+                    <td class="p-2">
+                        <input type="number" class="show-item-qty w-full rounded-lg border px-3 py-2 text-right" value="${escapeHtml(item.qty_perizinan || 1)}" min="0.01" step="0.01" required>
+                    </td>
+                    <td class="p-2 text-center">
+                        <button type="button" class="btnRemoveShowItem inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-red-600 transition hover:bg-red-100 dark:bg-red-950/40 dark:text-red-400" title="Remove permit item" aria-label="Remove permit item">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/>
+                            </svg>
+                        </button>
+                    </td>
+                </tr>`;
+            }
+
             async function showPermit(permitId) {
                 const response = await $.get(`${baseUrl}/${encodeURIComponent(permitId)}`);
                 const permit = response.data;
@@ -777,7 +820,8 @@
                 $('#detailDescription').text(permit.perizinan_descr || '-');
                 $('#btnDetailAction')
                     .data('id', permit.perizinan_id)
-                    .toggleClass('hidden', String(permit.status || '').toUpperCase() !== 'P');
+                    .toggleClass('hidden', !hasGaAccess || String(permit.status || '').toUpperCase() !== 'P');
+                $('#btnSaveShowItems').data('id', permit.perizinan_id);
                 loadPermitAttachments(permit.perizinan_id);
 
                 const items = permit.details || [];
@@ -785,11 +829,15 @@
                 $('#detailItemTotal').text(new Intl.NumberFormat('en-US', {
                     maximumFractionDigits: 2
                 }).format(totalItemQty));
-                $('#detailItems').html(items.length ? items.map(item => `
-                    <tr class="border-t dark:border-gray-700">
-                        <td class="px-3 py-2">${escapeHtml(item.item_perizinan || '-')}</td>
-                        <td class="px-3 py-2 text-right">${escapeHtml(item.qty_perizinan ?? '-')}</td>
-                    </tr>`).join('') : '<tr><td colspan="2" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">No permit items.</td></tr>');
+                if (hasUserPermitAccess) {
+                    $('#detailItems').html((items.length ? items : [{}]).map(showDetailItemRow).join(''));
+                } else {
+                    $('#detailItems').html(items.length ? items.map(item => `
+                        <tr class="border-t dark:border-gray-700">
+                            <td class="px-3 py-2">${escapeHtml(item.item_perizinan || '-')}</td>
+                            <td class="px-3 py-2 text-right">${escapeHtml(item.qty_perizinan ?? '-')}</td>
+                        </tr>`).join('') : '<tr><td colspan="2" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">No permit items.</td></tr>');
+                }
 
                 const activities = permit.activities || [];
                 $('#activityTimeline').html(activities.length ? activities.map(activity => {
@@ -917,6 +965,64 @@
                     return;
                 }
                 $(this).closest('tr').remove();
+            });
+
+            $('#btnAddShowItem').on('click', function () {
+                $('#detailItems').append(showDetailItemRow());
+            });
+            $(document).on('click', '.btnRemoveShowItem', function () {
+                if ($('.show-detail-row').length === 1) {
+                    Swal.fire('Required', 'At least one permit item is required.', 'warning');
+                    return;
+                }
+                $(this).closest('.show-detail-row').remove();
+            });
+            $('#btnSaveShowItems').on('click', async function () {
+                const permitId = $(this).data('id');
+                const items = $('.show-item-name').map((_, input) => $(input).val().trim()).get();
+                const quantities = $('.show-item-qty').map((_, input) => $(input).val()).get();
+
+                if (!permitId || !items.length || items.some(item => !item) || quantities.some(qty => !qty || Number(qty) <= 0)) {
+                    Swal.fire('Validation', 'Complete every permit item and enter a quantity greater than zero.', 'warning');
+                    return;
+                }
+
+                const confirmation = await Swal.fire({
+                    icon: 'question',
+                    title: 'Save permit items?',
+                    text: 'The current permit item list will be updated.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, save',
+                    cancelButtonText: 'Cancel'
+                });
+                if (!confirmation.isConfirmed) return;
+
+                const $button = $(this);
+                $button.prop('disabled', true).addClass('opacity-60');
+                $('#showItemsSpinner').removeClass('hidden');
+
+                try {
+                    const response = await $.ajax({
+                        url: `${baseUrl}/${encodeURIComponent(permitId)}/details`,
+                        method: 'PUT',
+                        data: {
+                            _token: csrfToken,
+                            item_perizinan: items,
+                            qty_perizinan: quantities
+                        }
+                    });
+                    await showPermit(permitId);
+                    activateDetailTab('items');
+                    table.ajax.reload(null, false);
+                    Swal.fire({ icon: 'success', title: 'Success', text: response.message, timer: 1300, showConfirmButton: false });
+                } catch (error) {
+                    const errors = error.responseJSON?.errors;
+                    const message = errors ? Object.values(errors).flat()[0] : (error.responseJSON?.message || 'Failed to update permit items.');
+                    Swal.fire('Error', message, 'error');
+                } finally {
+                    $button.prop('disabled', false).removeClass('opacity-60');
+                    $('#showItemsSpinner').addClass('hidden');
+                }
             });
 
             $(document).on('click', '.removeAttachment2', async function () {

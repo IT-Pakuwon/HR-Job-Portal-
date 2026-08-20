@@ -41,6 +41,12 @@ class PerizinanController extends Controller
             : Usercpny::query()->where('username', Auth::user()->username)
                 ->where('status', 'A')->orderBy('cpny_id')->pluck('cpny_id')->unique()->values();
         $access = $this->perizinanAccessScope(Auth::user());
+        $hasGaAccess = $access['has_ga_access'];
+        $hasUserPermitAccess = !$hasGaAccess && SysUserRole::query()
+            ->where('username', Auth::user()->username)
+            ->where('role_id', 'USERPERMITACCESS')
+            ->where('status', 'A')
+            ->exists();
         $permitQuery = function () use ($companies, $access) {
             $query = TrPerizinan::query()->whereIn('cpny_id', $companies);
 
@@ -116,7 +122,8 @@ class PerizinanController extends Controller
             'expiringPerizinan',
             'expiredPerizinan',
             'completedPerizinan', 'expiry30To60', 'expiry60To90', 'expiry90Plus',
-            'companies', 'categories', 'sites', 'approvers', 'expiryPeriods'
+            'companies', 'categories', 'sites', 'approvers', 'expiryPeriods',
+            'hasGaAccess', 'hasUserPermitAccess'
         ));
     }
 
@@ -448,6 +455,75 @@ class PerizinanController extends Controller
             'message' => 'Permit activity saved successfully.',
             'data' => $activity,
         ]);
+    }
+
+    public function updateDetails(Request $request, string $perizinanId)
+    {
+        $user = $request->user();
+        $hasGaAccess = SysUserRole::query()
+            ->where('username', $user->username)
+            ->where('role_id', 'GAACCESS')
+            ->where('status', 'A')
+            ->exists();
+        $hasUserPermitAccess = SysUserRole::query()
+            ->where('username', $user->username)
+            ->where('role_id', 'USERPERMITACCESS')
+            ->where('status', 'A')
+            ->exists();
+
+        abort_unless($hasUserPermitAccess && !$hasGaAccess, 403, 'You are not allowed to update permit items.');
+
+        $validated = $request->validate([
+            'item_perizinan' => ['required', 'array', 'min:1'],
+            'item_perizinan.*' => ['required', 'string', 'max:255'],
+            'qty_perizinan' => ['required', 'array', 'min:1'],
+            'qty_perizinan.*' => ['required', 'numeric', 'gt:0'],
+        ]);
+
+        if (count($validated['item_perizinan']) !== count($validated['qty_perizinan'])) {
+            throw ValidationException::withMessages([
+                'item_perizinan' => 'The number of permit items and quantities does not match.',
+            ]);
+        }
+
+        $companyIds = $user->hasFullDataScope()
+            ? \App\Models\MsCompany::pluck('cpny_id')
+            : Usercpny::query()->where('username', $user->username)
+                ->where('status', 'A')->pluck('cpny_id')->unique()->values();
+        $access = $this->perizinanAccessScope($user);
+
+        DB::connection('pgsql')->transaction(function () use (
+            $access,
+            $companyIds,
+            $perizinanId,
+            $user,
+            $validated
+        ) {
+            $permit = TrPerizinan::query()
+                ->where('perizinan_id', $perizinanId)
+                ->whereIn('cpny_id', $companyIds)
+                ->whereIn('department_fin_id', $access['department_fin_ids'])
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            TrPerizinanDetail::query()->where('perizinan_id', $permit->perizinan_id)->delete();
+
+            foreach ($validated['item_perizinan'] as $index => $item) {
+                TrPerizinanDetail::create([
+                    'perizinan_id' => $permit->perizinan_id,
+                    'item_perizinan' => $item,
+                    'qty_perizinan' => $validated['qty_perizinan'][$index],
+                    'status' => 'P',
+                    'created_by' => $user->username,
+                ]);
+            }
+
+            $permit->qty_item_perizinan = array_sum(array_map('floatval', $validated['qty_perizinan']));
+            $permit->updated_by = $user->username;
+            $permit->save();
+        });
+
+        return response()->json(['message' => 'Permit items updated successfully.']);
     }
 
     private function sendSavedPermitEmail(string $perizinanId, bool $isEdit): bool

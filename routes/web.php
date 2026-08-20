@@ -1259,11 +1259,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/perizinan/json', [PerizinanController::class, 'json'])->name('perizinan.json');
         Route::get('/perizinan/departments', [PerizinanController::class, 'departments'])->name('perizinan.departments');
         Route::get('/perizinan/sites', [PerizinanController::class, 'sites'])->name('perizinan.sites');
+        Route::put('/perizinan/{perizinanId}/details', [PerizinanController::class, 'updateDetails'])->name('perizinan.details.update');
         Route::get('/perizinan/{perizinanId}', [PerizinanController::class, 'show'])->name('perizinan.show');     
     });
 
     Route::middleware('access:PERIZINAN,CREATE')->group(function () {
-        Route::get('/perizinan', [PerizinanController::class, 'index'])->name('perizinan');       
         Route::post('/perizinan/{perizinanId}/activities', [PerizinanController::class, 'storeActivity'])->name('perizinan.activities.store');
         Route::post('/perizinan/{perizinanId}/renew', [PerizinanController::class, 'renew'])->name('perizinan.renew');
         Route::post('/perizinan', [PerizinanController::class, 'savePerizinan'])->name('perizinan.store');
