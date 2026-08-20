@@ -488,7 +488,7 @@
                     },
                     {
                         data: 'perizinan_id',
-                        render: (value) => `<button type="button" class="btnShowPermit inline-flex items-center rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 font-bold text-indigo-700 transition hover:bg-indigo-100" data-id="${escapeHtml(value)}">${escapeHtml(value || '-')}</button>`
+                        render: (value, _type, row) => `<button type="button" class="btnShowPermit inline-flex items-center rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 font-bold text-indigo-700 transition hover:bg-indigo-100" data-id="${escapeHtml(value)}" data-hash="${escapeHtml(row.detail_hash || '')}">${escapeHtml(value || '-')}</button>`
                     },
                     {
                         data: null,
@@ -555,12 +555,14 @@
             const $detailModal = $('#permitDetailModal');
             const $activityModal = $('#activityModal');
             const baseUrl = @json(url('/perizinan'));
+            const showPermitBaseUrl = @json(url('/showperizinan'));
             const departmentUrl = @json(route('perizinan.departments'));
             const siteUrl = @json(route('perizinan.sites'));
             const removeAttachmentBaseUrl = @json(url('/remove-attachment'));
             const csrfToken = @json(csrf_token());
             const attachmentListUrlTemplate = @json($attachmentListUrlTemplate);
             const activityAttachmentListUrlTemplate = @json($activityAttachmentListUrlTemplate);
+            const initialPermitId = @json($openPermitId ?? null);
 
             $('#user_dept_approval, #user_dept_peminta').each(function () {
                 $(this).select2({
@@ -990,7 +992,11 @@
 
             $(document).on('click', '.btnShowPermit', async function () {
                 try {
+                    const hash = $(this).data('hash');
                     await showPermit($(this).data('id'));
+                    if (hash) {
+                        window.history.replaceState({}, '', `${showPermitBaseUrl}/${encodeURIComponent(hash)}`);
+                    }
                 } catch (error) {
                     Swal.fire('Error', error.responseJSON?.message || 'Failed to load permit details.', 'error');
                 }
@@ -1005,6 +1011,7 @@
             $('.btnCloseDetail').on('click', function () {
                 $detailModal.addClass('hidden').removeClass('flex');
                 $('body').removeClass('overflow-hidden');
+                window.history.replaceState({}, '', baseUrl);
             });
             $('.btnCloseActivity').on('click', closeActivityModal);
             $(document).on('click', '.detail-tab-btn', function () {
@@ -1164,6 +1171,12 @@
                     }
                 });
             });
+
+            if (initialPermitId) {
+                showPermit(initialPermitId).catch(function (error) {
+                    Swal.fire('Error', error.responseJSON?.message || 'Failed to open permit details.', 'error');
+                });
+            }
         });
     </script>
 </x-app-layout>

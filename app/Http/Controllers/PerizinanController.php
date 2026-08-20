@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\DepartmentFin;
+use App\Models\MsDepartment;
 use App\Models\MsPerizinanCategory;
 use App\Models\MsSite;
+use App\Models\SysUserRole;
 use App\Models\TrPerizinan;
 use App\Models\TrPerizinanActivity;
 use App\Models\TrPerizinanDetail;
@@ -17,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Vinkla\Hashids\Facades\Hashids;
@@ -37,10 +40,19 @@ class PerizinanController extends Controller
             ? \App\Models\MsCompany::orderBy('cpny_id')->pluck('cpny_id')
             : Usercpny::query()->where('username', Auth::user()->username)
                 ->where('status', 'A')->orderBy('cpny_id')->pluck('cpny_id')->unique()->values();
+        $access = $this->perizinanAccessScope(Auth::user());
+        $permitQuery = function () use ($companies, $access) {
+            $query = TrPerizinan::query()->whereIn('cpny_id', $companies);
 
-        $allPerizinan = TrPerizinan::query()->whereIn('cpny_id', $companies)->count();
-        $activePerizinan = TrPerizinan::query()
-            ->whereIn('cpny_id', $companies)
+            if (!$access['has_ga_access']) {
+                $query->whereIn('department_fin_id', $access['department_fin_ids']);
+            }
+
+            return $query;
+        };
+
+        $allPerizinan = $permitQuery()->count();
+        $activePerizinan = $permitQuery()
             ->where(function ($query) use ($today) {
                 $query->where('expired_date', false)
                     ->orWhereNull('expired_date')
@@ -48,36 +60,30 @@ class PerizinanController extends Controller
             })
             ->where(fn ($query) => $query->whereNotIn('status', ['C', 'R', 'X'])->orWhereNull('status'))
             ->count();
-        $expiringPerizinan = TrPerizinan::query()
-            ->whereIn('cpny_id', $companies)
+        $expiringPerizinan = $permitQuery()
             ->where('expired_date', true)
             ->whereBetween('enddate', [$today, $reminderLimit])
             ->where(fn ($query) => $query->whereNotIn('status', ['C', 'R', 'X'])->orWhereNull('status'))
             ->count();
-        $expiredPerizinan = TrPerizinan::query()
-            ->whereIn('cpny_id', $companies)
+        $expiredPerizinan = $permitQuery()
             ->where('expired_date', true)
             ->whereDate('enddate', '<', $today)
             ->where(fn ($query) => $query->whereNotIn('status', ['C', 'R', 'X'])->orWhereNull('status'))
             ->count();
-        $completedPerizinan = TrPerizinan::query()
-            ->whereIn('cpny_id', $companies)
+        $completedPerizinan = $permitQuery()
             ->where('status', 'C')
             ->count();
-        $expiry30To60 = TrPerizinan::query()
-            ->whereIn('cpny_id', $companies)
+        $expiry30To60 = $permitQuery()
             ->where('expired_date', true)
             ->whereRaw('(enddate::date - CURRENT_DATE) BETWEEN 30 AND 60')
             ->whereNotIn('status', ['C', 'R', 'X'])
             ->count();
-        $expiry60To90 = TrPerizinan::query()
-            ->whereIn('cpny_id', $companies)
+        $expiry60To90 = $permitQuery()
             ->where('expired_date', true)
             ->whereRaw('(enddate::date - CURRENT_DATE) BETWEEN 60 AND 90')
             ->whereNotIn('status', ['C', 'R', 'X'])
             ->count();
-        $expiry90Plus = TrPerizinan::query()
-            ->whereIn('cpny_id', $companies)
+        $expiry90Plus = $permitQuery()
             ->where('expired_date', true)
             ->whereRaw('(enddate::date - CURRENT_DATE) >= 90')
             ->whereNotIn('status', ['C', 'R', 'X'])
@@ -85,14 +91,18 @@ class PerizinanController extends Controller
         $categories = MsPerizinanCategory::query()->where('status', 'A')
             ->orderBy('perizinancategory_descr')
             ->get(['perizinan_category', 'perizinancategory_descr']);
-        $sites = MsSite::query()->where('status', 'A')
+        $sitesQuery = MsSite::query()->where('status', 'A')
             ->whereIn('cpny_id', $companies)
             ->orderBy('cpny_id')
-            ->orderBy('site_name')
-            ->get(['siteid', 'site_name', 'cpny_id']);
+            ->orderBy('site_name');
+        if (!$access['has_ga_access']) {
+            $sitesQuery->whereIn('siteid', $permitQuery()
+                ->whereNotNull('site_id')
+                ->select('site_id'));
+        }
+        $sites = $sitesQuery->get(['siteid', 'site_name', 'cpny_id']);
         $approvers = User::query()->where('status', 'A')->orderBy('name')->get(['username', 'name']);
-        $expiryPeriods = TrPerizinan::query()
-            ->whereIn('cpny_id', $companies)
+        $expiryPeriods = $permitQuery()
             ->whereNotNull('enddate')
             ->selectRaw('EXTRACT(YEAR FROM enddate)::int AS year, EXTRACT(MONTH FROM enddate)::int AS month')
             ->distinct()
@@ -130,6 +140,7 @@ class PerizinanController extends Controller
             ? \App\Models\MsCompany::pluck('cpny_id')
             : Usercpny::query()->where('username', Auth::user()->username)
                 ->where('status', 'A')->pluck('cpny_id')->unique()->values();
+        $access = $this->perizinanAccessScope(Auth::user());
 
         $query = TrPerizinan::query()
             ->with([
@@ -143,6 +154,10 @@ class PerizinanController extends Controller
                     ->select(['id', 'prev_perizinan_id', 'status']),
             ])
             ->whereIn('cpny_id', $companyIds);
+
+        if (!$access['has_ga_access']) {
+            $query->whereIn('department_fin_id', $access['department_fin_ids']);
+        }
 
         if ($filter === 'active') {
             $query->where(function ($subQuery) use ($today) {
@@ -248,6 +263,7 @@ class PerizinanController extends Controller
                 'perizinan_title', 'perizinan_descr', 'vendor_name',
                 'startdate', 'enddate', 'reminder_date', 'expired_date', 'status', 'created_by',
             ])->map(function ($permit) {
+                $permit->detail_hash = Hashids::encode($permit->id);
                 $permit->site_name = $permit->site?->site_name;
                 $permit->category_name = $permit->category?->perizinancategory_descr;
                 $permit->information = $permit->latestActivity?->response_descr;
@@ -350,6 +366,23 @@ class PerizinanController extends Controller
         return response()->json(['data' => $permit]);
     }
 
+    public function showPage(string $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_unless($id, 404);
+
+        $companyIds = Usercpny::query()->where('username', Auth::user()->username)
+            ->where('status', 'A')
+            ->pluck('cpny_id');
+
+        $permit = TrPerizinan::query()
+            ->whereKey($id)
+            ->whereIn('cpny_id', $companyIds)
+            ->firstOrFail(['id', 'perizinan_id']);
+
+        return $this->index()->with('openPermitId', $permit->perizinan_id);
+    }
+
     public function storeActivity(Request $request, string $perizinanId)
     {
         $validated = $request->validate([
@@ -415,6 +448,73 @@ class PerizinanController extends Controller
             'message' => 'Permit activity saved successfully.',
             'data' => $activity,
         ]);
+    }
+
+    private function sendSavedPermitEmail(string $perizinanId, bool $isEdit): bool
+    {
+        try {
+            $permit = TrPerizinan::query()
+                ->where('perizinan_id', $perizinanId)
+                ->firstOrFail();
+
+            $requester = User::query()
+                ->where('username', $permit->user_peminta)
+                ->where('status', 'A')
+                ->first(['username', 'name', 'email', 'notification_email']);
+            $to = trim((string) ($requester?->notification_email ?: $requester?->email));
+
+            if (!$requester || $to === '') {
+                logger()->warning('Permit save email skipped: requester email not found.', [
+                    'perizinan_id' => $perizinanId,
+                    'user_peminta' => $permit->user_peminta,
+                ]);
+
+                return false;
+            }
+
+            $ccUsernames = collect(explode(',', (string) $permit->user_dept_peminta))
+                ->map(fn ($username) => trim($username))
+                ->filter()
+                ->unique()
+                ->values();
+            $ccEmails = User::query()
+                ->whereIn('username', $ccUsernames)
+                ->where('status', 'A')
+                ->get(['email', 'notification_email'])
+                ->map(fn ($user) => trim((string) ($user->notification_email ?: $user->email)))
+                ->filter(fn ($email) => $email !== '' && strcasecmp($email, $to) !== 0)
+                ->unique()
+                ->values()
+                ->all();
+
+            $permitUrl = url('/showperizinan/'.Hashids::encode($permit->id));
+            $data = [
+                'recipientName' => $requester->name ?: $requester->username,
+                'permit' => $permit,
+                'permitUrl' => $permitUrl,
+                'isEdit' => $isEdit,
+            ];
+
+            Mail::send('emails.perizinan-saved', $data, function ($message) use ($to, $ccEmails, $permit, $isEdit) {
+                $message->to($to)
+                    ->subject($permit->perizinan_id.($isEdit ? ' - Permit Updated' : ' - Permit Created'))
+                    ->from(config('mail.from.address'), config('app.name'));
+
+                if ($ccEmails !== []) {
+                    $message->cc($ccEmails);
+                }
+            });
+
+            return true;
+        } catch (\Throwable $exception) {
+            report($exception);
+            logger()->error('Failed to send permit save email.', [
+                'perizinan_id' => $perizinanId,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return false;
+        }
     }
 
     public function renew(Request $request, string $perizinanId)
@@ -634,10 +734,13 @@ class PerizinanController extends Controller
             }
 
             DB::connection('pgsql')->commit();
+            $emailSent = $this->sendSavedPermitEmail($docid, $isEdit);
+
             return response()->json([
                 'message' => $isEdit ? 'Permit updated successfully.' : 'Permit created successfully.',
                 'perizinan_id' => $docid,
                 'redirect' => route('perizinan'),
+                'email_sent' => $emailSent,
             ]);
         } catch (\Throwable $exception) {
             DB::connection('pgsql')->rollBack();
@@ -647,5 +750,47 @@ class PerizinanController extends Controller
                 'error' => $exception->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Resolve permit visibility from the login user's operational departments.
+     * GAACCESS sees every department inside the already-authorized company scope.
+     */
+    private function perizinanAccessScope(User $user): array
+    {
+        $hasGaAccess = SysUserRole::query()
+            ->where('username', $user->username)
+            ->where('role_id', 'GAACCESS')
+            ->where('status', 'A')
+            ->exists();
+
+        if ($hasGaAccess) {
+            return [
+                'has_ga_access' => true,
+                'department_fin_ids' => [],
+            ];
+        }
+
+        $departmentIds = collect(preg_split('/\s*,\s*/', (string) $user->department_id))
+            ->map(fn ($departmentId) => trim((string) $departmentId))
+            ->filter()
+            ->unique()
+            ->values();
+
+        $departmentFinIds = MsDepartment::query()
+            ->whereIn('department_id', $departmentIds)
+            ->where('status', 'A')
+            ->whereNotNull('department_fin_id')
+            ->pluck('department_fin_id')
+            ->map(fn ($departmentFinId) => trim((string) $departmentFinId))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        return [
+            'has_ga_access' => false,
+            'department_fin_ids' => $departmentFinIds,
+        ];
     }
 }

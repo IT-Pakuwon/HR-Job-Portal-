@@ -1255,6 +1255,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware('access:PERIZINAN,VIEW')->group(function () {
         Route::get('/perizinan', [PerizinanController::class, 'index'])->name('perizinan');
+        Route::get('/showperizinan/{hash}', [PerizinanController::class, 'showPage'])->name('perizinan.show-page');
         Route::get('/perizinan/json', [PerizinanController::class, 'json'])->name('perizinan.json');
         Route::get('/perizinan/departments', [PerizinanController::class, 'departments'])->name('perizinan.departments');
         Route::get('/perizinan/sites', [PerizinanController::class, 'sites'])->name('perizinan.sites');
