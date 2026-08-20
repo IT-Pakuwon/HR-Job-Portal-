@@ -268,19 +268,19 @@ class PerformanceManagementController extends Controller
             ->whereNotNull('user_id_talenta')
             ->pluck('user_id_talenta');
 
-        $rows = ViewUsersTalenta::query()
+        $rows = Users_talenta::query()
             ->whereNotIn('user_id', $linkedUserIds)
             ->orderBy('first_name')
             ->get()
-            ->reject(fn ($view) => $this->isResigned($view->status_talenta))
-            ->map(function ($view) {
+            ->reject(fn ($local) => $this->isResigned($local->status_talenta))
+            ->map(function ($local) {
                 return [
-                    'user_id' => $view->user_id,
-                    'name' => trim("{$view->first_name} {$view->last_name}"),
-                    'employee_id' => $view->employee_id,
-                    'email' => $view->email,
-                    'job_position' => $view->job_position,
-                    'job_level' => $view->job_level,
+                    'user_id' => $local->user_id,
+                    'name' => trim("{$local->first_name} {$local->last_name}"),
+                    'employee_id' => $local->employee_id,
+                    'email' => $local->email,
+                    'job_position' => $local->job_position,
+                    'job_level' => $local->job_level,
                 ];
             });
 
@@ -296,27 +296,27 @@ class PerformanceManagementController extends Controller
             'email' => 'nullable|email|max:150',
         ]);
 
-        $view = ViewUsersTalenta::where('user_id', $request->user_id)->first();
+        $local = Users_talenta::where('user_id', $request->user_id)->first();
 
-        if (!$view) {
+        if (!$local) {
             return response()->json(['success' => false, 'message' => 'Data tidak ditemukan di Talenta'], 404);
         }
 
-        if (UserDas::where('user_id_talenta', $view->user_id)->exists()) {
+        if (UserDas::where('user_id_talenta', $local->user_id)->exists()) {
             return response()->json(['success' => false, 'message' => 'User untuk data ini sudah pernah dibuat'], 422);
         }
 
         try {
             $user = UserDas::create([
-                'name' => trim("{$view->first_name} {$view->last_name}"),
+                'name' => trim("{$local->first_name} {$local->last_name}"),
                 'username' => trim($request->username),
-                'npk' => $view->employee_id,
+                'npk' => $local->employee_id,
                 'password' => Hash::make($request->password ?: 'pakuwon1234#'),
                 'email' => $request->email ?: 'noemail@test.com',
                 'role' => 'User',
-                'user_id_talenta' => $view->user_id,
-                'job_level' => $view->job_level,
-                'position' => $view->job_position,
+                'user_id_talenta' => $local->user_id,
+                'job_level' => $local->job_level,
+                'position' => $local->job_position,
                 'status' => 'A',
                 'created_user' => Auth::user()->username ?? 'system',
             ]);
