@@ -57,6 +57,14 @@ class Kernel extends ConsoleKernel
             ->at('07:10')
             ->withoutOverlapping();
 
+        // Remind permit requesters at H-90, H-75, H-60, H-45, and H-30.
+        // The command stops reminders once a renewal references the source permit.
+        $schedule->command('email:perizinan-renewal-reminder')
+            ->dailyAt('07:15')
+            ->timezone('Asia/Jakarta')
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/perizinan-renewal-reminder.log'));
+
         // Email reminder H-7 for Paid events (PIC internal, creator, GMACCESS)
         $schedule->command('email:event-h7-paid-reminder')
             ->dailyAt('07:15')
