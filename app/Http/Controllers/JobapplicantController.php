@@ -318,7 +318,10 @@ class JobapplicantController extends Controller
 
             $base = DB::connection('mysql3')
                 ->table('viewtrxcareer as vc')
-                ->leftJoin('viewtrxcareer_scoring as vs', 'vc.docid', '=', 'vs.docid')
+                ->leftJoin('viewtrxcareer_scoring as vs', function ($join) {
+                    $join->on('vc.docid', '=', 'vs.docid')
+                        ->on('vc.docidposting', '=', 'vs.jobid');
+                })
                 ->leftJoin('hr_trx_jobposting as jp', 'jp.docid', '=', 'vc.docidposting')
                 ->leftJoin('hr_ms_department as dept', 'dept.department_id', '=', 'jp.departementid')
                 ->leftJoin('hr_ms_division as div', 'div.division_id', '=', 'dept.division_id')
@@ -909,7 +912,10 @@ class JobapplicantController extends Controller
         // $applicants = ViewCareer::where('docidposting', $jobId)->get();
         $applicants = DB::connection('mysql3')
             ->table('viewtrxcareer as vc')
-            ->leftJoin('viewtrxcareer_scoring as vs', 'vc.docid', '=', 'vs.docid')
+            ->leftJoin('viewtrxcareer_scoring as vs', function ($join) {
+                $join->on('vc.docid', '=', 'vs.docid')
+                    ->on('vc.docidposting', '=', 'vs.jobid');
+            })
             ->where('vc.docidposting', $jobId)
             ->select(
                 'vc.*',

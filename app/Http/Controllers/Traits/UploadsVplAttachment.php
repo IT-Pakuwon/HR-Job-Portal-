@@ -66,14 +66,16 @@ trait UploadsVplAttachment
                 ]
             );
 
-            Attachment::create([
-                'docid' => $docid,
-                'name' => $filename,
-                'attachfile' => $objectPath,
-                'status' => 'A',
-                'extention' => $file->getClientOriginalExtension(),
-                'created_user' => $user->name,
-            ]);
+            // Attachment::$fillable only allows docid/created_user/status, so
+            // mass-assignment via create() silently drops name/attachfile/extention.
+            $attach = new Attachment();
+            $attach->docid = $docid;
+            $attach->name = $filename;
+            $attach->attachfile = $objectPath;
+            $attach->status = 'A';
+            $attach->extention = $file->getClientOriginalExtension();
+            $attach->created_user = $user->name;
+            $attach->save();
         }
     }
 

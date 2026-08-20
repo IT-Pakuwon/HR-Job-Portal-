@@ -801,21 +801,6 @@
 
                     <div class="flex flex-wrap items-center gap-4">
 
-                        <div class="w-56 shrink-0">
-                            <select id="filter_calendar_ticket_type"
-                                class="filter-select2 w-full rounded-lg border border-gray-300 bg-white text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-
-                                <option value="">All Ticket Type</option>
-
-                                @foreach ($ticketTypes as $type)
-                                    <option value="{{ $type->ticket_type }}">
-                                        {{ $type->ticket_type_name }}
-                                    </option>
-                                @endforeach
-
-                            </select>
-                        </div>
-
                         <button type="button"
                             class="js-toggle-ticket-view inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
                             📋 Table View
@@ -2070,35 +2055,35 @@
         };
     </script>
     @php($engTicketAssetVer = fn (string $rel) => file_exists(public_path($rel)) ? filemtime(public_path($rel)) : time())
-    <script src="{{ asset('assets/js/eng-ticket/core.js') }}"></script>
+    <script src="{{ asset('assets/js/eng-ticket/core.js') }}?v={{ $engTicketAssetVer('assets/js/eng-ticket/core.js') }}"></script>
 
     <script src="{{ asset('assets/js/eng-ticket/helper.js') }}?v={{ $engTicketAssetVer('assets/js/eng-ticket/helper.js') }}"></script>
-    <script src="{{ asset('assets/js/eng-ticket/modal.js') }}"></script>
+    <script src="{{ asset('assets/js/eng-ticket/modal.js') }}?v={{ $engTicketAssetVer('assets/js/eng-ticket/modal.js') }}"></script>
 
     <script src="{{ asset('assets/js/shared/mention-autocomplete.js') }}"></script>
 
     <script src="{{ asset('assets/js/eng-ticket/datatable.js') }}?v={{ $engTicketAssetVer('assets/js/eng-ticket/datatable.js') }}"></script>
     <script src="{{ asset('assets/js/eng-ticket/detail-modal.js') }}?v={{ $engTicketAssetVer('assets/js/eng-ticket/detail-modal.js') }}"></script>
 
-    <script src="{{ asset('assets/js/eng-ticket/select.js') }}"></script>
-    <script src="{{ asset('assets/js/eng-ticket/request-form.js') }}"></script>
-    <script src="{{ asset('assets/js/eng-ticket/edit-form.js') }}"></script>
+    <script src="{{ asset('assets/js/eng-ticket/select.js') }}?v={{ $engTicketAssetVer('assets/js/eng-ticket/select.js') }}"></script>
+    <script src="{{ asset('assets/js/eng-ticket/request-form.js') }}?v={{ $engTicketAssetVer('assets/js/eng-ticket/request-form.js') }}"></script>
+    <script src="{{ asset('assets/js/eng-ticket/edit-form.js') }}?v={{ $engTicketAssetVer('assets/js/eng-ticket/edit-form.js') }}"></script>
 
-    <script src="{{ asset('assets/js/eng-ticket/attachment.js') }}"></script>
-    <script src="{{ asset('assets/js/eng-ticket/comment.js') }}"></script>
+    <script src="{{ asset('assets/js/eng-ticket/attachment.js') }}?v={{ $engTicketAssetVer('assets/js/eng-ticket/attachment.js') }}"></script>
+    <script src="{{ asset('assets/js/eng-ticket/comment.js') }}?v={{ $engTicketAssetVer('assets/js/eng-ticket/comment.js') }}"></script>
 
-    <script src="{{ asset('assets/js/eng-ticket/response.js') }}"></script>
+    <script src="{{ asset('assets/js/eng-ticket/response.js') }}?v={{ $engTicketAssetVer('assets/js/eng-ticket/response.js') }}"></script>
     <script src="{{ asset('assets/js/eng-ticket/approval.js') }}?v={{ $engTicketAssetVer('assets/js/eng-ticket/approval.js') }}"></script>
-    <script src="{{ asset('assets/js/eng-ticket/transfer.js') }}"></script>
-    <script src="{{ asset('assets/js/eng-ticket/process_ticket.js') }}"></script>
-    <script src="{{ asset('assets/js/eng-ticket/pending.js') }}"></script>
-    <script src="{{ asset('assets/js/eng-ticket/reopen.js') }}"></script>
-    <script src="{{ asset('assets/js/eng-ticket/complete.js') }}"></script>
-    <script src="{{ asset('assets/js/eng-ticket/cancel.js') }}"></script>
+    <script src="{{ asset('assets/js/eng-ticket/transfer.js') }}?v={{ $engTicketAssetVer('assets/js/eng-ticket/transfer.js') }}"></script>
+    <script src="{{ asset('assets/js/eng-ticket/process_ticket.js') }}?v={{ $engTicketAssetVer('assets/js/eng-ticket/process_ticket.js') }}"></script>
+    <script src="{{ asset('assets/js/eng-ticket/pending.js') }}?v={{ $engTicketAssetVer('assets/js/eng-ticket/pending.js') }}"></script>
+    <script src="{{ asset('assets/js/eng-ticket/reopen.js') }}?v={{ $engTicketAssetVer('assets/js/eng-ticket/reopen.js') }}"></script>
+    <script src="{{ asset('assets/js/eng-ticket/complete.js') }}?v={{ $engTicketAssetVer('assets/js/eng-ticket/complete.js') }}"></script>
+    <script src="{{ asset('assets/js/eng-ticket/cancel.js') }}?v={{ $engTicketAssetVer('assets/js/eng-ticket/cancel.js') }}"></script>
 
-    <script src="{{ asset('assets/js/eng-ticket/calendar.js') }}"></script>
+    <script src="{{ asset('assets/js/eng-ticket/calendar.js') }}?v={{ $engTicketAssetVer('assets/js/eng-ticket/calendar.js') }}"></script>
 
     <script src="{{ asset('assets/js/eng-ticket/approval-panel.js') }}?v={{ $engTicketAssetVer('assets/js/eng-ticket/approval-panel.js') }}"></script>
 
-    <script src="{{ asset('assets/js/eng-ticket/init.js') }}"></script>
+    <script src="{{ asset('assets/js/eng-ticket/init.js') }}?v={{ $engTicketAssetVer('assets/js/eng-ticket/init.js') }}"></script>
 </x-app-layout>

@@ -48,10 +48,6 @@ const EngTicketCalendar = {
         $(document).on('click', '#btn_apply_filter, #btn_reset_filter', function () {
             EngTicketCalendar.loadEvents();
         });
-
-        $(document).on('change', '#filter_calendar_ticket_type', function () {
-            EngTicketCalendar.loadEvents();
-        });
     },
 
     getFilterParams() {
@@ -61,7 +57,7 @@ const EngTicketCalendar = {
             status_pekerjaan: $('#filter_status_pekerjaan').val() || '',
             category_id:      $('#filter_category_id').val() || '',
             cpny_id:          $('#filter_company_id').val() || '',
-            ticket_type:      $('#filter_calendar_ticket_type').val() || '',
+            ticket_type:      $('#filter_ticket_type').val() || '',
             date_from:        $('#filter_date_from').val() || '',
             date_to:          $('#filter_date_to').val() || '',
         };

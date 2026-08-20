@@ -287,7 +287,7 @@
 
                     {{-- Change Company --}}
                     <div
-                        class="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-white/[0.06] dark:bg-white/[0.03]">
+                        class="hidden rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-white/[0.06] dark:bg-white/[0.03]">
 
                         <div class="mb-4 flex items-center justify-between gap-4">
 
