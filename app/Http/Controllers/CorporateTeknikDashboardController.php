@@ -148,6 +148,16 @@ class CorporateTeknikDashboardController extends Controller
         return in_array($ticketType, [self::BA_ENG_TYPE, self::BA_BSFO_TYPE, self::BA_FO_TYPE], true);
     }
 
+    // A rejected completion request drops the ticket back to PROCESS — the
+    // same status a normal Process action lands on — so PROCESS alone can't
+    // tell the two apart. Mirrors EngTicketController::isRejectedProcessState()
+    // so this dashboard's status badge agrees with the Eng Ticket module's.
+    protected function isRejectedProcessState(TrTicket $ticket, ?TrTicketActivity $latestWorkflowActivity): bool
+    {
+        return $ticket->status_pekerjaan === 'PROCESS'
+            && optional($latestWorkflowActivity)->response_summary === 'Ticket Completion Rejected';
+    }
+
     protected function ticketRows(array $ticketTypes)
     {
         $tickets = TrTicket::query()
@@ -155,7 +165,8 @@ class CorporateTeknikDashboardController extends Controller
                 'id', 'ticketid', 'ticketdate', 'cpny_id', 'department_id',
                 'ticket_priority', 'ticket_duedate', 'ticket_type',
                 'ticket_categoryid', 'ticket_subcategoryid', 'user_peminta',
-                'location_id', 'sub_location_id', 'issue_summary', 'pic_ticket', 'status',
+                'location_id', 'sub_location_id', 'issue_summary', 'pic_ticket',
+                'status', 'status_pekerjaan',
             ])
             ->with([
                 'category:ticket_categoryid,ticket_category_name',
@@ -168,15 +179,16 @@ class CorporateTeknikDashboardController extends Controller
             ->orderByDesc('ticketdate')
             ->get();
 
-        $activities = TrTicketActivity::query()
-            ->select('ticketid', 'status_pekerjaan')
+        $latestWorkflowActivities = TrTicketActivity::query()
+            ->select('ticketid', 'response_summary')
             ->whereIn('ticketid', $tickets->pluck('ticketid'))
-            ->orderByDesc('response_date')
+            ->where('response_summary', '!=', 'Ticket Comment')
+            ->orderByDesc('id')
             ->get()
             ->unique('ticketid')
             ->keyBy('ticketid');
 
-        return $tickets->map(function ($row) use ($activities) {
+        return $tickets->map(function ($row) use ($latestWorkflowActivities) {
             $today = now();
 
             $isOverdue = $row->ticket_duedate
@@ -219,7 +231,9 @@ class CorporateTeknikDashboardController extends Controller
                 'sub_location_name' => $subLocationName,
                 'issue_summary' => $row->issue_summary,
                 'pic_ticket' => $row->pic_ticket,
-                'status_pekerjaan' => $activities[$row->ticketid]->status_pekerjaan ?? '-',
+                'status_pekerjaan' => $this->isRejectedProcessState($row, $latestWorkflowActivities[$row->ticketid] ?? null)
+                    ? 'REJECTED'
+                    : ($row->status_pekerjaan ?: '-'),
                 'status' => $row->status,
                 'is_overdue' => $isOverdue,
             ];

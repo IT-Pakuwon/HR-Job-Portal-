@@ -165,6 +165,9 @@
             REOPEN:
                 "bg-red-100 text-red-700 border-red-200",
 
+            REJECTED:
+                "bg-rose-100 text-rose-700 border-rose-200",
+
             CANCEL:
                 "bg-slate-200 text-slate-700 border-slate-300",
         };
@@ -630,6 +633,7 @@
                 { value: "RESPONSE",  label: "Response" },
                 { value: "APPROVED",  label: "Approved" },
                 { value: "PROCESS",   label: "Process" },
+                { value: "REJECTED",  label: "Rejected" },
                 { value: "PENDING",   label: "Pending" },
                 { value: "TRANSFER",  label: "Transfer" },
                 { value: "REOPEN",    label: "Reopen" },
@@ -643,6 +647,7 @@
                 { value: "RESPONSE",  label: "Response" },
                 { value: "APPROVED",  label: "Approved" },
                 { value: "PROCESS",   label: "Process" },
+                { value: "REJECTED",  label: "Rejected" },
                 { value: "PENDING",   label: "Pending" },
                 { value: "TRANSFER",  label: "Transfer" },
                 { value: "REOPEN",    label: "Reopen" },

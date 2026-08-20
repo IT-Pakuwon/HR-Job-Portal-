@@ -2145,6 +2145,7 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/api/budget-years', 'budgetYears')->name('gm.budget-years');
                 Route::get('/api/departments', 'departments')->name('gm.departments');
                 Route::get('/api/budget-by-month', 'budgetByMonth')->name('gm.budget-by-month');
+                Route::get('/api/section-last-updated', 'sectionLastUpdated')->name('gm.section-last-updated');
 
                 // Isort API endpoints
                 Route::get('/api/isort-summary', 'isortSummary')->name('gm.isort-summary');
@@ -2164,6 +2165,11 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/api/pgcard-coupon-styw', 'pgcardCouponStyw')->name('gm.pgcard-coupon-styw');
                 Route::get('/api/pgcard-coupon-styw-compare', 'pgcardCouponStywCompare')->name('gm.pgcard-coupon-styw-compare');
                 Route::get('/api/pgcard-campaign-samples', 'pgcardCampaignSamples')->name('gm.pgcard-campaign-samples');
+
+                // Parking - Valet API endpoints
+                Route::get('/api/valet-kpi-summary', 'valetKpiSummary')->name('gm.valet-kpi-summary');
+                Route::get('/api/valet-voucher-redemption', 'valetVoucherRedemption')->name('gm.valet-voucher-redemption');
+                Route::get('/api/valet-peak-hours', 'valetPeakHours')->name('gm.valet-peak-hours');
 
                 // Export endpoints
                 Route::get('/export/pdf', 'exportPdf')->name('gm.export.pdf');

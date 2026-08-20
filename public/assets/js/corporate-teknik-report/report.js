@@ -121,6 +121,7 @@
             COMPLETED: 'bg-emerald-100 text-emerald-700 border-emerald-200',
             TRANSFER: 'bg-cyan-100 text-cyan-700 border-cyan-200',
             REOPEN: 'bg-red-100 text-red-700 border-red-200',
+            REJECTED: 'bg-rose-100 text-rose-700 border-rose-200',
             CANCEL: 'bg-slate-200 text-slate-700 border-slate-300',
         };
         var cls = styles[status] || 'bg-slate-100 text-slate-700 border-slate-200';
@@ -211,7 +212,7 @@
 
     function updateCategoryByUnitTitle() {
         var sel = document.getElementById('gmTicketTypeFilter');
-        var isBa = sel && sel.value === 'BA';
+        var isBa = sel && (sel.value === 'BA' || sel.value.indexOf('BA_') === 0);
         utils.setText('corpCategoryByUnitTitle', isBa ? 'Ticket Categories by Company' : 'Ticket Categories by Business Unit');
     }
 

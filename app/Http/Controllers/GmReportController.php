@@ -10,6 +10,7 @@ use App\Services\BigQueryService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Maatwebsite\Excel\Facades\Excel;
 
 class GmReportController extends Controller
@@ -36,7 +37,33 @@ class GmReportController extends Controller
         'GPS' => 'PMB',
     ];
 
+    // ── Valet Parking constants ─────────────────────────────────────────────────
+    private const VALET_PROJECT = 'ifca-pkwjakarta';
+    private const VALET_DATASET = 'valet_parking';
+
+    // Maps HR company code → valet_parking places_id — 'PSA' (Blok M Plaza) is
+    // intentionally absent, it has no valet service.
+    private const VALET_PLACES_MAP = [
+        'AW'  => 2,   // Gandaria City
+        'EP'  => 1,   // Kota Kasablanka
+        'GPS' => 6,   // Pakuwon Mall Bekasi
+    ];
+
+    private const VALET_PLACE_NAMES = [
+        1 => 'Kota Kasablanka',
+        2 => 'Gandaria City',
+        6 => 'Pakuwon Mall Bekasi',
+    ];
+
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    // BigQuery NUMERIC columns come back as Google\Cloud\BigQuery\Numeric
+    // objects, not plain PHP numbers — casting one directly to float throws
+    // a "could not be converted to float" warning and silently yields 1.
+    private function bqFloat($val): float
+    {
+        return (float) (string) ($val ?? 0);
+    }
 
     private function csvToArray($val): array
     {
@@ -104,6 +131,44 @@ class GmReportController extends Controller
             if (!empty($allowed) && !in_array($cpnyId, $allowed, true)) {
                 return [];
             }
+            return [$map[$cpnyId]];
+        }
+
+        if (empty($allowed)) {
+            return null; // no restriction — show all sites
+        }
+
+        return array_values(array_filter(
+            array_map(fn ($code) => $map[$code] ?? null, $allowed)
+        ));
+    }
+
+    /**
+     * Returns the valet_parking places_id values the current user may see.
+     * null = no restriction (show all sites with valet service)
+     * []   = no access (includes the PSA case — Blok M Plaza has no valet)
+     * [2]  = filtered to a single site
+     *
+     * Unlike allowedIsortSites()/allowedPgcardMalls(), an explicit $cpnyId not
+     * present in the map returns [] immediately instead of falling through to
+     * the "no restriction" branch — every HR company those two helpers know
+     * about happens to exist in their maps, but PSA deliberately doesn't exist
+     * in VALET_PLACES_MAP, so the fallthrough would incorrectly show
+     * unrestricted valet data to a user who explicitly filtered to PSA.
+     */
+    private function allowedValetPlaces(?string $cpnyId): ?array
+    {
+        $map = self::VALET_PLACES_MAP;
+        $allowed = $this->allowedCompanies();
+
+        if ($cpnyId) {
+            if (!isset($map[$cpnyId])) {
+                return [];
+            }
+            if (!empty($allowed) && !in_array($cpnyId, $allowed, true)) {
+                return [];
+            }
+
             return [$map[$cpnyId]];
         }
 
@@ -1265,6 +1330,197 @@ class GmReportController extends Controller
 
     // ── API: Cumulative budget used per month ─────────────────────────────────
 
+    // ── API: Parking - Valet ─────────────────────────────────────────────────
+
+    public function valetKpiSummary(Request $request)
+    {
+        try {
+            ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
+            $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
+            $places = $this->allowedValetPlaces($cpnyId);
+
+            $empty = [
+                'total_valet' => 0, 'total_income_service' => 0, 'total_income_parking' => 0,
+                'total_member' => 0, 'avg_duration_minutes' => 0, 'daily_avg_turnover' => 0, 'by_place' => [],
+            ];
+
+            if ($places !== null && empty($places)) {
+                return response()->json(['data' => $empty]);
+            }
+
+            $placeFilter = $places !== null
+                ? 'AND places_id IN (' . implode(',', array_map('intval', $places)) . ')'
+                : '';
+
+            $bq = new BigQueryService();
+            $p = self::VALET_PROJECT;
+            $d = self::VALET_DATASET;
+
+            $sqlTotals = <<<SQL
+                SELECT
+                    COUNT(*)                                          AS total_valet,
+                    COALESCE(SUM(service_amount), 0)                  AS total_income_service,
+                    COALESCE(SUM(parking_amount), 0)                  AS total_income_parking,
+                    COUNTIF(voucher_status = 'MEMBER')                AS total_member,
+                    COALESCE(AVG(duration_hour * 60 + duration_minute), 0) AS avg_duration_minutes
+                FROM `{$p}.{$d}.valet_parking_valets_src`
+                WHERE checkin_date BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                  {$placeFilter}
+            SQL;
+
+            $sqlByPlace = <<<SQL
+                SELECT
+                    places_id,
+                    COUNT(*)                         AS total_valet,
+                    COALESCE(SUM(service_amount), 0) AS total_income_service,
+                    COALESCE(SUM(parking_amount), 0) AS total_income_parking
+                FROM `{$p}.{$d}.valet_parking_valets_src`
+                WHERE checkin_date BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                  {$placeFilter}
+                GROUP BY places_id
+                ORDER BY total_valet DESC
+            SQL;
+
+            $row = ($bq->query($sqlTotals))[0] ?? [];
+
+            $days = max(1, \Carbon\Carbon::parse($dateFrom)->diffInDays(\Carbon\Carbon::parse($dateTo)) + 1);
+            $totalValet = (int) ($row['total_valet'] ?? 0);
+
+            $byPlace = [];
+            foreach ($bq->query($sqlByPlace) as $pr) {
+                $placeId = (int) ($pr['places_id'] ?? 0);
+                $byPlace[] = [
+                    'place_id' => $placeId,
+                    'place_name' => self::VALET_PLACE_NAMES[$placeId] ?? "Place #{$placeId}",
+                    'total_valet' => (int) ($pr['total_valet'] ?? 0),
+                    'total_income_service' => $this->bqFloat($pr['total_income_service'] ?? null),
+                    'total_income_parking' => $this->bqFloat($pr['total_income_parking'] ?? null),
+                ];
+            }
+
+            return response()->json([
+                'data' => [
+                    'total_valet' => $totalValet,
+                    'total_income_service' => $this->bqFloat($row['total_income_service'] ?? null),
+                    'total_income_parking' => $this->bqFloat($row['total_income_parking'] ?? null),
+                    'total_member' => (int) ($row['total_member'] ?? 0),
+                    'avg_duration_minutes' => (float) ($row['avg_duration_minutes'] ?? 0),
+                    'daily_avg_turnover' => round($totalValet / $days, 1),
+                    'by_place' => $byPlace,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['data' => $empty ?? [], 'error' => $e->getMessage()]);
+        }
+    }
+
+    public function valetVoucherRedemption(Request $request)
+    {
+        try {
+            ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
+            $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
+            $places = $this->allowedValetPlaces($cpnyId);
+
+            $empty = ['total_valet' => 0, 'redeemed' => 0, 'redemption_rate' => 0, 'by_status' => []];
+
+            if ($places !== null && empty($places)) {
+                return response()->json(['data' => $empty]);
+            }
+
+            $placeFilter = $places !== null
+                ? 'AND places_id IN (' . implode(',', array_map('intval', $places)) . ')'
+                : '';
+
+            $bq = new BigQueryService();
+            $p = self::VALET_PROJECT;
+            $d = self::VALET_DATASET;
+
+            // voucher_code is currently unpopulated across the whole table, so
+            // "redeemed" is derived from voucher_status instead (verified against
+            // live data — every non-blank voucher_status row is a MEMBER free-
+            // parking redemption today, but this stays generic for future statuses).
+            $sql = <<<SQL
+                SELECT
+                    COALESCE(NULLIF(voucher_status, ''), 'None') AS status,
+                    COUNT(*)                                     AS status_count
+                FROM `{$p}.{$d}.valet_parking_valets_src`
+                WHERE checkin_date BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                  {$placeFilter}
+                GROUP BY status
+            SQL;
+
+            $rows = $bq->query($sql);
+
+            $totalValet = 0;
+            $redeemed = 0;
+            $byStatus = [];
+            foreach ($rows as $r) {
+                $count = (int) ($r['status_count'] ?? 0);
+                $status = (string) ($r['status'] ?? 'None');
+                $totalValet += $count;
+                if ($status !== 'None') {
+                    $redeemed += $count;
+                }
+                $byStatus[] = ['status' => $status, 'count' => $count];
+            }
+
+            return response()->json([
+                'data' => [
+                    'total_valet' => $totalValet,
+                    'redeemed' => $redeemed,
+                    'redemption_rate' => $totalValet > 0 ? round(($redeemed / $totalValet) * 100, 1) : 0,
+                    'by_status' => $byStatus,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['data' => $empty ?? [], 'error' => $e->getMessage()]);
+        }
+    }
+
+    public function valetPeakHours(Request $request)
+    {
+        try {
+            ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
+            $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
+            $places = $this->allowedValetPlaces($cpnyId);
+
+            $hours = array_fill(0, 24, 0);
+
+            if ($places !== null && empty($places)) {
+                return response()->json(['data' => array_values($hours)]);
+            }
+
+            $placeFilter = $places !== null
+                ? 'AND places_id IN (' . implode(',', array_map('intval', $places)) . ')'
+                : '';
+
+            $bq = new BigQueryService();
+            $p = self::VALET_PROJECT;
+            $d = self::VALET_DATASET;
+
+            $sql = <<<SQL
+                SELECT
+                    EXTRACT(HOUR FROM checkin_time) AS hr,
+                    COUNT(*)                        AS total_valet
+                FROM `{$p}.{$d}.valet_parking_valets_src`
+                WHERE checkin_date BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                  {$placeFilter}
+                GROUP BY hr
+            SQL;
+
+            foreach ($bq->query($sql) as $r) {
+                $hr = (int) ($r['hr'] ?? -1);
+                if ($hr >= 0 && $hr <= 23) {
+                    $hours[$hr] = (int) ($r['total_valet'] ?? 0);
+                }
+            }
+
+            return response()->json(['data' => array_values($hours)]);
+        } catch (\Throwable $e) {
+            return response()->json(['data' => array_values($hours ?? array_fill(0, 24, 0)), 'error' => $e->getMessage()]);
+        }
+    }
+
     // ── API: PG Card — Top 10 customers per mall ──────────────────────────────
 
     public function pgcardTopCustomers(Request $request)
@@ -2148,5 +2404,59 @@ class GmReportController extends Controller
             'year' => $year,
             'total_budget' => round((float) ($row->total_budget ?? 0)),
         ]);
+    }
+
+    // ── API: Per-section "Last Updated" timestamps ────────────────────────────
+
+    /**
+     * Returns when each section's underlying data source was last refreshed:
+     * - budget: newest updated_at on the local budget_details table.
+     * - pgcard / isort / valet: newest BigQuery table sync time in that dataset
+     *   (these datasets are refreshed by an external nightly ETL job, not by
+     *   this app, so this is the only way to know their freshness).
+     * BigQuery metadata lookups are cached briefly — the source data itself
+     * only changes once a night, so there is no need to hit BigQuery on every
+     * dashboard load / tab switch.
+     */
+    public function sectionLastUpdated()
+    {
+        $raw = Cache::remember('gm_section_last_updated', 300, function () {
+            $bq = new BigQueryService();
+
+            return [
+                'budget' => BudgetDetail::query()->where('status', 'C')->max('updated_at'),
+                'pgcard' => $this->bqDatasetLastModified($bq, self::PGCARD_PROJECT, self::PGCARD_DATASET),
+                'isort' => $this->bqDatasetLastModified($bq, self::ISORT_PROJECT, self::ISORT_DATASET),
+                'valet' => $this->bqDatasetLastModified($bq, self::VALET_PROJECT, self::VALET_DATASET),
+            ];
+        });
+
+        return response()->json([
+            'data' => array_map(fn ($v) => $this->formatLastUpdated($v), $raw),
+        ]);
+    }
+
+    private function bqDatasetLastModified(BigQueryService $bq, string $project, string $dataset): ?string
+    {
+        try {
+            $sql = "SELECT TIMESTAMP_MILLIS(MAX(last_modified_time)) AS last_modified
+                    FROM `{$project}.{$dataset}.__TABLES__`";
+            $rows = $bq->query($sql);
+
+            return isset($rows[0]['last_modified']) ? (string) $rows[0]['last_modified'] : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    private function formatLastUpdated($val): ?string
+    {
+        if (!$val) {
+            return null;
+        }
+
+        return \Carbon\Carbon::parse((string) $val)
+            ->timezone(config('app.timezone'))
+            ->format('d M Y, H:i');
     }
 }
