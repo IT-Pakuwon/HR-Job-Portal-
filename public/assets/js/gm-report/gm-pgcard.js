@@ -98,10 +98,14 @@
     }
 
     // ── Word-wrap + uppercase helper for Y-axis labels ───────────────────────
+    // Always returns an array of lines (even for a single line) so ApexCharts
+    // renders every label the same way (stacked tspans) — mixing plain
+    // strings with arrays is what made long, left-aligned labels get
+    // clipped instead of wrapping.
     function wrapLabel(val, maxChars) {
-        if (!val) return '';
+        if (!val) return [''];
         var s = (typeof val === 'string' ? val : String(val)).toUpperCase();
-        if (s.length <= maxChars) return s;
+        if (s.length <= maxChars) return [s];
         var words = s.split(' ');
         var lines = [''];
         words.forEach(function (word) {
@@ -114,7 +118,7 @@
                 lines.push(word);
             }
         });
-        return lines.length > 1 ? lines : lines[0];
+        return lines;
     }
 
     // ── Bar chart options ─────────────────────────────────────────────────────
@@ -124,7 +128,14 @@
         var categories = rows.map(function (r) { return r.label; });
         var values     = rows.map(function (r) { return useAmt ? r.total_amount : r.value; });
 
-        var chartHeight = Math.max(260, rows.length * 38 + 40);
+        // 16 chars/line keeps each line comfortably inside the 240px y-axis
+        // gutter at 10px/600-weight — wide enough for most single names,
+        // narrow enough that long ones wrap instead of overflowing/clipping.
+        var maxLines = categories.reduce(function (m, c) {
+            return Math.max(m, wrapLabel(c, 16).length);
+        }, 1);
+        var rowHeight   = maxLines > 1 ? 50 : 38;
+        var chartHeight = Math.max(260, rows.length * rowHeight + 40);
 
         return {
             series: [{ name: useAmt ? 'Total Spending' : 'Transactions', data: values }],
@@ -136,7 +147,7 @@
                 background: 'transparent',
                 animations: { enabled: true, easing: 'easeinout', speed: 600 },
             },
-            plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '55%' } },
+            plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: maxLines > 1 ? '48%' : '55%' } },
             colors: [color],
             fill: {
                 type: 'gradient',
@@ -162,7 +173,7 @@
                     align: 'left',
                     style: { fontSize: '10px', fontWeight: 600 },
                     maxWidth: 240,
-                    formatter: function (val) { return wrapLabel(val, 22); },
+                    formatter: function (val) { return wrapLabel(val, 16); },
                 },
             },
             tooltip: {

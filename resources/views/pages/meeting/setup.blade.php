@@ -1430,7 +1430,7 @@
                     },
                     {
                         data: 'room_name',
-                        name: 'room_name'
+                        name: 'ms_meeting_room.room_name'
                     },
                     {
                         data: 'acc_name',
