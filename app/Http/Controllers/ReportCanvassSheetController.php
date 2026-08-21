@@ -1016,7 +1016,7 @@ class ReportCanvassSheetController extends Controller
 
                 'Budget Business Unit' => $row->budget_business_unit_id ?? '',
 
-                'Budget Department' => $departments[$row->budget_department_fin_id] ?? '',
+                'Budget Department' => $row->budget_department_fin_id ?? '',
 
                 'Activity Account' => $row->budget_account_id ?? '',
 
