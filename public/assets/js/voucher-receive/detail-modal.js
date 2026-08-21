@@ -68,8 +68,7 @@ const VplReceiveDetailModal = {
         // Details
         let dHtml = '';
         d.details.forEach(row => {
-            const rawExp = (row.expired_date || '').split('T')[0];
-            const exp = (!rawExp || rawExp === '1900-01-01') ? 'No Expired' : rawExp;
+            const exp = VplReceiveHelper.formatExpDate(row.expired_date) ?? 'No Expired';
             dHtml += `<tr class="hover:bg-blue-50 dark:hover:bg-blue-500/5">
                 <td class="px-4 py-2 text-xs text-slate-700 dark:text-slate-200">${row.product_id}</td>
                 <td class="px-4 py-2 text-xs text-slate-700 dark:text-slate-200">${row.product_name || '—'}</td>

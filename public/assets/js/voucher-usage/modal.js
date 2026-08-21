@@ -73,8 +73,7 @@ const VplUsageDetailModal = {
         const tbody = document.getElementById('v_detailBody');
         tbody.innerHTML = '';
         (data.details ?? []).forEach((d) => {
-            const exp = (d.expired_date ?? '').substring(0, 10);
-            const expDisplay = (exp === '' || exp === '1900-01-01') ? '—' : exp;
+            const expDisplay = VplUsageHelper.formatExpDate(d.expired_date) ?? '—';
             const qty = t.usagetype === 'Return' ? d.qty_return_usage : d.qty_usage;
             tbody.insertAdjacentHTML('beforeend', `
                 <tr>

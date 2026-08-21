@@ -90,7 +90,7 @@
                             <td class="px-3 py-2.5 text-right">
                                 @if($row && $row['direction'] === 'in')
                                     <span class="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-semibold tabular-nums text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-                                        <i class="fa-solid fa-arrow-down text-[9px]"></i>{{ number_format($row['qty'], 0, ',', '.') }}
+                                        <i class="fa-solid fa-arrow-up text-[9px]"></i>{{ number_format($row['qty'], 0, ',', '.') }}
                                     </span>
                                 @endif
                             </td>
@@ -98,7 +98,7 @@
                             <td class="px-3 py-2.5 text-right">
                                 @if($row && $row['direction'] === 'out')
                                     <span class="inline-flex items-center gap-1 rounded-md bg-rose-50 px-2 py-0.5 text-xs font-semibold tabular-nums text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">
-                                        <i class="fa-solid fa-arrow-up text-[9px]"></i>{{ number_format($row['qty'], 0, ',', '.') }}
+                                        <i class="fa-solid fa-arrow-down text-[9px]"></i>{{ number_format($row['qty'], 0, ',', '.') }}
                                     </span>
                                 @endif
                             </td>

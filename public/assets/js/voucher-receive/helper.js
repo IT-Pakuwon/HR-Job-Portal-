@@ -5,6 +5,17 @@
 
 const VplReceiveHelper = {
 
+    // Formats a date-ish string as "17 Sep 2027" — no time. Returns null for
+    // empty/placeholder dates (empty string, '1900-01-01') so callers can
+    // supply their own fallback text (e.g. "No Expired" or "—").
+    formatExpDate(raw) {
+        const d = String(raw ?? '').substring(0, 10);
+        if (!d || d === '1900-01-01') return null;
+        const parsed = new Date(`${d}T00:00:00`);
+        if (isNaN(parsed)) return d;
+        return parsed.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    },
+
     statusBadgeHTML(status, label) {
         const map = {
             P: 'background:#FFCD05;color:#000',

@@ -77,8 +77,7 @@ const VplTransferDetailModal = {
         const tbody = document.getElementById('v_detailBody');
         tbody.innerHTML = '';
         (data.details ?? []).forEach((d) => {
-            const exp = (d.expired_date ?? '').substring(0, 10);
-            const expDisplay = (exp === '' || exp === '1900-01-01') ? '—' : exp;
+            const expDisplay = VplTransferHelper.formatExpDate(d.expired_date) ?? '—';
             tbody.insertAdjacentHTML('beforeend', `
                 <tr>
                     <td class="px-4 py-2">
