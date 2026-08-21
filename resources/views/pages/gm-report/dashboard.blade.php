@@ -529,7 +529,7 @@
                  empty once a specific company is filtered, so the Total row
                  alone — which already equals that company's numbers — is all
                  that renders then). ────────────────────────────────────────── --}}
-            <div class="relative overflow-hidden rounded-2xl border border-slate-200 shadow-sm dark:border-slate-700/60">
+            <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700/60 dark:bg-slate-900">
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-140 table-fixed text-left text-xs">
                         <colgroup>
@@ -538,7 +538,7 @@
                             <col style="width:14%"><col style="width:24%">
                         </colgroup>
                         <thead>
-                            <tr class="border-b border-slate-200 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:border-slate-700/60 dark:text-slate-500">
+                            <tr class="border-b border-slate-200 bg-white text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:border-slate-700/60 dark:bg-slate-900 dark:text-slate-500">
                                 <th class="py-2 pl-4 pr-2">Company</th>
                                 <th class="py-2 pr-2 text-right">Total</th>
                                 <th class="py-2 pr-2 text-right">Open</th>
@@ -559,7 +559,6 @@
                  ApexCharts instances to the tallest of the three), row 2 is
                  Monthly Trend alone. The company legend is section-level, not
                  per-card, since it isn't scoped to any single card anymore. --}}
-            <div id="isortChartLegend" class="flex flex-wrap items-center justify-end gap-4 px-0.5 text-[10.5px] font-semibold text-slate-500 dark:text-slate-400"></div>
 
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-3" style="align-items:stretch">
                 <x-card-chart.card-shell subtitle="Operation · Isort" title="Total Kaizen by Type"

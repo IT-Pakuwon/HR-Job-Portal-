@@ -48,33 +48,38 @@
             insights.push({ type: pct >= 90 ? 'critical' : 'info', text: '<b>' + utils.idr(totalRemaining) + '</b> remains unused out of ' + utils.idr(totalBudget) + ' total budget (' + (100 - pct).toFixed(1) + '% remaining).' });
         }
 
-        if (companyRows.length) {
-            var overCo = companyRows.filter(function (r) { return (parseFloat(r.used_pct) || 0) >= 100; });
-            if (overCo.length) {
-                var overCoNames = overCo.slice(0, 3).map(function (r) { return utils.escHtml(r.cpny_id); }).join(', ');
-                insights.push({ type: 'critical', text: (overCo.length === 1 ? 'Company ' : overCo.length + ' companies — ') + '<b>' + overCoNames + (overCo.length > 3 ? ', +' + (overCo.length - 3) + ' more' : '') + '</b> exceeded budget this period.' });
-            } else if (companyRows.length > 1) {
-                var sortedCo = companyRows.slice().sort(function (a, b) { return (parseFloat(b.used_pct) || 0) - (parseFloat(a.used_pct) || 0); });
-                var topCo = sortedCo[0];
-                if (topCo && (parseFloat(topCo.used_pct) || 0) >= 80) {
-                    insights.push({ type: 'warning', text: '<b>' + utils.escHtml(topCo.cpny_id) + '</b> has the highest utilization among companies at <b>' + parseFloat(topCo.used_pct).toFixed(1) + '%</b>.' });
-                }
-            }
-        }
-
-        if (deptRows.length) {
-            var over = deptRows.filter(function (r) { return (parseFloat(r.used_pct) || 0) >= 100; });
+        // Reusable "which of these rows exceeded budget, else which is
+        // highest" pattern — shared by company/department/activity below.
+        function overBudgetOrTop(rows, nameFn, noun) {
+            if (!rows.length) return;
+            var over = rows.filter(function (r) { return (parseFloat(r.used_pct) || 0) >= 100; });
             if (over.length) {
-                var overNames = over.slice(0, 3).map(function (r) { return utils.escHtml(r.department_fin_id); }).join(', ');
-                insights.push({ type: 'critical', text: (over.length === 1 ? 'Department ' : over.length + ' departments — ') + '<b>' + overNames + (over.length > 3 ? ', +' + (over.length - 3) + ' more' : '') + '</b> exceeded budget this period.' });
-            } else {
-                var sorted = deptRows.slice().sort(function (a, b) { return (parseFloat(b.used_pct) || 0) - (parseFloat(a.used_pct) || 0); });
+                var names = over.slice(0, 3).map(function (r) { return '<b>' + utils.escHtml(nameFn(r)) + '</b>'; }).join(', ');
+                insights.push({ type: 'critical', text: (over.length === 1 ? capitalize(noun) + ' ' : over.length + ' ' + noun + 's — ') + names + (over.length > 3 ? ', +' + (over.length - 3) + ' more' : '') + ' exceeded budget this period.' });
+            } else if (rows.length > 1) {
+                var sorted = rows.slice().sort(function (a, b) { return (parseFloat(b.used_pct) || 0) - (parseFloat(a.used_pct) || 0); });
                 var top = sorted[0];
                 if (top && (parseFloat(top.used_pct) || 0) >= 80) {
-                    insights.push({ type: 'warning', text: '<b>' + utils.escHtml(top.department_fin_id) + '</b> has the highest utilization at <b>' + parseFloat(top.used_pct).toFixed(1) + '%</b> — closest to running out among all departments.' });
+                    insights.push({ type: 'warning', text: '<b>' + utils.escHtml(nameFn(top)) + '</b> has the highest utilization among ' + noun + 's at <b>' + parseFloat(top.used_pct).toFixed(1) + '%</b>.' });
                 }
             }
         }
+        function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+        // Spending by company — full breakdown, not just the leader, only
+        // meaningful when comparing more than one (i.e. not already filtered
+        // down to a single company).
+        if (companyRows.length > 1) {
+            var byCoDesc = companyRows.slice().sort(function (a, b) { return (parseFloat(b.used_pct) || 0) - (parseFloat(a.used_pct) || 0); });
+            var coList = byCoDesc.slice(0, 8).map(function (r) {
+                return '<b>' + utils.escHtml(r.cpny_id) + '</b> ' + (parseFloat(r.used_pct) || 0).toFixed(0) + '%';
+            }).join(', ');
+            insights.push({ type: 'info', text: 'Spending by company: ' + coList + (byCoDesc.length > 8 ? ', +' + (byCoDesc.length - 8) + ' more' : '') + '.' });
+        }
+
+        overBudgetOrTop(companyRows, function (r) { return r.cpny_id; }, 'company');
+        overBudgetOrTop(deptRows, function (r) { return r.department_fin_id; }, 'department');
+        overBudgetOrTop(actRows, function (r) { return r.activity_descr || r.activity_id; }, 'activity');
 
         utils.renderInsights('gmBudgetInsights', insights);
     }
@@ -398,6 +403,7 @@
                 actRows = res.data || []; actPage = 1;
                 if (actSort) actSort.reset();
                 renderActTable();
+                computeBudgetInsights();
             })
             .catch(function (e) { if (e.name !== 'AbortError') console.error('budget by activity:', e); });
     }
