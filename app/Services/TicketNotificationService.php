@@ -32,6 +32,15 @@ class TicketNotificationService
         'BA_FO',
     ];
 
+    // BS/FO ticket types only get a WhatsApp notification on ticket
+    // creation; Engineering keeps getting notified on every event.
+    protected const CREATED_ONLY_WHATSAPP_TICKET_TYPES = [
+        'BSSUPPORTTICKET',
+        'FOSUPPORTTICKET',
+        'BA_BS',
+        'BA_FO',
+    ];
+
     protected function getCompanyChatId(
         string $cpnyId,
         string $ticketType
@@ -641,6 +650,13 @@ ORDER/MONTHLY : Monthly
         string $eventLabel,
         string $detail = ''
     ): void {
+        if (
+            $eventLabel !== 'CREATED'
+            && in_array($ticket->ticket_type, self::CREATED_ONLY_WHATSAPP_TICKET_TYPES, true)
+        ) {
+            return;
+        }
+
         $chatId = $this->getCompanyChatId(
             $ticket->cpny_id,
             $ticket->ticket_type

@@ -531,7 +531,11 @@ class VplReceiveController extends Controller
                 'C',
                 $username,
                 $urlToDoc,
-                ['cpnyid' => $receive->cpnyid, 'deptname' => $receive->department]
+                [
+                    'cpnyid'    => $receive->cpnyid,
+                    'deptname'  => $receive->department,
+                    'createdby' => $receive->created_user,
+                ]
             );
         }
     }
