@@ -397,6 +397,7 @@
                         <div><p class="text-xs text-gray-400">Legal Contract Number</p><p id="detailLegalContract" class="mt-1 text-sm font-medium">-</p></div>
                         <div><p class="text-xs text-gray-400">SPPBJKT ID</p><p id="detailSppbjktId" class="mt-1 text-sm font-medium">-</p></div>
                         <div><p class="text-xs text-gray-400">CS ID</p><p id="detailCsId" class="mt-1 text-sm font-medium">-</p></div>
+                        <div><p class="text-xs text-gray-400">Prev Nbr</p><p id="detailPrevPermitId" class="mt-1 text-sm font-medium">-</p></div>
                         <div><p class="text-xs text-gray-400">User Approval</p><p id="detailApprovers" class="mt-1 text-sm font-medium">-</p></div>
                         <div><p class="text-xs text-gray-400">User Peminta Dept</p><p id="detailDeptRequesters" class="mt-1 text-sm font-medium">-</p></div>
                         <div class="sm:col-span-2"><p class="text-xs text-gray-400">Description</p><div id="detailDescription" class="mt-2 rounded-lg bg-gray-50 p-4 text-sm whitespace-pre-wrap dark:bg-gray-700">-</div></div>
@@ -930,6 +931,16 @@
                         </a>`);
                 } else {
                     $('#detailCsId').text(permit.csid || '-');
+                }
+                if (permit.prev_perizinan_id && permit.prev_perizinan_url) {
+                    $('#detailPrevPermitId').html(`
+                        <a href="${escapeHtml(permit.prev_perizinan_url)}" target="_blank" rel="noopener noreferrer"
+                            class="font-semibold text-indigo-600 hover:text-indigo-800 hover:underline dark:text-indigo-400">
+                            ${escapeHtml(permit.prev_perizinan_id)}
+                            <span aria-hidden="true">&#8599;</span>
+                        </a>`);
+                } else {
+                    $('#detailPrevPermitId').text(permit.prev_perizinan_id || '-');
                 }
                 $('#detailApprovers').text((permit.user_dept_approval || '').split(',').filter(Boolean).join(', ') || '-');
                 $('#detailDeptRequesters').text((permit.user_dept_peminta || '').split(',').filter(Boolean).join(', ') || '-');

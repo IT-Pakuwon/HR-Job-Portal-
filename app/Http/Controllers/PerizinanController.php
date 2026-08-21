@@ -370,6 +370,18 @@ class PerizinanController extends Controller
             }
         }
 
+        $permit->prev_perizinan_url = null;
+        if (filled($permit->prev_perizinan_id)) {
+            $previousPermitId = TrPerizinan::query()
+                ->where('perizinan_id', $permit->prev_perizinan_id)
+                ->whereIn('cpny_id', $companyIds)
+                ->value('id');
+
+            if ($previousPermitId) {
+                $permit->prev_perizinan_url = url('/showperizinan/'.Hashids::encode($previousPermitId));
+            }
+        }
+
         return response()->json(['data' => $permit]);
     }
 
@@ -816,7 +828,7 @@ class PerizinanController extends Controller
             }
 
             DB::connection('pgsql')->commit();
-            $emailSent = $this->sendSavedPermitEmail($docid, $isEdit);
+            $emailSent = $isEdit ? null : $this->sendSavedPermitEmail($docid, false);
 
             return response()->json([
                 'message' => $isEdit ? 'Permit updated successfully.' : 'Permit created successfully.',
