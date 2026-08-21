@@ -33,7 +33,7 @@ const VplReceiveHelper = {
         }
     },
 
-    // Build one dynamic detail row — columns: Product | Tenant | Qty | UOM | Expired Date | Dest WHS | Action
+    // Build one dynamic detail row — columns: Product | Tenant | Price | Qty | UOM | Expired Date | Dest WHS | Action
     buildDetailRow(prefix, idx) {
         const delBtn = idx > 0
             ? `<button type="button" class="${prefix}-del-row rounded px-2 py-1 text-xs text-red-500 hover:bg-red-50" data-idx="${idx}">
@@ -51,6 +51,9 @@ const VplReceiveHelper = {
             </td>
             <td class="px-4 py-2">
                 <span class="${prefix}-tenant-display block rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-500 dark:bg-white/[0.04] dark:text-slate-400">—</span>
+            </td>
+            <td class="px-4 py-2">
+                <span class="${prefix}-price-display block rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-500 dark:bg-white/[0.04] dark:text-slate-400">—</span>
             </td>
             <td class="px-4 py-2">
                 <input type="number" name="addmore[${idx}][qty]" min="1" placeholder="Qty"

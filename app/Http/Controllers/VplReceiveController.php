@@ -277,11 +277,14 @@ class VplReceiveController extends Controller
                             continue;
                         }
                         $exp = !empty($detail['expired_date']) ? $detail['expired_date'] : '1900-01-01';
+                        $productPrice = MsVplProduct::where('product_id', $detail['product_name'])->value('product_value') ?? 0;
                         TrxVplReceiveDetail::create([
                             'receive_id' => $docid,
                             'linenbr' => $line++,
                             'product_id' => $detail['product_name'],
                             'qty_receive' => $detail['qty'],
+                            'product_price' => $productPrice,
+                            'total_product_price' => $productPrice * $detail['qty'],
                             'expired_date' => $exp,
                             'whs_id' => $detail['whs_id'],
                             'status' => 'P',
@@ -368,14 +371,19 @@ class VplReceiveController extends Controller
 
                         if ($row) {
                             $row->qty_receive += $detail['qty'];
+                            $row->product_price = $row->product_price ?: (MsVplProduct::where('product_id', $detail['product_name'])->value('product_value') ?? 0);
+                            $row->total_product_price = $row->product_price * $row->qty_receive;
                             $row->updated_at = $dt->toDateTimeString();
                             $row->save();
                         } else {
+                            $productPrice = MsVplProduct::where('product_id', $detail['product_name'])->value('product_value') ?? 0;
                             TrxVplReceiveDetail::create([
                                 'receive_id' => $receive->receive_id,
                                 'linenbr' => 0,
                                 'product_id' => $detail['product_name'],
                                 'qty_receive' => $detail['qty'],
+                                'product_price' => $productPrice,
+                                'total_product_price' => $productPrice * $detail['qty'],
                                 'expired_date' => $exp,
                                 'whs_id' => $detail['whs_id'],
                                 'status' => 'P',

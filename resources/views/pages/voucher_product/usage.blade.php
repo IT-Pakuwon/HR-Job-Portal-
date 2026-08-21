@@ -498,7 +498,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 gap-4 bg-slate-50 p-4 dark:bg-[#0b1220] lg:grid-cols-[1.2fr_0.8fr]">
+        <div class="grid grid-cols-1 gap-4 bg-slate-50 p-4 dark:bg-[#0b1220] lg:grid-cols-[1.6fr_0.6fr]">
 
             {{-- LEFT --}}
             <div class="space-y-4">

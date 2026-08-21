@@ -74,13 +74,15 @@ const VplReceiveDetailModal = {
                 <td class="px-4 py-2 text-xs text-slate-700 dark:text-slate-200">${row.product_id}</td>
                 <td class="px-4 py-2 text-xs text-slate-700 dark:text-slate-200">${row.product_name || '—'}</td>
                 <td class="px-4 py-2 text-xs text-slate-700 dark:text-slate-200">${row.product_source_tenant || '—'}</td>
+                <td class="px-4 py-2 text-xs text-slate-700 dark:text-slate-200">${VplReceiveForm.formatPrice(row.product_price)}</td>
                 <td class="px-4 py-2 text-xs text-slate-700 dark:text-slate-200">${exp}</td>
                 <td class="px-4 py-2 text-xs font-semibold text-slate-800 dark:text-slate-100">${row.qty_receive}</td>
                 <td class="px-4 py-2 text-xs text-slate-600 dark:text-slate-300">${row.product_uom || ''}</td>
+                <td class="px-4 py-2 text-xs font-semibold text-slate-800 dark:text-slate-100">${VplReceiveForm.formatPrice(row.total_product_price)}</td>
                 <td class="px-4 py-2 text-xs text-slate-600 dark:text-slate-300">${row.whs_id}</td>
             </tr>`;
         });
-        $('#v_detailBody').html(dHtml || '<tr><td colspan="7" class="px-4 py-3 text-center text-xs text-slate-400">No details.</td></tr>');
+        $('#v_detailBody').html(dHtml || '<tr><td colspan="9" class="px-4 py-3 text-center text-xs text-slate-400">No details.</td></tr>');
 
         // Approval timeline (rendered same style as Voucher Taxi)
         $('#v_approvalBody').html(VplReceiveHelper.renderTimeline(d.approvals));

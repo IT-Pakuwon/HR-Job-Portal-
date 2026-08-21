@@ -868,6 +868,9 @@
                 <x-card-chart.card-shell subtitle="Event" title="By Status"
                     class="h-full flex flex-col"
                     gradient="linear-gradient(to right,#10B981,#6366F1)">
+                    <x-slot:headerEnd>
+                        <div id="eventStatusChartLegend" class="flex flex-wrap items-center gap-3"></div>
+                    </x-slot:headerEnd>
                     <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
                         <div id="eventStatusChart" class="flex-1"></div>
                     </div>

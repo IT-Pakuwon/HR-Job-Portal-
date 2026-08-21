@@ -146,7 +146,7 @@
 {{-- ======================================================== --}}
 <div id="createModal" class="fixed inset-0 z-[50] hidden items-center justify-center p-4">
     <div class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70"></div>
-    <div class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+    <div class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-[90rem] translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
         {{-- Header --}}
         <div class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
@@ -248,9 +248,10 @@
                         <table class="min-w-full text-sm" id="c_detailTable">
                             <thead class="bg-slate-50 dark:bg-white/[0.03]">
                                 <tr>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-400" style="width:28%">Product <span class="text-red-500">*</span></th>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-400" style="width:15%">Tenant</th>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-400" style="width:13%">Qty <span class="text-red-500">*</span></th>
+                                    <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-400" style="width:23%">Product <span class="text-red-500">*</span></th>
+                                    <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-400" style="width:13%">Tenant</th>
+                                    <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-400" style="width:12%">Price</th>
+                                    <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-400" style="width:11%">Qty <span class="text-red-500">*</span></th>
                                     <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-400" style="width:7%">UOM</th>
                                     <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-400" style="width:13%">Expired Date</th>
                                     <th class="c-whs-th px-4 py-2.5 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-400" style="width:22%">Dest. WHS <span class="text-red-500">*</span></th>
@@ -263,6 +264,12 @@
                                         <select name="addmore[0][product_name]" class="w-full c-product-sel" style="min-width:200px">
                                             <option value="">Select Product</option>
                                         </select>
+                                    </td>
+                                    <td class="px-4 py-2">
+                                        <span class="c-tenant-display block rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-500 dark:bg-white/[0.04] dark:text-slate-400">—</span>
+                                    </td>
+                                    <td class="px-4 py-2">
+                                        <span class="c-price-display block rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-500 dark:bg-white/[0.04] dark:text-slate-400">—</span>
                                     </td>
                                     <td class="px-4 py-2">
                                         <input type="number" name="addmore[0][qty]" min="1" placeholder="Qty"
@@ -336,7 +343,7 @@
 {{-- ======================================================== --}}
 <div id="viewModal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4">
     <div class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70"></div>
-    <div class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+    <div class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-[90rem] translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
         {{-- Header --}}
         <div class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
@@ -358,7 +365,7 @@
         </div>
 
         {{-- Body --}}
-        <div class="grid grid-cols-1 gap-4 bg-slate-50 p-4 dark:bg-[#0b1220] lg:grid-cols-[1.2fr_0.8fr]">
+        <div class="grid grid-cols-1 gap-4 bg-slate-50 p-4 dark:bg-[#0b1220] lg:grid-cols-[1.6fr_0.6fr]">
 
             {{-- LEFT --}}
             <div class="space-y-4">
@@ -398,9 +405,11 @@
                                     <th class="px-4 py-2 text-left text-xs font-semibold text-blue-700 dark:text-blue-300">Product ID</th>
                                     <th class="px-4 py-2 text-left text-xs font-semibold text-blue-700 dark:text-blue-300">Product Name</th>
                                     <th class="px-4 py-2 text-left text-xs font-semibold text-blue-700 dark:text-blue-300">Tenant</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold text-blue-700 dark:text-blue-300">Price</th>
                                     <th class="px-4 py-2 text-left text-xs font-semibold text-blue-700 dark:text-blue-300">Expired</th>
                                     <th class="px-4 py-2 text-left text-xs font-semibold text-blue-700 dark:text-blue-300">Qty</th>
                                     <th class="px-4 py-2 text-left text-xs font-semibold text-blue-700 dark:text-blue-300">UOM</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold text-blue-700 dark:text-blue-300">Total Price</th>
                                     <th class="px-4 py-2 text-left text-xs font-semibold text-blue-700 dark:text-blue-300">WHS</th>
                                 </tr>
                             </thead>
@@ -508,7 +517,7 @@
 {{-- ======================================================== --}}
 <div id="editModal" class="fixed inset-0 z-[70] hidden items-center justify-center p-4">
     <div class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70"></div>
-    <div class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+    <div class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-[90rem] translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
         {{-- Header --}}
         <div class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
@@ -594,6 +603,7 @@
                                 <tr>
                                     <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Product</th>
                                     <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Tenant</th>
+                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Price</th>
                                     <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Expired</th>
                                     <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Qty</th>
                                     <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">UOM</th>
@@ -619,9 +629,10 @@
                         <table class="min-w-full text-sm" id="e_detailTable">
                             <thead class="bg-slate-50 dark:bg-white/[0.03]">
                                 <tr>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:28%">Product</th>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:15%">Tenant</th>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:13%">Qty</th>
+                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:23%">Product</th>
+                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:13%">Tenant</th>
+                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:12%">Price</th>
+                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:11%">Qty</th>
                                     <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:7%">UOM</th>
                                     <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:13%">Expired Date</th>
                                     <th class="e-whs-th px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:22%">Dest. WHS</th>
@@ -634,6 +645,12 @@
                                         <select name="addmore[0][product_name]" class="w-full e-product-sel" style="min-width:200px">
                                             <option value="">Select Product</option>
                                         </select>
+                                    </td>
+                                    <td class="px-4 py-2">
+                                        <span class="e-tenant-display block rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-500 dark:bg-white/[0.04] dark:text-slate-400">—</span>
+                                    </td>
+                                    <td class="px-4 py-2">
+                                        <span class="e-price-display block rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-500 dark:bg-white/[0.04] dark:text-slate-400">—</span>
                                     </td>
                                     <td class="px-4 py-2">
                                         <input type="number" name="addmore[0][qty]" min="1" placeholder="Qty"

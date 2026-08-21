@@ -259,16 +259,31 @@
         };
     }
 
+    // Renders the stacked-chart's per-company legend into the card header row
+    // (instead of ApexCharts' own in-chart legend) so the title and legend
+    // share a single row.
+    function renderLegendChips(legendEl, sites) {
+        if (!legendEl) return;
+        legendEl.innerHTML = sites.map(function (site, si) {
+            return '<span class="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-500 dark:text-slate-400">'
+                 +   '<span class="h-2 w-2 rounded-sm" style="background:' + companyColor(site, si) + '"></span>'
+                 +   utils.escHtml(companyLabel(site))
+                 + '</span>';
+        }).join('');
+    }
+
     function renderBarChart(elId, chartsKey, res, colorMap) {
         var data     = (res && res.data)      || [];
         var stacked  = res && res.stacked;
         var allSites = (res && res.all_sites) || [];
         var el = document.getElementById(elId);
+        var legendEl = document.getElementById(elId + 'Legend');
         if (!el) return;
         if (charts[chartsKey]) { charts[chartsKey].destroy(); charts[chartsKey] = null; }
 
         if (!data.length || !data.some(function (s) { return s.total > 0; })) {
             el.innerHTML = '<p class="py-10 text-center text-xs text-slate-400">No data</p>';
+            if (legendEl) legendEl.innerHTML = '';
             return;
         }
 
@@ -282,10 +297,12 @@
             });
             var colors = allSites.map(function (site, si) { return companyColor(site, si); });
 
+            renderLegendChips(legendEl, allSites);
+
             opts = {
                 series: series,
                 chart: {
-                    type: 'bar', height: barHeight(cats.length, 80), width: '100%', stacked: true,
+                    type: 'bar', height: barHeight(cats.length), width: '100%', stacked: true,
                     toolbar: { show: false }, fontFamily: 'Inter, sans-serif',
                     foreColor: dark ? '#94A3B8' : '#64748B', background: 'transparent',
                     animations: { enabled: true, easing: 'easeinout', speed: 500 },
@@ -304,18 +321,14 @@
                     borderColor: dark ? '#334155' : '#E2E8F0',
                     xaxis: { lines: { show: true } }, yaxis: { lines: { show: false } },
                 },
-                legend: {
-                    show: true, position: 'top', horizontalAlign: 'right',
-                    fontSize: '11px', fontWeight: 600,
-                    markers: { radius: 4, size: 7 },
-                    itemMargin: { horizontal: 8, vertical: 0 },
-                },
+                legend: { show: false },
                 tooltip: {
                     custom: makeStackedTooltip(data, allSites),
-                    fixed: { enabled: true, position: 'topRight', offsetX: -10, offsetY: 38 },
+                    fixed: { enabled: true, position: 'topRight', offsetX: -10, offsetY: 10 },
                 },
             };
         } else {
+            if (legendEl) legendEl.innerHTML = '';
             var vals    = data.map(function (r) { return r.total; });
             var colors2 = data.map(function (r) { return colorMap[r.status] || '#94A3B8'; });
 
