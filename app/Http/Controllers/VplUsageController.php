@@ -560,6 +560,17 @@ class VplUsageController extends Controller
                     route('usagevp.show', $id),
                     ['info' => $usage->usage_remark ?? '', 'createdby' => $usage->created_user]
                 );
+            },
+            function ($refnbr, $now) use ($usage, $id) {
+                // Notify requester the document is fully approved
+                app(ApprovalController::class)->notifyRequesterOnStatus(
+                    $usage->usage_id,
+                    self::DOCTYPE_DSC,
+                    'C',
+                    $usage->user_peminta,
+                    route('usagevp.show', $id),
+                    ['cpnyid' => $usage->cpnyid, 'deptname' => $usage->department]
+                );
             }
         );
 

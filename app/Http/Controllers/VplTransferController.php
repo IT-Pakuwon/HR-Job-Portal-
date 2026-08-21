@@ -584,6 +584,17 @@ class VplTransferController extends Controller
                     route('transfervp.show', $id),
                     ['info' => $transfer->transfer_remark ?? '', 'createdby' => $transfer->created_user]
                 );
+            },
+            function ($refnbr, $now) use ($transfer, $id) {
+                // Notify requester the document is fully approved
+                app(ApprovalController::class)->notifyRequesterOnStatus(
+                    $transfer->transfer_id,
+                    self::DOCTYPE_DSC,
+                    'C',
+                    $transfer->user_transfer,
+                    route('transfervp.show', $id),
+                    ['cpnyid' => $transfer->cpnyid, 'deptname' => $transfer->department]
+                );
             }
         );
 

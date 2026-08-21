@@ -13,6 +13,7 @@ use App\Models\TrApproval;
 use App\Models\TrMessage;
 use App\Models\TrxVplReceive;
 use App\Models\TrxVplReceiveDetail;
+use App\Models\SysUserRole;
 use App\Models\User;
 use App\Models\Usercpny;
 use App\Models\Userdept;
@@ -482,6 +483,19 @@ class VplReceiveController extends Controller
                     url('/vpl/showreceivevp/'.$id),
                     ['info' => $receive->receive_remark ?? '', 'createdby' => $receive->created_user]
                 );
+            },
+            function ($refnbr, $now) use ($receive, $id) {
+                // Notify requester the document is fully approved
+                app(ApprovalController::class)->notifyRequesterOnStatus(
+                    $receive->receive_id,
+                    self::DOCTYPE_DSC,
+                    'C',
+                    $receive->user_penerima,
+                    url('/vpl/showreceivevp/'.$id),
+                    ['cpnyid' => $receive->cpnyid, 'deptname' => $receive->department]
+                );
+
+                $this->notifyRoleAccessUsers($receive, url('/vpl/showreceivevp/'.$id));
             }
         );
 
@@ -490,6 +504,36 @@ class VplReceiveController extends Controller
         }
 
         return response()->json(['success' => 'Document approved.']);
+    }
+
+    // -------------------------------------------------------
+    // Notify VPCOLLACCESS / VPLOYALTYACCESS / VPPRMTNACCESS role
+    // holders in the receive's company when it completes
+    // -------------------------------------------------------
+    private function notifyRoleAccessUsers(TrxVplReceive $receive, string $urlToDoc): void
+    {
+        $roleIds = ['VPCOLLACCESS', 'VPLOYALTYACCESS', 'VPPRMTNACCESS'];
+
+        $roleUsernames = SysUserRole::whereIn('role_id', $roleIds)
+            ->where('status', 'A')
+            ->pluck('username');
+
+        $usernames = Usercpny::where('cpny_id', $receive->cpnyid)
+            ->where('status', 'A')
+            ->whereIn('username', $roleUsernames)
+            ->pluck('username')
+            ->unique();
+
+        foreach ($usernames as $username) {
+            app(ApprovalController::class)->notifyRequesterOnStatus(
+                $receive->receive_id,
+                self::DOCTYPE_DSC,
+                'C',
+                $username,
+                $urlToDoc,
+                ['cpnyid' => $receive->cpnyid, 'deptname' => $receive->department]
+            );
+        }
     }
 
     // -------------------------------------------------------

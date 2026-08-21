@@ -487,6 +487,17 @@ class VplSettlementController extends Controller
                     route('settlementvp.show', $id),
                     ['info' => $settlement->settlement_remark ?? '', 'createdby' => $settlement->created_user]
                 );
+            },
+            function ($refnbr, $now) use ($settlement, $id) {
+                // Notify requester the document is fully approved
+                app(ApprovalController::class)->notifyRequesterOnStatus(
+                    $settlement->settlement_id,
+                    self::DOCTYPE_DSC,
+                    'C',
+                    $settlement->user_peminta,
+                    route('settlementvp.show', $id),
+                    ['cpnyid' => $settlement->cpnyid, 'deptname' => $settlement->department]
+                );
             }
         );
 
