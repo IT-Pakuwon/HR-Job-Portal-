@@ -100,3 +100,17 @@
     </tr>
 
 </table>
+
+@if (!empty($docUrl))
+{{-- Open document button --}}
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px;">
+    <tr>
+        <td align="center">
+            <a href="{{ $docUrl }}" target="_blank"
+                style="display:inline-block;background:#1d4ed8;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:13px;font-weight:700;letter-spacing:0.02em;">
+                Open Ticket &rarr;
+            </a>
+        </td>
+    </tr>
+</table>
+@endif

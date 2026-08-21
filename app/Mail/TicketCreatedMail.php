@@ -36,6 +36,8 @@ class TicketCreatedMail extends Mailable
                 'emails.ticket-created'
             )
 
-            ->with('systemLabel', $systemLabel);
+            ->with('systemLabel', $systemLabel)
+
+            ->with('docUrl', $this->docUrlFor($this->ticket));
     }
 }

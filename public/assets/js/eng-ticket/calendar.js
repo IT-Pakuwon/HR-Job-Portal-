@@ -134,8 +134,8 @@ const EngTicketCalendar = {
             eventDidMount: (info) => {
                 EngTicketCalendar.attachEventTooltip(info);
             },
-            dateClick: () => {
-                EngTicketCalendar.handleDateClick();
+            dateClick: (info) => {
+                EngTicketCalendar.handleDateClick(info);
             },
             eventClick: (info) => {
                 EngTicketCalendar.handleEventClick(info.event);
@@ -286,9 +286,11 @@ const EngTicketCalendar = {
     },
 
     // --------------------------------------------------------
-    // HANDLE DATE CLICK (open the existing Create Ticket form)
+    // HANDLE DATE CLICK (open the existing Create Ticket form,
+    // prefilled with the date the user clicked on the calendar)
     // --------------------------------------------------------
-    handleDateClick() {
+    handleDateClick(info) {
+        window.ticketPrefillDate = info?.dateStr || null;
         $('#btn_create_ticket').trigger('click');
     },
 

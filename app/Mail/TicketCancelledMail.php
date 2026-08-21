@@ -34,6 +34,8 @@ class TicketCancelledMail extends Mailable
                 'emails.ticket-cancelled'
             )
 
-            ->with('systemLabel', $this->systemLabelFor($this->ticket));
+            ->with('systemLabel', $this->systemLabelFor($this->ticket))
+
+            ->with('docUrl', $this->docUrlFor($this->ticket));
     }
 }

@@ -34,6 +34,8 @@ class TicketAssignedMail extends Mailable
                 'emails.ticket-assigned'
             )
 
-            ->with('systemLabel', $this->systemLabelFor($this->ticket));
+            ->with('systemLabel', $this->systemLabelFor($this->ticket))
+
+            ->with('docUrl', $this->docUrlFor($this->ticket));
     }
 }

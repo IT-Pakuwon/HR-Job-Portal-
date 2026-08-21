@@ -2716,17 +2716,32 @@ class EngTicketController extends Controller
 
         $ticket = TrTicket::findOrFail($id);
 
-        abort_unless(
-            $this->canActOnTicketType($ticket->ticket_type),
-            403
-        );
+        $user = auth()->user();
 
-        abort_if(
-            !(
-                ($ticket->status === 'C' && $ticket->status_pekerjaan === 'COMPLETED')
-                || ($ticket->status === 'X' && $ticket->status_pekerjaan === 'CANCEL')
-            ),
-            403
+        $isRequester = $ticket->created_by === $user->username;
+
+        $isEng = $this->canActOnTicketType($ticket->ticket_type);
+
+        $isCompleted = $ticket->status === 'C' && $ticket->status_pekerjaan === 'COMPLETED';
+
+        $isCancelledTicket = $ticket->status === 'X' && $ticket->status_pekerjaan === 'CANCEL';
+
+        abort_unless($isCompleted || $isCancelledTicket, 403);
+
+        // Staff can reopen a completed/cancelled ticket at any time. The
+        // requester only gets a self-service window of 7 days after the
+        // completion approval (completed_at) — past that they have to raise
+        // a new ticket instead.
+        $requesterReopenWindowOpen = $isCompleted
+            && $ticket->completed_at
+            && $ticket->completed_at->greaterThanOrEqualTo(now()->subDays(7));
+
+        abort_unless(
+            $isEng || ($isRequester && $requesterReopenWindowOpen),
+            403,
+            $isRequester && $isCompleted
+                ? 'The 7-day window to reopen this ticket has passed. Please create a new ticket.'
+                : 'You are not allowed to reopen this ticket.'
         );
 
         $request->validate([
@@ -3626,11 +3641,23 @@ class EngTicketController extends Controller
                     'PENDING',
                 ]),
 
-            'can_reopen' => $isEng
+            // Staff can reopen a completed/cancelled ticket at any time. The
+            // requester additionally gets a self-service window of 7 days
+            // after the completion approval (completed_at) — past that they
+            // have to raise a new ticket instead.
+            'can_reopen' => (
+                $isEng
                 && (
                     ($ticket->status === 'C' && $ticket->status_pekerjaan === 'COMPLETED')
                     || ($ticket->status === 'X' && $ticket->status_pekerjaan === 'CANCEL')
-                ),
+                )
+            ) || (
+                $isRequester
+                && $ticket->status === 'C'
+                && $ticket->status_pekerjaan === 'COMPLETED'
+                && $ticket->completed_at
+                && $ticket->completed_at->greaterThanOrEqualTo(now()->subDays(7))
+            ),
         ];
     }
 
