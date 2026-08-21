@@ -327,7 +327,7 @@
                     <div class="min-h-0 flex-1 overflow-y-auto p-6">
                         <div id="detailTabItems" class="detail-tab-panel hidden">
                             @if ($hasUserPermitAccess)
-                                <div class="mb-3 flex items-center justify-between gap-3">
+                                <div id="showItemsEditToolbar" class="mb-3 flex items-center justify-between gap-3">
                                     <p class="text-sm text-gray-500 dark:text-gray-400">You can update the permit items below.</p>
                                     <div class="flex gap-2">
                                         <button type="button" id="btnAddShowItem" class="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700">+ Add Row</button>
@@ -344,7 +344,7 @@
                                         <tr>
                                             <th class="px-3 py-3 text-left">Permit Item</th>
                                             <th class="w-32 px-3 py-3 text-right">Quantity</th>
-                                            @if ($hasUserPermitAccess)<th class="w-16 px-3 py-3"></th>@endif
+                                            @if ($hasUserPermitAccess)<th id="showItemsActionHeader" class="w-16 px-3 py-3"></th>@endif
                                         </tr>
                                     </thead>
                                     <tbody id="detailItems"></tbody>
@@ -825,11 +825,13 @@
                 loadPermitAttachments(permit.perizinan_id);
 
                 const items = permit.details || [];
+                const canEditPermitItems = hasUserPermitAccess && String(permit.status || '').toUpperCase() !== 'C';
+                $('#showItemsEditToolbar, #showItemsActionHeader').toggleClass('hidden', !canEditPermitItems);
                 const totalItemQty = items.reduce((total, item) => total + Number(item.qty_perizinan || 0), 0);
                 $('#detailItemTotal').text(new Intl.NumberFormat('en-US', {
                     maximumFractionDigits: 2
                 }).format(totalItemQty));
-                if (hasUserPermitAccess) {
+                if (canEditPermitItems) {
                     $('#detailItems').html((items.length ? items : [{}]).map(showDetailItemRow).join(''));
                 } else {
                     $('#detailItems').html(items.length ? items.map(item => `

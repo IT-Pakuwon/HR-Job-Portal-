@@ -506,6 +506,12 @@ class PerizinanController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
 
+            if (strtoupper((string) $permit->status) === 'C') {
+                throw ValidationException::withMessages([
+                    'permit' => 'Completed permit items cannot be updated.',
+                ]);
+            }
+
             TrPerizinanDetail::query()->where('perizinan_id', $permit->perizinan_id)->delete();
 
             foreach ($validated['item_perizinan'] as $index => $item) {
