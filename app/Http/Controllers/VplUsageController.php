@@ -558,7 +558,7 @@ class VplUsageController extends Controller
                     'P',
                     self::DOCTYPE_DSC,
                     route('usagevp.show', $id),
-                    ['info' => $usage->usage_remark ?? '']
+                    ['info' => $usage->usage_remark ?? '', 'createdby' => $usage->created_user]
                 );
             }
         );
@@ -602,7 +602,7 @@ class VplUsageController extends Controller
                     'R',
                     $usage->user_peminta,
                     route('usagevp.show', $id),
-                    ['info' => $request->message]
+                    ['info' => $request->message, 'cpnyid' => $usage->cpnyid, 'deptname' => $usage->department]
                 );
             }
         );
@@ -650,7 +650,7 @@ class VplUsageController extends Controller
                     'D',
                     $usage->user_peminta,
                     route('usagevp.show', $id),
-                    ['info' => $request->message.' (Silahkan revisi dokumen ini)']
+                    ['info' => $request->message.' (Silahkan revisi dokumen ini)', 'cpnyid' => $usage->cpnyid, 'deptname' => $usage->department]
                 );
             }
         );

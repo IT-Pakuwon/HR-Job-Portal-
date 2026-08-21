@@ -485,7 +485,7 @@ class VplSettlementController extends Controller
                     'P',
                     self::DOCTYPE_DSC,
                     route('settlementvp.show', $id),
-                    ['info' => $settlement->settlement_remark ?? '']
+                    ['info' => $settlement->settlement_remark ?? '', 'createdby' => $settlement->created_user]
                 );
             }
         );
@@ -529,7 +529,7 @@ class VplSettlementController extends Controller
                     'R',
                     $settlement->user_peminta,
                     route('settlementvp.show', $id),
-                    ['info' => $request->message]
+                    ['info' => $request->message, 'cpnyid' => $settlement->cpnyid, 'deptname' => $settlement->department]
                 );
             }
         );
@@ -575,7 +575,7 @@ class VplSettlementController extends Controller
                     'D',
                     $settlement->user_peminta,
                     route('settlementvp.show', $id),
-                    ['info' => $request->message.' (Silahkan revisi dokumen ini)']
+                    ['info' => $request->message.' (Silahkan revisi dokumen ini)', 'cpnyid' => $settlement->cpnyid, 'deptname' => $settlement->department]
                 );
             }
         );

@@ -122,7 +122,7 @@ const EngTicketCalendar = {
             editable:        false,
             selectable:      false,
             eventDisplay:    'block',
-            dayMaxEvents:    3,
+            dayMaxEvents:    5,
             eventTimeFormat: {
                 hour:     '2-digit',
                 minute:   '2-digit',

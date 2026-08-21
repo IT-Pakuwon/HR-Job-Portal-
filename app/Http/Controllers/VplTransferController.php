@@ -582,7 +582,7 @@ class VplTransferController extends Controller
                     'P',
                     self::DOCTYPE_DSC,
                     route('transfervp.show', $id),
-                    ['info' => $transfer->transfer_remark ?? '']
+                    ['info' => $transfer->transfer_remark ?? '', 'createdby' => $transfer->created_user]
                 );
             }
         );
@@ -623,7 +623,7 @@ class VplTransferController extends Controller
                     'R',
                     $transfer->user_transfer,
                     route('transfervp.show', $id),
-                    ['info' => $request->message]
+                    ['info' => $request->message, 'cpnyid' => $transfer->cpnyid, 'deptname' => $transfer->department]
                 );
             },
             function ($refnbr, $now) use ($transfer) {
@@ -673,7 +673,7 @@ class VplTransferController extends Controller
                     'D',
                     $transfer->user_transfer,
                     route('transfervp.show', $id),
-                    ['info' => $request->message . ' (Silahkan revisi dokumen ini)']
+                    ['info' => $request->message . ' (Silahkan revisi dokumen ini)', 'cpnyid' => $transfer->cpnyid, 'deptname' => $transfer->department]
                 );
             }
         );

@@ -480,7 +480,7 @@ class VplReceiveController extends Controller
                     'P',
                     self::DOCTYPE_DSC,
                     url('/vpl/showreceivevp/'.$id),
-                    ['info' => $receive->receive_remark ?? '']
+                    ['info' => $receive->receive_remark ?? '', 'createdby' => $receive->created_user]
                 );
             }
         );
@@ -521,7 +521,7 @@ class VplReceiveController extends Controller
                     'R',
                     $receive->user_penerima,
                     url('/vpl/showreceivevp/'.$id),
-                    ['info' => $request->message]
+                    ['info' => $request->message, 'cpnyid' => $receive->cpnyid, 'deptname' => $receive->department]
                 );
             }
         );
@@ -564,7 +564,7 @@ class VplReceiveController extends Controller
                     'D',
                     $receive->user_penerima,
                     url('/vpl/showreceivevp/'.$id),
-                    ['info' => $request->message.' (Silahkan revisi dokumen ini)']
+                    ['info' => $request->message.' (Silahkan revisi dokumen ini)', 'cpnyid' => $receive->cpnyid, 'deptname' => $receive->department]
                 );
             }
         );
