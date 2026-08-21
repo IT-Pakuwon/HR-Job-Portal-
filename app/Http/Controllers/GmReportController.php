@@ -436,6 +436,48 @@ class GmReportController extends Controller
         return response()->json(['data' => $rows]);
     }
 
+    // ── API: Budget by company ────────────────────────────────────────────────
+    // Route was already registered (gm.budget-by-company) but had no matching
+    // method — the GM Insight panel needs a per-company breakdown alongside
+    // the existing per-department one when "All Companies" is selected.
+
+    public function budgetByCompany(Request $request)
+    {
+        ['dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'cpnyId' => $cpnyId, 'depts' => $depts]
+            = $this->parseFilters($request);
+
+        $allowed = $this->allowedCompanies();
+        $exprs = $this->buildExprs($dateFrom, $dateTo);
+
+        $finalExpr = "({$exprs['budget']}+{$exprs['add']})";
+        $remExpr = "({$exprs['budget']}+{$exprs['add']}-{$exprs['used']}-{$exprs['reserve']})";
+        $usedPct = "CASE WHEN ({$exprs['budget']}+{$exprs['add']}) > 0
+                           THEN ROUND(({$exprs['used']} / ({$exprs['budget']}+{$exprs['add']})) * 100, 1)
+                           ELSE 0 END";
+
+        $q = BudgetDetail::query()->where('status', 'C')->whereNotNull('cpny_id');
+        $q = $this->applyCompanyFilter($q, $allowed, $cpnyId);
+        $q = $this->applyDateFilter($q, $dateFrom, $dateTo);
+
+        if (!empty($depts)) {
+            $q->whereIn('department_fin_id', array_map('strtoupper', $depts));
+        }
+
+        $rows = $q->selectRaw("
+            cpny_id,
+            {$finalExpr}        AS total_final,
+            {$exprs['used']}    AS total_used,
+            {$exprs['reserve']} AS total_reserve,
+            {$remExpr}          AS total_remaining,
+            {$usedPct}          AS used_pct
+        ")
+        ->groupBy('cpny_id')
+        ->orderByRaw("{$exprs['used']} DESC")
+        ->get();
+
+        return response()->json(['data' => $rows]);
+    }
+
     // ── API: Budget by activity ───────────────────────────────────────────────
 
     public function budgetByActivity(Request $request)
@@ -782,6 +824,46 @@ class GmReportController extends Controller
             $rows = $bq->query($sql);
             $row  = $rows[0] ?? [];
 
+            // Per-company breakdown — only meaningful when "All Companies" is
+            // selected, so the KPI strip can show a per-site table alongside
+            // the aggregate totals instead of just one blended number.
+            $bySite = [];
+            if ($cpnyId === null) {
+                $sqlSite = <<<SQL
+                    SELECT
+                        COALESCE(site, 'Unknown')               AS site,
+                        COALESCE(SUM(total_case),               0) AS total_case,
+                        COALESCE(SUM(total_open),               0) AS total_open,
+                        COALESCE(SUM(total_closed),             0) AS total_closed,
+                        COALESCE(SUM(total_overdue),            0) AS total_overdue,
+                        COALESCE(SUM(solved_duration_hour_sum), 0) AS solved_hours,
+                        COALESCE(SUM(solved_case_count),        0) AS solved_case_count
+                    FROM `{$p}.{$d}.tb_kaizen_dashboard_summary_daily`
+                    WHERE issue_dt BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                      {$siteFilter}
+                      {$this->buildIsortDeptFilter($request)}
+                    GROUP BY site
+                    ORDER BY total_case DESC
+                SQL;
+
+                foreach ($bq->query($sqlSite) as $sr) {
+                    $siteTotal = (int) ($sr['total_case'] ?? 0);
+                    $siteClosed = (int) ($sr['total_closed'] ?? 0);
+                    $siteSolvedHours = (float) ($sr['solved_hours'] ?? 0);
+                    $siteSolvedCount = (int) ($sr['solved_case_count'] ?? 0);
+
+                    $bySite[] = [
+                        'site' => (string) ($sr['site'] ?? 'Unknown'),
+                        'total_case' => $siteTotal,
+                        'total_open' => (int) ($sr['total_open'] ?? 0),
+                        'total_closed' => $siteClosed,
+                        'total_overdue' => (int) ($sr['total_overdue'] ?? 0),
+                        'avg_resolution_hours' => $siteSolvedCount > 0 ? round($siteSolvedHours / $siteSolvedCount, 1) : 0,
+                        'closure_rate' => $siteTotal > 0 ? round(($siteClosed / $siteTotal) * 100) : 0,
+                    ];
+                }
+            }
+
             return response()->json([
                 'data' => [
                     'total_case'        => (int)   ($row['total_case']        ?? 0),
@@ -790,6 +872,7 @@ class GmReportController extends Controller
                     'total_overdue'     => (int)   ($row['total_overdue']     ?? 0),
                     'solved_hours'      => (float) ($row['solved_hours']      ?? 0),
                     'solved_case_count' => (int)   ($row['solved_case_count'] ?? 0),
+                    'by_site'           => $bySite,
                 ],
             ]);
         } catch (\Throwable $e) {
@@ -1589,30 +1672,50 @@ class GmReportController extends Controller
         ['dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
         $stacked = $cpnyId === null;
 
+        // Row-level (not aggregated) so the tooltip can list individual event
+        // names — ordered by contract value so the capped "top N" list below
+        // surfaces the biggest deals first.
         $rows = $this->baseEventQuery($dateFrom, $dateTo, $cpnyId)
-            ->selectRaw('event_status, cpnyid, COUNT(*) AS cnt, COALESCE(SUM(event_total_contract), 0) AS total_contract')
-            ->groupBy('event_status', 'cpnyid')
+            ->select('event_status', 'cpnyid', 'event_name', 'event_total_contract')
+            ->orderByDesc('event_total_contract')
             ->get();
 
         $byStatus = [];
         foreach (\App\Http\Controllers\EventCalendarController::EVENT_STATUSES as $status => $_) {
-            $byStatus[$status] = ['status' => $status, 'total' => 0, 'total_contract' => 0, 'by_site' => []];
+            $byStatus[$status] = ['status' => $status, 'total' => 0, 'total_contract' => 0, 'by_site' => [], 'events' => []];
         }
 
         $companies = [];
+        $eventsSeen = [];
         foreach ($rows as $row) {
             $status = (string) $row->event_status;
             $cpny = (string) $row->cpnyid;
-            $cnt = (int) $row->cnt;
+            $contract = (float) $row->event_total_contract;
 
             if (!isset($byStatus[$status])) {
-                $byStatus[$status] = ['status' => $status, 'total' => 0, 'total_contract' => 0, 'by_site' => []];
+                $byStatus[$status] = ['status' => $status, 'total' => 0, 'total_contract' => 0, 'by_site' => [], 'events' => []];
             }
-            $byStatus[$status]['total'] += $cnt;
-            $byStatus[$status]['total_contract'] += (float) $row->total_contract;
-            $byStatus[$status]['by_site'][$cpny] = ($byStatus[$status]['by_site'][$cpny] ?? 0) + $cnt;
+            $byStatus[$status]['total'] += 1;
+            $byStatus[$status]['total_contract'] += $contract;
+            $byStatus[$status]['by_site'][$cpny] = ($byStatus[$status]['by_site'][$cpny] ?? 0) + 1;
+            $eventsSeen[$status] = ($eventsSeen[$status] ?? 0) + 1;
             $companies[$cpny] = true;
+
+            // Cap the per-status event list the tooltip renders — it's already
+            // sorted by contract value, so the top 8 are the most relevant.
+            if (count($byStatus[$status]['events']) < 8) {
+                $byStatus[$status]['events'][] = [
+                    'name' => (string) $row->event_name,
+                    'cpny' => $cpny,
+                    'contract' => $contract,
+                ];
+            }
         }
+
+        foreach ($byStatus as $status => &$s) {
+            $s['events_more'] = max(0, ($eventsSeen[$status] ?? 0) - count($s['events']));
+        }
+        unset($s);
 
         $companies = array_keys($companies);
         sort($companies);
@@ -1654,22 +1757,68 @@ class GmReportController extends Controller
         return response()->json(['data' => $data]);
     }
 
+    /**
+     * Paid events for the Gantt-style timeline — every event carries signed
+     * start_days/end_days (today = 0) so the frontend can position it on a
+     * shared axis that auto-scales to the full ongoing/upcoming/past range,
+     * instead of a fixed window that would hide anything outside it.
+     */
     public function eventStatusStrip(Request $request)
     {
         ['dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
-        $today = now()->toDateString();
+        $today = \Carbon\Carbon::today();
 
         // Only Paid events — Booked/Confirmed events aren't a confirmed
         // commitment yet, so they'd skew the ongoing/upcoming/past pulse.
-        $ongoing = $this->baseEventQuery($dateFrom, $dateTo, $cpnyId)->where('event_status', 'Paid')
-            ->where('event_start_date', '<=', $today)->where('event_end_date', '>=', $today)->count();
-        $upcoming = $this->baseEventQuery($dateFrom, $dateTo, $cpnyId)->where('event_status', 'Paid')
-            ->where('event_start_date', '>', $today)->count();
-        $past = $this->baseEventQuery($dateFrom, $dateTo, $cpnyId)->where('event_status', 'Paid')
-            ->where('event_end_date', '<', $today)->count();
+        $rows = $this->baseEventQuery($dateFrom, $dateTo, $cpnyId)
+            ->where('event_status', 'Paid')
+            ->select('cpnyid', 'event_name', 'event_total_contract', 'event_start_date', 'event_end_date')
+            ->get();
+
+        $events = [];
+        $groupCounts = [];
+        foreach ($rows as $row) {
+            $cpny = (string) $row->cpnyid;
+            $startDays = (int) $today->diffInDays($row->event_start_date, false);
+            $endDays = (int) $today->diffInDays($row->event_end_date, false);
+
+            if ($row->event_start_date->lte($today) && $row->event_end_date->gte($today)) {
+                $bucket = 'ongoing';
+                $days = abs($endDays);
+            } elseif ($row->event_start_date->gt($today)) {
+                $bucket = 'upcoming';
+                $days = abs($startDays);
+            } else {
+                $bucket = 'past';
+                $days = abs($endDays);
+            }
+
+            if (!isset($groupCounts[$cpny])) {
+                $groupCounts[$cpny] = ['ongoing' => 0, 'upcoming' => 0, 'past' => 0];
+            }
+            $groupCounts[$cpny][$bucket] += 1;
+
+            $events[] = [
+                'name' => (string) $row->event_name,
+                'cpny' => $cpny,
+                'code' => self::PGCARD_COMPANY_MAP[$cpny] ?? $cpny,
+                'bucket' => $bucket,
+                'days' => $days,
+                'start_days' => $startDays,
+                'end_days' => $endDays,
+                'contract' => (float) $row->event_total_contract,
+            ];
+        }
+
+        $bucketOrder = ['ongoing' => 0, 'upcoming' => 1, 'past' => 2];
+        usort($events, function ($a, $b) use ($bucketOrder) {
+            return $bucketOrder[$a['bucket']] <=> $bucketOrder[$b['bucket']]
+                ?: $a['start_days'] <=> $b['start_days'];
+        });
 
         return response()->json([
-            'data' => ['ongoing' => $ongoing, 'upcoming' => $upcoming, 'past' => $past],
+            'data' => $events,
+            'groups' => $groupCounts,
         ]);
     }
 

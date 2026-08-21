@@ -144,6 +144,8 @@
                 </span>
             </div>
 
+            <x-card-chart.insight-panel listId="gmBudgetInsights" />
+
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5">
 
                 {{-- 1. Summary --}}
@@ -284,6 +286,8 @@
                     Last Updated: <span id="gmPgcardLastUpdatedVal">—</span>
                 </span>
             </div>
+
+            <x-card-chart.insight-panel listId="gmPgcardInsights" />
 
             {{-- ── Row 1: 3 cols — KPI Sidebar | Top 10 Customer | Top 10 Tenant ──────
                  lg+  : 3 equal columns
@@ -516,112 +520,53 @@
                 </span>
             </div>
 
-            {{-- ── KPI Strip — full width, 6 metrics ────────────────────────────── --}}
+            <x-card-chart.insight-panel listId="gmIsortInsights" />
+
+            {{-- ── Summary — one unified table instead of a KPI strip + a
+                 separate breakdown table. gm-isort.js always renders a "Total"
+                 row; per-company rows are appended below it only when "All
+                 Companies" is selected (isortSummary's by_site comes back
+                 empty once a specific company is filtered, so the Total row
+                 alone — which already equals that company's numbers — is all
+                 that renders then). ────────────────────────────────────────── --}}
             <div class="relative overflow-hidden rounded-2xl border border-slate-200 shadow-sm dark:border-slate-700/60">
-                <div class="absolute inset-x-0 top-0 z-10 h-0.75"
-                    style="background:linear-gradient(to right,#3B82F6,#10B981,#F59E0B,#EF4444,#8B5CF6,#06B6D4)"></div>
-                <div class="grid grid-cols-2 gap-px bg-slate-100 dark:bg-slate-700/50 sm:grid-cols-3 xl:grid-cols-6">
-
-                    {{-- Total Issue --}}
-                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-500/10">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                            </svg>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Total Issue</p>
-                            <p id="isortTotalCase" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white sm:text-2xl">—</p>
-                        </div>
-                    </div>
-
-                    {{-- Open Issue --}}
-                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-500/10">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[10px] font-bold uppercase tracking-widest text-amber-500">Open Issue</p>
-                            <p id="isortTotalOpen" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-amber-600 dark:text-amber-400 sm:text-2xl">—</p>
-                        </div>
-                    </div>
-
-                    {{-- Closed Issue --}}
-                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-500/10">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-500">Closed Issue</p>
-                            <p id="isortTotalClosed" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-emerald-600 dark:text-emerald-400 sm:text-2xl">—</p>
-                        </div>
-                    </div>
-
-                    {{-- Overdue Issue --}}
-                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-50 dark:bg-red-500/10">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                            </svg>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[10px] font-bold uppercase tracking-widest text-red-500">Overdue Issue</p>
-                            <p id="isortTotalOverdue" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-red-600 dark:text-red-400 sm:text-2xl">—</p>
-                        </div>
-                    </div>
-
-                    {{-- Avg Resolution Time --}}
-                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-50 dark:bg-violet-500/10">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[10px] font-bold uppercase tracking-widest text-violet-500">Avg Resolution</p>
-                            <p id="isortAvgResolution" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-violet-600 dark:text-violet-400 sm:text-2xl">—</p>
-                            <p id="isortAvgResolutionUnit" class="text-[10px] text-slate-400 dark:text-slate-500">hrs to close</p>
-                        </div>
-                    </div>
-
-                    {{-- Closure Rate --}}
-                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-50 dark:bg-cyan-500/10">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-cyan-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[10px] font-bold uppercase tracking-widest text-cyan-500">Closure Rate</p>
-                            <p id="isortClosureRate" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-cyan-600 dark:text-cyan-400 sm:text-2xl">—</p>
-                            <p class="text-[10px] text-slate-400 dark:text-slate-500">of total closed</p>
-                        </div>
-                    </div>
-
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-140 table-fixed text-left text-xs">
+                        <colgroup>
+                            <col style="width:22%">
+                            <col style="width:10%"><col style="width:10%"><col style="width:10%"><col style="width:10%">
+                            <col style="width:14%"><col style="width:24%">
+                        </colgroup>
+                        <thead>
+                            <tr class="border-b border-slate-200 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:border-slate-700/60 dark:text-slate-500">
+                                <th class="py-2 pl-4 pr-2">Company</th>
+                                <th class="py-2 pr-2 text-right">Total</th>
+                                <th class="py-2 pr-2 text-right">Open</th>
+                                <th class="py-2 pr-2 text-right">Closed</th>
+                                <th class="py-2 pr-2 text-right">Overdue</th>
+                                <th class="py-2 pr-2 text-right">Avg Res.</th>
+                                <th class="py-2 pr-4 text-right">Closure</th>
+                            </tr>
+                        </thead>
+                        <tbody id="isortSummaryBody"></tbody>
+                    </table>
                 </div>
             </div>
 
-            {{-- ── Chart row — 4 cards in a single row so the section is just
-                 KPI strip + charts (2 rows total), no half-empty trailing row --}}
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" style="align-items:stretch">
+            {{-- ── Charts — separate cards (not one merged container), 2 rows:
+                 row 1 is Type / Department / Incident side by side with
+                 matched heights (gm-isort.js's syncRowHeight sets all three
+                 ApexCharts instances to the tallest of the three), row 2 is
+                 Monthly Trend alone. The company legend is section-level, not
+                 per-card, since it isn't scoped to any single card anymore. --}}
+            <div id="isortChartLegend" class="flex flex-wrap items-center justify-end gap-4 px-0.5 text-[10.5px] font-semibold text-slate-500 dark:text-slate-400"></div>
 
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-3" style="align-items:stretch">
                 <x-card-chart.card-shell subtitle="Operation · Isort" title="Total Kaizen by Type"
                     class="h-full flex flex-col"
                     gradient="linear-gradient(to right,#8B5CF6,#3B82F6)">
                     <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
                         <div id="isortKaizenTypeChart" class="flex-1"></div>
-                    </div>
-                </x-card-chart.card-shell>
-
-                <x-card-chart.card-shell subtitle="Operation · Isort" title="Top 10 Kaizen by Incident Type"
-                    class="h-full flex flex-col"
-                    gradient="linear-gradient(to right,#EF4444,#F59E0B)">
-                    <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
-                        <div id="isortIncidentChart" class="flex-1"></div>
                     </div>
                 </x-card-chart.card-shell>
 
@@ -633,23 +578,21 @@
                     </div>
                 </x-card-chart.card-shell>
 
-                <x-card-chart.card-shell subtitle="Operation · Isort" title="Monthly Issue Trend"
+                <x-card-chart.card-shell subtitle="Operation · Isort" title="Top 10 Kaizen by Incident Type"
                     class="h-full flex flex-col"
-                    gradient="linear-gradient(to right,#3B82F6,#10B981,#F59E0B,#EF4444)">
+                    gradient="linear-gradient(to right,#EF4444,#F59E0B)">
                     <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
-                        <div id="isortMonthlyTrendChart" class="flex-1"></div>
+                        <div id="isortIncidentChart" class="flex-1"></div>
                     </div>
                 </x-card-chart.card-shell>
-
-                {{-- <x-card-chart.card-shell subtitle="Operation · Isort" title="Top 10 Problem Areas"
-                    class="h-full flex flex-col"
-                    gradient="linear-gradient(to right,#F59E0B,#EF4444,#8B5CF6)">
-                    <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
-                        <div id="isortTopAreasChart" class="flex-1"></div>
-                    </div>
-                </x-card-chart.card-shell> --}}
-
             </div>
+
+            <x-card-chart.card-shell subtitle="Operation · Isort" title="Monthly Issue Trend"
+                gradient="linear-gradient(to right,#3B82F6,#10B981,#F59E0B,#EF4444)">
+                <div class="px-3 pb-3 pt-0">
+                    <div id="isortMonthlyTrendChart"></div>
+                </div>
+            </x-card-chart.card-shell>
 
         </div>{{-- /Isort Section --}}
 
@@ -669,6 +612,8 @@
                     Last Updated: <span id="gmValetLastUpdatedVal">—</span>
                 </span>
             </div>
+
+            <x-card-chart.insight-panel listId="gmValetInsights" />
 
             {{-- ── KPI Strip ─────────────────────────────────────────────────────── --}}
             {{--
@@ -808,33 +753,32 @@
                 </span>
             </div>
 
-            {{-- ── Timeline pulse strip: Ongoing / Upcoming / Past (Paid events only) ── --}}
-            <div class="flex items-center justify-between px-0.5">
-                <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Paid Events Timeline</span>
-            </div>
-            <div class="grid grid-cols-3 gap-px overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm dark:border-slate-700/60 dark:bg-slate-700/50">
-                <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3 dark:bg-slate-900 sm:px-5">
-                    <span class="h-2 w-2 shrink-0 animate-pulse rounded-full bg-emerald-500"></span>
-                    <div class="min-w-0">
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-500">Ongoing Now</p>
-                        <p id="eventOngoingCount" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white sm:text-xl">—</p>
+            <x-card-chart.insight-panel listId="gmEventInsights" />
+
+            {{-- ── Timeline: Gantt strip, Ongoing/Upcoming/Past (Paid events only) ── --}}
+            <x-card-chart.card-shell subtitle="Event · Paid only" title="Paid Events Timeline"
+                gradient="linear-gradient(to right,#10B981,#3B82F6,#94A3B8)">
+                <x-slot:headerEnd>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div id="eventGanttCompanyFilter" class="flex flex-wrap items-center gap-1.5"></div>
+                        <div class="h-3 w-px bg-slate-200 dark:bg-slate-700"></div>
+                        <div class="flex items-center gap-3 text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+                            <span class="inline-flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Ongoing</span>
+                            <span class="inline-flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>Upcoming</span>
+                            <span class="inline-flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>Past</span>
+                        </div>
+                    </div>
+                </x-slot:headerEnd>
+                <div class="px-3 pb-3 pt-2">
+                    <div class="grid grid-cols-[150px_1fr] gap-3">
+                        <div></div>
+                        <div id="eventGanttAxis" class="relative mb-1 h-4 text-[9px] font-semibold text-slate-400 dark:text-slate-500"></div>
+                    </div>
+                    <div id="eventGanttRows" class="space-y-1.5">
+                        <p class="py-6 text-center text-xs text-slate-400">Loading…</p>
                     </div>
                 </div>
-                <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3 dark:bg-slate-900 sm:px-5">
-                    <span class="h-2 w-2 shrink-0 rounded-full bg-blue-500"></span>
-                    <div class="min-w-0">
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-blue-500">Upcoming</p>
-                        <p id="eventUpcomingCount" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white sm:text-xl">—</p>
-                    </div>
-                </div>
-                <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3 dark:bg-slate-900 sm:px-5">
-                    <span class="h-2 w-2 shrink-0 rounded-full bg-slate-400"></span>
-                    <div class="min-w-0">
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Past</p>
-                        <p id="eventPastCount" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white sm:text-xl">—</p>
-                    </div>
-                </div>
-            </div>
+            </x-card-chart.card-shell>
 
             {{-- ── KPI Strip ─────────────────────────────────────────────────────── --}}
             <div class="relative overflow-hidden rounded-2xl border border-slate-200 shadow-sm dark:border-slate-700/60">
@@ -946,6 +890,7 @@
             departments: "{{ route('gm.departments') }}",
             summary: "{{ route('gm.budget-summary') }}",
             byDept: "{{ route('gm.budget-by-department') }}",
+            byCompany: "{{ route('gm.budget-by-company') }}",
             byActivity: "{{ route('gm.budget-by-activity') }}",
             byMonth: "{{ route('gm.budget-by-month') }}",
             sectionLastUpdated: "{{ route('gm.section-last-updated') }}",

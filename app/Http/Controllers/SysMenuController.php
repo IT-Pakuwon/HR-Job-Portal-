@@ -90,6 +90,15 @@ class SysMenuController extends Controller
             $user = Auth::user();
             $username = $user->username ?? 'system';
 
+            // Application harus ikut Screen yang dipilih, biar tidak bisa beda
+            // sendiri (menu keliatan di bawah application yang salah).
+            $applicationId = $request->application_id;
+            if ($request->screen_id) {
+                $applicationId = SysScreen::on('pgsql2')
+                    ->where('screen_id', $request->screen_id)
+                    ->value('application_id') ?? $applicationId;
+            }
+
             // 1) SIMPAN MENU
             $menu = SysMenu::create([
                 'menu_id'        => strtoupper($request->menu_id),
@@ -100,7 +109,7 @@ class SysMenuController extends Controller
                 'menu_icon'      => $request->menu_icon,
                 'menu_sort_order'=> $request->menu_sort_order ?? 0,
                 'screen_id'      => $request->screen_id,
-                'application_id' => $request->application_id,
+                'application_id' => $applicationId,
                 'status'         => 'A',
                 'created_by'     => $username,
             ]);
@@ -187,6 +196,15 @@ class SysMenuController extends Controller
             $newMenuId        = strtoupper($request->menu_id);
             $newParentMenuId  = $request->parent_menu_id ?: null;
 
+            // Application harus ikut Screen yang dipilih, biar tidak bisa beda
+            // sendiri (menu keliatan di bawah application yang salah).
+            $applicationId = $request->application_id;
+            if ($request->screen_id) {
+                $applicationId = SysScreen::on('pgsql2')
+                    ->where('screen_id', $request->screen_id)
+                    ->value('application_id') ?? $applicationId;
+            }
+
             $menu->update([
                 'menu_id'        => $newMenuId,
                 'parent_menu_id' => $newParentMenuId,
@@ -196,7 +214,7 @@ class SysMenuController extends Controller
                 'menu_icon'      => $request->menu_icon,
                 'menu_sort_order'=> $request->menu_sort_order ?? 0,
                 'screen_id'      => $request->screen_id,
-                'application_id' => $request->application_id,
+                'application_id' => $applicationId,
                 'updated_by'     => $username,
             ]);
 

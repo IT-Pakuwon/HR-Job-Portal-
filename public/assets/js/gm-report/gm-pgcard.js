@@ -769,8 +769,54 @@
                         { label: 'Best Avg Store', name: ia ? ia.name : '-', value: ia ? idr(ia.value1) + ' avg' : '-' },
                     ]);
                 }
+
+                computePgcardInsights(d, byMall, insights);
             })
             .catch(function (e) { if (e.name !== 'AbortError') console.error('pgcard kpi:', e); });
+    }
+
+    // ── GM Insight — cross-mall comparison when unfiltered, top performer
+    //    call-outs when scoped to one mall (reuses the same insights payload
+    //    the per-KPI-card mini insights above already use). ────────────────
+    function computePgcardInsights(d, byMall, insights) {
+        var gm = [];
+        var totalSpending = parseFloat(d.total_spending) || 0;
+        var totalTxn = parseFloat(d.total_txn) || 0;
+
+        if (byMall.length > 1) {
+            var bySpend = byMall.slice().sort(function (a, b) { return b.total_spending - a.total_spending; });
+            var leader = bySpend[0];
+            if (leader && totalSpending > 0) {
+                var share = (leader.total_spending / totalSpending * 100).toFixed(0);
+                gm.push({ type: 'positive', text: '<b>' + utils.escHtml(leader.mall_code) + '</b> leads spending at ' + idr(leader.total_spending) + ' (' + share + '% of total across all malls).' });
+            }
+
+            var withAvg = byMall.map(function (m) {
+                return { code: m.mall_code, avg: m.txn_count > 0 ? m.total_spending / m.txn_count : 0 };
+            }).sort(function (a, b) { return b.avg - a.avg; });
+            if (withAvg.length > 1 && withAvg[0].avg > 0) {
+                gm.push({ type: 'info', text: '<b>' + utils.escHtml(withAvg[0].code) + '</b> has the highest average transaction value at ' + idr(withAvg[0].avg) + ' per visit.' });
+            }
+
+            var lowestTxn = byMall.slice().sort(function (a, b) { return a.txn_count - b.txn_count; })[0];
+            if (lowestTxn) {
+                gm.push({ type: 'warning', text: '<b>' + utils.escHtml(lowestTxn.mall_code) + '</b> has the fewest transactions of all malls (' + Number(lowestTxn.txn_count).toLocaleString('id-ID') + ') — worth checking footfall or campaign coverage there.' });
+            }
+        } else if (insights) {
+            var isS = insights.top_customer_spending;
+            var imS = insights.top_tenant_spending;
+            if (isS && isS.name) gm.push({ type: 'positive', text: 'Top spender <b>' + utils.escHtml(isS.name) + '</b> contributed ' + idr(isS.value1) + ' this period.' });
+            if (imS && imS.name) gm.push({ type: 'info', text: '<b>' + utils.escHtml(imS.name) + '</b> was the top-revenue tenant, driving ' + idr(imS.value1) + '.' });
+            if (insights.new_members_count != null) {
+                gm.push({ type: 'positive', text: Number(insights.new_members_count).toLocaleString('id-ID') + ' new members joined in this period.' });
+            }
+        }
+
+        if (totalTxn > 0 && d.avg_txn_value) {
+            gm.push({ type: 'info', text: 'Average transaction value is ' + idr(d.avg_txn_value) + ' across ' + Number(totalTxn).toLocaleString('id-ID') + ' transactions.' });
+        }
+
+        utils.renderInsights('gmPgcardInsights', gm);
     }
 
     // ── Monthly trend chart ───────────────────────────────────────────────────

@@ -1122,7 +1122,7 @@ class EngTicketController extends Controller
             $this->notificationService->ticketWhatsapp(
                 $ticket,
                 'CREATED',
-                "Summary : {$ticket->issue_summary}\n\n{$plainDescr}"
+                $plainDescr
             );
 
             return response()->json([

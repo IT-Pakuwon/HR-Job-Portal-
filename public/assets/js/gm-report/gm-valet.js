@@ -11,6 +11,49 @@
     var xhrRedemption = null;
     var xhrPeakHours  = null;
 
+    // ── GM Insight — combines all 3 endpoints, so each caches its own slice
+    //    and recomputes once whatever's arrived so far is enough to say
+    //    something useful. ───────────────────────────────────────────────
+    var lastValetKpi = null, lastValetRedemption = null, lastValetPeakHours = null;
+    function computeValetInsights() {
+        var kpi = lastValetKpi;
+        if (!kpi) return;
+
+        var gm = [];
+        var totalValet = parseInt(kpi.total_valet, 10) || 0;
+        var totalIncome = (parseFloat(kpi.total_income_service) || 0) + (parseFloat(kpi.total_income_parking) || 0);
+
+        if (totalValet > 0 && totalIncome > 0) {
+            gm.push({ type: 'info', text: 'Total valet income is <b>' + utils.idr(totalIncome) + '</b> across ' + totalValet.toLocaleString('id-ID') + ' valet(s) — an average of ' + utils.idr(totalIncome / totalValet) + ' per valet.' });
+        }
+
+        var hours = lastValetPeakHours;
+        if (hours && hours.length) {
+            var maxIdx = 0;
+            hours.forEach(function (v, i) { if (v > hours[maxIdx]) maxIdx = i; });
+            if (hours[maxIdx] > 0) {
+                var hourLabel = (maxIdx < 10 ? '0' : '') + maxIdx + ':00';
+                gm.push({ type: 'positive', text: 'Peak demand is at <b>' + hourLabel + '</b> with ' + hours[maxIdx].toLocaleString('id-ID') + ' check-ins — consider staffing accordingly.' });
+            }
+        }
+
+        var rdm = lastValetRedemption;
+        if (rdm && rdm.total_valet > 0) {
+            var rate = parseFloat(rdm.redemption_rate) || 0;
+            gm.push({ type: rate >= 30 ? 'positive' : 'info', text: '<b>' + rate + '%</b> of valets used a member/voucher benefit (' + Number(rdm.redeemed || 0).toLocaleString('id-ID') + ' of ' + Number(rdm.total_valet).toLocaleString('id-ID') + ').' });
+        }
+
+        var byPlace = kpi.by_place || [];
+        if (byPlace.length > 1) {
+            var busiest = byPlace.slice().sort(function (a, b) { return b.total_valet - a.total_valet; })[0];
+            if (busiest) {
+                gm.push({ type: 'info', text: '<b>' + utils.escHtml(busiest.place_name) + '</b> is the busiest site with ' + Number(busiest.total_valet).toLocaleString('id-ID') + ' valet(s).' });
+            }
+        }
+
+        utils.renderInsights('gmValetInsights', gm);
+    }
+
     function createResponsiveChart(el, opts) {
         var chart = new ApexCharts(el, opts);
         chart.render();
@@ -69,7 +112,11 @@
             signal: xhrKpi.signal,
         })
             .then(function (r) { return r.json(); })
-            .then(function (res) { renderKpiSummary(res.data || {}); })
+            .then(function (res) {
+                renderKpiSummary(res.data || {});
+                lastValetKpi = res.data || {};
+                computeValetInsights();
+            })
             .catch(function (e) { if (e.name !== 'AbortError') console.error('valet kpi-summary:', e); });
     }
 
@@ -127,7 +174,11 @@
             signal: xhrRedemption.signal,
         })
             .then(function (r) { return r.json(); })
-            .then(function (res) { renderRedemption(res.data || {}); })
+            .then(function (res) {
+                renderRedemption(res.data || {});
+                lastValetRedemption = res.data || {};
+                computeValetInsights();
+            })
             .catch(function (e) { if (e.name !== 'AbortError') console.error('valet voucher-redemption:', e); });
     }
 
@@ -179,7 +230,11 @@
             signal: xhrPeakHours.signal,
         })
             .then(function (r) { return r.json(); })
-            .then(function (res) { renderPeakHours(res.data || []); })
+            .then(function (res) {
+                renderPeakHours(res.data || []);
+                lastValetPeakHours = res.data || [];
+                computeValetInsights();
+            })
             .catch(function (e) { if (e.name !== 'AbortError') console.error('valet peak-hours:', e); });
     }
 

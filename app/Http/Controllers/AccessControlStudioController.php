@@ -65,12 +65,13 @@ class AccessControlStudioController extends Controller
      * 1) leaf menus (no children) missing a screen_id
      * 2) screens with zero `access:SCREEN,ACTION` route anywhere in web.php
      * 3) screen_ids used by access: middleware that aren't registered in Screen master data
+     * 4) menus whose application_id doesn't match the application_id of their own screen_id
      */
     public function coverage()
     {
         $menus = SysMenu::on('pgsql2')
             ->where('status', 'A')
-            ->get(['id', 'menu_id', 'menu_name', 'parent_menu_id', 'screen_id']);
+            ->get(['id', 'menu_id', 'menu_name', 'parent_menu_id', 'screen_id', 'application_id']);
 
         $parentIds = $menus->pluck('parent_menu_id')->filter()->unique();
 
@@ -83,7 +84,7 @@ class AccessControlStudioController extends Controller
         $screenActions = []; // screen_id => [action_names...]
         foreach (RouteFacade::getRoutes() as $route) {
             foreach ($route->gatherMiddleware() as $mw) {
-                if (str_starts_with($mw, 'access:')) {
+                if (is_string($mw) && str_starts_with($mw, 'access:')) {
                     [$screenId, $action] = array_pad(explode(',', substr($mw, 7), 2), 2, null);
                     $screenId = trim($screenId ?? '');
                     $action = trim($action ?? '');
@@ -99,7 +100,22 @@ class AccessControlStudioController extends Controller
         $screens = SysScreen::on('pgsql2')
             ->where('status', 'A')
             ->orderBy('screen_id')
-            ->get(['screen_id', 'screen_name']);
+            ->get(['screen_id', 'screen_name', 'application_id']);
+
+        $screenAppIds = $screens->pluck('application_id', 'screen_id');
+
+        $menusAppMismatch = $menus
+            ->filter(fn ($m) => $m->screen_id && $screenAppIds->has($m->screen_id))
+            ->filter(fn ($m) => $m->application_id !== $screenAppIds->get($m->screen_id))
+            ->map(fn ($m) => [
+                'id'                  => $m->id,
+                'menu_id'             => $m->menu_id,
+                'menu_name'           => $m->menu_name,
+                'menu_application_id' => $m->application_id,
+                'screen_id'           => $m->screen_id,
+                'screen_application_id' => $screenAppIds->get($m->screen_id),
+            ])
+            ->values();
 
         $screensWithRoute = [];
         $screensWithoutRoute = [];
@@ -122,10 +138,11 @@ class AccessControlStudioController extends Controller
             ->values();
 
         return response()->json([
-            'menus_missing_screen'   => $menusMissingScreen,
-            'screens_with_route'     => $screensWithRoute,
-            'screens_without_route'  => $screensWithoutRoute,
+            'menus_missing_screen'    => $menusMissingScreen,
+            'screens_with_route'      => $screensWithRoute,
+            'screens_without_route'   => $screensWithoutRoute,
             'unregistered_screen_ids' => $unregisteredScreenIds,
+            'menus_app_mismatch'      => $menusAppMismatch,
         ]);
     }
 }
