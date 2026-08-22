@@ -83,12 +83,21 @@
                         </button>
                     </div>
                 </div>
-                @if ($hasGaAccess)
-                    <button type="button" id="btnCreatePerizinan"
-                        class="inline-flex h-10 items-center gap-2 self-start rounded-lg bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:scale-[1.01] hover:bg-indigo-700 xl:self-auto">
-                        <i class="fa-solid fa-plus text-xs"></i> Create
-                    </button>
-                @endif
+                <div class="flex items-center gap-2 self-start xl:self-auto">
+                    @if ($hasGaAccess)
+                        <button type="button" id="btnGenerateBA"
+                            class="hidden inline-flex h-10 items-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:scale-[1.01] hover:bg-emerald-700">
+                            <i class="fa-solid fa-file-word text-xs"></i> Generate Berita Acara
+                            <span id="baSelectedCount" class="hidden rounded-full bg-white/20 px-2 py-0.5 text-xs font-bold">0</span>
+                        </button>
+                    @endif
+                    @if ($hasGaAccess)
+                        <button type="button" id="btnCreatePerizinan"
+                            class="inline-flex h-10 items-center gap-2 rounded-lg bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:scale-[1.01] hover:bg-indigo-700">
+                            <i class="fa-solid fa-plus text-xs"></i> Create
+                        </button>
+                    @endif
+                </div>
             </div>
 
             <div class="relative overflow-hidden">
@@ -106,6 +115,12 @@
                             <th class="px-4 py-3 text-left font-medium">End</th>
                             <th class="px-4 py-3 text-left font-medium">Status</th>
                             <th class="px-4 py-3 text-left font-medium">Information</th>
+                            <th class="ba-select-col px-4 py-3 text-center font-medium">
+                                <label class="inline-flex flex-col items-center gap-1 cursor-pointer" title="Select all on this page">
+                                    <input type="checkbox" id="baSelectAllCheckbox" class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                                    <span>All</span>
+                                </label>
+                            </th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -513,6 +528,47 @@
         </div>
     </div>
 
+    @if ($hasGaAccess)
+        <div id="baModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/50 p-4">
+            <div class="flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl bg-white shadow-xl dark:bg-gray-800">
+                <div class="flex items-center justify-between border-b px-5 py-4 dark:border-gray-700">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-white">Generate Berita Acara Serah Terima Dokumen Perijinan</h2>
+                        <p id="baCompanyLabel" class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">-</p>
+                    </div>
+                    <button type="button" class="btnCloseBa text-2xl text-gray-500 dark:text-gray-400">&times;</button>
+                </div>
+                <div class="min-h-0 flex-1 overflow-y-auto p-5 space-y-4">
+                    <div>
+                        <div class="mb-2 flex items-center justify-between">
+                            <label class="block text-sm font-semibold text-gray-700 dark:text-slate-200">Selected Permits</label>
+                            <span id="baListCount" class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">0</span>
+                        </div>
+                        <div id="baPermitList" class="overflow-hidden rounded-lg border border-slate-200 dark:border-white/10"></div>
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-slate-200">Dokumen-dokumen Asli Perijinan</label>
+                        <div class="flex flex-wrap items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2.5 dark:border-white/10 dark:bg-[#0b1220]">
+                            <span class="text-sm text-slate-600 dark:text-slate-300">Dokumen-dokumen asli perijinan '</span>
+                            <input type="text" id="baDokumenLainnya" placeholder="Please Fill" maxlength="255"
+                                class="min-w-[180px] flex-1 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-0 dark:border-white/10 dark:bg-[#0f172a] dark:text-slate-100 dark:placeholder:text-slate-500">
+                            <span class="text-sm text-slate-600 dark:text-slate-300">' Lainnya</span>
+                        </div>
+                    </div>
+                    <div id="baErrors" class="hidden rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300"></div>
+                </div>
+                <div class="flex justify-end gap-3 border-t px-5 py-4 dark:border-gray-700">
+                    <button type="button" class="btnCloseBa rounded-lg border px-4 py-2 text-sm font-semibold">Cancel</button>
+                    <button type="button" id="btnDownloadBa" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50">
+                        <span id="baSpinner" class="hidden h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+                        <i class="fa-solid fa-file-word text-xs"></i>
+                        <span id="baDownloadText">Download Word Document</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
@@ -521,6 +577,8 @@
             const expiryPeriods = @json($expiryPeriods);
             const hasGaAccess = @json($hasGaAccess);
             const hasUserPermitAccess = @json($hasUserPermitAccess);
+            const generateBaUrl = @json($hasGaAccess ? route('perizinan.generate-berita-acara') : null);
+            const selectedPermits = new Map();
             const titles = {
                 all: 'All Permits',
                 active: 'Active Permits',
@@ -577,7 +635,8 @@
                 responsive: true,
                 pageLength: 25,
                 columnDefs: [
-                    { targets: 1, visible: hasGaAccess }
+                    { targets: 1, visible: hasGaAccess },
+                    { targets: -1, visible: false }
                 ],
                 ajax: {
                     url: @json(route('perizinan.json')),
@@ -636,8 +695,22 @@
                     { data: 'startdate', render: formatMonthYear },
                     { data: 'enddate', render: formatMonthYear },
                     { data: 'status', render: statusBadge },
-                    { data: 'information', defaultContent: '-', orderable: false }
+                    { data: 'information', defaultContent: '-', orderable: false },
+                    {
+                        data: null, orderable: false, searchable: false, className: 'ba-select-col text-center',
+                        render: (_value, _type, row) => {
+                            if (!hasGaAccess || String(row.status || '').toUpperCase() !== 'C') return '';
+                            const checked = selectedPermits.has(String(row.id)) ? 'checked' : '';
+                            return `<input type="checkbox" class="baSelectCheckbox h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                                data-id="${row.id}" data-perizinan-id="${escapeHtml(row.perizinan_id || '')}"
+                                data-cpny="${escapeHtml(row.cpny_id || '')}" data-title="${escapeHtml(row.perizinan_title || '')}" ${checked}>`;
+                        }
+                    }
                 ]
+            });
+
+            table.on('draw', function () {
+                syncSelectAllCheckbox();
             });
 
             $('.status-filter').on('click', function (event) {
@@ -646,6 +719,14 @@
                 $('#tableTitle').text(titles[activeFilter] || titles.all);
                 $('.status-card').removeClass('ring-2 ring-indigo-500');
                 $(this).find('.status-card').addClass('ring-2 ring-indigo-500');
+                const showBaTools = hasGaAccess && activeFilter === 'completed';
+                table.columns('.ba-select-col').visible(showBaTools);
+                $('#btnGenerateBA').toggleClass('hidden', !showBaTools);
+                if (!showBaTools) {
+                    selectedPermits.clear();
+                    updateBaButtonState();
+                    $('#baSelectAllCheckbox').prop('checked', false).prop('indeterminate', false);
+                }
                 table.ajax.reload();
             });
 
@@ -682,6 +763,188 @@
                 updateExpiryMonths();
                 $('#filterExpiryMonth').val('');
                 table.ajax.reload();
+            });
+
+            function updateBaButtonState() {
+                const count = selectedPermits.size;
+                $('#baSelectedCount').text(count).toggleClass('hidden', count === 0);
+            }
+
+            function syncSelectAllCheckbox() {
+                const $checkboxes = $('#perizinanTable tbody .baSelectCheckbox');
+                const total = $checkboxes.length;
+                const checkedCount = $checkboxes.filter(':checked').length;
+                const $selectAll = $('#baSelectAllCheckbox');
+                $selectAll.prop('checked', total > 0 && checkedCount === total);
+                $selectAll.prop('indeterminate', checkedCount > 0 && checkedCount < total);
+            }
+
+            $('#perizinanTable tbody').on('change', '.baSelectCheckbox', function () {
+                const $checkbox = $(this);
+                const id = String($checkbox.data('id'));
+                const cpny = String($checkbox.data('cpny') || '');
+
+                if (this.checked) {
+                    const existing = selectedPermits.values().next().value;
+                    if (existing && existing.cpny_id !== cpny) {
+                        this.checked = false;
+                        Swal.fire('Different Company', `You can only select permits from the same company (${existing.cpny_id}) in one Berita Acara.`, 'warning');
+                        return;
+                    }
+                    selectedPermits.set(id, {
+                        id,
+                        perizinan_id: String($checkbox.data('perizinan-id') || ''),
+                        cpny_id: cpny,
+                        title: String($checkbox.data('title') || '')
+                    });
+                } else {
+                    selectedPermits.delete(id);
+                }
+                updateBaButtonState();
+                syncSelectAllCheckbox();
+            });
+
+            $('#perizinanTable thead').on('change', '#baSelectAllCheckbox', function () {
+                const $checkboxes = $('#perizinanTable tbody .baSelectCheckbox');
+
+                if (!this.checked) {
+                    $checkboxes.each(function () {
+                        selectedPermits.delete(String($(this).data('id')));
+                    });
+                    $checkboxes.prop('checked', false);
+                    updateBaButtonState();
+                    return;
+                }
+
+                let targetCompany = selectedPermits.values().next().value?.cpny_id || null;
+                let skipped = 0;
+
+                $checkboxes.each(function () {
+                    const $cb = $(this);
+                    const id = String($cb.data('id'));
+                    const cpny = String($cb.data('cpny') || '');
+                    if (!targetCompany) targetCompany = cpny;
+
+                    if (cpny !== targetCompany) {
+                        $cb.prop('checked', false);
+                        skipped++;
+                        return;
+                    }
+
+                    $cb.prop('checked', true);
+                    selectedPermits.set(id, {
+                        id,
+                        perizinan_id: String($cb.data('perizinan-id') || ''),
+                        cpny_id: cpny,
+                        title: String($cb.data('title') || '')
+                    });
+                });
+
+                updateBaButtonState();
+                syncSelectAllCheckbox();
+
+                if (skipped > 0) {
+                    Swal.fire('Some Permits Skipped', `${skipped} permit(s) from a different company were not selected. Only permits from ${targetCompany} were included.`, 'info');
+                }
+            });
+
+            const $baModal = $('#baModal');
+
+            function renderBaList() {
+                const rows = Array.from(selectedPermits.values());
+                $('#baListCount').text(rows.length);
+                $('#baCompanyLabel').text(rows.length ? `Company: ${rows[0].cpny_id}` : '-');
+                $('#baPermitList').html(rows.length ? rows.map(row => `
+                    <div class="flex items-center justify-between gap-3 border-b px-4 py-2.5 text-sm last:border-b-0 dark:border-white/10" data-id="${escapeHtml(row.id)}">
+                        <div class="min-w-0">
+                            <p class="truncate font-semibold text-slate-700 dark:text-slate-200">${escapeHtml(row.perizinan_id)}</p>
+                            <p class="truncate text-xs text-slate-500 dark:text-slate-400">${escapeHtml(row.title || '-')}</p>
+                        </div>
+                        <button type="button" class="btnRemoveBaItem shrink-0 rounded-lg bg-red-50 px-2.5 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400" data-id="${escapeHtml(row.id)}">Remove</button>
+                    </div>`).join('') : '<div class="p-4 text-center text-sm text-gray-500 dark:text-gray-400">No permits selected.</div>');
+            }
+
+            $('#btnGenerateBA').on('click', function () {
+                if (!selectedPermits.size) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Select Permits First',
+                        text: 'Check the completed permits you want to include using the Select column, then click Generate Berita Acara again.'
+                    });
+                    return;
+                }
+                renderBaList();
+                $('#baDokumenLainnya').val('');
+                $('#baErrors').addClass('hidden').empty();
+                $baModal.removeClass('hidden').addClass('flex');
+            });
+
+            $('#baPermitList').on('click', '.btnRemoveBaItem', function () {
+                const id = String($(this).data('id'));
+                selectedPermits.delete(id);
+                updateBaButtonState();
+                renderBaList();
+                table.rows().invalidate('data').draw(false);
+                if (!selectedPermits.size) closeBaModal();
+            });
+
+            function closeBaModal() {
+                if ($('#btnDownloadBa').prop('disabled')) return;
+                $baModal.addClass('hidden').removeClass('flex');
+            }
+
+            $('.btnCloseBa').on('click', closeBaModal);
+
+            function setBaDownloading(saving) {
+                $('#btnDownloadBa').prop('disabled', saving);
+                $('#baSpinner').toggleClass('hidden', !saving);
+                $('#baDownloadText').text(saving ? 'Generating...' : 'Download Word Document');
+            }
+
+            $('#btnDownloadBa').on('click', async function () {
+                if (!selectedPermits.size || !generateBaUrl) return;
+                setBaDownloading(true);
+                $('#baErrors').addClass('hidden').empty();
+
+                const formData = new FormData();
+                Array.from(selectedPermits.keys()).forEach(id => formData.append('perizinan_ids[]', id));
+                formData.append('dokumen_lainnya', $('#baDokumenLainnya').val() || '');
+
+                try {
+                    const response = await fetch(generateBaUrl, {
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        const errorBody = await response.json().catch(() => ({}));
+                        const message = errorBody.message
+                            || Object.values(errorBody.errors || {}).flat().join(' ')
+                            || 'Failed to generate the Berita Acara document.';
+                        throw new Error(message);
+                    }
+
+                    const blob = await response.blob();
+                    const disposition = response.headers.get('Content-Disposition') || '';
+                    const match = disposition.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i);
+                    const fileName = match ? decodeURIComponent(match[1]) : 'Berita Acara Serah Terima Dokumen Perijinan.docx';
+
+                    const blobUrl = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = blobUrl;
+                    link.download = fileName;
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    window.URL.revokeObjectURL(blobUrl);
+
+                    closeBaModal();
+                } catch (error) {
+                    $('#baErrors').removeClass('hidden').text(error.message || 'Failed to generate the Berita Acara document.');
+                } finally {
+                    setBaDownloading(false);
+                }
             });
 
             const $modal = $('#perizinanModal');

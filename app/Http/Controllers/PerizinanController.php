@@ -22,6 +22,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use PhpOffice\PhpWord\IOFactory;
+use PhpOffice\PhpWord\PhpWord;
+use PhpOffice\PhpWord\SimpleType\Jc;
+use PhpOffice\PhpWord\SimpleType\TblWidth;
 use Vinkla\Hashids\Facades\Hashids;
 
 class PerizinanController extends Controller
@@ -886,5 +890,236 @@ class PerizinanController extends Controller
             'has_ga_access' => false,
             'department_fin_ids' => $departmentFinIds,
         ];
+    }
+
+    /**
+     * Generate a downloadable "Berita Acara Serah Terima Dokumen Perijinan" Word document
+     * for a GA-selected batch of completed permits belonging to a single company.
+     */
+    public function generateBeritaAcara(Request $request)
+    {
+        $user = $request->user();
+        abort_unless($user->hasRole('GAACCESS'), 403, 'You are not allowed to generate this document.');
+
+        $validated = $request->validate([
+            'perizinan_ids' => ['required', 'array', 'min:1'],
+            'perizinan_ids.*' => ['required', 'integer'],
+            'dokumen_lainnya' => ['nullable', 'string', 'max:4000'],
+        ]);
+        $requestedIds = collect($validated['perizinan_ids'])->unique()->values();
+
+        $companyIds = $user->hasFullDataScope()
+            ? \App\Models\MsCompany::pluck('cpny_id')
+            : Usercpny::query()->where('username', $user->username)
+                ->where('status', 'A')->pluck('cpny_id')->unique()->values();
+
+        $permits = TrPerizinan::query()
+            ->whereIn('id', $requestedIds)
+            ->whereIn('cpny_id', $companyIds)
+            ->where('status', 'C')
+            ->orderBy('perizinan_id')
+            ->get();
+
+        if ($permits->count() !== $requestedIds->count()) {
+            throw ValidationException::withMessages([
+                'perizinan_ids' => 'Some selected permits are not eligible. Only Completed permits you have access to can be included.',
+            ]);
+        }
+
+        $cpnyId = $permits->pluck('cpny_id')->unique();
+        if ($cpnyId->count() > 1) {
+            throw ValidationException::withMessages([
+                'perizinan_ids' => 'All selected permits must belong to the same company.',
+            ]);
+        }
+        $cpnyId = $cpnyId->first();
+
+        $company = \App\Models\MsCompany::where('cpny_id', $cpnyId)->first();
+
+        $logoFiles = [
+            'AW' => 'gc.png',
+            'PSA' => 'psa.png',
+            'GPS' => 'pmb.png',
+            'EP' => 'kk.png',
+            'EPH' => 'kk.png',
+        ];
+        $logoPath = public_path('logo/'.($logoFiles[$cpnyId] ?? 'logo.png'));
+
+        $now = now();
+        $dayName = $this->indonesianDayName($now);
+        $monthName = $this->indonesianMonthName((int) $now->month);
+        $yearWords = $this->numberToIndonesianWords((int) $now->year);
+        $dokumenLainnya = trim((string) ($validated['dokumen_lainnya'] ?? ''));
+
+        $phpWord = new PhpWord();
+        $phpWord->setDefaultFontName('Arial');
+        $phpWord->setDefaultFontSize(11);
+
+        $section = $phpWord->addSection([
+            'marginLeft' => 1100, 'marginRight' => 1100, 'marginTop' => 900, 'marginBottom' => 900,
+        ]);
+
+        if (is_file($logoPath)) {
+            $section->addImage($logoPath, ['width' => 70, 'height' => 70, 'alignment' => Jc::CENTER]);
+        }
+        $section->addText('BERITA ACARA SERAH TERIMA DOKUMEN PERIJINAN', ['bold' => true, 'size' => 13, 'underline' => 'single'], ['alignment' => Jc::CENTER, 'spaceAfter' => 300, 'spaceBefore' => 200]);
+
+        $openingText = sprintf(
+            'Pada Hari ini %s, Tanggal %d, Bulan %s, Tahun %s, telah dilakukan serah terima dokumen-dokumen asli perijinan \'%s\' Lainnya. Yang dimana dokumen tersebut kami serah terimakan dengan data dokumen perijinan, sbb :',
+            $dayName, (int) $now->day, $monthName, $yearWords, ($dokumenLainnya !== '' ? $dokumenLainnya : '-')
+        );
+        $section->addText($openingText, [], ['alignment' => Jc::BOTH, 'spaceAfter' => 200]);
+
+        $colNo = 500;
+        $colJenis = 2300;
+        $colNomor = 2100;
+        $colInstansi = 2600;
+        $colAwal = 1250;
+        $colAkhir = 1250;
+        $headerStyle = ['bold' => true];
+        $headerCellStyle = ['valign' => 'center'];
+
+        $table = $section->addTable([
+            'width' => 5000, 'unit' => TblWidth::PERCENT,
+            'borderSize' => 6, 'borderColor' => '000000', 'cellMargin' => 80,
+        ]);
+
+        $table->addRow();
+        $table->addCell($colNo, $headerCellStyle + ['vMerge' => 'restart'])
+            ->addText('No.', $headerStyle, ['alignment' => Jc::CENTER]);
+        $table->addCell($colJenis, $headerCellStyle + ['vMerge' => 'restart'])
+            ->addText('Jenis Perizinan / Sertifikat', $headerStyle);
+        $table->addCell($colNomor, $headerCellStyle + ['vMerge' => 'restart'])
+            ->addText('Nomor Perizinan / Sertifikat', $headerStyle);
+        $table->addCell($colInstansi, $headerCellStyle + ['vMerge' => 'restart'])
+            ->addText('Instansi Pengesahan Perijinan / Sertifikat', $headerStyle);
+        $table->addCell($colAwal + $colAkhir, ['gridSpan' => 2])
+            ->addText('Jangka Waktu', $headerStyle, ['alignment' => Jc::CENTER]);
+
+        $table->addRow();
+        $table->addCell($colNo, ['vMerge' => 'continue']);
+        $table->addCell($colJenis, ['vMerge' => 'continue']);
+        $table->addCell($colNomor, ['vMerge' => 'continue']);
+        $table->addCell($colInstansi, ['vMerge' => 'continue']);
+        $table->addCell($colAwal)->addText('Awal', $headerStyle, ['alignment' => Jc::CENTER]);
+        $table->addCell($colAkhir)->addText('Akhir', $headerStyle, ['alignment' => Jc::CENTER]);
+
+        foreach ($permits as $index => $permit) {
+            $awal = $permit->startdate ? $this->formatIndonesianDate(Carbon::parse($permit->startdate)) : '-';
+            $akhir = $permit->expired_date && $permit->enddate
+                ? $this->formatIndonesianDate(Carbon::parse($permit->enddate))
+                : 'Tanpa batas waktu';
+            $nomorPerizinan = $permit->no_kontrak_legal ?: $permit->perizinan_id ?: '-';
+
+            $table->addRow();
+            $table->addCell($colNo)->addText((string) ($index + 1), [], ['alignment' => Jc::CENTER]);
+            $table->addCell($colJenis)->addText($permit->perizinan_title ?: '-');
+            $table->addCell($colNomor)->addText($nomorPerizinan);
+            $table->addCell($colInstansi)->addText($permit->issuing_authority ?: '-');
+            $table->addCell($colAwal)->addText($awal, [], ['alignment' => Jc::CENTER]);
+            $table->addCell($colAkhir)->addText($akhir, [], ['alignment' => Jc::CENTER]);
+        }
+
+        $section->addTextBreak(1);
+        $section->addText(
+            'Demikian berita acara serah terima dokumen perijinan asli ini dibuat untuk diketahui bersama dan digunakan sebagaimana mestinya.',
+            [],
+            ['alignment' => Jc::BOTH]
+        );
+
+        $cityName = trim((string) ($company->city ?? '')) ?: 'Jakarta';
+        $dateLine = $cityName.',    '.$monthName.' '.$now->year;
+
+        $section->addTextBreak(2);
+        $section->addText($dateLine);
+
+        $sigTable = $section->addTable([
+            'width' => 5000, 'unit' => TblWidth::PERCENT,
+            'borderSize' => 6, 'borderColor' => 'FFFFFF', 'cellMargin' => 80,
+        ]);
+        $sigTable->addRow();
+        $sigTable->addCell(3000)->addText('Yang Menyerahkan,');
+        $sigTable->addCell(3000)->addText('Diketahui Oleh,');
+        $sigTable->addCell(3000)->addText('Yang Menerima,');
+        $sigTable->addRow();
+        $sigTable->addCell(3000)->addTextBreak(4);
+        $sigTable->addCell(3000)->addTextBreak(4);
+        $sigTable->addCell(3000)->addTextBreak(4);
+        $sigTable->addRow();
+        $sigTable->addCell(3000)->addText('..............................');
+        $sigTable->addCell(3000)->addText('..............................');
+        $sigTable->addCell(3000)->addText('..............................');
+
+        $tempDir = storage_path('app/temp');
+        if (!is_dir($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
+        $tempPath = $tempDir.DIRECTORY_SEPARATOR.uniqid('ba_perijinan_', true).'.docx';
+        IOFactory::createWriter($phpWord, 'Word2007')->save($tempPath);
+
+        $fileName = 'BA Serah Terima Dokumen Perijinan - '.$cpnyId.' - '.$now->format('Ymd').'.docx';
+
+        return response()->download($tempPath, $fileName, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ])->deleteFileAfterSend(true);
+    }
+
+    private function indonesianDayName(Carbon $date): string
+    {
+        $days = [0 => 'Minggu', 1 => 'Senin', 2 => 'Selasa', 3 => 'Rabu', 4 => 'Kamis', 5 => 'Jumat', 6 => 'Sabtu'];
+
+        return $days[(int) $date->dayOfWeek] ?? '';
+    }
+
+    private function indonesianMonthName(int $month): string
+    {
+        $months = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni',
+            7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
+        ];
+
+        return $months[$month] ?? '';
+    }
+
+    private function formatIndonesianDate(Carbon $date): string
+    {
+        return sprintf('%d %s %d', $date->day, $this->indonesianMonthName((int) $date->month), $date->year);
+    }
+
+    private function numberToIndonesianWords(int $number): string
+    {
+        $words = [
+            '', 'Satu', 'Dua', 'Tiga', 'Empat', 'Lima', 'Enam', 'Tujuh', 'Delapan', 'Sembilan', 'Sepuluh', 'Sebelas',
+        ];
+
+        if ($number < 0) {
+            return 'Minus '.$this->numberToIndonesianWords(-$number);
+        }
+        if ($number < 12) {
+            return $words[$number];
+        }
+        if ($number < 20) {
+            return trim($this->numberToIndonesianWords($number - 10).' Belas');
+        }
+        if ($number < 100) {
+            return trim($this->numberToIndonesianWords(intdiv($number, 10)).' Puluh '.$this->numberToIndonesianWords($number % 10));
+        }
+        if ($number < 200) {
+            return trim('Seratus '.$this->numberToIndonesianWords($number - 100));
+        }
+        if ($number < 1000) {
+            return trim($this->numberToIndonesianWords(intdiv($number, 100)).' Ratus '.$this->numberToIndonesianWords($number % 100));
+        }
+        if ($number < 2000) {
+            return trim('Seribu '.$this->numberToIndonesianWords($number - 1000));
+        }
+        if ($number < 1000000) {
+            return trim($this->numberToIndonesianWords(intdiv($number, 1000)).' Ribu '.$this->numberToIndonesianWords($number % 1000));
+        }
+        if ($number < 1000000000) {
+            return trim($this->numberToIndonesianWords(intdiv($number, 1000000)).' Juta '.$this->numberToIndonesianWords($number % 1000000));
+        }
+
+        return trim($this->numberToIndonesianWords(intdiv($number, 1000000000)).' Milyar '.$this->numberToIndonesianWords($number % 1000000000));
     }
 }

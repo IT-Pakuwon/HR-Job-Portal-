@@ -1259,6 +1259,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/perizinan/json', [PerizinanController::class, 'json'])->name('perizinan.json');
         Route::get('/perizinan/departments', [PerizinanController::class, 'departments'])->name('perizinan.departments');
         Route::get('/perizinan/sites', [PerizinanController::class, 'sites'])->name('perizinan.sites');
+        Route::post('/perizinan/generate-berita-acara', [PerizinanController::class, 'generateBeritaAcara'])->name('perizinan.generate-berita-acara');
         Route::put('/perizinan/{perizinanId}/details', [PerizinanController::class, 'updateDetails'])->name('perizinan.details.update');
         Route::get('/perizinan/{perizinanId}', [PerizinanController::class, 'show'])->name('perizinan.show');     
     });
