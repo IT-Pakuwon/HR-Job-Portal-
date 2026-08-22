@@ -73,50 +73,54 @@
                     <select id="filterCompany"
                         class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
                         <option value="">All Company</option>
-                        @foreach ($company as $c)
+                        @foreach ($filterCompanies as $c)
                             <option value="{{ $c->cpny_id }}">{{ $c->cpny_id }} - {{ $c->cpny_name }}</option>
                         @endforeach
                     </select>
                 </div>
 
-                <div class="min-w-[200px] flex-1">
-                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                        Filter Department
-                    </label>
-                    <select id="filterDepartment"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
-                        <option value="">All Department</option>
-                        @foreach ($department as $d)
-                            <option value="{{ $d->department_id }}">{{ $d->department_id }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                @unless ($usersSby)
+                    <div class="min-w-[200px] flex-1">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                            Filter Department
+                        </label>
+                        <select id="filterDepartment"
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
+                            <option value="">All Department</option>
+                            @foreach ($filterDepartments as $d)
+                                <option value="{{ $d->department_id }}">{{ $d->department_id }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endunless
 
-                <div class="min-w-[200px] flex-1">
-                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                        Filter Business Unit
-                    </label>
-                    <select id="filterBusinessUnit"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
-                        <option value="">All Business Unit</option>
-                        @foreach ($businessUnits as $bu)
-                            <option value="{{ $bu->business_unit_id }}">{{ $bu->business_unit_id }} -
-                                {{ $bu->business_unit_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                @unless ($usersSby)
+                    <div class="min-w-[200px] flex-1">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                            Filter Business Unit
+                        </label>
+                        <select id="filterBusinessUnit"
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
+                            <option value="">All Business Unit</option>
+                            @foreach ($businessUnits as $bu)
+                                <option value="{{ $bu->business_unit_id }}">{{ $bu->business_unit_id }} -
+                                    {{ $bu->business_unit_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
-                <div class="min-w-[200px] flex-1">
-                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                        Filter Jabatan
-                    </label>
-                    <select id="filterJabatan"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
-                        <option value="">All Jabatan</option>
-                        <option value="staff">staff</option>
-                        <option value="manager">manager</option>
-                    </select>
-                </div>
+                    <div class="min-w-[200px] flex-1">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                            Filter Jabatan
+                        </label>
+                        <select id="filterJabatan"
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
+                            <option value="">All Jabatan</option>
+                            <option value="staff">staff</option>
+                            <option value="manager">manager</option>
+                        </select>
+                    </div>
+                @endunless
 
 
                 <div class="mt-6">
@@ -138,6 +142,7 @@
                             <th class="px-4 py-3 text-left font-medium">Name</th>
                             <th class="px-4 py-3 text-left font-medium">Username</th>
                             <th class="px-4 py-3 text-left font-medium">Email</th>
+                            <th class="px-4 py-3 text-left font-medium">Division</th>
                             <th class="px-4 py-3 text-left font-medium">Company</th>
                             <th class="px-4 py-3 text-left font-medium">Departement</th>
                             <th class="px-4 py-3 text-left font-medium">BusinessUnit</th>
@@ -382,7 +387,7 @@
                                             </select>
                                         </div>
 
-                                        <div>
+                                        <div class="hidden">
                                             <label class="mb-2 block text-sm font-medium">Department</label>
                                             <select name="department_id[]" class="select2 w-full" multiple
                                                 data-placeholder="Search and select department access">
@@ -403,7 +408,7 @@
                                             </select>
                                         </div>
 
-                                        <div>
+                                        <div class="hidden">
                                             <label class="mb-2 block text-sm font-medium">Business Unit</label>
                                             <select name="business_unit_id[]" class="select2 w-full" multiple
                                                 data-placeholder="Search and select business unit access">
@@ -909,11 +914,28 @@
                 },
 
                 columnDefs: [{
-                    targets: 0,
-                    width: '28px',
-                    className: 'dtr-control',
-                    orderable: false
-                }],
+                        targets: 0,
+                        width: '28px',
+                        className: 'dtr-control',
+                        orderable: false
+                    },
+                    {
+                        targets: 5, // Division
+                        visible: {{ $usersSby ? 'true' : 'false' }}
+                    },
+                    {
+                        targets: 6, // Company
+                        visible: {{ $usersSby ? 'false' : 'true' }}
+                    },
+                    {
+                        targets: 7, // Department
+                        visible: {{ $usersSby ? 'false' : 'true' }}
+                    },
+                    {
+                        targets: 8, // Business Unit
+                        visible: {{ $usersSby ? 'false' : 'true' }}
+                    }
+                ],
                 dom: '<"dt-toolbar flex items-center justify-start gap-4"lBf>rtip',
                 buttons: [{
                         extend: 'excelHtml5',
@@ -992,6 +1014,10 @@
                         className: 'no-pointer'
                     },
                     {
+                        data: 'division_id',
+                        className: 'no-pointer'
+                    },
+                    {
                         data: 'cpny_id',
                         className: 'no-pointer'
                     },
@@ -1019,22 +1045,22 @@
                 ]
             });
 
-            // ===== Filter Company (kolom 3) =====
+            // ===== Filter Company (kolom 4) =====
             $('#filterCompany').on('change', function() {
                 const val = $(this).val();
 
                 table
-                    .column(5) // cpny_id
+                    .column(6) // cpny_id
                     .search(val || '', false, false)
                     .draw();
             });
 
-            // ===== Filter Department (kolom 4) =====
+            // ===== Filter Department (kolom 5) =====
             $('#filterDepartment').on('change', function() {
                 const val = $(this).val();
 
                 table
-                    .column(6) // department_id
+                    .column(7) // department_id
                     .search(val || '', false, false)
                     .draw();
             });
@@ -1042,16 +1068,16 @@
             $('#filterBusinessUnit').on('change', function() {
                 const val = $(this).val();
                 table
-                    .column(7) // business_unit_id
+                    .column(8) // business_unit_id
                     .search(val || '', false, false)
                     .draw();
             });
 
-            // ===== Filter Jabatan (kolom 8) =====
+            // ===== Filter Jabatan (kolom 9) =====
             $('#filterJabatan').on('change', function() {
                 const val = $(this).val();
                 table
-                    .column(8) // jabatan
+                    .column(9) // jabatan
                     .search(val || '', false, false)
                     .draw();
             });
@@ -1068,10 +1094,10 @@
                 $('#filterJabatan').val(null).trigger('change');
 
                 // reset datatable filter untuk kolom yg benar
-                table.column(5).search(''); // company
-                table.column(6).search(''); // department
-                table.column(7).search(''); // business unit
-                table.column(8).search(''); // jabatan
+                table.column(6).search(''); // company
+                table.column(7).search(''); // department
+                table.column(8).search(''); // business unit
+                table.column(9).search(''); // jabatan
 
                 // reset global search juga kalau ada
                 table.search('');
