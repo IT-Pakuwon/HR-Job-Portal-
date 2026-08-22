@@ -37,18 +37,20 @@
                 class="user-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-indigo-600 dark:border-gray-700 dark:bg-gray-800 dark:text-indigo-400">
                 👥 Users List
             </button>
-            <button type="button" id="tabBtnDuplicates"
-                class="user-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
-                🧬 Duplicate Users
-                <span id="dupCountBadge"
-                    class="ml-1 hidden rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white"></span>
-            </button>
-            <button type="button" id="tabBtnInactive"
-                class="user-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
-                🚫 Inactive Users
-                <span id="inactiveCountBadge"
-                    class="ml-1 hidden rounded-full bg-gray-500 px-2 py-0.5 text-xs font-bold text-white"></span>
-            </button>
+            @unless ($usersSby)
+                <button type="button" id="tabBtnDuplicates"
+                    class="user-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
+                    🧬 Duplicate Users
+                    <span id="dupCountBadge"
+                        class="ml-1 hidden rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white"></span>
+                </button>
+                <button type="button" id="tabBtnInactive"
+                    class="user-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
+                    🚫 Inactive Users
+                    <span id="inactiveCountBadge"
+                        class="ml-1 hidden rounded-full bg-gray-500 px-2 py-0.5 text-xs font-bold text-white"></span>
+                </button>
+            @endunless
         </div>
 
         <div id="tabPanelList"
@@ -149,6 +151,7 @@
 
         </div>
 
+        @unless ($usersSby)
         <div id="tabPanelDuplicates"
             class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
             <div class="border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
@@ -214,6 +217,7 @@
                 </table>
             </div>
         </div>
+        @endunless
 
         <!-- Modal -->
         <div id="appModal" class="fixed inset-0 z-50 hidden">
@@ -719,10 +723,12 @@
                 }
             }
 
-            // Preload the duplicate count badge even before the tab is opened
-            $.getJSON("{{ $usersSby ? route('users-sby.duplicates.json') : route('users.duplicates.json') }}", function(json) {
-                updateDupBadge(json.data ? json.data.length : 0);
-            });
+            @unless ($usersSby)
+                // Preload the duplicate count badge even before the tab is opened
+                $.getJSON("{{ route('users.duplicates.json') }}", function(json) {
+                    updateDupBadge(json.data ? json.data.length : 0);
+                });
+            @endunless
 
             // ===== Inactive Users tab =====
             let inactiveTable = null;
@@ -840,10 +846,12 @@
                 }
             }
 
-            // Preload the inactive count badge even before the tab is opened
-            $.getJSON("{{ $usersSby ? route('users-sby.inactive.json') : route('users.inactive.json') }}", function(json) {
-                updateInactiveBadge(json.data ? json.data.length : 0);
-            });
+            @unless ($usersSby)
+                // Preload the inactive count badge even before the tab is opened
+                $.getJSON("{{ route('users.inactive.json') }}", function(json) {
+                    updateInactiveBadge(json.data ? json.data.length : 0);
+                });
+            @endunless
 
             function activateTab(tab) {
                 const isList = tab === 'list';
