@@ -226,6 +226,8 @@ class JobapplicantController extends Controller
                 ->pluck('jp.docid');
         }
 
+        $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
+
         $base = ViewCareer::query()
             ->where('group_cpny_id', $groupCompanyId)
             ->where('status', '!=', 'X')
