@@ -8,12 +8,81 @@
     var PAGE_SIZE = 15;
 
     var charts        = { donut: null, trend: null };
-    var xhrSum        = null, xhrDept = null, xhrAct = null, xhrMonth = null;
+    var xhrSum        = null, xhrDept = null, xhrCompany = null, xhrAct = null, xhrMonth = null;
     var deptRows      = [], deptPage = 1, deptSort = null;
     var actRows       = [], actPage  = 1, actSort  = null;
     var lastDonutData = null; // { used, reserve, remaining } — kept for resize re-render
     var donutLegendPos = null; // track current rendered legend position
     var donutSelected  = null; // { label, val } when a segment is clicked, null = show total
+    var lastBudgetSummary = null; // cached for computeBudgetInsights (needs summary + dept rows together)
+
+    // ── GM Insight ─────────────────────────────────────────────────────────────
+    function computeBudgetInsights() {
+        var d = lastBudgetSummary;
+        if (!d) return;
+
+        var insights = [];
+        var totalBudget = parseFloat(d.total_budget) || 0;
+        var totalUsed = parseFloat(d.total_used) || 0;
+        var totalRemaining = parseFloat(d.total_remaining) || 0;
+        var pct = parseFloat(d.utilization_pct) || 0;
+
+        // Pace: compare actual utilization to how far through the selected
+        // period we are, but only when the period is still current (its end
+        // date hasn't passed) — a closed historical period has no "pace".
+        if (d.date_from && d.date_to) {
+            var from = new Date(d.date_from), to = new Date(d.date_to), today = new Date();
+            if (to >= today && to > from) {
+                var elapsed = Math.min(today - from, to - from);
+                var expectedPct = Math.max(0, Math.min(100, (elapsed / (to - from)) * 100));
+                var gap = pct - expectedPct;
+                if (gap > 15) {
+                    insights.push({ type: 'warning', text: 'Spending is running ahead of schedule — <b>' + pct.toFixed(1) + '%</b> used against an expected pace of ~' + expectedPct.toFixed(0) + '% for this point in the period.' });
+                } else if (gap < -15) {
+                    insights.push({ type: 'info', text: 'Utilization (<b>' + pct.toFixed(1) + '%</b>) is well under the ~' + expectedPct.toFixed(0) + '% pace expected for this point in the period — worth checking if planned spend is delayed.' });
+                }
+            }
+        }
+
+        if (totalBudget > 0) {
+            insights.push({ type: pct >= 90 ? 'critical' : 'info', text: '<b>' + utils.idr(totalRemaining) + '</b> remains unused out of ' + utils.idr(totalBudget) + ' total budget (' + (100 - pct).toFixed(1) + '% remaining).' });
+        }
+
+        // Reusable "which of these rows exceeded budget, else which is
+        // highest" pattern — shared by company/department/activity below.
+        function overBudgetOrTop(rows, nameFn, noun) {
+            if (!rows.length) return;
+            var over = rows.filter(function (r) { return (parseFloat(r.used_pct) || 0) >= 100; });
+            if (over.length) {
+                var names = over.slice(0, 3).map(function (r) { return '<b>' + utils.escHtml(nameFn(r)) + '</b>'; }).join(', ');
+                insights.push({ type: 'critical', text: (over.length === 1 ? capitalize(noun) + ' ' : over.length + ' ' + noun + 's — ') + names + (over.length > 3 ? ', +' + (over.length - 3) + ' more' : '') + ' exceeded budget this period.' });
+            } else if (rows.length > 1) {
+                var sorted = rows.slice().sort(function (a, b) { return (parseFloat(b.used_pct) || 0) - (parseFloat(a.used_pct) || 0); });
+                var top = sorted[0];
+                if (top && (parseFloat(top.used_pct) || 0) >= 80) {
+                    insights.push({ type: 'warning', text: '<b>' + utils.escHtml(nameFn(top)) + '</b> has the highest utilization among ' + noun + 's at <b>' + parseFloat(top.used_pct).toFixed(1) + '%</b>.' });
+                }
+            }
+        }
+        function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+        // Spending by company — full breakdown, not just the leader, only
+        // meaningful when comparing more than one (i.e. not already filtered
+        // down to a single company).
+        if (companyRows.length > 1) {
+            var byCoDesc = companyRows.slice().sort(function (a, b) { return (parseFloat(b.used_pct) || 0) - (parseFloat(a.used_pct) || 0); });
+            var coList = byCoDesc.slice(0, 8).map(function (r) {
+                return '<b>' + utils.escHtml(r.cpny_id) + '</b> ' + (parseFloat(r.used_pct) || 0).toFixed(0) + '%';
+            }).join(', ');
+            insights.push({ type: 'info', text: 'Spending by company: ' + coList + (byCoDesc.length > 8 ? ', +' + (byCoDesc.length - 8) + ' more' : '') + '.' });
+        }
+
+        overBudgetOrTop(companyRows, function (r) { return r.cpny_id; }, 'company');
+        overBudgetOrTop(deptRows, function (r) { return r.department_fin_id; }, 'department');
+        overBudgetOrTop(actRows, function (r) { return r.activity_descr || r.activity_id; }, 'activity');
+
+        utils.renderInsights('gmBudgetInsights', insights);
+    }
 
     // ── Donut chart (Used / Reserved / Remaining) ──────────────────────────────
     function buildDonutOpts(used, reserve, remaining, containerWidth) {
@@ -274,6 +343,9 @@
 
                 setTrend('gmUtilTrend', pct);
                 renderDonut(d.total_used, d.total_reserve, d.total_remaining);
+
+                lastBudgetSummary = d;
+                computeBudgetInsights();
             })
             .catch(function (e) { if (e.name !== 'AbortError') console.error('budget summary:', e); });
     }
@@ -292,8 +364,29 @@
                 deptRows = res.data || []; deptPage = 1;
                 if (deptSort) deptSort.reset();
                 renderDeptTable();
+                computeBudgetInsights();
             })
             .catch(function (e) { if (e.name !== 'AbortError') console.error('budget by dept:', e); });
+    }
+
+    // Per-company breakdown — used only by the GM Insight panel (no table of
+    // its own), so it comes back empty once a specific company is filtered
+    // the same way isortSummary's by_site does.
+    var companyRows = [];
+    function loadByCompany() {
+        if (xhrCompany) xhrCompany.abort();
+        xhrCompany = new AbortController();
+
+        fetch(routes.byCompany + utils.buildParams(), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
+            signal: xhrCompany.signal,
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+                companyRows = res.data || [];
+                computeBudgetInsights();
+            })
+            .catch(function (e) { if (e.name !== 'AbortError') console.error('budget by company:', e); });
     }
 
     function loadByActivity() {
@@ -310,6 +403,7 @@
                 actRows = res.data || []; actPage = 1;
                 if (actSort) actSort.reset();
                 renderActTable();
+                computeBudgetInsights();
             })
             .catch(function (e) { if (e.name !== 'AbortError') console.error('budget by activity:', e); });
     }
@@ -528,6 +622,7 @@
         deptPage = 1; actPage = 1;
         loadSummary();
         loadByDept();
+        loadByCompany();
         loadByActivity();
         loadByMonth();
     });

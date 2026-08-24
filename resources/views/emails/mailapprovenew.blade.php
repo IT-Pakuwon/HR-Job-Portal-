@@ -10,10 +10,16 @@
 
     @php
         // Fallback variabel agar tidak error jika tidak dikirim dari controller
+        $docid = $docid ?? '-';
         $docname = $docname ?? 'SPPB';
         $name = $name ?? ($name ?? 'User');
         $status = strtoupper($status ?? 'P'); // P,R,D,A,C
         $info = $info ?? '-';
+        $cpnyid = $cpnyid ?? '-';
+        $deptname = $deptname ?? '-';
+        $date = $date ?? '-';
+        $createdby = $createdby ?? '-';
+        $url = $url ?? '#';
 
         $map = [
             'P' => [

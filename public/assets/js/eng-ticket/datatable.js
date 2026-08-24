@@ -115,6 +115,8 @@ const ticketTable = $("#ticketTable").DataTable({
                         dark:hover:bg-white
     `;
 
+    const canView = row.actions?.can_view ?? true;
+
     const canEdit =
         row.status === "P" &&
         row.status_pekerjaan === "CREATED" &&
@@ -165,14 +167,23 @@ const ticketTable = $("#ticketTable").DataTable({
                             ${row.ticketid ?? "-"}
                         </button>
                     `
-                    : `
-                        <a
-                            href="${url}"
-                            class="${cls}"
-                        >
-                            ${row.ticketid ?? "-"}
-                        </a>
-                    `
+                    : canView
+                        ? `
+                            <a
+                                href="${url}"
+                                class="${cls}"
+                            >
+                                ${row.ticketid ?? "-"}
+                            </a>
+                        `
+                        : `
+                            <span
+                                class="${cls} cursor-not-allowed opacity-50"
+                                title="You don't have access to view this ticket"
+                            >
+                                ${row.ticketid ?? "-"}
+                            </span>
+                        `
             }
 
             ${
@@ -726,6 +737,22 @@ function buildTicketActions(row) {
         });
     }
 
+    if (can.can_revise) {
+
+        actions.push({
+
+            label: 'Revise Ticket',
+
+            icon: 'ti ti-rotate-2',
+
+            class:
+                'text-amber-600 dark:text-amber-400',
+
+            onclick:
+                `reviseTicket('${row.eid}')`
+        });
+    }
+
     if (can.can_reject) {
 
         actions.push({
@@ -969,7 +996,6 @@ $(document).on('click', '#btn_reset_filter', function () {
     $('#filter_category_id').val('').trigger('change');
     $('#filter_ticket_type').val('').trigger('change');
     $('#filter_company_id').val('').trigger('change');
-    $('#filter_calendar_ticket_type').val('').trigger('change');
     $('#filter_date_from').val('');
     $('#filter_date_to').val('');
     ticketStatusFilter = '';

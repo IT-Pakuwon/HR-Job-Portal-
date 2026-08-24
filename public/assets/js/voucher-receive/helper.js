@@ -5,6 +5,17 @@
 
 const VplReceiveHelper = {
 
+    // Formats a date-ish string as "17 Sep 2027" — no time. Returns null for
+    // empty/placeholder dates (empty string, '1900-01-01') so callers can
+    // supply their own fallback text (e.g. "No Expired" or "—").
+    formatExpDate(raw) {
+        const d = String(raw ?? '').substring(0, 10);
+        if (!d || d === '1900-01-01') return null;
+        const parsed = new Date(`${d}T00:00:00`);
+        if (isNaN(parsed)) return d;
+        return parsed.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    },
+
     statusBadgeHTML(status, label) {
         const map = {
             P: 'background:#FFCD05;color:#000',
@@ -33,7 +44,7 @@ const VplReceiveHelper = {
         }
     },
 
-    // Build one dynamic detail row — columns: Product | Tenant | Qty | UOM | Expired Date | Dest WHS | Action
+    // Build one dynamic detail row — columns: Product | Tenant | Price | Qty | UOM | Expired Date | Dest WHS | Action
     buildDetailRow(prefix, idx) {
         const delBtn = idx > 0
             ? `<button type="button" class="${prefix}-del-row rounded px-2 py-1 text-xs text-red-500 hover:bg-red-50" data-idx="${idx}">
@@ -51,6 +62,9 @@ const VplReceiveHelper = {
             </td>
             <td class="px-4 py-2">
                 <span class="${prefix}-tenant-display block rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-500 dark:bg-white/[0.04] dark:text-slate-400">—</span>
+            </td>
+            <td class="px-4 py-2">
+                <span class="${prefix}-price-display block rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-500 dark:bg-white/[0.04] dark:text-slate-400">—</span>
             </td>
             <td class="px-4 py-2">
                 <input type="number" name="addmore[${idx}][qty]" min="1" placeholder="Qty"

@@ -5,6 +5,16 @@
 
 const VplReceiveForm = {
 
+    formatPrice(val) {
+        const n = parseFloat(val);
+        return isNaN(n) ? '—' : n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    },
+
+    parsePrice(val) {
+        const n = parseFloat(String(val ?? '').replace(/,/g, ''));
+        return isNaN(n) ? 0 : n;
+    },
+
     // ============================================================
     // AJAX LOADERS
     // ============================================================
@@ -25,6 +35,7 @@ const VplReceiveForm = {
                         $('<option>', { value: p.product_id, text: p.product_label })
                             .data('uom', p.product_uom ?? '')
                             .data('tenant', p.product_source_tenant ?? '—')
+                            .data('price', p.product_value ?? 0)
                     );
                 });
                 $(sel).trigger('change.select2');
@@ -49,6 +60,7 @@ const VplReceiveForm = {
                             $('<option>', { value: p.product_id, text: p.product_label, selected: p.product_id === cur })
                                 .data('uom', p.product_uom ?? '')
                                 .data('tenant', p.product_source_tenant ?? '—')
+                                .data('price', p.product_value ?? 0)
                         );
                     });
                     $(this).trigger('change.select2');
@@ -180,6 +192,7 @@ const VplReceiveForm = {
             VplReceiveForm.checkProductExpiry($(this).val(), $row.find('input[type="date"]'));
             $row.find('.c-uom-display').text($opt.data('uom') || '—');
             $row.find('.c-tenant-display').text($opt.data('tenant') || '—');
+            $row.find('.c-price-display').text(VplReceiveForm.formatPrice($opt.data('price')));
         });
 
         // Submit
@@ -214,8 +227,9 @@ const VplReceiveForm = {
             const uom     = $row.find(`.${prefix}-uom-display`).text().trim();
             const exp     = $row.find('input[type="date"]').val() || '—';
             const whs     = $row.find(`.${prefix}-whs-sel`).val() || '—';
+            const price   = $row.find(`.${prefix}-price-display`).text().trim();
             if (product && product !== 'Select Product' && qty) {
-                rows.push({ product, qty, uom, exp, whs });
+                rows.push({ product, qty, uom, exp, whs, price });
             }
         });
         return rows;
@@ -252,10 +266,11 @@ const VplReceiveForm = {
             if (cells.length < 6) return; // skip "No details." placeholder row
             rows.push({
                 product: $(cells[0]).text().trim(),
-                qty:     $(cells[3]).text().trim(),
-                uom:     $(cells[4]).text().trim(),
-                exp:     $(cells[2]).text().trim(),
-                whs:     $(cells[5]).text().trim(),
+                price:   $(cells[2]).text().trim(),
+                qty:     $(cells[4]).text().trim(),
+                uom:     $(cells[5]).text().trim(),
+                exp:     $(cells[3]).text().trim(),
+                whs:     $(cells[6]).text().trim(),
             });
         });
         return rows;
@@ -265,14 +280,24 @@ const VplReceiveForm = {
     // Returns the Swal promise so callers can act on `result.isConfirmed`.
     confirmRows(rows, title) {
         const esc = VplReceiveForm._escape;
-        const tableRows = rows.map(r => `
+        const fmt = VplReceiveForm.formatPrice;
+        const parse = VplReceiveForm.parsePrice;
+
+        let grandTotal = 0;
+        const tableRows = rows.map(r => {
+            const total = parse(r.price) * parse(r.qty);
+            grandTotal += total;
+            return `
             <tr style="border-bottom:1px solid #e2e8f0">
                 <td style="padding:6px 10px;text-align:left;font-size:12px">${esc(r.product)}</td>
+                <td style="padding:6px 10px;text-align:right;font-size:12px">${esc(fmt(r.price))}</td>
                 <td style="padding:6px 10px;text-align:center;font-size:12px">${esc(r.qty)}</td>
                 <td style="padding:6px 10px;text-align:center;font-size:12px">${esc(r.uom)}</td>
+                <td style="padding:6px 10px;text-align:right;font-size:12px;font-weight:600">${esc(fmt(total))}</td>
                 <td style="padding:6px 10px;text-align:center;font-size:12px">${esc(r.exp)}</td>
                 <td style="padding:6px 10px;text-align:center;font-size:12px;font-weight:600">${esc(r.whs)}</td>
-            </tr>`).join('');
+            </tr>`;
+        }).join('');
 
         const html = `
             <p style="margin-bottom:12px;font-size:13px;color:#475569">Please review before submitting for approval:</p>
@@ -281,13 +306,22 @@ const VplReceiveForm = {
                     <thead>
                         <tr style="background:#f8fafc">
                             <th style="padding:8px 10px;text-align:left;font-size:11px;text-transform:uppercase;color:#64748b">Product</th>
+                            <th style="padding:8px 10px;text-align:right;font-size:11px;text-transform:uppercase;color:#64748b">Price</th>
                             <th style="padding:8px 10px;text-align:center;font-size:11px;text-transform:uppercase;color:#64748b">Qty</th>
                             <th style="padding:8px 10px;text-align:center;font-size:11px;text-transform:uppercase;color:#64748b">UOM</th>
+                            <th style="padding:8px 10px;text-align:right;font-size:11px;text-transform:uppercase;color:#64748b">Total Price</th>
                             <th style="padding:8px 10px;text-align:center;font-size:11px;text-transform:uppercase;color:#64748b">Expired Date</th>
                             <th style="padding:8px 10px;text-align:center;font-size:11px;text-transform:uppercase;color:#64748b">Dest. WHS</th>
                         </tr>
                     </thead>
                     <tbody>${tableRows}</tbody>
+                    <tfoot>
+                        <tr style="background:#f8fafc">
+                            <td colspan="4" style="padding:8px 10px;text-align:right;font-size:12px;font-weight:700;color:#334155">Grand Total</td>
+                            <td style="padding:8px 10px;text-align:right;font-size:12px;font-weight:700;color:#334155">${esc(fmt(grandTotal))}</td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>`;
 
@@ -300,7 +334,7 @@ const VplReceiveForm = {
             cancelButtonColor:  '#94a3b8',
             confirmButtonText: '<i class="fa-solid fa-paper-plane mr-1"></i> Yes, Submit',
             cancelButtonText:  'Review Again',
-            width:             700,
+            width:             950,
         });
     },
 
@@ -399,6 +433,7 @@ const VplReceiveForm = {
             VplReceiveForm.checkProductExpiry($(this).val(), $row.find('input[type="date"]'));
             $row.find('.e-uom-display').text($opt.data('uom') || '—');
             $row.find('.e-tenant-display').text($opt.data('tenant') || '—');
+            $row.find('.e-price-display').text(VplReceiveForm.formatPrice($opt.data('price')));
         });
 
         // Delete existing detail line via AJAX
@@ -440,9 +475,9 @@ const VplReceiveForm = {
         $('#e_receive_type').val(r.receive_type).trigger('change.select2');
         $('#e_source_dept').val(r.source_receive_dept).trigger('change.select2');
 
-        // Existing details — with UOM column
+        // Existing details — with UOM + Price columns
         let dHtml = d.details.length === 0
-            ? '<tr><td colspan="7" class="px-4 py-3 text-center text-xs text-slate-400">No details.</td></tr>'
+            ? '<tr><td colspan="8" class="px-4 py-3 text-center text-xs text-slate-400">No details.</td></tr>'
             : '';
         d.details.forEach(row => {
             const rawExp = (row.expired_date || '').split('T')[0];
@@ -450,6 +485,7 @@ const VplReceiveForm = {
             dHtml += `<tr>
                 <td class="px-4 py-2 text-xs">${row.product_name || row.product_id}</td>
                 <td class="px-4 py-2 text-xs">${row.product_source_tenant || '—'}</td>
+                <td class="px-4 py-2 text-xs">${VplReceiveForm.formatPrice(row.product_price)}</td>
                 <td class="px-4 py-2 text-xs">${exp}</td>
                 <td class="px-4 py-2 text-xs font-semibold">${row.qty_receive}</td>
                 <td class="px-4 py-2 text-xs">${row.product_uom || '—'}</td>

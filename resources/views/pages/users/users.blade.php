@@ -37,18 +37,20 @@
                 class="user-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-indigo-600 dark:border-gray-700 dark:bg-gray-800 dark:text-indigo-400">
                 👥 Users List
             </button>
-            <button type="button" id="tabBtnDuplicates"
-                class="user-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
-                🧬 Duplicate Users
-                <span id="dupCountBadge"
-                    class="ml-1 hidden rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white"></span>
-            </button>
-            <button type="button" id="tabBtnInactive"
-                class="user-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
-                🚫 Inactive Users
-                <span id="inactiveCountBadge"
-                    class="ml-1 hidden rounded-full bg-gray-500 px-2 py-0.5 text-xs font-bold text-white"></span>
-            </button>
+            @unless ($usersSby)
+                <button type="button" id="tabBtnDuplicates"
+                    class="user-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
+                    🧬 Duplicate Users
+                    <span id="dupCountBadge"
+                        class="ml-1 hidden rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white"></span>
+                </button>
+                <button type="button" id="tabBtnInactive"
+                    class="user-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
+                    🚫 Inactive Users
+                    <span id="inactiveCountBadge"
+                        class="ml-1 hidden rounded-full bg-gray-500 px-2 py-0.5 text-xs font-bold text-white"></span>
+                </button>
+            @endunless
         </div>
 
         <div id="tabPanelList"
@@ -71,50 +73,54 @@
                     <select id="filterCompany"
                         class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
                         <option value="">All Company</option>
-                        @foreach ($company as $c)
+                        @foreach ($filterCompanies as $c)
                             <option value="{{ $c->cpny_id }}">{{ $c->cpny_id }} - {{ $c->cpny_name }}</option>
                         @endforeach
                     </select>
                 </div>
 
-                <div class="min-w-[200px] flex-1">
-                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                        Filter Department
-                    </label>
-                    <select id="filterDepartment"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
-                        <option value="">All Department</option>
-                        @foreach ($department as $d)
-                            <option value="{{ $d->department_id }}">{{ $d->department_id }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                @unless ($usersSby)
+                    <div class="min-w-[200px] flex-1">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                            Filter Department
+                        </label>
+                        <select id="filterDepartment"
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
+                            <option value="">All Department</option>
+                            @foreach ($filterDepartments as $d)
+                                <option value="{{ $d->department_id }}">{{ $d->department_id }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endunless
 
-                <div class="min-w-[200px] flex-1">
-                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                        Filter Business Unit
-                    </label>
-                    <select id="filterBusinessUnit"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
-                        <option value="">All Business Unit</option>
-                        @foreach ($businessUnits as $bu)
-                            <option value="{{ $bu->business_unit_id }}">{{ $bu->business_unit_id }} -
-                                {{ $bu->business_unit_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                @unless ($usersSby)
+                    <div class="min-w-[200px] flex-1">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                            Filter Business Unit
+                        </label>
+                        <select id="filterBusinessUnit"
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
+                            <option value="">All Business Unit</option>
+                            @foreach ($businessUnits as $bu)
+                                <option value="{{ $bu->business_unit_id }}">{{ $bu->business_unit_id }} -
+                                    {{ $bu->business_unit_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
-                <div class="min-w-[200px] flex-1">
-                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                        Filter Jabatan
-                    </label>
-                    <select id="filterJabatan"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
-                        <option value="">All Jabatan</option>
-                        <option value="staff">staff</option>
-                        <option value="manager">manager</option>
-                    </select>
-                </div>
+                    <div class="min-w-[200px] flex-1">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                            Filter Jabatan
+                        </label>
+                        <select id="filterJabatan"
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
+                            <option value="">All Jabatan</option>
+                            <option value="staff">staff</option>
+                            <option value="manager">manager</option>
+                        </select>
+                    </div>
+                @endunless
 
 
                 <div class="mt-6">
@@ -136,6 +142,7 @@
                             <th class="px-4 py-3 text-left font-medium">Name</th>
                             <th class="px-4 py-3 text-left font-medium">Username</th>
                             <th class="px-4 py-3 text-left font-medium">Email</th>
+                            <th class="px-4 py-3 text-left font-medium">Division</th>
                             <th class="px-4 py-3 text-left font-medium">Company</th>
                             <th class="px-4 py-3 text-left font-medium">Departement</th>
                             <th class="px-4 py-3 text-left font-medium">BusinessUnit</th>
@@ -149,6 +156,7 @@
 
         </div>
 
+        @unless ($usersSby)
         <div id="tabPanelDuplicates"
             class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
             <div class="border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
@@ -214,6 +222,7 @@
                 </table>
             </div>
         </div>
+        @endunless
 
         <!-- Modal -->
         <div id="appModal" class="fixed inset-0 z-50 hidden">
@@ -378,7 +387,7 @@
                                             </select>
                                         </div>
 
-                                        <div>
+                                        <div class="hidden">
                                             <label class="mb-2 block text-sm font-medium">Department</label>
                                             <select name="department_id[]" class="select2 w-full" multiple
                                                 data-placeholder="Search and select department access">
@@ -399,7 +408,7 @@
                                             </select>
                                         </div>
 
-                                        <div>
+                                        <div class="hidden">
                                             <label class="mb-2 block text-sm font-medium">Business Unit</label>
                                             <select name="business_unit_id[]" class="select2 w-full" multiple
                                                 data-placeholder="Search and select business unit access">
@@ -719,10 +728,12 @@
                 }
             }
 
-            // Preload the duplicate count badge even before the tab is opened
-            $.getJSON("{{ $usersSby ? route('users-sby.duplicates.json') : route('users.duplicates.json') }}", function(json) {
-                updateDupBadge(json.data ? json.data.length : 0);
-            });
+            @unless ($usersSby)
+                // Preload the duplicate count badge even before the tab is opened
+                $.getJSON("{{ route('users.duplicates.json') }}", function(json) {
+                    updateDupBadge(json.data ? json.data.length : 0);
+                });
+            @endunless
 
             // ===== Inactive Users tab =====
             let inactiveTable = null;
@@ -840,10 +851,12 @@
                 }
             }
 
-            // Preload the inactive count badge even before the tab is opened
-            $.getJSON("{{ $usersSby ? route('users-sby.inactive.json') : route('users.inactive.json') }}", function(json) {
-                updateInactiveBadge(json.data ? json.data.length : 0);
-            });
+            @unless ($usersSby)
+                // Preload the inactive count badge even before the tab is opened
+                $.getJSON("{{ route('users.inactive.json') }}", function(json) {
+                    updateInactiveBadge(json.data ? json.data.length : 0);
+                });
+            @endunless
 
             function activateTab(tab) {
                 const isList = tab === 'list';
@@ -901,11 +914,28 @@
                 },
 
                 columnDefs: [{
-                    targets: 0,
-                    width: '28px',
-                    className: 'dtr-control',
-                    orderable: false
-                }],
+                        targets: 0,
+                        width: '28px',
+                        className: 'dtr-control',
+                        orderable: false
+                    },
+                    {
+                        targets: 5, // Division
+                        visible: {{ $usersSby ? 'true' : 'false' }}
+                    },
+                    {
+                        targets: 6, // Company
+                        visible: {{ $usersSby ? 'false' : 'true' }}
+                    },
+                    {
+                        targets: 7, // Department
+                        visible: {{ $usersSby ? 'false' : 'true' }}
+                    },
+                    {
+                        targets: 8, // Business Unit
+                        visible: {{ $usersSby ? 'false' : 'true' }}
+                    }
+                ],
                 dom: '<"dt-toolbar flex items-center justify-start gap-4"lBf>rtip',
                 buttons: [{
                         extend: 'excelHtml5',
@@ -984,6 +1014,10 @@
                         className: 'no-pointer'
                     },
                     {
+                        data: 'division_id',
+                        className: 'no-pointer'
+                    },
+                    {
                         data: 'cpny_id',
                         className: 'no-pointer'
                     },
@@ -1011,22 +1045,22 @@
                 ]
             });
 
-            // ===== Filter Company (kolom 3) =====
+            // ===== Filter Company (kolom 4) =====
             $('#filterCompany').on('change', function() {
                 const val = $(this).val();
 
                 table
-                    .column(5) // cpny_id
+                    .column(6) // cpny_id
                     .search(val || '', false, false)
                     .draw();
             });
 
-            // ===== Filter Department (kolom 4) =====
+            // ===== Filter Department (kolom 5) =====
             $('#filterDepartment').on('change', function() {
                 const val = $(this).val();
 
                 table
-                    .column(6) // department_id
+                    .column(7) // department_id
                     .search(val || '', false, false)
                     .draw();
             });
@@ -1034,16 +1068,16 @@
             $('#filterBusinessUnit').on('change', function() {
                 const val = $(this).val();
                 table
-                    .column(7) // business_unit_id
+                    .column(8) // business_unit_id
                     .search(val || '', false, false)
                     .draw();
             });
 
-            // ===== Filter Jabatan (kolom 8) =====
+            // ===== Filter Jabatan (kolom 9) =====
             $('#filterJabatan').on('change', function() {
                 const val = $(this).val();
                 table
-                    .column(8) // jabatan
+                    .column(9) // jabatan
                     .search(val || '', false, false)
                     .draw();
             });
@@ -1060,10 +1094,10 @@
                 $('#filterJabatan').val(null).trigger('change');
 
                 // reset datatable filter untuk kolom yg benar
-                table.column(5).search(''); // company
-                table.column(6).search(''); // department
-                table.column(7).search(''); // business unit
-                table.column(8).search(''); // jabatan
+                table.column(6).search(''); // company
+                table.column(7).search(''); // department
+                table.column(8).search(''); // business unit
+                table.column(9).search(''); // jabatan
 
                 // reset global search juga kalau ada
                 table.search('');

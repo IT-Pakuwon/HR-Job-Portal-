@@ -20,6 +20,8 @@ class TrxVplReceiveDetail extends Model
         'expired_date',
         'whs_id',
         'qty_receive',
+        'product_price',
+        'total_product_price',
         'status',
         'created_user',
         'updated_user',
@@ -27,6 +29,8 @@ class TrxVplReceiveDetail extends Model
 
     protected $casts = [
         'expired_date' => 'date',
+        'product_price' => 'decimal:2',
+        'total_product_price' => 'decimal:2',
     ];
 
     public function receive()
@@ -44,3 +48,4 @@ class TrxVplReceiveDetail extends Model
         return $this->belongsTo(MsVplWarehouse::class, 'whs_id', 'whs_id');
     }
 }
+

@@ -30,6 +30,7 @@ class TicketTransferMail extends Mailable
             ->view(
                 'emails.ticket-transfer'
             )
-            ->with('systemLabel', $this->systemLabelFor($this->ticket));
+            ->with('systemLabel', $this->systemLabelFor($this->ticket))
+            ->with('docUrl', $this->docUrlFor($this->ticket));
     }
 }

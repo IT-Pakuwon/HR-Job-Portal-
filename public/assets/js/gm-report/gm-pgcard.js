@@ -98,10 +98,14 @@
     }
 
     // ── Word-wrap + uppercase helper for Y-axis labels ───────────────────────
+    // Always returns an array of lines (even for a single line) so ApexCharts
+    // renders every label the same way (stacked tspans) — mixing plain
+    // strings with arrays is what made long, left-aligned labels get
+    // clipped instead of wrapping.
     function wrapLabel(val, maxChars) {
-        if (!val) return '';
+        if (!val) return [''];
         var s = (typeof val === 'string' ? val : String(val)).toUpperCase();
-        if (s.length <= maxChars) return s;
+        if (s.length <= maxChars) return [s];
         var words = s.split(' ');
         var lines = [''];
         words.forEach(function (word) {
@@ -114,7 +118,7 @@
                 lines.push(word);
             }
         });
-        return lines.length > 1 ? lines : lines[0];
+        return lines;
     }
 
     // ── Bar chart options ─────────────────────────────────────────────────────
@@ -124,7 +128,14 @@
         var categories = rows.map(function (r) { return r.label; });
         var values     = rows.map(function (r) { return useAmt ? r.total_amount : r.value; });
 
-        var chartHeight = Math.max(260, rows.length * 38 + 40);
+        // 16 chars/line keeps each line comfortably inside the 240px y-axis
+        // gutter at 10px/600-weight — wide enough for most single names,
+        // narrow enough that long ones wrap instead of overflowing/clipping.
+        var maxLines = categories.reduce(function (m, c) {
+            return Math.max(m, wrapLabel(c, 16).length);
+        }, 1);
+        var rowHeight   = maxLines > 1 ? 50 : 38;
+        var chartHeight = Math.max(260, rows.length * rowHeight + 40);
 
         return {
             series: [{ name: useAmt ? 'Total Spending' : 'Transactions', data: values }],
@@ -136,7 +147,7 @@
                 background: 'transparent',
                 animations: { enabled: true, easing: 'easeinout', speed: 600 },
             },
-            plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '55%' } },
+            plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: maxLines > 1 ? '48%' : '55%' } },
             colors: [color],
             fill: {
                 type: 'gradient',
@@ -162,7 +173,7 @@
                     align: 'left',
                     style: { fontSize: '10px', fontWeight: 600 },
                     maxWidth: 240,
-                    formatter: function (val) { return wrapLabel(val, 22); },
+                    formatter: function (val) { return wrapLabel(val, 16); },
                 },
             },
             tooltip: {
@@ -769,8 +780,54 @@
                         { label: 'Best Avg Store', name: ia ? ia.name : '-', value: ia ? idr(ia.value1) + ' avg' : '-' },
                     ]);
                 }
+
+                computePgcardInsights(d, byMall, insights);
             })
             .catch(function (e) { if (e.name !== 'AbortError') console.error('pgcard kpi:', e); });
+    }
+
+    // ── GM Insight — cross-mall comparison when unfiltered, top performer
+    //    call-outs when scoped to one mall (reuses the same insights payload
+    //    the per-KPI-card mini insights above already use). ────────────────
+    function computePgcardInsights(d, byMall, insights) {
+        var gm = [];
+        var totalSpending = parseFloat(d.total_spending) || 0;
+        var totalTxn = parseFloat(d.total_txn) || 0;
+
+        if (byMall.length > 1) {
+            var bySpend = byMall.slice().sort(function (a, b) { return b.total_spending - a.total_spending; });
+            var leader = bySpend[0];
+            if (leader && totalSpending > 0) {
+                var share = (leader.total_spending / totalSpending * 100).toFixed(0);
+                gm.push({ type: 'positive', text: '<b>' + utils.escHtml(leader.mall_code) + '</b> leads spending at ' + idr(leader.total_spending) + ' (' + share + '% of total across all malls).' });
+            }
+
+            var withAvg = byMall.map(function (m) {
+                return { code: m.mall_code, avg: m.txn_count > 0 ? m.total_spending / m.txn_count : 0 };
+            }).sort(function (a, b) { return b.avg - a.avg; });
+            if (withAvg.length > 1 && withAvg[0].avg > 0) {
+                gm.push({ type: 'info', text: '<b>' + utils.escHtml(withAvg[0].code) + '</b> has the highest average transaction value at ' + idr(withAvg[0].avg) + ' per visit.' });
+            }
+
+            var lowestTxn = byMall.slice().sort(function (a, b) { return a.txn_count - b.txn_count; })[0];
+            if (lowestTxn) {
+                gm.push({ type: 'warning', text: '<b>' + utils.escHtml(lowestTxn.mall_code) + '</b> has the fewest transactions of all malls (' + Number(lowestTxn.txn_count).toLocaleString('id-ID') + ') — worth checking footfall or campaign coverage there.' });
+            }
+        } else if (insights) {
+            var isS = insights.top_customer_spending;
+            var imS = insights.top_tenant_spending;
+            if (isS && isS.name) gm.push({ type: 'positive', text: 'Top spender <b>' + utils.escHtml(isS.name) + '</b> contributed ' + idr(isS.value1) + ' this period.' });
+            if (imS && imS.name) gm.push({ type: 'info', text: '<b>' + utils.escHtml(imS.name) + '</b> was the top-revenue tenant, driving ' + idr(imS.value1) + '.' });
+            if (insights.new_members_count != null) {
+                gm.push({ type: 'positive', text: Number(insights.new_members_count).toLocaleString('id-ID') + ' new members joined in this period.' });
+            }
+        }
+
+        if (totalTxn > 0 && d.avg_txn_value) {
+            gm.push({ type: 'info', text: 'Average transaction value is ' + idr(d.avg_txn_value) + ' across ' + Number(totalTxn).toLocaleString('id-ID') + ' transactions.' });
+        }
+
+        utils.renderInsights('gmPgcardInsights', gm);
     }
 
     // ── Monthly trend chart ───────────────────────────────────────────────────

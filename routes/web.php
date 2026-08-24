@@ -1255,14 +1255,16 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware('access:PERIZINAN,VIEW')->group(function () {
         Route::get('/perizinan', [PerizinanController::class, 'index'])->name('perizinan');
+        Route::get('/showperizinan/{hash}', [PerizinanController::class, 'showPage'])->name('perizinan.show-page');
         Route::get('/perizinan/json', [PerizinanController::class, 'json'])->name('perizinan.json');
         Route::get('/perizinan/departments', [PerizinanController::class, 'departments'])->name('perizinan.departments');
         Route::get('/perizinan/sites', [PerizinanController::class, 'sites'])->name('perizinan.sites');
+        Route::post('/perizinan/generate-berita-acara', [PerizinanController::class, 'generateBeritaAcara'])->name('perizinan.generate-berita-acara');
+        Route::put('/perizinan/{perizinanId}/details', [PerizinanController::class, 'updateDetails'])->name('perizinan.details.update');
         Route::get('/perizinan/{perizinanId}', [PerizinanController::class, 'show'])->name('perizinan.show');     
     });
 
     Route::middleware('access:PERIZINAN,CREATE')->group(function () {
-        Route::get('/perizinan', [PerizinanController::class, 'index'])->name('perizinan');       
         Route::post('/perizinan/{perizinanId}/activities', [PerizinanController::class, 'storeActivity'])->name('perizinan.activities.store');
         Route::post('/perizinan/{perizinanId}/renew', [PerizinanController::class, 'renew'])->name('perizinan.renew');
         Route::post('/perizinan', [PerizinanController::class, 'savePerizinan'])->name('perizinan.store');
@@ -1850,6 +1852,7 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/response/{hash}', 'responseTicket')->name('oprteknik-ticket.response');
                 Route::post('/approve/{hash}', 'approveTicket')->name('oprteknik-ticket.approve');
                 Route::post('/reject/{hash}', 'rejectTicket')->name('oprteknik-ticket.reject');
+                Route::post('/revise/{hash}', 'reviseTicket')->name('oprteknik-ticket.revise');
                 Route::post('/process/{hash}', 'processTicket')->name('oprteknik-ticket.process');
                 Route::post('/pending/{hash}', 'pendingTicket')->name('oprteknik-ticket.pending');
                 Route::post('/transfer/{hash}', 'transferTicket')->name('oprteknik-ticket.transfer');
@@ -2145,6 +2148,7 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/api/budget-years', 'budgetYears')->name('gm.budget-years');
                 Route::get('/api/departments', 'departments')->name('gm.departments');
                 Route::get('/api/budget-by-month', 'budgetByMonth')->name('gm.budget-by-month');
+                Route::get('/api/section-last-updated', 'sectionLastUpdated')->name('gm.section-last-updated');
 
                 // Isort API endpoints
                 Route::get('/api/isort-summary', 'isortSummary')->name('gm.isort-summary');
@@ -2164,6 +2168,17 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/api/pgcard-coupon-styw', 'pgcardCouponStyw')->name('gm.pgcard-coupon-styw');
                 Route::get('/api/pgcard-coupon-styw-compare', 'pgcardCouponStywCompare')->name('gm.pgcard-coupon-styw-compare');
                 Route::get('/api/pgcard-campaign-samples', 'pgcardCampaignSamples')->name('gm.pgcard-campaign-samples');
+
+                // Parking - Valet API endpoints
+                Route::get('/api/valet-kpi-summary', 'valetKpiSummary')->name('gm.valet-kpi-summary');
+                Route::get('/api/valet-voucher-redemption', 'valetVoucherRedemption')->name('gm.valet-voucher-redemption');
+                Route::get('/api/valet-peak-hours', 'valetPeakHours')->name('gm.valet-peak-hours');
+
+                // Event API endpoints
+                Route::get('/api/event-summary', 'eventSummary')->name('gm.event-summary');
+                Route::get('/api/event-by-type', 'eventByType')->name('gm.event-by-type');
+                Route::get('/api/event-status-strip', 'eventStatusStrip')->name('gm.event-status-strip');
+                Route::get('/api/event-status-by-company', 'eventStatusByCompany')->name('gm.event-status-by-company');
 
                 // Export endpoints
                 Route::get('/export/pdf', 'exportPdf')->name('gm.export.pdf');
@@ -3238,6 +3253,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/usagevp/all', [VplUsageController::class, 'all'])->name('usagevp.all');
         Route::get('/usagevp/{id}', [VplUsageController::class, 'show'])->where('id', '[0-9]+')->name('usagevp.show');
         Route::get('/usagevp/{id}/data', [VplUsageController::class, 'showData'])->where('id', '[0-9]+')->name('usagevp.data');
+        Route::get('/usagevp/attachment/{id}/view', [VplUsageController::class, 'viewAttachment'])->where('id', '[0-9]+')->name('usagevp.attachment.view');
         Route::get('/showusagevp/{eid}', [VplUsageController::class, 'index'])->name('showusagevp');
         Route::post('/usagevp/ajax/warehouse', [VplUsageController::class, 'getUsageWarehouse'])->name('usagevp.warehouse');
         Route::post('/usagevp/ajax/products', [VplUsageController::class, 'getUsageProducts'])->name('usagevp.products');
@@ -3275,6 +3291,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/settlementvp/all', [VplSettlementController::class, 'all'])->name('settlementvp.all');
         Route::get('/settlementvp/{id}', [VplSettlementController::class, 'show'])->where('id', '[0-9]+')->name('settlementvp.show');
         Route::get('/settlementvp/{id}/data', [VplSettlementController::class, 'showData'])->where('id', '[0-9]+')->name('settlementvp.data');
+        Route::get('/settlementvp/attachment/{id}/view', [VplSettlementController::class, 'viewAttachment'])->where('id', '[0-9]+')->name('settlementvp.attachment.view');
         Route::get('/showsettlementvp/{eid}', [VplSettlementController::class, 'index'])->name('showsettlementvp');
         Route::post('/settlementvp/ajax/usage-options', [VplSettlementController::class, 'getSettleableUsageOptions'])->name('settlementvp.usage-options');
         Route::post('/settlementvp/ajax/usage-lines', [VplSettlementController::class, 'getUsageLinesForSettlement'])->name('settlementvp.usage-lines');
@@ -3308,6 +3325,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/transfervp/all', [VplTransferController::class, 'all'])->name('transfervp.all');
         Route::get('/transfervp/{id}', [VplTransferController::class, 'show'])->name('transfervp.show');
         Route::get('/transfervp/{id}/data', [VplTransferController::class, 'showData'])->name('transfervp.data');
+        Route::get('/transfervp/attachment/{id}/view', [VplTransferController::class, 'viewAttachment'])->where('id', '[0-9]+')->name('transfervp.attachment.view');
         Route::get('/showtransfervp/{eid}', [VplTransferController::class, 'index'])->name('showtransfervp');
         Route::post('/transfervp/ajax/from-whs', [VplTransferController::class, 'getFromWhs'])->name('transfervp.from-whs');
         Route::post('/transfervp/ajax/to-whs', [VplTransferController::class, 'getToWhs'])->name('transfervp.to-whs');
@@ -3345,6 +3363,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/requestvp/all', [VplReceiveController::class, 'all'])->name('requestvp.all');
         Route::get('/requestvp/{id}', [VplReceiveController::class, 'show'])->name('requestvp.show');
         Route::get('/requestvp/{id}/data', [VplReceiveController::class, 'showData'])->name('requestvp.data');
+        Route::get('/requestvp/attachment/{id}/view', [VplReceiveController::class, 'viewAttachment'])->where('id', '[0-9]+')->name('requestvp.attachment.view');
         Route::get('/showreceivevp/{eid}', [VplReceiveController::class, 'index'])->name('receivevp.show');
         Route::post('/requestvp/ajax/products', [VplReceiveController::class, 'getProducts'])->name('requestvp.products');
         Route::post('/requestvp/ajax/warehouse', [VplReceiveController::class, 'getWarehouse'])->name('requestvp.warehouse');

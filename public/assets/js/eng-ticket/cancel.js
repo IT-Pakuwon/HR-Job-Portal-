@@ -61,20 +61,16 @@ function cancelTicket(eid) {
             },
             success(res) {
                 hideLoading();
-                showSuccess(res.message || 'Ticket cancelled successfully.');
 
-                if (typeof loadTicketDetail === 'function') {
-                    const currentDetailEid = $('#detail_ticket_eid').val();
-                    if (currentDetailEid) loadTicketDetail(currentDetailEid);
-                }
-
-                if ($.fn.DataTable && $('#ticketTable').length) {
-                    $('#ticketTable').DataTable().ajax.reload(null, false);
-                }
-
-                refreshTicketCalendar();
-
-                resetTicketUrl();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: res.message || 'Ticket cancelled successfully.',
+                    timer: 1500,
+                    showConfirmButton: false,
+                }).then(() => {
+                    window.location.reload();
+                });
             },
             error(xhr) {
                 hideLoading();

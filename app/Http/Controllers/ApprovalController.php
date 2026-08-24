@@ -606,7 +606,8 @@ class ApprovalController extends Controller
         string $actorUsername,
         string $actorName,
         \Closure $onComplete,
-        ?\Closure $onNotifyNext = null
+        ?\Closure $onNotifyNext = null,
+        ?\Closure $onNotifyComplete = null
     ): array {
         $now = Carbon::now();
 
@@ -618,6 +619,10 @@ class ApprovalController extends Controller
         // (default) connection and this rollback never actually undoes anything.
         $conn = $current->getConnectionName();
         DB::connection($conn)->beginTransaction();
+
+        $completed = false;
+        $next = null;
+
         try {
             $current->status         = 'A';
             $current->aprv_dateafter = $now;
@@ -632,22 +637,21 @@ class ApprovalController extends Controller
                 ->count();
 
             if ($pendingCount === 0) {
+                $completed = true;
                 $onComplete($refnbr, $now);
-                DB::connection($conn)->commit();
-                return ['ok' => true, 'completed' => true];
-            }
+            } else {
+                $next = TrApproval::query()
+                    ->where('refnbr', $refnbr)
+                    ->where('aprv_doctype', $doctype)
+                    ->where('status', 'P');
 
-            $next = TrApproval::query()
-                ->where('refnbr', $refnbr)
-                ->where('aprv_doctype', $doctype)
-                ->where('status', 'P');
+                $this->orderByLevel($next);
+                $next = $next->first();
 
-            $this->orderByLevel($next);
-            $next = $next->first();
-
-            if ($next && empty($next->aprv_datebefore)) {
-                $next->aprv_datebefore = $now;
-                $next->save();
+                if ($next && empty($next->aprv_datebefore)) {
+                    $next->aprv_datebefore = $now;
+                    $next->save();
+                }
             }
 
             DB::connection($conn)->commit();
@@ -662,6 +666,17 @@ class ApprovalController extends Controller
         // try/catch: a mail failure here must not be reported back as an
         // approve failure — the approval itself already succeeded and can't
         // be rolled back at this point.
+        if ($completed) {
+            if ($onNotifyComplete) {
+                try {
+                    $onNotifyComplete($refnbr, $now);
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            }
+            return ['ok' => true, 'completed' => true];
+        }
+
         if ($onNotifyNext) {
             try {
                 $onNotifyNext($next, $now);

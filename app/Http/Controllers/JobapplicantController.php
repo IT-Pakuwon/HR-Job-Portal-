@@ -53,6 +53,21 @@ class JobapplicantController extends Controller
             || $user->hasFullDataScope();
     }
 
+    // RECACCALLDEPT => bisa lihat semua company, bukan cuma company yang di-assign ke user
+    private function userCpnyIds($user): array
+    {
+        if ($user->hasFullDataScope() || $this->hasRole($user, 'RECACCALLDEPT')) {
+            return MsCompany::pluck('cpny_id')->toArray();
+        }
+
+        return Usercpny::where('username', $user->username)
+            ->pluck('cpny_id')
+            ->filter()
+            ->unique()
+            ->values()
+            ->toArray();
+    }
+
     // Clusters hr_ms_applicant records that are likely the same real person, so
     // the "Duplicate Users" tab and the Applicant List row-click panel always
     // agree on who's grouped together and why.
@@ -190,14 +205,7 @@ class JobapplicantController extends Controller
                 : redirect()->route('login')->with('error', 'Your session has expired. Please sign in again.');
         }
 
-        $userCpnyIds = $user->hasFullDataScope()
-            ? MsCompany::pluck('cpny_id')->toArray()
-            : Usercpny::where('username', $user->username)
-                ->pluck('cpny_id')
-                ->filter()
-                ->unique()
-                ->values()
-                ->toArray();
+        $userCpnyIds = $this->userCpnyIds($user);
 
         $canFilterJobTL = $this->hasFullApplicantAccess($user);
 
@@ -275,14 +283,7 @@ class JobapplicantController extends Controller
                 ], 401);
             }
 
-            $userCpnyIds = $user->hasFullDataScope()
-                ? MsCompany::pluck('cpny_id')->toArray()
-                : Usercpny::where('username', $user->username)
-                    ->pluck('cpny_id')
-                    ->filter()
-                    ->unique()
-                    ->values()
-                    ->toArray();
+            $userCpnyIds = $this->userCpnyIds($user);
 
             $canFilterJobTL = $this->hasFullApplicantAccess($user);
             $jobTLExact = $canFilterJobTL ? trim((string) $request->input('job_tl_exact', '')) : '';
@@ -308,20 +309,13 @@ class JobapplicantController extends Controller
 
             $base = DB::connection('mysql3')
                 ->table('viewtrxcareer as vc')
-                ->leftJoin('viewtrxcareer_scoring as vs', 'vc.docid', '=', 'vs.docid')
-                ->leftJoin('hr_trx_jobposting as jp', function ($join) {
-                    $join->on('jp.docid', '=', 'vc.docidposting')
-                        ->on('jp.group_cpny_id', '=', 'vc.group_cpny_id');
+                ->leftJoin('viewtrxcareer_scoring as vs', function ($join) {
+                    $join->on('vc.docid', '=', 'vs.docid')
+                        ->on('vc.docidposting', '=', 'vs.jobid');
                 })
-                ->leftJoin('hr_ms_department as dept', function ($join) {
-                    $join->on('dept.department_id', '=', 'jp.departementid')
-                        ->on('dept.group_cpny_id', '=', 'vc.group_cpny_id');
-                })
-                ->leftJoin('hr_ms_division as div', function ($join) {
-                    $join->on('div.division_id', '=', 'dept.division_id')
-                        ->on('div.group_cpny_id', '=', 'vc.group_cpny_id');
-                })
-                ->where('vc.group_cpny_id', $groupCompanyId)
+                ->leftJoin('hr_trx_jobposting as jp', 'jp.docid', '=', 'vc.docidposting')
+                ->leftJoin('hr_ms_department as dept', 'dept.department_id', '=', 'jp.departementid')
+                ->leftJoin('hr_ms_division as div', 'div.division_id', '=', 'dept.division_id')
                 ->where('vc.status', '!=', 'X')
                 ->when(!empty($userCpnyIds), function ($q) use ($userCpnyIds) {
                     $q->whereIn('vc.cpnyid', $userCpnyIds);
@@ -611,7 +605,7 @@ class JobapplicantController extends Controller
                 return response()->json(['message' => 'Your session has expired. Please sign in again.'], 401);
             }
 
-            if (!$user->canViewApplicantDuplicates()) {
+            if (!$this->hasRole($user, 'RECACCALLDEPT')) {
                 return response()->json(['message' => 'Forbidden'], 403);
             }
 
@@ -621,14 +615,7 @@ class JobapplicantController extends Controller
                 return response()->json(['data' => []]);
             }
 
-            $userCpnyIds = $user->hasFullDataScope()
-                ? MsCompany::pluck('cpny_id')->toArray()
-                : Usercpny::where('username', $user->username)
-                    ->pluck('cpny_id')
-                    ->filter()
-                    ->unique()
-                    ->values()
-                    ->toArray();
+            $userCpnyIds = $this->userCpnyIds($user);
 
             $rows = DB::connection('mysql3')
                 ->table('hr_ms_applicant as a')
@@ -724,10 +711,6 @@ class JobapplicantController extends Controller
                 return response()->json(['message' => 'Your session has expired. Please sign in again.'], 401);
             }
 
-            if (!$user->canViewApplicantDuplicates()) {
-                return response()->json(['message' => 'Forbidden'], 403);
-            }
-
             $docid = trim((string) $request->query('docid', ''));
             if ($docid === '') {
                 return response()->json(['data' => []]);
@@ -752,14 +735,7 @@ class JobapplicantController extends Controller
                 ? collect($applicantToGroup)->filter(fn ($g) => $g === $groupKey)->keys()->values()
                 : collect([$applicant->applicant_id]);
 
-            $userCpnyIds = $user->hasFullDataScope()
-                ? MsCompany::pluck('cpny_id')->toArray()
-                : Usercpny::where('username', $user->username)
-                    ->pluck('cpny_id')
-                    ->filter()
-                    ->unique()
-                    ->values()
-                    ->toArray();
+            $userCpnyIds = $this->userCpnyIds($user);
 
             $canFilterJobTL = $this->hasFullApplicantAccess($user);
 
@@ -923,7 +899,10 @@ class JobapplicantController extends Controller
         // $applicants = ViewCareer::where('docidposting', $jobId)->get();
         $applicants = DB::connection('mysql3')
             ->table('viewtrxcareer as vc')
-            ->leftJoin('viewtrxcareer_scoring as vs', 'vc.docid', '=', 'vs.docid')
+            ->leftJoin('viewtrxcareer_scoring as vs', function ($join) {
+                $join->on('vc.docid', '=', 'vs.docid')
+                    ->on('vc.docidposting', '=', 'vs.jobid');
+            })
             ->where('vc.docidposting', $jobId)
             ->select(
                 'vc.*',

@@ -669,6 +669,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         const TYPE_OPTIONS = @json($type->pluck('category_name')->values());
+        const GLOBAL_CONDITION_OPTIONS = @json($condition->pluck('category_name')->values());
         // Restricted admin (non-adminsby): doctype/dept-type filters and forms are
         // locked to PRF / HR — resets must land back on the locked value, not blank.
         const LOCKED_DOCTYPE = @json($restrictAdmin ? 'PRF' : '');
@@ -1051,7 +1052,7 @@
             // never step on each other even though both exist in the DOM at the same time.
             function createLineForm(config) {
                 let idxCounter = 0;
-                let condOptions = [];
+                let condOptions = [...GLOBAL_CONDITION_OPTIONS];
 
                 function buildOptions(arr, selected) {
                     let html = `<option value=""></option>`;
@@ -1165,7 +1166,8 @@
                 }
 
                 function setConditionOptions(items) {
-                    condOptions = items || [];
+                    condOptions = Array.isArray(items) && items.length ?
+                        items : [...GLOBAL_CONDITION_OPTIONS];
                     $(config.containerSel).find('.sel-condition').each(function() {
                         const current = $(this).val();
                         $(this).html(buildOptions(condOptions, current));
@@ -1196,8 +1198,11 @@
             function loadConditionsByDoctype(doctype, formCtx, callback) {
                 const url = "{{ $apvSby ? route('approvals-sby.conditions') : route('approvals.conditions') }}" + "?doctype=" + encodeURIComponent(doctype ||
                     '');
-                $.get(url, function(items) {
+                return $.get(url, function(items) {
                     formCtx.setConditionOptions(items);
+                    if (callback) callback();
+                }).fail(function() {
+                    formCtx.setConditionOptions(GLOBAL_CONDITION_OPTIONS);
                     if (callback) callback();
                 });
             }

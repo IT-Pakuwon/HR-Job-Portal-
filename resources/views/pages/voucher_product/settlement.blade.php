@@ -11,6 +11,26 @@
 .select2-container .select2-selection--single .select2-selection__arrow { height: 40px !important; }
 .apv-badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:600; }
 .status-filter.active-card .status-card { box-shadow: 0 0 0 2px #6366f1; }
+
+/* SweetAlert2 dark mode */
+.dark .swal2-popup { background: #1e293b; color: #e2e8f0; }
+.dark .swal2-title, .dark .swal2-html-container { color: #e2e8f0; }
+.dark .swal2-close { color: #94a3b8; }
+.dark .swal2-input, .dark .swal2-textarea, .dark .swal2-select { background: #0f172a; color: #e2e8f0; border-color: #334155; }
+.dark .swal2-validation-message { background: #0f172a; color: #f87171; }
+
+/* Select2 — dark mode */
+.dark .select2-container .select2-selection--single { background-color: #0b1220; border-color: rgba(255, 255, 255, .1) !important; }
+.dark .select2-container .select2-selection--single .select2-selection__rendered { color: #f8fafc; }
+.dark .select2-container .select2-selection--single .select2-selection__placeholder { color: #64748b; }
+.dark .select2-container .select2-selection--single .select2-selection__arrow b { border-color: #94a3b8 transparent transparent transparent; }
+.dark .select2-container.select2-container--disabled .select2-selection--single { background-color: #0f172a; border-color: rgba(255, 255, 255, .06) !important; cursor: not-allowed; }
+.dark .select2-container.select2-container--disabled .select2-selection--single .select2-selection__rendered { color: #64748b; }
+.dark .select2-dropdown { background-color: #0f172a; border-color: rgba(255, 255, 255, .1); color: #f8fafc; }
+.dark .select2-search--dropdown .select2-search__field { background-color: #0b1220; border-color: rgba(255, 255, 255, .1); color: #f8fafc; }
+.dark .select2-results__option { color: #e2e8f0; }
+.dark .select2-container--default .select2-results__option--highlighted[aria-selected] { background-color: #4f46e5; color: #ffffff; }
+.dark .select2-container--default .select2-results__option[aria-selected=true] { background-color: #1e293b; color: #f8fafc; }
 </style>
 
 <div class="max-w-9xl mx-auto w-full p-2">
@@ -332,7 +352,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 gap-4 bg-slate-50 p-4 dark:bg-[#0b1220] lg:grid-cols-[1.2fr_0.8fr]">
+        <div class="grid grid-cols-1 gap-4 bg-slate-50 p-4 dark:bg-[#0b1220] lg:grid-cols-[1.6fr_0.6fr]">
 
             {{-- LEFT --}}
             <div class="space-y-4">
@@ -402,8 +422,8 @@
                 </div>
 
                 <div class="overflow-hidden">
-                    <div class="flex items-center gap-2">
-                        <div id="v_statusBanner" class="mb-4 flex w-full items-center gap-2"></div>
+                    <div class="flex flex-col gap-2">
+                        <div id="v_statusBanner" class="mb-0 flex w-full items-center gap-2"></div>
                         <div id="v_approvalActions" class="mb-4 hidden flex w-full items-center justify-between gap-2">
                             <button type="button" id="v_approveBtn"
                                 class="flex-1 rounded-lg bg-emerald-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-400">

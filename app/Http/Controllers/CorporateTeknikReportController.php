@@ -20,8 +20,8 @@ use Vinkla\Hashids\Facades\Hashids;
 | Corporate Teknik card-list dashboard uses — see CorporateTeknikDashboardController.
 |
 | "Ticket Type" is a single-select toggle between:
-|   - Support Ticket : ENGSUPPORTTICKET + BSSUPPORTTICKET, located via ms_site
-|   - Berita Acara    : BA_ENG + BA_BS, located via ms_location + sub_location
+|   - Support Ticket : ENGSUPPORTTICKET + BSSUPPORTTICKET + FOSUPPORTTICKET, located via ms_site
+|   - Berita Acara    : BA_ENG + BA_BS + BA_FO, located via ms_location + sub_location
 |
 | Access is entirely DB-driven via sys_access_right (screen_id REPORTCORPTEK,
 | access_name VIEW) — see the `access:REPORTCORPTEK,VIEW` middleware on the
@@ -33,16 +33,34 @@ class CorporateTeknikReportController extends Controller
 {
     protected const SUPPORT_TYPES = ['ENGSUPPORTTICKET', 'BSSUPPORTTICKET', 'FOSUPPORTTICKET'];
 
-    protected const BA_TYPES = ['BA_ENG', 'BA_BS'];
+    protected const BA_TYPES = ['BA_ENG', 'BA_BS', 'BA_FO'];
 
     protected function isBaSelection(string $ticketType): bool
     {
-        return strtoupper($ticketType) === 'BA';
+        return $ticketType === 'BA' || in_array($ticketType, self::BA_TYPES, true);
     }
 
-    /** Ticket type codes for the current BA/Support toggle. */
+    // A rejected completion request drops the ticket back to PROCESS — the
+    // same status a normal Process action lands on — so PROCESS alone can't
+    // tell the two apart. Mirrors EngTicketController::isRejectedProcessState()
+    // so this report's status column agrees with the Eng Ticket module's.
+    protected function isRejectedProcessState(string $statusPekerjaan, ?TrTicketActivity $latestWorkflowActivity): bool
+    {
+        return $statusPekerjaan === 'PROCESS'
+            && optional($latestWorkflowActivity)->response_summary === 'Ticket Completion Rejected';
+    }
+
+    /**
+     * Ticket type codes for the current filter selection — either one specific
+     * type (e.g. BSSUPPORTTICKET) when the user drilled in via the "Type"
+     * filter, or the whole SUPPORT/BA group when they picked the "All ..." option.
+     */
     protected function resolveTypes(string $ticketType): array
     {
+        if (in_array($ticketType, self::SUPPORT_TYPES, true) || in_array($ticketType, self::BA_TYPES, true)) {
+            return [$ticketType];
+        }
+
         return $this->isBaSelection($ticketType) ? self::BA_TYPES : self::SUPPORT_TYPES;
     }
 
@@ -66,11 +84,14 @@ class CorporateTeknikReportController extends Controller
         $dateFrom = $request->input('date_from') ?: "{$y}-01-01";
         $dateTo = $request->input('date_to') ?: "{$y}-12-31";
 
+        $allowedTypes = array_merge(['SUPPORT', 'BA'], self::SUPPORT_TYPES, self::BA_TYPES);
+        $requestedType = strtoupper((string) $request->input('ticket_type', 'SUPPORT'));
+
         return [
             'dateFrom' => $dateFrom,
             'dateTo' => $dateTo,
             'cpnyId' => $request->input('cpny_id') ?: null,
-            'ticketType' => strtoupper((string) $request->input('ticket_type', 'SUPPORT')) === 'BA' ? 'BA' : 'SUPPORT',
+            'ticketType' => in_array($requestedType, $allowedTypes, true) ? $requestedType : 'SUPPORT',
         ];
     }
 
@@ -91,7 +112,7 @@ class CorporateTeknikReportController extends Controller
             ->select([
                 'id', 'ticketid', 'ticketdate', 'cpny_id', 'department_id',
                 'ticket_type', 'ticket_categoryid', 'ticket_subcategoryid',
-                'location_id', 'issue_summary', 'pic_ticket',
+                'location_id', 'issue_summary', 'pic_ticket', 'status_pekerjaan',
             ])
             ->with([
                 'category:ticket_categoryid,ticket_category_name',
@@ -107,16 +128,21 @@ class CorporateTeknikReportController extends Controller
 
         $tickets = $q->orderByDesc('ticketdate')->get();
 
-        $activities = TrTicketActivity::query()
-            ->select('ticketid', 'status_pekerjaan')
+        $latestWorkflowActivities = TrTicketActivity::query()
+            ->select('ticketid', 'response_summary')
             ->whereIn('ticketid', $tickets->pluck('ticketid'))
-            ->orderByDesc('response_date')
+            ->where('response_summary', '!=', 'Ticket Comment')
+            ->orderByDesc('id')
             ->get()
             ->unique('ticketid')
             ->keyBy('ticketid');
 
-        $rows = $tickets->map(function ($t) use ($activities, $isBa) {
-            $status = strtoupper($activities[$t->ticketid]->status_pekerjaan ?? ($t->status_pekerjaan ?? '-'));
+        $rows = $tickets->map(function ($t) use ($latestWorkflowActivities, $isBa) {
+            $rawStatus = strtoupper($t->status_pekerjaan ?? '-');
+
+            $status = $this->isRejectedProcessState($rawStatus, $latestWorkflowActivities[$t->ticketid] ?? null)
+                ? 'REJECTED'
+                : $rawStatus;
 
             return [
                 'eid' => Hashids::encode($t->id),

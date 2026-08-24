@@ -108,6 +108,8 @@
                 <button id="gmTab_budget" type="button" class="gm-section-tab">Budget</button>
                 <button id="gmTab_pgcard" type="button" class="gm-section-tab">PG Card</button>
                 <button id="gmTab_isort" type="button" class="gm-section-tab">Operation - Isort</button>
+                <button id="gmTab_valet" type="button" class="gm-section-tab">Parking - Valet</button>
+                <button id="gmTab_event" type="button" class="gm-section-tab">Event</button>
             </div>
 
         </div>{{-- /gmPageHeader --}}
@@ -127,6 +129,22 @@
             xl      : 5 col  — Charts sidebar col-1 (rows 1–3) | Dept cols 2–3 | Activity cols 4–5
         --}}
         <div id="gmSectionBudget" class="mt-2 space-y-1.5">
+
+            <div class="flex items-center justify-between px-0.5">
+                <span
+                    class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Budget
+                    Overview</span>
+                <span id="gmBudgetLastUpdated"
+                    class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Last Updated: <span id="gmBudgetLastUpdatedVal">—</span>
+                </span>
+            </div>
+
+            <x-card-chart.insight-panel listId="gmBudgetInsights" />
 
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5">
 
@@ -254,6 +272,22 @@
         </style>
 
         <div id="gmSectionPgcard" class="mt-2 space-y-3">
+
+            <div class="flex items-center justify-between px-0.5">
+                <span
+                    class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">PG
+                    Card Overview</span>
+                <span id="gmPgcardLastUpdated"
+                    class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Last Updated: <span id="gmPgcardLastUpdatedVal">—</span>
+                </span>
+            </div>
+
+            <x-card-chart.insight-panel listId="gmPgcardInsights" />
 
             {{-- ── Row 1: 3 cols — KPI Sidebar | Top 10 Customer | Top 10 Tenant ──────
                  lg+  : 3 equal columns
@@ -472,111 +506,66 @@
         {{-- ── Isort Section ───────────────────────────────────────────────────── --}}
         <div id="gmSectionIsort" class="mt-2 space-y-3">
 
-            {{-- ── KPI Strip — full width, 6 metrics ────────────────────────────── --}}
-            <div class="relative overflow-hidden rounded-2xl border border-slate-200 shadow-sm dark:border-slate-700/60">
-                <div class="absolute inset-x-0 top-0 z-10 h-0.75"
-                    style="background:linear-gradient(to right,#3B82F6,#10B981,#F59E0B,#EF4444,#8B5CF6,#06B6D4)"></div>
-                <div class="grid grid-cols-2 gap-px bg-slate-100 dark:bg-slate-700/50 sm:grid-cols-3 xl:grid-cols-6">
+            <div class="flex items-center justify-between px-0.5">
+                <span
+                    class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Operation
+                    · Isort Overview</span>
+                <span id="gmIsortLastUpdated"
+                    class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Last Updated: <span id="gmIsortLastUpdatedVal">—</span>
+                </span>
+            </div>
 
-                    {{-- Total Issue --}}
-                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-500/10">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                            </svg>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Total Issue</p>
-                            <p id="isortTotalCase" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white sm:text-2xl">—</p>
-                        </div>
-                    </div>
+            <x-card-chart.insight-panel listId="gmIsortInsights" />
 
-                    {{-- Open Issue --}}
-                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-500/10">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[10px] font-bold uppercase tracking-widest text-amber-500">Open Issue</p>
-                            <p id="isortTotalOpen" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-amber-600 dark:text-amber-400 sm:text-2xl">—</p>
-                        </div>
-                    </div>
-
-                    {{-- Closed Issue --}}
-                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-500/10">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-500">Closed Issue</p>
-                            <p id="isortTotalClosed" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-emerald-600 dark:text-emerald-400 sm:text-2xl">—</p>
-                        </div>
-                    </div>
-
-                    {{-- Overdue Issue --}}
-                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-50 dark:bg-red-500/10">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                            </svg>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[10px] font-bold uppercase tracking-widest text-red-500">Overdue Issue</p>
-                            <p id="isortTotalOverdue" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-red-600 dark:text-red-400 sm:text-2xl">—</p>
-                        </div>
-                    </div>
-
-                    {{-- Avg Resolution Time --}}
-                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-50 dark:bg-violet-500/10">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[10px] font-bold uppercase tracking-widest text-violet-500">Avg Resolution</p>
-                            <p id="isortAvgResolution" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-violet-600 dark:text-violet-400 sm:text-2xl">—</p>
-                            <p id="isortAvgResolutionUnit" class="text-[10px] text-slate-400 dark:text-slate-500">hrs to close</p>
-                        </div>
-                    </div>
-
-                    {{-- Closure Rate --}}
-                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-50 dark:bg-cyan-500/10">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-cyan-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[10px] font-bold uppercase tracking-widest text-cyan-500">Closure Rate</p>
-                            <p id="isortClosureRate" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-cyan-600 dark:text-cyan-400 sm:text-2xl">—</p>
-                            <p class="text-[10px] text-slate-400 dark:text-slate-500">of total closed</p>
-                        </div>
-                    </div>
-
+            {{-- ── Summary — one unified table instead of a KPI strip + a
+                 separate breakdown table. gm-isort.js always renders a "Total"
+                 row; per-company rows are appended below it only when "All
+                 Companies" is selected (isortSummary's by_site comes back
+                 empty once a specific company is filtered, so the Total row
+                 alone — which already equals that company's numbers — is all
+                 that renders then). ────────────────────────────────────────── --}}
+            <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700/60 dark:bg-slate-900">
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-140 table-fixed text-left text-xs">
+                        <colgroup>
+                            <col style="width:22%">
+                            <col style="width:10%"><col style="width:10%"><col style="width:10%"><col style="width:10%">
+                            <col style="width:14%"><col style="width:24%">
+                        </colgroup>
+                        <thead>
+                            <tr class="border-b border-slate-200 bg-white text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:border-slate-700/60 dark:bg-slate-900 dark:text-slate-500">
+                                <th class="py-2 pl-4 pr-2">Company</th>
+                                <th class="py-2 pr-2 text-right">Total</th>
+                                <th class="py-2 pr-2 text-right">Open</th>
+                                <th class="py-2 pr-2 text-right">Closed</th>
+                                <th class="py-2 pr-2 text-right">Overdue</th>
+                                <th class="py-2 pr-2 text-right">Avg Res.</th>
+                                <th class="py-2 pr-4 text-right">Closure</th>
+                            </tr>
+                        </thead>
+                        <tbody id="isortSummaryBody"></tbody>
+                    </table>
                 </div>
             </div>
 
-            {{-- ── 3-column chart grid ────────────────────────────────────────────── --}}
-            <div class="grid grid-cols-1 gap-3 lg:grid-cols-3" style="align-items:stretch">
+            {{-- ── Charts — separate cards (not one merged container), 2 rows:
+                 row 1 is Type / Department / Incident side by side with
+                 matched heights (gm-isort.js's syncRowHeight sets all three
+                 ApexCharts instances to the tallest of the three), row 2 is
+                 Monthly Trend alone. The company legend is section-level, not
+                 per-card, since it isn't scoped to any single card anymore. --}}
 
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-3" style="align-items:stretch">
                 <x-card-chart.card-shell subtitle="Operation · Isort" title="Total Kaizen by Type"
                     class="h-full flex flex-col"
                     gradient="linear-gradient(to right,#8B5CF6,#3B82F6)">
                     <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
                         <div id="isortKaizenTypeChart" class="flex-1"></div>
-                    </div>
-                </x-card-chart.card-shell>
-
-                <x-card-chart.card-shell subtitle="Operation · Isort" title="Top 10 Kaizen by Incident Type"
-                    class="h-full flex flex-col"
-                    gradient="linear-gradient(to right,#EF4444,#F59E0B)">
-                    <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
-                        <div id="isortIncidentChart" class="flex-1"></div>
                     </div>
                 </x-card-chart.card-shell>
 
@@ -588,30 +577,308 @@
                     </div>
                 </x-card-chart.card-shell>
 
+                <x-card-chart.card-shell subtitle="Operation · Isort" title="Top 10 Kaizen by Incident Type"
+                    class="h-full flex flex-col"
+                    gradient="linear-gradient(to right,#EF4444,#F59E0B)">
+                    <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
+                        <div id="isortIncidentChart" class="flex-1"></div>
+                    </div>
+                </x-card-chart.card-shell>
             </div>
 
-            {{-- ── Row 3: Monthly Trend + Top 10 Problem Areas ───────────────────── --}}
-            <div class="grid grid-cols-1 gap-3 lg:grid-cols-2" style="align-items:stretch">
+            <x-card-chart.card-shell subtitle="Operation · Isort" title="Monthly Issue Trend"
+                gradient="linear-gradient(to right,#3B82F6,#10B981,#F59E0B,#EF4444)">
+                <div class="px-3 pb-3 pt-0">
+                    <div id="isortMonthlyTrendChart"></div>
+                </div>
+            </x-card-chart.card-shell>
 
-                <x-card-chart.card-shell subtitle="Operation · Isort" title="Monthly Issue Trend"
-                    class="h-full flex flex-col"
-                    gradient="linear-gradient(to right,#3B82F6,#10B981,#F59E0B,#EF4444)">
+        </div>{{-- /Isort Section --}}
+
+        {{-- ── Parking - Valet Section ─────────────────────────────────────────── --}}
+        <div id="gmSectionValet" class="mt-2 space-y-3">
+
+            <div class="flex items-center justify-between px-0.5">
+                <span
+                    class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Parking
+                    · Valet Overview</span>
+                <span id="gmValetLastUpdated"
+                    class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Last Updated: <span id="gmValetLastUpdatedVal">—</span>
+                </span>
+            </div>
+
+            <x-card-chart.insight-panel listId="gmValetInsights" />
+
+            {{-- ── KPI Strip ─────────────────────────────────────────────────────── --}}
+            {{--
+                gmValetKpiGrid is normally a static grid-cols-2/sm:3/xl:5 Tailwind grid.
+                When the Total Member card is hidden (non-AW scope), gm-valet.js adds
+                the .gm-kpi-collapsed class below, which overrides the column count so
+                the remaining 4 cards fill the row evenly instead of leaving an empty
+                gray cell where the 5th card used to be.
+            --}}
+            <style>
+                #gmValetKpiGrid.gm-kpi-collapsed {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+
+                @media (min-width: 640px) {
+                    #gmValetKpiGrid.gm-kpi-collapsed {
+                        grid-template-columns: repeat(4, minmax(0, 1fr));
+                    }
+                }
+            </style>
+            <div class="relative overflow-hidden rounded-2xl border border-slate-200 shadow-sm dark:border-slate-700/60">
+                <div class="absolute inset-x-0 top-0 z-10 h-0.75"
+                    style="background:linear-gradient(to right,#8B5CF6,#3B82F6,#10B981,#F59E0B,#EC4899)"></div>
+                <div id="gmValetKpiGrid" class="grid grid-cols-2 gap-px bg-slate-100 dark:bg-slate-700/50 sm:grid-cols-3 xl:grid-cols-5">
+
+                    {{-- Total Valet --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-50 dark:bg-violet-500/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 17h2v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-8.13a4 4 0 110 8 4 4 0 010-8zm6 3a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Total Valet</p>
+                            <p id="valetTotalValet" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white sm:text-2xl">—</p>
+                        </div>
+                    </div>
+
+                    {{-- Income Valet (Service) --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-500/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-blue-500">Income Valet</p>
+                            <p id="valetIncomeService" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-blue-600 dark:text-blue-400 sm:text-2xl">—</p>
+                            <p class="text-[10px] text-slate-400 dark:text-slate-500">excl. parking</p>
+                        </div>
+                    </div>
+
+                    {{-- Income Parkir --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-500/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4M16 17H4m0 0l4 4m-4-4l4-4" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-500">Income Parkir</p>
+                            <p id="valetIncomeParking" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-emerald-600 dark:text-emerald-400 sm:text-2xl">—</p>
+                            <p class="text-[10px] text-slate-400 dark:text-slate-500">from valet</p>
+                        </div>
+                    </div>
+
+                    {{-- Avg Duration & Turnover --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-500/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-amber-500">Avg Duration</p>
+                            <p id="valetAvgDuration" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-amber-600 dark:text-amber-400 sm:text-2xl">—</p>
+                            <p id="valetTurnover" class="text-[10px] text-slate-400 dark:text-slate-500">—/day turnover</p>
+                        </div>
+                    </div>
+
+                    {{-- Total Member — hidden by JS unless scope includes Gandaria City (AW) --}}
+                    <div id="gmValetMemberCard" class="hidden min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-pink-50 dark:bg-pink-500/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2m14-14a4 4 0 110 8 4 4 0 010-8zm4 14v-2a4 4 0 00-3-3.87" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-pink-500">Member Hotel</p>
+                            <p id="valetTotalMember" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-pink-600 dark:text-pink-400 sm:text-2xl">—</p>
+                            <p class="text-[10px] text-slate-400 dark:text-slate-500">free parking</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            {{-- ── Chart row: Peak Check-in Hours + Voucher Redemption ─────────────── --}}
+            <div class="grid grid-cols-1 gap-3 lg:grid-cols-3" style="align-items:stretch">
+
+                <x-card-chart.card-shell subtitle="Parking · Valet" title="Peak Check-in Hours"
+                    class="h-full flex flex-col lg:col-span-2"
+                    gradient="linear-gradient(to right,#8B5CF6,#3B82F6)">
                     <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
-                        <div id="isortMonthlyTrendChart" class="flex-1"></div>
+                        <div id="valetPeakHoursChart" class="flex-1"></div>
                     </div>
                 </x-card-chart.card-shell>
 
-                {{-- <x-card-chart.card-shell subtitle="Operation · Isort" title="Top 10 Problem Areas"
+                <x-card-chart.card-shell subtitle="Parking · Valet" title="Voucher Redemption"
                     class="h-full flex flex-col"
-                    gradient="linear-gradient(to right,#F59E0B,#EF4444,#8B5CF6)">
+                    gradient="linear-gradient(to right,#EC4899,#F59E0B)">
                     <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
-                        <div id="isortTopAreasChart" class="flex-1"></div>
+                        <p id="valetRedemptionRate" class="text-center text-2xl font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white">—</p>
+                        <p class="text-center text-[10px] text-slate-400 dark:text-slate-500">of valets used a voucher</p>
+                        <div id="valetRedemptionDonut" class="flex-1"></div>
                     </div>
-                </x-card-chart.card-shell> --}}
+                </x-card-chart.card-shell>
 
             </div>
 
-        </div>{{-- /Isort Section --}}
+        </div>{{-- /Parking - Valet Section --}}
+
+        {{-- ── Event Section ───────────────────────────────────────────────────── --}}
+        <div id="gmSectionEvent" class="mt-2 space-y-3">
+
+            <div class="flex items-center justify-between px-0.5">
+                <span
+                    class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Event
+                    Overview</span>
+                <span id="gmEventLastUpdated"
+                    class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Last Updated: <span id="gmEventLastUpdatedVal">—</span>
+                </span>
+            </div>
+
+            <x-card-chart.insight-panel listId="gmEventInsights" />
+
+            {{-- ── Timeline: Gantt strip, Ongoing/Upcoming/Past (Paid events only) ── --}}
+            <x-card-chart.card-shell subtitle="Event · Paid only" title="Paid Events Timeline"
+                gradient="linear-gradient(to right,#10B981,#3B82F6,#94A3B8)">
+                <x-slot:headerEnd>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div id="eventGanttCompanyFilter" class="flex flex-wrap items-center gap-1.5"></div>
+                        <div class="h-3 w-px bg-slate-200 dark:bg-slate-700"></div>
+                        <div class="flex items-center gap-3 text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+                            <span class="inline-flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Ongoing</span>
+                            <span class="inline-flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>Upcoming</span>
+                            <span class="inline-flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>Past</span>
+                        </div>
+                    </div>
+                </x-slot:headerEnd>
+                <div class="px-3 pb-3 pt-2">
+                    <div class="grid grid-cols-[150px_1fr] gap-3">
+                        <div></div>
+                        <div id="eventGanttAxis" class="relative mb-1 h-4 text-[9px] font-semibold text-slate-400 dark:text-slate-500"></div>
+                    </div>
+                    <div id="eventGanttRows" class="space-y-1.5">
+                        <p class="py-6 text-center text-xs text-slate-400">Loading…</p>
+                    </div>
+                </div>
+            </x-card-chart.card-shell>
+
+            {{-- ── KPI Strip ─────────────────────────────────────────────────────── --}}
+            <div class="relative overflow-hidden rounded-2xl border border-slate-200 shadow-sm dark:border-slate-700/60">
+                <div class="absolute inset-x-0 top-0 z-10 h-0.75"
+                    style="background:linear-gradient(to right,#6366F1,#10B981,#F59E0B,#8B5CF6)"></div>
+                <div class="grid grid-cols-2 gap-px bg-slate-100 dark:bg-slate-700/50 sm:grid-cols-4">
+
+                    {{-- Total Contract Value --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-500/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3v-6m-3 6v-9m-2 9h10a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Total Contract Value</p>
+                            <p id="eventTotalContract" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white sm:text-2xl">—</p>
+                            <p class="text-[10px] text-slate-400 dark:text-slate-500">Booked + Confirmed + Paid</p>
+                        </div>
+                    </div>
+
+                    {{-- Paid Revenue --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-500/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-500">Paid Revenue</p>
+                            <p id="eventPaidRevenue" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-emerald-600 dark:text-emerald-400 sm:text-2xl">—</p>
+                            <p class="text-[10px] text-slate-400 dark:text-slate-500">realized</p>
+                        </div>
+                    </div>
+
+                    {{-- Total Events --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-500/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-amber-500">Total Events</p>
+                            <p id="eventTotalCount" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-amber-600 dark:text-amber-400 sm:text-2xl">—</p>
+                        </div>
+                    </div>
+
+                    {{-- Avg Contract Value --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-50 dark:bg-violet-500/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 012-2h2a2 2 0 012 2v6m-9 0h14a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-violet-500">Avg Contract Value</p>
+                            <p id="eventAvgContract" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-violet-600 dark:text-violet-400 sm:text-2xl">—</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            {{-- ── Chart row: Events by Type + Revenue/Count by Status ─────────────── --}}
+            <div class="grid grid-cols-1 gap-3 lg:grid-cols-3" style="align-items:stretch">
+
+                <x-card-chart.card-shell subtitle="Event" title="Events by Type"
+                    class="h-full flex flex-col lg:col-span-2"
+                    gradient="linear-gradient(to right,#6366F1,#8B5CF6)">
+                    <div class="flex-1 overflow-x-auto px-3 pb-3 pt-0">
+                        <table class="w-full min-w-[420px] text-left text-xs">
+                            <thead>
+                                <tr class="border-b border-slate-200 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:border-slate-700/60 dark:text-slate-500">
+                                    <th class="py-2 pr-2">Event Type</th>
+                                    <th class="py-2 pr-2 text-right">Count</th>
+                                    <th class="py-2 pr-2 text-right">Total Contract</th>
+                                    <th class="py-2 text-right">Avg Contract</th>
+                                </tr>
+                            </thead>
+                            <tbody id="eventByTypeBody" class="divide-y divide-slate-100 dark:divide-slate-800">
+                                <tr><td colspan="4" class="py-6 text-center text-slate-400">Loading…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </x-card-chart.card-shell>
+
+                <x-card-chart.card-shell subtitle="Event" title="By Status"
+                    class="h-full flex flex-col"
+                    gradient="linear-gradient(to right,#10B981,#6366F1)">
+                    <x-slot:headerEnd>
+                        <div id="eventStatusChartLegend" class="flex flex-wrap items-center gap-3"></div>
+                    </x-slot:headerEnd>
+                    <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
+                        <div id="eventStatusChart" class="flex-1"></div>
+                    </div>
+                </x-card-chart.card-shell>
+
+            </div>
+
+        </div>{{-- /Event Section --}}
 
     </div>
 
@@ -625,8 +892,10 @@
             departments: "{{ route('gm.departments') }}",
             summary: "{{ route('gm.budget-summary') }}",
             byDept: "{{ route('gm.budget-by-department') }}",
+            byCompany: "{{ route('gm.budget-by-company') }}",
             byActivity: "{{ route('gm.budget-by-activity') }}",
             byMonth: "{{ route('gm.budget-by-month') }}",
+            sectionLastUpdated: "{{ route('gm.section-last-updated') }}",
             pgcardKpiSummary: "{{ route('gm.pgcard-kpi-summary') }}",
             pgcardMonthlyTrend: "{{ route('gm.pgcard-monthly-trend') }}",
             pgcardTopCustomers: "{{ route('gm.pgcard-top-customers') }}",
@@ -641,15 +910,58 @@
             isortAvailableDepts: "{{ route('gm.isort-available-depts') }}",
             isortMonthlyTrend: "{{ route('gm.isort-monthly-trend') }}",
             isortTopAreas: "{{ route('gm.isort-top-areas') }}",
+            valetKpiSummary: "{{ route('gm.valet-kpi-summary') }}",
+            valetVoucherRedemption: "{{ route('gm.valet-voucher-redemption') }}",
+            valetPeakHours: "{{ route('gm.valet-peak-hours') }}",
+            eventSummary: "{{ route('gm.event-summary') }}",
+            eventByType: "{{ route('gm.event-by-type') }}",
+            eventStatusStrip: "{{ route('gm.event-status-strip') }}",
+            eventStatusByCompany: "{{ route('gm.event-status-by-company') }}",
         };
     </script>
 
-    {{-- Load order: core → filter → [section scripts] --}}
-    <script src="{{ asset('assets/js/gm-report/gm-core.js') }}"></script>
-    <script src="{{ asset('assets/js/gm-report/gm-filter.js') }}"></script>
-    <script src="{{ asset('assets/js/gm-report/gm-budget.js') }}"></script>
-    <script src="{{ asset('assets/js/gm-report/gm-pgcard.js') }}"></script>
-    <script src="{{ asset('assets/js/gm-report/gm-isort.js') }}"></script>
+    {{-- ── Section "Last Updated" badges — fetched once, independent of filters ── --}}
+    <script>
+        (function() {
+            var valIds = {
+                budget: 'gmBudgetLastUpdatedVal',
+                pgcard: 'gmPgcardLastUpdatedVal',
+                isort: 'gmIsortLastUpdatedVal',
+                valet: 'gmValetLastUpdatedVal',
+                event: 'gmEventLastUpdatedVal'
+            };
+
+            fetch(window.gmRoutes.sectionLastUpdated)
+                .then(function(res) { return res.json(); })
+                .then(function(json) {
+                    var data = json.data || {};
+                    Object.keys(valIds).forEach(function(key) {
+                        var el = document.getElementById(valIds[key]);
+                        if (el) el.textContent = data[key] || 'Unavailable';
+                    });
+                })
+                .catch(function() {
+                    Object.keys(valIds).forEach(function(key) {
+                        var el = document.getElementById(valIds[key]);
+                        if (el) el.textContent = 'Unavailable';
+                    });
+                });
+        })();
+    </script>
+
+    {{-- Load order: core → filter → [section scripts] ──────────────────────────
+         Each src carries a filemtime-based ?v= so edits to these files bust the
+         browser cache immediately instead of waiting for a hard refresh. --}}
+    @php
+        $gmAssetVer = fn (string $rel) => file_exists(public_path($rel)) ? filemtime(public_path($rel)) : time();
+    @endphp
+    <script src="{{ asset('assets/js/gm-report/gm-core.js') }}?v={{ $gmAssetVer('assets/js/gm-report/gm-core.js') }}"></script>
+    <script src="{{ asset('assets/js/gm-report/gm-filter.js') }}?v={{ $gmAssetVer('assets/js/gm-report/gm-filter.js') }}"></script>
+    <script src="{{ asset('assets/js/gm-report/gm-budget.js') }}?v={{ $gmAssetVer('assets/js/gm-report/gm-budget.js') }}"></script>
+    <script src="{{ asset('assets/js/gm-report/gm-pgcard.js') }}?v={{ $gmAssetVer('assets/js/gm-report/gm-pgcard.js') }}"></script>
+    <script src="{{ asset('assets/js/gm-report/gm-isort.js') }}?v={{ $gmAssetVer('assets/js/gm-report/gm-isort.js') }}"></script>
+    <script src="{{ asset('assets/js/gm-report/gm-valet.js') }}?v={{ $gmAssetVer('assets/js/gm-report/gm-valet.js') }}"></script>
+    <script src="{{ asset('assets/js/gm-report/gm-event.js') }}?v={{ $gmAssetVer('assets/js/gm-report/gm-event.js') }}"></script>
 
     {{-- ── Export link updater ─────────────────────────────────────────────────
          Runs every time the filter changes so the download URL always carries
@@ -722,14 +1034,18 @@
             var sections = {
                 budget: 'gmSectionBudget',
                 pgcard: 'gmSectionPgcard',
-                isort: 'gmSectionIsort'
+                isort: 'gmSectionIsort',
+                valet: 'gmSectionValet',
+                event: 'gmSectionEvent'
             };
             var headers = {
                 budget: 'gmSectionBudgetHeader',
                 pgcard: 'gmSectionPgcardHeader',
-                isort: 'gmSectionIsortHeader'
+                isort: 'gmSectionIsortHeader',
+                valet: 'gmSectionValetHeader',
+                event: 'gmSectionEventHeader'
             };
-            var tabIds = ['gmTab_all', 'gmTab_budget', 'gmTab_pgcard', 'gmTab_isort'];
+            var tabIds = ['gmTab_all', 'gmTab_budget', 'gmTab_pgcard', 'gmTab_isort', 'gmTab_valet', 'gmTab_event'];
 
             function switchTab(key) {
                 tabIds.forEach(function(id) {
@@ -765,6 +1081,18 @@
                 saved = localStorage.getItem('gmActiveTab') || 'all';
             } catch (e) {}
             switchTab(saved);
+
+            // Plaza Blok M (PSA) has no valet service — hide the tab entirely
+            // for that scope, falling back to "All" if it was the active tab.
+            document.addEventListener('gm:filter', function(e) {
+                var valetTab = document.getElementById('gmTab_valet');
+                if (!valetTab) return;
+                var isPsa = e.detail && e.detail.cpnyId === 'PSA';
+                valetTab.classList.toggle('hidden', isPsa);
+                if (isPsa && valetTab.classList.contains('active')) {
+                    switchTab('all');
+                }
+            });
         })();
     </script>
 

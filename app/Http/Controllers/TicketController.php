@@ -2008,8 +2008,19 @@ class TicketController extends Controller
 
         $ticket = TrTicket::findOrFail($id);
 
+        $isIT = $this->isITRole();
+
+        $isRequester = $ticket->created_by === auth()->user()->username;
+
+        $canRequesterReopen =
+            $isRequester
+            && $ticket->status === 'C'
+            && $ticket->status_pekerjaan === 'COMPLETED'
+            && $ticket->completed_at
+            && now()->lte($ticket->completed_at->copy()->addDays(7));
+
         abort_unless(
-            $this->isITRole(),
+            $isIT || $canRequesterReopen,
             403
         );
 
@@ -2831,7 +2842,16 @@ class TicketController extends Controller
                     'ENVISION CHECKED / SOLVED',
                 ]),
 
-            'can_reopen' => $isIT
+            'can_reopen' => (
+                $isIT
+                || (
+                    $isRequester
+                    && $ticket->status === 'C'
+                    && $ticket->status_pekerjaan === 'COMPLETED'
+                    && $ticket->completed_at
+                    && now()->lte($ticket->completed_at->copy()->addDays(7))
+                )
+            )
                 && (
                     ($ticket->status === 'C' && $ticket->status_pekerjaan === 'COMPLETED')
                     || ($ticket->status === 'X' && $ticket->status_pekerjaan === 'CANCEL')

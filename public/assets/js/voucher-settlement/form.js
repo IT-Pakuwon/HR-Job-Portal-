@@ -192,7 +192,7 @@ const VplSettlementForm = {
         const eAttachBody = document.getElementById('e_existAttachBody');
         eAttachBody.innerHTML = '';
         (data.attachments ?? []).forEach((a) => {
-            const url = `/attachment/${a.year ?? new Date().getFullYear()}/${a.attachfile}`;
+            const url = `/settlementvp/attachment/${a.id}/view`;
             eAttachBody.insertAdjacentHTML('beforeend', `
                 <div class="flex items-center justify-between px-4 py-2" data-attach-id="${a.id}">
                     <a href="${url}" target="_blank" class="text-sm text-indigo-600 hover:underline dark:text-indigo-400">

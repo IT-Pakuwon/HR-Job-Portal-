@@ -64,9 +64,12 @@ function resetCreateTicketForm() {
 
     $('#ticketdate')
         .val(
+            window.ticketPrefillDate ||
             new Date()
                 .toLocaleDateString('en-CA')
         );
+
+    window.ticketPrefillDate = null;
 
     $('.modal-title')
         .text('Create Ticket');

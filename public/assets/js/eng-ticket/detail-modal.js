@@ -1400,6 +1400,22 @@ function getTimelineIconStyle(workflow) {
                     `
             };
 
+        case 'REVISE':
+            return {
+                icon: 'fa-solid fa-rotate-left',
+                wrap:
+                    `
+                        bg-amber-500
+
+                        text-white
+
+                        ring-amber-100
+                        dark:ring-amber-500/10
+
+                        shadow-amber-500/20
+                    `
+            };
+
         default:
             return {
                 icon: 'fa-solid fa-bolt',

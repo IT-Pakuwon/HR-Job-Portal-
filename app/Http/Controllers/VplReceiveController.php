@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Traits\HasAutonbr;
+use App\Http\Controllers\Traits\UploadsVplAttachment;
 use App\Models\Attachment;
 use App\Models\MsCategory;
 use App\Models\MsVplProduct;
@@ -12,6 +13,7 @@ use App\Models\TrApproval;
 use App\Models\TrMessage;
 use App\Models\TrxVplReceive;
 use App\Models\TrxVplReceiveDetail;
+use App\Models\SysUserRole;
 use App\Models\User;
 use App\Models\Usercpny;
 use App\Models\Userdept;
@@ -24,6 +26,7 @@ use Vinkla\Hashids\Facades\Hashids;
 class VplReceiveController extends Controller
 {
     use HasAutonbr;
+    use UploadsVplAttachment;
 
     public const DOCTYPE = 'VPR';
     public const DOCTYPE_DSC = 'Voucher Product Receive';
@@ -274,11 +277,14 @@ class VplReceiveController extends Controller
                             continue;
                         }
                         $exp = !empty($detail['expired_date']) ? $detail['expired_date'] : '1900-01-01';
+                        $productPrice = MsVplProduct::where('product_id', $detail['product_name'])->value('product_value') ?? 0;
                         TrxVplReceiveDetail::create([
                             'receive_id' => $docid,
                             'linenbr' => $line++,
                             'product_id' => $detail['product_name'],
                             'qty_receive' => $detail['qty'],
+                            'product_price' => $productPrice,
+                            'total_product_price' => $productPrice * $detail['qty'],
                             'expired_date' => $exp,
                             'whs_id' => $detail['whs_id'],
                             'status' => 'P',
@@ -365,14 +371,19 @@ class VplReceiveController extends Controller
 
                         if ($row) {
                             $row->qty_receive += $detail['qty'];
+                            $row->product_price = $row->product_price ?: (MsVplProduct::where('product_id', $detail['product_name'])->value('product_value') ?? 0);
+                            $row->total_product_price = $row->product_price * $row->qty_receive;
                             $row->updated_at = $dt->toDateTimeString();
                             $row->save();
                         } else {
+                            $productPrice = MsVplProduct::where('product_id', $detail['product_name'])->value('product_value') ?? 0;
                             TrxVplReceiveDetail::create([
                                 'receive_id' => $receive->receive_id,
                                 'linenbr' => 0,
                                 'product_id' => $detail['product_name'],
                                 'qty_receive' => $detail['qty'],
+                                'product_price' => $productPrice,
+                                'total_product_price' => $productPrice * $detail['qty'],
                                 'expired_date' => $exp,
                                 'whs_id' => $detail['whs_id'],
                                 'status' => 'P',
@@ -478,8 +489,21 @@ class VplReceiveController extends Controller
                     'P',
                     self::DOCTYPE_DSC,
                     url('/vpl/showreceivevp/'.$id),
-                    ['info' => $receive->receive_remark ?? '']
+                    ['info' => $receive->receive_remark ?? '', 'createdby' => $receive->created_user]
                 );
+            },
+            function ($refnbr, $now) use ($receive, $id) {
+                // Notify requester the document is fully approved
+                app(ApprovalController::class)->notifyRequesterOnStatus(
+                    $receive->receive_id,
+                    self::DOCTYPE_DSC,
+                    'C',
+                    $receive->user_penerima,
+                    url('/vpl/showreceivevp/'.$id),
+                    ['cpnyid' => $receive->cpnyid, 'deptname' => $receive->department]
+                );
+
+                $this->notifyRoleAccessUsers($receive, url('/vpl/showreceivevp/'.$id));
             }
         );
 
@@ -488,6 +512,40 @@ class VplReceiveController extends Controller
         }
 
         return response()->json(['success' => 'Document approved.']);
+    }
+
+    // -------------------------------------------------------
+    // Notify VPCOLLACCESS / VPLOYALTYACCESS / VPPRMTNACCESS role
+    // holders in the receive's company when it completes
+    // -------------------------------------------------------
+    private function notifyRoleAccessUsers(TrxVplReceive $receive, string $urlToDoc): void
+    {
+        $roleIds = ['VPCOLLACCESS', 'VPLOYALTYACCESS', 'VPPRMTNACCESS'];
+
+        $roleUsernames = SysUserRole::whereIn('role_id', $roleIds)
+            ->where('status', 'A')
+            ->pluck('username');
+
+        $usernames = Usercpny::where('cpny_id', $receive->cpnyid)
+            ->where('status', 'A')
+            ->whereIn('username', $roleUsernames)
+            ->pluck('username')
+            ->unique();
+
+        foreach ($usernames as $username) {
+            app(ApprovalController::class)->notifyRequesterOnStatus(
+                $receive->receive_id,
+                self::DOCTYPE_DSC,
+                'C',
+                $username,
+                $urlToDoc,
+                [
+                    'cpnyid'    => $receive->cpnyid,
+                    'deptname'  => $receive->department,
+                    'createdby' => $receive->created_user,
+                ]
+            );
+        }
     }
 
     // -------------------------------------------------------
@@ -519,7 +577,7 @@ class VplReceiveController extends Controller
                     'R',
                     $receive->user_penerima,
                     url('/vpl/showreceivevp/'.$id),
-                    ['info' => $request->message]
+                    ['info' => $request->message, 'cpnyid' => $receive->cpnyid, 'deptname' => $receive->department]
                 );
             }
         );
@@ -562,7 +620,7 @@ class VplReceiveController extends Controller
                     'D',
                     $receive->user_penerima,
                     url('/vpl/showreceivevp/'.$id),
-                    ['info' => $request->message.' (Silahkan revisi dokumen ini)']
+                    ['info' => $request->message.' (Silahkan revisi dokumen ini)', 'cpnyid' => $receive->cpnyid, 'deptname' => $receive->department]
                 );
             }
         );
@@ -805,32 +863,7 @@ class VplReceiveController extends Controller
 
     private function saveAttachments(Request $request, string $docid, int $year, $user): void
     {
-        if (!$request->hasFile('attachment')) {
-            return;
-        }
-
-        foreach ($request->file('attachment') as $file) {
-            if (!$file || !$file->isValid()) {
-                continue;
-            }
-            $rand = random_int(10000000, 99999999);
-            $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-            $attachfile = md5($rand).'-'.str_replace('%', '', $file->getClientOriginalName());
-            $folder = public_path('attachment/'.$year);
-            if (!is_dir($folder)) {
-                mkdir($folder, 0777, true);
-            }
-            $file->move($folder, $attachfile);
-
-            $attach = new Attachment();
-            $attach->docid = $docid;
-            $attach->name = $filename;
-            $attach->attachfile = $attachfile;
-            $attach->status = 'A';
-            $attach->extention = $file->getClientOriginalExtension();
-            $attach->created_user = $user->name;
-            $attach->save();
-        }
+        $this->saveVplAttachments($request, $docid, 'att-vpl/vpr-attachment', $year, $user);
     }
 
     private function saveMessage($receive, string $message, $user): void

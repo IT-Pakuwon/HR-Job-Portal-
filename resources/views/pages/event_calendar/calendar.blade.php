@@ -341,7 +341,7 @@
                                 class="h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
                                 <option value=""></option>
                                 @foreach ($locations as $l)
-                                    <option value="{{ $l->id }}">{{ $l->event_location_name }}</option>
+                                    <option value="{{ $l->id }}">{{ $l->event_location_name }}{{ optional($l->company)->cpny_name ? ' - '.$l->company->cpny_name : '' }}</option>
                                 @endforeach
                             </select>
                         </div>

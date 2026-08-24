@@ -659,13 +659,14 @@ class VplReportController extends Controller
         // its own month-end.
         $agingAsOf = Carbon::now()->lt($monthEnd) ? Carbon::now() : $monthEnd;
 
-        $batchRows = $this->batchStockRowsRedemptionBased($cpnyid, $year, $month);
+        $batchRows = $this->batchStockRows($cpnyid, $year, $month);
 
         if (empty($batchRows)) {
             return [];
         }
 
         $sources      = $this->batchSourceTypes($cpnyid);
+        $outBreakdown = $this->batchOutBreakdown($cpnyid, $monthStart, $monthEnd);
         $purposeOut   = $this->batchPurposeOut($cpnyid, $monthStart, $monthEnd);
         $agingBuckets = MsVplAging::where('status', 'A')->orderBy('order_age')->get();
 
@@ -679,9 +680,17 @@ class VplReportController extends Controller
             $nominal     = (float) $product->product_value;
             $expiredDate = $this->expiredKey($bal->expired_date) === 'NULL' ? null : $bal->expired_date;
 
-            // Usage/redemption-based split, at WHPROMOTION or WHLOYALTY — drives both the
-            // stock roll-forward's Out columns and "Voucher Used in Current Period" (value).
-            // Stock transferred but not yet redeemed still counts as Ending stock.
+            // Stock roll-forward Out columns — same WHCOLLECTION-balance convention as the
+            // Stock Voucher report: Transfer to Loyalty and Usage at Promotion. Separate from
+            // "Voucher Used in Current Period" below, which is an actual-redemption metric.
+            $out = array_fill_keys(self::USED_COLUMNS, 0.0);
+            foreach ($outBreakdown[$key] ?? [] as $bucket => $qty) {
+                $out[$bucket] += $qty;
+            }
+
+            // Actual redemption (net of returns... now gross, see batchPurposeOut()) at
+            // WHPROMOTION or WHLOYALTY — drives "Voucher Used in Current Period" (value) and
+            // is shared with the Loyalty Usage Rate report.
             $used = array_fill_keys(self::USED_COLUMNS, 0.0);
             foreach ($purposeOut[$key] ?? [] as $bucket => $qty) {
                 $used[$bucket] += $qty;
@@ -698,10 +707,10 @@ class VplReportController extends Controller
                 'nominal'        => $nominal,
                 'beginning'      => $row['beginning'],
                 'in_total'       => $row['month_in'],
-                'out_loyalty'    => $used['Loyalty'],
-                'out_promotion'  => $used['Promotion'],
-                'out_entertain'  => $used['Entertainment'],
-                'out_internal'   => $used['Internal Use'],
+                'out_loyalty'    => $out['Loyalty'],
+                'out_promotion'  => $out['Promotion'],
+                'out_entertain'  => $out['Entertainment'],
+                'out_internal'   => $out['Internal Use'],
                 'out_total'      => $row['month_out'],
                 'ending'         => $row['ending'],
                 'value'          => $row['ending'] * $nominal,
@@ -762,12 +771,13 @@ class VplReportController extends Controller
     }
 
     /**
-     * Net usage qty in the given month, per product+expiry batch and "Voucher Used"
-     * bucket — this is a redemption/consumption metric, independent of the stock
-     * roll-forward's Out Loy (which tracks the WHCOLLECTION->WHLOYALTY transfer, not
-     * whether that stock has actually been redeemed yet). Usage at WHLOYALTY (recorded
-     * by the CUSTOMERSERVICE department) always buckets as Loyalty; usage at WHPROMOTION
-     * buckets via PURPOSE_MAP.
+     * Gross usage qty in the given month, per product+expiry batch and "Voucher Used"
+     * bucket — an actual-redemption metric, independent of the stock roll-forward's Out
+     * Loy (which tracks the WHCOLLECTION->WHLOYALTY transfer itself, not whether that
+     * stock has actually been redeemed yet — see batchOutBreakdown()). Usage at
+     * WHLOYALTY (recorded by the CUSTOMERSERVICE department) always buckets as Loyalty;
+     * usage at WHPROMOTION buckets via PURPOSE_MAP. Return Usage is NOT netted out here
+     * — a return reverses stock that already left (it isn't new stock).
      *
      * @return array<string, array<string, float>>
      */
@@ -794,7 +804,7 @@ class VplReportController extends Controller
         foreach ($usages as $u) {
             $key    = $u->product_id.'|'.$this->expiredKey($u->expired_date);
             $bucket = $u->whs_id === self::WHS_LOYALTY ? 'Loyalty' : (self::PURPOSE_MAP[$u->purpose_id] ?? 'Internal Use');
-            $qty    = (float) $u->qty_usage - (float) $u->qty_return_usage;
+            $qty    = (float) $u->qty_usage;
 
             $out[$key][$bucket] = ($out[$key][$bucket] ?? 0) + $qty;
         }
@@ -803,121 +813,62 @@ class VplReportController extends Controller
     }
 
     /**
-     * Like batchStockRows(), but Ending tracks total un-redeemed stock across
-     * WHCOLLECTION+WHLOYALTY+WHPROMOTION instead of just WHCOLLECTION's own balance —
-     * a WHCOLLECTION->WHLOYALTY transfer doesn't reduce Ending until it's actually
-     * redeemed (usage recorded) at WHLOYALTY. Used only by the Stock Summary report;
-     * Stock Voucher report keeps the WHCOLLECTION-balance convention via batchStockRows().
+     * Stock roll-forward Out breakdown for the Stock & Aging Summary report, using the
+     * exact same WHCOLLECTION-balance convention as the Stock Voucher report (report 1):
+     * a Transfer to WHLOYALTY counts as Out the moment it's transferred (bucketed as
+     * "Loyalty"), regardless of whether it's actually been redeemed there yet; Usage at
+     * WHPROMOTION counts as Out, bucketed via PURPOSE_MAP. A WHCOLLECTION<->WHPROMOTION
+     * transfer is out of scope here too (mirrors outMovementRows()/ledgerMonthlyInOut()),
+     * so Promotion's Out is usage only. Gross qty_usage — Return Usage is not netted out;
+     * it's surfaced as In instead (see ledgerMonthlyInOut()).
      *
-     * @return array<string, array{product: MsVplProduct, bal: MsVplProductBal, category_label: string, beginning: float, month_in: float, month_out: float, ending: float}>
+     * @return array<string, array<string, float>>
      */
-    private function batchStockRowsRedemptionBased(string $cpnyid, int $year, int $month): array
+    private function batchOutBreakdown(string $cpnyid, Carbon $monthStart, Carbon $monthEnd): array
     {
-        $balances = MsVplProductBal::where('cpnyid', $cpnyid)
-            ->where('year', $year)
-            ->where('whs_id', self::WHS_COLLECTION)
+        $out = [];
+
+        $transfers = TrxVplTransferDetail::query()
+            ->join('tr_vpl_transfer', 'tr_vpl_transfer.transfer_id', '=', 'tr_vpl_transfer_detail.transfer_id')
+            ->where('tr_vpl_transfer.cpnyid', $cpnyid)
+            ->where('tr_vpl_transfer.status', 'C')
+            ->where('tr_vpl_transfer.transfertype', 'Transfer')
+            ->where('tr_vpl_transfer_detail.from_whs_id', self::WHS_COLLECTION)
+            ->where('tr_vpl_transfer_detail.to_whs_id', self::WHS_LOYALTY)
+            ->whereBetween('tr_vpl_transfer.transfer_date', [$monthStart, $monthEnd])
+            ->select([
+                'tr_vpl_transfer_detail.product_id',
+                'tr_vpl_transfer_detail.expired_date',
+                'tr_vpl_transfer_detail.qty_transfer',
+            ])
             ->get();
 
-        if ($balances->isEmpty()) {
-            return [];
+        foreach ($transfers as $t) {
+            $key = $t->product_id.'|'.$this->expiredKey($t->expired_date);
+            $out[$key]['Loyalty'] = ($out[$key]['Loyalty'] ?? 0) + abs((float) $t->qty_transfer);
         }
-
-        $products = MsVplProduct::where('cpnyid', $cpnyid)
-            ->get()
-            ->keyBy('product_id');
-
-        [$monthlyIn, $monthlyOut] = $this->redemptionMonthlyInOut($cpnyid, $year);
-
-        $rows = [];
-
-        foreach ($balances as $bal) {
-            $key = $bal->product_id.'|'.$this->expiredKey($bal->expired_date);
-
-            $product = $products->get($bal->product_id);
-
-            if (!$product) {
-                continue;
-            }
-
-            $in  = $monthlyIn[$key] ?? [];
-            $out = $monthlyOut[$key] ?? [];
-
-            $beginning = (float) $bal->begqty;
-
-            for ($m = 1; $m < $month; $m++) {
-                $beginning += ($in[$m] ?? 0) - ($out[$m] ?? 0);
-            }
-
-            $monthIn  = $in[$month] ?? 0;
-            $monthOut = $out[$month] ?? 0;
-
-            $rows[$key] = [
-                'product'        => $product,
-                'bal'            => $bal,
-                'category_label' => $product->product_category === 'F&B' ? 'F&B' : 'NON F&B',
-                'beginning'      => $beginning,
-                'month_in'       => $monthIn,
-                'month_out'      => $monthOut,
-                'ending'         => $beginning + $monthIn - $monthOut,
-            ];
-        }
-
-        return $rows;
-    }
-
-    /**
-     * In = Receive/Transfer-In landing at WHCOLLECTION (same as report 1). Out = actual
-     * usage/return recorded at WHPROMOTION or WHLOYALTY (redemption), for every month of
-     * the year — mirrors batchPurposeOut() but year-wide, so Beginning's cumulative math
-     * stays consistent with the redemption-based Ending.
-     *
-     * @return array{0: array<string, array<int, float>>, 1: array<string, array<int, float>>}
-     */
-    private function redemptionMonthlyInOut(string $cpnyid, int $year): array
-    {
-        $monthlyIn = [];
-
-        $receives = DB::connection('pgsql5')->table('tr_vpl_ledger')
-            ->where('cpnyid', $cpnyid)
-            ->where('perpost', 'like', $year.'%')
-            ->where('status', 'A')
-            ->where('whs_id', self::WHS_COLLECTION)
-            ->whereIn('transaction_source', ['Receive', 'Transfer In'])
-            ->select('product_id', 'expired_date', 'perpost', 'qty')
-            ->get();
-
-        foreach ($receives as $row) {
-            $key   = $row->product_id.'|'.$this->expiredKey($row->expired_date);
-            $month = (int) substr((string) $row->perpost, 4, 2);
-            $monthlyIn[$key][$month] = ($monthlyIn[$key][$month] ?? 0) + (float) $row->qty;
-        }
-
-        $monthlyOut = [];
 
         $usages = TrxVplUsageDetail::query()
             ->join('tr_vpl_usage', 'tr_vpl_usage.usage_id', '=', 'tr_vpl_usage_detail.usage_id')
             ->where('tr_vpl_usage.cpnyid', $cpnyid)
             ->where('tr_vpl_usage.status', 'C')
-            ->whereIn('tr_vpl_usage_detail.whs_id', [self::WHS_PROMOTION, self::WHS_LOYALTY])
-            ->whereYear('tr_vpl_usage.usage_date', $year)
+            ->where('tr_vpl_usage_detail.whs_id', self::WHS_PROMOTION)
+            ->whereBetween('tr_vpl_usage.usage_date', [$monthStart, $monthEnd])
             ->select([
                 'tr_vpl_usage_detail.product_id',
                 'tr_vpl_usage_detail.expired_date',
+                'tr_vpl_usage_detail.purpose_id',
                 'tr_vpl_usage_detail.qty_usage',
-                'tr_vpl_usage_detail.qty_return_usage',
-                'tr_vpl_usage.usage_date',
             ])
             ->get();
 
         foreach ($usages as $u) {
-            $key   = $u->product_id.'|'.$this->expiredKey($u->expired_date);
-            $month = Carbon::parse($u->usage_date)->month;
-            $qty   = (float) $u->qty_usage - (float) $u->qty_return_usage;
-
-            $monthlyOut[$key][$month] = ($monthlyOut[$key][$month] ?? 0) + $qty;
+            $key    = $u->product_id.'|'.$this->expiredKey($u->expired_date);
+            $bucket = self::PURPOSE_MAP[$u->purpose_id] ?? 'Internal Use';
+            $out[$key][$bucket] = ($out[$key][$bucket] ?? 0) + (float) $u->qty_usage;
         }
 
-        return [$monthlyIn, $monthlyOut];
+        return $out;
     }
 
     /** Bucket a batch's expiry against ms_vpl_aging ranges, measured in days from the period's month-end. */
@@ -1188,15 +1139,32 @@ class VplReportController extends Controller
     /**
      * @return array{0: array<string, array<int, float>>, 1: array<string, array<int, float>>}
      */
+    /**
+     * A "Transfer In" ledger row at WHCOLLECTION only counts as Voucher stock coming back
+     * (Return Transfer) when it was actually sourced from WHLOYALTY — the ledger row itself
+     * doesn't carry the source warehouse, so this joins back to the transfer line that
+     * produced it (matched by refnbr=transfer_id + linenbr) to read from_whs_id. A
+     * Collection<->Promotion transfer is a different, out-of-scope movement type for this
+     * report and is intentionally left uncounted on both the in and out side. Return Usage
+     * at WHPROMOTION is added to In rather than subtracted from Out — it isn't new stock,
+     * it's a prior Usage reversing — so it's surfaced as its own line instead of quietly
+     * shrinking the Out total. This split doesn't change Beginning/Ending math (still
+     * In-Out either way); it only changes how the total decomposes for display.
+     */
     private function ledgerMonthlyInOut(string $cpnyid, int $year): array
     {
-        $rows = DB::connection('pgsql5')->table('tr_vpl_ledger')
-            ->where('cpnyid', $cpnyid)
-            ->where('perpost', 'like', $year.'%')
-            ->where('status', 'A')
-            ->whereIn('whs_id', [self::WHS_COLLECTION, self::WHS_LOYALTY, self::WHS_PROMOTION])
-            ->whereIn('transaction_source', ['Receive', 'Transfer In', 'Usage', 'Return'])
-            ->select('product_id', 'expired_date', 'whs_id', 'transaction_source', 'perpost', 'qty')
+        $rows = DB::connection('pgsql5')->table('tr_vpl_ledger as l')
+            ->leftJoin('tr_vpl_transfer_detail as td', function ($join) {
+                $join->on('td.transfer_id', '=', 'l.refnbr')
+                    ->on('td.linenbr', '=', 'l.linenbr')
+                    ->where('l.transaction_source', '=', 'Transfer In');
+            })
+            ->where('l.cpnyid', $cpnyid)
+            ->where('l.perpost', 'like', $year.'%')
+            ->where('l.status', 'A')
+            ->whereIn('l.whs_id', [self::WHS_COLLECTION, self::WHS_LOYALTY, self::WHS_PROMOTION])
+            ->whereIn('l.transaction_source', ['Receive', 'Transfer In', 'Usage', 'Return'])
+            ->select('l.product_id', 'l.expired_date', 'l.whs_id', 'l.transaction_source', 'l.perpost', 'l.qty', 'td.from_whs_id')
             ->get();
 
         $monthlyIn  = [];
@@ -1207,12 +1175,16 @@ class VplReportController extends Controller
             $month = (int) substr((string) $row->perpost, 4, 2);
             $qty   = (float) $row->qty;
 
-            if ($row->whs_id === self::WHS_COLLECTION && in_array($row->transaction_source, ['Receive', 'Transfer In'], true)) {
+            if ($row->whs_id === self::WHS_COLLECTION && $row->transaction_source === 'Receive') {
+                $monthlyIn[$key][$month] = ($monthlyIn[$key][$month] ?? 0) + $qty;
+            } elseif ($row->whs_id === self::WHS_COLLECTION && $row->transaction_source === 'Transfer In' && $row->from_whs_id === self::WHS_LOYALTY) {
                 $monthlyIn[$key][$month] = ($monthlyIn[$key][$month] ?? 0) + $qty;
             } elseif ($row->whs_id === self::WHS_LOYALTY && $row->transaction_source === 'Transfer In') {
                 $monthlyOut[$key][$month] = ($monthlyOut[$key][$month] ?? 0) + $qty;
-            } elseif ($row->whs_id === self::WHS_PROMOTION && in_array($row->transaction_source, ['Usage', 'Return'], true)) {
+            } elseif ($row->whs_id === self::WHS_PROMOTION && $row->transaction_source === 'Usage') {
                 $monthlyOut[$key][$month] = ($monthlyOut[$key][$month] ?? 0) - $qty;
+            } elseif ($row->whs_id === self::WHS_PROMOTION && $row->transaction_source === 'Return') {
+                $monthlyIn[$key][$month] = ($monthlyIn[$key][$month] ?? 0) + $qty;
             }
         }
 
@@ -1253,6 +1225,7 @@ class VplReportController extends Controller
                 'untuk_pembayaran'  => $r->untuk_pembayaran,
                 'diambil_oleh'      => null,
                 'keperluan'         => null,
+                'keterangan'        => null,
             ];
         }
 
@@ -1260,6 +1233,8 @@ class VplReportController extends Controller
             ->join('tr_vpl_transfer', 'tr_vpl_transfer.transfer_id', '=', 'tr_vpl_transfer_detail.transfer_id')
             ->where('tr_vpl_transfer.cpnyid', $cpnyid)
             ->where('tr_vpl_transfer.status', 'C')
+            ->where('tr_vpl_transfer.transfertype', 'ReturnTf')
+            ->where('tr_vpl_transfer_detail.from_whs_id', self::WHS_LOYALTY)
             ->where('tr_vpl_transfer_detail.to_whs_id', self::WHS_COLLECTION)
             ->whereBetween('tr_vpl_transfer.transfer_date', [$monthStart, $monthEnd])
             ->select([
@@ -1269,6 +1244,7 @@ class VplReportController extends Controller
                 'tr_vpl_transfer.transfer_date as doc_date',
                 'tr_vpl_transfer.transfer_id as doc_no',
                 'tr_vpl_transfer.department as diterima_dari',
+                'tr_vpl_transfer.created_user as diambil_oleh',
             ])
             ->get();
 
@@ -1282,8 +1258,9 @@ class VplReportController extends Controller
                 'qty'               => abs((float) $r->qty),
                 'diterima_dari'     => $r->diterima_dari,
                 'untuk_pembayaran'  => null,
-                'diambil_oleh'      => null,
-                'keperluan'         => null,
+                'diambil_oleh'      => $r->diambil_oleh,
+                'keperluan'         => $r->diterima_dari,
+                'keterangan'        => 'Retur ke Collection',
             ];
         }
 
@@ -1299,6 +1276,7 @@ class VplReportController extends Controller
             ->join('tr_vpl_transfer', 'tr_vpl_transfer.transfer_id', '=', 'tr_vpl_transfer_detail.transfer_id')
             ->where('tr_vpl_transfer.cpnyid', $cpnyid)
             ->where('tr_vpl_transfer.status', 'C')
+            ->where('tr_vpl_transfer.transfertype', 'Transfer')
             ->where('tr_vpl_transfer_detail.from_whs_id', self::WHS_COLLECTION)
             ->where('tr_vpl_transfer_detail.to_whs_id', self::WHS_LOYALTY)
             ->whereBetween('tr_vpl_transfer.transfer_date', [$monthStart, $monthEnd])
@@ -1325,6 +1303,7 @@ class VplReportController extends Controller
                 'untuk_pembayaran'  => null,
                 'diambil_oleh'      => $t->diambil_oleh,
                 'keperluan'         => $t->keperluan,
+                'keterangan'        => null,
             ];
         }
 
@@ -1351,15 +1330,16 @@ class VplReportController extends Controller
             $key = $u->product_id.'|'.$this->expiredKey($u->expired_date);
             $isReturn = $u->usagetype === 'Return';
             $rows[$key][] = [
-                'direction'         => 'out',
+                'direction'         => $isReturn ? 'in' : 'out',
                 'doc_label'         => $isReturn ? 'Return' : 'Usage',
                 'doc_no'            => $u->doc_no,
                 'date'              => Carbon::parse($u->doc_date),
-                'qty'               => $isReturn ? -abs((float) $u->qty_return_usage) : abs((float) $u->qty_usage),
+                'qty'               => $isReturn ? abs((float) $u->qty_return_usage) : abs((float) $u->qty_usage),
                 'diterima_dari'     => null,
                 'untuk_pembayaran'  => null,
                 'diambil_oleh'      => $u->diambil_oleh,
                 'keperluan'         => $u->keperluan,
+                'keterangan'        => $isReturn ? 'Retur ke Collection' : null,
             ];
         }
 

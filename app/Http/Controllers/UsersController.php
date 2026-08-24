@@ -40,6 +40,32 @@ class UsersController extends Controller
 
         $company = MsCompany::select(['cpny_id', 'cpny_name', 'group_cpny_id'])->where('status', 'A')->get();
         $department = MsDepartment::select(['department_id', 'department_name'])->where('status', 'A')->get();
+
+        // Scoped lists for the Filter Company / Filter Department dropdowns only
+        // (the Access Scope selects inside the Add/Edit modal keep the full, unscoped lists above).
+        $filterGroupCpnyId = $this->isSbyContext() ? 'SBY' : 'JKT';
+
+        $filterCompanies = MsCompany::select(['cpny_id', 'cpny_name'])
+            ->where('status', 'A')
+            ->where('group_cpny_id', $filterGroupCpnyId)
+            ->orderBy('cpny_id')
+            ->get();
+
+        $filterDepartmentIds = User::where('group_cpny_id', $filterGroupCpnyId)
+            ->whereNotNull('department_id')
+            ->where('department_id', '!=', '')
+            ->pluck('department_id')
+            ->flatMap(fn ($csv) => explode(',', $csv))
+            ->map(fn ($id) => trim($id))
+            ->filter()
+            ->unique();
+
+        $filterDepartments = MsDepartment::select(['department_id', 'department_name'])
+            ->where('status', 'A')
+            ->whereIn('department_id', $filterDepartmentIds)
+            ->orderBy('department_id')
+            ->get();
+
         // $businessUnits = BusinessUnit::select('business_unit_id')->where('status', 'A')->get();
         $businessUnits = BusinessUnit::select(['business_unit_id', 'business_unit_name'])
             ->where('status', 'A')
@@ -71,6 +97,8 @@ class UsersController extends Controller
             compact(
                 'company',
                 'department',
+                'filterCompanies',
+                'filterDepartments',
                 'businessUnits',
                 'divisions',
                 'roles',

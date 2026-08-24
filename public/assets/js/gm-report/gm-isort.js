@@ -23,6 +23,24 @@
         return Math.max(260, n * 42 + (extra || 40));
     }
 
+    // Kaizen by Type, Department, and Incident Type sit in one row — this
+    // matches their actual chart pixel height (not just the cell background)
+    // so none looks arbitrarily shorter than the others. Whichever chart's
+    // data arrives last brings the ones already on screen back into sync.
+    var rowHeights = { kaizenType: 0, dept: 0, incident: 0 };
+    function syncRowHeight(key, naturalHeight) {
+        rowHeights[key] = naturalHeight;
+        var matched = Math.max(rowHeights.kaizenType, rowHeights.dept, rowHeights.incident);
+
+        Object.keys(rowHeights).forEach(function (k) {
+            if (k !== key && charts[k] && rowHeights[k]) {
+                try { charts[k].updateOptions({ chart: { height: matched } }, false, false); } catch (e) {}
+            }
+        });
+
+        return matched;
+    }
+
     // Site → display color (consistent across all 3 charts)
     var SITE_COLORS = {
         'GC': '#8B5CF6', 'KK': '#3B82F6', 'PBM': '#10B981', 'PMB': '#F59E0B',
@@ -110,6 +128,11 @@
     }
 
     // ── Stacked bar chart (per-site breakdown) ────────────────────────────────
+    // Company legend now lives once, above the whole chart grid (see
+    // renderSharedCompanyLegend) instead of on every individual chart, so
+    // legend stays off here. A total-value label sits at the end of each bar
+    // via ApexCharts' stackedSeriesTotals — hover/tooltip behavior is
+    // untouched below.
     function buildStackedOpts(categories, allSites, data, labelKey, tooltipFn) {
         var dark    = utils.isDark();
         var series  = allSites.map(function (site, si) {
@@ -118,7 +141,8 @@
                 data: data.map(function (r) { return (r.by_site && r.by_site[site]) || 0; }),
             };
         });
-        var colors = allSites.map(function (site, si) { return siteColor(site, si); });
+        var colors  = allSites.map(function (site, si) { return siteColor(site, si); });
+        var maxTotal = Math.max.apply(null, data.map(function (r) { return r.total || 0; }).concat([1]));
 
         return {
             series: series,
@@ -131,9 +155,21 @@
             },
             plotOptions: { bar: { horizontal: true, borderRadius: 0, barHeight: '50%' } },
             colors: colors,
-            dataLabels: { enabled: false },
+            dataLabels: {
+                enabled: true,
+                enabledOnSeries: [series.length - 1],
+                formatter: function (val, opts) {
+                    return Number(opts.w.globals.stackedSeriesTotals[opts.dataPointIndex]).toLocaleString('id-ID');
+                },
+                offsetX: 6,
+                textAnchor: 'start',
+                style: { fontSize: '10.5px', fontWeight: 800, colors: [dark ? '#E2E8F0' : '#0F172A'] },
+                background: { enabled: false },
+                dropShadow: { enabled: false },
+            },
             xaxis: {
                 categories: categories,
+                max: Math.ceil(maxTotal * 1.18),
                 labels: { style: { fontSize: '11px' } },
                 axisBorder: { show: false }, axisTicks: { show: false },
             },
@@ -142,12 +178,7 @@
                 borderColor: dark ? '#334155' : '#E2E8F0',
                 xaxis: { lines: { show: true } }, yaxis: { lines: { show: false } },
             },
-            legend: {
-                show: true, position: 'top', horizontalAlign: 'right',
-                fontSize: '11px', fontWeight: 600,
-                markers: { radius: 4, size: 7 },
-                itemMargin: { horizontal: 8, vertical: 0 },
-            },
+            legend: { show: false },
             tooltip: tooltipFn
                 ? { custom: tooltipFn, fixed: { enabled: true, position: 'topRight', offsetX: -10, offsetY: 10 } }
                 : {
@@ -171,11 +202,25 @@
         return chart;
     }
 
+    // ── Shared company legend — rendered once above the whole chart grid
+    //    instead of on every individual chart (Kaizen by Type happens to be
+    //    the most general dimension, so it drives which companies show up). ──
+    function renderSharedCompanyLegend(stacked, allSites) {
+        var el = document.getElementById('isortChartLegend');
+        if (!el) return;
+        if (!stacked || !allSites || allSites.length <= 1) { el.innerHTML = ''; return; }
+
+        el.innerHTML = allSites.map(function (site, i) {
+            return '<span class="inline-flex items-center gap-1.5"><span class="h-2 w-2 rounded-sm" style="background:' + siteColor(site, i) + '"></span>' + utils.escHtml(site) + '</span>';
+        }).join('');
+    }
+
     // ── Kaizen by Type chart ──────────────────────────────────────────────────
     function renderKaizenTypeChart(res) {
         var data     = (res && res.data)      || (Array.isArray(res) ? res : []);
         var stacked  = res && res.stacked;
         var allSites = (res && res.all_sites) || [];
+        renderSharedCompanyLegend(stacked, allSites);
         var el = document.getElementById('isortKaizenTypeChart');
         if (!el) return;
         if (!data.length) { el.innerHTML = '<p class="py-16 text-center text-xs text-slate-400">No data</p>'; return; }
@@ -190,6 +235,7 @@
             var vals = data.map(function (r) { return r.total; });
             opts = buildBarOpts(cats, vals, null, 'kaizen');
         }
+        opts.chart.height = syncRowHeight('kaizenType', opts.chart.height);
         charts.kaizenType = createResponsiveChart(el, opts);
     }
 
@@ -213,6 +259,7 @@
             var colors = ['#EF4444','#F59E0B','#10B981','#3B82F6','#8B5CF6','#EC4899','#06B6D4','#84CC16'];
             opts = buildBarOpts(cats, vals, colors, 'case(s)');
         }
+        opts.chart.height = syncRowHeight('incident', opts.chart.height);
         charts.incident = createResponsiveChart(el, opts);
     }
 
@@ -354,44 +401,116 @@
             };  // end single-bar opts
         }  // end else
 
+        opts.chart.height = syncRowHeight('dept', opts.chart.height);
         if (charts.dept) { charts.dept.destroy(); charts.dept = null; }
         charts.dept = createResponsiveChart(el, opts);
     }
 
-    // ── KPI summary cards ─────────────────────────────────────────────────────
-    function renderSummary(d) {
-        utils.setText('isortTotalCase',    d.total_case    != null ? Number(d.total_case).toLocaleString('id-ID')    : '—');
-        utils.setText('isortTotalOpen',    d.total_open    != null ? Number(d.total_open).toLocaleString('id-ID')    : '—');
-        utils.setText('isortTotalClosed',  d.total_closed  != null ? Number(d.total_closed).toLocaleString('id-ID')  : '—');
-        utils.setText('isortTotalOverdue', d.total_overdue != null ? Number(d.total_overdue).toLocaleString('id-ID') : '—');
+    // ── Summary — one unified table (Total row, plus per-company rows only
+    //    when "All Companies" is selected) instead of a separate KPI strip. ──
+    function fmtAvgRes(hrs) {
+        return hrs > 0 ? hrs.toFixed(1) + 'h' : '—';
+    }
 
-        // Avg Resolution Time
-        var solvedHours = parseFloat(d.solved_hours)      || 0;
-        var solvedCount = parseInt(d.solved_case_count, 10) || 0;
-        if (solvedCount > 0) {
-            var avgHrs = solvedHours / solvedCount;
-            var val, unit;
-            if (avgHrs < 1) {
-                val  = Math.round(avgHrs * 60).toString();
-                unit = 'min to close';
-            } else if (avgHrs < 48) {
-                val  = avgHrs.toFixed(1);
-                unit = 'hrs to close';
-            } else {
-                val  = (avgHrs / 24).toFixed(1);
-                unit = 'days to close';
+    // Shared row renderer — isTotal controls the bold/tinted "Total" styling;
+    // company rows use their site color dot instead.
+    function summaryRowHtml(label, total, open, closed, overdue, avgHrs, closureRate, isTotal, dotColor) {
+        // Flag closure rates under 90% in red instead of the default cyan.
+        var closureClr = closureRate < 90 ? '#EF4444' : '#06B6D4';
+        var rowCls = isTotal ? 'bg-slate-50 dark:bg-slate-800/60' : '';
+        var leadCls = isTotal
+            ? 'text-[11px] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400'
+            : 'font-semibold text-slate-700 dark:text-slate-200';
+        var leadInner = isTotal
+            ? utils.escHtml(label)
+            : '<span class="mr-1.5 inline-block h-2 w-2 rounded-full" style="background:' + dotColor + '"></span>' + utils.escHtml(label);
+
+        return '<tr class="' + rowCls + '">'
+            + '<td class="py-2.5 pl-4 pr-2 ' + leadCls + '">' + leadInner + '</td>'
+            + '<td class="py-2.5 pr-2 text-right tabular-nums font-extrabold text-slate-900 dark:text-white">' + Number(total).toLocaleString('id-ID') + '</td>'
+            + '<td class="py-2.5 pr-2 text-right tabular-nums font-semibold text-amber-600 dark:text-amber-400">' + Number(open).toLocaleString('id-ID') + '</td>'
+            + '<td class="py-2.5 pr-2 text-right tabular-nums font-semibold text-emerald-600 dark:text-emerald-400">' + Number(closed).toLocaleString('id-ID') + '</td>'
+            + '<td class="py-2.5 pr-2 text-right tabular-nums font-semibold text-red-600 dark:text-red-400">' + Number(overdue).toLocaleString('id-ID') + '</td>'
+            + '<td class="py-2.5 pr-2 text-right tabular-nums text-slate-600 dark:text-slate-300">' + fmtAvgRes(avgHrs) + '</td>'
+            + '<td class="py-2.5 pr-4">'
+            +   '<div class="flex items-center justify-end gap-2">'
+            +     '<div class="h-1.5 w-14 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700"><div class="h-full rounded-full" style="width:' + closureRate + '%;background:' + closureClr + '"></div></div>'
+            +     '<span class="w-8 shrink-0 text-right tabular-nums font-extrabold" style="color:' + closureClr + '">' + closureRate + '%</span>'
+            +   '</div>'
+            + '</td>'
+            + '</tr>';
+    }
+
+    function renderSummary(d) {
+        var body = document.getElementById('isortSummaryBody');
+        if (!body) return;
+
+        var totalCase    = parseInt(d.total_case, 10)    || 0;
+        var totalOpen    = parseInt(d.total_open, 10)    || 0;
+        var totalClosed  = parseInt(d.total_closed, 10)  || 0;
+        var totalOverdue = parseInt(d.total_overdue, 10) || 0;
+        var solvedHours  = parseFloat(d.solved_hours)      || 0;
+        var solvedCount  = parseInt(d.solved_case_count, 10) || 0;
+        var avgHrs       = solvedCount > 0 ? (solvedHours / solvedCount) : 0;
+        var closureRate  = totalCase > 0 ? Math.round((totalClosed / totalCase) * 100) : 0;
+
+        var rows = [summaryRowHtml('Total', totalCase, totalOpen, totalClosed, totalOverdue, avgHrs, closureRate, true)];
+
+        // Per-company rows only show up when "All Companies" is selected —
+        // isortSummary's by_site comes back empty once a specific company is
+        // filtered, so the Total row above (which already equals that one
+        // company's numbers at that point) is all that renders.
+        var bySite = d.by_site || [];
+        bySite.forEach(function (s, i) {
+            rows.push(summaryRowHtml(s.site, s.total_case, s.total_open, s.total_closed, s.total_overdue, s.avg_resolution_hours, s.closure_rate, false, siteColor(s.site, i)));
+        });
+
+        body.innerHTML = rows.join('');
+
+        computeIsortInsights(bySite, totalCase, totalOverdue, avgHrs, closureRate);
+    }
+
+    // ── GM Insight ─────────────────────────────────────────────────────────────
+    function computeIsortInsights(bySite, totalCase, totalOverdue, avgHrs, closureRate) {
+        var gm = [];
+
+        if (totalCase > 0) {
+            var overdueRate = (totalOverdue / totalCase) * 100;
+            if (overdueRate >= 15) {
+                gm.push({ type: 'critical', text: '<b>' + overdueRate.toFixed(0) + '%</b> of all issues (' + Number(totalOverdue).toLocaleString('id-ID') + ' of ' + Number(totalCase).toLocaleString('id-ID') + ') are overdue — significantly above a healthy level.' });
+            } else if (overdueRate >= 8) {
+                gm.push({ type: 'warning', text: '<b>' + overdueRate.toFixed(0) + '%</b> of issues are overdue (' + Number(totalOverdue).toLocaleString('id-ID') + ' cases) — worth monitoring.' });
             }
-            utils.setText('isortAvgResolution',     val);
-            utils.setText('isortAvgResolutionUnit', unit);
-        } else {
-            utils.setText('isortAvgResolution',     '—');
-            utils.setText('isortAvgResolutionUnit', 'hrs to close');
         }
 
-        // Closure Rate
-        var total  = parseInt(d.total_case,   10) || 0;
-        var closed = parseInt(d.total_closed, 10) || 0;
-        utils.setText('isortClosureRate', total > 0 ? Math.round((closed / total) * 100) + '%' : '—');
+        if (closureRate >= 95) {
+            gm.push({ type: 'positive', text: 'Overall closure rate is strong at <b>' + closureRate + '%</b>.' });
+        } else if (closureRate < 80 && totalCase > 0) {
+            gm.push({ type: 'warning', text: 'Overall closure rate is <b>' + closureRate + '%</b>, below a healthy 90%+ benchmark.' });
+        }
+
+        if (bySite.length > 1) {
+            var byClosure = bySite.slice().sort(function (a, b) { return b.closure_rate - a.closure_rate; });
+            var best = byClosure[0], worst = byClosure[byClosure.length - 1];
+            if (worst && worst.closure_rate < 90) {
+                gm.push({ type: 'critical', text: '<b>' + utils.escHtml(worst.site) + '</b> has the lowest closure rate at <b>' + worst.closure_rate + '%</b> — the only company below a 90% benchmark, needs attention.' });
+            }
+            if (best && best.site !== (worst && worst.site)) {
+                gm.push({ type: 'positive', text: '<b>' + utils.escHtml(best.site) + '</b> leads all companies with a <b>' + best.closure_rate + '%</b> closure rate.' });
+            }
+
+            var byOverdue = bySite.slice().sort(function (a, b) { return b.total_overdue - a.total_overdue; })[0];
+            if (byOverdue && byOverdue.total_overdue > 0 && totalOverdue > 0) {
+                var shareOfOverdue = (byOverdue.total_overdue / totalOverdue * 100).toFixed(0);
+                gm.push({ type: 'info', text: '<b>' + utils.escHtml(byOverdue.site) + '</b> accounts for the most overdue issues (' + Number(byOverdue.total_overdue).toLocaleString('id-ID') + ', ' + shareOfOverdue + '% of all overdue cases).' });
+            }
+        }
+
+        if (avgHrs > 0) {
+            gm.push({ type: 'info', text: 'Average resolution time is <b>' + avgHrs.toFixed(1) + 'h</b> across closed issues.' });
+        }
+
+        utils.renderInsights('gmIsortInsights', gm);
     }
 
     // ── Monthly Trend chart ───────────────────────────────────────────────────
@@ -460,8 +579,8 @@
     function loadSummary() {
         if (xhrSummary) xhrSummary.abort();
         xhrSummary = new AbortController();
-        ['isortTotalCase','isortTotalOpen','isortTotalClosed','isortTotalOverdue']
-            .forEach(function (id) { utils.setText(id, '…'); });
+        var body = document.getElementById('isortSummaryBody');
+        if (body) body.innerHTML = '<tr><td colspan="7" class="py-6 text-center text-slate-400">Loading…</td></tr>';
         fetch(routes.isortSummary + utils.buildParams(), {
             headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
             signal: xhrSummary.signal,
@@ -567,6 +686,9 @@
     }
 
     function loadAll() {
+        // Reset so a stale height from the previous filter scope doesn't
+        // force this reload's (possibly shorter) charts to stay tall.
+        rowHeights = { kaizenType: 0, dept: 0, incident: 0 };
         loadSummary();
         loadKaizenByType();
         loadIncidents();

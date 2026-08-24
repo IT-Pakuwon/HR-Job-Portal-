@@ -85,7 +85,9 @@ function rejectTicket(eid) {
 
         icon: 'warning',
 
-        title: 'Reject Ticket Approval',
+        title: 'Reject Ticket (Final)',
+
+        html: 'This will <strong>permanently reject</strong> the ticket — the PIC will no longer be able to process it.',
 
         input: 'textarea',
 
@@ -130,7 +132,95 @@ function rejectTicket(eid) {
 
                 hideLoading();
 
-                showSuccess(res.message || 'Ticket approval rejected.');
+                showSuccess(res.message || 'Ticket rejected.');
+
+                if (typeof loadTicketDetail === 'function') {
+                    const currentDetailEid = $('#comment_ticket_id').val();
+                    if (currentDetailEid) loadTicketDetail(currentDetailEid);
+                }
+
+                if ($.fn.DataTable && $('#ticketTable').length) {
+                    $('#ticketTable').DataTable().ajax.reload(null, false);
+                }
+
+                refreshTicketCalendar();
+
+                if (typeof EngTicketApprovalPanel !== 'undefined') {
+                    EngTicketApprovalPanel.refresh();
+                }
+
+            },
+
+            error(xhr) {
+
+                hideLoading();
+
+                handleAjaxError(xhr);
+
+            },
+
+        });
+
+    });
+
+}
+
+function reviseTicket(eid) {
+
+    if (!eid) return;
+
+    Swal.fire({
+
+        icon: 'question',
+
+        title: 'Revise Ticket',
+
+        text: 'Send this ticket back to the PIC for rework.',
+
+        input: 'textarea',
+
+        inputLabel: 'Reason',
+
+        inputPlaceholder: 'Enter the reason for revision...',
+
+        showCancelButton: true,
+
+        confirmButtonText: 'Revise',
+
+        cancelButtonText: 'Back',
+
+        reverseButtons: true,
+
+        confirmButtonColor: '#d97706',
+
+        inputValidator: (value) => {
+            if (!value) {
+                return 'Please enter a reason for revision.';
+            }
+        },
+
+    }).then((result) => {
+
+        if (!result.isConfirmed) return;
+
+        showLoading();
+
+        $.ajax({
+
+            url: window.ticketRoutes.revise.replace(':eid', eid),
+
+            type: 'POST',
+
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                response_descr: result.value,
+            },
+
+            success(res) {
+
+                hideLoading();
+
+                showSuccess(res.message || 'Ticket sent back for revision.');
 
                 if (typeof loadTicketDetail === 'function') {
                     const currentDetailEid = $('#comment_ticket_id').val();
@@ -165,3 +255,4 @@ function rejectTicket(eid) {
 
 window.approveTicket = approveTicket;
 window.rejectTicket = rejectTicket;
+window.reviseTicket = reviseTicket;

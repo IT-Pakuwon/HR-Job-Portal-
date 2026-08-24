@@ -278,6 +278,25 @@
         return sortDirection === "desc" ? sorted.reverse() : sorted;
     }
 
+    function renderDescCell(html) {
+        const raw = (html || "").toString();
+        if (!raw || raw === "-") return raw || "-";
+
+        return `
+            <div class="desc-cell">
+                <div class="desc-collapsed line-clamp-2">${raw}</div>
+                <button type="button" class="desc-toggle mt-1 hidden text-[11px] font-semibold text-indigo-600 hover:underline dark:text-indigo-400">See more detail</button>
+            </div>
+        `;
+    }
+
+    function adjustDescToggles(container) {
+        container.find(".desc-collapsed").each(function () {
+            const overflowing = this.scrollHeight > this.clientHeight + 1;
+            $(this).next(".desc-toggle").toggleClass("hidden", !overflowing);
+        });
+    }
+
     function renderApprovalTable(rows, cfg, tab) {
         const dateLabel = tab === "approval-history" ? "Date" : "Since";
         const rowsHtml = rows.map(row => {
@@ -297,7 +316,7 @@
                     <td class="whitespace-nowrap px-3 py-2 align-top text-slate-600 dark:text-slate-300">${get("Company")}</td>
                     <td class="whitespace-nowrap px-3 py-2 align-top text-slate-600 dark:text-slate-300">${get("Dept")}</td>
                     <td class="whitespace-nowrap px-3 py-2 align-top text-slate-600 dark:text-slate-300">${get(dateLabel)}</td>
-                    <td class="px-3 py-2 align-top text-slate-600 dark:text-slate-300">${get("Desc")}</td>
+                    <td class="px-3 py-2 align-top text-slate-600 dark:text-slate-300">${renderDescCell(get("Desc"))}</td>
                     <td class="whitespace-nowrap px-3 py-2 align-top">${statusHtml}</td>
                 </tr>
             `;
@@ -357,6 +376,7 @@
             $("#dashboardEmptyState").addClass("hidden");
             if (tab === "approval" || tab === "approval-history") {
                 list.html(renderApprovalTable(pageRows, tabConfig[tab], tab));
+                adjustDescToggles(list);
             } else {
                 pageRows.forEach(row => list.append(renderCard(row, tab)));
             }
@@ -522,6 +542,17 @@
                 sortDirection = "asc";
             }
             draw(activeTab);
+        });
+
+        $("#dashboardCardList").on("click", ".desc-toggle", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const $collapsed = $(this).prev(".desc-collapsed");
+            const isCollapsed = $collapsed.hasClass("line-clamp-2");
+
+            $collapsed.toggleClass("line-clamp-2");
+            $(this).text(isCollapsed ? "Show less" : "See more detail");
         });
 
         $("#dashboardSearch").on("keyup", function () {

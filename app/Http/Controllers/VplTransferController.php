@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Traits\HasAutonbr;
+use App\Http\Controllers\Traits\UploadsVplAttachment;
 use App\Models\TrxVplTransfer;
 use App\Models\TrxVplTransferDetail;
 use App\Models\MsCategory;
@@ -29,6 +30,7 @@ use Mail;
 class VplTransferController extends Controller
 {
     use HasAutonbr;
+    use UploadsVplAttachment;
 
     public const DOCTYPE     = 'VPT';
     public const DOCTYPE_DSC = 'Voucher Product Transfer';
@@ -580,7 +582,18 @@ class VplTransferController extends Controller
                     'P',
                     self::DOCTYPE_DSC,
                     route('transfervp.show', $id),
-                    ['info' => $transfer->transfer_remark ?? '']
+                    ['info' => $transfer->transfer_remark ?? '', 'createdby' => $transfer->created_user]
+                );
+            },
+            function ($refnbr, $now) use ($transfer, $id) {
+                // Notify requester the document is fully approved
+                app(ApprovalController::class)->notifyRequesterOnStatus(
+                    $transfer->transfer_id,
+                    self::DOCTYPE_DSC,
+                    'C',
+                    $transfer->user_transfer,
+                    route('transfervp.show', $id),
+                    ['cpnyid' => $transfer->cpnyid, 'deptname' => $transfer->department]
                 );
             }
         );
@@ -621,7 +634,7 @@ class VplTransferController extends Controller
                     'R',
                     $transfer->user_transfer,
                     route('transfervp.show', $id),
-                    ['info' => $request->message]
+                    ['info' => $request->message, 'cpnyid' => $transfer->cpnyid, 'deptname' => $transfer->department]
                 );
             },
             function ($refnbr, $now) use ($transfer) {
@@ -671,7 +684,7 @@ class VplTransferController extends Controller
                     'D',
                     $transfer->user_transfer,
                     route('transfervp.show', $id),
-                    ['info' => $request->message . ' (Silahkan revisi dokumen ini)']
+                    ['info' => $request->message . ' (Silahkan revisi dokumen ini)', 'cpnyid' => $transfer->cpnyid, 'deptname' => $transfer->department]
                 );
             }
         );
@@ -1109,33 +1122,7 @@ class VplTransferController extends Controller
 
     private function saveAttachments(Request $request, string $docid, int $year, $user): void
     {
-        if (!$request->hasFile('attachment')) {
-            return;
-        }
-
-        foreach ($request->file('attachment') as $file) {
-            if (!$file || !$file->isValid()) {
-                continue;
-            }
-            $rand       = random_int(10000000, 99999999);
-            $filename   = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-            $attachfile = md5($rand) . '-' . str_replace('%', '', $file->getClientOriginalName());
-            $folder     = public_path('attachment/' . $year);
-
-            if (!is_dir($folder)) {
-                mkdir($folder, 0777, true);
-            }
-            $file->move($folder, $attachfile);
-
-            Attachment::create([
-                'docid'        => $docid,
-                'name'         => $filename,
-                'attachfile'   => $attachfile,
-                'status'       => 'A',
-                'extention'    => $file->getClientOriginalExtension(),
-                'created_user' => $user->name,
-            ]);
-        }
+        $this->saveVplAttachments($request, $docid, 'att-vpl/vpt-attachment', $year, $user);
     }
 
     private function saveMessage(TrxVplTransfer $transfer, string $message, $user): void

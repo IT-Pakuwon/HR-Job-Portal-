@@ -18,8 +18,14 @@
                     <x-dashboard-filter.dashboard-filter
                         :showDepartment="false"
                         :ticketTypes="[
-                            ['value' => 'SUPPORT', 'label' => 'Support Ticket'],
-                            ['value' => 'BA', 'label' => 'Berita Acara'],
+                            ['group' => 'Support Ticket', 'value' => 'SUPPORT', 'label' => 'All Support Ticket'],
+                            ['group' => 'Support Ticket', 'value' => 'ENGSUPPORTTICKET', 'label' => 'Engineering'],
+                            ['group' => 'Support Ticket', 'value' => 'BSSUPPORTTICKET', 'label' => 'Building Service'],
+                            ['group' => 'Support Ticket', 'value' => 'FOSUPPORTTICKET', 'label' => 'Fit Out'],
+                            ['group' => 'Berita Acara', 'value' => 'BA', 'label' => 'All Berita Acara'],
+                            ['group' => 'Berita Acara', 'value' => 'BA_ENG', 'label' => 'Berita Acara ENG'],
+                            ['group' => 'Berita Acara', 'value' => 'BA_BS', 'label' => 'Request For Approval'],
+                            ['group' => 'Berita Acara', 'value' => 'BA_FO', 'label' => 'Document Approval'],
                         ]" />
                 </div>
                 <div class="relative w-full sm:w-auto" id="corpExportWrap">
@@ -175,6 +181,13 @@
     </div>
 
     <script>
+        // gm-filter.js (shared company/department filter) reads window.gmRoutes —
+        // this page has no department filter (:showDepartment="false"), so only
+        // `companies` is needed here.
+        window.gmRoutes = {
+            companies: "{{ route('corptek-report.companies') }}",
+        };
+
         window.corpTekRoutes = {
             companies: "{{ route('corptek-report.companies') }}",
             summary: "{{ route('corptek-report.summary') }}",

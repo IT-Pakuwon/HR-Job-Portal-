@@ -3,6 +3,7 @@
 namespace App\Mail\Concerns;
 
 use App\Models\TrTicket;
+use Vinkla\Hashids\Facades\Hashids;
 
 trait ResolvesTicketSystemLabel
 {
@@ -15,5 +16,12 @@ trait ResolvesTicketSystemLabel
             'ITSUPPORTTICKET' => 'IT Support Ticketing System',
             default => 'Ticketing System',
         };
+    }
+
+    protected function docUrlFor(TrTicket $ticket): string
+    {
+        $eid = Hashids::encode($ticket->id);
+
+        return url('/showoprtekticket/'.$eid);
     }
 }

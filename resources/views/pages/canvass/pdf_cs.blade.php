@@ -4,6 +4,40 @@
         return number_format((float) $n, 2);
     }
     $maxVendors = 6;
+    $selectedVendorSlots = [];
+    foreach (($detail ?? collect()) as $row) {
+        for ($slot = 1; $slot <= $maxVendors; $slot++) {
+            if (!empty($row->{'vendor' . $slot . 'selected'})) {
+                $selectedVendorSlots[$slot] = true;
+            }
+        }
+    }
+    $descriptionWidth = 30;
+    $fixedColumnsWidth = 21.2;
+    $vendorAreaWidth = 100 - $descriptionWidth - $fixedColumnsWidth;
+    $vendorWeights = [];
+
+    for ($i = 0; $i < $maxVendors; $i++) {
+        $slot = (int) data_get($vendors[$i] ?? [], 'idx', $i + 1);
+        $hasVendor = isset($vendors[$i]);
+
+        if (!empty($selectedVendorSlots[$slot])) {
+            $vendorWeights[$i] = 1.35;
+        } elseif ($hasVendor) {
+            $vendorWeights[$i] = 1.15;
+        } else {
+            $vendorWeights[$i] = 0.75;
+        }
+    }
+
+    $vendorWidths = [];
+    $totalVendorWeight = array_sum($vendorWeights);
+    foreach ($vendorWeights as $i => $weight) {
+        $vendorWidths[$i] = round($vendorAreaWidth * ($weight / $totalVendorWeight), 2);
+    }
+
+    // Keep the total exactly at 100% after rounding.
+    $vendorWidths[$maxVendors - 1] += $vendorAreaWidth - array_sum($vendorWidths);
 @endphp
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -70,19 +104,21 @@
 
     th.no-col,
     td.no-col {
-        width: 10px;
+        width: 2%;
+        padding-left: 2px;
+        padding-right: 2px;
     }
 
     th.qty-col,
     td.qty-col {
-        width: 24px;
+        width: 3%;
         padding-left: 2px;
         padding-right: 2px;
     }
 
     th.uom-col,
     td.uom-col {
-        width: 24px;
+        width: 3%;
         padding-left: 2px;
         padding-right: 2px;
     }
@@ -152,7 +188,7 @@
 
     .vendor-col {
         font-size: 9.5px;
-        min-width: 110px;
+        min-width: 0;
     }
 
     .vendor-name {
@@ -264,32 +300,32 @@
 {{-- MAIN TABLE --}}
 <table>
     <colgroup>
-        <col style="width:18px"> {{-- No --}}
-        <col style="width:110px"> {{-- Inventory ID --}}
-        <col> {{-- Description (auto) --}}
-        <col style="width:24px"> {{-- Qty --}}
-        <col style="width:24px"> {{-- UoM --}}
+        <col style="width:2%"> {{-- No --}}
+        <col style="width:6%"> {{-- Inventory ID --}}
+        <col style="width:{{ $descriptionWidth }}%"> {{-- Description --}}
+        <col style="width:3%"> {{-- Qty --}}
+        <col style="width:3%"> {{-- UoM --}}
         @for ($i = 0; $i < $maxVendors; $i++)
-            <col style="width:120px"> {{-- Vendor --}}
+            <col style="width:{{ $vendorWidths[$i] }}%"> {{-- Vendor --}}
         @endfor
-        <col style="width:120px"> {{-- Budget --}}
-        <col style="width:100px"> {{-- Last Price --}}
+        <col style="width:6%"> {{-- Budget --}}
+        <col style="width:6.2%"> {{-- Last Price --}}
     </colgroup>
     <thead>
         <tr>
-            <th rowspan="2" class="no-col">No</th>
-            <th rowspan="2" style="width:110px">Inventory ID</th>
-            <th rowspan="2">Description</th>
-            <th rowspan="2" class="qty-col">Qty</th>
-            <th rowspan="2" class="uom-col">UoM</th>
+            <th rowspan="2" class="no-col" style="width:2%">No</th>
+            <th rowspan="2" style="width:6%">Inventory ID</th>
+            <th rowspan="2" style="width:{{ $descriptionWidth }}%">Description</th>
+            <th rowspan="2" class="qty-col" style="width:3%">Qty</th>
+            <th rowspan="2" class="uom-col" style="width:3%">UoM</th>
             <th colspan="{{ $maxVendors }}">Vendor Info</th>
-            <th rowspan="2" style="width:120px">Budget Account</th>
-            <th rowspan="2" style="width:100px">Last Price</th>
+            <th rowspan="2" style="width:6%">Budget Account</th>
+            <th rowspan="2" style="width:6.2%">Last Price</th>
         </tr>
 
         <tr>
             @for ($i = 0; $i < $maxVendors; $i++)
-                <th>
+                <th class="vendor-col" style="width:{{ $vendorWidths[$i] }}%">
                     @if (isset($vendors[$i]))
                         <div class="vendor-name">{{ $vendors[$i]['name'] }}</div>
                         @if ($vendors[$i]['top'])
@@ -304,9 +340,9 @@
     <tbody>
         @foreach ($detail as $i => $dt)
             <tr>
-                <td class="td-center no-col">{{ $i + 1 }}</td>
-                <td>{{ $dt->inventoryid }}</td>
-                <td class="description">
+                <td class="td-center no-col" style="width:2%">{{ $i + 1 }}</td>
+                <td style="width:6%">{{ $dt->inventoryid }}</td>
+                <td class="description" style="width:{{ $descriptionWidth }}%">
                     <div style="font-weight:700;">
                         {{ $dt->inventory_descr }}
                     </div>
@@ -318,18 +354,16 @@
                     @endif
                 </td>
 
-
-                </td>
-
-                <td class="td-right qty-col">{{ nf($dt->qty) }}</td>
-                <td class="td-center uom-col">{{ $dt->uom }}</td>
+                <td class="td-right qty-col" style="width:3%">{{ nf($dt->qty) }}</td>
+                <td class="td-center uom-col" style="width:3%">{{ $dt->uom }}</td>
                 @for ($k = 0; $k < $maxVendors; $k++)
                     @php
-                        $price = (float) ($dt->{'vendorprice' . ($k + 1)} ?? 0);
-                        $total = (float) ($dt->{'vendortotalprice' . ($k + 1)} ?? 0);
-                        $sel = (bool) ($dt->{'vendor' . ($k + 1) . 'selected'} ?? false);
+                        $vendorSlot = (int) data_get($vendors[$k] ?? [], 'idx', $k + 1);
+                        $price = (float) ($dt->{'vendorprice' . $vendorSlot} ?? 0);
+                        $total = (float) ($dt->{'vendortotalprice' . $vendorSlot} ?? 0);
+                        $sel = (bool) ($dt->{'vendor' . $vendorSlot . 'selected'} ?? false);
                     @endphp
-                    <td class="vendor-col td-right">
+                    <td class="vendor-col td-right" style="width:{{ $vendorWidths[$k] }}%">
                         <div>{{ nf($price) }}</div>
                         <div class="muted">{{ nf($total) }}</div>
                         @if ($sel)
@@ -340,8 +374,8 @@
                     </td>
                 @endfor
 
-                <td class="td-center">{{ $dt->budget_account_id }}</td>
-                <td class="td-center">{{ nf($dt->inventory_last_price) }}</td>
+                <td class="td-center" style="width:6%">{{ $dt->budget_account_id }}</td>
+                <td class="td-center" style="width:6.2%">{{ nf($dt->inventory_last_price) }}</td>
             </tr>
         @endforeach
 
@@ -349,7 +383,7 @@
         @php
             $summaryRows = [
                 'Total' => fn($k) => collect($detail)->sum(
-                    fn($d) => (float) ($d->{'vendortotalprice' . ($k + 1)} ?? 0),
+                    fn($d) => (float) ($d->{'vendortotalprice' . ((int) data_get($vendors[$k] ?? [], 'idx', $k + 1))} ?? 0),
                 ),
                 'Amount Tax' => fn($k) => data_get($vendors[$k] ?? [], 'tax', 0),
                 'Grand Total' => fn($k) => data_get($vendors[$k] ?? [], 'grand', 0),
@@ -361,7 +395,7 @@
             <tr class="summary-row">
                 <td colspan="5" class="td-right">{{ $label }}</td>
                 @for ($k = 0; $k < $maxVendors; $k++)
-                    <td class="td-right vendor-col">{{ nf($calc($k)) }}</td>
+                    <td class="td-right vendor-col" style="width:{{ $vendorWidths[$k] }}%">{{ nf($calc($k)) }}</td>
                 @endfor
                 <td colspan="2"></td>
             </tr>

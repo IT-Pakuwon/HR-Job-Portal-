@@ -342,7 +342,16 @@
                     <select id="gmTicketTypeFilter"
                         class="cursor-pointer appearance-none border-0 bg-transparent text-xs font-semibold text-slate-700 outline-none dark:text-slate-200">
                         @foreach($ticketTypes as $tt)
-                            <option value="{{ $tt['value'] }}">{{ $tt['label'] }}</option>
+                            @if(isset($tt['group']))
+                                @if($loop->first || ($ticketTypes[$loop->index - 1]['group'] ?? null) !== $tt['group'])
+                                    @if(!$loop->first) </optgroup> @endif
+                                    <optgroup label="{{ $tt['group'] }}">
+                                @endif
+                                <option value="{{ $tt['value'] }}">{{ $tt['label'] }}</option>
+                                @if($loop->last) </optgroup> @endif
+                            @else
+                                <option value="{{ $tt['value'] }}">{{ $tt['label'] }}</option>
+                            @endif
                         @endforeach
                     </select>
                     <svg class="pointer-events-none h-3 w-3 shrink-0 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">

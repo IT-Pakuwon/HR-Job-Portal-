@@ -67,7 +67,7 @@
                 <svg id="gaps_chevron" class="h-4 w-4 shrink-0 text-gray-400 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
             </button>
             <div id="gaps_body" class="hidden border-t border-gray-100 px-5 py-4 dark:border-gray-700">
-                <div class="grid grid-cols-1 gap-5 md:grid-cols-3">
+                <div class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
                     <div>
                         <h3 class="text-xs font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400">Menus missing a Screen</h3>
                         <p class="mt-0.5 text-xs text-gray-400">Leaf menus (no sub-menus) with no Screen set — jump to the Menu step and edit them.</p>
@@ -82,6 +82,11 @@
                         <h3 class="text-xs font-bold uppercase tracking-wide text-indigo-600 dark:text-indigo-400">Unregistered screen IDs in routes</h3>
                         <p class="mt-0.5 text-xs text-gray-400">Used in <code>access:</code> middleware but not found in Screen master data — check for typos/naming mismatches.</p>
                         <ul id="gaps_unregisteredScreens" class="gaps-list mt-2"></ul>
+                    </div>
+                    <div>
+                        <h3 class="text-xs font-bold uppercase tracking-wide text-fuchsia-600 dark:text-fuchsia-400">Menu/Screen application mismatch</h3>
+                        <p class="mt-0.5 text-xs text-gray-400">Menu's Application differs from its own Screen's Application — the menu ends up filed under the wrong app.</p>
+                        <ul id="gaps_menusAppMismatch" class="gaps-list mt-2"></ul>
                     </div>
                 </div>
                 <details class="mt-4">
@@ -854,7 +859,7 @@
 
             function gapsLoad() {
                 $.get("{{ route('access_control_studio.coverage') }}", function(data) {
-                    const total = data.menus_missing_screen.length + data.screens_without_route.length + data.unregistered_screen_ids.length;
+                    const total = data.menus_missing_screen.length + data.screens_without_route.length + data.unregistered_screen_ids.length + data.menus_app_mismatch.length;
 
                     $('#gaps_statusIcon')
                         .removeClass('bg-gray-100 text-gray-400 dark:bg-gray-700 bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-300 bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-300')
@@ -883,6 +888,14 @@
 
                     gapsRenderList('#gaps_unregisteredScreens', data.unregistered_screen_ids, (id) =>
                         `<li><span class="gaps-id-badge">${id}</span></li>`);
+
+                    gapsRenderList('#gaps_menusAppMismatch', data.menus_app_mismatch, (m) =>
+                        `<li>
+                            <button type="button" class="gaps-jump-menu flex min-w-0 flex-1 items-center gap-1.5 text-left text-indigo-600 hover:underline dark:text-indigo-400" data-menu-id="${m.id}">
+                                <span class="truncate">${m.menu_name}</span>
+                                <span class="gaps-id-badge">${m.menu_application_id || '(none)'} ≠ ${m.screen_application_id}</span>
+                            </button>
+                        </li>`);
 
                     gapsRenderList('#gaps_screensWithRoute', data.screens_with_route, (s) =>
                         `<li>
