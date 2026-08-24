@@ -206,7 +206,11 @@ function refreshLocationDropdown() {
         ? (Ticket.state.allBaLocations || [])
         : (Ticket.state.allLocations || []);
 
-    const filtered = cpnyId
+    // Engineering Support Tickets aren't scoped to the selected company -
+    // every location across every company is selectable.
+    const isEng = ticketType === 'ENGSUPPORTTICKET';
+
+    const filtered = (cpnyId && !isEng)
         ? source.filter(function (l) {
             return l.cpny_id === cpnyId || l.cpny_id === 'ALL';
         })
