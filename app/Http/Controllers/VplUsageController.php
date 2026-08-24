@@ -853,6 +853,20 @@ class VplUsageController extends Controller
 
         $productName = trim($product->product_name.' / '.$product->product_value.' / '.$product->product_uom);
 
+        // Qty per expiry date already staged in the current (unsubmitted) draft for
+        // this product/warehouse — sent by the client from its "Added to this
+        // document" rows. Without this, a second Add-Product pass for the same
+        // product recomputes FEFO off unchanged DB stock (nothing is reserved until
+        // the document is actually saved) and happily re-offers a batch the first
+        // pass already claimed, letting the draft silently over-claim it.
+        $staged = [];
+        if ($request->filled('staged')) {
+            $decoded = json_decode($request->staged, true);
+            if (is_array($decoded)) {
+                $staged = $decoded;
+            }
+        }
+
         $batches = MsVplProductDetail::where('product_id', $productId)
             ->where('whs_id', $whsId)
             ->orderBy('expired_date', 'ASC')
@@ -865,7 +879,8 @@ class VplUsageController extends Controller
             if ($remaining <= 0) {
                 break;
             }
-            $pickable = $batch->qty_available - ($batch->qty_reserved ?? 0);
+            $expKey = $batch->expired_date->format('Y-m-d');
+            $pickable = $batch->qty_available - ($batch->qty_reserved ?? 0) - (float) ($staged[$expKey] ?? 0);
             if ($pickable <= 0) {
                 continue;
             }

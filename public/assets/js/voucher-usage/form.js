@@ -77,6 +77,26 @@ const VplUsageForm = {
         VplUsageForm.previewDebounce[mode] = setTimeout(() => VplUsageForm.updatePreview(mode), 350);
     },
 
+    /**
+     * Sums qty already staged in the current draft for this product+warehouse,
+     * keyed by expiry date (Y-m-d) — so a second Add Product pass for the same
+     * product can tell the server's FEFO calc which batches this draft already
+     * claims, instead of it re-offering them off unchanged DB stock.
+     */
+    collectStagedBatchQty(prefix, productId, whsId) {
+        const staged = {};
+        document.querySelectorAll(`#${prefix}_detailBody tr[id^="${prefix}_row_"]`).forEach((row) => {
+            const idx = row.dataset.idx;
+            const get = (name) => row.querySelector(`[name="addmore[${idx}][${name}]"]`)?.value ?? '';
+            if (get('product_id') !== productId || get('whs_id') !== whsId) return;
+
+            const exp = get('expired_date');
+            const key = exp ? exp.substring(0, 10) : '';
+            staged[key] = (staged[key] ?? 0) + parseFloat(get('qty') || '0');
+        });
+        return staged;
+    },
+
     /** Fetches the FEFO batch breakdown for the current Product+Qty and renders it as an editable table. */
     updatePreview(mode) {
         const prefix    = mode === 'create' ? 'c' : 'e';
@@ -92,8 +112,11 @@ const VplUsageForm = {
             return;
         }
 
+        const staged = VplUsageForm.collectStagedBatchQty(prefix, productId, whsId);
+
         $.post(VplUsage.routes.fefoPick, {
             _token: VplUsage.csrf(), cpnyid, vp_type: vpType, whs_id: whsId, product_id: productId, qty,
+            staged: JSON.stringify(staged),
         })
         .done((breakdown) => {
             VplUsageForm.showPreviewError(mode, '');
