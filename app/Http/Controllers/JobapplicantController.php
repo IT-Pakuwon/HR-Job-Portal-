@@ -286,6 +286,7 @@ class JobapplicantController extends Controller
             }
 
             $userCpnyIds = $this->userCpnyIds($user);
+            $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
 
             $canFilterJobTL = $this->hasFullApplicantAccess($user);
             $jobTLExact = $canFilterJobTL ? trim((string) $request->input('job_tl_exact', '')) : '';
@@ -315,9 +316,19 @@ class JobapplicantController extends Controller
                     $join->on('vc.docid', '=', 'vs.docid')
                         ->on('vc.docidposting', '=', 'vs.jobid');
                 })
-                ->leftJoin('hr_trx_jobposting as jp', 'jp.docid', '=', 'vc.docidposting')
-                ->leftJoin('hr_ms_department as dept', 'dept.department_id', '=', 'jp.departementid')
-                ->leftJoin('hr_ms_division as div', 'div.division_id', '=', 'dept.division_id')
+                ->leftJoin('hr_trx_jobposting as jp', function ($join) {
+                    $join->on('jp.docid', '=', 'vc.docidposting')
+                        ->on('jp.group_cpny_id', '=', 'vc.group_cpny_id');
+                })
+                ->leftJoin('hr_ms_department as dept', function ($join) {
+                    $join->on('dept.department_id', '=', 'jp.departementid')
+                        ->on('dept.group_cpny_id', '=', 'vc.group_cpny_id');
+                })
+                ->leftJoin('hr_ms_division as div', function ($join) {
+                    $join->on('div.division_id', '=', 'dept.division_id')
+                        ->on('div.group_cpny_id', '=', 'vc.group_cpny_id');
+                })
+                ->where('vc.group_cpny_id', $groupCompanyId)
                 ->where('vc.status', '!=', 'X')
                 ->when(!empty($userCpnyIds), function ($q) use ($userCpnyIds) {
                     $q->whereIn('vc.cpnyid', $userCpnyIds);
