@@ -11,6 +11,13 @@
 .select2-container .select2-selection--single .select2-selection__arrow { height: 40px !important; }
 .apv-badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:600; }
 .status-filter.active-card .status-card { box-shadow: 0 0 0 2px #6366f1; }
+
+/* SweetAlert2 dark mode */
+.dark .swal2-popup { background: #1e293b; color: #e2e8f0; }
+.dark .swal2-title, .dark .swal2-html-container { color: #e2e8f0; }
+.dark .swal2-close { color: #94a3b8; }
+.dark .swal2-input, .dark .swal2-textarea, .dark .swal2-select { background: #0f172a; color: #e2e8f0; border-color: #334155; }
+.dark .swal2-validation-message { background: #0f172a; color: #f87171; }
 </style>
 
 <div class="max-w-9xl mx-auto w-full p-2">
@@ -569,8 +576,8 @@
                 </div>
 
                 <div class="overflow-hidden">
-                    <div class="flex items-center gap-2">
-                        <div id="v_statusBanner" class="mb-4 flex w-full items-center gap-2"></div>
+                    <div class="flex flex-col gap-2">
+                        <div id="v_statusBanner" class="mb-0 flex w-full items-center gap-2"></div>
                         <div id="v_approvalActions" class="mb-4 hidden flex w-full items-center justify-between gap-2">
                             <button type="button" id="v_approveBtn"
                                 class="flex-1 rounded-lg bg-emerald-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-400">

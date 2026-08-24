@@ -284,8 +284,11 @@ class VplSettlementController extends Controller
         $tglbln = substr((string) $dt->year, 2).sprintf('%02d', (int) $autonbr['month']);
         $docid = self::DOCTYPE.$tglbln.sprintf('%04d', $autonbr['next']);
 
+        $approvalCondition = trim($category->groups ?? '') ?: $conditionName;
+        $ctx = ['approval_conditions' => [$approvalCondition]];
+
         try {
-            DB::connection('pgsql5')->transaction(function () use ($request, $user, $dt, $docid, $usage, $lines, $usageDetails, &$settlement) {
+            DB::connection('pgsql5')->transaction(function () use ($request, $user, $dt, $docid, $usage, $lines, $usageDetails, $ctx, &$settlement) {
                 $settlement = TrxVplSettlement::create([
                     'settlement_id' => $docid,
                     'settlement_date' => $dt->format('Y-m-d'),
@@ -326,26 +329,24 @@ class VplSettlementController extends Controller
                 }
 
                 $this->saveAttachments($request, $docid, $dt->year, $user);
+
+                // Throws if no approval rule matches, rolling back the whole document
+                // so it's never left without an approval chain.
+                app(ApprovalController::class)->generateForDocument(
+                    $docid,
+                    self::DOCTYPE,
+                    $usage->cpnyid,
+                    $usage->department,
+                    $user->username,
+                    $ctx,
+                    $dt
+                );
             });
         } catch (\Throwable $e) {
             return response()->json(['error' => $e->getMessage()], 422);
         }
 
-        $approvalCondition = trim($category->groups ?? '') ?: $conditionName;
-        $ctx = ['approval_conditions' => [$approvalCondition]];
-
-        $approvalCtl = app(ApprovalController::class);
-        $approvalCtl->generateForDocument(
-            $docid,
-            self::DOCTYPE,
-            $usage->cpnyid,
-            $usage->department,
-            $user->username,
-            $ctx,
-            $dt
-        );
-
-        $approvalCtl->notifyFirstApprover(
+        app(ApprovalController::class)->notifyFirstApprover(
             $docid,
             self::DOCTYPE,
             'P',
@@ -374,6 +375,9 @@ class VplSettlementController extends Controller
         $settlementDetails = TrxVplSettlementDetail::where('settlement_id', $settlement->settlement_id)->get()->keyBy('id');
         $usageDetails = TrxVplUsageDetail::where('usage_id', $settlement->usage_id)->get()->keyBy('id');
 
+        // Validate every line before touching anything — same two-phase pattern as
+        // store() so a bad line further down the list can't leave earlier lines
+        // already committed (there is no transaction wrapping the loop itself).
         $claimTracker = [];
         foreach ($lines as $line) {
             $sDetail = $settlementDetails->get($line['settlement_detail_id'] ?? null);
@@ -392,22 +396,7 @@ class VplSettlementController extends Controller
                 return response()->json(['error' => 'Qty Settlement for '.$productName.' must be between 0 and '.max(0, $remaining - $claimed).'.'], 422);
             }
             $claimTracker[$uDetail->id] = $claimed + $qtySettlement;
-
-            $qtyRemain = $remaining - $qtySettlement;
-
-            $sDetail->qty_settlement = $qtySettlement;
-            $sDetail->qty_remain = $qtyRemain;
-            $sDetail->settlement_remark = $line['settlement_remark'] ?? $sDetail->settlement_remark;
-            $sDetail->updated_user = $user->name;
-            $sDetail->save();
-
-            $uDetail->qty_settlement = $qtySettlement;
-            $uDetail->qty_remain = $qtyRemain;
-            $uDetail->updated_user = $user->name;
-            $uDetail->save();
         }
-
-        $this->saveAttachments($request, $settlement->settlement_id, $dt->year, $user);
 
         $conditionName = $this->resolveConditionName($settlement->vp_type);
         $category = MsCategory::where('doctype', self::DOCTYPE)
@@ -415,27 +404,63 @@ class VplSettlementController extends Controller
             ->where('category_name', $conditionName)
             ->where('status', 'A')
             ->first();
+
+        if (!$category) {
+            return response()->json(['error' => 'Category condition "'.$conditionName.'" not found. Please contact IT!'], 422);
+        }
+
         $approvalCondition = trim($category->groups ?? '') ?: $conditionName;
         $ctx = ['approval_conditions' => [$approvalCondition]];
 
-        $approvalCtl = app(ApprovalController::class);
-        $approvalCtl->generateForDocument(
-            $settlement->settlement_id,
-            self::DOCTYPE,
-            $settlement->cpnyid,
-            $settlement->department,
-            $user->username,
-            $ctx,
-            $dt
-        );
+        try {
+            DB::connection('pgsql5')->transaction(function () use ($request, $user, $dt, $settlement, $lines, $settlementDetails, $usageDetails, $ctx) {
+                foreach ($lines as $line) {
+                    $sDetail = $settlementDetails->get($line['settlement_detail_id'] ?? null);
+                    $uDetail = $usageDetails->firstWhere('linenbr', $sDetail->linenbr);
+                    if (!$uDetail) {
+                        continue;
+                    }
+                    $qtySettlement = (float) ($line['qty_settlement'] ?? 0);
+                    $remaining = $uDetail->qty_usage - ($uDetail->qty_return_usage ?? 0);
+                    $qtyRemain = $remaining - $qtySettlement;
 
-        $settlement->settlement_remark = $request->settlement_remark ?? $settlement->settlement_remark;
-        $settlement->status = 'P';
-        $settlement->updated_user = $user->name;
-        $settlement->updated_at = $dt->toDateTimeString();
-        $settlement->save();
+                    $sDetail->qty_settlement = $qtySettlement;
+                    $sDetail->qty_remain = $qtyRemain;
+                    $sDetail->settlement_remark = $line['settlement_remark'] ?? $sDetail->settlement_remark;
+                    $sDetail->updated_user = $user->name;
+                    $sDetail->save();
 
-        $approvalCtl->notifyFirstApprover(
+                    $uDetail->qty_settlement = $qtySettlement;
+                    $uDetail->qty_remain = $qtyRemain;
+                    $uDetail->updated_user = $user->name;
+                    $uDetail->save();
+                }
+
+                $this->saveAttachments($request, $settlement->settlement_id, $dt->year, $user);
+
+                // Throws if no approval rule matches, rolling back the detail changes
+                // so the document isn't left without an approval chain.
+                app(ApprovalController::class)->generateForDocument(
+                    $settlement->settlement_id,
+                    self::DOCTYPE,
+                    $settlement->cpnyid,
+                    $settlement->department,
+                    $user->username,
+                    $ctx,
+                    $dt
+                );
+
+                $settlement->settlement_remark = $request->settlement_remark ?? $settlement->settlement_remark;
+                $settlement->status = 'P';
+                $settlement->updated_user = $user->name;
+                $settlement->updated_at = $dt->toDateTimeString();
+                $settlement->save();
+            });
+        } catch (\Throwable $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        }
+
+        app(ApprovalController::class)->notifyFirstApprover(
             $settlement->settlement_id,
             self::DOCTYPE,
             'P',

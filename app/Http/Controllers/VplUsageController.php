@@ -315,8 +315,11 @@ class VplUsageController extends Controller
         $tglbln = substr((string) $dt->year, 2).sprintf('%02d', (int) $autonbr['month']);
         $docid = self::DOCTYPE.$tglbln.sprintf('%04d', $autonbr['next']);
 
+        $approvalCondition = trim($category->groups ?? '') ?: $conditionName;
+        $ctx = ['approval_conditions' => [$approvalCondition]];
+
         try {
-            DB::connection('pgsql5')->transaction(function () use ($request, $user, $dt, $usageDate, $docid, $vp_type, $usagetype, &$usage) {
+            DB::connection('pgsql5')->transaction(function () use ($request, $user, $dt, $usageDate, $docid, $vp_type, $usagetype, $ctx, &$usage) {
                 $usage = TrxVplUsage::create([
                     'usage_id' => $docid,
                     'usage_date' => $usageDate->format('Y-m-d'),
@@ -360,27 +363,25 @@ class VplUsageController extends Controller
 
                 // Hold stock: Usage reserves, Return releases the hold
                 $this->adjustReservation($docid, +1);
+
+                // Throws if no approval rule matches, rolling back the whole document
+                // so it's never left without an approval chain.
+                app(ApprovalController::class)->generateForDocument(
+                    $docid,
+                    self::DOCTYPE,
+                    $request->cpnyid,
+                    $request->department,
+                    $user->username,
+                    $ctx,
+                    $dt
+                );
             });
         } catch (\Throwable $e) {
             return response()->json(['error' => $e->getMessage()], 422);
         }
 
-        // Generate approvals after the detail/reservation transaction commits
-        $approvalCondition = trim($category->groups ?? '') ?: $conditionName;
-        $ctx = ['approval_conditions' => [$approvalCondition]];
-
-        $approvalCtl = app(ApprovalController::class);
-        $approvalCtl->generateForDocument(
-            $docid,
-            self::DOCTYPE,
-            $request->cpnyid,
-            $request->department,
-            $user->username,
-            $ctx,
-            $dt
-        );
-
-        $approvalCtl->notifyFirstApprover(
+        // Send notification after the transaction commits so a mail failure doesn't roll back the document
+        app(ApprovalController::class)->notifyFirstApprover(
             $docid,
             self::DOCTYPE,
             'P',
@@ -409,8 +410,10 @@ class VplUsageController extends Controller
             return response()->json(['error' => 'Cannot return: the referenced Usage document has a settlement in progress.'], 422);
         }
 
+        // Validate every line against available/returnable qty before touching anything —
+        // same two-phase pattern as store() so a bad line further down the list can't
+        // leave earlier lines already committed.
         if ($request->has('addmore')) {
-            $line = TrxVplUsageDetail::where('usage_id', $usage->usage_id)->max('linenbr') ?? 0;
             $claimTracker = [];
             foreach ($request->addmore as $detail) {
                 if (empty($detail['product_id']) || empty($detail['qty']) || empty($detail['whs_id'])) {
@@ -436,27 +439,8 @@ class VplUsageController extends Controller
                 }
 
                 $claimTracker[$key] = $claimed + $qty;
-
-                $newDetail = TrxVplUsageDetail::create([
-                    'usage_id' => $usage->usage_id,
-                    'linenbr' => ++$line,
-                    'product_id' => $detail['product_id'],
-                    'expired_date' => $exp,
-                    'whs_id' => $detail['whs_id'],
-                    'qty_usage' => $usage->usagetype === 'Usage' ? $detail['qty'] : 0,
-                    'qty_return_usage' => $usage->usagetype === 'Return' ? $detail['qty'] : 0,
-                    'purpose_id' => $detail['purpose_id'] ?? null,
-                    'purpose_remark' => $detail['purpose_remark'] ?? null,
-                    'ref_usage_id' => $usage->ref_usage_id,
-                    'status' => 'P',
-                    'created_user' => $user->username,
-                    'created_at' => $dt->toDateTimeString(),
-                ]);
-                $this->reserveDetail($newDetail, $usage->usagetype, +1);
             }
         }
-
-        $this->saveAttachments($request, $usage->usage_id, $dt->year, $user);
 
         $conditionName = $this->resolveConditionName($usage->vp_type, $usage->usagetype);
         $category = MsCategory::where('doctype', self::DOCTYPE)
@@ -464,27 +448,68 @@ class VplUsageController extends Controller
             ->where('category_name', $conditionName)
             ->where('status', 'A')
             ->first();
+
+        if (!$category) {
+            return response()->json(['error' => 'Category condition "'.$conditionName.'" not found. Please contact IT!'], 422);
+        }
+
         $approvalCondition = trim($category->groups ?? '') ?: $conditionName;
         $ctx = ['approval_conditions' => [$approvalCondition]];
 
-        $approvalCtl = app(ApprovalController::class);
-        $approvalCtl->generateForDocument(
-            $usage->usage_id,
-            self::DOCTYPE,
-            $request->cpnyid ?? $usage->cpnyid,
-            $request->department ?? $usage->department,
-            $user->username,
-            $ctx,
-            $dt
-        );
+        try {
+            DB::connection('pgsql5')->transaction(function () use ($request, $user, $dt, $usage, $ctx) {
+                if ($request->has('addmore')) {
+                    $line = TrxVplUsageDetail::where('usage_id', $usage->usage_id)->max('linenbr') ?? 0;
+                    foreach ($request->addmore as $detail) {
+                        if (empty($detail['product_id']) || empty($detail['qty']) || empty($detail['whs_id'])) {
+                            continue;
+                        }
+                        $exp = $detail['expired_date'] ?: '1900-01-01';
 
-        $usage->usage_remark = $request->usage_remark ?? $usage->usage_remark;
-        $usage->status = 'P';
-        $usage->updated_user = $user->name;
-        $usage->updated_at = $dt->toDateTimeString();
-        $usage->save();
+                        $newDetail = TrxVplUsageDetail::create([
+                            'usage_id' => $usage->usage_id,
+                            'linenbr' => ++$line,
+                            'product_id' => $detail['product_id'],
+                            'expired_date' => $exp,
+                            'whs_id' => $detail['whs_id'],
+                            'qty_usage' => $usage->usagetype === 'Usage' ? $detail['qty'] : 0,
+                            'qty_return_usage' => $usage->usagetype === 'Return' ? $detail['qty'] : 0,
+                            'purpose_id' => $detail['purpose_id'] ?? null,
+                            'purpose_remark' => $detail['purpose_remark'] ?? null,
+                            'ref_usage_id' => $usage->ref_usage_id,
+                            'status' => 'P',
+                            'created_user' => $user->username,
+                            'created_at' => $dt->toDateTimeString(),
+                        ]);
+                        $this->reserveDetail($newDetail, $usage->usagetype, +1);
+                    }
+                }
 
-        $approvalCtl->notifyFirstApprover(
+                $this->saveAttachments($request, $usage->usage_id, $dt->year, $user);
+
+                // Throws if no approval rule matches, rolling back the detail/reservation
+                // changes so the document isn't left without an approval chain.
+                app(ApprovalController::class)->generateForDocument(
+                    $usage->usage_id,
+                    self::DOCTYPE,
+                    $request->cpnyid ?? $usage->cpnyid,
+                    $request->department ?? $usage->department,
+                    $user->username,
+                    $ctx,
+                    $dt
+                );
+
+                $usage->usage_remark = $request->usage_remark ?? $usage->usage_remark;
+                $usage->status = 'P';
+                $usage->updated_user = $user->name;
+                $usage->updated_at = $dt->toDateTimeString();
+                $usage->save();
+            });
+        } catch (\Throwable $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        }
+
+        app(ApprovalController::class)->notifyFirstApprover(
             $usage->usage_id,
             self::DOCTYPE,
             'P',
