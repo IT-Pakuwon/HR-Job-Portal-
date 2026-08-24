@@ -387,18 +387,20 @@
                                             </select>
                                         </div>
 
-                                        <div class="hidden">
-                                            <label class="mb-2 block text-sm font-medium">Department</label>
-                                            <select name="department_id[]" class="select2 w-full" multiple
-                                                data-placeholder="Search and select department access">
-                                                <option></option>
-                                                @foreach ($department as $d)
-                                                    <option value="{{ $d->department_id }}">
-                                                        {{ $d->department_id }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
+                                        @unless ($usersSby)
+                                            <div>
+                                                <label class="mb-2 block text-sm font-medium">Department</label>
+                                                <select name="department_id[]" class="select2 w-full" multiple
+                                                    data-placeholder="Search and select department access">
+                                                    <option></option>
+                                                    @foreach ($department as $d)
+                                                        <option value="{{ $d->department_id }}">
+                                                            {{ $d->department_id }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        @endunless
 
                                         <div>
                                             <label class="mb-2 block text-sm font-medium">Division</label>
@@ -408,18 +410,20 @@
                                             </select>
                                         </div>
 
-                                        <div class="hidden">
-                                            <label class="mb-2 block text-sm font-medium">Business Unit</label>
-                                            <select name="business_unit_id[]" class="select2 w-full" multiple
-                                                data-placeholder="Search and select business unit access">
-                                                <option></option>
-                                                @foreach ($businessUnits as $bu)
-                                                    <option value="{{ $bu->business_unit_id }}">
-                                                        {{ $bu->business_unit_id }} - {{ $bu->business_unit_name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
+                                        @unless ($usersSby)
+                                            <div>
+                                                <label class="mb-2 block text-sm font-medium">Business Unit</label>
+                                                <select name="business_unit_id[]" class="select2 w-full" multiple
+                                                    data-placeholder="Search and select business unit access">
+                                                    <option></option>
+                                                    @foreach ($businessUnits as $bu)
+                                                        <option value="{{ $bu->business_unit_id }}">
+                                                            {{ $bu->business_unit_id }} - {{ $bu->business_unit_name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        @endunless
 
                                     </div>
                                 </div>
