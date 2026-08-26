@@ -1519,7 +1519,13 @@ class CareerController extends Controller
                 ->where('cpnyid', $career->cpnyid)
                 ->where('group_cpny_id', $groupCompanyId)
                 ->first();
-            $encryptedDocId = Crypt::encryptString($career->applicant_id);
+            $encryptedDocId = Crypt::encryptString(json_encode([
+                'applicant_id'  => $career->applicant_id,
+                'docid'         => $career->docid,
+                'cpnyid'        => $career->cpnyid,
+                'group_cpny_id' => $groupCompanyId,
+                'jobid'         => $career->jobid,
+            ]));
             $data = [
                 'name'      => $applicant->full_name ?? 'Pelamar',
                 'job_title' => $jobposting->job_title ?? '-',
@@ -1532,7 +1538,13 @@ class CareerController extends Controller
             });
         } else {
             // Not remapped + hasn't filled form — send form link
-            $encryptedDocId = Crypt::encryptString($career->applicant_id);
+            $encryptedDocId = Crypt::encryptString(json_encode([
+                'applicant_id'  => $career->applicant_id,
+                'docid'         => $career->docid,
+                'cpnyid'        => $career->cpnyid,
+                'group_cpny_id' => $groupCompanyId,
+                'jobid'         => $career->jobid,
+            ]));
             $data = [
                 'name' => $applicant->full_name ?? 'Pelamar',
                 'url'  => url("https://careerjakarta.pakuwon.com/checkform/{$encryptedDocId}"),
