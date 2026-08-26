@@ -441,7 +441,7 @@
                             </button>
                         </div>
                     </div>
-                    <div id="v_approvalBody"></div>
+                    <div id="v_approvalBody" class="mt-4"></div>
                 </div>
 
             </div>

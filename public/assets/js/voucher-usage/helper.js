@@ -59,7 +59,7 @@ const VplUsageHelper = {
         const items = approvals.map((ap, index) => {
             const isLast = index === approvals.length - 1;
             const s      = (ap.status ?? '').toUpperCase();
-            const title  = `Approval Level ${ap.aprvid}`;
+            const title  = `Approval Level ${parseInt(ap.aprvid, 10)}`;
             const by     = ap.name || ap.aprvusername || null;
             const at     = ap.aprvdateafter || ap.aprvdatebefore || null;
 
@@ -69,9 +69,9 @@ const VplUsageHelper = {
                         <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${badgeColor(s)}">
                             ${icon(s)}
                         </div>
-                        ${!isLast ? '<div class="mt-1 min-h-6 w-px flex-1 bg-slate-200 dark:bg-white/10"></div>' : ''}
+                        ${!isLast ? '<div class="mt-1 min-h-10 w-px flex-1 bg-slate-200 dark:bg-white/10"></div>' : ''}
                     </div>
-                    <div class="min-w-0 flex-1 pb-4">
+                    <div class="min-w-0 flex-1 pb-6">
                         <div class="flex items-start justify-between gap-3">
                             <div>
                                 <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">${title}</p>
@@ -89,7 +89,7 @@ const VplUsageHelper = {
                 <div class="border-b border-slate-200 px-5 py-4 dark:border-white/10">
                     <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">Approval Workflow</h3>
                 </div>
-                <div class="space-y-2 p-4">
+                <div class="space-y-4 p-4">
                     ${items}
                 </div>
             </div>`;
