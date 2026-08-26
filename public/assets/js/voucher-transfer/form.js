@@ -376,7 +376,7 @@ const VplTransferForm = {
         $('#c_transfertype').on('change', function () {
             const isReturn = $(this).val() === 'ReturnTf';
             document.getElementById('c_ref_wrapper').classList.toggle('hidden', !isReturn);
-            document.getElementById('c_addRow').classList.toggle('hidden', isReturn);
+            VplTransferForm.toggleBtn('c_addRow', !isReturn);
 
             const body = document.getElementById('c_detailBody');
             body.innerHTML = '';
@@ -605,7 +605,7 @@ const VplTransferForm = {
             </tr>`;
         VplTransfer.state.cAttachIdx = 1;
         document.getElementById('c_ref_wrapper').classList.add('hidden');
-        document.getElementById('c_addRow').classList.remove('hidden');
+        VplTransferForm.toggleBtn('c_addRow', true);
     },
 
     // ------------------------------------------------------------------
@@ -685,7 +685,7 @@ const VplTransferForm = {
 
         // Reset new rows
         const isReturn = t.transfertype === 'ReturnTf';
-        document.getElementById('e_addRow').classList.toggle('hidden', isReturn);
+        VplTransferForm.toggleBtn('e_addRow', !isReturn);
 
         if (isReturn && t.ref_transfer_id) {
             // Auto-populate remaining returnable lines from the reference transfer, excluding
@@ -850,7 +850,7 @@ const VplTransferForm = {
         VplTransfer.state.eAttachIdx = 1;
 
         document.getElementById('e_ref_display_wrapper').classList.add('hidden');
-        document.getElementById('e_addRow').classList.remove('hidden');
+        VplTransferForm.toggleBtn('e_addRow', true);
     },
 
     // ------------------------------------------------------------------
@@ -899,6 +899,18 @@ const VplTransferForm = {
 
             VplTransferForm.hideModal('productSearchModal');
         });
+    },
+
+    /**
+     * Toggles visibility using both `hidden` and `inline-flex` together —
+     * Tailwind's `hidden` utility can lose to a statically-declared `inline-flex`
+     * depending on generated CSS order, so both must be flipped in lockstep.
+     */
+    toggleBtn(id, visible) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.toggle('hidden', !visible);
+        el.classList.toggle('inline-flex', visible);
     },
 
     // ------------------------------------------------------------------

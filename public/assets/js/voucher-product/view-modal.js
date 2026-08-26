@@ -5,6 +5,13 @@
 
 const VplMasterViewModal = {
 
+    // Raw stock rows for the product currently open, plus the active
+    // tab/filter selection — kept client-side so switching tabs or the
+    // expiry filter re-renders instantly with no extra request.
+    currentStock: [],
+    activeWhs: '',
+    activeExp: '',
+
     // --------------------------------------------------------
     // INIT
     // --------------------------------------------------------
@@ -65,6 +72,10 @@ const VplMasterViewModal = {
         document.getElementById('viewModal_status').innerHTML = '';
         document.getElementById('viewStockBody').innerHTML =
             '<tr><td colspan="3" class="px-4 py-6 text-center text-sm text-slate-400">Loading...</td></tr>';
+        document.getElementById('viewStockTabs').innerHTML = '';
+        VplMasterViewModal.currentStock = [];
+        VplMasterViewModal.activeWhs = '';
+        VplMasterViewModal.activeExp = '';
 
         modal.classList.remove('hidden');
         modal.classList.add('flex');
@@ -157,13 +168,76 @@ const VplMasterViewModal = {
         VplMasterViewModal._setText('viewModal_checkExp',   p.product_check_exp == 1 ? 'Yes' : 'No');
         VplMasterViewModal._setText('viewModal_remarks',    p.product_remark || '-');
 
-        // Stock detail table
-        const stock = res.stock ?? [];
+        // Stock detail: tabs (by warehouse) + expiry filter, both driven off
+        // the same raw rows so switching either re-renders without a refetch.
+        VplMasterViewModal.currentStock = res.stock ?? [];
+        VplMasterViewModal.activeWhs = '';
+        VplMasterViewModal.activeExp = '';
+        VplMasterViewModal._buildStockControls();
+        VplMasterViewModal._renderStockTable();
+    },
+
+    // --------------------------------------------------------
+    // STOCK DETAIL — warehouse tabs + expiry select2 filter
+    // --------------------------------------------------------
+    _buildStockControls() {
+        const stock = VplMasterViewModal.currentStock;
+
+        // Warehouse tabs: "All" plus one per distinct warehouse present.
+        const whsList = [...new Set(stock.map(r => r.whs_id).filter(Boolean))].sort();
+        const tabClass = (active) => active
+            ? 'vpl-stock-tab rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white'
+            : 'vpl-stock-tab rounded-md border border-blue-200 bg-white px-3 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-100 dark:border-blue-500/20 dark:bg-white/[0.04] dark:text-blue-300 dark:hover:bg-blue-500/20';
+
+        const tabsHtml = [`<button type="button" class="${tabClass(true)}" data-whs="">All</button>`]
+            .concat(whsList.map(w => `<button type="button" class="${tabClass(false)}" data-whs="${w}">${w}</button>`))
+            .join('');
+
+        const $tabs = $('#viewStockTabs').html(tabsHtml);
+        $tabs.off('click', '.vpl-stock-tab').on('click', '.vpl-stock-tab', function () {
+            $tabs.find('.vpl-stock-tab').attr('class', tabClass(false));
+            $(this).attr('class', tabClass(true));
+            VplMasterViewModal.activeWhs = $(this).data('whs') ? String($(this).data('whs')) : '';
+            VplMasterViewModal._renderStockTable();
+        });
+
+        // Expiry filter: distinct dates present, sorted, "No Expired" for the placeholder date.
+        const expDates = [...new Set(stock.map(r => r.expired_date ? String(r.expired_date).substring(0, 10) : '').filter(Boolean))].sort();
+
+        const $filter = $('#viewStockExpFilter');
+        $filter.empty().append('<option value="">All Expired Dates</option>');
+        expDates.forEach(d => {
+            $filter.append(new Option(d === '1900-01-01' ? 'No Expired' : d, d));
+        });
+
+        if ($filter.hasClass('select2-hidden-accessible')) {
+            $filter.val('').trigger('change');
+        } else {
+            $filter.select2({ width: '100%', allowClear: true, placeholder: 'All Expired Dates' });
+        }
+
+        $filter.off('change.stockFilter').on('change.stockFilter', function () {
+            VplMasterViewModal.activeExp = $(this).val() || '';
+            VplMasterViewModal._renderStockTable();
+        });
+    },
+
+    /** Re-renders viewStockBody from currentStock filtered by activeWhs/activeExp. */
+    _renderStockTable() {
+        const filtered = VplMasterViewModal.currentStock.filter((row) => {
+            if (VplMasterViewModal.activeWhs && row.whs_id !== VplMasterViewModal.activeWhs) return false;
+            if (VplMasterViewModal.activeExp) {
+                const raw = row.expired_date ? String(row.expired_date).substring(0, 10) : '';
+                if (raw !== VplMasterViewModal.activeExp) return false;
+            }
+            return true;
+        });
+
         let stockHtml = '';
-        if (!stock.length) {
+        if (!filtered.length) {
             stockHtml = '<tr><td colspan="3" class="px-4 py-6 text-center text-sm text-slate-400">No stock data</td></tr>';
         } else {
-            stock.forEach(row => {
+            filtered.forEach(row => {
                 const expRaw = row.expired_date ? String(row.expired_date).substring(0, 10) : '-';
                 const exp = expRaw === '1900-01-01' ? 'No Expired' : expRaw;
                 stockHtml += `
@@ -175,7 +249,6 @@ const VplMasterViewModal = {
             });
         }
         document.getElementById('viewStockBody').innerHTML = stockHtml;
-
     },
 
     // --------------------------------------------------------

@@ -372,7 +372,7 @@ class EngTicketController extends Controller
         })->values();
 
         $departments = collect(
-            explode(',', $user->department_id)
+            explode(',', $user->origin_department_id)
         )->filter()->map(function ($item) {
             return [
                 'department_id' => trim($item),
@@ -3106,7 +3106,7 @@ class EngTicketController extends Controller
             ->get(['cpny_id', 'cpny_name']);
 
         $departments = collect(
-            explode(',', $user->department_id)
+            explode(',', $user->origin_department_id)
         )
             ->filter()
             ->map(function ($item) {

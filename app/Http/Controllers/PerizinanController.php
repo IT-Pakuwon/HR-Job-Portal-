@@ -8,10 +8,10 @@ use App\Models\MsDepartment;
 use App\Models\MsPerizinanCategory;
 use App\Models\MsSite;
 use App\Models\SysUserRole;
+use App\Models\TrCS;
 use App\Models\TrPerizinan;
 use App\Models\TrPerizinanActivity;
 use App\Models\TrPerizinanDetail;
-use App\Models\TrCS;
 use App\Models\TrSPPJ;
 use App\Models\User;
 use App\Models\Usercpny;
@@ -280,6 +280,7 @@ class PerizinanController extends Controller
                 $permit->information = $permit->latestActivity?->response_descr;
                 $permit->has_blocking_renewal = $permit->renewals->isNotEmpty();
                 unset($permit->site, $permit->category, $permit->latestActivity, $permit->renewals);
+
                 return $permit;
             });
 
@@ -497,9 +498,7 @@ class PerizinanController extends Controller
         ]);
 
         if (count($validated['item_perizinan']) !== count($validated['qty_perizinan'])) {
-            throw ValidationException::withMessages([
-                'item_perizinan' => 'The number of permit items and quantities does not match.',
-            ]);
+            throw ValidationException::withMessages(['item_perizinan' => 'The number of permit items and quantities does not match.']);
         }
 
         $companyIds = $user->hasFullDataScope()
@@ -523,9 +522,7 @@ class PerizinanController extends Controller
                 ->firstOrFail();
 
             if (strtoupper((string) $permit->status) === 'C') {
-                throw ValidationException::withMessages([
-                    'permit' => 'Completed permit items cannot be updated.',
-                ]);
+                throw ValidationException::withMessages(['permit' => 'Completed permit items cannot be updated.']);
             }
 
             TrPerizinanDetail::query()->where('perizinan_id', $permit->perizinan_id)->delete();
@@ -639,9 +636,7 @@ class PerizinanController extends Controller
                 ->first(['id']) !== null;
 
             if ($hasBlockingRenewal) {
-                throw ValidationException::withMessages([
-                    'renewal' => 'This permit has already been renewed.',
-                ]);
+                throw ValidationException::withMessages(['renewal' => 'This permit has already been renewed.']);
             }
 
             $now = now();
@@ -740,9 +735,7 @@ class PerizinanController extends Controller
         ]);
 
         if (count($validated['item_perizinan']) !== count($validated['qty_perizinan'])) {
-            throw ValidationException::withMessages([
-                'item_perizinan' => 'The number of detail items and quantities does not match.',
-            ]);
+            throw ValidationException::withMessages(['item_perizinan' => 'The number of detail items and quantities does not match.']);
         }
 
         DB::connection('pgsql')->beginTransaction();
@@ -794,10 +787,14 @@ class PerizinanController extends Controller
             $header->issue_date = $validated['issue_date'] ?? null;
             $header->qty_item_perizinan = array_sum(array_map('floatval', $validated['qty_perizinan']));
             $header->status = 'P';
-            if ($isEdit) $header->updated_by = $user->username;
+            if ($isEdit) {
+                $header->updated_by = $user->username;
+            }
             $header->save();
 
-            if ($isEdit) TrPerizinanDetail::query()->where('perizinan_id', $docid)->delete();
+            if ($isEdit) {
+                TrPerizinanDetail::query()->where('perizinan_id', $docid)->delete();
+            }
             foreach ($validated['item_perizinan'] as $index => $item) {
                 TrPerizinanDetail::create([
                     'perizinan_id' => $docid,
@@ -843,6 +840,7 @@ class PerizinanController extends Controller
         } catch (\Throwable $exception) {
             DB::connection('pgsql')->rollBack();
             report($exception);
+
             return response()->json([
                 'message' => $perizinanId ? 'Failed to update permit.' : 'Failed to create permit.',
                 'error' => $exception->getMessage(),
@@ -921,16 +919,12 @@ class PerizinanController extends Controller
             ->get();
 
         if ($permits->count() !== $requestedIds->count()) {
-            throw ValidationException::withMessages([
-                'perizinan_ids' => 'Some selected permits are not eligible. Only Completed permits you have access to can be included.',
-            ]);
+            throw ValidationException::withMessages(['perizinan_ids' => 'Some selected permits are not eligible. Only Completed permits you have access to can be included.']);
         }
 
         $cpnyId = $permits->pluck('cpny_id')->unique();
         if ($cpnyId->count() > 1) {
-            throw ValidationException::withMessages([
-                'perizinan_ids' => 'All selected permits must belong to the same company.',
-            ]);
+            throw ValidationException::withMessages(['perizinan_ids' => 'All selected permits must belong to the same company.']);
         }
         $cpnyId = $cpnyId->first();
 
@@ -966,7 +960,7 @@ class PerizinanController extends Controller
 
         $openingText = sprintf(
             'Pada Hari ini %s, Tanggal %d, Bulan %s, Tahun %s, telah dilakukan serah terima dokumen-dokumen asli perijinan \'%s\' Lainnya. Yang dimana dokumen tersebut kami serah terimakan dengan data dokumen perijinan, sbb :',
-            $dayName, (int) $now->day, $monthName, $yearWords, ($dokumenLainnya !== '' ? $dokumenLainnya : '-')
+            $dayName, (int) $now->day, $monthName, $yearWords, $dokumenLainnya !== '' ? $dokumenLainnya : '-'
         );
         $section->addText($openingText, [], ['alignment' => Jc::BOTH, 'spaceAfter' => 200]);
 

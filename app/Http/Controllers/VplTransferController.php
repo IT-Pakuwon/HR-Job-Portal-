@@ -299,6 +299,11 @@ class VplTransferController extends Controller
 
                 // Details
                 $lineCount       = 0;
+                $pickTracker     = []; // per product+expiry+from_whs running total claimed within this request —
+                                       // pickableQty() re-reads the same unchanged stock row for every line since
+                                       // reservation isn't applied until adjustReserved() below, so without this
+                                       // tracker two lines for the same key could each pass independently and
+                                       // jointly oversell.
                 $returnedTracker = []; // ReturnTf only — per product+expiry running total claimed within this request
                 if ($request->has('addmore')) {
                     $line = 1;
@@ -308,13 +313,16 @@ class VplTransferController extends Controller
                             continue;
                         }
 
-                        $exp      = $detail['expired_date'] ?: '1900-01-01';
-                        $qty      = (float) $detail['qty_transfer'];
-                        $pickable = $this->pickableQty($detail['product_id'], $exp, $detail['from_whs_id']);
-                        if ($qty > $pickable) {
+                        $exp         = $detail['expired_date'] ?: '1900-01-01';
+                        $qty         = (float) $detail['qty_transfer'];
+                        $pickKey     = $detail['product_id'] . '|' . $exp . '|' . $detail['from_whs_id'];
+                        $pickClaimed = $pickTracker[$pickKey] ?? 0;
+                        $pickable    = $this->pickableQty($detail['product_id'], $exp, $detail['from_whs_id']);
+                        if ($qty + $pickClaimed > $pickable) {
                             $productName = MsVplProduct::where('product_id', $detail['product_id'])->value('product_name') ?? $detail['product_id'];
-                            throw new \RuntimeException('Transfer qty for ' . $productName . ' exceeds available quantity (' . $pickable . ').');
+                            throw new \RuntimeException('Transfer qty for ' . $productName . ' exceeds available quantity (' . max(0, $pickable - $pickClaimed) . ').');
                         }
+                        $pickTracker[$pickKey] = $pickClaimed + $qty;
 
                         if ($transfertype === 'ReturnTf' && !empty($request->ref_transfer_id)) {
                             $key       = $detail['product_id'] . '|' . $exp;

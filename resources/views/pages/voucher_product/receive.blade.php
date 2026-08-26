@@ -479,7 +479,7 @@
                         </div>
                     </div>
                     {{-- Approval timeline rendered here by VplReceiveHelper.renderTimeline() --}}
-                    <div id="v_approvalBody"></div>
+                    <div id="v_approvalBody" class="mt-4"></div>
                 </div>
 
 

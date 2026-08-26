@@ -33,12 +33,28 @@ class TicketNotificationService
     ];
 
     // BS/FO ticket types only get a WhatsApp notification on ticket
-    // creation; Engineering keeps getting notified on every event.
+    // creation; Engineering gets notified on a wider (but still limited)
+    // set of events — see ENG_ALLOWED_WHATSAPP_EVENTS below.
     protected const CREATED_ONLY_WHATSAPP_TICKET_TYPES = [
         'BSSUPPORTTICKET',
         'FOSUPPORTTICKET',
         'BA_BS',
         'BA_FO',
+    ];
+
+    protected const ENG_WHATSAPP_TICKET_TYPES = [
+        'ENGSUPPORTTICKET',
+        'BA_ENG',
+    ];
+
+    // Engineering tickets skip WhatsApp for PROCESS, PENDING and REJECTED —
+    // only these events are worth pinging the group chat for.
+    protected const ENG_ALLOWED_WHATSAPP_EVENTS = [
+        'CREATED',
+        'RESPONSE',
+        'PENDING APPROVAL',
+        'COMPLETED',
+        'REVISE',
     ];
 
     protected function getCompanyChatId(
@@ -641,9 +657,9 @@ ORDER/MONTHLY : Monthly
     }
 
     /**
-     * Eng/BS Ticket WhatsApp notification (Response, Process, Completed).
-     * Chat group is resolved from ms_wa_setting scoped by the ticket's own
-     * ticket_type (ENGSUPPORTTICKET / BSSUPPORTTICKET).
+     * Eng/BS Ticket WhatsApp notification. Chat group is resolved from
+     * ms_wa_setting scoped by the ticket's own ticket_type
+     * (ENGSUPPORTTICKET / BSSUPPORTTICKET).
      */
     public function ticketWhatsapp(
         TrTicket $ticket,
@@ -653,6 +669,13 @@ ORDER/MONTHLY : Monthly
         if (
             $eventLabel !== 'CREATED'
             && in_array($ticket->ticket_type, self::CREATED_ONLY_WHATSAPP_TICKET_TYPES, true)
+        ) {
+            return;
+        }
+
+        if (
+            in_array($ticket->ticket_type, self::ENG_WHATSAPP_TICKET_TYPES, true)
+            && !in_array($eventLabel, self::ENG_ALLOWED_WHATSAPP_EVENTS, true)
         ) {
             return;
         }

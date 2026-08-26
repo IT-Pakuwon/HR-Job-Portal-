@@ -703,9 +703,15 @@
 
                         {{-- Stock Detail --}}
                         <div class="overflow-hidden rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-500/20 dark:bg-blue-500/10">
-                            <div class="border-b border-blue-100 px-5 py-2.5 dark:border-blue-500/20">
+                            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-blue-100 px-5 py-2.5 dark:border-blue-500/20">
                                 <h3 class="text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300">Stock Detail</h3>
+                                <div class="w-48">
+                                    <select id="viewStockExpFilter" class="w-full">
+                                        <option value="">All Expired Dates</option>
+                                    </select>
+                                </div>
                             </div>
+                            <div id="viewStockTabs" class="flex flex-wrap gap-1.5 border-b border-blue-100 px-4 py-2 dark:border-blue-500/20"></div>
                             <div class="overflow-x-auto">
                                 <table class="min-w-full">
                                     <thead class="border-b border-blue-100 dark:border-blue-500/20">

@@ -282,6 +282,10 @@ class VplUsageController extends Controller
                 if (empty($detail['product_id']) || empty($detail['qty']) || empty($detail['whs_id'])) {
                     continue;
                 }
+                if (empty($detail['purpose_id'])) {
+                    $productName = MsVplProduct::where('product_id', $detail['product_id'])->value('product_name') ?? $detail['product_id'];
+                    return response()->json(['error' => 'Purpose is required for '.$productName.'.'], 422);
+                }
                 $exp     = $detail['expired_date'] ?: '1900-01-01';
                 $qty     = (float) $detail['qty'];
                 $key     = $detail['product_id'].'|'.$exp.'|'.$detail['whs_id'];
@@ -419,6 +423,10 @@ class VplUsageController extends Controller
                 if (empty($detail['product_id']) || empty($detail['qty']) || empty($detail['whs_id'])) {
                     continue;
                 }
+                if (empty($detail['purpose_id'])) {
+                    $productName = MsVplProduct::where('product_id', $detail['product_id'])->value('product_name') ?? $detail['product_id'];
+                    return response()->json(['error' => 'Purpose is required for '.$productName.'.'], 422);
+                }
                 $exp     = $detail['expired_date'] ?: '1900-01-01';
                 $qty     = (float) $detail['qty'];
                 $key     = $detail['product_id'].'|'.$exp.'|'.$detail['whs_id'];
@@ -553,10 +561,12 @@ class VplUsageController extends Controller
                 // Wrapped so a mid-loop stock failure can't leave the header marked
                 // Completed while only some lines' stock actually moved. Both 'Usage'
                 // and 'Return' delegate ledger/balance/qty_available to sp_process_vpl;
-                // only the qty_reserved hold-release (Usage) and the reserve-bump +
-                // origin-line settlement cap (Return) stay direct-PHP, since the SP
-                // never touches qty_reserved for any doctype.
-                DB::connection('pgsql5')->transaction(function () use ($usage, $user, $now, $id) {
+                // only the qty_reserved hold-release (Usage) stays direct-PHP, since
+                // the SP never touches qty_reserved for any doctype. Return already
+                // released its hold at creation (adjustReservation in store()/update()),
+                // so a completed Return needs no further qty_reserved write — the
+                // restocked qty_available it gets from the SP is immediately pickable.
+                DB::connection('pgsql5')->transaction(function () use ($usage, $user, $now) {
                     $usage->status = 'C';
                     $usage->completed_user = $user->username;
                     $usage->completed_at = $now;
@@ -570,10 +580,6 @@ class VplUsageController extends Controller
                         'CALL sp_process_vpl(?, ?, ?, ?, ?)',
                         ['VPU', $usage->usage_id, $usage->cpnyid, 'Submit', $user->username]
                     );
-
-                    if ($usage->usagetype === 'Return') {
-                        $this->applyReturnHoldAndCap($id);
-                    }
                 });
             },
             function ($next, $now) use ($usage, $id) {
@@ -853,6 +859,20 @@ class VplUsageController extends Controller
 
         $productName = trim($product->product_name.' / '.$product->product_value.' / '.$product->product_uom);
 
+        // Qty per expiry date already staged in the current (unsubmitted) draft for
+        // this product/warehouse — sent by the client from its "Added to this
+        // document" rows. Without this, a second Add-Product pass for the same
+        // product recomputes FEFO off unchanged DB stock (nothing is reserved until
+        // the document is actually saved) and happily re-offers a batch the first
+        // pass already claimed, letting the draft silently over-claim it.
+        $staged = [];
+        if ($request->filled('staged')) {
+            $decoded = json_decode($request->staged, true);
+            if (is_array($decoded)) {
+                $staged = $decoded;
+            }
+        }
+
         $batches = MsVplProductDetail::where('product_id', $productId)
             ->where('whs_id', $whsId)
             ->orderBy('expired_date', 'ASC')
@@ -865,7 +885,8 @@ class VplUsageController extends Controller
             if ($remaining <= 0) {
                 break;
             }
-            $pickable = $batch->qty_available - ($batch->qty_reserved ?? 0);
+            $expKey = $batch->expired_date->format('Y-m-d');
+            $pickable = $batch->qty_available - ($batch->qty_reserved ?? 0) - (float) ($staged[$expKey] ?? 0);
             if ($pickable <= 0) {
                 continue;
             }
@@ -1079,43 +1100,4 @@ class VplUsageController extends Controller
         }
     }
 
-    /**
-     * Return-only completion side effect that sp_process_vpl does not own: bumps
-     * qty_reserved alongside the qty_available it just restocked (the SP never
-     * touches qty_reserved for any doctype).
-     *
-     * Deliberately does NOT write anything back onto the referenced original Usage
-     * line. Two candidate fields were considered and rejected: qty_settlement is
-     * owned by the Settlement module (it overwrites, not accumulates — conflating
-     * the two was what forced the old blanket "already settled -> no further
-     * returns" block), and qty_return_usage is read by several VplReportController
-     * queries (batchPurposeOut, redemptionMonthlyInOut, batchLoyaltyUsageDocs) that
-     * iterate Usage-type and Return-type rows together assuming it's always 0 on a
-     * Usage row and only ever set on a Return doc's own row — the return's own row
-     * already nets the usage out in those reports, so mirroring the qty here too
-     * would double-count it. returnableUsageQty() doesn't need this write either;
-     * it computes remaining qty live by summing sibling Return docs directly.
-     */
-    private function applyReturnHoldAndCap(int $id): void
-    {
-        $user = Auth::user();
-        $datestamp = Carbon::now()->toDateTimeString();
-        $usage = TrxVplUsage::find($id);
-        $details = TrxVplUsageDetail::where('usage_id', $usage->usage_id)->get();
-
-        foreach ($details as $detail) {
-            $qty = $detail->qty_return_usage;
-
-            $stock = MsVplProductDetail::where('product_id', $detail->product_id)
-                ->where('expired_date', $detail->expired_date)
-                ->where('whs_id', $detail->whs_id)
-                ->first();
-            if ($stock) {
-                $stock->qty_reserved = ($stock->qty_reserved ?? 0) + $qty;
-                $stock->updated_user = $user->username;
-                $stock->updated_at = $datestamp;
-                $stock->save();
-            }
-        }
-    }
 }
