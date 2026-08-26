@@ -873,6 +873,157 @@ class PersonnelController extends Controller
         }
     }
 
+    public function copyPersonnel(Request $request, $hash)
+    {
+        $user = $request->user();
+        $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
+
+        if ($groupCompanyId !== 'SBY') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Copy Template hanya tersedia untuk group SBY.',
+            ], 403);
+        }
+
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $source = Personnel::findOrFail($id);
+
+        if (strtoupper(trim((string) $source->group_cpny_id)) !== $groupCompanyId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki akses ke Personnel Requisition ini.',
+            ], 403);
+        }
+
+        if ($source->status !== 'C') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya PRF dengan status Completed yang bisa dijadikan template.',
+            ], 422);
+        }
+
+        $doctype = 'PRF';
+        $username = $user->username;
+        $dt = Carbon::now();
+        $year = (int) $dt->year;
+        $month = str_pad((string) $dt->month, 2, '0', STR_PAD_LEFT);
+        $datenow = $dt->format('Y-m-d');
+
+        DB::beginTransaction();
+        try {
+            $auto = $this->nextAutonbrByGroupCpnyid(
+                $doctype,
+                $year,
+                $month,
+                $groupCompanyId,
+                $username,
+                'PRF'
+            );
+            $urutan = (int) $auto['next'];
+            $tglbln = substr((string) $year, 2).$month;
+            $newDocid = $doctype.$tglbln.sprintf('%04d', $urutan);
+
+            $new = Personnel::create([
+                'docid' => $newDocid,
+                'cpnyid' => $source->cpnyid,
+                'group_cpny_id' => $groupCompanyId,
+                'departementid' => $source->departementid,
+                'division_id' => $source->division_id,
+                'locationname' => $source->locationname,
+                'budget_entity_id' => $source->budget_entity_id,
+                'date' => $datenow,
+                'user' => $username,
+                'job_title' => $source->job_title,
+                'subgrade_id' => $source->subgrade_id,
+                'job_level' => $source->job_level,
+                'immediate_superior' => $source->immediate_superior,
+                'state_position' => $source->state_position,
+                'immediate_replacement' => $source->immediate_replacement,
+                'job_type' => $source->job_type,
+                'reason_vacancy' => $source->reason_vacancy,
+                'required' => $source->required,
+                'actual' => $source->actual,
+                'total_actual' => $source->total_actual,
+                'education' => $source->education,
+                'education_jurusan' => $source->education_jurusan,
+                'experience_start' => $source->experience_start,
+                'experience_end' => $source->experience_end,
+                'experience_position' => $source->experience_position,
+                'created_user' => $username,
+                'status' => 'H',
+            ]);
+
+            foreach (
+                JobResponsiblities::where('docid', $source->docid)
+                    ->where('cpnyid', $source->cpnyid)
+                    ->where('group_cpny_id', $groupCompanyId)
+                    ->orderBy('no_job_responsiblities')
+                    ->get() as $item
+            ) {
+                JobResponsiblities::create([
+                    'docid' => $newDocid,
+                    'cpnyid' => $new->cpnyid,
+                    'group_cpny_id' => $groupCompanyId,
+                    'no_job_responsiblities' => $item->no_job_responsiblities,
+                    'job_responsibilities_descr' => $item->job_responsibilities_descr,
+                    'created_user' => $username,
+                    'status' => 'P',
+                ]);
+            }
+
+            foreach (
+                JobQualification::where('docid', $source->docid)
+                    ->where('cpnyid', $source->cpnyid)
+                    ->where('group_cpny_id', $groupCompanyId)
+                    ->orderBy('no_job_qualification')
+                    ->get() as $item
+            ) {
+                JobQualification::create([
+                    'docid' => $newDocid,
+                    'cpnyid' => $new->cpnyid,
+                    'group_cpny_id' => $groupCompanyId,
+                    'no_job_qualification' => $item->no_job_qualification,
+                    'job_qualification_descr' => $item->job_qualification_descr,
+                    'created_user' => $username,
+                    'status' => 'P',
+                ]);
+            }
+
+            foreach (
+                TrJobtag::where('docid', $source->docid)
+                    ->where('cpnyid', $source->cpnyid)
+                    ->where('group_cpny_id', $groupCompanyId)
+                    ->pluck('job_tags') as $tag
+            ) {
+                TrJobtag::create([
+                    'docid' => $newDocid,
+                    'cpnyid' => $new->cpnyid,
+                    'group_cpny_id' => $groupCompanyId,
+                    'job_tags' => $tag,
+                    'created_user' => $username,
+                    'status' => 'P',
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'hash' => Hashids::encode($new->id),
+                'message' => 'Draft PRF created from template.',
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function editPersonnel($hash)
     {
         $user = Auth::user();
