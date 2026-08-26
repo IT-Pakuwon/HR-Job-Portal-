@@ -282,6 +282,10 @@ class VplUsageController extends Controller
                 if (empty($detail['product_id']) || empty($detail['qty']) || empty($detail['whs_id'])) {
                     continue;
                 }
+                if (empty($detail['purpose_id'])) {
+                    $productName = MsVplProduct::where('product_id', $detail['product_id'])->value('product_name') ?? $detail['product_id'];
+                    return response()->json(['error' => 'Purpose is required for '.$productName.'.'], 422);
+                }
                 $exp     = $detail['expired_date'] ?: '1900-01-01';
                 $qty     = (float) $detail['qty'];
                 $key     = $detail['product_id'].'|'.$exp.'|'.$detail['whs_id'];
@@ -418,6 +422,10 @@ class VplUsageController extends Controller
             foreach ($request->addmore as $detail) {
                 if (empty($detail['product_id']) || empty($detail['qty']) || empty($detail['whs_id'])) {
                     continue;
+                }
+                if (empty($detail['purpose_id'])) {
+                    $productName = MsVplProduct::where('product_id', $detail['product_id'])->value('product_name') ?? $detail['product_id'];
+                    return response()->json(['error' => 'Purpose is required for '.$productName.'.'], 422);
                 }
                 $exp     = $detail['expired_date'] ?: '1900-01-01';
                 $qty     = (float) $detail['qty'];

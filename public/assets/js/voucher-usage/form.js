@@ -816,6 +816,11 @@ const VplUsageForm = {
             return;
         }
 
+        if (rows.some((r) => !r.purpose)) {
+            VplUsage.toast('error', 'Purpose is required for every detail line.');
+            return;
+        }
+
         const cpnyid   = document.getElementById(`${prefix}_cpnyid`)?.value ?? document.getElementById('e_cpnyid_display')?.value ?? '';
         const dept     = document.getElementById(`${prefix}_department`)?.value ?? document.getElementById('e_dept_display')?.value ?? '';
         const vpLabel  = mode === 'create'
