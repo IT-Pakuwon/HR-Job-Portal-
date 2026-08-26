@@ -29,8 +29,18 @@ const VplSettlementDetailModal = {
         document.getElementById('v_status_badge').innerHTML = VplSettlementHelper.statusBadgeHTML(t.status, data.status_label);
 
         // Status banner
+        const bannerMap = {
+            P: { cls: 'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30',         icon: 'fa-circle-info',          text: 'Waiting for approval. Your request is under review.' },
+            C: { cls: 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30', icon: 'fa-circle-check', text: 'Approved! Your settlement document has been accepted.' },
+            R: { cls: 'bg-red-50 text-red-700 border border-red-200 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/30',               icon: 'fa-circle-xmark',         text: 'Rejected. This document has been rejected.' },
+            D: { cls: 'bg-yellow-50 text-yellow-800 border border-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-300 dark:border-yellow-500/30', icon: 'fa-triangle-exclamation', text: 'On Hold. This document requires revision.' },
+            X: { cls: 'bg-slate-100 text-slate-600 border border-slate-200 dark:bg-white/5 dark:text-slate-400 dark:border-white/10',           icon: 'fa-ban',                  text: 'Cancelled. This document has been cancelled.' },
+        };
         const banner = document.getElementById('v_statusBanner');
-        banner.innerHTML = VplSettlementHelper.statusBadgeHTML(t.status, data.status_label);
+        const bc = bannerMap[t.status];
+        banner.innerHTML = bc
+            ? `<div class="flex-1 rounded-lg border px-4 py-3 text-sm font-medium ${bc.cls}"><i class="fa-solid ${bc.icon} mr-2 shrink-0"></i>${bc.text}</div>`
+            : '';
 
         // Revision reason
         const revWrap = document.getElementById('v_reviseReasonWrapper');
