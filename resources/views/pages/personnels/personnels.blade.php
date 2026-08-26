@@ -387,6 +387,14 @@
                                     'inline-flex justify-center items-center min-w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
                             }
 
+                            const canCopyTemplate = row.status === 'C' && row.group_cpny_id === 'SBY';
+                            const copyBtnHtml = canCopyTemplate ? `
+                                <button type="button" class="copyTemplateBtn inline-flex h-9 w-9 items-center justify-center rounded bg-teal-500 text-white transition-colors duration-200 hover:bg-teal-600"
+                                    title="Copy Template" data-eid="${row.eid}">
+                                    <i class="fas fa-copy text-sm"></i>
+                                </button>
+                            ` : '';
+
                             if (isReviseOwner) {
                                 return `
                                     <div class="flex items-center gap-2">
