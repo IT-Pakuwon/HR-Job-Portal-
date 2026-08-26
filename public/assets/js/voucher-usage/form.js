@@ -469,7 +469,7 @@ const VplUsageForm = {
 
         document.getElementById(`${prefix}_ref_wrapper`)?.classList.toggle('hidden', !isReturn);
         document.getElementById(`${prefix}_whs_wrapper`)?.classList.toggle('hidden', isReturn);
-        document.getElementById(`${prefix}_openAddProductBtn`)?.classList.toggle('hidden', isReturn);
+        VplUsageForm.toggleBtn(`${prefix}_openAddProductBtn`, !isReturn);
 
         if (prefix === 'c') VplUsageForm.toggleUsageDateSection();
 
@@ -595,7 +595,7 @@ const VplUsageForm = {
         VplUsage.state.cAttachIdx = 1;
         document.getElementById('c_ref_wrapper').classList.add('hidden');
         document.getElementById('c_whs_wrapper').classList.remove('hidden');
-        document.getElementById('c_openAddProductBtn')?.classList.remove('hidden');
+        VplUsageForm.toggleBtn('c_openAddProductBtn', true);
         VplUsageForm.toggleUsageDateSection();
         VplUsageForm.showFormView('create');
     },
@@ -678,6 +678,7 @@ const VplUsageForm = {
 
         const isReturn = t.usagetype === 'Return';
         document.getElementById('e_whs_wrapper')?.classList.toggle('hidden', isReturn);
+        VplUsageForm.toggleBtn('e_openAddProductBtn', !isReturn);
 
         if (!isReturn) {
             VplUsageForm.loadWarehouseOptions('edit');
