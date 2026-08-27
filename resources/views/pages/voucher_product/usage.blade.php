@@ -387,16 +387,21 @@
                                 <option value="Return">Return Usage</option>
                             </select>
                         </div>
-                        <div id="c_ref_wrapper" class="hidden md:col-span-4">
+                        <div id="c_ref_wrapper" class="hidden md:col-span-2">
                             <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Reference Usage Doc <span class="text-red-500">*</span></label>
                             <select name="ref_usage_id" id="c_ref_usage_id" class="w-full select2-create">
                                 <option value="">Select Reference...</option>
                             </select>
                         </div>
-                        <div id="c_usage_date_wrapper" class="hidden">
+                        <div id="c_usage_date_wrapper" class="hidden md:col-span-2">
                             <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Usage Date <span class="text-red-500">*</span></label>
                             <input type="date" name="usage_date" id="c_usage_date" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm dark:border-white/10 dark:bg-white/[0.03] dark:text-white">
                             <p class="mt-1 text-xs text-slate-400">CUSTOMERSERVICE can backdate up to H-3.</p>
+                        </div>
+                        <div id="c_event_date_wrapper" class="hidden md:col-span-2">
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Event Date <span class="text-red-500">*</span></label>
+                            <input type="date" name="event_date" id="c_event_date" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm dark:border-white/10 dark:bg-white/[0.03] dark:text-white">
+                            <p class="mt-1 text-xs text-slate-400">Required for departments other than Customer Service. Cannot be backdated.</p>
                         </div>
                         <div id="c_whs_wrapper" class="md:col-span-4">
                             <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Warehouse <span class="text-red-500">*</span></label>
@@ -749,6 +754,10 @@
                         <div id="e_ref_display_wrapper" class="hidden">
                             <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Reference Usage Doc</label>
                             <input type="text" id="e_ref_display" readonly class="h-11 w-full rounded-lg border border-slate-200 bg-slate-100 px-4 text-sm dark:border-white/10 dark:bg-white/[0.04]">
+                        </div>
+                        <div id="e_event_date_wrapper" class="hidden">
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Event Date <span class="text-red-500">*</span></label>
+                            <input type="date" name="event_date" id="e_event_date" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm dark:border-white/10 dark:bg-white/[0.03] dark:text-white">
                         </div>
                         <div class="md:col-span-3">
                             <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Remark <span class="text-red-500">*</span></label>
