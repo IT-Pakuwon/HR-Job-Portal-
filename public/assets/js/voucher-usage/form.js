@@ -649,7 +649,8 @@ const VplUsageForm = {
             const qty = t.usagetype === 'Return' ? d.qty_return_usage : d.qty_usage;
             existBody.insertAdjacentHTML('beforeend', `
                 <tr data-detail-id="${d.id}" data-product-id="${d.product_id}" data-whs-id="${d.whs_id ?? ''}"
-                    data-expired-date="${exp}" data-qty="${Number(qty ?? 0)}">
+                    data-expired-date="${exp}" data-qty="${Number(qty ?? 0)}" data-purpose-id="${d.purpose_id ?? ''}"
+                    data-product-name="${d.product_name ?? ''}">
                     <td class="px-4 py-2">
                         <div class="text-sm font-medium text-slate-800 dark:text-white">${d.product_id}</div>
                         <div class="text-xs text-slate-500">${d.product_name ?? ''}</div>
@@ -794,6 +795,24 @@ const VplUsageForm = {
 
     collectRows(prefix) {
         const rows = [];
+
+        // Edit mode: existing lines the user hasn't deleted still count toward the
+        // document — a resubmit that only changes the remark/attachments shouldn't
+        // be blocked for having no *new* rows (the server's update() already keeps
+        // these as-is when `addmore` is absent/empty).
+        if (prefix === 'e') {
+            document.querySelectorAll('#e_existDetailBody tr[data-detail-id]').forEach((row) => {
+                rows.push({
+                    product: row.dataset.productName || row.dataset.productId,
+                    whs: row.dataset.whsId,
+                    expired: row.dataset.expiredDate,
+                    qty: row.dataset.qty,
+                    purpose: row.dataset.purposeId,
+                    purposeRemark: '',
+                });
+            });
+        }
+
         document.querySelectorAll(`#${prefix}_detailBody tr[id^="${prefix}_row_"]`).forEach((row) => {
             const get = (name) => row.querySelector(`[name="addmore[${row.dataset.idx}][${name}]"]`)?.value ?? '';
             const productId  = get('product_id');
