@@ -175,6 +175,7 @@
                     <th class="px-4 py-3 text-left font-medium" style="width:100px">Action</th>
                     <th class="px-4 py-3 text-left font-medium">Usage Doc</th>
                     <th class="px-4 py-3 text-left font-medium">Date</th>
+                    <th class="px-4 py-3 text-left font-medium">Event Date</th>
                     <th class="px-4 py-3 text-left font-medium">Company</th>
                     <th class="px-4 py-3 text-left font-medium">Dept</th>
                     <th class="px-4 py-3 text-left font-medium">V/P Type</th>
