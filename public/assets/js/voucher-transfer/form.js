@@ -49,7 +49,7 @@ const VplTransferForm = {
             columns: [
                 { data: 'product_id',   title: 'Product ID' },
                 { data: 'product_name', title: 'Product Name' },
-                { data: 'expired_date', title: 'Expired Date', render: (v) => v ? v.substring(0, 10) : '—' },
+                { data: 'expired_date', title: 'Expired Date', render: (v) => VplTransferHelper.formatExpDate(v) ?? '—' },
                 {
                     data: 'qty_available', title: 'Stock',
                     className: 'text-right',
@@ -642,8 +642,7 @@ const VplTransferForm = {
         const existBody = document.getElementById('e_existDetailBody');
         existBody.innerHTML = '';
         (data.details ?? []).forEach((d) => {
-            const exp = (d.expired_date ?? '').substring(0, 10);
-            const expDisplay = (exp === '' || exp === '1900-01-01') ? '—' : exp;
+            const expDisplay = VplTransferHelper.formatExpDate(d.expired_date) ?? '—';
             existBody.insertAdjacentHTML('beforeend', `
                 <tr data-detail-id="${d.id}">
                     <td class="px-4 py-2">
@@ -884,7 +883,7 @@ const VplTransferForm = {
             row.querySelector(`.${prefix}-qty-avail-input`).value               = qtyAvail;
             row.querySelector(`.${prefix}-qty-avail-display`).textContent       = Number(qtyAvail).toLocaleString();
             row.querySelector(`.${prefix}-exp-input`).value                     = expDate;
-            row.querySelector(`.${prefix}-exp-display`).textContent             = expDate ? expDate.substring(0, 10) : '—';
+            row.querySelector(`.${prefix}-exp-display`).textContent             = VplTransferHelper.formatExpDate(expDate) ?? '—';
 
             const qtyInput = row.querySelector(`.${prefix}-qty-transfer-input`);
             qtyInput.max   = qtyAvail;

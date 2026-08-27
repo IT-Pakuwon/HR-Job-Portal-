@@ -115,6 +115,7 @@ const VplReceiveDetailModal = {
             });
         }
         $('#v_attachBody').html(attHtml);
+        $('#v_addAttachBtn').toggleClass('hidden', !d.can_add_attachment).toggleClass('inline-flex', !!d.can_add_attachment);
 
         // Messages
         VplReceiveDetailModal.renderMessages(d.messages);
@@ -319,5 +320,36 @@ const VplReceiveDetailModal = {
 
         // Approval actions
         VplReceiveDetailModal.initApprovalActions();
+
+        // Add attachment directly from the view modal
+        $('#v_addAttachBtn').on('click', () => $('#v_addAttachInput').trigger('click'));
+        $('#v_addAttachInput').on('change', function () {
+            if (!this.files || this.files.length === 0) return;
+            VplReceiveDetailModal._uploadAttachment(this.files);
+        });
+    },
+
+    _uploadAttachment(files) {
+        const id = VplReceive.state.currentViewId;
+        const formData = new FormData();
+        Array.from(files).forEach(f => formData.append('attachment[]', f));
+        formData.append('_token', VplReceive.csrf());
+
+        $.ajax({
+            type:        'POST',
+            url:         VplReceive.routes.addAttach(id),
+            data:        formData,
+            contentType: false,
+            processData: false,
+            success() {
+                $('#v_addAttachInput').val('');
+                VplReceive.toast('success', 'Attachment added.');
+                VplReceiveDetailModal.open(id);
+            },
+            error(xhr) {
+                $('#v_addAttachInput').val('');
+                VplReceive.toast('error', xhr.responseJSON?.error ?? 'Failed to add attachment.');
+            },
+        });
     },
 };

@@ -925,7 +925,9 @@ class VplTransferController extends Controller
             $products = MsVplProduct::join('ms_vpl_product_detail', 'ms_vpl_product.product_id', '=', 'ms_vpl_product_detail.product_id')
                 ->select(
                     'ms_vpl_product.product_id',
-                    DB::raw("CONCAT(ms_vpl_product.product_name,' / ',ms_vpl_product.product_value,' / ',ms_vpl_product.product_uom) AS product_name"),
+                    'ms_vpl_product.product_name',
+                    'ms_vpl_product.product_value',
+                    'ms_vpl_product.product_uom',
                     'ms_vpl_product_detail.expired_date',
                     'ms_vpl_product_detail.qty_available',
                     DB::raw('COALESCE(ms_vpl_product_detail.qty_reserved, 0) AS qty_reserved'),
@@ -949,7 +951,9 @@ class VplTransferController extends Controller
                 })
                 ->select(
                     'tr_vpl_transfer_detail.product_id',
-                    DB::raw("CONCAT(ms_vpl_product.product_name,' / ',ms_vpl_product.product_value,' / ',ms_vpl_product.product_uom) AS product_name"),
+                    'ms_vpl_product.product_name',
+                    'ms_vpl_product.product_value',
+                    'ms_vpl_product.product_uom',
                     'tr_vpl_transfer_detail.expired_date',
                     'ms_vpl_product_detail.qty_available',
                     'tr_vpl_transfer_detail.qty_transfer',
@@ -960,6 +964,12 @@ class VplTransferController extends Controller
                 ->orderBy('tr_vpl_transfer_detail.expired_date')
                 ->get();
         }
+
+        $products->transform(function ($p) {
+            $p->product_name = $p->product_name.' / '.number_format($p->product_value, 0, ',', '.').' / '.$p->product_uom;
+
+            return $p;
+        });
 
         return response()->json($products);
     }
@@ -997,7 +1007,9 @@ class VplTransferController extends Controller
         $origLines = TrxVplTransferDetail::join('ms_vpl_product', 'tr_vpl_transfer_detail.product_id', '=', 'ms_vpl_product.product_id')
             ->select(
                 'tr_vpl_transfer_detail.product_id',
-                DB::raw("CONCAT(ms_vpl_product.product_name,' / ',ms_vpl_product.product_value,' / ',ms_vpl_product.product_uom) AS product_name"),
+                'ms_vpl_product.product_name',
+                'ms_vpl_product.product_value',
+                'ms_vpl_product.product_uom',
                 'tr_vpl_transfer_detail.expired_date',
                 'tr_vpl_transfer_detail.to_whs_id AS from_whs_id',
                 'tr_vpl_transfer_detail.from_whs_id AS to_whs_id'
@@ -1021,7 +1033,7 @@ class VplTransferController extends Controller
 
             $result[] = [
                 'product_id'     => $line->product_id,
-                'product_name'   => $line->product_name,
+                'product_name'   => $line->product_name.' / '.number_format($line->product_value, 0, ',', '.').' / '.$line->product_uom,
                 'expired_date'   => $exp,
                 'from_whs_id'    => $line->from_whs_id,
                 'to_whs_id'      => $line->to_whs_id,

@@ -321,11 +321,6 @@ const VplUsageForm = {
         const input   = document.getElementById('c_usage_date');
         wrapper?.classList.toggle('hidden', !show);
 
-        // Share the row with Usage Date (1 col) instead of spanning full width.
-        const whsWrapper = document.getElementById('c_whs_wrapper');
-        whsWrapper?.classList.toggle('md:col-span-4', !show);
-        whsWrapper?.classList.toggle('md:col-span-3', show);
-
         if (show && input) {
             const today = new Date();
             const earliest = new Date();
@@ -337,6 +332,8 @@ const VplUsageForm = {
         } else if (input) {
             input.value = '';
         }
+
+        VplUsageForm.updateWhsSpan();
     },
 
     /** Returns true if valid, otherwise toasts an error and returns false. */
@@ -359,6 +356,62 @@ const VplUsageForm = {
 
         if (selected < earliest || selected > today) {
             VplUsage.toast('error', `Usage Date must be within H-${VplUsageForm.USAGE_DATE_BACKDATE_DAYS} to today.`);
+            return false;
+        }
+        return true;
+    },
+
+    // ------------------------------------------------------------------
+    // EVENT DATE (required for every department other than CUSTOMERSERVICE)
+    // ------------------------------------------------------------------
+
+    /** Today's date as YYYY-MM-DD, used as the `min` on Event Date inputs — it can never be backdated. */
+    todayISO() {
+        return new Date().toISOString().substring(0, 10);
+    },
+
+    /** Create-mode only — Edit's visibility is set directly in openEdit() from the loaded document's department/usagetype. */
+    toggleEventDateSection() {
+        const dept      = document.getElementById('c_department')?.value ?? '';
+        const usageType = document.getElementById('c_usagetype')?.value ?? '';
+        const show      = dept !== '' && dept !== 'CUSTOMERSERVICE' && usageType !== 'Return';
+
+        const wrapper = document.getElementById('c_event_date_wrapper');
+        const input   = document.getElementById('c_event_date');
+        wrapper?.classList.toggle('hidden', !show);
+        if (show && input) {
+            input.min = VplUsageForm.todayISO();
+        } else if (input) {
+            input.value = '';
+        }
+
+        VplUsageForm.updateWhsSpan();
+    },
+
+    /** Warehouse field shares its row with whichever date field (Usage Date / Event Date, each col-span-2) is showing, instead of spanning full width. */
+    updateWhsSpan() {
+        const usageDateVisible = !document.getElementById('c_usage_date_wrapper')?.classList.contains('hidden');
+        const eventDateVisible = !document.getElementById('c_event_date_wrapper')?.classList.contains('hidden');
+        const show = usageDateVisible || eventDateVisible;
+
+        const whsWrapper = document.getElementById('c_whs_wrapper');
+        whsWrapper?.classList.toggle('md:col-span-4', !show);
+        whsWrapper?.classList.toggle('md:col-span-2', show);
+    },
+
+    /** Returns true if valid, otherwise toasts an error and returns false. */
+    validateEventDate(mode) {
+        const prefix = mode === 'create' ? 'c' : 'e';
+        const wrapper = document.getElementById(`${prefix}_event_date_wrapper`);
+        if (wrapper?.classList.contains('hidden')) return true;
+
+        const input = document.getElementById(`${prefix}_event_date`);
+        if (!input?.value) {
+            VplUsage.toast('error', 'Event Date is required.');
+            return false;
+        }
+        if (input.value < VplUsageForm.todayISO()) {
+            VplUsage.toast('error', 'Event Date cannot be backdated.');
             return false;
         }
         return true;
@@ -485,7 +538,10 @@ const VplUsageForm = {
         document.getElementById(`${prefix}_whs_wrapper`)?.classList.toggle('hidden', isReturn);
         VplUsageForm.toggleBtn(`${prefix}_openAddProductBtn`, !isReturn);
 
-        if (prefix === 'c') VplUsageForm.toggleUsageDateSection();
+        if (prefix === 'c') {
+            VplUsageForm.toggleUsageDateSection();
+            VplUsageForm.toggleEventDateSection();
+        }
 
         if (isReturn) {
             VplUsageForm.loadRefOptions(mode);
@@ -511,6 +567,7 @@ const VplUsageForm = {
             VplUsageForm.showModal('createModal');
             setTimeout(() => VplUsageForm.loadWarehouseOptions('create'), 50);
             VplUsageForm.toggleUsageDateSection();
+            VplUsageForm.toggleEventDateSection();
         });
 
         ['closeCreateModal', 'closeCreateModalFooter'].forEach((id) => {
@@ -542,6 +599,7 @@ const VplUsageForm = {
         $('#c_cpnyid, #c_department, #c_vp_type').on('change', () => VplUsageForm.loadWarehouseOptions('create'));
         $('#c_department').on('change', () => {
             VplUsageForm.toggleUsageDateSection();
+            VplUsageForm.toggleEventDateSection();
             VplUsageForm.applyDefaultPurpose();
         });
         $('#c_whs_id').on('change', () => VplUsageForm.loadPickerProducts('create'));
@@ -572,6 +630,7 @@ const VplUsageForm = {
         }
 
         if (!VplUsageForm.validateUsageDate()) return;
+        if (!VplUsageForm.validateEventDate('create')) return;
 
         const fd = new FormData(form);
 
@@ -611,6 +670,7 @@ const VplUsageForm = {
         document.getElementById('c_whs_wrapper').classList.remove('hidden');
         VplUsageForm.toggleBtn('c_openAddProductBtn', true);
         VplUsageForm.toggleUsageDateSection();
+        VplUsageForm.toggleEventDateSection();
         VplUsageForm.showFormView('create');
     },
 
@@ -631,6 +691,15 @@ const VplUsageForm = {
         document.getElementById('e_usagetype_display').value    = data.usagetype_label;
         document.getElementById('e_remark').value                = t.usage_remark ?? '';
         document.getElementById('e_title').textContent           = `Edit Usage — ${t.usage_id}`;
+
+        const eventDateWrapper = document.getElementById('e_event_date_wrapper');
+        const eventDateInput   = document.getElementById('e_event_date');
+        const needsEventDate   = t.department !== 'CUSTOMERSERVICE' && t.usagetype !== 'Return';
+        eventDateWrapper?.classList.toggle('hidden', !needsEventDate);
+        if (eventDateInput) {
+            eventDateInput.min = VplUsageForm.todayISO();
+            eventDateInput.value = t.event_date ? String(t.event_date).substring(0, 10) : '';
+        }
 
         const refWrap = document.getElementById('e_ref_display_wrapper');
         if (t.ref_usage_id) {
@@ -767,6 +836,8 @@ const VplUsageForm = {
     },
 
     submitEdit() {
+        if (!VplUsageForm.validateEventDate('edit')) return;
+
         const id   = VplUsage.state.currentViewId;
         const form = document.getElementById('editForm');
         const fd   = new FormData(form);

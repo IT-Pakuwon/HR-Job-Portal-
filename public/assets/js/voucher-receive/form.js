@@ -7,11 +7,11 @@ const VplReceiveForm = {
 
     formatPrice(val) {
         const n = parseFloat(val);
-        return isNaN(n) ? '—' : n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+        return isNaN(n) ? '—' : n.toLocaleString('id-ID', { maximumFractionDigits: 0 });
     },
 
     parsePrice(val) {
-        const n = parseFloat(String(val ?? '').replace(/,/g, ''));
+        const n = parseFloat(String(val ?? '').replace(/\./g, '').replace(',', '.'));
         return isNaN(n) ? 0 : n;
     },
 
@@ -225,7 +225,8 @@ const VplReceiveForm = {
             const product = $row.find(`.${prefix}-product-sel option:selected`).text().trim();
             const qty     = $row.find('input[name*="[qty]"]').val();
             const uom     = $row.find(`.${prefix}-uom-display`).text().trim();
-            const exp     = $row.find('input[type="date"]').val() || '—';
+            const rawExp  = $row.find('input[type="date"]').val();
+            const exp     = !rawExp ? '—' : (rawExp === '1900-01-01' ? 'No Expired' : (VplReceiveHelper.formatDateLong(rawExp) ?? rawExp));
             const whs     = $row.find(`.${prefix}-whs-sel`).val() || '—';
             const price   = $row.find(`.${prefix}-price-display`).text().trim();
             if (product && product !== 'Select Product' && qty) {
@@ -290,7 +291,7 @@ const VplReceiveForm = {
             return `
             <tr style="border-bottom:1px solid #e2e8f0">
                 <td style="padding:6px 10px;text-align:left;font-size:12px">${esc(r.product)}</td>
-                <td style="padding:6px 10px;text-align:right;font-size:12px">${esc(fmt(r.price))}</td>
+                <td style="padding:6px 10px;text-align:right;font-size:12px">${esc(r.price)}</td>
                 <td style="padding:6px 10px;text-align:center;font-size:12px">${esc(r.qty)}</td>
                 <td style="padding:6px 10px;text-align:center;font-size:12px">${esc(r.uom)}</td>
                 <td style="padding:6px 10px;text-align:right;font-size:12px;font-weight:600">${esc(fmt(total))}</td>
@@ -338,9 +339,23 @@ const VplReceiveForm = {
         });
     },
 
+    // True if any file input matching selector currently has a selected file
+    hasAnyFile(selector) {
+        let found = false;
+        $(selector).each(function () {
+            if (this.files && this.files.length > 0) found = true;
+        });
+        return found;
+    },
+
     submitCreate() {
         if (!$('#c_remark').val()?.trim()) {
             Swal.fire({ icon: 'warning', title: 'Remark Required', text: 'Please enter a remark before submitting.' });
+            return;
+        }
+
+        if (!VplReceiveForm.hasAnyFile('#createForm input[name="attachment[]"]')) {
+            Swal.fire({ icon: 'warning', title: 'Attachment Required', text: 'Please attach at least one file before submitting.' });
             return;
         }
 
@@ -481,7 +496,7 @@ const VplReceiveForm = {
             : '';
         d.details.forEach(row => {
             const rawExp = (row.expired_date || '').split('T')[0];
-            const exp = (!rawExp || rawExp === '1900-01-01') ? 'No Expired' : rawExp;
+            const exp = (!rawExp || rawExp === '1900-01-01') ? 'No Expired' : (VplReceiveHelper.formatDateLong(rawExp) ?? rawExp);
             dHtml += `<tr>
                 <td class="px-4 py-2 text-xs">${row.product_name || row.product_id}</td>
                 <td class="px-4 py-2 text-xs">${row.product_source_tenant || '—'}</td>
@@ -520,6 +535,12 @@ const VplReceiveForm = {
     submitEdit() {
         if (!$('#e_remark').val()?.trim()) {
             Swal.fire({ icon: 'warning', title: 'Remark Required', text: 'Please enter a remark before submitting.' });
+            return;
+        }
+
+        const hasExistingAttach = $('#e_existAttachBody .e-del-exist-attach').length > 0;
+        if (!hasExistingAttach && !VplReceiveForm.hasAnyFile('#editForm input[name="attachment[]"]')) {
+            Swal.fire({ icon: 'warning', title: 'Attachment Required', text: 'Please attach at least one file before submitting.' });
             return;
         }
 

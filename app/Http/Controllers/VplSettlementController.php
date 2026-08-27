@@ -326,6 +326,11 @@ class VplSettlementController extends Controller
             return response()->json(['error' => 'Remark is required.'], 422);
         }
 
+        $hasValidAttachment = collect($request->file('attachment', []))->filter(fn ($f) => $f && $f->isValid())->isNotEmpty();
+        if (!$hasValidAttachment) {
+            return response()->json(['error' => 'Attachment is required.'], 422);
+        }
+
         $usage = TrxVplUsage::where('usage_id', $request->usage_id)->first();
         if (!$usage || $usage->status !== 'C') {
             return response()->json(['error' => 'Referenced Usage document must be Completed.'], 422);
@@ -470,6 +475,12 @@ class VplSettlementController extends Controller
 
         if (!$request->filled('settlement_remark')) {
             return response()->json(['error' => 'Remark is required.'], 422);
+        }
+
+        $existingAttachCount = Attachment::where('docid', $settlement->settlement_id)->where('status', 'A')->count();
+        $hasValidAttachment = collect($request->file('attachment', []))->filter(fn ($f) => $f && $f->isValid())->isNotEmpty();
+        if ($existingAttachCount === 0 && !$hasValidAttachment) {
+            return response()->json(['error' => 'Attachment is required.'], 422);
         }
 
         $lines = $request->input('lines', []);
