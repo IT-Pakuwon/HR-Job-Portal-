@@ -105,7 +105,6 @@ class VplSettlementController extends Controller
             ? TrxVplSettlement::query()
             : TrxVplSettlement::query()->whereIn('cpnyid', $multicpnyid)->whereIn('department', $multidept);
         $counts = [
-            'all' => (clone $qCount)->count(),
             'progress' => (clone $qCount)->where('status', 'P')->count(),
             'completed' => (clone $qCount)->where('status', 'C')->count(),
             'rejected' => (clone $qCount)->where('status', 'R')->count(),
@@ -118,6 +117,11 @@ class VplSettlementController extends Controller
             $counts['admin_all'] = TrxVplSettlement::count();
         }
 
+        // "Job List" card — Completed Usage docs from non-CUSTOMERSERVICE departments
+        // still waiting on someone to create their settlement. Empty for Admin/
+        // DIRECTORACCESS — see jobListBaseQuery().
+        $counts['joblist'] = $this->jobListBaseQuery($user)->count();
+
         $usercpny = Usercpny::where('username', $user->username)->get();
         $usercpny2 = Usercpny::where('username', $user->username)->first();
         $userdept = Userdept::where('username', $user->username)->get();
@@ -128,6 +132,63 @@ class VplSettlementController extends Controller
         return view('pages.voucher_product.settlement', compact(
             'user', 'usercpny', 'usercpny2', 'userdept', 'userdept2', 'counts', 'initialId'
         ));
+    }
+
+    // -------------------------------------------------------
+    // JOB LIST — Completed Usage docs (non-CUSTOMERSERVICE) with no settlement yet
+    // -------------------------------------------------------
+    /**
+     * Usage docs still owing a settlement: Completed, created by a department other
+     * than CUSTOMERSERVICE (CS settles differently and isn't part of this queue), and
+     * not already claimed by an active settlement (P/D/C — same "spoken for" rule as
+     * getSettleableUsageOptions()). Filtering to usagetype 'Usage' skips Return docs,
+     * which always carry qty_usage = 0 and so never have anything settleable anyway.
+     *
+     * Job List is a per-department action queue, not a reporting view — unlike every
+     * other tab, Admin and DIRECTORACCESS don't get a merged/system-wide version of
+     * it, because it isn't "their" job to settle another department's vouchers. It
+     * stays empty for those two roles; everyone else sees just their own company/
+     * department, exactly like the regular status tabs.
+     */
+    private function jobListBaseQuery($user)
+    {
+        if ($user->isPrimaryAdmin() || $user->hasFullDataScope()) {
+            return TrxVplUsage::whereRaw('1 = 0');
+        }
+
+        $multicpnyid = Usercpny::where('username', $user->username)->where('status', 'A')->pluck('cpny_id')->toArray();
+        $multidept = Userdept::where('username', $user->username)->pluck('department_id')->toArray();
+        $settledIds = TrxVplSettlement::whereIn('status', self::ACTIVE_SETTLEMENT_STATUSES)->pluck('usage_id');
+
+        return TrxVplUsage::where('usagetype', 'Usage')
+            ->where('status', 'C')
+            ->where('department', '<>', 'CUSTOMERSERVICE')
+            ->whereNotIn('usage_id', $settledIds)
+            ->whereIn('cpnyid', $multicpnyid)
+            ->whereIn('department', $multidept);
+    }
+
+    public function jobList(Request $request)
+    {
+        $user = Auth::user();
+
+        $data = $this->jobListBaseQuery($user)
+            ->orderByDesc('usage_date')
+            ->get();
+
+        return \DataTables::of($data)
+            ->addColumn('usage_date_fmt', fn ($r) => $r->usage_date ? Carbon::parse($r->usage_date)->format('Y-m-d') : '')
+            ->addColumn('vp_type_label', fn ($r) => match (strtoupper($r->vp_type ?? '')) {
+                'V'     => 'Voucher',
+                'P'     => 'Product',
+                default => $r->vp_type ?? '',
+            })
+            ->addColumn('action', fn ($r) => '<button type="button" class="btn-create-from-job inline-flex items-center justify-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500"'
+                .' data-usage-id="'.$r->usage_id.'" data-cpnyid="'.$r->cpnyid.'" data-department="'.$r->department.'" data-vp-type="'.$r->vp_type.'">'
+                .'<i class="fa-solid fa-plus text-[10px]"></i> Settle</button>'
+            )
+            ->rawColumns(['action'])
+            ->make(true);
     }
 
     // -------------------------------------------------------
@@ -714,7 +775,10 @@ class VplSettlementController extends Controller
     // -------------------------------------------------------
     /**
      * Completed Usage docs, scoped to company/department/vp_type, that don't
-     * already have an active (non-rejected/cancelled) settlement.
+     * already have an active (non-rejected/cancelled) settlement. Restricted to
+     * usagetype 'Usage' — a Return doc's lines always carry qty_usage = 0, so it
+     * never has anything settleable and would otherwise show up as a dead-end pick
+     * (same restriction Job List's eligibility query already applies).
      */
     public function getSettleableUsageOptions(Request $request)
     {
@@ -725,7 +789,8 @@ class VplSettlementController extends Controller
 
         $settledIds = TrxVplSettlement::whereIn('status', self::ACTIVE_SETTLEMENT_STATUSES)->pluck('usage_id');
 
-        $refs = TrxVplUsage::where('status', 'C')
+        $refs = TrxVplUsage::where('usagetype', 'Usage')
+            ->where('status', 'C')
             ->where('cpnyid', $request->cpnyid)
             ->where('department', $request->department)
             ->where('vp_type', strtoupper($request->vp_type))

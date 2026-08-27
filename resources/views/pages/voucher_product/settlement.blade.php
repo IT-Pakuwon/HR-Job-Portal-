@@ -41,11 +41,11 @@
 <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 {{ $user->isPrimaryAdmin() ? 'xl:grid-cols-7' : 'xl:grid-cols-6' }}">
 
     <button type="button" class="text-left">
-        <a href="#" class="status-filter active-card group block h-full" data-status="ALL">
-            <div class="status-card flex h-full items-center gap-3 rounded-lg border border-slate-400 bg-slate-200/20 p-3 text-slate-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95 dark:border-slate-500 dark:text-slate-300 dark:hover:bg-slate-700/30">
-                <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
-                <div class="flex min-w-0 flex-grow flex-col leading-tight"><p class="break-words text-sm font-medium">All</p></div>
-                <p class="shrink-0 text-base font-bold">{{ $counts['all'] }}</p>
+        <a href="#" class="status-filter active-card group block h-full" data-status="JOBLIST">
+            <div class="status-card flex h-full items-center gap-3 rounded-lg border border-indigo-500 bg-indigo-100/30 p-3 text-indigo-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-md active:scale-95 dark:border-indigo-500 dark:text-indigo-400 dark:hover:bg-indigo-500/20">
+                <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🧾</div>
+                <div class="flex min-w-0 flex-grow flex-col leading-tight"><p class="break-words text-sm font-medium">Job List</p></div>
+                <p class="shrink-0 text-base font-bold">{{ $counts['joblist'] }}</p>
             </div>
         </a>
     </button>
@@ -122,9 +122,10 @@
 
     <div class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
         <div>
-            <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
+            <h2 id="panelTitle" class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
                 Settlement Product / Voucher
             </h2>
+            <p id="jobListSubtitle" class="hidden mt-0.5 text-xs text-slate-400">Completed Usage documents (non-Customer Service) still waiting on a settlement — click Settle to create one.</p>
         </div>
         <div class="flex items-center gap-3">
             @if($user->isPrimaryAdmin())
@@ -146,14 +147,10 @@
                 </select>
             </div>
             @endif
-            <button id="openCreateBtn" type="button"
-                class="inline-flex h-10 items-center justify-center rounded-lg bg-indigo-600 px-5 text-sm font-medium text-white transition hover:bg-indigo-500">
-                <i class="fa-solid fa-plus mr-2 text-xs"></i> New Settlement
-            </button>
         </div>
     </div>
 
-    <div class="relative overflow-hidden">
+    <div id="settlementTableWrap" class="relative overflow-hidden">
         <table id="settlementTable" class="w-full min-w-full border-separate border-spacing-0 text-sm" style="width:100%">
             <thead>
                 <tr class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
@@ -165,6 +162,23 @@
                     <th class="px-4 py-3 text-left font-medium">Usage ID</th>
                     <th class="px-4 py-3 text-left font-medium">Remark</th>
                     <th class="px-4 py-3 text-left font-medium">Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div id="jobListTableWrap" class="relative hidden overflow-hidden">
+        <table id="jobListTable" class="w-full min-w-full border-separate border-spacing-0 text-sm" style="width:100%">
+            <thead>
+                <tr class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                    <th class="px-4 py-3 text-left font-medium" style="width:100px">Action</th>
+                    <th class="px-4 py-3 text-left font-medium">Usage Doc</th>
+                    <th class="px-4 py-3 text-left font-medium">Date</th>
+                    <th class="px-4 py-3 text-left font-medium">Company</th>
+                    <th class="px-4 py-3 text-left font-medium">Dept</th>
+                    <th class="px-4 py-3 text-left font-medium">V/P Type</th>
+                    <th class="px-4 py-3 text-left font-medium">Remark</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -697,6 +711,7 @@
     window.VplSettlementConfig = {
         base:        '{{ url("settlementvp") }}',
         store:       '{{ route("settlementvp.store") }}',
+        jobList:     '{{ route("settlementvp.joblist") }}',
         usageOptions:'{{ route("settlementvp.usage-options") }}',
         usageLines:  '{{ route("settlementvp.usage-lines") }}',
         delAttach:   '{{ route("settlementvp.attachment.delete") }}',

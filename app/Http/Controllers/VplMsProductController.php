@@ -364,7 +364,6 @@ class VplMsProductController extends Controller
                 $msproduct->product_value          = $request->product_value;
                 $msproduct->product_uom            = strtoupper($request->product_uom ?? '');
                 $msproduct->product_check_exp      = $request->product_check_exp;
-                $msproduct->status                 = $request->status;
                 $msproduct->updated_user           = $username;
 
                 if ($request->hasFile('product_photo')) {

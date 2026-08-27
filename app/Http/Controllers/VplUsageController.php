@@ -960,14 +960,43 @@ class VplUsageController extends Controller
         return response()->json($breakdown);
     }
 
+    /**
+     * Completed Usage docs eligible as a Return's reference — excludes any doc
+     * that's already fully returned (nothing left for returnableUsageQty() to give
+     * out), since offering it would only lead to getReturnRefDetails() coming back
+     * empty. Aggregated at doc level (total qty_usage vs total qty_return_usage
+     * already claimed by sibling P/C Return docs) rather than checked per line —
+     * safe because store()/update() never let a single line's returns exceed its
+     * own qty_usage, so summing across lines can't hide a still-returnable one.
+     */
     public function getReturnRefOptions(Request $request)
     {
-        $refs = TrxVplUsage::where('status', 'C')
+        $usageIds = TrxVplUsage::where('status', 'C')
             ->where('usagetype', 'Usage')
             ->where('cpnyid', $request->cpnyid)
             ->where('department', $request->department)
             ->where('vp_type', strtoupper($request->vp_type))
+            ->orderByDesc('usage_date')
             ->pluck('usage_id');
+
+        if ($usageIds->isEmpty()) {
+            return response()->json([]);
+        }
+
+        $totalUsage = TrxVplUsageDetail::whereIn('usage_id', $usageIds)
+            ->selectRaw('usage_id, SUM(qty_usage) as total')
+            ->groupBy('usage_id')
+            ->pluck('total', 'usage_id');
+
+        $totalReturned = TrxVplUsageDetail::join('tr_vpl_usage', 'tr_vpl_usage_detail.usage_id', '=', 'tr_vpl_usage.usage_id')
+            ->whereIn('tr_vpl_usage_detail.ref_usage_id', $usageIds)
+            ->whereIn('tr_vpl_usage.status', ['P', 'C'])
+            ->selectRaw('tr_vpl_usage_detail.ref_usage_id, SUM(tr_vpl_usage_detail.qty_return_usage) as total')
+            ->groupBy('tr_vpl_usage_detail.ref_usage_id')
+            ->pluck('total', 'ref_usage_id');
+
+        $refs = $usageIds->filter(fn ($usageId) => (float) ($totalUsage[$usageId] ?? 0) - (float) ($totalReturned[$usageId] ?? 0) > 0)
+            ->values();
 
         return response()->json($refs);
     }

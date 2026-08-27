@@ -17,9 +17,9 @@ const VplSettlementInit = {
             $(sel).select2({ placeholder: 'Select...', allowClear: true, width: '100%', dropdownParent: $('#createModal') });
         });
 
-        VplSettlementDatalist.init();
         VplSettlementDatalist.initFilterButtons();
         VplSettlementDatalist.initRowClick();
+        VplSettlementDatalist.activateTab(VplSettlement.state.currentStatus);
 
         VplSettlementDetailModal.init();
 

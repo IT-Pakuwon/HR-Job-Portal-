@@ -272,7 +272,7 @@ class VplReceiveController extends Controller
             $user->username,
             self::DOCTYPE_DSC
         );
-        $tglbln = substr((string) $dt->year, 2).$autonbr['month'];
+        $tglbln = substr((string) $dt->year, 2).sprintf('%02d', (int) $autonbr['month']);
         $docid = self::DOCTYPE.$tglbln.sprintf('%04d', $autonbr['next']);
 
         try {
