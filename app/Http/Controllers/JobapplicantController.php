@@ -629,10 +629,12 @@ class JobapplicantController extends Controller
             }
 
             $userCpnyIds = $this->userCpnyIds($user);
+            $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
 
             $rows = DB::connection('mysql3')
                 ->table('hr_ms_applicant as a')
                 ->join('viewtrxcareer as vc', 'vc.applicant_id', '=', 'a.applicant_id')
+                ->where('vc.group_cpny_id', $groupCompanyId)
                 ->where('vc.status', '!=', 'X')
                 ->when(!empty($userCpnyIds), function ($q) use ($userCpnyIds) {
                     $q->whereIn('vc.cpnyid', $userCpnyIds);
@@ -749,15 +751,26 @@ class JobapplicantController extends Controller
                 : collect([$applicant->applicant_id]);
 
             $userCpnyIds = $this->userCpnyIds($user);
+            $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
 
             $canFilterJobTL = $this->hasFullApplicantAccess($user);
 
             $rows = DB::connection('mysql3')
                 ->table('viewtrxcareer as vc')
-                ->leftJoin('hr_trx_jobposting as jp', 'jp.docid', '=', 'vc.docidposting')
-                ->leftJoin('hr_ms_department as dept', 'dept.department_id', '=', 'jp.departementid')
-                ->leftJoin('hr_ms_division as div', 'div.division_id', '=', 'dept.division_id')
+                ->leftJoin('hr_trx_jobposting as jp', function ($join) {
+                    $join->on('jp.docid', '=', 'vc.docidposting')
+                        ->on('jp.group_cpny_id', '=', 'vc.group_cpny_id');
+                })
+                ->leftJoin('hr_ms_department as dept', function ($join) {
+                    $join->on('dept.department_id', '=', 'jp.departementid')
+                        ->on('dept.group_cpny_id', '=', 'vc.group_cpny_id');
+                })
+                ->leftJoin('hr_ms_division as div', function ($join) {
+                    $join->on('div.division_id', '=', 'dept.division_id')
+                        ->on('div.group_cpny_id', '=', 'vc.group_cpny_id');
+                })
                 ->whereIn('vc.applicant_id', $matchedApplicantIds)
+                ->where('vc.group_cpny_id', $groupCompanyId)
                 ->where('vc.status', '!=', 'X')
                 ->when(!empty($userCpnyIds), function ($q) use ($userCpnyIds) {
                     $q->whereIn('vc.cpnyid', $userCpnyIds);
@@ -775,6 +788,7 @@ class JobapplicantController extends Controller
                     DB::raw('vc.id as _id'),
                     'vc.applicant_id',
                     'vc.docid',
+                    'vc.fullname',
                     'vc.job_title',
                     'vc.job_level',
                     'vc.company_name',
@@ -820,6 +834,7 @@ class JobapplicantController extends Controller
                 return [
                     'eid' => Hashids::encode($r->_id),
                     'docid' => $r->docid,
+                    'full_name' => $r->fullname,
                     'job_title' => $r->job_title,
                     'job_level' => $r->job_level,
                     'company_name' => $r->company_name,

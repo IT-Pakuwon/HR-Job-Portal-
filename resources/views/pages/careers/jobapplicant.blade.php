@@ -22,6 +22,12 @@
         .dark .legend-dot-checked { background-color: #ffffff; }
         .dark .legend-dot-unchecked { background-color: #22d3ee; }
         .dark .legend-dot-reject { background-color: #f87171; }
+
+        table#applicantsTable td.step-col,
+        table#applicantsTable th.step-col {
+            width: 150px !important;
+            max-width: 150px !important;
+        }
     </style>
     <div class="max-w-9xl mx-auto p-2">
         {{-- Tab nav --}}
@@ -193,6 +199,9 @@
                                 Name
                             </th>
                             <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
+                                Job Applied
+                            </th>
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Education
                             </th>
                             <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
@@ -210,8 +219,11 @@
                             <th scope="col" class="w-32 px-4 py-3 text-center font-medium">
                                 Score
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-center font-medium">
+                            <th scope="col" class="step-col w-32 px-4 py-3 text-center font-medium">
                                 Step
+                            </th>
+                            <th scope="col" class="w-28 px-4 py-3 text-center font-medium">
+                                Status
                             </th>
                             <th scope="col" class="w-28 px-4 py-3 text-center font-medium">
                                 Action
@@ -245,6 +257,7 @@
                             <th class="w-24 px-4 py-3 text-left font-medium">Action</th>
                             <th class="px-4 py-3 text-left font-medium">Matched By</th>
                             <th class="px-4 py-3 text-left font-medium">DocID</th>
+                            <th class="px-4 py-3 text-left font-medium">Name</th>
                             <th class="px-4 py-3 text-left font-medium">Job Title — Level</th>
                             <th class="px-4 py-3 text-left font-medium">Company</th>
                             <th class="px-4 py-3 text-left font-medium">Apply Date</th>
@@ -575,39 +588,39 @@
                     className: 'whitespace-normal break-words'
                 },
                 {
-                    index: 4,
+                    index: 5,
                     type: 'text',
                     placeholder: 'Education',
                     className: 'whitespace-normal break-words'
                 },
                 {
-                    index: 5,
+                    index: 6,
                     type: 'text',
                     placeholder: 'Religion'
                 },
                 {
-                    index: 6,
+                    index: 7,
                     type: 'text',
                     placeholder: 'Height'
                 },
                 {
-                    index: 7,
+                    index: 8,
                     type: 'text',
                     placeholder: 'Weight'
                 },
                 {
-                    index: 8,
+                    index: 9,
                     type: 'text',
                     placeholder: 'Company',
                     className: 'whitespace-normal break-words'
                 },
                 {
-                    index: 9,
+                    index: 10,
                     type: 'text',
                     placeholder: 'Score'
                 },
                 {
-                    index: 10,
+                    index: 11,
                     type: 'select',
                     placeholder: 'Step',
                     // options: stepLabelMap
@@ -685,7 +698,7 @@
                         responsivePriority: 2
                     },
                     {
-                        targets: [3, 4, 5, 6, 7, 8, 9, 10], // less important columns
+                        targets: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12], // less important columns
                         responsivePriority: 100
                     }
                 ],
@@ -765,6 +778,16 @@
                         name: 'fullname'
                     },
                     {
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+                        className: 'whitespace-normal break-words',
+                        render: function(data, type, row) {
+                            const jobTL = [row.job_title, row.job_level].filter(Boolean).join(' — ');
+                            return jobTL || '<span class="text-gray-400">—</span>';
+                        }
+                    },
+                    {
                         data: 'education_name',
                         name: 'education_name'
                     },
@@ -794,9 +817,36 @@
                     {
                         data: 'apply_step',
                         name: 'apply_step',
+                        className: 'step-col',
                         render: function(data) {
                             const label = stepLabelMap[data] || data;
                             return `<span class="inline-flex justify-center items-center w-[120px] bg-blue-300/30 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300 text-sm font-semibold px-3 py-1.5 text-center rounded whitespace-normal break-words"> ${label} </span>`;
+                        }
+                    },
+                    {
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            let label, cls;
+                            if (row.status === 'T') {
+                                label = 'Transfer';
+                                cls = 'bg-violet-300/30 text-violet-600 dark:bg-violet-500/20 dark:text-violet-300';
+                            } else if (row.status === 'R') {
+                                label = 'Reject';
+                                cls = 'bg-red-300/30 text-red-600 dark:bg-red-500/20 dark:text-red-300';
+                            } else if (row.status === 'C') {
+                                label = 'Approved';
+                                cls = 'bg-green-300/30 text-green-600 dark:bg-green-500/20 dark:text-green-300';
+                            } else if (row.is_read === 'N') {
+                                label = 'Unchecked';
+                                cls = 'bg-blue-300/30 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300';
+                            } else {
+                                label = 'Checked';
+                                cls = 'bg-gray-300/30 text-gray-600 dark:bg-gray-500/20 dark:text-gray-300';
+                            }
+                            return `<span class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-semibold text-center rounded ${cls}">${label}</span>`;
                         }
                     },
                     {
@@ -873,9 +923,9 @@
 
 
             // kecilkan tiga header kolom numerik
-            $('#applicantsTable thead tr:eq(0) th').eq(5).addClass('small-col');
             $('#applicantsTable thead tr:eq(0) th').eq(6).addClass('small-col');
-            $('#applicantsTable thead tr:eq(0) th').eq(8).addClass('small-col');
+            $('#applicantsTable thead tr:eq(0) th').eq(7).addClass('small-col');
+            $('#applicantsTable thead tr:eq(0) th').eq(9).addClass('small-col');
 
             if ($('#filterJobTL').length) {
                 $('#filterJobTL').select2({
@@ -1070,6 +1120,7 @@
                                 </td>
                                 <td class="px-4 py-3">${matchedByBadge}</td>
                                 <td class="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">${r.docid}${isThisRow ? ' <span class="ml-1 text-[10px] font-bold text-indigo-500">(this)</span>' : ''}</td>
+                                <td class="px-4 py-3">${r.full_name || '—'}</td>
                                 <td class="px-4 py-3">${jobTL}</td>
                                 <td class="px-4 py-3">${r.company_name || '—'}</td>
                                 <td class="px-4 py-3">${r.apply_date || '—'}</td>

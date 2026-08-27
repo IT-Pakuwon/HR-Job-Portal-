@@ -465,6 +465,10 @@ class PersonnelController extends Controller
         $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
         $isDraft = $request->boolean('is_draft');
 
+        if ($isDraft && $groupCompanyId !== 'SBY') {
+            return response()->json(['message' => 'Save as Draft hanya tersedia untuk group SBY.'], 403);
+        }
+
         $rules = [
             'cpnyid' => 'required|string',
             'departementid' => 'required|string',
@@ -1183,6 +1187,10 @@ class PersonnelController extends Controller
         $user = $request->user();
         $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
         $isDraft = $request->boolean('is_draft');
+
+        if ($isDraft && $groupCompanyId !== 'SBY') {
+            return response()->json(['message' => 'Save as Draft hanya tersedia untuk group SBY.'], 403);
+        }
 
         // Validasi utama
         $rules = [

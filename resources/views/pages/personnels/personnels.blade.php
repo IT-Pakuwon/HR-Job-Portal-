@@ -1,8 +1,13 @@
 <x-app-layout>
     @php
         $isHcbp = auth()->user()->hasRole('HCBPACCESS');
+        $isSby = ($group_cpny_id ?? '') === 'SBY';
 
-        $xlCols = 6; // default jumlah card
+        $xlCols = 5; // All, On Progress, Reject, Revise, Completed
+
+        if ($isSby) {
+            $xlCols++; // tambah 1 untuk Draft (Save as Draft / Copy Template khusus SBY)
+        }
 
         if ($isHcbp) {
             $xlCols++; // tambah 1 untuk HCBP All
@@ -58,7 +63,7 @@
                 </div>
             </a>
 
-            {{-- Revise / Draft --}}
+            {{-- Revise --}}
             <a href="#" class="status-filter group block h-full" data-status="D">
                 <div
                     class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
@@ -66,12 +71,29 @@
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✏️</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Revise / Draft</p>
+                        <p class="break-words text-sm font-medium">Revise</p>
                     </div>
 
                     <p class="shrink-0 text-base font-bold">{{ $revise }}</p>
                 </div>
             </a>
+
+            {{-- Draft --}}
+            @if($isSby)
+            <a href="#" class="status-filter group block h-full" data-status="H">
+                <div
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-md active:scale-95">
+
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📝</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-sm font-medium">Draft</p>
+                    </div>
+
+                    <p class="shrink-0 text-base font-bold">{{ $draft }}</p>
+                </div>
+            </a>
+            @endif
 
             {{-- Completed --}}
             <a href="#" class="status-filter group block h-full" data-status="C">
@@ -119,7 +141,9 @@
                             <option value="R">Reject</option>
                             <option value="D">Revise</option>
                             <option value="C">Completed</option>
+                            @if($isSby)
                             <option value="H">Draft</option>
+                            @endif
                         </select>
 
                         <select id="filterDept" class="border rounded px-3 py-2 text-sm">

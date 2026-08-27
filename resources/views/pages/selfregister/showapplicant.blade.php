@@ -863,7 +863,14 @@
             <label class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">Division</label>
             <select id="tagDivisionSelect" class="w-full" style="width:100%">
                 <option value="">-- Select Division --</option>
-                @php $showDivisions = \App\Models\Division::select('division_id','division_name')->where('status','A')->orderBy('division_name')->get(); @endphp
+                @php
+                    $tagGroupCpnyId = strtoupper(trim((string) (auth()->user()->group_cpny_id ?? '')));
+                    $showDivisions = \App\Models\Division::select('division_id','division_name')
+                        ->where('status','A')
+                        ->where('group_cpny_id', $tagGroupCpnyId)
+                        ->orderBy('division_name')
+                        ->get();
+                @endphp
                 @foreach($showDivisions as $div)
                     <option value="{{ $div->division_id }}">{{ $div->division_name }}</option>
                 @endforeach

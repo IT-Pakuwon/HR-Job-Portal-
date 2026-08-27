@@ -519,10 +519,6 @@
                             </button>
 
                             <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                                <button type="button" id="saveDraftBtn"
-                                    class="flex items-center justify-center gap-2 rounded-md bg-gray-500 px-4 py-2 text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
-                                    <span id="draftBtnText">Save as Draft</span>
-                                </button>
                                 <button type="submit" id="submitBtn"
                                     class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                     <span id="btnText">Submit Approval</span>
