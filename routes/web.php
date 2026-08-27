@@ -178,6 +178,8 @@ use App\Http\Controllers\VplTransferController;
 use App\Http\Controllers\VplSettlementController;
 use App\Http\Controllers\VplUsageController;
 use App\Http\Controllers\VplWarehouseSetupController;
+use App\Http\Controllers\VpCollectionDashboardController;
+use App\Http\Controllers\VpPromotionDashboardController;
 use App\Http\Controllers\WarehouseDashboardController;
 use App\Http\Controllers\WoController;
 use App\Http\Controllers\WorkInstructionController;
@@ -2311,6 +2313,24 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/booking-car-json', 'bookingCarJson')->name('ga.booking-car');
             Route::get('/parking-json', 'parkingJson')->name('ga.parking');
             Route::get('/approval-doctypes', 'approvalDocTypes')->name('ga.approval-doctypes');
+        });
+
+        Route::prefix('vpcollection-dashboard')->controller(VpCollectionDashboardController::class)->name('vpcoll-dashboard.')->group(function () {
+            Route::get('/summary-json', 'summaryJson')->name('summary-json');
+            Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('waiting-approval-json');
+            Route::get('/approval-history-json', 'approvalHistoryJson')->name('approval-history-json');
+            Route::get('/expired-json', 'expiredJson')->name('expired-json');
+            Route::get('/waiting-settlement-json', 'waitingSettlementJson')->name('waiting-settlement-json');
+            Route::get('/approval-doctypes-json', 'approvalDocTypes')->name('approval-doctypes-json');
+        });
+
+        Route::prefix('vppromotion-dashboard')->controller(VpPromotionDashboardController::class)->name('vpprmtn-dashboard.')->group(function () {
+            Route::get('/summary-json', 'summaryJson')->name('summary-json');
+            Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('waiting-approval-json');
+            Route::get('/approval-history-json', 'approvalHistoryJson')->name('approval-history-json');
+            Route::get('/expired-json', 'expiredJson')->name('expired-json');
+            Route::get('/waiting-settlement-json', 'waitingSettlementJson')->name('waiting-settlement-json');
+            Route::get('/approval-doctypes-json', 'approvalDocTypes')->name('approval-doctypes-json');
         });
 
         Route::prefix('finance-dashboard')->controller(FinanceDashboardController::class)->group(function () {

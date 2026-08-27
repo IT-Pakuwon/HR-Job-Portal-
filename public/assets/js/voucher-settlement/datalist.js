@@ -52,6 +52,7 @@ const VplSettlementDatalist = {
                 { data: 'action',         name: 'action',        orderable: false, searchable: false, width: '100px' },
                 { data: 'usage_id',       name: 'usage_id' },
                 { data: 'usage_date_fmt', name: 'usage_date' },
+                { data: 'event_date_fmt', name: 'event_date', defaultContent: '-' },
                 { data: 'cpnyid',         name: 'cpnyid' },
                 { data: 'department',     name: 'department' },
                 { data: 'vp_type_label',  name: 'vp_type' },

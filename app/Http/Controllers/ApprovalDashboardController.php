@@ -9,6 +9,7 @@ use App\Models\TrCS;
 use App\Models\TrLndTrainingRegistration;
 use App\Models\TrVoucherTaxi;
 use App\Models\TrxVplReceive;
+use App\Models\TrxVplSettlement;
 use App\Models\TrxVplTransfer;
 use App\Models\TrxVplUsage;
 use App\Models\ViewDasAll;
@@ -439,6 +440,39 @@ class ApprovalDashboardController extends Controller
             }
         } catch (\Throwable $e) {
             Log::warning('approvalJson VPU fetch failed', [
+                'err' => $e->getMessage(),
+            ]);
+        }
+
+        // VPS (Voucher Product Settlement) — not in v_all_das/v_all_trx; fetch directly
+        try {
+            $vpsDocids = $docids->filter(fn ($id) => str_starts_with($id, 'VPS'))->values();
+            if ($vpsDocids->isNotEmpty()) {
+                $vpsM     = new TrxVplSettlement();
+                $vpsConn  = $vpsM->getConnectionName() ?: config('database.default');
+                $vpsTable = $vpsM->getTable();
+                $vpsRows  = collect();
+                foreach ($vpsDocids->chunk(1200) as $chunk) {
+                    $vpsRows = $vpsRows->concat(
+                        DB::connection($vpsConn)
+                            ->table($vpsTable)
+                            ->whereIn('settlement_id', $chunk->all())
+                            ->select(
+                                'id',
+                                'settlement_date as docdate',
+                                'cpnyid',
+                                'department as departementid',
+                                'settlement_remark as infohd',
+                                'settlement_id as docid'
+                            )
+                            ->get()
+                            ->map(fn ($r) => (object) array_merge((array) $r, ['url' => '/showsettlementvp']))
+                    );
+                }
+                $data = $data->concat($vpsRows);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('approvalJson VPS fetch failed', [
                 'err' => $e->getMessage(),
             ]);
         }

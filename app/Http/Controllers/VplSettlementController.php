@@ -178,6 +178,7 @@ class VplSettlementController extends Controller
 
         return \DataTables::of($data)
             ->addColumn('usage_date_fmt', fn ($r) => $r->usage_date ? Carbon::parse($r->usage_date)->format('Y-m-d') : '')
+            ->addColumn('event_date_fmt', fn ($r) => $r->event_date ? Carbon::parse($r->event_date)->format('Y-m-d') : '-')
             ->addColumn('vp_type_label', fn ($r) => match (strtoupper($r->vp_type ?? '')) {
                 'V'     => 'Voucher',
                 'P'     => 'Product',
