@@ -21,6 +21,11 @@ const VplUsageInit = {
         $('#c_picker_product').select2({ placeholder: 'Select...', allowClear: true, width: '100%', dropdownParent: $('#c_addProductModal') });
         $('#e_picker_product').select2({ placeholder: 'Select...', allowClear: true, width: '100%', dropdownParent: $('#e_addProductModal') });
 
+        // Select2 on the "Usage All" doctype filter (admin only — element absent otherwise)
+        if ($('#f_doctype').length) {
+            $('#f_doctype').select2({ width: '100%' });
+        }
+
         VplUsageDatalist.init();
         VplUsageDatalist.initFilterButtons();
         VplUsageDatalist.initRowClick();

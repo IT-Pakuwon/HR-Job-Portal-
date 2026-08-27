@@ -41,7 +41,13 @@ const VplReceiveDatalist = {
             ajax: {
                 url:     VplReceive.routes.base,
                 headers: { 'X-CSRF-TOKEN': VplReceive.csrf() },
-                data(d) { d.status = VplReceive.state.currentStatus; },
+                data(d) {
+                    d.status = VplReceive.state.currentStatus;
+                    if (VplReceive.state.currentStatus === 'ADMINALL') {
+                        d.filter_vp_type = $('#f_vp_type').val() || '';
+                        d.filter_doc_status = $('#f_doc_status').val() || 'ALL';
+                    }
+                },
             },
             columns: [
                 {
@@ -103,10 +109,21 @@ const VplReceiveDatalist = {
     initFilterButtons() {
         $(document).on('click', '.status-filter', function (e) {
             e.preventDefault();
-            VplReceive.state.currentStatus = $(this).data('status') || 'ALL';
+            const status = $(this).data('status') || 'ALL';
+            VplReceive.state.currentStatus = status;
             $('.status-filter').removeClass('active-card');
             $(this).addClass('active-card');
+            $('#adminAllFilters')
+                .toggleClass('hidden', status !== 'ADMINALL')
+                .toggleClass('flex', status === 'ADMINALL');
             VplReceiveDatalist.table?.ajax.reload(null, true);
+        });
+
+        // Type / Status dropdowns only apply while "Receive All" is active
+        $(document).on('change', '#f_vp_type, #f_doc_status', function () {
+            if (VplReceive.state.currentStatus === 'ADMINALL') {
+                VplReceiveDatalist.table?.ajax.reload(null, true);
+            }
         });
     },
 

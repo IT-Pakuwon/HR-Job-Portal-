@@ -2719,6 +2719,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/users-sby/{id}/edit', [UsersController::class, 'edit'])->name('users-sby.edit');
         Route::put('/users-sby/{post}', [UsersController::class, 'update'])->name('users-sby.update');
         Route::put('/users-sby/{id}/toggle-status', [UsersController::class, 'toggleStatus'])->name('users-sby.toggle-status');
+        Route::post('/users-sby/{id}/impersonate', [UsersController::class, 'impersonate'])->name('users-sby.impersonate');
 
         Route::get('/manage-approvals-sby', [ManageApprovalController::class, 'index'])->name('manage-approvals-sby');
         Route::get('/manage-approvals-sby/json', [ManageApprovalController::class, 'search'])->name('manage-approvals-sby.json');

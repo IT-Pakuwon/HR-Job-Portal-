@@ -102,6 +102,15 @@ class User extends Authenticatable
     }
 
     /**
+     * True only for the literal "admin" role token — unlike isAdmin(), does not
+     * also match "adminsby". Use for features that must stay exclusive to admin.
+     */
+    public function isPrimaryAdmin(): bool
+    {
+        return in_array('admin', $this->roles(), true);
+    }
+
+    /**
      * True for roles that should see every transaction across every company/department and
      * be let into every screen their menu access grants — bypassing cpny_id/department_id
      * scoping AND any hard hasRole('XACCESS') view gate. Distinct from isAdmin() because

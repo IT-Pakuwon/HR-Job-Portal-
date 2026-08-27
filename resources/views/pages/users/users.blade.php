@@ -1414,7 +1414,7 @@
 
                 if (result.isConfirmed) {
                     $.ajax({
-                        url: `/users/${userId}/impersonate`,
+                        url: `{{ $usersBase }}/${userId}/impersonate`,
                         type: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}'

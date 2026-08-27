@@ -25,12 +25,16 @@ const VplMasterDatalist = {
                 type:    'GET',
                 headers: { 'X-CSRF-TOKEN': VplMaster.csrf() },
                 data:    d => {
+                    const adminAll = VplMasterDatalist.statusFilter === 'ADMINALL';
                     d.status_filter       = VplMasterDatalist.statusFilter;
                     d.filter_type         = $('#filter_type').val()         || '';
                     d.filter_doc_id       = $('#filter_doc_id').val()       || '';
                     d.filter_category     = $('#filter_category').val()     || '';
                     d.filter_source       = $('#filter_source').val()       || '';
                     d.filter_product_name = $('#filter_product_name').val() || '';
+                    if (adminAll) {
+                        d.filter_company = $('#adm_filter_company').val() || '';
+                    }
                 },
             },
             columns: [
@@ -119,12 +123,23 @@ const VplMasterDatalist = {
     // STATUS FILTER PILLS
     // --------------------------------------------------------
     initStatusFilter() {
-        $(document).on('click', '.vpl-filter-btn', function (e) {
+        $(document).on('click', '.status-filter', function (e) {
             e.preventDefault();
-            $('.vpl-filter-btn').removeClass('active-filter');
-            $(this).addClass('active-filter');
-            VplMasterDatalist.statusFilter = $(this).data('status') ?? '';
+            $('.status-filter').removeClass('active-card');
+            $(this).addClass('active-card');
+            const status = $(this).data('status') ?? '';
+            VplMasterDatalist.statusFilter = status;
+            $('#adminAllFilters')
+                .toggleClass('hidden', status !== 'ADMINALL')
+                .toggleClass('flex', status === 'ADMINALL');
             VplMasterDatalist.table?.ajax.reload(null, true);
+        });
+
+        // Company dropdown only applies while "All Product" is active
+        $(document).on('change', '#adm_filter_company', function () {
+            if (VplMasterDatalist.statusFilter === 'ADMINALL') {
+                VplMasterDatalist.table?.ajax.reload(null, true);
+            }
         });
     },
 
@@ -237,13 +252,15 @@ const VplMasterDatalist = {
 
         // Export
         $(document).on('click', '#btn_export_filter', () => {
+            const adminAll = VplMasterDatalist.statusFilter === 'ADMINALL';
             const params = new URLSearchParams({
                 status_filter:       VplMasterDatalist.statusFilter,
-                filter_type:         $('#filter_type').val()         || '',
+                filter_type:         $('#filter_type').val() || '',
                 filter_doc_id:       $('#filter_doc_id').val()       || '',
                 filter_category:     $('#filter_category').val()     || '',
                 filter_source:       $('#filter_source').val()       || '',
                 filter_product_name: $('#filter_product_name').val() || '',
+                ...(adminAll ? { filter_company: $('#adm_filter_company').val() || '' } : {}),
             });
             window.open(`${VplMaster.routes.export()}?${params.toString()}`, '_blank');
         });
