@@ -3555,8 +3555,10 @@ class EngTicketController extends Controller
 
         $isEng = $this->canActOnTicketType($ticket->ticket_type);
 
+        $isPendingApprover = $this->isApprover($ticket);
+
         $isApprover = $ticket->status_pekerjaan === 'COMPLETE_REQUESTED'
-            && $this->isApprover($ticket);
+            && $isPendingApprover;
 
         $userCompanies = collect(explode(',', (string) $user->cpny_id))
             ->map(fn ($item) => trim($item))
@@ -3575,7 +3577,8 @@ class EngTicketController extends Controller
             'can_view' => $isRequester
                 || $isPIC
                 || $isEng
-                || $sameCompanyDept,
+                || $sameCompanyDept
+                || $isPendingApprover,
 
             'can_edit' => $isRequester
                 && $ticket->status === 'P'

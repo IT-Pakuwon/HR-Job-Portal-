@@ -16,6 +16,16 @@ const VplReceiveHelper = {
         return parsed.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     },
 
+    // Formats a date-ish string with the full month name, e.g. "7 August 2026".
+    // Returns null for empty/placeholder dates so callers can supply their own fallback.
+    formatDateLong(raw) {
+        const d = String(raw ?? '').substring(0, 10);
+        if (!d || d === '1900-01-01') return null;
+        const parsed = new Date(`${d}T00:00:00`);
+        if (isNaN(parsed)) return d;
+        return parsed.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    },
+
     statusBadgeHTML(status, label) {
         const map = {
             P: 'background:#FFCD05;color:#000',
@@ -74,7 +84,7 @@ const VplReceiveHelper = {
                 <span class="${prefix}-uom-display block rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-500 dark:bg-white/[0.04] dark:text-slate-400">—</span>
             </td>
             <td class="px-4 py-2">
-                <input type="date" name="addmore[${idx}][expired_date]"
+                <input type="date" name="addmore[${idx}][expired_date]" min="${new Date().toISOString().split('T')[0]}"
                     class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-white/10 dark:bg-[#0b1220]">
             </td>
             <td class="${prefix}-whs-td px-4 py-2">

@@ -41,6 +41,7 @@ const VplReceive = {
         revise:  (id)  => `${VplReceive.routes.base}/${id}/revise`,
         cancel:  (id)  => `${VplReceive.routes.base}/${id}/cancel`,
         message: (id)  => `${VplReceive.routes.base}/${id}/message`,
+        addAttach: (id) => `${VplReceive.routes.base}/${id}/attachment/add`,
         show:    (rid) => `/showreceivevp/${rid}`,
     },
 

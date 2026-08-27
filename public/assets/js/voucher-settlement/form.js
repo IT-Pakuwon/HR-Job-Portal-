@@ -147,6 +147,15 @@ const VplSettlementForm = {
         document.getElementById('c_confirmSubmitBtn').addEventListener('click', () => VplSettlementForm.submitCreate());
     },
 
+    // True if any file input matching selector currently has a selected file
+    hasAnyFile(selector) {
+        let found = false;
+        document.querySelectorAll(selector).forEach((input) => {
+            if (input.files?.length > 0) found = true;
+        });
+        return found;
+    },
+
     submitCreate() {
         const form = document.getElementById('createForm');
 
@@ -160,6 +169,10 @@ const VplSettlementForm = {
         }
         if (!VplSettlementForm.collectLines('c').length) {
             VplSettlement.toast('error', 'This document has no settlement lines.');
+            return;
+        }
+        if (!VplSettlementForm.hasAnyFile('#createForm input[name="attachment[]"]')) {
+            VplSettlement.toast('error', 'Attachment is required.');
             return;
         }
 
@@ -286,6 +299,12 @@ const VplSettlementForm = {
     },
 
     submitEdit() {
+        const hasExistingAttach = document.getElementById('e_existAttachBody')?.children.length > 0;
+        if (!hasExistingAttach && !VplSettlementForm.hasAnyFile('#editForm input[name="attachment[]"]')) {
+            VplSettlement.toast('error', 'Attachment is required.');
+            return;
+        }
+
         const id   = VplSettlement.state.currentViewId;
         const form = document.getElementById('editForm');
         const fd   = new FormData(form);

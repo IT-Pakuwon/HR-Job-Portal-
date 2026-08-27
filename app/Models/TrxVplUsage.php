@@ -16,6 +16,7 @@ class TrxVplUsage extends Model
     protected $fillable = [
         'usage_id',
         'usage_date',
+        'event_date',
         'cpnyid',
         'department',
         'user_peminta',
@@ -32,6 +33,7 @@ class TrxVplUsage extends Model
 
     protected $casts = [
         'usage_date' => 'date',
+        'event_date' => 'date',
         'completed_at' => 'datetime',
     ];
 

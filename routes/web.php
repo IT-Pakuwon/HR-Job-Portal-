@@ -3386,6 +3386,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/requestvp/{id}/edit', [VplReceiveController::class, 'edit'])->name('requestvp.edit');
         Route::post('/requestvp/{id}/update', [VplReceiveController::class, 'update'])->name('requestvp.update');
         Route::post('/requestvp/{id}/cancel', [VplReceiveController::class, 'cancel'])->name('requestvp.cancel');
+        Route::post('/requestvp/{id}/attachment/add', [VplReceiveController::class, 'addAttachment'])->name('requestvp.attachment.add');
         Route::post('/editreceivevp/{id}', [VplReceiveController::class, 'update'])->name('editreceivevp');
     });
 

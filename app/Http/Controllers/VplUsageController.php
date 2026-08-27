@@ -301,6 +301,25 @@ class VplUsageController extends Controller
             return response()->json(['error' => 'Remark is required.'], 422);
         }
 
+        $hasValidAttachment = collect($request->file('attachment', []))->filter(fn ($f) => $f && $f->isValid())->isNotEmpty();
+        if (!$hasValidAttachment) {
+            return response()->json(['error' => 'Attachment is required.'], 422);
+        }
+
+        // Every department other than CUSTOMERSERVICE must record the date of the
+        // event the usage relates to; CUSTOMERSERVICE has no such event and uses
+        // usage_date (backdate) instead. Unlike usage_date, event_date can never be
+        // backdated — it can only be today or in the future. Not applicable to
+        // Return Usage — a return has no event of its own to date.
+        if ($request->department !== 'CUSTOMERSERVICE' && $usagetype !== 'Return') {
+            if (!$request->filled('event_date')) {
+                return response()->json(['error' => 'Event Date is required.'], 422);
+            }
+            if (Carbon::parse($request->event_date)->startOfDay()->lt($dt->copy()->startOfDay())) {
+                return response()->json(['error' => 'Event Date cannot be backdated.'], 422);
+            }
+        }
+
         // CUSTOMERSERVICE Usage/Return docs may be backdated up to H-3 (e.g. logging
         // usage recorded late); every other department is always dated "today".
         $usageDate = $dt->copy();
@@ -379,6 +398,7 @@ class VplUsageController extends Controller
                 $usage = TrxVplUsage::create([
                     'usage_id' => $docid,
                     'usage_date' => $usageDate->format('Y-m-d'),
+                    'event_date' => $request->filled('event_date') ? $request->event_date : null,
                     'cpnyid' => $request->cpnyid,
                     'department' => $request->department,
                     'user_peminta' => $user->username,
@@ -460,6 +480,21 @@ class VplUsageController extends Controller
 
         if (!$request->filled('usage_remark')) {
             return response()->json(['error' => 'Remark is required.'], 422);
+        }
+
+        $existingAttachCount = Attachment::where('docid', $usage->usage_id)->where('status', 'A')->count();
+        $hasValidAttachment = collect($request->file('attachment', []))->filter(fn ($f) => $f && $f->isValid())->isNotEmpty();
+        if ($existingAttachCount === 0 && !$hasValidAttachment) {
+            return response()->json(['error' => 'Attachment is required.'], 422);
+        }
+
+        if ($usage->department !== 'CUSTOMERSERVICE' && $usage->usagetype !== 'Return') {
+            if (!$request->filled('event_date')) {
+                return response()->json(['error' => 'Event Date is required.'], 422);
+            }
+            if (Carbon::parse($request->event_date)->startOfDay()->lt($dt->copy()->startOfDay())) {
+                return response()->json(['error' => 'Event Date cannot be backdated.'], 422);
+            }
         }
 
         if ($usage->usagetype === 'Return' && TrxVplSettlement::where('usage_id', $usage->ref_usage_id)->whereIn('status', ['P', 'D'])->exists()) {
@@ -569,6 +604,9 @@ class VplUsageController extends Controller
                 );
 
                 $usage->usage_remark = $request->usage_remark ?? $usage->usage_remark;
+                if ($request->filled('event_date')) {
+                    $usage->event_date = $request->event_date;
+                }
                 $usage->status = 'P';
                 $usage->updated_user = $user->name;
                 $usage->updated_at = $dt->toDateTimeString();

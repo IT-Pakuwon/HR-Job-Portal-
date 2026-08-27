@@ -1,6 +1,6 @@
 const VplTransferHelper = {
 
-    // Formats a date-ish string as "17 Sep 2027" — no time. Returns null for
+    // Formats a date-ish string as "7 Agustus 2026" — no time. Returns null for
     // empty/placeholder dates (empty string, '1900-01-01') so callers can
     // supply their own fallback text (e.g. "—").
     formatExpDate(raw) {
@@ -8,7 +8,7 @@ const VplTransferHelper = {
         if (!d || d === '1900-01-01') return null;
         const parsed = new Date(`${d}T00:00:00`);
         if (isNaN(parsed)) return d;
-        return parsed.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        return parsed.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
     },
 
     statusBadgeHTML(status, label) {
@@ -154,8 +154,7 @@ const VplTransferHelper = {
      * user only edits Qty Transfer. Always removable, including the first row.
      */
     buildRefDetailRow(prefix, idx, line) {
-        const exp        = (line.expired_date ?? '').substring(0, 10);
-        const expDisplay = (exp === '' || exp === '1900-01-01') ? '—' : exp;
+        const expDisplay = VplTransferHelper.formatExpDate(line.expired_date) ?? '—';
         const avail      = Number(line.qty_returnable ?? 0);
         const nameEsc    = String(line.product_name ?? '').replace(/"/g, '&quot;');
         return `
