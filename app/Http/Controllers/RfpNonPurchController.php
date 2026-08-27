@@ -2911,6 +2911,11 @@ class RfpNonPurchController extends Controller
         $rfpnonpurch->business_unit_id = $selectedBuId;
         $rfpnonpurch->business_unit_name = $business_unit_name;
 
+        $deposit = TrRfpNonPurchDeposit::query()
+            ->where('rfpnonpurchaseid', $rfpnonpurch->rfpnonpurchaseid)
+            ->where('status', 'A')
+            ->first();
+
         // =========================
         // FORMAT DATE
         // =========================
@@ -2965,6 +2970,7 @@ class RfpNonPurchController extends Controller
             'isRCA' => $isRCA,
             'hasBudgetDetail' => $hasBudgetDetail,
             'hasTaxDetail' => $hasTaxDetail,
+            'deposit' => $deposit,
         ]);
 
         $pdf->setPaper('A4', 'portrait');

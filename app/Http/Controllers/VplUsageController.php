@@ -40,21 +40,43 @@ class VplUsageController extends Controller
         $multicpnyid = Usercpny::where('username', $user->username)->where('status', 'A')->pluck('cpny_id')->toArray();
         $multidept = Userdept::where('username', $user->username)->pluck('department_id')->toArray();
 
-        $isVpAccess = $user->hasRole('VPACCESS');
+        // "Usage All" — admin-only, system-wide view (ignores company/department
+        // scoping) with its own Type/Doctype/Status dropdown filters. Every other tab
+        // keeps admin scoped to their own company/department just like any other user.
+        $isAdmin = $user->isPrimaryAdmin();
+
+        // DIRECTORACCESS sees every transaction unscoped everywhere, on every tab —
+        // distinct from the admin-only "Usage All" tab, which stays admin-exclusive.
+        $hasFullScope = $user->hasFullDataScope();
 
         if ($request->ajax()) {
             $status = $request->input('status', 'ALL');
+            $adminAll = $isAdmin && $status === 'ADMINALL';
 
             $base = TrxVplUsage::query();
-            if ($user->role !== 'admin' && !$isVpAccess) {
+            if (!$adminAll && !$hasFullScope) {
                 $base->whereIn('cpnyid', $multicpnyid)->whereIn('department', $multidept);
             }
-            if ($status !== 'ALL') {
+
+            if ($adminAll) {
+                if ($request->filled('filter_vp_type')) {
+                    $base->where('vp_type', $request->filter_vp_type);
+                }
+                if ($request->filled('filter_doctype')) {
+                    $base->where('usagetype', $request->filter_doctype);
+                }
+                if ($request->filled('filter_doc_status') && $request->filter_doc_status !== 'ALL') {
+                    $base->where('status', $request->filter_doc_status);
+                }
+            } elseif ($status !== 'ALL') {
                 $base->where('status', $status);
             }
+
             $data = $base->orderByDesc('created_at')->get();
 
-            if ($status === 'P' && $data->isNotEmpty()) {
+            $waitingStatus = $adminAll ? $request->input('filter_doc_status') : $status;
+
+            if ($waitingStatus === 'P' && $data->isNotEmpty()) {
                 $approverMap = TrApproval::whereIn('refnbr', $data->pluck('usage_id'))
                     ->where('aprv_doctype', self::DOCTYPE)
                     ->where('status', 'P')
@@ -83,11 +105,11 @@ class VplUsageController extends Controller
                 ->make(true);
         }
 
-        // Status count cards
-        $qCount = TrxVplUsage::query();
-        if ($user->role !== 'admin' && !$isVpAccess) {
-            $qCount->whereIn('cpnyid', $multicpnyid)->whereIn('department', $multidept);
-        }
+        // Status count cards — scoped to the user's own company/department, admin
+        // included; DIRECTORACCESS holders count across everything instead.
+        $qCount = $hasFullScope
+            ? TrxVplUsage::query()
+            : TrxVplUsage::query()->whereIn('cpnyid', $multicpnyid)->whereIn('department', $multidept);
         $counts = [
             'all' => (clone $qCount)->count(),
             'progress' => (clone $qCount)->where('status', 'P')->count(),
@@ -96,6 +118,11 @@ class VplUsageController extends Controller
             'cancelled' => (clone $qCount)->where('status', 'X')->count(),
             'hold' => (clone $qCount)->where('status', 'D')->count(),
         ];
+
+        // "Usage All" card — system-wide total, admin-only.
+        if ($isAdmin) {
+            $counts['admin_all'] = TrxVplUsage::count();
+        }
 
         $usercpny = Usercpny::where('username', $user->username)->get();
         $usercpny2 = Usercpny::where('username', $user->username)->first();
@@ -136,6 +163,14 @@ class VplUsageController extends Controller
 
         if (!$usage) {
             return response()->json(['error' => 'Not found'], 404);
+        }
+        // A VPACCESS holder can create a Usage doc outside their own scope (see store()),
+        // so let the creator keep viewing/tracking it even though it falls outside their
+        // normal company/department access.
+        if (!$this->hasDepartmentAccess($user, $usage->cpnyid, $usage->department)
+            && $usage->created_user !== $user->name
+            && !$user->hasFullDataScope()) {
+            return response()->json(['error' => 'You do not have access to view this document.'], 403);
         }
 
         $details = TrxVplUsageDetail::join('ms_vpl_product', 'tr_vpl_usage_detail.product_id', '=', 'ms_vpl_product.product_id')
@@ -230,6 +265,12 @@ class VplUsageController extends Controller
         $dt = Carbon::now();
         $vp_type = strtoupper($request->vp_type);       // 'V' | 'P'
         $usagetype = $request->usagetype;                 // 'Usage' | 'Return'
+
+        // VPACCESS lets a user (e.g. HR) create a Usage doc for a company/department
+        // they don't otherwise belong to; everyone else needs normal membership.
+        if (!$user->hasRole('VPACCESS') && !$this->hasDepartmentAccess($user, $request->cpnyid, $request->department)) {
+            return response()->json(['error' => 'You do not have access to create a Usage document for this company/department.'], 403);
+        }
 
         if ($usagetype === 'Return' && empty($request->ref_usage_id)) {
             return response()->json(['error' => 'Reference Usage Doc is required for Return.'], 422);
@@ -987,6 +1028,18 @@ class VplUsageController extends Controller
             'X' => '<span class="w-32 bg-red-200/60 text-red-800 dark:bg-red-300/40 dark:text-red-900 pointer-events-none border border-red-600/40 font-semibold px-4 py-2 text-center rounded">Cancel</span>',
             default => '<span class="w-32 bg-amber-200/60 text-amber-800 dark:bg-amber-300/40 dark:text-amber-900 pointer-events-none border border-amber-600/40 font-semibold px-4 py-2 text-center rounded">Revise</span>',
         };
+    }
+
+    private function hasDepartmentAccess($user, ?string $cpnyid, ?string $department): bool
+    {
+        if ($user->isPrimaryAdmin()) {
+            return true;
+        }
+
+        $hasCpny = Usercpny::where('username', $user->username)->where('status', 'A')->where('cpny_id', $cpnyid)->exists();
+        $hasDept = Userdept::where('username', $user->username)->where('department_id', $department)->exists();
+
+        return $hasCpny && $hasDept;
     }
 
     /**

@@ -11,6 +11,10 @@ const VplSettlementDatalist = {
                 type: 'GET',
                 data: (d) => {
                     d.status = VplSettlement.state.currentStatus;
+                    if (VplSettlement.state.currentStatus === 'ADMINALL') {
+                        d.filter_vp_type = $('#f_vp_type').val() || '';
+                        d.filter_doc_status = $('#f_doc_status').val() || 'ALL';
+                    }
                 },
             },
             columns: [
@@ -39,8 +43,19 @@ const VplSettlementDatalist = {
             e.preventDefault();
             $('.status-filter').removeClass('active-card');
             $(this).addClass('active-card');
-            VplSettlement.state.currentStatus = $(this).data('status');
+            const status = $(this).data('status');
+            VplSettlement.state.currentStatus = status;
+            $('#adminAllFilters')
+                .toggleClass('hidden', status !== 'ADMINALL')
+                .toggleClass('flex', status === 'ADMINALL');
             VplSettlementDatalist.table?.ajax.reload(null, false);
+        });
+
+        // Type / Status dropdowns only apply while "Settlement All" is active
+        $(document).on('change', '#f_vp_type, #f_doc_status', function () {
+            if (VplSettlement.state.currentStatus === 'ADMINALL') {
+                VplSettlementDatalist.table?.ajax.reload(null, false);
+            }
         });
     },
 

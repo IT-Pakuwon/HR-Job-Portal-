@@ -672,8 +672,11 @@ class UsersController extends Controller
     public function impersonate($id)
     {
         $currentUser = Auth::user();
+        $currentRoles = array_map('trim', explode(',', $currentUser->user_role ?? ''));
+        $isAdmin = in_array('admin', $currentRoles, true);
+        $isAdminSby = in_array('adminsby', $currentRoles, true);
 
-        if (!$currentUser || !in_array('admin', array_map('trim', explode(',', $currentUser->user_role ?? '')), true)) {
+        if (!$currentUser || (!$isAdmin && !$isAdminSby)) {
             abort(403, 'Unauthorized');
         }
 
@@ -682,6 +685,11 @@ class UsersController extends Controller
         }
 
         $targetUser = User::findOrFail($id);
+
+        // adminsby may only impersonate SBY-scoped users, via the /users-sby route
+        if (!$isAdmin && (!$this->isSbyContext() || $targetUser->group_cpny_id !== 'SBY')) {
+            abort(403, 'Unauthorized');
+        }
 
         session(['impersonate_original_username' => $currentUser->username]);
 

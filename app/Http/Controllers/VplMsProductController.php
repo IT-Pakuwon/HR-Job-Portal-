@@ -49,9 +49,12 @@ class VplMsProductController extends Controller
             ->toArray();
     }
 
+    // VPACCESS grants HR-style users the ability to create Usage documents
+    // outside their own company/department (see VplUsageController::store) —
+    // it is not a "see everything" role, so only admin bypasses scoping here.
     private function isFullAccess(): bool
     {
-        return Auth::user()->hasRole('VPACCESS');
+        return Auth::user()->isPrimaryAdmin();
     }
 
     // Uploads a product photo to GCS under att-vpl/product-photo/ and
@@ -126,6 +129,15 @@ class VplMsProductController extends Controller
         $category  = MsCategory::where('doctype', 'VPL')->where('status', 'A')->get();
         $cpnyIds   = $this->cpnyIds();
 
+        // "All Product" — admin-only, system-wide view (ignores company scoping) with
+        // its own Company/Type filters. The normal status cards stay scoped to the
+        // user's own company, admin included.
+        $isAdmin = $this->isFullAccess();
+
+        // DIRECTORACCESS sees every product unscoped everywhere, on every tab —
+        // distinct from the admin-only "All Product" tab, which stays admin-exclusive.
+        $hasFullScope = $user->hasFullDataScope();
+
         $uomList = MsBaseUom::where('status', 'A')->orderBy('uomid')->pluck('uomid');
 
         $allCategories = MsCategory::where('doctype', 'VPL')
@@ -134,24 +146,35 @@ class VplMsProductController extends Controller
         $allSources = MsCategory::where('doctype', 'VPL')
             ->where('categoryid', 'type')->where('groups', 'SOURCE')->where('status', 'A')
             ->pluck('category_name');
+        $allCompanies = $isAdmin
+            ? MsVplProduct::whereNotNull('cpnyid')->distinct()->orderBy('cpnyid')->pluck('cpnyid')
+            : collect();
 
-        // Status counts for filter cards
-        $base     = $this->isFullAccess()
-            ? MsVplProduct::query()
-            : MsVplProduct::whereIn('cpnyid', $cpnyIds);
+        // Status counts for filter cards — scoped to the user's own company, admin
+        // included; DIRECTORACCESS holders count across everything instead.
+        $base          = $hasFullScope ? MsVplProduct::query() : MsVplProduct::whereIn('cpnyid', $cpnyIds);
         $countAll      = (clone $base)->count();
         $countActive   = (clone $base)->where('status', 'A')->count();
         $countInactive = (clone $base)->where('status', 'X')->count();
 
+        // "All Product" card — system-wide total, admin-only.
+        $countAdminAll = $isAdmin ? MsVplProduct::count() : 0;
+
         if ($request->ajax()) {
-            $query = $this->isFullAccess()
+            $statusFilter = $request->input('status_filter', '');
+            $adminAll     = $isAdmin && $statusFilter === 'ADMINALL';
+
+            $query = ($adminAll || $hasFullScope)
                 ? MsVplProduct::query()
                 : MsVplProduct::whereIn('cpnyid', $cpnyIds);
 
             // Status card filter
-            $statusFilter = $request->input('status_filter', '');
             if (in_array($statusFilter, ['A', 'X'], true)) {
                 $query->where('status', $statusFilter);
+            }
+
+            if ($adminAll && $request->filled('filter_company')) {
+                $query->where('cpnyid', $request->filter_company);
             }
 
             // Toolbar filters
@@ -204,8 +227,8 @@ class VplMsProductController extends Controller
 
         return view('pages.voucher_product.master', compact(
             'title', 'usercpny', 'usercpny2', 'category',
-            'countAll', 'countActive', 'countInactive',
-            'allCategories', 'allSources', 'uomList'
+            'countAll', 'countActive', 'countInactive', 'countAdminAll', 'isAdmin',
+            'allCategories', 'allSources', 'allCompanies', 'uomList'
         ));
     }
 
@@ -231,15 +254,19 @@ class VplMsProductController extends Controller
 
     public function export(Request $request)
     {
-        $user    = Auth::user();
-        $cpnyIds = $this->cpnyIds();
+        $user     = Auth::user();
+        $cpnyIds  = $this->cpnyIds();
+        $adminAll = $this->isFullAccess() && $request->input('status_filter') === 'ADMINALL';
 
-        $query = $this->isFullAccess()
+        $query = ($adminAll || $user->hasFullDataScope())
             ? MsVplProduct::query()
             : MsVplProduct::whereIn('cpnyid', $cpnyIds);
 
         if ($request->filled('status_filter') && in_array($request->status_filter, ['A', 'X'])) {
             $query->where('status', $request->status_filter);
+        }
+        if ($adminAll && $request->filled('filter_company')) {
+            $query->where('cpnyid', $request->filter_company);
         }
         if ($request->filled('filter_type')) {
             $query->where('product_type', $request->filter_type);
@@ -285,6 +312,10 @@ class VplMsProductController extends Controller
     {
         abort_unless($request->ajax(), 404);
         $msproduct = MsVplProduct::findOrFail($id);
+
+        if (!$this->isFullAccess() && !Auth::user()->hasFullDataScope() && !in_array($msproduct->cpnyid, $this->cpnyIds(), true)) {
+            abort(403);
+        }
 
         $hasStock = MsVplProductDetail::where('product_id', $msproduct->product_id)
             ->where('status', 'A')
@@ -434,6 +465,10 @@ class VplMsProductController extends Controller
 
         $msproduct = MsVplProduct::findOrFail($id);
 
+        if (!$this->isFullAccess() && !Auth::user()->hasFullDataScope() && !in_array($msproduct->cpnyid, $this->cpnyIds(), true)) {
+            abort(403);
+        }
+
         $stock = MsVplProductDetail::where('product_id', $msproduct->product_id)
             ->where('status', 'A')
             ->orderBy('expired_date')
@@ -459,6 +494,10 @@ class VplMsProductController extends Controller
         abort_if(!$id, 404);
 
         $msproduct = MsVplProduct::findOrFail($id);
+
+        if (!$this->isFullAccess() && !Auth::user()->hasFullDataScope() && !in_array($msproduct->cpnyid, $this->cpnyIds(), true)) {
+            abort(403);
+        }
 
         $msproductdetail = MsVplProductDetail::where('product_id', $msproduct->product_id)
             ->where('status', 'A')

@@ -44,18 +44,39 @@ class VplTransferController extends Controller
         $user        = Auth::user();
         $multicpnyid = Usercpny::where('username', $user->username)->where('status', 'A')->pluck('cpny_id')->toArray();
         $multidept   = Userdept::where('username', $user->username)->pluck('department_id')->toArray();
-        $isVpAccess  = $user->hasRole('VPACCESS');
+
+        // "Transfer All" — admin-only, system-wide view (ignores company/department
+        // scoping) with its own Type/Doctype/Status dropdown filters. Every other tab
+        // keeps admin scoped to their own company/department just like any other user.
+        $isAdmin = $user->isPrimaryAdmin();
+
+        // DIRECTORACCESS sees every transaction unscoped everywhere, on every tab —
+        // distinct from the admin-only "Transfer All" tab, which stays admin-exclusive.
+        $hasFullScope = $user->hasFullDataScope();
 
         if ($request->ajax()) {
             $status = $request->input('status', 'ALL');
+            $adminAll = $isAdmin && $status === 'ADMINALL';
 
             $base = TrxVplTransfer::query();
-            if ($user->role !== 'admin' && !$isVpAccess) {
+            if (!$adminAll && !$hasFullScope) {
                 $base->whereIn('cpnyid', $multicpnyid)->whereIn('department', $multidept);
             }
-            if ($status !== 'ALL') {
+
+            if ($adminAll) {
+                if ($request->filled('filter_vp_type')) {
+                    $base->where('vp_type', $request->filter_vp_type);
+                }
+                if ($request->filled('filter_doctype')) {
+                    $base->where('transfertype', $request->filter_doctype);
+                }
+                if ($request->filled('filter_doc_status') && $request->filter_doc_status !== 'ALL') {
+                    $base->where('status', $request->filter_doc_status);
+                }
+            } elseif ($status !== 'ALL') {
                 $base->where('status', $status);
             }
+
             $data = $base->orderByDesc('created_at')->get();
 
             return DataTables::of($data)
@@ -79,11 +100,11 @@ class VplTransferController extends Controller
                 ->make(true);
         }
 
-        // Status count cards
-        $qCount = TrxVplTransfer::query();
-        if ($user->role !== 'admin' && !$isVpAccess) {
-            $qCount->whereIn('cpnyid', $multicpnyid)->whereIn('department', $multidept);
-        }
+        // Status count cards — scoped to the user's own company/department, admin
+        // included; DIRECTORACCESS holders count across everything instead.
+        $qCount = $hasFullScope
+            ? TrxVplTransfer::query()
+            : TrxVplTransfer::query()->whereIn('cpnyid', $multicpnyid)->whereIn('department', $multidept);
         $counts = [
             'all'       => (clone $qCount)->count(),
             'progress'  => (clone $qCount)->where('status', 'P')->count(),
@@ -92,6 +113,11 @@ class VplTransferController extends Controller
             'cancelled' => (clone $qCount)->where('status', 'X')->count(),
             'hold'      => (clone $qCount)->where('status', 'D')->count(),
         ];
+
+        // "Transfer All" card — system-wide total, admin-only.
+        if ($isAdmin) {
+            $counts['admin_all'] = TrxVplTransfer::count();
+        }
 
         $usercpny  = Usercpny::where('username', $user->username)->get();
         $usercpny2 = Usercpny::where('username', $user->username)->first();
@@ -136,6 +162,9 @@ class VplTransferController extends Controller
 
         if (!$transfer) {
             return response()->json(['error' => 'Not found'], 404);
+        }
+        if (!$this->hasDepartmentAccess($user, $transfer->cpnyid, $transfer->department) && !$user->hasFullDataScope()) {
+            return response()->json(['error' => 'You do not have access to view this document.'], 403);
         }
 
         $details = TrxVplTransferDetail::join('ms_vpl_product', 'tr_vpl_transfer_detail.product_id', '=', 'ms_vpl_product.product_id')
@@ -1090,7 +1119,7 @@ class VplTransferController extends Controller
 
     private function hasDepartmentAccess($user, ?string $cpnyid, ?string $department): bool
     {
-        if ($user->role === 'admin' || $user->hasRole('VPACCESS')) {
+        if ($user->isPrimaryAdmin()) {
             return true;
         }
 

@@ -11,6 +11,11 @@ const VplUsageDatalist = {
                 type: 'GET',
                 data: (d) => {
                     d.status = VplUsage.state.currentStatus;
+                    if (VplUsage.state.currentStatus === 'ADMINALL') {
+                        d.filter_vp_type = $('#f_vp_type').val() || '';
+                        d.filter_doctype = $('#f_doctype').val() || '';
+                        d.filter_doc_status = $('#f_doc_status').val() || 'ALL';
+                    }
                 },
             },
             columns: [
@@ -40,8 +45,24 @@ const VplUsageDatalist = {
             e.preventDefault();
             $('.status-filter').removeClass('active-card');
             $(this).addClass('active-card');
-            VplUsage.state.currentStatus = $(this).data('status');
+            const status = $(this).data('status');
+            VplUsage.state.currentStatus = status;
+            $('#adminAllFilters')
+                .toggleClass('hidden', status !== 'ADMINALL')
+                .toggleClass('flex', status === 'ADMINALL');
             VplUsageDatalist.table?.ajax.reload(null, false);
+        });
+
+        // Type / Doctype / Status dropdowns only apply while "Usage All" is active
+        $(document).on('change', '#f_vp_type, #f_doc_status', function () {
+            if (VplUsage.state.currentStatus === 'ADMINALL') {
+                VplUsageDatalist.table?.ajax.reload(null, false);
+            }
+        });
+        $(document).on('select2:select select2:clear', '#f_doctype', function () {
+            if (VplUsage.state.currentStatus === 'ADMINALL') {
+                VplUsageDatalist.table?.ajax.reload(null, false);
+            }
         });
     },
 

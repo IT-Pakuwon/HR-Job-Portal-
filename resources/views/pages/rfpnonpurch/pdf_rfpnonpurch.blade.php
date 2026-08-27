@@ -366,6 +366,18 @@
                 {{ $paymentText }}
             </td>
         </tr>
+
+        @if (!empty($deposit))
+            <tr>
+                <td class="label">Transfer To / Bank Account</td>
+                <td class="colon">:</td>
+                <td colspan="4">
+                    {{ $deposit->transferto ?: '-' }} /
+                    {{ $deposit->bankname ?: '-' }} /
+                    {{ $deposit->bankacct ?: '-' }}
+                </td>
+            </tr>
+        @endif
     </table>
 
     {{-- DETAIL --}}

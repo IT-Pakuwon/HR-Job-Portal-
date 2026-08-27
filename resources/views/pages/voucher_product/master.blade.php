@@ -18,6 +18,8 @@
             --vpl-muted: #cbd5e1;
         }
 
+        .status-filter.active-card .status-card { box-shadow: 0 0 0 2px #6366f1; }
+
         /* required label asterisk */
         label.req::after {
             content: " *";
@@ -217,11 +219,11 @@
 
     <div class="max-w-9xl mx-auto w-full p-2">
 
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-x md:grid-cols-3 xl:grid-cols-3">
+        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 {{ $isAdmin ? 'xl:grid-cols-4' : 'xl:grid-cols-3' }}">
 
             {{-- All --}}
             <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="">
+                <a href="#" class="status-filter active-card group block h-full" data-status="">
                     <div
                         class="status-card flex h-full items-center gap-3 rounded-lg border border-slate-400 bg-slate-200/20 p-3 text-slate-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95 dark:border-slate-500 dark:text-slate-300 dark:hover:bg-slate-700/30">
                         <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📄</div>
@@ -261,6 +263,22 @@
                     </div>
                 </a>
             </button>
+
+            {{-- All Product — admin only, system-wide view --}}
+            @if($isAdmin)
+            <button type="button" class="text-left">
+                <a href="#" class="status-filter group block h-full" data-status="ADMINALL">
+                    <div
+                        class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-500 bg-purple-100/30 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95 dark:border-purple-500 dark:text-purple-400 dark:hover:bg-purple-500/20">
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🌐</div>
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="wrap-break-word text-sm font-medium">All Product</p>
+                        </div>
+                        <p class="shrink-0 text-base font-bold">{{ $countAdminAll }}</p>
+                    </div>
+                </a>
+            </button>
+            @endif
 
         </div>
 
@@ -357,6 +375,17 @@
                     <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Master Stock</h2>
                 </div>
                 <div class="flex items-center gap-3">
+                    @if($isAdmin)
+                    <div id="adminAllFilters" class="hidden items-center gap-2">
+                        <select id="adm_filter_company"
+                            class="h-10 rounded-lg border border-gray-300 bg-white py-2 pl-3 pr-10 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                            <option value="">All Companies</option>
+                            @foreach ($allCompanies as $cpny)
+                                <option value="{{ $cpny }}">{{ $cpny }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
                     <a href="{{ route('vpl.msproduct.setupwarehouse') }}" target="_blank"
                         class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]">
                         <i class="fa-solid fa-sliders text-xs"></i> Setup
