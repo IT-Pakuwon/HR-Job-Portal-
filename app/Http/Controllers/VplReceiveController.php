@@ -40,25 +40,43 @@ class VplReceiveController extends Controller
         $multicpnyid = Usercpny::where('username', $user->username)->where('status', 'A')->pluck('cpny_id')->toArray();
         $multidept = Userdept::where('username', $user->username)->pluck('department_id')->toArray();
 
-        $isVpAccess = $user->hasRole('VPACCESS');
+        // "Receive All" — admin-only, system-wide view (ignores company/department
+        // scoping) with its own Type/Status dropdown filters. Every other tab keeps
+        // admin scoped to their own company/department just like any other user.
+        $isAdmin = $user->isPrimaryAdmin();
+
+        // DIRECTORACCESS sees every transaction unscoped everywhere, on every tab —
+        // distinct from the admin-only "Receive All" tab, which stays admin-exclusive.
+        $hasFullScope = $user->hasFullDataScope();
 
         if ($request->ajax()) {
             $status = $request->input('status', 'ALL');
+            $adminAll = $isAdmin && $status === 'ADMINALL';
 
             // TrxVplReceive (pgsql5) and TrApproval (pgsql2) are on different connections
             // so we cannot JOIN — fetch approver names separately
             $base = TrxVplReceive::query();
-            if ($user->role !== 'admin' && !$isVpAccess) {
+            if (!$adminAll && !$hasFullScope) {
                 $base->whereIn('cpnyid', $multicpnyid)->whereIn('department', $multidept);
             }
-            if ($status !== 'ALL') {
+
+            if ($adminAll) {
+                if ($request->filled('filter_vp_type')) {
+                    $base->where('vp_type', $request->filter_vp_type);
+                }
+                if ($request->filled('filter_doc_status') && $request->filter_doc_status !== 'ALL') {
+                    $base->where('status', $request->filter_doc_status);
+                }
+            } elseif ($status !== 'ALL') {
                 $base->where('status', $status);
             }
 
             $data = $base->get();
 
+            $waitingStatus = $adminAll ? $request->input('filter_doc_status') : $status;
+
             // For "On Progress" — attach current approver name from pgsql2
-            if ($status === 'P' && $data->isNotEmpty()) {
+            if ($waitingStatus === 'P' && $data->isNotEmpty()) {
                 $approverMap = TrApproval::whereIn('refnbr', $data->pluck('receive_id'))
                     ->where('aprv_doctype', self::DOCTYPE)
                     ->where('status', 'P')
@@ -77,11 +95,11 @@ class VplReceiveController extends Controller
                 ->make(true);
         }
 
-        // Status count cards (scoped by user)
-        $qCount = TrxVplReceive::query();
-        if ($user->role !== 'admin' && !$isVpAccess) {
-            $qCount->whereIn('cpnyid', $multicpnyid)->whereIn('department', $multidept);
-        }
+        // Status count cards — scoped to the user's own company/department, admin
+        // included; DIRECTORACCESS holders count across everything instead.
+        $qCount = $hasFullScope
+            ? TrxVplReceive::query()
+            : TrxVplReceive::query()->whereIn('cpnyid', $multicpnyid)->whereIn('department', $multidept);
         $counts = [
             'all' => (clone $qCount)->count(),
             'progress' => (clone $qCount)->where('status', 'P')->count(),
@@ -90,6 +108,11 @@ class VplReceiveController extends Controller
             'cancelled' => (clone $qCount)->where('status', 'X')->count(),
             'hold' => (clone $qCount)->where('status', 'D')->count(),
         ];
+
+        // "Receive All" card — system-wide total, admin-only.
+        if ($isAdmin) {
+            $counts['admin_all'] = TrxVplReceive::count();
+        }
 
         $usercpny = Usercpny::where('username', $user->username)->get();
         $usercpny2 = Usercpny::where('username', $user->username)->first();
@@ -120,6 +143,9 @@ class VplReceiveController extends Controller
         $receive = TrxVplReceive::find($id);
         if (!$receive) {
             return response()->json(['error' => 'Not found'], 404);
+        }
+        if (!$this->hasDepartmentAccess($user, $receive->cpnyid, $receive->department) && !$user->hasFullDataScope()) {
+            return response()->json(['error' => 'You do not have access to view this document.'], 403);
         }
 
         $details = TrxVplReceiveDetail::join('ms_vpl_product', 'tr_vpl_receive_detail.product_id', '=', 'ms_vpl_product.product_id')
@@ -823,7 +849,7 @@ class VplReceiveController extends Controller
     // -------------------------------------------------------
     private function hasDepartmentAccess($user, ?string $cpnyid, ?string $department): bool
     {
-        if ($user->role === 'admin' || $user->hasRole('VPACCESS')) {
+        if ($user->isPrimaryAdmin()) {
             return true;
         }
 

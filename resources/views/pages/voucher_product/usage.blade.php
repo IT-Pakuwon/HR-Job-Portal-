@@ -31,6 +31,12 @@
 .dark .select2-results__option { color: #e2e8f0; }
 .dark .select2-container--default .select2-results__option--highlighted[aria-selected] { background-color: #4f46e5; color: #ffffff; }
 .dark .select2-container--default .select2-results__option[aria-selected=true] { background-color: #1e293b; color: #f8fafc; }
+
+/* "Doctype" filter — match the plain Type/Status filter selects beside it */
+#f_doctype + .select2-container .select2-selection--single { height: 40px !important; display: flex; align-items: center; }
+#f_doctype + .select2-container .select2-selection--single .select2-selection__rendered { line-height: 40px !important; padding: 0 30px 0 12px !important; font-size: 0.875rem; color: #4b5563; }
+#f_doctype + .select2-container .select2-selection--single .select2-selection__arrow { height: 38px !important; }
+.dark #f_doctype + .select2-container .select2-selection--single .select2-selection__rendered { color: #9ca3af; }
 </style>
 
 <div class="max-w-9xl mx-auto w-full p-2">
@@ -38,7 +44,7 @@
 {{-- ======================================================== --}}
 {{-- STATUS COUNT CARDS --}}
 {{-- ======================================================== --}}
-<div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
+<div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 {{ $user->isPrimaryAdmin() ? 'xl:grid-cols-7' : 'xl:grid-cols-6' }}">
 
     <button type="button" class="text-left">
         <a href="#" class="status-filter active-card group block h-full" data-status="ALL">
@@ -100,6 +106,19 @@
         </a>
     </button>
 
+    {{-- Usage All — admin only, system-wide view --}}
+    @if($user->isPrimaryAdmin())
+    <button type="button" class="text-left">
+        <a href="#" class="status-filter group block h-full" data-status="ADMINALL">
+            <div class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-500 bg-purple-100/30 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95 dark:border-purple-500 dark:text-purple-400 dark:hover:bg-purple-500/20">
+                <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🌐</div>
+                <div class="flex min-w-0 flex-grow flex-col leading-tight"><p class="break-words text-sm font-medium">Usage All</p></div>
+                <p class="shrink-0 text-base font-bold">{{ $counts['admin_all'] ?? 0 }}</p>
+            </div>
+        </a>
+    </button>
+    @endif
+
 </div>
 
 {{-- ======================================================== --}}
@@ -114,6 +133,30 @@
             </h2>
         </div>
         <div class="flex items-center gap-3">
+            @if($user->isPrimaryAdmin())
+            <div id="adminAllFilters" class="hidden items-center gap-2">
+                <select id="f_vp_type"
+                    class="h-10 rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-10 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-slate-200">
+                    <option value="">All Types</option>
+                    <option value="V">Voucher</option>
+                    <option value="P">Product</option>
+                </select>
+                <select id="f_doctype" class="w-48 select2-filter">
+                    <option value="">All Doctype</option>
+                    <option value="Usage">Usage</option>
+                    <option value="Return">Return Usage</option>
+                </select>
+                <select id="f_doc_status"
+                    class="h-10 rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-10 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-slate-200">
+                    <option value="ALL">All Status</option>
+                    <option value="P">On Progress</option>
+                    <option value="C">Completed</option>
+                    <option value="D">Hold / Revise</option>
+                    <option value="R">Rejected</option>
+                    <option value="X">Cancelled</option>
+                </select>
+            </div>
+            @endif
             <button id="openCreateBtn" type="button"
                 class="inline-flex h-10 items-center justify-center rounded-lg bg-indigo-600 px-5 text-sm font-medium text-white transition hover:bg-indigo-500">
                 <i class="fa-solid fa-plus mr-2 text-xs"></i> New Usage
