@@ -4,10 +4,9 @@ const VplUsageForm = {
     // ADD PRODUCT MODAL (Usage-type manual add)
     // Product select2 + Qty sit in one row. As soon as both are filled, a
     // live batch-breakdown table shows every expiry batch FEFO would draw
-    // from (Name/Qty/Expired/Availability), each with an editable
-    // "Received" qty defaulting to the FEFO suggestion. Add commits
-    // whatever is currently in that table — no extra network call at
-    // commit time, so any manual overrides are respected exactly as shown.
+    // from (Name/Qty/Expired/Availability/Received), Received is read-only
+    // and always reflects the FEFO split. Add commits that split as-is —
+    // no extra network call at commit time.
     // ------------------------------------------------------------------
 
     pickerProducts: { create: [], edit: [] },
@@ -82,6 +81,12 @@ const VplUsageForm = {
      * keyed by expiry date (Y-m-d) — so a second Add Product pass for the same
      * product can tell the server's FEFO calc which batches this draft already
      * claims, instead of it re-offering them off unchanged DB stock.
+     *
+     * Edit mode also folds in the "Existing Details" rows still standing: revise()
+     * released their stock hold up front, so the DB looks like that qty is free
+     * again even though it's still committed to this document — without this,
+     * the preview would offer the same batch twice (see update()'s post-restore
+     * validation, which is the server-side backstop for the same gap).
      */
     collectStagedBatchQty(prefix, productId, whsId) {
         const staged = {};
@@ -94,10 +99,19 @@ const VplUsageForm = {
             const key = exp ? exp.substring(0, 10) : '';
             staged[key] = (staged[key] ?? 0) + parseFloat(get('qty') || '0');
         });
+
+        if (prefix === 'e') {
+            document.querySelectorAll('#e_existDetailBody tr[data-detail-id]').forEach((row) => {
+                if (row.dataset.productId !== productId || row.dataset.whsId !== whsId) return;
+                const key = row.dataset.expiredDate ?? '';
+                staged[key] = (staged[key] ?? 0) + parseFloat(row.dataset.qty || '0');
+            });
+        }
+
         return staged;
     },
 
-    /** Fetches the FEFO batch breakdown for the current Product+Qty and renders it as an editable table. */
+    /** Fetches the FEFO batch breakdown for the current Product+Qty and renders it as a table. */
     updatePreview(mode) {
         const prefix    = mode === 'create' ? 'c' : 'e';
         const cpnyid    = document.getElementById(`${prefix}_cpnyid`)?.value ?? '';
@@ -130,7 +144,7 @@ const VplUsageForm = {
         });
     },
 
-    /** Renders one row per FEFO batch, each with an editable "Received" qty input capped at that batch's availability. */
+    /** Renders one row per FEFO batch, each with a read-only "Received" qty locked to the FEFO suggestion. */
     renderPreviewTable(mode, breakdown) {
         const prefix = mode === 'create' ? 'c' : 'e';
         const body   = document.getElementById(`${prefix}_picker_preview_body`);
@@ -152,8 +166,8 @@ const VplUsageForm = {
                 <td class="px-3 py-2">${exp}</td>
                 <td class="px-3 py-2 text-right">${Number(item.qty_available ?? 0).toLocaleString()}</td>
                 <td class="px-3 py-2 text-right">
-                    <input type="number" class="${prefix}-picker-received-input w-20 rounded border border-slate-200 px-2 py-1 text-right text-xs dark:border-white/10 dark:bg-[#0b1220] dark:text-white"
-                        min="0" max="${item.qty_available ?? 0}" value="${item.qty}">
+                    <input type="number" class="${prefix}-picker-received-input w-20 cursor-not-allowed rounded border border-slate-200 bg-slate-100 px-2 py-1 text-right text-xs text-slate-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400"
+                        readonly tabindex="-1" max="${item.qty_available ?? 0}" value="${item.qty}">
                 </td>
             `;
             body.appendChild(tr);
@@ -630,11 +644,12 @@ const VplUsageForm = {
         const existBody = document.getElementById('e_existDetailBody');
         existBody.innerHTML = '';
         (data.details ?? []).forEach((d) => {
-            const exp = (d.expired_date ?? '').substring(0, 10);
-            const expDisplay = (exp === '' || exp === '1900-01-01') ? '—' : exp;
+            const exp = (d.expired_date ?? '').substring(0, 10) || '1900-01-01';
+            const expDisplay = exp === '1900-01-01' ? '—' : exp;
             const qty = t.usagetype === 'Return' ? d.qty_return_usage : d.qty_usage;
             existBody.insertAdjacentHTML('beforeend', `
-                <tr data-detail-id="${d.id}">
+                <tr data-detail-id="${d.id}" data-product-id="${d.product_id}" data-whs-id="${d.whs_id ?? ''}"
+                    data-expired-date="${exp}" data-qty="${Number(qty ?? 0)}">
                     <td class="px-4 py-2">
                         <div class="text-sm font-medium text-slate-800 dark:text-white">${d.product_id}</div>
                         <div class="text-xs text-slate-500">${d.product_name ?? ''}</div>

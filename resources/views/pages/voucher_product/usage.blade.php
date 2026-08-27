@@ -196,7 +196,7 @@
         <div class="flex items-start justify-between border-b border-slate-200 px-5 py-4 dark:border-white/10">
             <div>
                 <h3 class="text-sm font-bold text-slate-800 dark:text-white">Add Product</h3>
-                <p class="mt-1 text-xs text-slate-400">Stock is drawn from the nearest-expiry batch first; adjust Received per batch if needed.</p>
+                <p class="mt-1 text-xs text-slate-400">Stock is drawn from the nearest-expiry batch first.</p>
             </div>
             <button type="button" id="c_closeAddProductModal" class="shrink-0 text-slate-400 hover:text-slate-700 dark:hover:text-white">
                 <i class="fa-solid fa-xmark text-lg"></i>
@@ -265,7 +265,7 @@
         <div class="flex items-start justify-between border-b border-slate-200 px-5 py-4 dark:border-white/10">
             <div>
                 <h3 class="text-sm font-bold text-slate-800 dark:text-white">Add Product</h3>
-                <p class="mt-1 text-xs text-slate-400">Stock is drawn from the nearest-expiry batch first; adjust Received per batch if needed.</p>
+                <p class="mt-1 text-xs text-slate-400">Stock is drawn from the nearest-expiry batch first.</p>
             </div>
             <button type="button" id="e_closeAddProductModal" class="shrink-0 text-slate-400 hover:text-slate-700 dark:hover:text-white">
                 <i class="fa-solid fa-xmark text-lg"></i>
