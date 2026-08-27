@@ -166,9 +166,20 @@ class VplUsageController extends Controller
         }
         // A VPACCESS holder can create a Usage doc outside their own scope (see store()),
         // so let the creator keep viewing/tracking it even though it falls outside their
-        // normal company/department access.
+        // normal company/department access. Likewise, a user assigned as an approver on
+        // this document (via TrApproval) needs to view it even outside their scope — the
+        // approval dashboard links them straight here regardless of membership.
+        $isAssignedApprover = TrApproval::where('refnbr', $usage->usage_id)
+            ->where('aprv_doctype', self::DOCTYPE)
+            ->where('status', '<>', 'X')
+            ->where(function ($q) use ($user) {
+                $q->where('aprv_username', $user->username)
+                  ->orWhere('aprv_username', 'like', '%' . $user->username . '%');
+            })
+            ->exists();
         if (!$this->hasDepartmentAccess($user, $usage->cpnyid, $usage->department)
             && $usage->created_user !== $user->name
+            && !$isAssignedApprover
             && !$user->hasFullDataScope()) {
             return response()->json(['error' => 'You do not have access to view this document.'], 403);
         }
