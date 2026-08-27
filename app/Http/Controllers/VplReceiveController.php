@@ -144,7 +144,20 @@ class VplReceiveController extends Controller
         if (!$receive) {
             return response()->json(['error' => 'Not found'], 404);
         }
-        if (!$this->hasDepartmentAccess($user, $receive->cpnyid, $receive->department) && !$user->hasFullDataScope()) {
+        // A user assigned as an approver on this document (via TrApproval) needs to
+        // view it even if they fall outside its company/department scope — the
+        // approval dashboard links them straight here regardless of membership.
+        $isAssignedApprover = TrApproval::where('refnbr', $receive->receive_id)
+            ->where('aprv_doctype', self::DOCTYPE)
+            ->where('status', '<>', 'X')
+            ->where(function ($q) use ($user) {
+                $q->where('aprv_username', $user->username)
+                  ->orWhere('aprv_username', 'like', '%' . $user->username . '%');
+            })
+            ->exists();
+        if (!$this->hasDepartmentAccess($user, $receive->cpnyid, $receive->department)
+            && !$isAssignedApprover
+            && !$user->hasFullDataScope()) {
             return response()->json(['error' => 'You do not have access to view this document.'], 403);
         }
 
