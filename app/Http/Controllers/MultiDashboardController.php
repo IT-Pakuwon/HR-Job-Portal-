@@ -62,6 +62,8 @@ class MultiDashboardController extends Controller
             'DASHPURCH' => 'purchasing-dashboard',
             'DASHHR' => 'dashboard-hr',
             'DASHGA' => 'dashboard-ga',
+            'DASHVPCOLL' => 'dashboard-vpcollection',
+            'DASHVPPRMTN' => 'dashboard-vppromotion',
             'DASHFIN' => 'dashboard-finance',
             'DASHTREAS' => 'dashboard-treasury',
             'DASHCORPTEK' => 'dashboard-corporate-teknik',
