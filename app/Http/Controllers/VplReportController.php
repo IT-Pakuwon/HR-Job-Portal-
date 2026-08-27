@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\VplLedgerExport;
 use App\Exports\VplLoyaltyUsageExport;
+use App\Exports\VplProductReportExport;
 use App\Exports\VplProductStockExport;
 use App\Exports\VplStockSummaryExport;
 use App\Exports\VplStockVoucherExport;
@@ -14,6 +15,7 @@ use App\Models\TrxVplReceiveDetail;
 use App\Models\TrxVplTransferDetail;
 use App\Models\TrxVplUsageDetail;
 use App\Models\Usercpny;
+use Google\Cloud\Storage\StorageClient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -65,7 +67,7 @@ class VplReportController extends Controller
         $hasVPPRMTNACCESS   = $user->hasRole('VPPRMTNACCESS');
         $hasVPLOYALTYACCESS = $user->hasRole('VPLOYALTYACCESS');
 
-        $tabCount = 4 + ($hasVPLOYALTYACCESS ? 1 : 0);
+        $tabCount = 5 + ($hasVPLOYALTYACCESS ? 1 : 0);
 
         $defaultReport = 'stock-voucher';
 
@@ -102,6 +104,9 @@ class VplReportController extends Controller
             case 'loyalty-usage':
                 return $this->loyaltyUsageJson($request);
 
+            case 'product-report':
+                return $this->productReportJson($request);
+
             default:
                 abort(404);
         }
@@ -123,6 +128,9 @@ class VplReportController extends Controller
 
             case 'loyalty-usage':
                 return $this->loyaltyUsageExport($request);
+
+            case 'product-report':
+                return $this->productReportExport($request);
 
             default:
                 abort(404);
@@ -596,6 +604,292 @@ class VplReportController extends Controller
         }
 
         return $rows;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | PRODUCT REPORT (one row per product+expiry batch, Begin/In/Out/Ending
+    | + who requested the Out — "Laporan Stok Product")
+    |--------------------------------------------------------------------------
+    */
+    private function productReportJson(Request $request)
+    {
+        [$cpnyid, $year, $month] = $this->resolveStockVoucherParams($request);
+
+        $rows = $this->buildProductReport($cpnyid, $year, $month);
+
+        return view('pages.report-vpl.partials.product-report-table', [
+            'rows'   => $rows,
+            'cpnyid' => $cpnyid,
+            'year'   => $year,
+            'month'  => $month,
+        ]);
+    }
+
+    private function productReportExport(Request $request)
+    {
+        [$cpnyid, $year, $month] = $this->resolveStockVoucherParams($request);
+
+        $rows = $this->buildProductReport($cpnyid, $year, $month);
+
+        $filename = "product-report-{$cpnyid}-{$year}-".str_pad((string) $month, 2, '0', STR_PAD_LEFT).'.xlsx';
+
+        return Excel::download(new VplProductReportExport($rows, $cpnyid, $year, $month), $filename);
+    }
+
+    private function buildProductReport(string $cpnyid, int $year, int $month): array
+    {
+        $monthStart = Carbon::create($year, $month, 1)->startOfMonth();
+        $monthEnd   = Carbon::create($year, $month, 1)->endOfMonth();
+
+        // Beginning/In/Out/Ending per product+expiry batch, summed across whichever
+        // warehouse(s) it's held in.
+        $batchRows = $this->productBatchRows($cpnyid, $year, $month);
+
+        if (empty($batchRows)) {
+            return [];
+        }
+
+        $firstReceive = $this->batchFirstReceiveDate($cpnyid);
+        $outRequests  = $this->batchOutRequestInfo($cpnyid, $monthStart, $monthEnd);
+
+        $rows = [];
+
+        foreach ($batchRows as $key => $row) {
+            $product = $row['product'];
+            $bal     = $row['bal'];
+            $price   = (float) $product->product_value;
+            $request = $outRequests[$key] ?? null;
+
+            $rows[] = [
+                'product_id'     => $product->product_id,
+                'perusahaan'     => $product->product_source_company ?: '-',
+                'photo_url'      => $this->photoSignedUrl($product->product_photo),
+                'nama_barang'    => $product->product_name,
+                'category_label' => $row['category_label'],
+                'expired_date'   => $this->expiredKey($bal->expired_date) === 'NULL' ? null : $bal->expired_date,
+                'price'          => $price,
+                'total_nominal'  => $row['beginning'] * $price,
+                'tgl_terima'     => $firstReceive[$key] ?? null,
+                'begin'          => $row['beginning'],
+                'in'             => $row['month_in'],
+                'out'            => $row['month_out'],
+                'ending'         => $row['ending'],
+                'price_out'      => $row['month_out'] * $price,
+                'requester_name' => $request['name'] ?? null,
+                'department'     => $request['department'] ?? null,
+                'remarks_in'     => null,
+                'remarks_out'    => $request['remark'] ?? null,
+            ];
+        }
+
+        usort($rows, function ($a, $b) {
+            return [$a['category_label'], $a['nama_barang'], $a['expired_date']]
+                <=> [$b['category_label'], $b['nama_barang'], $b['expired_date']];
+        });
+
+        return $this->attachProductReportGrouping($rows);
+    }
+
+    /**
+     * Beginning/In/Out/Ending per Product-type (product_type='P') batch, summed
+     * across every warehouse it's held in — unlike Vouchers, physical Products
+     * don't all funnel through WHCOLLECTION first; a department can receive
+     * straight into its own warehouse (e.g. WHPROMOTION). Reads straight off
+     * ms_vpl_product_bal's own period01..12 in/out columns (same source
+     * productStockBaseQuery() sums) rather than batchStockRows()'s ledger-derived
+     * override, which only matters for the Collection->Loyalty voucher transfer flow.
+     *
+     * @return array<string, array{product: MsVplProduct, bal: MsVplProductBal, category_label: string, beginning: float, month_in: float, month_out: float, ending: float}>
+     */
+    private function productBatchRows(string $cpnyid, int $year, int $month): array
+    {
+        $products = MsVplProduct::where('cpnyid', $cpnyid)
+            ->where('product_type', 'P')
+            ->get()
+            ->keyBy('product_id');
+
+        if ($products->isEmpty()) {
+            return [];
+        }
+
+        $balances = MsVplProductBal::where('cpnyid', $cpnyid)
+            ->where('year', $year)
+            ->whereIn('product_id', $products->keys())
+            ->get();
+
+        $mm = str_pad((string) $month, 2, '0', STR_PAD_LEFT);
+
+        $rows = [];
+
+        foreach ($balances as $bal) {
+            $product = $products->get($bal->product_id);
+
+            if (!$product) {
+                continue;
+            }
+
+            $key = $bal->product_id.'|'.$this->expiredKey($bal->expired_date);
+
+            $beginning = (float) $bal->begqty;
+
+            for ($m = 1; $m < $month; $m++) {
+                $pm = str_pad((string) $m, 2, '0', STR_PAD_LEFT);
+                $beginning += (float) ($bal->{"period{$pm}in"} ?? 0) - (float) ($bal->{"period{$pm}out"} ?? 0);
+            }
+
+            $monthIn  = (float) ($bal->{"period{$mm}in"} ?? 0);
+            $monthOut = (float) ($bal->{"period{$mm}out"} ?? 0);
+            $ending   = $beginning + $monthIn - $monthOut;
+
+            if (!isset($rows[$key])) {
+                $rows[$key] = [
+                    'product'        => $product,
+                    'bal'            => $bal,
+                    'category_label' => $product->product_category === 'F&B' ? 'F&B' : 'NON F&B',
+                    'beginning'      => 0.0,
+                    'month_in'       => 0.0,
+                    'month_out'      => 0.0,
+                    'ending'         => 0.0,
+                ];
+            }
+
+            $rows[$key]['beginning'] += $beginning;
+            $rows[$key]['month_in']  += $monthIn;
+            $rows[$key]['month_out'] += $monthOut;
+            $rows[$key]['ending']    += $ending;
+        }
+
+        return $rows;
+    }
+
+    /** Earliest completed Receive date per product+expiry batch, any warehouse — the "Tgl Terima" this batch first entered stock. */
+    private function batchFirstReceiveDate(string $cpnyid): array
+    {
+        $receives = TrxVplReceiveDetail::query()
+            ->join('tr_vpl_receive', 'tr_vpl_receive.receive_id', '=', 'tr_vpl_receive_detail.receive_id')
+            ->where('tr_vpl_receive.cpnyid', $cpnyid)
+            ->where('tr_vpl_receive.status', 'C')
+            ->select([
+                'tr_vpl_receive_detail.product_id',
+                'tr_vpl_receive_detail.expired_date',
+                'tr_vpl_receive.receive_date',
+            ])
+            ->orderBy('tr_vpl_receive.receive_date')
+            ->get();
+
+        $firstReceive = [];
+
+        foreach ($receives as $r) {
+            $key = $r->product_id.'|'.$this->expiredKey($r->expired_date);
+
+            if (!isset($firstReceive[$key])) {
+                $firstReceive[$key] = Carbon::parse($r->receive_date);
+            }
+        }
+
+        return $firstReceive;
+    }
+
+    /**
+     * Who asked for the Out and why, per batch, for the given month — any
+     * warehouse's Usage (Transfer has no requester/remark field to draw from;
+     * Products can be received/used out of any department's own warehouse, not
+     * just WHPROMOTION/WHLOYALTY). Multiple usage docs against the same batch in
+     * the month have their distinct name/department/remark values joined with "; ".
+     *
+     * @return array<string, array{name: ?string, department: ?string, remark: ?string}>
+     */
+    private function batchOutRequestInfo(string $cpnyid, Carbon $monthStart, Carbon $monthEnd): array
+    {
+        $usages = TrxVplUsageDetail::query()
+            ->join('tr_vpl_usage', 'tr_vpl_usage.usage_id', '=', 'tr_vpl_usage_detail.usage_id')
+            ->where('tr_vpl_usage.cpnyid', $cpnyid)
+            ->where('tr_vpl_usage.status', 'C')
+            ->whereBetween('tr_vpl_usage.usage_date', [$monthStart, $monthEnd])
+            ->select([
+                'tr_vpl_usage_detail.product_id',
+                'tr_vpl_usage_detail.expired_date',
+                'tr_vpl_usage_detail.purpose_remark',
+                'tr_vpl_usage.created_user',
+                'tr_vpl_usage.department',
+            ])
+            ->get();
+
+        $info = [];
+
+        foreach ($usages as $u) {
+            $key = $u->product_id.'|'.$this->expiredKey($u->expired_date);
+
+            $info[$key]['names']       ??= [];
+            $info[$key]['departments'] ??= [];
+            $info[$key]['remarks']     ??= [];
+
+            if (filled($u->created_user)) {
+                $info[$key]['names'][$u->created_user] = true;
+            }
+            if (filled($u->department)) {
+                $info[$key]['departments'][$u->department] = true;
+            }
+            if (filled($u->purpose_remark)) {
+                $info[$key]['remarks'][$u->purpose_remark] = true;
+            }
+        }
+
+        return array_map(fn ($v) => [
+            'name'       => empty($v['names']) ? null : implode('; ', array_keys($v['names'])),
+            'department' => empty($v['departments']) ? null : implode('; ', array_keys($v['departments'])),
+            'remark'     => empty($v['remarks']) ? null : implode('; ', array_keys($v['remarks'])),
+        ], $info);
+    }
+
+    /** Turn the flat, sorted rows into category-header ("NON F&B"/"F&B") + numbered detail rows. */
+    private function attachProductReportGrouping(array $rows): array
+    {
+        if (empty($rows)) {
+            return [];
+        }
+
+        $output = [];
+        $no     = 0;
+
+        foreach (collect($rows)->groupBy('category_label') as $categoryLabel => $categoryRows) {
+            $output[] = ['type' => 'category_header', 'category_label' => $categoryLabel];
+
+            foreach ($categoryRows as $r) {
+                $no++;
+                $r['type'] = 'detail';
+                $r['no']   = $no;
+                $output[]  = $r;
+            }
+        }
+
+        return $output;
+    }
+
+    /** Same signed-URL pattern as VplMsProductController::photoSignedUrl() — short-lived read URL for a GCS product photo. */
+    private function photoSignedUrl(?string $path): ?string
+    {
+        if (empty($path)) {
+            return null;
+        }
+
+        try {
+            $config  = config('filesystems.disks.gcs');
+            $storage = new StorageClient([
+                'projectId'   => $config['project_id'],
+                'keyFilePath' => $config['key_file'],
+            ]);
+
+            return $storage->bucket($config['bucket'])->object($path)->signedUrl(
+                new \DateTimeImmutable('+10 minutes'),
+                ['version' => 'v4']
+            );
+        } catch (\Throwable $e) {
+            \Log::warning('VPL Product photo signed URL failed', ['path' => $path, 'error' => $e->getMessage()]);
+
+            return null;
+        }
     }
 
     /*
