@@ -455,42 +455,6 @@ class VplUsageController extends Controller
             return response()->json(['error' => 'Cannot return: the referenced Usage document has a settlement in progress.'], 422);
         }
 
-        // Validate every line against available/returnable qty before touching anything —
-        // same two-phase pattern as store() so a bad line further down the list can't
-        // leave earlier lines already committed.
-        if ($request->has('addmore')) {
-            $claimTracker = [];
-            foreach ($request->addmore as $detail) {
-                if (empty($detail['product_id']) || empty($detail['qty']) || empty($detail['whs_id'])) {
-                    continue;
-                }
-                if (empty($detail['purpose_id'])) {
-                    $productName = MsVplProduct::where('product_id', $detail['product_id'])->value('product_name') ?? $detail['product_id'];
-                    return response()->json(['error' => 'Purpose is required for '.$productName.'.'], 422);
-                }
-                $exp     = $detail['expired_date'] ?: '1900-01-01';
-                $qty     = (float) $detail['qty'];
-                $key     = $detail['product_id'].'|'.$exp.'|'.$detail['whs_id'];
-                $claimed = $claimTracker[$key] ?? 0;
-
-                if ($usage->usagetype === 'Usage') {
-                    $pickable = $this->pickableQty($detail['product_id'], $exp, $detail['whs_id']);
-                    if ($qty + $claimed > $pickable) {
-                        $productName = MsVplProduct::where('product_id', $detail['product_id'])->value('product_name') ?? $detail['product_id'];
-                        return response()->json(['error' => 'Usage qty for '.$productName.' exceeds available quantity ('.max(0, $pickable - $claimed).').'], 422);
-                    }
-                } else {
-                    $remaining = $this->returnableUsageQty($usage->ref_usage_id, $detail['product_id'], $exp, $detail['whs_id'], $usage->id);
-                    if ($qty + $claimed > $remaining) {
-                        $productName = MsVplProduct::where('product_id', $detail['product_id'])->value('product_name') ?? $detail['product_id'];
-                        return response()->json(['error' => 'Return qty for '.$productName.' exceeds the remaining returnable qty ('.max(0, $remaining - $claimed).').'], 422);
-                    }
-                }
-
-                $claimTracker[$key] = $claimed + $qty;
-            }
-        }
-
         $conditionName = $this->resolveConditionName($usage->vp_type, $usage->usagetype);
         $category = MsCategory::where('doctype', self::DOCTYPE)
             ->where('categoryid', 'condition')
@@ -507,7 +471,52 @@ class VplUsageController extends Controller
 
         try {
             DB::connection('pgsql5')->transaction(function () use ($request, $user, $dt, $usage, $ctx) {
+                // update() is only reachable from status D, and revise() always released
+                // the hold for every line the document had at that point (adjustReservation
+                // -1). Restore it here for whatever survives before any new lines are added
+                // below, otherwise a resubmit that doesn't touch existing lines leaves them
+                // permanently unreserved even though they still carry real qty_usage.
+                TrxVplUsageDetail::where('usage_id', $usage->usage_id)->get()
+                    ->each(fn ($detail) => $this->reserveDetail($detail, $usage->usagetype, +1));
+
                 if ($request->has('addmore')) {
+                    // Validate against pickable/returnable qty only AFTER the restore above —
+                    // otherwise this check sees the surviving existing lines as still
+                    // unreserved (revise() released them) and lets a new line double-claim
+                    // the same stock, pushing qty_reserved past qty_available once both
+                    // land. Same two-phase intent as store(), just re-anchored to the
+                    // post-restore snapshot since update() has existing lines to restore.
+                    $claimTracker = [];
+                    foreach ($request->addmore as $detail) {
+                        if (empty($detail['product_id']) || empty($detail['qty']) || empty($detail['whs_id'])) {
+                            continue;
+                        }
+                        if (empty($detail['purpose_id'])) {
+                            $productName = MsVplProduct::where('product_id', $detail['product_id'])->value('product_name') ?? $detail['product_id'];
+                            throw new \RuntimeException('Purpose is required for '.$productName.'.');
+                        }
+                        $exp     = $detail['expired_date'] ?: '1900-01-01';
+                        $qty     = (float) $detail['qty'];
+                        $key     = $detail['product_id'].'|'.$exp.'|'.$detail['whs_id'];
+                        $claimed = $claimTracker[$key] ?? 0;
+
+                        if ($usage->usagetype === 'Usage') {
+                            $pickable = $this->pickableQty($detail['product_id'], $exp, $detail['whs_id']);
+                            if ($qty + $claimed > $pickable) {
+                                $productName = MsVplProduct::where('product_id', $detail['product_id'])->value('product_name') ?? $detail['product_id'];
+                                throw new \RuntimeException('Usage qty for '.$productName.' exceeds available quantity ('.max(0, $pickable - $claimed).').');
+                            }
+                        } else {
+                            $remaining = $this->returnableUsageQty($usage->ref_usage_id, $detail['product_id'], $exp, $detail['whs_id'], $usage->id);
+                            if ($qty + $claimed > $remaining) {
+                                $productName = MsVplProduct::where('product_id', $detail['product_id'])->value('product_name') ?? $detail['product_id'];
+                                throw new \RuntimeException('Return qty for '.$productName.' exceeds the remaining returnable qty ('.max(0, $remaining - $claimed).').');
+                            }
+                        }
+
+                        $claimTracker[$key] = $claimed + $qty;
+                    }
+
                     $line = TrxVplUsageDetail::where('usage_id', $usage->usage_id)->max('linenbr') ?? 0;
                     foreach ($request->addmore as $detail) {
                         if (empty($detail['product_id']) || empty($detail['qty']) || empty($detail['whs_id'])) {
