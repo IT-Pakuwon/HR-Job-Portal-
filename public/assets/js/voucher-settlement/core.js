@@ -1,7 +1,7 @@
 const VplSettlement = {
 
     state: {
-        currentStatus: 'ALL',
+        currentStatus: 'JOBLIST',
         currentViewId:   null,
         currentViewData: null,
         cAttachIdx: 1,
@@ -11,6 +11,7 @@ const VplSettlement = {
     routes: {
         base:         '',
         store:        '',
+        jobList:      '',
         usageOptions: '',
         usageLines:   '',
         delAttach:    '',

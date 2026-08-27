@@ -3290,6 +3290,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/settlementvp/completed', [VplSettlementController::class, 'completed'])->name('settlementvp.completed');
         Route::get('/settlementvp/rejected', [VplSettlementController::class, 'rejected'])->name('settlementvp.rejected');
         Route::get('/settlementvp/all', [VplSettlementController::class, 'all'])->name('settlementvp.all');
+        Route::get('/settlementvp/joblist', [VplSettlementController::class, 'jobList'])->name('settlementvp.joblist');
         Route::get('/settlementvp/{id}', [VplSettlementController::class, 'show'])->where('id', '[0-9]+')->name('settlementvp.show');
         Route::get('/settlementvp/{id}/data', [VplSettlementController::class, 'showData'])->where('id', '[0-9]+')->name('settlementvp.data');
         Route::get('/settlementvp/attachment/{id}/view', [VplSettlementController::class, 'viewAttachment'])->where('id', '[0-9]+')->name('settlementvp.attachment.view');

@@ -4,7 +4,7 @@ const VplSettlementForm = {
     // USAGE DOC PICKER
     // ------------------------------------------------------------------
 
-    loadUsageOptions(mode) {
+    loadUsageOptions(mode, preselectUsageId = null) {
         const prefix = mode === 'create' ? 'c' : 'e';
         const cpnyid = document.getElementById(`${prefix}_cpnyid`)?.value ?? '';
         const dept   = document.getElementById(`${prefix}_department`)?.value ?? '';
@@ -21,7 +21,11 @@ const VplSettlementForm = {
             _token: VplSettlement.csrf(), cpnyid, department: dept, vp_type: vpType,
         }).done((refs) => {
             refs.forEach((r) => $sel.append(new Option(r, r)));
-            $sel.trigger('change.select2');
+            if (preselectUsageId && refs.includes(preselectUsageId)) {
+                $sel.val(preselectUsageId).trigger('change');
+            } else {
+                $sel.trigger('change.select2');
+            }
         }).fail(() => VplSettlement.toast('warning', 'Could not load Usage document options.'));
     },
 
@@ -86,12 +90,36 @@ const VplSettlementForm = {
     // CREATE MODAL
     // ------------------------------------------------------------------
 
-    initCreateModal() {
-        document.getElementById('openCreateBtn').addEventListener('click', () => {
-            VplSettlementForm.showModal('createModal');
-            VplSettlementForm.loadUsageOptions('create');
-        });
+    /**
+     * Opens Create Settlement pre-scoped to one Job List row: sets Company/Department/
+     * V/P Type from the job, then issues a single authoritative usage-options fetch
+     * with that Usage Doc preselected — bypassing the normal cpnyid/department/vp_type
+     * change cascade (which would each fire their own fetch and could race the
+     * preselect) since here all three are already known together, not picked one at
+     * a time by the user.
+     */
+    openCreateFromJob(job) {
+        document.getElementById('createForm').reset();
+        VplSettlementForm.clearLines('create');
+        document.getElementById('c_attachBody').innerHTML = `
+            <tr id="c_attach_0">
+                <td class="py-1 pr-2">
+                    <input type="file" name="attachment[]" class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm dark:border-white/10">
+                </td>
+                <td class="py-1 pl-1"></td>
+            </tr>`;
+        VplSettlement.state.cAttachIdx = 1;
 
+        $('#c_cpnyid').val(job.cpnyid).trigger('change.select2');
+        $('#c_department').val(job.department).trigger('change.select2');
+        $('#c_vp_type').val(job.vpType).trigger('change.select2');
+
+        VplSettlementForm.showFormView('create');
+        VplSettlementForm.showModal('createModal');
+        VplSettlementForm.loadUsageOptions('create', job.usageId);
+    },
+
+    initCreateModal() {
         ['closeCreateModal', 'closeCreateModalFooter'].forEach((id) => {
             document.getElementById(id)?.addEventListener('click', () => VplSettlementForm.hideModal('createModal'));
         });
