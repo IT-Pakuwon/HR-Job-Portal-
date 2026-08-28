@@ -179,6 +179,7 @@ use App\Http\Controllers\VplSettlementController;
 use App\Http\Controllers\VplUsageController;
 use App\Http\Controllers\VplWarehouseSetupController;
 use App\Http\Controllers\VpCollectionDashboardController;
+use App\Http\Controllers\VpLoyaltyDashboardController;
 use App\Http\Controllers\VpPromotionDashboardController;
 use App\Http\Controllers\WarehouseDashboardController;
 use App\Http\Controllers\WoController;
@@ -2330,6 +2331,14 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/approval-history-json', 'approvalHistoryJson')->name('approval-history-json');
             Route::get('/expired-json', 'expiredJson')->name('expired-json');
             Route::get('/waiting-settlement-json', 'waitingSettlementJson')->name('waiting-settlement-json');
+            Route::get('/approval-doctypes-json', 'approvalDocTypes')->name('approval-doctypes-json');
+        });
+
+        Route::prefix('vployalty-dashboard')->controller(VpLoyaltyDashboardController::class)->name('vployalty-dashboard.')->group(function () {
+            Route::get('/summary-json', 'summaryJson')->name('summary-json');
+            Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('waiting-approval-json');
+            Route::get('/approval-history-json', 'approvalHistoryJson')->name('approval-history-json');
+            Route::get('/expired-json', 'expiredJson')->name('expired-json');
             Route::get('/approval-doctypes-json', 'approvalDocTypes')->name('approval-doctypes-json');
         });
 
