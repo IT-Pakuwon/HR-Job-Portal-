@@ -209,7 +209,7 @@
         $amountRfp = (float) ($calr->amountrfp ?? 0);
         $amountSettlement = (float) ($calr->amountsettlement ?? 0);
         $amountDiff = (float) ($calr->amountdiff ?? ($amountRfp - $amountSettlement));
-        $amountDiffLabel = $amountDiff < 0 ? 'Kurang Pembayaran' : 'Lebih Pembayaran';
+        $amountDiffLabel = $amountDiff < 0 ? 'Kurang Kasbon' : 'Lebih Kasbon';
 
         $statusText = match ($calr->status) {
             'P' => 'On Progress',
