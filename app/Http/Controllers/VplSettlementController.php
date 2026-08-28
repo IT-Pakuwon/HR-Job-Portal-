@@ -551,6 +551,15 @@ class VplSettlementController extends Controller
 
                 $this->saveAttachments($request, $settlement->settlement_id, $dt->year, $user);
 
+                // update() only runs on a revised (Hold) document, so the previous approval
+                // cycle's rows (Approved/Revised) are stale leftovers. Cancel them first so
+                // generateForDocument()'s fresh chain doesn't sit alongside them and show as
+                // duplicate levels in the workflow panel.
+                TrApproval::where('refnbr', $settlement->settlement_id)
+                    ->where('aprv_doctype', self::DOCTYPE)
+                    ->where('status', '<>', 'X')
+                    ->update(['status' => 'X']);
+
                 // Throws if no approval rule matches, rolling back the detail changes
                 // so the document isn't left without an approval chain.
                 app(ApprovalController::class)->generateForDocument(

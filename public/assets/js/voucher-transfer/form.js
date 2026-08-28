@@ -89,7 +89,9 @@ const VplTransferForm = {
     loadFromWhs(mode, rowIdx) {
         const prefix    = mode === 'create' ? 'c' : 'e';
         const cpnyid    = document.getElementById(`${prefix}_cpnyid`)?.value ?? '';
-        const dept      = document.getElementById(`${prefix}_department`)?.value ?? '';
+        // Edit modal's department field is a read-only mirror with id `e_dept`
+        // (not `e_department` like the create modal's live select) — resolve per mode.
+        const dept      = document.getElementById(prefix === 'c' ? 'c_department' : 'e_dept')?.value ?? '';
         const vpType    = document.getElementById(`${prefix}_vp_type`)?.value ?? '';
         const transType = document.getElementById(`${prefix}_transfertype`)?.value ?? '';
 
@@ -177,7 +179,9 @@ const VplTransferForm = {
     loadToWhs(mode, rowIdx) {
         const prefix    = mode === 'create' ? 'c' : 'e';
         const cpnyid    = document.getElementById(`${prefix}_cpnyid`)?.value ?? '';
-        const dept      = document.getElementById(`${prefix}_department`)?.value ?? '';
+        // Edit modal's department field is a read-only mirror with id `e_dept`
+        // (not `e_department` like the create modal's live select) — resolve per mode.
+        const dept      = document.getElementById(prefix === 'c' ? 'c_department' : 'e_dept')?.value ?? '';
         const vpType    = document.getElementById(`${prefix}_vp_type`)?.value ?? '';
         const transType = document.getElementById(`${prefix}_transfertype`)?.value ?? '';
         const fromWhsEl = document.querySelector(`#${prefix}_row_${rowIdx} .${prefix}-from-whs-input`);
@@ -222,7 +226,9 @@ const VplTransferForm = {
     loadRefOptions(mode) {
         const prefix    = mode === 'create' ? 'c' : 'e';
         const cpnyid    = document.getElementById(`${prefix}_cpnyid`)?.value ?? '';
-        const dept      = document.getElementById(`${prefix}_department`)?.value ?? '';
+        // Edit modal's department field is a read-only mirror with id `e_dept`
+        // (not `e_department` like the create modal's live select) — resolve per mode.
+        const dept      = document.getElementById(prefix === 'c' ? 'c_department' : 'e_dept')?.value ?? '';
         const vpType    = document.getElementById(`${prefix}_vp_type`)?.value ?? '';
         const transType = document.getElementById(`${prefix}_transfertype`)?.value ?? '';
 

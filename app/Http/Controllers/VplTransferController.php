@@ -543,6 +543,15 @@ class VplTransferController extends Controller
                 $approvalCondition = trim($category->groups ?? '') ?: $conditionName;
                 $ctx               = ['approval_conditions' => [$approvalCondition]];
 
+                // This update() only runs on a revised (status 'D') document, so the
+                // previous approval cycle's rows (Approved/Revised) are stale leftovers.
+                // Cancel them first so generateForDocument()'s fresh chain doesn't sit
+                // alongside them and show as duplicate levels in the workflow panel.
+                TrApproval::where('refnbr', $transfer->transfer_id)
+                    ->where('aprv_doctype', self::DOCTYPE)
+                    ->where('status', '<>', 'X')
+                    ->update(['status' => 'X']);
+
                 app(ApprovalController::class)->generateForDocument(
                     $transfer->transfer_id,
                     self::DOCTYPE,
