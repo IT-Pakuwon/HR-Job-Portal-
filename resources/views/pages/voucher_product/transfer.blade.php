@@ -12,6 +12,9 @@
 .apv-badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:600; }
 .status-filter.active-card .status-card { box-shadow: 0 0 0 2px #6366f1; }
 
+/* Product Search modal — long product names wrap instead of ellipsis-truncating */
+#productSearchTable td:nth-child(2) { white-space: normal; overflow: visible; text-overflow: clip; word-break: break-word; max-width: 260px; }
+
 /* SweetAlert2 dark mode */
 .dark .swal2-popup { background: #1e293b; color: #e2e8f0; }
 .dark .swal2-title, .dark .swal2-html-container { color: #e2e8f0; }

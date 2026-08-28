@@ -116,7 +116,7 @@ const VplTransferHelper = {
                         <input type="hidden" name="addmore[${idx}][product_id]"    class="${prefix}-product-id-input" value="">
                         <input type="hidden" name="addmore[${idx}][qty_available]" class="${prefix}-qty-avail-input"  value="0">
                         <input type="hidden" name="addmore[${idx}][expired_date]"  class="${prefix}-exp-input"        value="">
-                        <span class="${prefix}-product-display block flex-1 truncate rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500 dark:bg-white/[0.04] dark:text-slate-400" title="">— Select —</span>
+                        <span class="${prefix}-product-display block flex-1 whitespace-normal break-words rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500 dark:bg-white/[0.04] dark:text-slate-400" title="">— Select —</span>
                         <button type="button"
                             class="${prefix}-pick-product-btn inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-600 text-white hover:bg-indigo-500"
                             data-idx="${idx}" data-mode="${mode}" title="Pick product">
@@ -167,7 +167,7 @@ const VplTransferHelper = {
                     <input type="hidden" name="addmore[${idx}][product_id]"    class="${prefix}-product-id-input" value="${line.product_id ?? ''}">
                     <input type="hidden" name="addmore[${idx}][qty_available]" class="${prefix}-qty-avail-input"  value="${avail}">
                     <input type="hidden" name="addmore[${idx}][expired_date]"  class="${prefix}-exp-input"        value="${line.expired_date ?? ''}">
-                    <span class="${prefix}-product-display block truncate rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-700 dark:bg-white/[0.04] dark:text-slate-200" title="${nameEsc}">${line.product_name ?? ''}</span>
+                    <span class="${prefix}-product-display block whitespace-normal break-words rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-700 dark:bg-white/[0.04] dark:text-slate-200" title="${nameEsc}">${line.product_name ?? ''}</span>
                 </td>
                 <td class="px-3 py-2">
                     <span class="${prefix}-qty-avail-display block rounded-lg bg-slate-50 px-3 py-2 text-xs text-right text-slate-500 dark:bg-white/[0.04] dark:text-slate-400">${avail.toLocaleString()}</span>

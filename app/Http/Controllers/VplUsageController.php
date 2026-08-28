@@ -936,7 +936,9 @@ class VplUsageController extends Controller
         $products = MsVplProduct::join('ms_vpl_product_detail', 'ms_vpl_product.product_id', '=', 'ms_vpl_product_detail.product_id')
             ->select(
                 'ms_vpl_product.product_id',
-                DB::raw("CONCAT(ms_vpl_product.product_name,' / ',ms_vpl_product.product_value,' / ',ms_vpl_product.product_uom) AS product_name"),
+                'ms_vpl_product.product_name',
+                'ms_vpl_product.product_value',
+                'ms_vpl_product.product_uom',
                 DB::raw('SUM(ms_vpl_product_detail.qty_available) AS qty_available'),
                 DB::raw('SUM(COALESCE(ms_vpl_product_detail.qty_reserved, 0)) AS qty_reserved'),
                 DB::raw('SUM(ms_vpl_product_detail.qty_available - COALESCE(ms_vpl_product_detail.qty_reserved, 0)) AS qty_pickable'),
@@ -949,6 +951,9 @@ class VplUsageController extends Controller
             ->havingRaw('SUM(ms_vpl_product_detail.qty_available - COALESCE(ms_vpl_product_detail.qty_reserved, 0)) > 0')
             ->orderBy('ms_vpl_product.product_id')
             ->get();
+
+        $products->transform(fn ($p) => tap($p, fn ($p) => $p->product_name = $p->product_name.' / '.number_format($p->product_value, 0, ',', '.').' / '.$p->product_uom
+        ));
 
         return response()->json($products);
     }
@@ -979,7 +984,7 @@ class VplUsageController extends Controller
             return response()->json(['error' => 'Product not found.'], 404);
         }
 
-        $productName = trim($product->product_name.' / '.$product->product_value.' / '.$product->product_uom);
+        $productName = trim($product->product_name.' / '.number_format($product->product_value, 0, ',', '.').' / '.$product->product_uom);
 
         // Qty per expiry date already staged in the current (unsubmitted) draft for
         // this product/warehouse — sent by the client from its "Added to this
