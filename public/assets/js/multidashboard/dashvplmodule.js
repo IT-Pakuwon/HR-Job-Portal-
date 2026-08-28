@@ -180,6 +180,7 @@
         expired: {
             icon: "⏰", badgeBg: "bg-amber-100 dark:bg-amber-900/30",
             title: row => `${row.product_id} - ${row.product_name || ""}`,
+            link: row => `${row.url}/${row.hid}/view`,
             status: row => expiryBucketBadge(row),
             fields: row => [
                 { label: "Type", value: row.product_type_label },

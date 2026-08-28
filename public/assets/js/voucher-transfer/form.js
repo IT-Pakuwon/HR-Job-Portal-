@@ -292,6 +292,8 @@ const VplTransferForm = {
             row.querySelector(`.${prefix}-qty-avail-display`).textContent = '0';
             row.querySelector(`.${prefix}-exp-input`).value = '';
             row.querySelector(`.${prefix}-exp-display`).textContent = '—';
+            const qtyInput = row.querySelector(`.${prefix}-qty-transfer-input`);
+            if (qtyInput) qtyInput.value = '';
         });
     },
 

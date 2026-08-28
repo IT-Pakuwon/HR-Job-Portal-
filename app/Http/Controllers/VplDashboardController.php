@@ -118,6 +118,7 @@ abstract class VplDashboardController extends Controller
                 'ms_vpl_product_detail.whs_id',
                 DB::raw('(ms_vpl_product_detail.qty_available - COALESCE(ms_vpl_product_detail.qty_reserved, 0)) AS qty_pickable'),
                 DB::raw('(ms_vpl_product_detail.expired_date::date - CURRENT_DATE) AS days_left'),
+                'ms_vpl_product.id as product_pk',
                 'ms_vpl_product.product_name',
                 'ms_vpl_product.product_type'
             )
@@ -138,6 +139,9 @@ abstract class VplDashboardController extends Controller
                     'qty_pickable' => $row->qty_pickable,
                     'days_left' => $daysLeft,
                     'bucket' => $daysLeft <= self::EXPIRY_URGENT_DAYS ? 'H-30' : 'H-60',
+                    // Links the row to the Master Product view page (VplMsProductController::viewproduct).
+                    'hid' => Hashids::encode($row->product_pk),
+                    'url' => '/msproduct',
                 ];
             })
             ->values();
