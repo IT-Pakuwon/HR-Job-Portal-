@@ -182,12 +182,13 @@
             title: row => `${row.product_id} - ${row.product_name || ""}`,
             status: row => expiryBucketBadge(row),
             fields: row => [
+                { label: "Type", value: row.product_type_label },
                 { label: "Expired Date", value: row.expired_date },
                 { label: "Company", value: row.cpnyid },
                 { label: "Warehouse", value: row.whs_id },
                 { label: "Qty Available", value: row.qty_pickable },
             ],
-            searchFields: row => [row.product_id, row.product_name, row.cpnyid, row.whs_id],
+            searchFields: row => [row.product_id, row.product_name, row.cpnyid, row.whs_id, row.product_type_label],
         },
         "waiting-settlement": {
             icon: "🧾", badgeBg: "bg-violet-100 dark:bg-violet-900/30",

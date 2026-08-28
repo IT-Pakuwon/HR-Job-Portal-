@@ -7,15 +7,14 @@ use App\Models\MsVplProductDetail;
 use App\Models\TrxVplSettlement;
 use App\Models\TrxVplUsage;
 use App\Models\Usercpny;
-use App\Models\Userdept;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Vinkla\Hashids\Facades\Hashids;
 
 /**
- * Shared logic for the Voucher Collection (vp_type=V) and Promotion (vp_type=P)
- * dashboards — identical everywhere except which product_type/vp_type they scope to.
+ * Shared logic for the VPL (Voucher/Product) dashboards — Collection, Promotion,
+ * Loyalty — identical everywhere except which product_type(s)/warehouse they scope to.
  */
 abstract class VplDashboardController extends Controller
 {
@@ -35,8 +34,17 @@ abstract class VplDashboardController extends Controller
         $this->approvalController = $approvalController;
     }
 
-    /** 'V' for the Collection (Voucher) dashboard, 'P' for the Promotion (Product) dashboard. */
-    abstract protected function vpType(): string;
+    /** ms_vpl_product.product_type values the Expired list covers — ['V'], ['P'], or ['V','P'] for Loyalty. */
+    abstract protected function expiryProductTypes(): array;
+
+    /** The stock warehouse the Expired list is scoped to (mirrors VplReportController::WHS_COLLECTION/WHS_PROMOTION). */
+    abstract protected function expiryWarehouseId(): string;
+
+    /** Extra summaryJson() stats a subclass wants included — e.g. Collection/Promotion add 'waiting_settlement'. */
+    protected function additionalSummaryStats(Request $request): array
+    {
+        return [];
+    }
 
     private function getAllowedCpny(): array
     {
@@ -57,12 +65,11 @@ abstract class VplDashboardController extends Controller
             ->getData(true)['data'] ?? [];
 
         return response()->json([
-            'data' => [
+            'data' => array_merge([
                 'waiting_approval' => $approvalSummary['waiting'] ?? 0,
                 'approved_today' => $approvalSummary['approved_today'] ?? 0,
                 'expired' => $this->expiredQuery()->count(),
-                'waiting_settlement' => $this->waitingSettlementQuery()->count(),
-            ],
+            ], $this->additionalSummaryStats($request)),
         ]);
     }
 
@@ -86,7 +93,8 @@ abstract class VplDashboardController extends Controller
 
         return MsVplProductDetail::query()
             ->join('ms_vpl_product', 'ms_vpl_product.product_id', '=', 'ms_vpl_product_detail.product_id')
-            ->where('ms_vpl_product.product_type', $this->vpType())
+            ->whereIn('ms_vpl_product.product_type', $this->expiryProductTypes())
+            ->where('ms_vpl_product_detail.whs_id', $this->expiryWarehouseId())
             ->whereNotNull('ms_vpl_product_detail.expired_date')
             ->whereRaw('(ms_vpl_product_detail.qty_available - COALESCE(ms_vpl_product_detail.qty_reserved, 0)) > 0')
             ->when(!empty($allowedCpny), fn ($q) => $q->whereIn('ms_vpl_product_detail.cpnyid', $allowedCpny))
@@ -96,7 +104,7 @@ abstract class VplDashboardController extends Controller
             );
     }
 
-    // Expired/expiring batches (H-60 / H-30) for this dashboard's product_type.
+    // Expired/expiring batches (H-60 / H-30) for this dashboard's product_type(s)/warehouse.
     public function expiredJson(Request $request)
     {
         abort_unless($request->ajax(), 404);
@@ -110,7 +118,8 @@ abstract class VplDashboardController extends Controller
                 'ms_vpl_product_detail.whs_id',
                 DB::raw('(ms_vpl_product_detail.qty_available - COALESCE(ms_vpl_product_detail.qty_reserved, 0)) AS qty_pickable'),
                 DB::raw('(ms_vpl_product_detail.expired_date::date - CURRENT_DATE) AS days_left'),
-                'ms_vpl_product.product_name'
+                'ms_vpl_product.product_name',
+                'ms_vpl_product.product_type'
             )
             ->orderBy('days_left')
             ->get()
@@ -121,6 +130,8 @@ abstract class VplDashboardController extends Controller
                     'id' => $row->id,
                     'product_id' => $row->product_id,
                     'product_name' => $row->product_name,
+                    'product_type' => $row->product_type,
+                    'product_type_label' => strtoupper($row->product_type) === 'V' ? 'Voucher' : 'Product',
                     'expired_date' => optional($row->expired_date)->format('Y-m-d') ?? $row->expired_date,
                     'cpnyid' => $row->cpnyid,
                     'whs_id' => $row->whs_id,
@@ -134,28 +145,28 @@ abstract class VplDashboardController extends Controller
         return response()->json(['data' => $data]);
     }
 
-    // Completed Usage docs (this dashboard's vp_type) that still have no active settlement.
-    // Job List is a per-department action queue — Admin/DIRECTORACCESS stay empty here,
-    // same rule VplSettlementController::jobListBaseQuery() already applies.
-    private function waitingSettlementQuery()
+    // Completed Usage docs (this dashboard's product type(s)) that still have no active settlement,
+    // across every department in the user's allowed companies — unlike VplSettlementController's
+    // "Job List" (a per-department action queue), this dashboard tab is company-wide visibility,
+    // so it isn't restricted to the user's own department(s), and Admin/DIRECTORACCESS aren't
+    // specially excluded either.
+    protected function waitingSettlementQuery()
     {
         $user = Auth::user();
 
-        if (!$user || $user->isPrimaryAdmin() || $user->hasFullDataScope()) {
+        if (!$user) {
             return TrxVplUsage::whereRaw('1 = 0');
         }
 
-        $multicpnyid = Usercpny::where('username', $user->username)->where('status', 'A')->pluck('cpny_id')->toArray();
-        $multidept = Userdept::where('username', $user->username)->pluck('department_id')->toArray();
+        $allowedCpny = $this->getAllowedCpny();
         $settledIds = TrxVplSettlement::whereIn('status', self::ACTIVE_SETTLEMENT_STATUSES)->pluck('usage_id');
 
         return TrxVplUsage::where('usagetype', 'Usage')
             ->where('status', 'C')
             ->where('department', '<>', 'CUSTOMERSERVICE')
-            ->where('vp_type', $this->vpType())
+            ->whereIn('vp_type', $this->expiryProductTypes())
             ->whereNotIn('usage_id', $settledIds)
-            ->whereIn('cpnyid', $multicpnyid)
-            ->whereIn('department', $multidept);
+            ->when(!empty($allowedCpny), fn ($q) => $q->whereIn('cpnyid', $allowedCpny));
     }
 
     public function waitingSettlementJson(Request $request)

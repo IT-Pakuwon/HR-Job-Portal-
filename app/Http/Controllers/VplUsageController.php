@@ -522,8 +522,31 @@ class VplUsageController extends Controller
                 // -1). Restore it here for whatever survives before any new lines are added
                 // below, otherwise a resubmit that doesn't touch existing lines leaves them
                 // permanently unreserved even though they still carry real qty_usage.
-                TrxVplUsageDetail::where('usage_id', $usage->usage_id)->get()
-                    ->each(fn ($detail) => $this->reserveDetail($detail, $usage->usagetype, +1));
+                //
+                // For Usage, re-validate against current pickable stock first — while this
+                // doc sat on hold with its claim released, another document could have
+                // legitimately claimed that same stock. Restoring blindly would push
+                // qty_reserved past qty_available, which silently hides the product from
+                // the Add Product picker for everyone (pickableQty()/getUsageProducts()
+                // treat available-minus-reserved <= 0 as "nothing to pick").
+                $existingDetails = TrxVplUsageDetail::where('usage_id', $usage->usage_id)->get();
+                if ($usage->usagetype === 'Usage') {
+                    $restoreClaim = [];
+                    foreach ($existingDetails as $detail) {
+                        if ($detail->qty_usage <= 0) {
+                            continue;
+                        }
+                        $key = $detail->product_id.'|'.$detail->expired_date.'|'.$detail->whs_id;
+                        $claimed = $restoreClaim[$key] ?? 0;
+                        $pickable = $this->pickableQty($detail->product_id, $detail->expired_date, $detail->whs_id);
+                        if ($detail->qty_usage + $claimed > $pickable) {
+                            $productName = MsVplProduct::where('product_id', $detail->product_id)->value('product_name') ?? $detail->product_id;
+                            throw new \RuntimeException('Cannot resubmit: '.$productName.' no longer has enough available stock ('.max(0, $pickable - $claimed).' left) — it was likely claimed by another document while this one was on hold.');
+                        }
+                        $restoreClaim[$key] = $claimed + $detail->qty_usage;
+                    }
+                }
+                $existingDetails->each(fn ($detail) => $this->reserveDetail($detail, $usage->usagetype, +1));
 
                 if ($request->has('addmore')) {
                     // Validate against pickable/returnable qty only AFTER the restore above —
