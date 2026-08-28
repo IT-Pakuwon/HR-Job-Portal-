@@ -828,7 +828,7 @@ const VplTransferForm = {
         };
 
         if (rows.length === 0) {
-            doSubmit();
+            VplTransfer.toast('error', 'At least one detail line is required.');
             return;
         }
 
