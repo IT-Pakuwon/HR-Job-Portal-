@@ -223,8 +223,8 @@
                                 ],
                                 [
                                     'label' => (float) ($calr->amountdiff ?? 0) < 0
-                                        ? 'Kurang Pembayaran'
-                                        : 'Lebih Pembayaran',
+                                        ? 'Kurang Kasbon'
+                                        : 'Lebih Kasbon',
                                     'value' => 'Rp ' . $fmtMoney($calr->amountdiff),
                                 ],
                                 [

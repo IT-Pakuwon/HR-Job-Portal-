@@ -274,7 +274,7 @@
 
                                 <div class="flex items-center justify-between border-t pt-2">
                                     <span id="diffLabel" class="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                                        Lebih Pembayaran
+                                        Lebih Kasbon
                                     </span>
                                     <span id="diffDisplay" class="text-lg font-bold text-green-600">
                                         0,00
@@ -474,7 +474,7 @@
 
                 $('#settlementDisplay').text(formatNumber(settlement));
                 $('#diffDisplay').text(formatNumber(diff));
-                $('#diffLabel').text(diff < 0 ? 'Kurang Pembayaran' : 'Lebih Pembayaran');
+                $('#diffLabel').text(diff < 0 ? 'Kurang Kasbon' : 'Lebih Kasbon');
 
                 $('#amountSettlementInput').val(settlement.toFixed(2));
                 $('#amountDiffInput').val(diff.toFixed(2));
