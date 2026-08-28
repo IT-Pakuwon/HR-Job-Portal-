@@ -209,6 +209,7 @@
         $amountRfp = (float) ($calr->amountrfp ?? 0);
         $amountSettlement = (float) ($calr->amountsettlement ?? 0);
         $amountDiff = (float) ($calr->amountdiff ?? ($amountRfp - $amountSettlement));
+        $amountDiffLabel = $amountDiff < 0 ? 'Kurang Pembayaran' : 'Lebih Pembayaran';
 
         $statusText = match ($calr->status) {
             'P' => 'On Progress',
@@ -341,7 +342,7 @@
         </tr>
 
         <tr>
-            <td>Lebih/Kurang</td>
+            <td>{{ $amountDiffLabel }}</td>
             <td>:</td>
             <td colspan="4">Rp. {{ number_format($amountDiff, 0, ',', '.') }}</td>
         </tr>
