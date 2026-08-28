@@ -160,7 +160,11 @@ const VplReceiveForm = {
         $('#c_department').on('change', () => VplReceiveForm.loadWhsForAllRows('create'));
 
         $('#c_vp_type').on('change', () => {
-            VplReceiveForm.resetProductSelects('c');
+            // Existing rows (product, qty, expiry, tenant/price/uom) belong to the previous
+            // type's product list — reset the detail table to a single empty row.
+            VplReceive.state.cRowIdx = 0;
+            $('#c_detailBody').html(VplReceiveHelper.buildDetailRow('c', 0));
+            VplReceiveHelper.initRowSelect2(0);
             VplReceiveForm.loadWhsForAllRows('create');
             VplReceiveForm.loadProductsForAllRows('create');
         });

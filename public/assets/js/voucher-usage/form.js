@@ -596,7 +596,13 @@ const VplUsageForm = {
             if (btn) document.getElementById(`c_attach_${btn.dataset.idx}`)?.remove();
         });
 
-        $('#c_cpnyid, #c_department, #c_vp_type').on('change', () => VplUsageForm.loadWarehouseOptions('create'));
+        $('#c_cpnyid, #c_department, #c_vp_type').on('change', () => {
+            // Already-added detail rows were picked against the previous company/dept/type —
+            // they're no longer valid, so clear them along with the warehouse/product pickers.
+            document.getElementById('c_detailBody').innerHTML = '';
+            VplUsage.state.cRowIdx = 0;
+            VplUsageForm.loadWarehouseOptions('create');
+        });
         $('#c_department').on('change', () => {
             VplUsageForm.toggleUsageDateSection();
             VplUsageForm.toggleEventDateSection();
