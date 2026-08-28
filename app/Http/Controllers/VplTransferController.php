@@ -536,6 +536,10 @@ class VplTransferController extends Controller
                     }
                 }
 
+                if (TrxVplTransferDetail::where('transfer_id', $transfer->transfer_id)->count() === 0) {
+                    throw new \RuntimeException('At least one detail line is required.');
+                }
+
                 $this->saveAttachments($request, $transfer->transfer_id, $dt->year, $user);
 
                 // Re-generate approval records — throws if no approval rule matches, rolling back

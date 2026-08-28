@@ -31,7 +31,7 @@ const VplSettlementDatalist = {
                 { data: 'status_badge',           name: 'status',                orderable: false, searchable: false },
             ],
             order: [[1, 'desc']],
-            pageLength: 25,
+            pageLength: 10,
             createdRow(row) {
                 $(row).addClass(
                     'border-b border-gray-100 hover:bg-slate-50/60 dark:border-white/[0.05] dark:hover:bg-white/[0.02] transition-colors duration-100'
@@ -60,7 +60,7 @@ const VplSettlementDatalist = {
             ],
             autoWidth: false,
             order: [[2, 'desc']],
-            pageLength: 25,
+            pageLength: 10,
             createdRow(row) {
                 $(row).addClass(
                     'border-b border-gray-100 hover:bg-slate-50/60 dark:border-white/[0.05] dark:hover:bg-white/[0.02] transition-colors duration-100'

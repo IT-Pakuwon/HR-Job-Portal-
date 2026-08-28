@@ -612,6 +612,10 @@ class VplUsageController extends Controller
                     }
                 }
 
+                if (TrxVplUsageDetail::where('usage_id', $usage->usage_id)->count() === 0) {
+                    throw new \RuntimeException('At least one detail line is required.');
+                }
+
                 $this->saveAttachments($request, $usage->usage_id, $dt->year, $user);
 
                 // update() only runs on a revised (Hold) document, so the previous approval

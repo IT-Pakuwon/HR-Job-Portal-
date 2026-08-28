@@ -460,6 +460,10 @@ class VplReceiveController extends Controller
                     }
                 }
 
+                if (TrxVplReceiveDetail::where('receive_id', $receive->receive_id)->count() === 0) {
+                    throw new \RuntimeException('At least one detail line is required.');
+                }
+
                 $this->saveAttachments($request, $receive->receive_id, $dt->year, $user);
 
                 // Read category condition — vp_type already stored as 'voucher'/'product'

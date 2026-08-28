@@ -579,7 +579,7 @@ const VplReceiveForm = {
 
         const rows = VplReceiveForm.collectExistingRows().concat(VplReceiveForm.collectRows('e'));
         if (rows.length === 0) {
-            doSubmit();
+            VplReceive.toast('error', 'At least one detail line is required.');
             return;
         }
 
