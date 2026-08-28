@@ -1027,7 +1027,12 @@ class VplTransferController extends Controller
             }
 
             $returnable = $this->returnableQty($refTransferId, $line->product_id, $exp, $excludeId);
-            if ($returnable <= 0) {
+            // Returnable is only half the cap — store() also enforces pickableQty() (actual
+            // physical stock in the dept warehouse, net of reservations) at submit time. Clamp
+            // here too so the form's Avail. Qty matches what will really be accepted.
+            $pickable  = $this->pickableQty($line->product_id, $exp, $line->from_whs_id);
+            $available = min($returnable, $pickable);
+            if ($available <= 0) {
                 continue;
             }
 
@@ -1037,7 +1042,7 @@ class VplTransferController extends Controller
                 'expired_date'   => $exp,
                 'from_whs_id'    => $line->from_whs_id,
                 'to_whs_id'      => $line->to_whs_id,
-                'qty_returnable' => $returnable,
+                'qty_returnable' => $available,
             ];
         }
 

@@ -9,6 +9,12 @@
 .select2-container .select2-selection--single { height: 42px !important; border-radius: 8px !important; border-color: #e2e8f0 !important; display: flex; align-items: center; }
 .select2-container .select2-selection--single .select2-selection__rendered { line-height: 42px !important; padding: 0 50px 0 12px !important; }
 .select2-container .select2-selection--single .select2-selection__arrow { height: 40px !important; }
+
+/* Product picker (Add Product modal) — long product names wrap instead of clipping/scrolling */
+.vpl-picker-wrap.select2-container .select2-selection--single { height: auto !important; min-height: 42px; align-items: flex-start; padding: 6px 0; }
+.vpl-picker-wrap.select2-container .select2-selection--single .select2-selection__rendered { white-space: normal !important; word-break: break-word; line-height: 1.4 !important; padding: 3px 50px 3px 12px !important; }
+.vpl-picker-wrap.select2-container .select2-selection--single .select2-selection__arrow { height: 20px !important; top: 50%; transform: translateY(-50%); }
+.vpl-picker-wrap.select2-container .select2-selection--single .select2-selection__clear { position: absolute; top: 50%; right: 28px; transform: translateY(-50%); }
 .apv-badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:600; }
 .status-filter.active-card .status-card { box-shadow: 0 0 0 2px #6366f1; }
 

@@ -18,8 +18,8 @@ const VplUsageInit = {
         });
         $('#e_whs_id').select2({ placeholder: 'Select...', allowClear: true, width: '100%', dropdownParent: $('#editModal') });
 
-        $('#c_picker_product').select2({ placeholder: 'Select...', allowClear: true, width: '100%', dropdownParent: $('#c_addProductModal') });
-        $('#e_picker_product').select2({ placeholder: 'Select...', allowClear: true, width: '100%', dropdownParent: $('#e_addProductModal') });
+        $('#c_picker_product').select2({ placeholder: 'Select...', allowClear: true, width: '100%', dropdownParent: $('#c_addProductModal'), containerCssClass: 'vpl-picker-wrap' });
+        $('#e_picker_product').select2({ placeholder: 'Select...', allowClear: true, width: '100%', dropdownParent: $('#e_addProductModal'), containerCssClass: 'vpl-picker-wrap' });
 
         // Select2 on the "Usage All" doctype filter (admin only — element absent otherwise)
         if ($('#f_doctype').length) {
