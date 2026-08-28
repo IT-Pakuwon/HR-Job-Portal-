@@ -189,6 +189,7 @@ class VplTransferController extends Controller
         $approvals = TrApproval::where('refnbr', $transfer->transfer_id)
             ->where('aprv_doctype', self::DOCTYPE)
             ->where('status', '<>', 'X')
+            ->orderBy('created_at', 'asc')
             ->orderByRaw("CAST(aprv_leveling AS numeric) ASC")
             ->get();
 
@@ -459,6 +460,28 @@ class VplTransferController extends Controller
             return response()->json(['error' => 'This document cannot be edited in its current status.'], 422);
         }
 
+        $refTransferId = trim((string) ($request->ref_transfer_id ?? ''));
+        if ($transfer->transfertype === 'ReturnTf') {
+            if ($refTransferId === '') {
+                return response()->json(['error' => 'Reference Transfer is required for Return Transfer.'], 422);
+            }
+
+            $validReference = TrxVplTransfer::where('transfer_id', $refTransferId)
+                ->where('status', 'C')
+                ->where('cpnyid', $transfer->cpnyid)
+                ->where('department', $transfer->department)
+                ->where('vp_type', $transfer->vp_type)
+                ->exists();
+            if (!$validReference) {
+                return response()->json(['error' => 'The selected Reference Transfer is not valid or is no longer available.'], 422);
+            }
+
+            $hasExistingDetails = TrxVplTransferDetail::where('transfer_id', $transfer->transfer_id)->exists();
+            if ($hasExistingDetails && $refTransferId !== $transfer->ref_transfer_id) {
+                return response()->json(['error' => 'Remove all existing details before changing the Reference Transfer.'], 422);
+            }
+        }
+
         // Read ms_category to validate the approval condition exists
         $conditionName = $this->resolveConditionName($transfer->vp_type, $transfer->transfertype);
         $category = MsCategory::where('doctype', self::DOCTYPE)
@@ -472,7 +495,7 @@ class VplTransferController extends Controller
         }
 
         try {
-            DB::connection('pgsql5')->transaction(function () use ($request, $user, $dt, $transfer, $category, $conditionName) {
+            DB::connection('pgsql5')->transaction(function () use ($request, $user, $dt, $transfer, $category, $conditionName, $refTransferId) {
                 // New detail lines
                 if ($request->has('addmore')) {
                     $line = TrxVplTransferDetail::where('transfer_id', $transfer->transfer_id)->max('linenbr') ?? 0;
@@ -499,9 +522,9 @@ class VplTransferController extends Controller
                             ->where('to_whs_id', $detail['to_whs_id'])
                             ->first();
 
-                        if ($transfer->transfertype === 'ReturnTf' && !empty($transfer->ref_transfer_id)) {
+                        if ($transfer->transfertype === 'ReturnTf') {
                             $alreadyOnLine = $existing ? (float) $existing->qty_transfer : 0;
-                            $returnable    = $this->returnableQty($transfer->ref_transfer_id, $detail['product_id'], $exp, $transfer->id);
+                            $returnable    = $this->returnableQty($refTransferId, $detail['product_id'], $exp, $transfer->id);
                             if ($newQty + $alreadyOnLine > $returnable) {
                                 $productName = MsVplProduct::where('product_id', $detail['product_id'])->value('product_name') ?? $detail['product_id'];
                                 throw new \RuntimeException('Return qty for ' . $productName . ' exceeds returnable quantity (' . max(0, $returnable - $alreadyOnLine) . ').');
@@ -526,7 +549,7 @@ class VplTransferController extends Controller
                                 'expired_date'   => $exp,
                                 'from_whs_id'    => $detail['from_whs_id'],
                                 'to_whs_id'      => $detail['to_whs_id'],
-                                'ref_transfer_id'=> $request->ref_transfer_id ?? null,
+                                'ref_transfer_id'=> $transfer->transfertype === 'ReturnTf' ? $refTransferId : null,
                                 'status'         => 'P',
                                 'created_user'   => $user->username,
                                 'created_at'     => $dt->toDateTimeString(),
@@ -534,6 +557,14 @@ class VplTransferController extends Controller
                             $this->reserveDetail($newDetail, +1);
                         }
                     }
+                }
+
+                // A revised transfer may have had all of its existing lines removed.
+                // Only resubmit when at least one persisted detail remains after valid
+                // new lines from this request have been processed.
+                $hasDetails = TrxVplTransferDetail::where('transfer_id', $transfer->transfer_id)->exists();
+                if (!$hasDetails) {
+                    throw new \RuntimeException('At least one transfer detail is required before resubmitting for approval.');
                 }
 
                 $this->saveAttachments($request, $transfer->transfer_id, $dt->year, $user);
@@ -547,10 +578,10 @@ class VplTransferController extends Controller
                 // previous approval cycle's rows (Approved/Revised) are stale leftovers.
                 // Cancel them first so generateForDocument()'s fresh chain doesn't sit
                 // alongside them and show as duplicate levels in the workflow panel.
-                TrApproval::where('refnbr', $transfer->transfer_id)
-                    ->where('aprv_doctype', self::DOCTYPE)
-                    ->where('status', '<>', 'X')
-                    ->update(['status' => 'X']);
+                // TrApproval::where('refnbr', $transfer->transfer_id)
+                //     ->where('aprv_doctype', self::DOCTYPE)
+                //     ->where('status', '<>', 'X')
+                //     ->update(['status' => 'X']);
 
                 app(ApprovalController::class)->generateForDocument(
                     $transfer->transfer_id,
@@ -563,6 +594,9 @@ class VplTransferController extends Controller
                 );
 
                 $transfer->transfer_remark = $request->transfer_remark;
+                if ($transfer->transfertype === 'ReturnTf') {
+                    $transfer->ref_transfer_id = $refTransferId;
+                }
                 $transfer->status          = 'P';
                 $transfer->updated_user    = $user->name;
                 $transfer->updated_at      = $dt->toDateTimeString();
