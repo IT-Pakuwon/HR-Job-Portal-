@@ -121,10 +121,19 @@
             .catch((err) => { if (err.name !== "AbortError") console.error(err); });
     }
 
-    function approvalStatusBadge(v) {
+    function approvalStatusBadge(row) {
         const isDark = document.documentElement.classList.contains("dark");
         const badge = (text, bg, color) =>
             `<span style="background:${bg};color:${color};border:1px solid ${color}60" class="inline-block shrink-0 rounded-full px-2.5 py-0.5 text-center text-[11px] font-semibold whitespace-nowrap">${text}</span>`;
+
+        const doctype = (row.docid || "").match(/^[A-Z]+/)?.[0];
+
+        if (["CS", "RP", "RFP", "RCA", "KO"].includes(doctype) && row.flag_imbudget && row.imbudgetid && row.status_imbudget !== "C") {
+            return isDark
+                ? badge("Waiting IM Budget", "rgba(245,158,11,0.15)", "#fbbf24")
+                : badge("Waiting IM Budget", "rgba(245,158,11,0.12)", "#b45309");
+        }
+
         const map = isDark ? {
             P: { text: "Waiting Approval", bg: "rgba(59,130,246,0.15)", color: "#93c5fd" },
             A: { text: "Approved",         bg: "rgba(34,197,94,0.15)",  color: "#86efac" },
@@ -132,7 +141,7 @@
             P: { text: "Waiting Approval", bg: "rgba(59,130,246,0.1)", color: "#2563eb" },
             A: { text: "Approved",         bg: "rgba(34,197,94,0.1)",  color: "#16a34a" },
         };
-        const s = map[v] || { text: "Unknown", bg: "rgba(156,163,175,0.1)", color: "#6b7280" };
+        const s = map[row.status] || { text: "Unknown", bg: "rgba(156,163,175,0.1)", color: "#6b7280" };
         return badge(s.text, s.bg, s.color);
     }
 
@@ -147,7 +156,7 @@
             icon: "📝", badgeBg: "bg-blue-100 dark:bg-blue-900/30",
             title: row => row.docid,
             link: row => `${row.url}/${row.hid}`,
-            status: row => approvalStatusBadge(row.status),
+            status: row => approvalStatusBadge(row),
             fields: row => [
                 { label: "Company", value: row.cpnyid },
                 { label: "Dept", value: row.departementid },
@@ -160,7 +169,7 @@
             icon: "📋", badgeBg: "bg-slate-100 dark:bg-slate-700",
             title: row => row.docid,
             link: row => `${row.url}/${row.hid}`,
-            status: row => approvalStatusBadge(row.status),
+            status: row => approvalStatusBadge(row),
             fields: row => [
                 { label: "Company", value: row.cpnyid },
                 { label: "Dept", value: row.departementid },

@@ -6,7 +6,10 @@ use App\Models\MsCompany;
 use App\Models\TrApproval;
 use App\Models\TrBookingCar;
 use App\Models\TrCS;
+use App\Models\TrKontrak;
 use App\Models\TrLndTrainingRegistration;
+use App\Models\TrRfp;
+use App\Models\TrRfpNonPurch;
 use App\Models\TrVoucherTaxi;
 use App\Models\TrxVplReceive;
 use App\Models\TrxVplSettlement;
@@ -559,28 +562,7 @@ class ApprovalDashboardController extends Controller
             ->sortByDesc(fn ($r) => $r['docdate'] ?? '')
             ->values();
 
-        $csDocids = $data
-            ->filter(fn ($r) => str_starts_with(strtoupper($r['docid'] ?? ''), 'CS'))
-            ->pluck('docid')
-            ->values();
-
-        if ($csDocids->isNotEmpty()) {
-            $csM = new TrCS();
-            $imBudgetMap = DB::connection($csM->getConnectionName() ?: config('database.default'))
-                ->table($csM->getTable())
-                ->whereIn('csid', $csDocids->all())
-                ->select('csid', 'flag_imbudget', 'imbudgetid', 'status_imbudget')
-                ->get()
-                ->keyBy(fn ($r) => strtoupper(trim($r->csid)));
-
-            $data = $data->map(function ($r) use ($imBudgetMap) {
-                $cs = $imBudgetMap->get(strtoupper(trim($r['docid'] ?? '')));
-                $r['flag_imbudget']   = $cs?->flag_imbudget   ?? null;
-                $r['imbudgetid']      = $cs?->imbudgetid      ?? null;
-                $r['status_imbudget'] = $cs?->status_imbudget ?? null;
-                return $r;
-            })->values();
-        }
+        $data = $this->attachIMBudgetInfo($data);
 
         Log::info('approvalDashboard', [
             'user' => $user->username,
@@ -591,5 +573,91 @@ class ApprovalDashboardController extends Controller
         ]);
 
         return $data;
+    }
+
+    /**
+     * IM Budget can gate CS, RP (RFP Purchase), RFP/RCA (RFP Non-Purchase),
+     * and KO (Kontrak) documents. CS/RP/RFP/RCA carry flag_imbudget /
+     * imbudgetid / status_imbudget on their own header; KO has none of its
+     * own — it inherits the status from the CS it was generated from
+     * (tr_kontrak.csid), so that one needs a join instead of a direct read.
+     */
+    private function attachIMBudgetInfo(Collection $data): Collection
+    {
+        $directSources = [
+            'CS'  => [new TrCS(), 'csid'],
+            'RP'  => [new TrRfp(), 'rfp_id'],
+            'RFP' => [new TrRfpNonPurch(), 'rfpnonpurchaseid'],
+            'RCA' => [new TrRfpNonPurch(), 'rfpnonpurchaseid'],
+        ];
+
+        $imBudgetByDocid = collect();
+
+        foreach ($directSources as $prefix => [$model, $keyColumn]) {
+            $docids = $data
+                ->filter(fn ($r) => str_starts_with(strtoupper($r['docid'] ?? ''), $prefix))
+                ->pluck('docid')
+                ->values();
+
+            if ($docids->isEmpty()) {
+                continue;
+            }
+
+            DB::connection($model->getConnectionName() ?: config('database.default'))
+                ->table($model->getTable())
+                ->whereIn($keyColumn, $docids->all())
+                ->select("{$keyColumn} as docid", 'flag_imbudget', 'imbudgetid', 'status_imbudget')
+                ->get()
+                ->each(fn ($r) => $imBudgetByDocid->put(strtoupper(trim($r->docid)), $r));
+        }
+
+        $koDocids = $data
+            ->filter(fn ($r) => str_starts_with(strtoupper($r['docid'] ?? ''), 'KO'))
+            ->pluck('docid')
+            ->values();
+
+        if ($koDocids->isNotEmpty()) {
+            $kM = new TrKontrak();
+
+            $kontrakToCs = DB::connection($kM->getConnectionName() ?: config('database.default'))
+                ->table($kM->getTable())
+                ->whereIn('kontrakid', $koDocids->all())
+                ->select('kontrakid', 'csid')
+                ->get()
+                ->keyBy(fn ($r) => strtoupper(trim($r->kontrakid)));
+
+            $csIds = $kontrakToCs->pluck('csid')->filter()->unique()->values();
+
+            if ($csIds->isNotEmpty()) {
+                $csM = new TrCS();
+
+                $csImBudget = DB::connection($csM->getConnectionName() ?: config('database.default'))
+                    ->table($csM->getTable())
+                    ->whereIn('csid', $csIds->all())
+                    ->select('csid', 'flag_imbudget', 'imbudgetid', 'status_imbudget')
+                    ->get()
+                    ->keyBy(fn ($r) => strtoupper(trim($r->csid)));
+
+                foreach ($kontrakToCs as $kontrakKey => $kontrak) {
+                    $cs = $csImBudget->get(strtoupper(trim($kontrak->csid ?? '')));
+
+                    if ($cs) {
+                        $imBudgetByDocid->put($kontrakKey, $cs);
+                    }
+                }
+            }
+        }
+
+        if ($imBudgetByDocid->isEmpty()) {
+            return $data;
+        }
+
+        return $data->map(function ($r) use ($imBudgetByDocid) {
+            $src = $imBudgetByDocid->get(strtoupper(trim($r['docid'] ?? '')));
+            $r['flag_imbudget']   = $src?->flag_imbudget   ?? null;
+            $r['imbudgetid']      = $src?->imbudgetid      ?? null;
+            $r['status_imbudget'] = $src?->status_imbudget ?? null;
+            return $r;
+        })->values();
     }
 }

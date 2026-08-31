@@ -212,7 +212,7 @@
 
         const doctype = (row.docid || "").match(/^[A-Z]+/)?.[0];
 
-        if (doctype === "CS" && row.flag_imbudget && row.imbudgetid && row.status_imbudget !== "C") {
+        if (["CS", "RP", "RFP", "RCA", "KO"].includes(doctype) && row.flag_imbudget && row.imbudgetid && row.status_imbudget !== "C") {
             return isDark
                 ? badge("Waiting IM Budget", "rgba(245,158,11,0.15)", "#fbbf24")
                 : badge("Waiting IM Budget", "rgba(245,158,11,0.12)", "#b45309");
