@@ -1,5 +1,11 @@
-<x-app-layout>
-    <div class="max-w-9xl mx-auto w-full py-1">
+﻿<x-app-layout>
+    <div class="max-w-9xl mx-auto w-full p-2">
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'Job Postings', 'url' => route('jobpostings')],
+            ['label' => 'Show Details'],
+        ]" />
+
         <div class="grid">
             <div class="max-w-9xl mx-auto w-full px-2 py-1 sm:px-6 lg:px-2">
                 <div class="gap-1">
@@ -99,7 +105,7 @@
                                                     ['label' => 'Actual Number', 'value' => $jobposting->total_actual],
                                                 ];
                                             @endphp
-                                
+
                                             @foreach ($jobNumbers as $job)
                                                 <div class="flex flex-col items-center p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-700">
                                                     <span class=" text-sm  text-gray-500 dark:text-gray-400">{{ $job['label'] }}</span>

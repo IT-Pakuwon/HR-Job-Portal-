@@ -1,5 +1,11 @@
-<x-app-layout>
-    <div class="mx-auto w-full max-w-6xl p-3">
+﻿<x-app-layout>
+    <div class="max-w-9xl mx-auto w-full p-2">
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'Weekly Meeting', 'url' => route('weekly-meeting')],
+            ['label' => 'Show Details'],
+        ]" />
+
         <div id="mom" class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
             <div class="flex items-start justify-between gap-4 border-b pb-5 dark:border-gray-700">
                 <div>

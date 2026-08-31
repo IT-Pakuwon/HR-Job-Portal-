@@ -1,5 +1,11 @@
-<x-app-layout>
+﻿<x-app-layout>
     <div class="max-w-9xl mx-auto flex flex-col gap-3 p-2" x-data="tabsComponent()" x-init="initializeComponent()">
+
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'Careers', 'url' => route('careers')],
+            ['label' => 'Show Details'],
+        ]" />
 
         {{-- ── Back navigation ──────────────────────────────────────── --}}
         <a href="{{ route('jobapplicant') }}"

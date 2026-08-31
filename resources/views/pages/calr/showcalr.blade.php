@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     @php
@@ -23,11 +23,17 @@
     @endphp
 
     <div class="max-w-9xl mx-auto p-2">
-        <x-approval-actions
-            :status="$calr->status"
-            :is-approver="$isApprover"
-            :edit-url="url('/editcalrs/' . $hash)"
-        />
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'CALR', 'url' => route('calrlist')],
+            ['label' => 'Show Details'],
+        ]">
+            <x-approval-actions
+                :status="$calr->status"
+                :is-approver="$isApprover"
+                :edit-url="url('/editcalrs/' . $hash)"
+            />
+        </x-breadcrumb>
 
          <div class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
              <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">

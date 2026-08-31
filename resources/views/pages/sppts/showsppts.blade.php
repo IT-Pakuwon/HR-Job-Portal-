@@ -1,11 +1,17 @@
-<x-app-layout>
+﻿<x-app-layout>
 
     <div class="max-w-9xl mx-auto p-2">
-        <x-approval-actions
-            :status="$sppt->status"
-            :is-approver="$isApprover"
-            :edit-url="url('/editsppts/' . $hash)"
-        />
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'SPPT', 'url' => route('sppts')],
+            ['label' => 'Show Details'],
+        ]">
+            <x-approval-actions
+                :status="$sppt->status"
+                :is-approver="$isApprover"
+                :edit-url="url('/editsppts/' . $hash)"
+            />
+        </x-breadcrumb>
         <div class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
             <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
                 {{-- Left card (SPPT Info) --}}

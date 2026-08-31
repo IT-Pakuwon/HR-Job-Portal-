@@ -1,15 +1,21 @@
-<x-app-layout>
+﻿<x-app-layout>
 
     <style>
 
     </style>
 
     <div class="max-w-9xl mx-auto p-2">
-        <x-approval-actions
-            :status="$budget->status"
-            :is-approver="$isApprover"
-            :edit-url="url('/editbudgets/' . $hash)"
-        />
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'Budget', 'url' => route('budgets')],
+            ['label' => 'Show Details'],
+        ]">
+            <x-approval-actions
+                :status="$budget->status"
+                :is-approver="$isApprover"
+                :edit-url="url('/editbudgets/' . $hash)"
+            />
+        </x-breadcrumb>
         <div class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
             <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
                 <div class="flex h-[400px] flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">

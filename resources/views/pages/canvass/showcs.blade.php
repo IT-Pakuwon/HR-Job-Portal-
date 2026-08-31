@@ -1,13 +1,19 @@
-<x-app-layout>
+﻿<x-app-layout>
     <div class="max-w-9xl mx-auto p-2">
-        <x-approval-actions
-            :status="$cs->status"
-            :is-approver="$isApprover"
-            :has-blocking-im="$hasBlockingIM"
-            :im-blocking-id="$cs->imbudgetid ?? null"
-            :im-blocking-status="$cs->status_imbudget ?? null"
-            :edit-url="url('/editcs/' . $hash)"
-        />
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'Canvass', 'url' => route('cslist')],
+            ['label' => 'Show Details'],
+        ]">
+            <x-approval-actions
+                :status="$cs->status"
+                :is-approver="$isApprover"
+                :has-blocking-im="$hasBlockingIM"
+                :im-blocking-id="$cs->imbudgetid ?? null"
+                :im-blocking-status="$cs->status_imbudget ?? null"
+                :edit-url="url('/editcs/' . $hash)"
+            />
+        </x-breadcrumb>
         <div class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
             <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
                 {{-- Left card (CS Info) --}}

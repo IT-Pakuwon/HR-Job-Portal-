@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     @php
         $docId = $header->imnonpurchaseid;
         $doctype = 'IMR';
@@ -28,6 +28,12 @@
     @endphp
 
     <div class="max-w-9xl mx-auto p-2">
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'IM Budget Non Purchase', 'url' => route('imbudgetnonpurch')],
+            ['label' => 'Show Details'],
+        ]" />
+
         {{-- ACTION BUTTON --}}
         <div class="mb-4 flex items-center justify-end">
             <div class="flex gap-3">

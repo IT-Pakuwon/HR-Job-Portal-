@@ -1,5 +1,11 @@
-<x-app-layout>
-    <div class="max-w-9xl mx-auto w-full py-4">
+﻿<x-app-layout>
+    <div class="max-w-9xl mx-auto w-full p-2">
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'Tasks', 'url' => route('tasks')],
+            ['label' => 'Show Details'],
+        ]" />
+
         <div class="grid">
             <div class="max-w-9xl mx-auto w-full p-2">
                 <div class="grid grid-cols-12 gap-6">
@@ -261,7 +267,7 @@
 
                                 commentList.append(`
                                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-                                    <p class=" text-sm  font-semibold">${comment.username} 
+                                    <p class=" text-sm  font-semibold">${comment.username}
                                         <span class="text-sm text-gray-500 dark:text-gray-400">(${timeAgo})</span>
                                     </p>
                                     <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>

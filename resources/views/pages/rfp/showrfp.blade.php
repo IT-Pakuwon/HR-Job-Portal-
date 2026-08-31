@@ -1,13 +1,19 @@
-<x-app-layout>
+﻿<x-app-layout>
     <div class="max-w-9xl mx-auto p-2">
-        <x-approval-actions
-            :status="$rfp->status"
-            :is-approver="$isApprover"
-            :has-blocking-im="$hasBlockingIM"
-            :im-blocking-id="$imBlockingId"
-            :im-blocking-status="$imBlockingStatus"
-            :edit-url="url('/editrfpkontrakbudget/' . $hash)"
-        />
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'RFP', 'url' => route('rfp')],
+            ['label' => 'Show Details'],
+        ]">
+            <x-approval-actions
+                :status="$rfp->status"
+                :is-approver="$isApprover"
+                :has-blocking-im="$hasBlockingIM"
+                :im-blocking-id="$imBlockingId"
+                :im-blocking-status="$imBlockingStatus"
+                :edit-url="url('/editrfpkontrakbudget/' . $hash)"
+            />
+        </x-breadcrumb>
 
         @php
             $typePoText = trim((string) ($rfp->type_po ?? ''));
