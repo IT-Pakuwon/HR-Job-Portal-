@@ -506,8 +506,8 @@ class DocumentNotificationService
             // anyone (see the terminal-status check in the row loop below).
             $commentDocTypes = [
                 'TIC' => ['model' => TrTicket::class,       'idCol' => 'ticketid', 'url' => '/showticket',           'statusCol' => 'status_pekerjaan', 'terminalStatuses' => ['COMPLETED', 'CANCEL', 'ENVISION CHECKED / SOLVED']],
-                'ACR' => ['model' => TrAccess::class,        'idCol' => 'docid',    'url' => '/showaccessrequest',    'terminalStatuses' => ['F']],
-                'ITR' => ['model' => TrItrecommend::class,   'idCol' => 'docid',    'url' => '/showitrecommendation', 'terminalStatuses' => ['C']],
+                'ACR' => ['model' => TrAccess::class,        'idCol' => 'docid',    'url' => '/showaccessrequest',    'terminalStatuses' => ['F', 'X', 'R']],
+                'ITR' => ['model' => TrItrecommend::class,   'idCol' => 'docid',    'url' => '/showitrecommendation', 'terminalStatuses' => ['C', 'R']],
                 'PRJ' => ['model' => \App\Models\MsProject::class,     'idCol' => 'project_id', 'url' => '/projects'],
                 'TSK' => ['model' => \App\Models\TrProjectTask::class, 'idCol' => 'task_id',    'url' => '/projects'],
             ];
@@ -523,7 +523,9 @@ class DocumentNotificationService
                     // (training registration), whose seat lifecycle (offer/accept/decline/manual
                     // accept) keeps generating notification-worthy events well after approval
                     // completes — an explicit override in extendedDocTypeConfig() beats guessing.
-                    'terminalStatuses' => $extCfg['terminalStatuses'] ?? ($extDoctype === 'RC' ? [] : ['C']),
+                    // 'X' (Cancelled) and 'R' (Rejected) stop comment notifications the same way
+                    // 'C' (Completed) does — a cancelled/rejected doc is just as terminal.
+                    'terminalStatuses' => $extCfg['terminalStatuses'] ?? ($extDoctype === 'RC' ? [] : ['C', 'X', 'R']),
                 ];
             }
 
