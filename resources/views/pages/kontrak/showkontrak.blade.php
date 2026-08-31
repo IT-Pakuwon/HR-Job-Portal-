@@ -1,5 +1,11 @@
-<x-app-layout>
+﻿<x-app-layout>
     <div class="max-w-9xl mx-auto p-2">
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'Kontrak', 'url' => route('kontrak')],
+            ['label' => 'Show Details'],
+        ]" />
+
         {{-- Top bar --}}
         <div class="mb-4 flex items-center justify-between">
             @php

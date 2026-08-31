@@ -1,11 +1,17 @@
-<x-app-layout>
+﻿<x-app-layout>
 
     <div class="max-w-9xl mx-auto p-2">
-        <x-approval-actions
-            :status="$wo->status"
-            :is-approver="$isApprover"
-            :edit-url="url('/editwos/' . $hash)"
-        />
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'Work Order', 'url' => route('wos')],
+            ['label' => 'Show Details'],
+        ]">
+            <x-approval-actions
+                :status="$wo->status"
+                :is-approver="$isApprover"
+                :edit-url="url('/editwos/' . $hash)"
+            />
+        </x-breadcrumb>
         <div class="flex w-full flex-col gap-4 xl:flex-col">
              <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
                 {{-- Left card (WO Info) --}}

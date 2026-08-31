@@ -1,5 +1,11 @@
-<x-app-layout>
-    <div class="max-w-9xl mx-auto w-full px-4 py-6 sm:px-6 lg:px-8">
+﻿<x-app-layout>
+    <div class="max-w-9xl mx-auto w-full p-2">
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'BQ CS'],
+            ['label' => 'Show Details'],
+        ]" />
+
         <div class="flex flex-col gap-4">
 
             {{-- Header Card --}}

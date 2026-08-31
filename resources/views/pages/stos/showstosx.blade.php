@@ -1,5 +1,11 @@
-<x-app-layout>
-    <div class="max-w-9xl mx-auto w-full py-2">
+﻿<x-app-layout>
+    <div class="max-w-9xl mx-auto w-full p-2">
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'STO', 'url' => route('stos')],
+            ['label' => 'Show Details'],
+        ]" />
+
         <div class="grid">
             <div class="mx-auto w-full px-2 py-1 sm:px-6 lg:px-2">
                 <div class="gap-1">

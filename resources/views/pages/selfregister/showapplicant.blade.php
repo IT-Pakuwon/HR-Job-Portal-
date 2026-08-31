@@ -1,7 +1,13 @@
-<x-app-layout>
+﻿<x-app-layout>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <div class="max-w-9xl mx-auto w-full p-2">
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'Self Register', 'url' => route('selfregister')],
+            ['label' => 'Show Details'],
+        ]" />
+
         <div class="grid w-full grid-cols-1 gap-5 xl:grid-cols-12">
 
             <div class="flex flex-col gap-5 xl:col-span-6">

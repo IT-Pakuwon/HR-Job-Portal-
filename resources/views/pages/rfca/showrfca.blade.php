@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     @php
@@ -28,6 +28,12 @@
 
 
     <div class="max-w-9xl mx-auto p-2">
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'RFCA', 'url' => route('rfcalist')],
+            ['label' => 'Show Details'],
+        ]" />
+
         <div class="mb-4 flex items-center justify-end">
 
             {{-- @if (!empty($canSubmit) && $canSubmit)

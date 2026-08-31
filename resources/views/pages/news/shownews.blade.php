@@ -1,5 +1,11 @@
-<x-app-layout>
-    <div class="max-w-9xl mx-auto w-full py-1">
+﻿<x-app-layout>
+    <div class="max-w-9xl mx-auto w-full p-2">
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'News', 'url' => route('news')],
+            ['label' => 'Show Details'],
+        ]" />
+
         <div class="grid">
             <div class="max-w-9xl mx-auto w-full px-2 py-1 sm:px-6 lg:px-2">
                 <div class="gap-1">
@@ -353,7 +359,7 @@
 
                                         commentList.append(`
                                     <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-                                        <p class=" text-sm  font-semibold">${comment.username} 
+                                        <p class=" text-sm  font-semibold">${comment.username}
                                             <span class="text-sm text-gray-500 dark:text-gray-400">(${timeAgo})</span>
                                         </p>
                                         <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
@@ -424,7 +430,7 @@
             </script>
             <script>
                 $(document).on("click", "#approveBtn", function() {
-                    let docid = "{{ $news->docid }}"; // Ambil Task ID dari modal        
+                    let docid = "{{ $news->docid }}"; // Ambil Task ID dari modal
                     approveNews(docid);
                 });
 
@@ -501,7 +507,7 @@
                             return;
                         }
 
-                        let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                        let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                         // Tampilkan spinner di kanan bawah
                         $spinner.fadeIn();
 
@@ -568,7 +574,7 @@
                             toastr.error("Please provide a reason for revise.");
                             return;
                         }
-                        let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                        let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                         // Tampilkan spinner di kanan bawah
                         $spinner.fadeIn();
 

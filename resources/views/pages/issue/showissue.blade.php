@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
 
     @php
         $statusText = match ($iss->status) {
@@ -21,11 +21,17 @@
     @endphp
 
     <div class="max-w-9xl mx-auto p-2">
-        <x-approval-actions
-            :status="$iss->status"
-            :is-approver="$isApprover"
-            :edit-url="url('/editissues/' . $hash)"
-        />
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'Issue', 'url' => route('issuelist')],
+            ['label' => 'Show Details'],
+        ]">
+            <x-approval-actions
+                :status="$iss->status"
+                :is-approver="$isApprover"
+                :edit-url="url('/editissues/' . $hash)"
+            />
+        </x-breadcrumb>
 
         <div class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
             <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
