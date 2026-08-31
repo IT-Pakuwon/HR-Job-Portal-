@@ -3378,6 +3378,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/transfervp/{id}/edit', [VplTransferController::class, 'edit'])->name('transfervp.edit');
         Route::post('/transfervp/{id}/update', [VplTransferController::class, 'update'])->name('transfervp.update');
         Route::post('/transfervp/{id}/cancel', [VplTransferController::class, 'cancel'])->name('transfervp.cancel');
+        Route::post('/transfervp/{id}/attachment/add', [VplTransferController::class, 'addAttachment'])->name('transfervp.attachment.add');
     });
 
     Route::middleware('access:TRANSFERVP,DELETE')->group(function () {

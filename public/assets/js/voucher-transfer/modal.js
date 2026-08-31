@@ -111,6 +111,8 @@ const VplTransferDetailModal = {
         } else {
             attachBody.innerHTML = '<p class="p-4 text-sm text-slate-400">No attachments.</p>';
         }
+        document.getElementById('v_addAttachBtn')?.classList.toggle('hidden', !data.can_add_attachment);
+        document.getElementById('v_addAttachBtn')?.classList.toggle('inline-flex', !!data.can_add_attachment);
 
         // Approval timeline
         document.getElementById('v_approvalBody').innerHTML = VplTransferHelper.renderTimeline(data.approvals);
@@ -278,5 +280,38 @@ const VplTransferDetailModal = {
         });
 
         VplTransferDetailModal.initDiscussion();
+
+        // Add attachment directly from the view modal
+        document.getElementById('v_addAttachBtn')?.addEventListener('click', () => {
+            document.getElementById('v_addAttachInput')?.click();
+        });
+        document.getElementById('v_addAttachInput')?.addEventListener('change', function () {
+            if (!this.files || this.files.length === 0) return;
+            VplTransferDetailModal._uploadAttachment(this.files);
+        });
+    },
+
+    _uploadAttachment(files) {
+        const id = VplTransfer.state.currentViewId;
+        const formData = new FormData();
+        Array.from(files).forEach((f) => formData.append('attachment[]', f));
+        formData.append('_token', VplTransfer.csrf());
+
+        $.ajax({
+            type: 'POST',
+            url: VplTransfer.routes.addAttach(id),
+            data: formData,
+            contentType: false,
+            processData: false,
+            success() {
+                document.getElementById('v_addAttachInput').value = '';
+                VplTransfer.toast('success', 'Attachment added.');
+                VplTransferDetailModal.open(id);
+            },
+            error(xhr) {
+                document.getElementById('v_addAttachInput').value = '';
+                VplTransfer.toast('error', xhr.responseJSON?.error ?? 'Failed to add attachment.');
+            },
+        });
     },
 };
