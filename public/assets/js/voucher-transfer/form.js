@@ -223,7 +223,7 @@ const VplTransferForm = {
     // REF OPTIONS (for ReturnTf)
     // ------------------------------------------------------------------
 
-    loadRefOptions(mode) {
+    loadRefOptions(mode, selectedRef = null) {
         const prefix    = mode === 'create' ? 'c' : 'e';
         const cpnyid    = document.getElementById(`${prefix}_cpnyid`)?.value ?? '';
         // Edit modal's department field is a read-only mirror with id `e_dept`
@@ -236,12 +236,23 @@ const VplTransferForm = {
 
         const $sel = $(`#${prefix}_ref_transfer_id`);
         $sel.empty().append('<option value="">Select Reference...</option>');
+        if (selectedRef) {
+            $sel.append(new Option(selectedRef, selectedRef)).val(selectedRef);
+        }
+        $sel.data('current-ref', selectedRef || '');
+        $sel.trigger('change.select2');
 
-        $.post(VplTransfer.routes.refOpts, {
+        return $.post(VplTransfer.routes.refOpts, {
             _token: VplTransfer.csrf(),
             cpnyid, department: dept, vp_type: vpType, transfertype: transType,
         }).done((refs) => {
+            $sel.empty().append('<option value="">Select Reference...</option>');
             refs.forEach((r) => $sel.append(new Option(r, r)));
+            if (selectedRef && !refs.includes(selectedRef)) {
+                $sel.append(new Option(selectedRef, selectedRef));
+            }
+            $sel.val(selectedRef || '');
+            $sel.data('current-ref', selectedRef || '');
             $sel.trigger('change.select2');
         }).fail(() => VplTransfer.toast('warning', 'Could not load reference options.'));
     },
@@ -639,9 +650,18 @@ const VplTransferForm = {
         // Reference field
         const refWrap = document.getElementById('e_ref_display_wrapper');
         if (t.ref_transfer_id) {
-            document.getElementById('e_ref_display').value      = t.ref_transfer_id;
-            document.getElementById('e_ref_transfer_id').value  = t.ref_transfer_id;
             refWrap.classList.remove('hidden');
+            const $refSelect = $('#e_ref_transfer_id');
+            if (!$refSelect.data('select2')) {
+                $refSelect.select2({
+                    placeholder: 'Select Reference...',
+                    allowClear: true,
+                    width: '100%',
+                    dropdownParent: $('#editModal'),
+                });
+            }
+            VplTransferForm.loadRefOptions('edit', t.ref_transfer_id)
+                .done(() => VplTransferForm.loadRefDetails('edit', t.id));
         } else {
             refWrap.classList.add('hidden');
         }
@@ -698,7 +718,8 @@ const VplTransferForm = {
             // Auto-populate remaining returnable lines from the reference transfer, excluding
             // this document's own already-saved lines (shown above in "Existing Details") from
             // the "already returned" calc so its own prior claim doesn't shrink its own options.
-            VplTransferForm.loadRefDetails('edit', t.id);
+            // Reference options loader above populates these rows after it restores
+            // the currently selected reference.
         } else {
             const newDetailBody = document.getElementById('e_detailBody');
             newDetailBody.innerHTML = '';
@@ -756,6 +777,23 @@ const VplTransferForm = {
                 .fail(() => VplTransfer.toast('error', 'Remove failed.'));
         });
 
+        // A Return Transfer may select a different reference after all details from
+        // the previous reference have been removed.
+        $('#e_ref_transfer_id').on('change', function () {
+            const previousRef = $(this).data('current-ref') || '';
+            const selectedRef = this.value || '';
+            if (selectedRef === previousRef) return;
+
+            if (document.querySelector('#e_existDetailBody tr[data-detail-id]')) {
+                $(this).val(previousRef).trigger('change.select2');
+                VplTransfer.toast('error', 'Remove all existing details before changing the Reference Transfer.');
+                return;
+            }
+
+            $(this).data('current-ref', selectedRef);
+            VplTransferForm.loadRefDetails('edit', VplTransfer.state.currentViewId);
+        });
+
         // Delete existing attachment (delegated)
         document.getElementById('e_existAttachBody').addEventListener('click', async (e) => {
             const btn = e.target.closest('.e-del-exist-attach');
@@ -801,8 +839,19 @@ const VplTransferForm = {
         if (!VplTransferForm.validateRows('e')) return;
 
         const transType = document.getElementById('e_transfertype')?.value ?? '';
+        const refTransfer = document.getElementById('e_ref_transfer_id')?.value ?? '';
+        if (transType === 'ReturnTf' && !refTransfer) {
+            VplTransfer.toast('error', 'Please select a Reference Transfer for Return Transfer.');
+            return;
+        }
+
         const typeLabel = transType === 'ReturnTf' ? 'Return Transfer' : 'Transfer';
         const rows      = VplTransferForm.collectExistingRows().concat(VplTransferForm.collectRows('e'));
+
+        if (rows.length === 0) {
+            VplTransfer.toast('error', 'At least one transfer detail is required before resubmitting for approval.');
+            return;
+        }
 
         const doSubmit = () => {
             const id   = VplTransfer.state.currentViewId;
@@ -826,11 +875,6 @@ const VplTransferForm = {
                 VplTransfer.toast('error', x.responseJSON?.error ?? x.responseJSON?.message ?? 'Submit failed.');
             });
         };
-
-        if (rows.length === 0) {
-            VplTransfer.toast('error', 'At least one detail line is required.');
-            return;
-        }
 
         VplTransferForm.confirmRows(rows, typeLabel).then((result) => {
             if (result.isConfirmed) doSubmit();

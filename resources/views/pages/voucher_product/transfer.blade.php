@@ -585,9 +585,10 @@
                             <input type="hidden" name="transfertype" id="e_transfertype">
                         </div>
                         <div id="e_ref_display_wrapper" class="hidden">
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Reference Transfer</label>
-                            <input type="text" id="e_ref_display" readonly class="h-11 w-full rounded-lg border border-slate-200 bg-slate-100 px-4 text-sm dark:border-white/10 dark:bg-white/[0.04]">
-                            <input type="hidden" name="ref_transfer_id" id="e_ref_transfer_id">
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Reference Transfer <span class="text-red-500">*</span></label>
+                            <select name="ref_transfer_id" id="e_ref_transfer_id" class="w-full">
+                                <option value="">Select Reference...</option>
+                            </select>
                         </div>
                         <div class="md:col-span-3">
                             <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Remark <span class="text-red-500">*</span></label>

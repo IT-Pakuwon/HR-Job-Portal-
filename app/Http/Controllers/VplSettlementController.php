@@ -240,11 +240,12 @@ class VplSettlementController extends Controller
         $approvals = TrApproval::where('refnbr', $settlement->settlement_id)
             ->where('aprv_doctype', self::DOCTYPE)
             ->where('status', '<>', 'X')
-            ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
+            ->orderBy('created_at', 'asc')
+            ->orderByRaw("CAST(aprv_leveling AS numeric) ASC")            
             ->get();
 
         $attachments = Attachment::where('docid', $settlement->settlement_id)->where('status', 'A')->get();
-        $messages = TrMessage::where('refnbr', $settlement->settlement_id)->where('doctype', self::DOCTYPE)->orderBy('created_at')->get();
+        $messages = TrMessage::where('refnbr', $settlement->settlement_id)->where('doctype', self::DOCTYPE)->orderBy('created_at', 'asc')->get();
 
         $statusMap = ['R' => 'Rejected', 'C' => 'Completed', 'D' => 'Hold', 'X' => 'Cancelled', 'P' => 'On Progress'];
         $statusLabel = $statusMap[$settlement->status] ?? 'On Progress';
@@ -555,10 +556,10 @@ class VplSettlementController extends Controller
                 // cycle's rows (Approved/Revised) are stale leftovers. Cancel them first so
                 // generateForDocument()'s fresh chain doesn't sit alongside them and show as
                 // duplicate levels in the workflow panel.
-                TrApproval::where('refnbr', $settlement->settlement_id)
-                    ->where('aprv_doctype', self::DOCTYPE)
-                    ->where('status', '<>', 'X')
-                    ->update(['status' => 'X']);
+                // TrApproval::where('refnbr', $settlement->settlement_id)
+                //     ->where('aprv_doctype', self::DOCTYPE)
+                //     ->where('status', '<>', 'X')
+                //     ->update(['status' => 'X']);
 
                 // Throws if no approval rule matches, rolling back the detail changes
                 // so the document isn't left without an approval chain.
