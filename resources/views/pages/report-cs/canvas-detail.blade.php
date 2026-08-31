@@ -276,10 +276,31 @@
                     }
                 },
                 {
-                    data: 'csid'
+                    data: null,
+                    render: function(data, type, row) {
+                        if (!row.csid) return '';
+                        if (!row.cs_hash) return row.csid;
+                        return `<a href="/showcs/${row.cs_hash}" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">${row.csid}</a>`;
+                    }
                 },
                 {
-                    data: 'sppbjktid'
+                    data: null,
+                    render: function(data, type, row) {
+                        if (!row.sppbjktid) return '';
+                        if (!row.doc_hash || !row.doc_type) return row.sppbjktid;
+
+                        const routes = {
+                            SPPB: 'showsppbs',
+                            SPPJ: 'showsppjs',
+                            SPPK: 'showsppks',
+                            SPPT: 'showsppts'
+                        };
+
+                        const path = routes[row.doc_type];
+                        if (!path) return row.sppbjktid;
+
+                        return `<a href="/${path}/${row.doc_hash}" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">${row.sppbjktid}</a>`;
+                    }
                 },
                 {
                     data: 'ponbr'
