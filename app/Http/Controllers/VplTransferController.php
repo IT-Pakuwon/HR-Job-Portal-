@@ -238,6 +238,10 @@ class VplTransferController extends Controller
         $can_cancel = $transfer->created_user === $user->name
             && ($transfer->status === 'D' || ($transfer->status === 'P' && !$anyApproved));
 
+        // Add attachment from the view page: creator only, any status except
+        // Cancelled/Rejected/Hold (Hold already manages attachments via the edit modal)
+        $can_add_attachment = $transfer->created_user === $user->name && !in_array($transfer->status, ['X', 'R', 'D'], true);
+
         return response()->json([
             'transfer'            => $transfer,
             'hash'                => Hashids::encode($transfer->id),
@@ -272,6 +276,7 @@ class VplTransferController extends Controller
             'can_revise'          => $can_revise,
             'can_edit'            => $can_edit,
             'can_cancel'          => $can_cancel,
+            'can_add_attachment'  => $can_add_attachment,
             'current_user'        => $user->name,
         ]);
     }
@@ -875,6 +880,40 @@ class VplTransferController extends Controller
 
         $attach->delete();
         return response()->json(['success' => 'Attachment deleted.']);
+    }
+
+    public function addAttachment(Request $request, int $id)
+    {
+        $user = Auth::user();
+        $transfer = TrxVplTransfer::find($id);
+
+        if (!$transfer) {
+            return response()->json(['error' => 'Not found.'], 404);
+        }
+        if ($transfer->created_user !== $user->name || in_array($transfer->status, ['X', 'R', 'D'], true)) {
+            return response()->json(['error' => 'You are not allowed to modify this document.'], 403);
+        }
+
+        $hasValidAttachment = collect($request->file('attachment', []))->filter(fn ($f) => $f && $f->isValid())->isNotEmpty();
+        if (!$hasValidAttachment) {
+            return response()->json(['error' => 'Please choose at least one file.'], 422);
+        }
+
+        $this->saveAttachments($request, $transfer->transfer_id, Carbon::now()->year, $user);
+
+        $attachments = Attachment::where('docid', $transfer->transfer_id)->where('status', 'A')->get();
+
+        return response()->json([
+            'success' => 'Attachment added.',
+            'attachments' => $attachments->map(fn ($a) => [
+                'id' => $a->id,
+                'name' => $a->name,
+                'attachfile' => $a->attachfile,
+                'extention' => $a->extention,
+                'created_user' => $a->created_user,
+                'created_at' => $a->created_at?->format('Y-m-d H:i'),
+            ]),
+        ]);
     }
 
     // -------------------------------------------------------
