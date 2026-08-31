@@ -1,3 +1,6 @@
+@php
+    $yn = fn($v) => in_array(strtolower((string) $v), ['y', 'yes', '1', 'true'], true) ? 'Yes' : 'No';
+@endphp
  <div class="max-w-9xl mx-auto w-full">
     <div class="grid w-full grid-cols-1 gap-5 xl:grid-cols-12">
 
@@ -128,6 +131,42 @@
                         </div>
                     </div>
 
+                    @if ($isSby)
+                    {{-- Additional Information --}}
+                    <div class="overflow-hidden rounded-lg bg-white   dark:bg-gray-800">
+                        <div class="flex items-center gap-2 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                            <span class="h-4 w-1 rounded-lg bg-indigo-500"></span>
+                            <h3 class="text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200">Additional Information</h3>
+                        </div>
+                        <div class="p-6">
+                            <dl class="grid grid-cols-2 gap-x-6 gap-y-5">
+                                <div>
+                                    <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">NPWP Number</dt>
+                                    <dd class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{{ $applicant_additional->npwp_id ?? '—' }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">BPJS Number</dt>
+                                    <dd class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{{ $applicant_additional->bpjs_id ?? '—' }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Preferred Job</dt>
+                                    <dd class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{{ $applicant_additional->preferred_job ?? '—' }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Preferred Work Environment</dt>
+                                    <dd class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{{ $applicant_additional->preferred_work_environment ?? '—' }}</dd>
+                                </div>
+                            </dl>
+                            @if (optional($applicant_additional)->additional_education_and_training)
+                            <div class="mt-5 border-t border-gray-100 pt-4 dark:border-gray-700">
+                                <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Other Education &amp; Self-Development Activities</dt>
+                                <dd class="mt-1 text-sm text-gray-800 dark:text-gray-100">{{ $applicant_additional->additional_education_and_training }}</dd>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
+
                     {{-- ── CONTACT & ADDRESS ────────────────────────────────────── --}}
                     <div class="overflow-hidden rounded-lg bg-white   dark:bg-gray-800">
                         <div class="flex items-center gap-2 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
@@ -237,6 +276,7 @@
                                     ['key'=>'Skill',         'label'=>'Skill & Language'],
                                     ['key'=>'Certificate',   'label'=>'Certificate'],
                                     ['key'=>'sdanw',         'label'=>'Strengths & Weaknesses'],
+                                    ...($isSby ? [['key'=>'Organization', 'label'=>'Organization']] : []),
                                 ] as $t)
                                 <button @click="activeTab = '{{ $t['key'] }}'"
                                     :class="activeTab === '{{ $t['key'] }}'
@@ -294,6 +334,16 @@
                                                     @endif
                                                 </div>
                                             </div>
+                                            @if ($isSby && ($education->education_faculty || $education->education_cost))
+                                            <div class="mt-2.5 flex flex-wrap gap-x-5 gap-y-1 border-t border-gray-100 pt-2.5 text-xs text-gray-500 dark:border-gray-600 dark:text-gray-400">
+                                                @if ($education->education_faculty)
+                                                <span><span class="font-semibold text-gray-400">Faculty:</span> {{ $education->education_faculty }}</span>
+                                                @endif
+                                                @if ($education->education_cost)
+                                                <span><span class="font-semibold text-gray-400">Financed By:</span> {{ $education->education_cost }}</span>
+                                                @endif
+                                            </div>
+                                            @endif
                                         </div>
                                     </div>
                                     @empty
@@ -349,6 +399,12 @@
                                                 </p>
                                             </div>
                                             @endif
+                                        </div>
+                                        @endif
+                                        @if ($isSby && $working->task_summary)
+                                        <div class="mt-3 border-t border-gray-200 pt-3 dark:border-gray-600">
+                                            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Job Description</p>
+                                            <p class="mt-0.5 text-sm text-gray-700 dark:text-gray-300">{{ $working->task_summary }}</p>
                                         </div>
                                         @endif
                                     </div>
@@ -418,6 +474,19 @@
                                                     {{ $course->start_year }} &mdash; {{ $course->end_year }}
                                                 </span>
                                             </div>
+                                            @if ($isSby && ($course->course_certificate || $course->course_cost || $course->course_score))
+                                            <div class="mt-2.5 flex flex-wrap gap-x-5 gap-y-1 border-t border-gray-100 pt-2.5 text-xs text-gray-500 dark:border-gray-600 dark:text-gray-400">
+                                                @if ($course->course_certificate)
+                                                <span><span class="font-semibold text-gray-400">Certificate No:</span> {{ $course->course_certificate }}</span>
+                                                @endif
+                                                @if ($course->course_cost)
+                                                <span><span class="font-semibold text-gray-400">Funded By:</span> {{ $course->course_cost }}</span>
+                                                @endif
+                                                @if ($course->course_score)
+                                                <span><span class="font-semibold text-gray-400">Score:</span> {{ $course->course_score }}</span>
+                                                @endif
+                                            </div>
+                                            @endif
                                         </div>
                                     </div>
                                     @empty
@@ -466,6 +535,38 @@
                                     @endif
                                 @endif
                             </div>
+
+                            @if ($isSby)
+                            {{-- Organization --}}
+                            <div x-show="activeTab === 'Organization'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0">
+                                <div class="mb-4">
+                                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Have you been part of an organization?</p>
+                                    <p class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{{ $yn(optional($applicant_additional)->has_exp_organization) }}</p>
+                                </div>
+                                <div class="space-y-3">
+                                    @forelse ($applicant_organization as $org)
+                                    <div class="rounded-lg border border-gray-100 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/30">
+                                        <div class="flex flex-wrap items-start justify-between gap-2">
+                                            <p class="font-semibold text-gray-900 dark:text-white">{{ $org->organization_name }}</p>
+                                            @if ($org->organization_year)
+                                            <span class="rounded-lg bg-indigo-100 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">{{ $org->organization_year }}</span>
+                                            @endif
+                                        </div>
+                                        <div class="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
+                                            @if ($org->organization_position)
+                                            <span>{{ $org->organization_position }}</span>
+                                            @endif
+                                            @if ($org->organization_type)
+                                            <span>{{ $org->organization_type }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    @empty
+                                    <p class="py-2 text-sm italic text-gray-400">No organization data available</p>
+                                    @endforelse
+                                </div>
+                            </div>
+                            @endif
 
                         </div>
                     </div>
@@ -579,6 +680,12 @@
                                                 <span class="flex items-center gap-1">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                                                     {{ $family->core_family_gender }}
+                                                </span>
+                                                @endif
+                                                @if ($isSby && $family->core_family_place_of_birth)
+                                                <span class="flex items-center gap-1">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                                    {{ $family->core_family_place_of_birth }}
                                                 </span>
                                                 @endif
                                                 @if ($family->core_family_birt_of_date)
@@ -708,6 +815,162 @@
                         </div>
                     </div>
 
+                    {{-- ── TAB GROUP 3 (History) ─────────────────────────────────── --}}
+                    <div x-data="{ activeTab: 'Illness' }" class="overflow-hidden rounded-lg bg-white   dark:bg-gray-800">
+
+                        <div class="border-b border-gray-100 bg-gray-50 dark:border-gray-700 dark:bg-gray-700/40">
+                            <nav class="-mb-px flex overflow-x-auto">
+                                @foreach ([
+                                    ['key'=>'Illness',  'label'=>'Illness History'],
+                                    ['key'=>'Criminal', 'label'=>'Criminal History'],
+                                    ...($isSby ? [['key'=>'Accident', 'label'=>'Accident History']] : []),
+                                ] as $t)
+                                <button @click="activeTab = '{{ $t['key'] }}'"
+                                    :class="activeTab === '{{ $t['key'] }}'
+                                        ? 'border-b-[3px] border-indigo-500 text-indigo-600 bg-white dark:bg-gray-800 dark:text-indigo-400 font-semibold'
+                                        : 'border-b-[3px] border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+                                    class="whitespace-nowrap px-5 py-3.5 text-sm transition-colors duration-150 focus:outline-none">
+                                    {{ $t['label'] }}
+                                </button>
+                                @endforeach
+                            </nav>
+                        </div>
+
+                        <div class="p-6">
+
+                            {{-- Illness History --}}
+                            <div x-show="activeTab === 'Illness'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0">
+                                <div class="mb-5">
+                                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Do you have a history of severe illness?</p>
+                                    <p class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{{ $yn(optional($applicant_additional)->has_severe_illness_history) }}</p>
+                                </div>
+                                <dl class="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
+                                    <div>
+                                        <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Year</dt>
+                                        <dd class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{{ optional($applicant_additional)->illness_year ?: '—' }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Illness Name</dt>
+                                        <dd class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{{ optional($applicant_additional)->illness_name ?: '—' }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Duration</dt>
+                                        <dd class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{{ optional($applicant_additional)->illness_duration ?: '—' }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Treatment Location</dt>
+                                        <dd class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{{ optional($applicant_additional)->treatment_location ?: '—' }}</dd>
+                                    </div>
+                                </dl>
+                            </div>
+
+                            {{-- Criminal History --}}
+                            <div x-show="activeTab === 'Criminal'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0">
+                                <div class="mb-5">
+                                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Do you have a criminal history?</p>
+                                    <p class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{{ $yn(optional($applicant_additional)->has_criminal_history) }}</p>
+                                </div>
+                                <dl class="grid grid-cols-1 gap-5">
+                                    <div>
+                                        <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Description</dt>
+                                        <dd class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{{ optional($applicant_additional)->incident_description ?: '—' }}</dd>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-x-6 gap-y-5">
+                                        <div>
+                                            <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Year</dt>
+                                            <dd class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{{ optional($applicant_additional)->incident_year ?: '—' }}</dd>
+                                        </div>
+                                        <div>
+                                            <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Consequence</dt>
+                                            <dd class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{{ optional($applicant_additional)->incident_consequence ?: '—' }}</dd>
+                                        </div>
+                                    </div>
+                                </dl>
+                            </div>
+
+                            @if ($isSby)
+                            {{-- Accident History --}}
+                            <div x-show="activeTab === 'Accident'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0">
+                                <div class="mb-5">
+                                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Do you have a history of traffic accidents?</p>
+                                    <p class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{{ $yn(optional($applicant_additional)->has_traffic_accident_history) }}</p>
+                                </div>
+                                <dl class="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-3">
+                                    <div>
+                                        <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Year</dt>
+                                        <dd class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{{ optional($applicant_additional)->accident_year ?: '—' }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Accident</dt>
+                                        <dd class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{{ optional($applicant_additional)->accident_name ?: '—' }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Impact</dt>
+                                        <dd class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{{ optional($applicant_additional)->accident_impact ?: '—' }}</dd>
+                                    </div>
+                                </dl>
+                            </div>
+                            @endif
+
+                        </div>
+                    </div>
+
+                    @if ($isSby)
+                    {{-- Consent & Availability --}}
+                    <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800">
+                        <div class="flex items-center gap-2 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                            <span class="h-4 w-1 rounded-lg bg-teal-500"></span>
+                            <h3 class="text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200">Consent &amp; Availability</h3>
+                        </div>
+                        <div class="divide-y divide-gray-50 dark:divide-gray-700">
+                            @foreach ([
+                                ['label' => 'Available to join immediately?',            'field' => 'joining_date_availability'],
+                                ['label' => 'Willing to undergo medical check-up?',      'field' => 'willing_for_medical_check'],
+                                ['label' => 'Willing to resign if medically unfit?',     'field' => 'willing_to_resign_if_unfit'],
+                                ['label' => 'Willing to register for NPWP?',             'field' => 'willing_to_make_npwp'],
+                                ['label' => 'Allow reference/background check?',         'field' => 'allow_reference_check'],
+                            ] as $q)
+                            <div class="flex items-center justify-between px-6 py-3">
+                                <p class="text-sm text-gray-700 dark:text-gray-300">{{ $q['label'] }}</p>
+                                <span class="rounded-lg bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                                    {{ $yn(optional($applicant_additional)->{$q['field']}) }}
+                                </span>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    {{-- Application Questions --}}
+                    <div x-data="{ open: false }" class="overflow-hidden rounded-lg bg-white dark:bg-gray-800">
+                        <button type="button" @click="open = !open"
+                            class="flex w-full items-center justify-between gap-2 border-b border-gray-100 px-6 py-4 text-left dark:border-gray-700">
+                            <div class="flex items-center gap-2">
+                                <span class="h-4 w-1 rounded-lg bg-violet-500"></span>
+                                <h3 class="text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200">Application Questions</h3>
+                            </div>
+                            <svg class="h-4 w-4 shrink-0 text-gray-400 transition-transform duration-150" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        <div x-show="open" x-collapse x-cloak class="divide-y divide-gray-50 dark:divide-gray-700">
+                            @foreach ([
+                                ['label' => 'Tell us about yourself',                    'field' => 'about_me'],
+                                ['label' => 'Why are you a good fit for this position?', 'field' => 'applied_position_description'],
+                                ['label' => 'Achievements & accomplishments',            'field' => 'achievements_and_accomplishments'],
+                                ['label' => 'Challenge & solution',                      'field' => 'challenges_and_solutions'],
+                                ['label' => 'Life lessons learned',                      'field' => 'life_lessons_learned'],
+                                ['label' => 'Role model',                                'field' => 'role_model'],
+                                ['label' => '5-year career goals',                       'field' => 'five_year_career_goals'],
+                            ] as $q)
+                            <div class="px-6 py-4">
+                                <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">{{ $q['label'] }}</p>
+                                <p class="mt-1 text-sm text-gray-800 dark:text-gray-100">{{ optional($applicant_additional)->{$q['field']} ?: '—' }}</p>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+
                     {{-- ── ATTACHMENT & REFERENCE ────────────────────────────────── --}}
                     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
 
@@ -774,6 +1037,11 @@
                                             &#128222; {{ $ref->reference_phone_number }}
                                         </p>
                                         @endif
+                                        @if ($isSby && $ref->reference_address)
+                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                            &#128205; {{ $ref->reference_address }}
+                                        </p>
+                                        @endif
                                     </div>
                                 </div>
                                 @empty
@@ -787,6 +1055,7 @@
                     </div>
 
                 </div>
+
             </div>
 </div>
 

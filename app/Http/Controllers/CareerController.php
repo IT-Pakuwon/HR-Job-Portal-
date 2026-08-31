@@ -32,6 +32,8 @@ use App\Models\ApplicantSkill;
 use App\Models\ApplicantDriverLicense;
 use App\Models\ApplicantReference;
 use App\Models\ApplicantWorking;
+use App\Models\ApplicantAdditional;
+use App\Models\ApplicantOrganization;
 use App\Models\JobApplyStep;
 use App\Models\Mschecklist;
 use App\Models\Trchecklist;
@@ -161,6 +163,9 @@ class CareerController extends Controller
         $applicant_course = ApplicantCourse::where('applicant_id', $career->applicant_id)->where('group_cpny_id', $groupCompanyId)->get();
         $applicant_sw = ApplicantSW::where('applicant_id', $career->applicant_id)->where('group_cpny_id', $groupCompanyId)->get();
         $applicant_skill = ApplicantSkill::where('applicant_id', $career->applicant_id)->where('group_cpny_id', $groupCompanyId)->get();
+        $applicant_additional = ApplicantAdditional::where('applicant_id', $career->applicant_id)->where('group_cpny_id', $groupCompanyId)->first();
+        $applicant_organization = ApplicantOrganization::where('applicant_id', $career->applicant_id)->where('group_cpny_id', $groupCompanyId)->get();
+        $isSby = $groupCompanyId === 'SBY';
 
         $jobapplystep = JobApplyStep::leftJoin('hr_ms_job_step', function ($join) {
                 $join->on('hr_trx_job_apply_step.step_id', '=', 'hr_ms_job_step.step_id')
@@ -438,6 +443,7 @@ class CareerController extends Controller
         return view('pages.careers.showcareers', compact(
             'hash','career','applicant','applicant_family','applicant_marital','applicant_education','applicant_working',
             'applicant_reference','applicant_language','applicant_course','applicant_sw','applicant_skill','jobapplystep',
+            'applicant_additional','applicant_organization','isSby',
             'jobres','jobqua','jobposting','tr_checklist','year','photo','cv','coverletter','transkip','ijazah','user','datenow',
             'assessmentGroups','tr_assessment','tr_assessment_user','assessmentGroupsUser','agenda','userlist',
             'typestep','payrolls','onboarding','sign','canAccessPayroll','canAccessAssessment','canAccessSchedule','companyaddress',
@@ -2381,6 +2387,9 @@ class CareerController extends Controller
         $applicant_skill = ApplicantSkill::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $groupCompanyId)->get();
         $applicant_driver_license = ApplicantDriverLicense::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $groupCompanyId)->get();
         $applicant_reference = ApplicantReference::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $groupCompanyId)->get();
+        $applicant_additional = ApplicantAdditional::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $groupCompanyId)->first();
+        $applicant_organization = ApplicantOrganization::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $groupCompanyId)->get();
+        $isSby = $groupCompanyId === 'SBY';
 
         $data = [
             'cpnyid' => $company->cpny_name,
@@ -2400,6 +2409,9 @@ class CareerController extends Controller
             'applicant_sw' => $applicant_sw,
             'applicant_driver_license' => $applicant_driver_license,
             'applicant_reference' => $applicant_reference,
+            'applicant_additional' => $applicant_additional,
+            'applicant_organization' => $applicant_organization,
+            'isSby' => $isSby,
         ];
 
         $pdf = PDF::loadView('pages.careers.pdfapplicantprofile', $data)
