@@ -16,6 +16,7 @@ class ApplicantWorking extends Model
         'job_title',
         'start_date',
         'end_date',
+        'task_summary',
         'is_current',
         'superior_name',
         'reason_for_leaving',

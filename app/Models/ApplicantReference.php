@@ -15,6 +15,7 @@ class ApplicantReference extends Model
         'reference_name',
         'reference_company_name',
         'reference_job_position',
+        'reference_address',
         'reference_phone_number',
         'reference_relation',
         'status',

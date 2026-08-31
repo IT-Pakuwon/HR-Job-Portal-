@@ -2,22 +2,21 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ApplicantFamily extends Model
+class ApplicantOrganization extends Model
 {
     protected $connection = 'mysql3';
-    protected $table = 'hr_ms_applicant_family_background';
+    protected $table = 'hr_ms_applicant_organization';
 
     protected $fillable = [
         'applicant_id',
         'group_cpny_id',
-        'family_name',
-        'family_type',
-        'family_gender',
-        'family_birt_of_date',
-        'family_education',
-        'family_profession',
+        'organization_name',
+        'organization_type',
+        'organization_year',
+        'organization_position',
         'status',
         'created_user',
         'updated_user',
