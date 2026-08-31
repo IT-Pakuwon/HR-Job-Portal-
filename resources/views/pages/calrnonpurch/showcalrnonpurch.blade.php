@@ -222,7 +222,9 @@
                                     'value' => 'Rp ' . $fmtMoney($calr->amountsettlement),
                                 ],
                                 [
-                                    'label' => 'Sisa / (Kurang) Pembayaran',
+                                    'label' => (float) ($calr->amountdiff ?? 0) < 0
+                                        ? 'Kurang Kasbon'
+                                        : 'Lebih Kasbon',
                                     'value' => 'Rp ' . $fmtMoney($calr->amountdiff),
                                 ],
                                 [

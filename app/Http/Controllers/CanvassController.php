@@ -5672,10 +5672,10 @@ class CanvassController extends Controller
         $doctype = 'CS';
 
         $cs = TrCS::with('creator')->where('csid', $docid)->first();
-        $cpnyId = $cs->cpny_id;
         if (!$cs) {
             return response()->json(['success' => false, 'message' => 'CS not found'], 404);
         }
+        $cpnyId = $cs->cpny_id;
 
         // (opsional) ambil sumber header untuk info keperluan
         $srcHeader = null;
@@ -5731,11 +5731,15 @@ class CanvassController extends Controller
                     }
 
                     // ✅ 2) rollback ordered/openordered ke dokumen sumber
-                    $this->rollbackOrderedOnSourceForRevise($cs, auth()->user()->username);
+                    if (empty($cs->prev_csid)) {
+                        $this->rollbackOrderedOnSourceForRevise($cs, $username);
+                    } else {
+                        $this->rollbackOrderedOnPOReuseForRevise($cs, $username);
+                    }
 
                     // Header -> H
                     $cs->status = 'D';
-                    $cs->completed_by = auth()->user()->username;
+                    $cs->completed_by = $username;
                     $cs->completed_at = $now;
                     $cs->save();
 
@@ -6946,6 +6950,20 @@ class CanvassController extends Controller
             throw new \Exception('Source header not found when updating ordered/openordered.');
         }
 
+        $headerKey = $srcHeader->getKey();
+        if ($headerKey === null) {
+            throw new \Exception('Source header has no primary key for ordered/openordered update.');
+        }
+
+        $srcHeader = $srcHeader->newQuery()
+            ->whereKey($headerKey)
+            ->lockForUpdate()
+            ->first();
+
+        if (!$srcHeader) {
+            throw new \Exception('Source header no longer exists when updating ordered/openordered.');
+        }
+
         if ($srcDetails instanceof \Illuminate\Support\Collection) {
             $srcDetails = $srcDetails->values();
         } else {
@@ -7001,9 +7019,10 @@ class CanvassController extends Controller
 
         $refUseCount = [];
         $plainUseCount = [];
-        $addedTotalOrdered = 0.0;
         $updatedLineCount = 0;
         $unmatchedLines = [];
+        $updatedSourceIds = [];
+        $detailColumnSupport = [];
 
         foreach ($details as $d) {
             $hasPick = false;
@@ -7083,28 +7102,86 @@ class CanvassController extends Controller
                 continue;
             }
 
+            $sourceDetailKey = $srcDet->getKey();
+            if ($sourceDetailKey === null) {
+                throw new \Exception('Matched source detail has no primary key.');
+            }
+
+            $sourceIdentity = $srcDet->getTable().'|'.$sourceDetailKey;
+            if (isset($updatedSourceIds[$sourceIdentity])) {
+                throw new \Exception(
+                    "Source detail {$sourceDetailKey} matched more than once in CS payload."
+                );
+            }
+
+            $srcDet = $srcDet->newQuery()
+                ->whereKey($sourceDetailKey)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$srcDet) {
+                throw new \Exception("Source detail {$sourceDetailKey} no longer exists.");
+            }
+
             $detTable = $srcDet->getTable();
 
-            if (Schema::connection('pgsql')->hasColumn($detTable, 'ordered')) {
-                $srcDet->ordered = (float) ($srcDet->ordered ?? 0) + $orderedQty;
+            if (!isset($detailColumnSupport[$detTable])) {
+                $detailColumnSupport[$detTable] = [
+                    'ordered' => Schema::connection('pgsql')->hasColumn($detTable, 'ordered'),
+                    'openordered' => Schema::connection('pgsql')->hasColumn($detTable, 'openordered'),
+                    'updated_by' => Schema::connection('pgsql')->hasColumn($detTable, 'updated_by'),
+                    'updated_at' => Schema::connection('pgsql')->hasColumn($detTable, 'updated_at'),
+                ];
             }
 
-            if (Schema::connection('pgsql')->hasColumn($detTable, 'openordered')) {
-                $srcDet->openordered = max(0, (float) ($srcDet->openordered ?? 0) - $orderedQty);
+            $columnSupport = $detailColumnSupport[$detTable];
+            if (!$columnSupport['ordered'] || !$columnSupport['openordered']) {
+                throw new \Exception(
+                    "Source detail table {$detTable} must have ordered and openordered columns."
+                );
             }
 
-            if (Schema::connection('pgsql')->hasColumn($detTable, 'updated_by')) {
+            $currentOrdered = (float) ($srcDet->ordered ?? 0);
+            $currentOpenOrdered = (float) ($srcDet->openordered ?? 0);
+            if ($orderedQty > $currentOpenOrdered + 0.00001) {
+                throw new \Exception(
+                    "Qty {$orderedQty} exceeds openordered {$currentOpenOrdered} on source detail {$sourceDetailKey}."
+                );
+            }
+
+            $expectedOrdered = $currentOrdered + $orderedQty;
+            $expectedOpenOrdered = $currentOpenOrdered - $orderedQty;
+
+            $srcDet->ordered = $expectedOrdered;
+            $srcDet->openordered = $expectedOpenOrdered;
+
+            if ($columnSupport['updated_by']) {
                 $srcDet->updated_by = auth()->user()->username ?? 'system';
             }
 
-            if (Schema::connection('pgsql')->hasColumn($detTable, 'updated_at')) {
+            if ($columnSupport['updated_at']) {
                 $srcDet->updated_at = now();
             }
 
-            $srcDet->save();
+            if (!$srcDet->save()) {
+                throw new \Exception("Failed to save source detail {$sourceDetailKey}.");
+            }
 
-            $addedTotalOrdered += $orderedQty;
+            $srcDet->refresh();
+            $savedOrdered = (float) ($srcDet->ordered ?? 0);
+            $savedOpenOrdered = (float) ($srcDet->openordered ?? 0);
+
+            if (
+                abs($savedOrdered - $expectedOrdered) > 0.00001
+                || abs($savedOpenOrdered - $expectedOpenOrdered) > 0.00001
+            ) {
+                throw new \Exception(
+                    "Source detail {$sourceDetailKey} ordered/openordered was not persisted correctly."
+                );
+            }
+
             ++$updatedLineCount;
+            $updatedSourceIds[$sourceIdentity] = true;
         }
 
         if (!empty($unmatchedLines)) {
@@ -7124,13 +7201,37 @@ class CanvassController extends Controller
 
         $hdrTable = $srcHeader->getTable();
 
-        if (Schema::connection('pgsql')->hasColumn($hdrTable, 'totalordered')) {
-            $srcHeader->totalordered = (float) ($srcHeader->totalordered ?? 0) + $addedTotalOrdered;
+        $hasTotalOrdered = Schema::connection('pgsql')->hasColumn($hdrTable, 'totalordered');
+        $hasTotalOpenOrdered = Schema::connection('pgsql')->hasColumn($hdrTable, 'totalopenordered');
+        if (!$hasTotalOrdered || !$hasTotalOpenOrdered) {
+            throw new \Exception(
+                "Source header table {$hdrTable} must have totalordered and totalopenordered columns."
+            );
         }
 
-        if (Schema::connection('pgsql')->hasColumn($hdrTable, 'totalopenordered')) {
-            $srcHeader->totalopenordered = max(0, (float) ($srcHeader->totalopenordered ?? 0) - $addedTotalOrdered);
+        $firstSourceDetail = $srcDetails->first();
+        $sourceDetailKeyName = $firstSourceDetail->getKeyName();
+        $sourceDetailIds = $srcDetails
+            ->map(static fn ($detail) => $detail->getKey())
+            ->filter(static fn ($key) => $key !== null)
+            ->unique()
+            ->values();
+
+        if ($sourceDetailIds->count() !== $srcDetails->count()) {
+            throw new \Exception('Source details contain missing or duplicate primary keys.');
         }
+
+        $detailTotals = $firstSourceDetail->newQuery()
+            ->whereIn($sourceDetailKeyName, $sourceDetailIds->all())
+            ->selectRaw('COALESCE(SUM(ordered), 0) AS total_ordered')
+            ->selectRaw('COALESCE(SUM(openordered), 0) AS total_openordered')
+            ->first();
+
+        $expectedTotalOrdered = (float) ($detailTotals->total_ordered ?? 0);
+        $expectedTotalOpenOrdered = (float) ($detailTotals->total_openordered ?? 0);
+
+        $srcHeader->totalordered = $expectedTotalOrdered;
+        $srcHeader->totalopenordered = $expectedTotalOpenOrdered;
 
         if (Schema::connection('pgsql')->hasColumn($hdrTable, 'updated_by')) {
             $srcHeader->updated_by = auth()->user()->username ?? 'system';
@@ -7140,7 +7241,17 @@ class CanvassController extends Controller
             $srcHeader->updated_at = now();
         }
 
-        $srcHeader->save();
+        if (!$srcHeader->save()) {
+            throw new \Exception('Failed to save source header ordered totals.');
+        }
+
+        $srcHeader->refresh();
+        if (
+            abs((float) $srcHeader->totalordered - $expectedTotalOrdered) > 0.00001
+            || abs((float) $srcHeader->totalopenordered - $expectedTotalOpenOrdered) > 0.00001
+        ) {
+            throw new \Exception('Source header ordered totals were not persisted correctly.');
+        }
     }
 
     private function updateOrderedOnSource_xxx(array $details, $srcHeader, $srcDetails, array $srcIndex, string $cpnyId): void
@@ -7643,6 +7754,130 @@ class CanvassController extends Controller
                 // stack trace kepanjangan, tapi ini cukup buat pinpoint
             ]);
             throw $e; // biar transaksi/handler luar bisa rollback
+        }
+    }
+
+    private function rollbackOrderedOnPOReuseForRevise(TrCS $cs, string $username): void
+    {
+        $prevCsid = trim((string) $cs->prev_csid);
+        if ($prevCsid === '') {
+            return;
+        }
+
+        $reuseRows = TrPOReuse::on('pgsql')
+            ->where('csid', $prevCsid)
+            ->where('cpny_id', $cs->cpny_id)
+            ->when(!empty($cs->prev_ponbr), function ($query) use ($cs) {
+                $query->where('ponbr', $cs->prev_ponbr);
+            })
+            ->whereNull('deleted_at')
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get();
+
+        if ($reuseRows->isEmpty()) {
+            throw new \RuntimeException("PO reuse source for CS {$prevCsid} was not found.");
+        }
+
+        $csDetails = TrCSdetail::on('pgsql')
+            ->where('csid', $cs->csid)
+            ->whereNull('deleted_at')
+            ->orderBy('cs_no')
+            ->get();
+
+        $makeLineKey = static function ($lineNo, $inventoryid, $uom, $descr): string {
+            return strtoupper(trim((string) ($lineNo ?? ''))).'|'.
+                strtoupper(trim((string) ($inventoryid ?? ''))).'|'.
+                strtoupper(trim((string) ($uom ?? ''))).'|'.
+                strtoupper(trim((string) ($descr ?? '')));
+        };
+        $makePlainKey = static function ($inventoryid, $uom, $descr): string {
+            return strtoupper(trim((string) ($inventoryid ?? ''))).'|'.
+                strtoupper(trim((string) ($uom ?? ''))).'|'.
+                strtoupper(trim((string) ($descr ?? '')));
+        };
+
+        $reuseIndex = [];
+        $reusePlainIndex = [];
+        foreach ($reuseRows as $row) {
+            $lineKey = $makeLineKey(
+                $row->sppbjkt_no,
+                $row->inventoryid,
+                $row->uom,
+                $row->inventory_descr
+            );
+            $plainKey = $makePlainKey($row->inventoryid, $row->uom, $row->inventory_descr);
+            $reuseIndex[$lineKey][] = $row;
+            $reusePlainIndex[$plainKey][] = $row;
+        }
+
+        $unmatchedDetails = [];
+        foreach ($csDetails as $detail) {
+            $hasSelectedVendor = false;
+            for ($slot = 1; $slot <= 6; $slot++) {
+                if (!empty($detail->{"vendor{$slot}selected"})) {
+                    $hasSelectedVendor = true;
+                    break;
+                }
+            }
+
+            $qty = (float) ($detail->qty ?? 0);
+            if (!$hasSelectedVendor || $qty <= 0) {
+                continue;
+            }
+
+            $lineKey = $makeLineKey(
+                $detail->sppbjkt_no,
+                $detail->inventoryid,
+                $detail->uom,
+                $detail->inventory_descr
+            );
+            $plainKey = $makePlainKey($detail->inventoryid, $detail->uom, $detail->inventory_descr);
+
+            $matches = $reuseIndex[$lineKey] ?? [];
+            if (!empty($matches)) {
+                $reuseDetail = array_shift($matches);
+                $reuseIndex[$lineKey] = $matches;
+            } else {
+                $matches = $reusePlainIndex[$plainKey] ?? [];
+                $reuseDetail = !empty($matches) ? array_shift($matches) : null;
+                $reusePlainIndex[$plainKey] = $matches;
+            }
+
+            if (!$reuseDetail) {
+                $unmatchedDetails[] = $detail->cs_no ?? $detail->id;
+                continue;
+            }
+
+            foreach ($reuseIndex as $key => $rows) {
+                $reuseIndex[$key] = array_values(array_filter(
+                    $rows,
+                    static fn ($row) => $row->id !== $reuseDetail->id
+                ));
+            }
+            foreach ($reusePlainIndex as $key => $rows) {
+                $reusePlainIndex[$key] = array_values(array_filter(
+                    $rows,
+                    static fn ($row) => $row->id !== $reuseDetail->id
+                ));
+            }
+
+            $currentOrdered = max(0, (float) ($reuseDetail->ordered ?? 0));
+            $rollbackQty = min($qty, $currentOrdered);
+            if ($rollbackQty <= 0) {
+                continue;
+            }
+
+            $reuseDetail->ordered = $currentOrdered - $rollbackQty;
+            $reuseDetail->openordered = (float) ($reuseDetail->openordered ?? 0) + $rollbackQty;
+            $reuseDetail->updated_by = $username;
+            $reuseDetail->save();
+        }
+
+        if (!empty($unmatchedDetails)) {
+            throw new \RuntimeException(
+                'PO reuse detail did not match CS lines: '.implode(', ', $unmatchedDetails)
+            );
         }
     }
 

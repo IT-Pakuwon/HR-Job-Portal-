@@ -28,14 +28,14 @@ const VplReceiveHelper = {
 
     statusBadgeHTML(status, label) {
         const map = {
-            P: 'background:#FFCD05;color:#000',
-            C: 'background:#05A801;color:#fff',
-            R: 'background:#EA002F;color:#fff',
-            X: 'background:#6b7280;color:#fff',
-            D: 'background:#3c87e2;color:#fff',
+            P: 'bg-yellow-300/30 text-yellow-600',
+            C: 'bg-green-300/30 text-green-600',
+            R: 'bg-red-300/30 text-red-600',
+            X: 'bg-red-300/30 text-red-600',
+            D: 'bg-blue-300/30 text-blue-600',
         };
-        const style = map[status] ?? 'background:#e5e7eb;color:#374151';
-        return `<span class="rounded-full px-3 py-1 text-xs font-semibold" style="${style}">${label || status}</span>`;
+        const cls = map[status] ?? 'bg-slate-300/30 text-slate-600';
+        return `<span class="inline-block rounded px-3 py-1.5 text-sm font-semibold ${cls}">${label}</span>`;
     },
 
     approvalStepIcon(status) {

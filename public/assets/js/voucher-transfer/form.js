@@ -876,11 +876,6 @@ const VplTransferForm = {
             });
         };
 
-        if (rows.length === 0) {
-            VplTransfer.toast('error', 'At least one detail line is required.');
-            return;
-        }
-
         VplTransferForm.confirmRows(rows, typeLabel).then((result) => {
             if (result.isConfirmed) doSubmit();
         });

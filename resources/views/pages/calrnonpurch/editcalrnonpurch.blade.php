@@ -334,8 +334,8 @@
                                 </div>
 
                                 <div class="flex items-center justify-between border-t pt-2">
-                                    <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                                        Sisa / (Kurang) Pembayaran
+                                    <span id="diffLabel" class="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                        {{ (float) ($calr->amountdiff ?? 0) < 0 ? 'Kurang Kasbon' : 'Lebih Kasbon' }}
                                     </span>
                                     <span id="diffDisplay"
                                         class="text-lg font-bold {{ (float) ($calr->amountdiff ?? 0) < 0 ? 'text-red-600' : 'text-green-600' }}">
@@ -585,6 +585,7 @@
 
                 $('#settlementDisplay').text(formatNumber(settlement));
                 $('#diffDisplay').text(formatNumber(diff));
+                $('#diffLabel').text(diff < 0 ? 'Kurang Kasbon' : 'Lebih Kasbon');
 
                 $('#amountSettlementInput').val(settlement.toFixed(2));
                 $('#amountDiffInput').val(diff.toFixed(2));

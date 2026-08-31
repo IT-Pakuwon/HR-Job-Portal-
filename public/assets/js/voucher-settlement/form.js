@@ -114,6 +114,10 @@ const VplSettlementForm = {
         $('#c_department').val(job.department).trigger('change.select2');
         $('#c_vp_type').val(job.vpType).trigger('change.select2');
 
+        // Locked because the settlement is scoped to the selected Job List row —
+        // Company/Department/V-P Type/Usage Doc must match that row, not be re-picked.
+        $('#c_cpnyid, #c_department, #c_vp_type, #c_usage_id').prop('disabled', true).trigger('change.select2');
+
         VplSettlementForm.showFormView('create');
         VplSettlementForm.showModal('createModal');
         VplSettlementForm.loadUsageOptions('create', job.usageId);
@@ -140,7 +144,10 @@ const VplSettlementForm = {
         });
 
         $('#c_cpnyid, #c_department, #c_vp_type').on('change', () => VplSettlementForm.loadUsageOptions('create'));
-        $('#c_usage_id').on('change', () => VplSettlementForm.loadUsageLines('create'));
+        $('#c_usage_id').on('change', () => {
+            document.getElementById('c_usage_id_hidden').value = document.getElementById('c_usage_id').value ?? '';
+            VplSettlementForm.loadUsageLines('create');
+        });
 
         document.getElementById('c_reviewBtn').addEventListener('click', () => VplSettlementForm.showPreview('create'));
         document.getElementById('c_backToEditBtn').addEventListener('click', () => VplSettlementForm.showFormView('create'));
