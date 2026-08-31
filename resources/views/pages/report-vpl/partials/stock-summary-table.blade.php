@@ -10,6 +10,23 @@
 
     $tenantSubtotals = collect($rows)->where('type', 'tenant_subtotal');
     $forExport = $forExport ?? false;
+    // Export mode emits raw numbers (so Excel sees real, summable numbers) instead of
+    // pre-formatted "50.000" strings — PhpSpreadsheet's HTML importer misreads the dot
+    // as a decimal point and silently corrupts those. Excel-side formatting is applied
+    // in the export's AfterSheet styling pass instead.
+    $n = fn ($value, string $prefix = '') => $forExport ? $value : $prefix.number_format($value, 0, ',', '.');
+
+    $rowsList = collect($rows)->values();
+    $tenantRowspan = [];
+    foreach ($rowsList as $i => $r) {
+        if ($r['type'] === 'tenant_subtotal') {
+            $span = 1;
+            for ($j = $i + 1; $j < $rowsList->count() && $rowsList[$j]['type'] === 'detail'; $j++) {
+                $span++;
+            }
+            $tenantRowspan[$i] = $span;
+        }
+    }
 @endphp
 
 <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-md ring-1 ring-gray-900/5 dark:border-gray-700 dark:bg-gray-800 dark:ring-white/5">
@@ -66,7 +83,7 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-700/60">
-                @forelse($rows as $row)
+                @forelse($rows as $i => $row)
                     @if($row['type'] === 'category_header')
                         <tr class="bg-linear-to-r from-indigo-50 to-indigo-50/30 dark:from-indigo-900/25 dark:to-indigo-900/5">
                             <td colspan="{{ $totalCols }}" class="px-3 py-2">
@@ -81,58 +98,57 @@
 
                     @elseif($row['type'] === 'tenant_subtotal')
                         <tr class="border-t-2 border-t-gray-200 bg-gray-50/80 font-semibold text-gray-900 dark:border-t-gray-600 dark:bg-white/[0.03] dark:text-gray-100">
-                            <td class="px-3 py-2.5">{{ $row['tenant'] }}</td>
+                            <td class="px-3 py-2.5 align-top" rowspan="{{ $tenantRowspan[$i] ?? 1 }}">{{ $row['tenant'] }}</td>
                             <td class="px-3 py-2.5"></td>
                             <td class="px-3 py-2.5"></td>
-                            <td class="px-3 py-2.5 text-right tabular-nums">{{ number_format($row['nominal'], 0, ',', '.') }}</td>
-                            <td class="px-3 py-2.5 text-right tabular-nums">{{ number_format($row['beginning'], 0, ',', '.') }}</td>
-                            <td class="px-3 py-2.5 text-right tabular-nums">{{ number_format($row['in_total'], 0, ',', '.') }}</td>
-                            <td class="px-3 py-2.5 text-right tabular-nums">{{ number_format($row['out_loyalty'], 0, ',', '.') }}</td>
-                            <td class="px-3 py-2.5 text-right tabular-nums">{{ number_format($row['out_promotion'], 0, ',', '.') }}</td>
-                            <td class="px-3 py-2.5 text-right tabular-nums">{{ number_format($row['out_entertain'], 0, ',', '.') }}</td>
-                            <td class="px-3 py-2.5 text-right tabular-nums">{{ number_format($row['out_internal'], 0, ',', '.') }}</td>
-                            <td class="px-3 py-2.5 text-right tabular-nums">{{ number_format($row['ending'], 0, ',', '.') }}</td>
-                            <td class="px-3 py-2.5 text-right tabular-nums">{{ number_format($row['value'], 0, ',', '.') }}</td>
+                            <td class="px-3 py-2.5 text-right tabular-nums">{{ $n($row['nominal']) }}</td>
+                            <td class="px-3 py-2.5 text-right tabular-nums">{{ $n($row['beginning']) }}</td>
+                            <td class="px-3 py-2.5 text-right tabular-nums">{{ $n($row['in_total']) }}</td>
+                            <td class="px-3 py-2.5 text-right tabular-nums">{{ $n($row['out_loyalty']) }}</td>
+                            <td class="px-3 py-2.5 text-right tabular-nums">{{ $n($row['out_promotion']) }}</td>
+                            <td class="px-3 py-2.5 text-right tabular-nums">{{ $n($row['out_entertain']) }}</td>
+                            <td class="px-3 py-2.5 text-right tabular-nums">{{ $n($row['out_internal']) }}</td>
+                            <td class="px-3 py-2.5 text-right tabular-nums">{{ $n($row['ending']) }}</td>
+                            <td class="px-3 py-2.5 text-right tabular-nums">{{ $n($row['value']) }}</td>
                             @foreach($agingCols as $label)
-                                <td class="px-3 py-2.5 text-right tabular-nums {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">{{ number_format($row['aging'][$label] ?? 0, 0, ',', '.') }}</td>
+                                <td class="px-3 py-2.5 text-right tabular-nums {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">{{ $n($row['aging'][$label] ?? 0) }}</td>
                             @endforeach
                             @foreach($sourceCols as $column => $group)
-                                <td class="px-3 py-2.5 text-right tabular-nums {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">{{ number_format($row['sources'][$column] ?? 0, 0, ',', '.') }}</td>
+                                <td class="px-3 py-2.5 text-right tabular-nums {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">{{ $n($row['sources'][$column] ?? 0) }}</td>
                             @endforeach
                             @foreach($usedCols as $label)
-                                <td class="px-3 py-2.5 text-right tabular-nums {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">{{ number_format($row['used'][$label] ?? 0, 0, ',', '.') }}</td>
+                                <td class="px-3 py-2.5 text-right tabular-nums {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">{{ $n($row['used'][$label] ?? 0) }}</td>
                             @endforeach
                         </tr>
 
                     @else
                         <tr class="text-gray-600 transition-colors hover:bg-indigo-50/50 dark:text-gray-400 dark:hover:bg-indigo-900/10">
-                            <td class="px-3 py-2"></td>
                             <td class="px-3 py-2">
                                 <span class="inline-flex rounded-md bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">{{ $row['source_label'] }}</span>
                             </td>
                             <td class="px-3 py-2 tabular-nums">{{ $row['expired_date'] ? \Carbon\Carbon::parse($row['expired_date'])->format('d-M-y') : '-' }}</td>
-                            <td class="px-3 py-2 text-right tabular-nums">{{ number_format($row['nominal'], 0, ',', '.') }}</td>
-                            <td class="px-3 py-2 text-right tabular-nums">{{ number_format($row['beginning'], 0, ',', '.') }}</td>
-                            <td class="px-3 py-2 text-right tabular-nums">{{ number_format($row['in_total'], 0, ',', '.') }}</td>
-                            <td class="px-3 py-2 text-right tabular-nums">{{ number_format($row['out_loyalty'], 0, ',', '.') }}</td>
-                            <td class="px-3 py-2 text-right tabular-nums">{{ number_format($row['out_promotion'], 0, ',', '.') }}</td>
-                            <td class="px-3 py-2 text-right tabular-nums">{{ number_format($row['out_entertain'], 0, ',', '.') }}</td>
-                            <td class="px-3 py-2 text-right tabular-nums">{{ number_format($row['out_internal'], 0, ',', '.') }}</td>
-                            <td class="px-3 py-2 text-right tabular-nums font-semibold text-gray-900 dark:text-gray-100">{{ number_format($row['ending'], 0, ',', '.') }}</td>
-                            <td class="px-3 py-2 text-right tabular-nums font-semibold text-gray-900 dark:text-gray-100">{{ number_format($row['value'], 0, ',', '.') }}</td>
+                            <td class="px-3 py-2 text-right tabular-nums">{{ $n($row['nominal']) }}</td>
+                            <td class="px-3 py-2 text-right tabular-nums">{{ $n($row['beginning']) }}</td>
+                            <td class="px-3 py-2 text-right tabular-nums">{{ $n($row['in_total']) }}</td>
+                            <td class="px-3 py-2 text-right tabular-nums">{{ $n($row['out_loyalty']) }}</td>
+                            <td class="px-3 py-2 text-right tabular-nums">{{ $n($row['out_promotion']) }}</td>
+                            <td class="px-3 py-2 text-right tabular-nums">{{ $n($row['out_entertain']) }}</td>
+                            <td class="px-3 py-2 text-right tabular-nums">{{ $n($row['out_internal']) }}</td>
+                            <td class="px-3 py-2 text-right tabular-nums font-semibold text-gray-900 dark:text-gray-100">{{ $n($row['ending']) }}</td>
+                            <td class="px-3 py-2 text-right tabular-nums font-semibold text-gray-900 dark:text-gray-100">{{ $n($row['value']) }}</td>
                             @foreach($agingCols as $label)
                                 <td class="px-3 py-2 text-right tabular-nums {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">
-                                    {{ $row['aging_bucket'] === $label ? number_format($row['value'], 0, ',', '.') : '' }}
+                                    {{ $row['aging_bucket'] === $label ? $n($row['value']) : '' }}
                                 </td>
                             @endforeach
                             @foreach($sourceCols as $column => $group)
                                 <td class="px-3 py-2 text-right tabular-nums {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">
-                                    {{ $row['source_column'] === $column ? number_format($row['source_value'], 0, ',', '.') : '' }}
+                                    {{ $row['source_column'] === $column ? $n($row['source_value']) : '' }}
                                 </td>
                             @endforeach
                             @foreach($usedCols as $label)
                                 <td class="px-3 py-2 text-right tabular-nums {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">
-                                    {{ ($row['used_value'][$label] ?? 0) != 0 ? number_format($row['used_value'][$label], 0, ',', '.') : '' }}
+                                    {{ ($row['used_value'][$label] ?? 0) != 0 ? $n($row['used_value'][$label]) : '' }}
                                 </td>
                             @endforeach
                         </tr>
@@ -152,23 +168,23 @@
                 <tfoot class="sticky bottom-0 z-10 border-t-2 border-indigo-100 bg-gray-50 dark:border-indigo-900/40 dark:bg-gray-900">
                     <tr class="text-xs font-bold uppercase tracking-wide text-gray-700 dark:text-gray-200">
                         <td colspan="3" class="px-3 py-3 text-right">Grand Total</td>
-                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ number_format($tenantSubtotals->sum('nominal'), 0, ',', '.') }}</td>
-                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ number_format($tenantSubtotals->sum('beginning'), 0, ',', '.') }}</td>
-                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ number_format($tenantSubtotals->sum('in_total'), 0, ',', '.') }}</td>
-                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ number_format($tenantSubtotals->sum('out_loyalty'), 0, ',', '.') }}</td>
-                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ number_format($tenantSubtotals->sum('out_promotion'), 0, ',', '.') }}</td>
-                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ number_format($tenantSubtotals->sum('out_entertain'), 0, ',', '.') }}</td>
-                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ number_format($tenantSubtotals->sum('out_internal'), 0, ',', '.') }}</td>
-                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ number_format($tenantSubtotals->sum('ending'), 0, ',', '.') }}</td>
-                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ number_format($tenantSubtotals->sum('value'), 0, ',', '.') }}</td>
+                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ $n($tenantSubtotals->sum('nominal')) }}</td>
+                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ $n($tenantSubtotals->sum('beginning')) }}</td>
+                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ $n($tenantSubtotals->sum('in_total')) }}</td>
+                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ $n($tenantSubtotals->sum('out_loyalty')) }}</td>
+                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ $n($tenantSubtotals->sum('out_promotion')) }}</td>
+                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ $n($tenantSubtotals->sum('out_entertain')) }}</td>
+                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ $n($tenantSubtotals->sum('out_internal')) }}</td>
+                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ $n($tenantSubtotals->sum('ending')) }}</td>
+                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ $n($tenantSubtotals->sum('value')) }}</td>
                         @foreach($agingCols as $label)
-                            <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300 {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">{{ number_format($tenantSubtotals->sum(fn($r) => $r['aging'][$label] ?? 0), 0, ',', '.') }}</td>
+                            <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300 {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">{{ $n($tenantSubtotals->sum(fn($r) => $r['aging'][$label] ?? 0)) }}</td>
                         @endforeach
                         @foreach($sourceCols as $column => $group)
-                            <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300 {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">{{ number_format($tenantSubtotals->sum(fn($r) => $r['sources'][$column] ?? 0), 0, ',', '.') }}</td>
+                            <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300 {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">{{ $n($tenantSubtotals->sum(fn($r) => $r['sources'][$column] ?? 0)) }}</td>
                         @endforeach
                         @foreach($usedCols as $label)
-                            <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300 {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">{{ number_format($tenantSubtotals->sum(fn($r) => $r['used'][$label] ?? 0), 0, ',', '.') }}</td>
+                            <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300 {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">{{ $n($tenantSubtotals->sum(fn($r) => $r['used'][$label] ?? 0)) }}</td>
                         @endforeach
                     </tr>
                 </tfoot>

@@ -5,6 +5,11 @@
     $totalRate   = $totalEnding > 0 ? $totalUsage / $totalEnding : null;
     $forExport   = $forExport ?? false;
     $colCount    = $forExport ? 5 : 6;
+    // Export mode emits raw numbers (so Excel sees real, summable numbers) instead of
+    // pre-formatted "50.000" strings — PhpSpreadsheet's HTML importer misreads the dot
+    // as a decimal point and silently corrupts those. Excel-side formatting is applied
+    // in the export's AfterSheet styling pass instead.
+    $n = fn ($value, string $prefix = '') => $forExport ? $value : $prefix.number_format($value, 0, ',', '.');
 @endphp
 
 <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-md ring-1 ring-gray-900/5 dark:border-gray-700 dark:bg-gray-800 dark:ring-white/5">
@@ -89,8 +94,8 @@
                         <tr class="text-gray-600 transition-colors hover:bg-emerald-50/50 dark:text-gray-400 dark:hover:bg-emerald-900/10">
                             <td class="px-3 py-2 font-medium text-gray-900 dark:text-gray-100">{{ $row['tenant'] }}</td>
                             <td class="px-3 py-2 tabular-nums">{{ $row['expired_date'] ? \Carbon\Carbon::parse($row['expired_date'])->format('d-M-y') : '-' }}</td>
-                            <td class="px-3 py-2 text-right tabular-nums">{{ number_format($row['ending_stock'], 0, ',', '.') }}</td>
-                            <td class="px-3 py-2 text-right tabular-nums">{{ number_format($row['usage_qty'], 0, ',', '.') }}</td>
+                            <td class="px-3 py-2 text-right tabular-nums">{{ $n($row['ending_stock']) }}</td>
+                            <td class="px-3 py-2 text-right tabular-nums">{{ $n($row['usage_qty']) }}</td>
                             <td class="px-3 py-2 text-right tabular-nums">
                                 {{ $row['usage_rate'] === null ? '-' : number_format($row['usage_rate'] * 100, 2, ',', '.').'%' }}
                             </td>
@@ -125,8 +130,8 @@
                 <tfoot class="sticky bottom-0 z-10 border-t-2 border-emerald-100 bg-gray-50 dark:border-emerald-900/40 dark:bg-gray-900">
                     <tr class="text-xs font-bold uppercase tracking-wide text-gray-700 dark:text-gray-200">
                         <td colspan="2" class="px-3 py-3 text-right">Grand Total</td>
-                        <td class="px-3 py-3 text-right tabular-nums text-emerald-700 dark:text-emerald-300">{{ number_format($totalEnding, 0, ',', '.') }}</td>
-                        <td class="px-3 py-3 text-right tabular-nums text-emerald-700 dark:text-emerald-300">{{ number_format($totalUsage, 0, ',', '.') }}</td>
+                        <td class="px-3 py-3 text-right tabular-nums text-emerald-700 dark:text-emerald-300">{{ $n($totalEnding) }}</td>
+                        <td class="px-3 py-3 text-right tabular-nums text-emerald-700 dark:text-emerald-300">{{ $n($totalUsage) }}</td>
                         <td class="px-3 py-3 text-right tabular-nums text-emerald-700 dark:text-emerald-300">
                             {{ $totalRate === null ? '-' : number_format($totalRate * 100, 2, ',', '.').'%' }}
                         </td>

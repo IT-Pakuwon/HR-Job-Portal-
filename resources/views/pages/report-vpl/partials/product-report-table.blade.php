@@ -1,4 +1,11 @@
-@php $forExport = $forExport ?? false; @endphp
+@php
+    $forExport = $forExport ?? false;
+    // Export mode emits raw numbers (so Excel sees real, summable numbers) instead of
+    // pre-formatted "50.000" strings — PhpSpreadsheet's HTML importer misreads the dot
+    // as a decimal point and silently corrupts those. Excel-side formatting (including
+    // the "Rp" prefix) is applied in the export's AfterSheet styling pass instead.
+    $n = fn ($value, string $prefix = '') => $forExport ? $value : $prefix.number_format($value, 0, ',', '.');
+@endphp
 
 <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-md ring-1 ring-gray-900/5 dark:border-gray-700 dark:bg-gray-800 dark:ring-white/5">
 
@@ -99,16 +106,16 @@
                                     {{ $group['expired_date']?->format('d-M-y') ?? '-' }}
                                 </td>
                                 <td class="px-3 py-2.5 align-top text-right tabular-nums text-gray-600 dark:text-gray-400" rowspan="{{ $group['group_rowspan'] }}">
-                                    Rp {{ number_format($group['nominal'], 0, ',', '.') }}
+                                    {{ $n($group['nominal'], 'Rp ') }}
                                 </td>
                                 <td class="px-3 py-2.5 align-top text-right tabular-nums font-semibold text-gray-900 dark:text-gray-100" rowspan="{{ $group['group_rowspan'] }}">
-                                    Rp {{ number_format($group['total_nominal'], 0, ',', '.') }}
+                                    {{ $n($group['total_nominal'], 'Rp ') }}
                                 </td>
                                 <td class="px-3 py-2.5 align-top tabular-nums text-gray-600 dark:text-gray-400" rowspan="{{ $group['group_rowspan'] }}">
                                     {{ $group['tgl_terima']?->format('d-M-y') ?? '-' }}
                                 </td>
                                 <td class="px-3 py-2.5 align-top text-right tabular-nums text-gray-600 dark:text-gray-400" rowspan="{{ $group['group_rowspan'] }}">
-                                    {{ number_format($group['beginning'], 0, ',', '.') }}
+                                    {{ $n($group['beginning']) }}
                                 </td>
                             @endif
 
@@ -116,7 +123,7 @@
                             <td class="px-3 py-2.5 text-right">
                                 @if($row && $row['direction'] === 'in')
                                     <span class="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-semibold tabular-nums text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-                                        <i class="fa-solid fa-arrow-up text-[9px]"></i>{{ number_format($row['qty'], 0, ',', '.') }}
+                                        <i class="fa-solid fa-arrow-up text-[9px]"></i>{{ $n($row['qty']) }}
                                     </span>
                                 @endif
                             </td>
@@ -124,17 +131,17 @@
                             <td class="px-3 py-2.5 text-right">
                                 @if($row && $row['direction'] === 'out')
                                     <span class="inline-flex items-center gap-1 rounded-md bg-rose-50 px-2 py-0.5 text-xs font-semibold tabular-nums text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">
-                                        <i class="fa-solid fa-arrow-down text-[9px]"></i>{{ number_format($row['qty'], 0, ',', '.') }}
+                                        <i class="fa-solid fa-arrow-down text-[9px]"></i>{{ $n($row['qty']) }}
                                     </span>
                                 @endif
                             </td>
 
                             @if($rIndex === 0)
                                 <td class="px-3 py-2.5 align-top text-right tabular-nums font-semibold text-gray-900 dark:text-gray-100" rowspan="{{ $group['group_rowspan'] }}">
-                                    {{ number_format($group['ending'], 0, ',', '.') }}
+                                    {{ $n($group['ending']) }}
                                 </td>
                                 <td class="px-3 py-2.5 align-top text-right tabular-nums text-gray-600 dark:text-gray-400" rowspan="{{ $group['group_rowspan'] }}">
-                                    Rp {{ number_format($group['price_out'], 0, ',', '.') }}
+                                    {{ $n($group['price_out'], 'Rp ') }}
                                 </td>
                             @endif
 
@@ -173,8 +180,8 @@
                 <tfoot class="sticky bottom-0 z-10 border-t-2 border-sky-100 bg-gray-50 dark:border-sky-900/40 dark:bg-gray-900">
                     <tr class="text-xs font-bold uppercase tracking-wide text-gray-700 dark:text-gray-200">
                         <td colspan="13" class="px-3 py-3 text-right">Grand Total</td>
-                        <td class="px-3 py-3 text-right tabular-nums text-sky-700 dark:text-sky-300">{{ number_format(collect($groups)->sum('ending'), 0, ',', '.') }}</td>
-                        <td class="px-3 py-3 text-right tabular-nums text-sky-700 dark:text-sky-300">Rp {{ number_format(collect($groups)->sum('price_out'), 0, ',', '.') }}</td>
+                        <td class="px-3 py-3 text-right tabular-nums text-sky-700 dark:text-sky-300">{{ $n(collect($groups)->sum('ending')) }}</td>
+                        <td class="px-3 py-3 text-right tabular-nums text-sky-700 dark:text-sky-300">{{ $n(collect($groups)->sum('price_out'), 'Rp ') }}</td>
                         <td colspan="5"></td>
                     </tr>
                 </tfoot>
