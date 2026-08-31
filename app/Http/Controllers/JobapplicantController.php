@@ -82,15 +82,21 @@ class JobapplicantController extends Controller
     // Returns [applicantToGroup, groupMatchedBy]:
     //   applicantToGroup: applicant_id => group key (only present if in a duplicate cluster)
     //   groupMatchedBy:    group key => human label, e.g. "KTP + DOB", "DOB + Phone"
-    private function buildApplicantDuplicateClusters(): array
+    private function buildApplicantDuplicateClusters(string $groupCompanyId): array
     {
         // Only cluster applicants who actually submitted a job application.
         // hr_ms_applicant also holds abandoned/incomplete registrations (no
         // row in hr_trx_job_apply) — including those pollutes the clusters
         // and flags people as "duplicate" even though they only ever have
         // one real application in the Applicant List.
+        //
+        // Scoped to the caller's group_cpny_id — same tenant boundary as the
+        // Applicant List — so applicants from other groups never get pulled
+        // into a cluster's matching signal, even if it doesn't leak into
+        // rendered rows (which are filtered by group_cpny_id downstream).
         $applicants = DB::connection('mysql3')
             ->table('hr_ms_applicant as a')
+            ->where('a.group_cpny_id', $groupCompanyId)
             ->whereExists(function ($q) {
                 $q->select(DB::raw(1))
                     ->from('hr_trx_job_apply as ja')
@@ -622,18 +628,21 @@ class JobapplicantController extends Controller
                 return response()->json(['message' => 'Forbidden'], 403);
             }
 
-            [$applicantToGroup, $groupMatchedBy] = $this->buildApplicantDuplicateClusters();
+            $userCpnyIds = $this->userCpnyIds($user);
+            $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
+
+            [$applicantToGroup, $groupMatchedBy] = $this->buildApplicantDuplicateClusters($groupCompanyId);
 
             if (empty($applicantToGroup)) {
                 return response()->json(['data' => []]);
             }
 
-            $userCpnyIds = $this->userCpnyIds($user);
-            $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
-
             $rows = DB::connection('mysql3')
                 ->table('hr_ms_applicant as a')
-                ->join('viewtrxcareer as vc', 'vc.applicant_id', '=', 'a.applicant_id')
+                ->join('viewtrxcareer as vc', function ($join) {
+                    $join->on('vc.applicant_id', '=', 'a.applicant_id')
+                        ->on('vc.group_cpny_id', '=', 'a.group_cpny_id');
+                })
                 ->where('vc.group_cpny_id', $groupCompanyId)
                 ->where('vc.status', '!=', 'X')
                 ->when(!empty($userCpnyIds), function ($q) use ($userCpnyIds) {
@@ -741,7 +750,10 @@ class JobapplicantController extends Controller
                 return response()->json(['data' => []]);
             }
 
-            [$applicantToGroup, $groupMatchedBy] = $this->buildApplicantDuplicateClusters();
+            $userCpnyIds = $this->userCpnyIds($user);
+            $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
+
+            [$applicantToGroup, $groupMatchedBy] = $this->buildApplicantDuplicateClusters($groupCompanyId);
 
             $groupKey = $applicantToGroup[$applicant->applicant_id] ?? null;
             $matchedBy = $groupKey ? ($groupMatchedBy[$groupKey] ?? 'KTP + DOB') : 'KTP + DOB';
@@ -749,9 +761,6 @@ class JobapplicantController extends Controller
             $matchedApplicantIds = $groupKey
                 ? collect($applicantToGroup)->filter(fn ($g) => $g === $groupKey)->keys()->values()
                 : collect([$applicant->applicant_id]);
-
-            $userCpnyIds = $this->userCpnyIds($user);
-            $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
 
             $canFilterJobTL = $this->hasFullApplicantAccess($user);
 
