@@ -9,6 +9,7 @@
 
 <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-md ring-1 ring-gray-900/5 dark:border-gray-700 dark:bg-gray-800 dark:ring-white/5">
 
+    @unless($forExport)
     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 bg-linear-to-r from-white to-emerald-50/30 px-6 py-4 dark:border-gray-700 dark:from-gray-800 dark:to-emerald-900/10">
         <h2 class="flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-gray-200">
             <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-300">
@@ -18,13 +19,11 @@
         </h2>
 
         <div class="flex flex-1 items-center justify-end gap-3">
-            @unless($forExport)
-                <div class="relative w-full max-w-xs">
-                    <i class="fa-solid fa-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400"></i>
-                    <input type="text" id="loyusg_search" placeholder="Search tenant..."
-                        class="w-full rounded-lg border border-gray-300 bg-white py-1.5 pl-8 pr-3 text-sm shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                </div>
-            @endunless
+            <div class="relative w-full max-w-xs">
+                <i class="fa-solid fa-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400"></i>
+                <input type="text" id="loyusg_search" placeholder="Search tenant..."
+                    class="w-full rounded-lg border border-gray-300 bg-white py-1.5 pl-8 pr-3 text-sm shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+            </div>
 
             <span class="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 shadow-sm dark:bg-emerald-900/30 dark:text-emerald-300">
                 <i class="fa-solid fa-building"></i>
@@ -34,6 +33,7 @@
             </span>
         </div>
     </div>
+    @endunless
 
     <div class="max-h-[70vh] overflow-auto">
         <table class="min-w-full divide-y divide-gray-100 text-sm dark:divide-gray-700">

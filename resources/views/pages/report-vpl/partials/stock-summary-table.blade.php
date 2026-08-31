@@ -9,10 +9,12 @@
     $totalCols = 12 + count($agingCols) + count($sourceCols) + count($usedCols);
 
     $tenantSubtotals = collect($rows)->where('type', 'tenant_subtotal');
+    $forExport = $forExport ?? false;
 @endphp
 
 <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-md ring-1 ring-gray-900/5 dark:border-gray-700 dark:bg-gray-800 dark:ring-white/5">
 
+    @unless($forExport)
     <div class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 bg-linear-to-r from-white to-indigo-50/30 px-6 py-4 dark:border-gray-700 dark:from-gray-800 dark:to-indigo-900/10">
         <h2 class="flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-gray-200">
             <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300">
@@ -29,6 +31,7 @@
             Aging as of {{ $agingAsOf->format('d-M-y') }}
         </span>
     </div>
+    @endunless
 
     <div class="max-h-[70vh] overflow-auto">
         <table class="min-w-full divide-y divide-gray-100 text-sm dark:divide-gray-700">
@@ -148,10 +151,25 @@
             @if($tenantSubtotals->isNotEmpty())
                 <tfoot class="sticky bottom-0 z-10 border-t-2 border-indigo-100 bg-gray-50 dark:border-indigo-900/40 dark:bg-gray-900">
                     <tr class="text-xs font-bold uppercase tracking-wide text-gray-700 dark:text-gray-200">
-                        <td colspan="10" class="px-3 py-3 text-right">Grand Total</td>
+                        <td colspan="3" class="px-3 py-3 text-right">Grand Total</td>
+                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ number_format($tenantSubtotals->sum('nominal'), 0, ',', '.') }}</td>
+                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ number_format($tenantSubtotals->sum('beginning'), 0, ',', '.') }}</td>
+                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ number_format($tenantSubtotals->sum('in_total'), 0, ',', '.') }}</td>
+                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ number_format($tenantSubtotals->sum('out_loyalty'), 0, ',', '.') }}</td>
+                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ number_format($tenantSubtotals->sum('out_promotion'), 0, ',', '.') }}</td>
+                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ number_format($tenantSubtotals->sum('out_entertain'), 0, ',', '.') }}</td>
+                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ number_format($tenantSubtotals->sum('out_internal'), 0, ',', '.') }}</td>
                         <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ number_format($tenantSubtotals->sum('ending'), 0, ',', '.') }}</td>
                         <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ number_format($tenantSubtotals->sum('value'), 0, ',', '.') }}</td>
-                        <td colspan="{{ count($agingCols) + count($sourceCols) + count($usedCols) }}"></td>
+                        @foreach($agingCols as $label)
+                            <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300 {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">{{ number_format($tenantSubtotals->sum(fn($r) => $r['aging'][$label] ?? 0), 0, ',', '.') }}</td>
+                        @endforeach
+                        @foreach($sourceCols as $column => $group)
+                            <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300 {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">{{ number_format($tenantSubtotals->sum(fn($r) => $r['sources'][$column] ?? 0), 0, ',', '.') }}</td>
+                        @endforeach
+                        @foreach($usedCols as $label)
+                            <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300 {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">{{ number_format($tenantSubtotals->sum(fn($r) => $r['used'][$label] ?? 0), 0, ',', '.') }}</td>
+                        @endforeach
                     </tr>
                 </tfoot>
             @endif

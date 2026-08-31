@@ -1,5 +1,8 @@
+@php $forExport = $forExport ?? false; @endphp
+
 <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-md ring-1 ring-gray-900/5 dark:border-gray-700 dark:bg-gray-800 dark:ring-white/5">
 
+    @unless($forExport)
     <div class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 bg-linear-to-r from-white to-sky-50/30 px-6 py-4 dark:border-gray-700 dark:from-gray-800 dark:to-sky-900/10">
         <h2 class="flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-gray-200">
             <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-100 text-sky-600 dark:bg-sky-900/40 dark:text-sky-300">
@@ -14,6 +17,7 @@
             Bulan {{ \Carbon\Carbon::create()->month($month)->format('F') }} {{ $year }}
         </span>
     </div>
+    @endunless
 
     <div class="max-h-[70vh] overflow-auto">
         <table class="min-w-full divide-y divide-gray-100 text-sm dark:divide-gray-700">
@@ -180,6 +184,7 @@
 
 </div>
 
+@unless($forExport)
 {{-- Click-to-preview lightbox for the Image Product thumbnails --}}
 <div id="prodrpt_photoModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 p-4" style="display:none">
     <div class="relative max-h-[85vh] max-w-2xl">
@@ -227,3 +232,4 @@
         });
     })();
 </script>
+@endunless
