@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <div class="max-w-9xl mx-auto p-2">
         <x-approval-actions
             :status="$personnel->status"
@@ -6,6 +6,32 @@
             :can-edit="$canEdit"
             :edit-url="url('/editpersonnels/' . $hash)"
         />
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'Personnel', 'url' => route('personnels')],
+            ['label' => 'Show Details'],
+        ]">
+            <x-approval-actions
+                :status="$personnel->status"
+                :is-approver="$isApprover"
+                :can-edit="$canEdit"
+                :edit-url="url('/editpersonnels/' . $hash)"
+            />
+        </x-breadcrumb>
+        @if ($personnel->status === 'C')
+            <div class="mb-4 flex justify-end">
+                <button id="copyTemplateBtn" type="button" data-hash="{{ $hash }}"
+                    class="inline-flex items-center gap-1 rounded-md bg-teal-100 px-3 py-2 text-sm font-medium text-teal-700 transition-colors hover:bg-teal-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:bg-teal-700/30 dark:text-teal-300 dark:hover:bg-teal-600/50">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185.639-.074 1.28-.135 1.927-.184" />
+                    </svg>
+                    Copy Template
+                </button>
+            </div>
+        @endif
+
         <div class="flex w-full flex-col gap-4 xl:flex-row">
             <div class="flex w-full flex-1 items-stretch gap-6 xl:flex-row">
                 <div class="gap flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
@@ -475,7 +501,7 @@
                                 </tbody>
                             </table>
                         </div>
-            
+
                         <div x-show="activeTab === 'comments'" x-transition:enter="transition ease-out duration-300"
                             x-transition:enter-start="opacity-0 translate-y-2"
                             x-transition:enter-end="opacity-100 translate-y-0"
@@ -559,7 +585,7 @@
             window.lucide.createIcons();
         }
     </script>
-    
+
     <script src="{{ asset('assets/js/shared/mention-autocomplete.js') }}"></script>
     <script>
         $(function() {
