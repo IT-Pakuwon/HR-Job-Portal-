@@ -6,6 +6,7 @@ use App\Exports\VplLedgerExport;
 use App\Exports\VplLoyaltyUsageExport;
 use App\Exports\VplProductReportExport;
 use App\Exports\VplProductStockExport;
+use App\Exports\VplStockOutVoucherExport;
 use App\Exports\VplStockSummaryExport;
 use App\Exports\VplStockVoucherExport;
 use App\Exports\VplTrialBalanceSummaryGroupExport;
@@ -13,6 +14,7 @@ use App\Models\MsVplAging;
 use App\Models\MsVplProduct;
 use App\Models\MsVplProductBal;
 use App\Models\TrxVplReceiveDetail;
+use App\Models\TrxVplSettlementDetail;
 use App\Models\TrxVplTransferDetail;
 use App\Models\TrxVplUsageDetail;
 use App\Models\Usercpny;
@@ -67,8 +69,9 @@ class VplReportController extends Controller
         $hasVPCOLLACCESS    = $user->hasRole('VPCOLLACCESS');
         $hasVPPRMTNACCESS   = $user->hasRole('VPPRMTNACCESS');
         $hasVPLOYALTYACCESS = $user->hasRole('VPLOYALTYACCESS');
+        $hasStockOutAccess  = $hasVPPRMTNACCESS || $hasVPLOYALTYACCESS;
 
-        $tabCount = 6 + ($hasVPLOYALTYACCESS ? 1 : 0);
+        $tabCount = 6 + ($hasVPLOYALTYACCESS ? 1 : 0) + ($hasStockOutAccess ? 1 : 0);
 
         $defaultReport = 'stock-voucher';
 
@@ -79,6 +82,8 @@ class VplReportController extends Controller
             'hasVPPRMTNACCESS'   => $hasVPPRMTNACCESS,
 
             'hasVPLOYALTYACCESS' => $hasVPLOYALTYACCESS,
+
+            'hasStockOutAccess'  => $hasStockOutAccess,
 
             'tabCount'      => $tabCount,
 
@@ -111,6 +116,9 @@ class VplReportController extends Controller
             case 'summary-group':
                 return $this->summaryGroupJson($request);
 
+            case 'stock-out-voucher':
+                return $this->stockOutVoucherJson($request);
+
             default:
                 abort(404);
         }
@@ -138,6 +146,9 @@ class VplReportController extends Controller
 
             case 'summary-group':
                 return $this->summaryGroupExport($request);
+
+            case 'stock-out-voucher':
+                return $this->stockOutVoucherExport($request);
 
             default:
                 abort(404);
@@ -1716,6 +1727,412 @@ class VplReportController extends Controller
             foreach ($categoryRows as $r) {
                 $r['type'] = 'detail';
                 $r['docs'] = $usageDocs[$r['product_id']] ?? [];
+                $output[]  = $r;
+            }
+        }
+
+        return $output;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | STOCK OUT VOUCHER REPORT ("Laporan Stok Out Voucher") — Begin/In/Out/Retur/
+    | Ending + Nominal Out/Purpose/Remarks per tenant, scoped to one warehouse
+    | picked via a Promotion/Loyalty selector (one tab, matching the business
+    | team's existing manual Excel template).
+    |--------------------------------------------------------------------------
+    */
+    private function stockOutVoucherJson(Request $request)
+    {
+        [$cpnyid, $year, $month] = $this->resolveStockVoucherParams($request);
+        $whsId = $this->resolveStockOutWhsId($request);
+
+        $rows = $this->buildStockOutVoucherReport($cpnyid, $year, $month, $whsId);
+
+        return view('pages.report-vpl.partials.stock-out-voucher-table', [
+            'rows'      => $rows,
+            'cpnyid'    => $cpnyid,
+            'year'      => $year,
+            'month'     => $month,
+            'whsLabel'  => $this->stockOutWhsLabel($whsId),
+            'forExport' => false,
+        ]);
+    }
+
+    private function stockOutVoucherExport(Request $request)
+    {
+        [$cpnyid, $year, $month] = $this->resolveStockVoucherParams($request);
+        $whsId    = $this->resolveStockOutWhsId($request);
+        $whsLabel = $this->stockOutWhsLabel($whsId);
+
+        $rows = $this->buildStockOutVoucherReport($cpnyid, $year, $month, $whsId);
+
+        $slug     = strtolower($whsLabel);
+        $filename = "stock-out-{$slug}-{$cpnyid}-{$year}-".str_pad((string) $month, 2, '0', STR_PAD_LEFT).'.xlsx';
+
+        return Excel::download(new VplStockOutVoucherExport($rows, $cpnyid, $year, $month, $whsLabel), $filename);
+    }
+
+    /** Warehouse selector — only WHPROMOTION/WHLOYALTY are valid; defaults to whichever the user actually has access to (Promotion preferred if both). */
+    private function resolveStockOutWhsId(Request $request): string
+    {
+        $whsId = $request->input('whs_id');
+
+        if (in_array($whsId, [self::WHS_PROMOTION, self::WHS_LOYALTY], true)) {
+            return $whsId;
+        }
+
+        $user = Auth::user();
+
+        return ($user && $user->hasRole('VPPRMTNACCESS')) ? self::WHS_PROMOTION : self::WHS_LOYALTY;
+    }
+
+    private function stockOutWhsLabel(string $whsId): string
+    {
+        return $whsId === self::WHS_PROMOTION ? 'Promotion' : 'Loyalty';
+    }
+
+    /**
+     * Per-tenant Begin/In/Out/Retur/Ending for the given warehouse (WHPROMOTION or
+     * WHLOYALTY), rolled forward straight off ms_vpl_product_bal — same authoritative
+     * source buildLoyaltyUsageReport() already uses, so Begin/Ending/gross-Out here can
+     * never drift from what the SP actually posted. The one wrinkle: sp_process_vpl
+     * posts Return Usage as a POSITIVE entry into periodNNin at the SAME warehouse
+     * (mirroring a forward Transfer-in), so ms_vpl_product_bal's own period{mm}in column
+     * is Transfer-in/Receive-in and Return-in combined. The screenshot template wants
+     * Retur shown as its own column, so it's isolated by subtracting a separately
+     * queried Return-qty from that combined column — In(displayed) = period_in - Retur.
+     * period_out is untouched by Return (Return never posts to period_out), so gross
+     * Out is read straight off it with no adjustment needed.
+     */
+    private function buildStockOutVoucherReport(string $cpnyid, int $year, int $month, string $whsId): array
+    {
+        $balances = MsVplProductBal::where('cpnyid', $cpnyid)
+            ->where('year', $year)
+            ->where('whs_id', $whsId)
+            ->get();
+
+        if ($balances->isEmpty()) {
+            return [];
+        }
+
+        // Voucher-type only — "Laporan Stok Out Voucher" is scoped to vouchers, and
+        // Product-type items (product_type='P') can transfer WHPROMOTION<->WHLOYALTY
+        // directly, a topology this report's Begin/In/Out/Retur columns don't model
+        // (only vouchers' WHCOLLECTION-centric flow, plus a ReturnTf back to
+        // WHCOLLECTION, does).
+        $products = MsVplProduct::where('cpnyid', $cpnyid)
+            ->where('product_type', '<>', 'P')
+            ->get()
+            ->keyBy('product_id');
+
+        $monthStart = Carbon::create($year, $month, 1)->startOfMonth();
+        $monthEnd   = Carbon::create($year, $month, 1)->endOfMonth();
+
+        [$returnByBatch, $purposeByBatch, $remarksByBatch] = $this->stockOutVoucherUsageDetail($cpnyid, $monthStart, $monthEnd, $whsId);
+        [$inDocsByBatch, $outDocsByBatch] = $this->stockOutVoucherDocs($cpnyid, $monthStart, $monthEnd, $whsId);
+
+        $mm = str_pad((string) $month, 2, '0', STR_PAD_LEFT);
+
+        $rows = [];
+
+        foreach ($balances as $bal) {
+            $product = $products->get($bal->product_id);
+
+            if (!$product) {
+                continue;
+            }
+
+            $beginning = (float) $bal->begqty;
+
+            for ($m = 1; $m < $month; $m++) {
+                $pm = str_pad((string) $m, 2, '0', STR_PAD_LEFT);
+                $beginning += (float) ($bal->{"period{$pm}in"} ?? 0) - (float) ($bal->{"period{$pm}out"} ?? 0);
+            }
+
+            $key = $bal->product_id.'|'.$this->expiredKey($bal->expired_date);
+
+            $retur      = $returnByBatch[$key] ?? 0.0;
+            $monthInRaw = (float) ($bal->{"period{$mm}in"} ?? 0);
+            $monthOut   = (float) ($bal->{"period{$mm}out"} ?? 0);
+            $monthIn    = $monthInRaw - $retur;
+            $ending     = $beginning + $monthInRaw - $monthOut;
+            $nominal    = (float) $product->product_value;
+
+            $rows[] = [
+                'product_id'     => $product->product_id,
+                'tenant'         => $product->product_name,
+                'category_label' => $product->product_category === 'F&B' ? 'F&B' : 'NON F&B',
+                'nominal'        => $nominal,
+                'expired_date'   => $this->expiredKey($bal->expired_date) === 'NULL' ? null : $bal->expired_date,
+                'beginning'      => $beginning,
+                'in_total'       => $monthIn,
+                'out_total'      => $monthOut,
+                'retur'          => $retur,
+                'ending'         => $ending,
+                'nominal_out'    => $monthOut * $nominal,
+                'purpose'        => $purposeByBatch[$key] ?? [],
+                'remarks'        => $remarksByBatch[$key] ?? [],
+                'in_docs'        => $inDocsByBatch[$key] ?? [],
+                'out_docs'       => $outDocsByBatch[$key] ?? [],
+            ];
+        }
+
+        if (empty($rows)) {
+            return [];
+        }
+
+        usort($rows, function ($a, $b) {
+            return [$a['category_label'], $a['tenant'], $a['expired_date']]
+                <=> [$b['category_label'], $b['tenant'], $b['expired_date']];
+        });
+
+        return $this->attachStockOutVoucherGrouping($rows);
+    }
+
+    /**
+     * Return-usage qty (own column), and distinct purpose_id/purpose_remark text
+     * (comma-joined in the view) actually recorded against gross Usage documents this
+     * month, per product+expiry batch — all three scoped to one warehouse.
+     *
+     * @return array{0: array<string, float>, 1: array<string, array<int, string>>, 2: array<string, array<int, string>>}
+     */
+    private function stockOutVoucherUsageDetail(string $cpnyid, Carbon $monthStart, Carbon $monthEnd, string $whsId): array
+    {
+        $usages = TrxVplUsageDetail::query()
+            ->join('tr_vpl_usage', 'tr_vpl_usage.usage_id', '=', 'tr_vpl_usage_detail.usage_id')
+            ->where('tr_vpl_usage.cpnyid', $cpnyid)
+            ->where('tr_vpl_usage.status', 'C')
+            ->where('tr_vpl_usage_detail.whs_id', $whsId)
+            ->whereBetween('tr_vpl_usage.usage_date', [$monthStart, $monthEnd])
+            ->select([
+                'tr_vpl_usage_detail.product_id',
+                'tr_vpl_usage_detail.expired_date',
+                'tr_vpl_usage_detail.purpose_id',
+                'tr_vpl_usage_detail.purpose_remark',
+                'tr_vpl_usage_detail.qty_return_usage',
+                'tr_vpl_usage.usagetype',
+            ])
+            ->get();
+
+        $returnByBatch  = [];
+        $purposeByBatch = [];
+        $remarksByBatch = [];
+
+        foreach ($usages as $u) {
+            $key = $u->product_id.'|'.$this->expiredKey($u->expired_date);
+
+            if ($u->usagetype === 'Return') {
+                $returnByBatch[$key] = ($returnByBatch[$key] ?? 0) + abs((float) $u->qty_return_usage);
+                continue;
+            }
+
+            if (!empty($u->purpose_id)) {
+                $purposeByBatch[$key][$u->purpose_id] = true;
+            }
+
+            if (!empty($u->purpose_remark)) {
+                $remarksByBatch[$key][$u->purpose_remark] = true;
+            }
+        }
+
+        return [
+            $returnByBatch,
+            array_map(fn ($set) => array_keys($set), $purposeByBatch),
+            array_map(fn ($set) => array_keys($set), $remarksByBatch),
+        ];
+    }
+
+    /**
+     * Individual document IDs behind a batch's In and Out figures, for the report's
+     * Action buttons — keyed by the full product+expiry batch (not just product_id,
+     * unlike batchLoyaltyUsageDocs()/batchPromotionUsageDocs(), so two expiry batches
+     * of the same product never share a doc list). Multiple lines on the same doc for
+     * the same batch are summed into one entry.
+     *
+     * In  = Receive landing directly at this warehouse + Transfer arriving here +
+     *       Settlement qty_remain (the unsettled leftover of a Usage doc, posted back
+     *       into period_in by the SP) — sums to exactly 'in_total' (bal.period_in minus
+     *       the separately-tracked Retur figure).
+     * Out = gross Usage documents (usagetype != 'Return') at this warehouse + any
+     *       Transfer LEAVING this warehouse (a ReturnTf sending stock back to
+     *       WHCOLLECTION) — the SP posts that outbound leg into the same period_out
+     *       column gross Usage-out lands in, so it has to be grouped under Out here
+     *       too for the doc list to sum to exactly 'out_total'. Return-type Usage
+     *       docs are excluded since they back the separate 'retur' figure, not Out.
+     *
+     * @return array{0: array<string, array<int, array>>, 1: array<string, array<int, array>>}
+     */
+    private function stockOutVoucherDocs(string $cpnyid, Carbon $monthStart, Carbon $monthEnd, string $whsId): array
+    {
+        $inDocs  = [];
+        $outDocs = [];
+
+        $push = function (array &$bucket, string $key, string $docKey, array $entry) {
+            if (!isset($bucket[$key][$docKey])) {
+                $bucket[$key][$docKey] = $entry;
+
+                return;
+            }
+
+            $bucket[$key][$docKey]['qty'] += $entry['qty'];
+        };
+
+        $receives = TrxVplReceiveDetail::query()
+            ->join('tr_vpl_receive', 'tr_vpl_receive.receive_id', '=', 'tr_vpl_receive_detail.receive_id')
+            ->where('tr_vpl_receive.cpnyid', $cpnyid)
+            ->where('tr_vpl_receive.status', 'C')
+            ->where('tr_vpl_receive_detail.whs_id', $whsId)
+            ->whereBetween('tr_vpl_receive.receive_date', [$monthStart, $monthEnd])
+            ->select([
+                'tr_vpl_receive_detail.product_id',
+                'tr_vpl_receive_detail.expired_date',
+                'tr_vpl_receive_detail.qty_receive',
+                'tr_vpl_receive.id',
+                'tr_vpl_receive.receive_id as doc_no',
+                'tr_vpl_receive.receive_date as doc_date',
+            ])
+            ->get();
+
+        foreach ($receives as $r) {
+            $key = $r->product_id.'|'.$this->expiredKey($r->expired_date);
+            $push($inDocs, $key, 'RCV-'.$r->doc_no, [
+                'doc_label' => 'Receive',
+                'doc_no'    => $r->doc_no,
+                'date'      => Carbon::parse($r->doc_date)->format('Y-m-d'),
+                'qty'       => (float) $r->qty_receive,
+                'link'      => route('receivevp.show', Hashids::encode($r->id)),
+            ]);
+        }
+
+        $transfers = TrxVplTransferDetail::query()
+            ->join('tr_vpl_transfer', 'tr_vpl_transfer.transfer_id', '=', 'tr_vpl_transfer_detail.transfer_id')
+            ->where('tr_vpl_transfer.cpnyid', $cpnyid)
+            ->where('tr_vpl_transfer.status', 'C')
+            ->whereIn('tr_vpl_transfer.transfertype', ['Transfer', 'ReturnTf'])
+            ->whereBetween('tr_vpl_transfer.transfer_date', [$monthStart, $monthEnd])
+            ->where(function ($q) use ($whsId) {
+                $q->where('tr_vpl_transfer_detail.to_whs_id', $whsId)
+                    ->orWhere('tr_vpl_transfer_detail.from_whs_id', $whsId);
+            })
+            ->select([
+                'tr_vpl_transfer_detail.product_id',
+                'tr_vpl_transfer_detail.expired_date',
+                'tr_vpl_transfer_detail.qty_transfer',
+                'tr_vpl_transfer_detail.from_whs_id',
+                'tr_vpl_transfer_detail.to_whs_id',
+                'tr_vpl_transfer.transfertype',
+                'tr_vpl_transfer.id',
+                'tr_vpl_transfer.transfer_id as doc_no',
+                'tr_vpl_transfer.transfer_date as doc_date',
+            ])
+            ->get();
+
+        foreach ($transfers as $t) {
+            $key   = $t->product_id.'|'.$this->expiredKey($t->expired_date);
+            $qty   = abs((float) $t->qty_transfer);
+            $entry = [
+                'doc_label' => $t->transfertype === 'ReturnTf' ? 'Return Transfer' : 'Transfer',
+                'doc_no'    => $t->doc_no,
+                'date'      => Carbon::parse($t->doc_date)->format('Y-m-d'),
+                'qty'       => $qty,
+                'link'      => route('showtransfervp', Hashids::encode($t->id)),
+            ];
+
+            // Arriving here feeds In; leaving here (a ReturnTf sending stock back to
+            // WHCOLLECTION) is posted by the SP into period_out — same column gross
+            // Usage-out lands in — so it belongs in the Out doc list, not a negative
+            // entry in In, to keep each list's qty sum match its displayed column total.
+            if ($t->to_whs_id === $whsId) {
+                $push($inDocs, $key, 'TRF-'.$t->doc_no, $entry);
+            }
+
+            if ($t->from_whs_id === $whsId) {
+                $push($outDocs, $key, 'TRF-'.$t->doc_no, $entry);
+            }
+        }
+
+        $usages = TrxVplUsageDetail::query()
+            ->join('tr_vpl_usage', 'tr_vpl_usage.usage_id', '=', 'tr_vpl_usage_detail.usage_id')
+            ->where('tr_vpl_usage.cpnyid', $cpnyid)
+            ->where('tr_vpl_usage.status', 'C')
+            ->where('tr_vpl_usage_detail.whs_id', $whsId)
+            ->where('tr_vpl_usage.usagetype', '<>', 'Return')
+            ->whereBetween('tr_vpl_usage.usage_date', [$monthStart, $monthEnd])
+            ->select([
+                'tr_vpl_usage_detail.product_id',
+                'tr_vpl_usage_detail.expired_date',
+                'tr_vpl_usage_detail.qty_usage',
+                'tr_vpl_usage.id',
+                'tr_vpl_usage.usage_id as doc_no',
+                'tr_vpl_usage.usage_date as doc_date',
+            ])
+            ->get();
+
+        foreach ($usages as $u) {
+            $key = $u->product_id.'|'.$this->expiredKey($u->expired_date);
+            $push($outDocs, $key, 'USG-'.$u->doc_no, [
+                'doc_label' => 'Usage',
+                'doc_no'    => $u->doc_no,
+                'date'      => Carbon::parse($u->doc_date)->format('Y-m-d'),
+                'qty'       => (float) $u->qty_usage,
+                'link'      => route('showusagevp', Hashids::encode($u->id)),
+            ]);
+        }
+
+        // A Settlement reconciles how much of a Usage doc's declared qty was actually
+        // redeemed; whatever's left (qty_remain) gets posted back into period_in at the
+        // usage warehouse — a third In component beyond Receive/Transfer that's easy to
+        // miss (found by empirically checking bal.period_in against Receive+Transfer
+        // sums and finding it consistently short by exactly each batch's qty_remain).
+        $settlements = TrxVplSettlementDetail::query()
+            ->join('tr_vpl_settlement', 'tr_vpl_settlement.settlement_id', '=', 'tr_vpl_settlement_detail.settlement_id')
+            ->where('tr_vpl_settlement.cpnyid', $cpnyid)
+            ->where('tr_vpl_settlement.status', 'C')
+            ->where('tr_vpl_settlement_detail.whs_id', $whsId)
+            ->where('tr_vpl_settlement_detail.qty_remain', '>', 0)
+            ->whereBetween('tr_vpl_settlement.settlement_date', [$monthStart, $monthEnd])
+            ->select([
+                'tr_vpl_settlement_detail.product_id',
+                'tr_vpl_settlement_detail.expired_date',
+                'tr_vpl_settlement_detail.qty_remain',
+                'tr_vpl_settlement.id',
+                'tr_vpl_settlement.settlement_id as doc_no',
+                'tr_vpl_settlement.settlement_date as doc_date',
+            ])
+            ->get();
+
+        foreach ($settlements as $s) {
+            $key = $s->product_id.'|'.$this->expiredKey($s->expired_date);
+            $push($inDocs, $key, 'STL-'.$s->doc_no, [
+                'doc_label' => 'Settlement',
+                'doc_no'    => $s->doc_no,
+                'date'      => Carbon::parse($s->doc_date)->format('Y-m-d'),
+                'qty'       => (float) $s->qty_remain,
+                'link'      => route('showsettlementvp', Hashids::encode($s->id)),
+            ]);
+        }
+
+        return [
+            array_map(fn ($docs) => array_values($docs), $inDocs),
+            array_map(fn ($docs) => array_values($docs), $outDocs),
+        ];
+    }
+
+    /** Category-header / detail render rows, no subtotal — matches the template's single grand-total row at the bottom. */
+    private function attachStockOutVoucherGrouping(array $rows): array
+    {
+        if (empty($rows)) {
+            return [];
+        }
+
+        $output = [];
+
+        foreach (collect($rows)->groupBy('category_label') as $categoryLabel => $categoryRows) {
+            $output[] = ['type' => 'category_header', 'category_label' => $categoryLabel];
+
+            foreach ($categoryRows as $r) {
+                $r['type'] = 'detail';
                 $output[]  = $r;
             }
         }

@@ -591,36 +591,82 @@ class VplReceiveController extends Controller
 
     // -------------------------------------------------------
     // Notify VPCOLLACCESS / VPLOYALTYACCESS / VPPRMTNACCESS role
-    // holders in the receive's company when it completes
+    // holders in the receive's company when it completes.
+    // VPLOYALTYACCESS / VPPRMTNACCESS additionally get the tenant,
+    // voucher/nominal/exp date breakdown, receive date and remarks —
+    // VPCOLLACCESS gets the plain notification only.
     // -------------------------------------------------------
     private function notifyRoleAccessUsers(TrxVplReceive $receive, string $urlToDoc): void
     {
-        $roleIds = ['VPCOLLACCESS', 'VPLOYALTYACCESS', 'VPPRMTNACCESS'];
+        $detailRoleIds = ['VPLOYALTYACCESS', 'VPPRMTNACCESS'];
+        $roleIds = array_merge(['VPCOLLACCESS'], $detailRoleIds);
 
-        $roleUsernames = SysUserRole::whereIn('role_id', $roleIds)
+        $rolesByUsername = SysUserRole::whereIn('role_id', $roleIds)
             ->where('status', 'A')
-            ->pluck('username');
+            ->get()
+            ->groupBy('username')
+            ->map(fn ($rows) => $rows->pluck('role_id')->all());
 
         $usernames = Usercpny::where('cpny_id', $receive->cpnyid)
             ->where('status', 'A')
-            ->whereIn('username', $roleUsernames)
+            ->whereIn('username', $rolesByUsername->keys())
             ->pluck('username')
             ->unique();
 
+        $voucherLines = $this->buildVoucherEmailLines($receive);
+
         foreach ($usernames as $username) {
+            $wantsDetail = !empty(array_intersect($rolesByUsername->get($username, []), $detailRoleIds));
+
+            $extra = [
+                'cpnyid'    => $receive->cpnyid,
+                'deptname'  => $receive->department,
+                'createdby' => $receive->created_user,
+            ];
+
+            if ($wantsDetail) {
+                $extra['tenant'] = $receive->receive_tenant;
+                $extra['date'] = optional($receive->receive_date)->format('d F Y');
+                $extra['info'] = $receive->receive_remark;
+                $extra['voucher_lines'] = $voucherLines;
+            }
+
             app(ApprovalController::class)->notifyRequesterOnStatus(
                 $receive->receive_id,
                 self::DOCTYPE_DSC,
                 'C',
                 $username,
                 $urlToDoc,
-                [
-                    'cpnyid'    => $receive->cpnyid,
-                    'deptname'  => $receive->department,
-                    'createdby' => $receive->created_user,
-                ]
+                $extra
             );
         }
+    }
+
+    // -------------------------------------------------------
+    // Voucher name + total nominal + expired date per line,
+    // for the VPLOYALTYACCESS / VPPRMTNACCESS completion email
+    // -------------------------------------------------------
+    private function buildVoucherEmailLines(TrxVplReceive $receive): array
+    {
+        return TrxVplReceiveDetail::join('ms_vpl_product', 'tr_vpl_receive_detail.product_id', '=', 'ms_vpl_product.product_id')
+            ->where('receive_id', $receive->receive_id)
+            ->orderBy('linenbr')
+            ->select(
+                'ms_vpl_product.product_name',
+                'tr_vpl_receive_detail.qty_receive',
+                'tr_vpl_receive_detail.total_product_price',
+                'tr_vpl_receive_detail.expired_date'
+            )
+            ->get()
+            ->map(fn ($row) => [
+                'name'    => $row->product_name,
+                'qty'     => number_format((float) $row->qty_receive, 0, ',', '.'),
+                'nominal' => number_format((float) $row->total_product_price, 0, ',', '.'),
+                'exp'     => ($row->expired_date && $row->expired_date->format('Y-m-d') !== '1900-01-01')
+                    ? $row->expired_date->format('d F Y')
+                    : 'No Expiry',
+            ])
+            ->all();
     }
 
     // -------------------------------------------------------

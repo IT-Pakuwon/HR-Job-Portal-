@@ -3,7 +3,7 @@
     <div class="max-w-9xl mx-auto space-y-4 p-2">
 
         {{-- Report Selector --}}
-        {{-- Tailwind safelist: lg:grid-cols-1 lg:grid-cols-2 lg:grid-cols-3 lg:grid-cols-4 lg:grid-cols-5 lg:grid-cols-6 lg:grid-cols-7 --}}
+        {{-- Tailwind safelist: lg:grid-cols-1 lg:grid-cols-2 lg:grid-cols-3 lg:grid-cols-4 lg:grid-cols-5 lg:grid-cols-6 lg:grid-cols-7 lg:grid-cols-8 lg:grid-cols-9 --}}
         @php
             $lgCols = match(true) {
                 $tabCount <= 1 => 'lg:grid-cols-1',
@@ -12,10 +12,12 @@
                 $tabCount == 4 => 'lg:grid-cols-4',
                 $tabCount == 5 => 'lg:grid-cols-5',
                 $tabCount == 6 => 'lg:grid-cols-6',
-                default        => 'lg:grid-cols-7',
+                $tabCount == 7 => 'lg:grid-cols-7',
+                $tabCount == 8 => 'lg:grid-cols-8',
+                default        => 'lg:grid-cols-9',
             };
         @endphp
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2 {{ $lgCols }}">
+        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4 {{ $lgCols }}">
 
             {{-- Stock Voucher --}}
             <a href="#" data-report="stock-voucher"
@@ -56,6 +58,22 @@
                         <div>
                             <p class="font-semibold text-gray-800 dark:text-gray-200">Loyalty Usage Rate</p>
                             <p class="text-xs text-gray-500 dark:text-gray-400">Usage at WHLOYALTY vs. stock at WHLOYALTY</p>
+                        </div>
+                    </div>
+                </a>
+            @endif
+
+            @if($hasStockOutAccess)
+                {{-- Stock Out Voucher --}}
+                <a href="#" data-report="stock-out-voucher"
+                    class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/40 dark:hover:bg-gray-800/70">
+                    <div class="flex items-center gap-4">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-lg dark:bg-amber-500/15">
+                            📤
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-800 dark:text-gray-200">Stock Out Voucher</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Laporan Stok Out Voucher — Promotion or Loyalty</p>
                         </div>
                     </div>
                 </a>
@@ -133,6 +151,12 @@
             @if($hasVPLOYALTYACCESS)
                 <div id="report-loyalty-usage" @class(['hidden' => $defaultReport !== 'loyalty-usage'])>
                     @include('pages.report-vpl.loyalty-usage')
+                </div>
+            @endif
+
+            @if($hasStockOutAccess)
+                <div id="report-stock-out-voucher" @class(['hidden' => $defaultReport !== 'stock-out-voucher'])>
+                    @include('pages.report-vpl.stock-out-voucher')
                 </div>
             @endif
 
