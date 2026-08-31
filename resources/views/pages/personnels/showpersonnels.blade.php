@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <div class="max-w-9xl mx-auto p-2">
         <x-approval-actions
             :status="$personnel->status"
@@ -6,7 +6,18 @@
             :can-edit="$canEdit"
             :edit-url="url('/editpersonnels/' . $hash)"
         />
-
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'Personnel', 'url' => route('personnels')],
+            ['label' => 'Show Details'],
+        ]">
+            <x-approval-actions
+                :status="$personnel->status"
+                :is-approver="$isApprover"
+                :can-edit="$canEdit"
+                :edit-url="url('/editpersonnels/' . $hash)"
+            />
+        </x-breadcrumb>
         @if ($personnel->status === 'C')
             <div class="mb-4 flex justify-end">
                 <button id="copyTemplateBtn" type="button" data-hash="{{ $hash }}"
