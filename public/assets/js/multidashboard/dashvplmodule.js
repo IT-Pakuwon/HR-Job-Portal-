@@ -129,6 +129,15 @@
         const isDark = document.documentElement.classList.contains("dark");
         const badge = (text, bg, color) =>
             `<span style="background:${bg};color:${color};border:1px solid ${color}60" class="inline-block shrink-0 rounded-full px-2.5 py-0.5 text-center text-[11px] font-semibold whitespace-nowrap">${text}</span>`;
+
+        const doctype = (row.docid || "").match(/^[A-Z]+/)?.[0];
+
+        if (["CS", "RP", "RFP", "RCA", "KO"].includes(doctype) && row.flag_imbudget && row.imbudgetid && row.status_imbudget !== "C") {
+            return isDark
+                ? badge("Waiting IM Budget", "rgba(245,158,11,0.15)", "#fbbf24")
+                : badge("Waiting IM Budget", "rgba(245,158,11,0.12)", "#b45309");
+        }
+
         const map = isDark ? {
             P: { text: "Waiting Approval", bg: "rgba(59,130,246,0.15)", color: "#93c5fd" },
             A: { text: "Approved",         bg: "rgba(34,197,94,0.15)",  color: "#86efac" },
