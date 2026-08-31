@@ -45,10 +45,29 @@ class ReportCanvassSheetController extends Controller
 
             // ->leftJoin('tr_po as po', 'po.csid', '=', 'h.csid')
 
+            ->leftJoin('tr_sppb as b', 'b.sppbid', '=', 'h.sppbjktid')
+            ->leftJoin('tr_sppj as j', 'j.sppjid', '=', 'h.sppbjktid')
+            ->leftJoin('tr_sppk as k', 'k.sppkid', '=', 'h.sppbjktid')
+            ->leftJoin('tr_sppt as t', 't.spptid', '=', 'h.sppbjktid')
+
             ->select([
+                DB::raw('h.id as cs_pk'),
                 'h.csid',
                 'h.csdate',
                 'h.sppbjktid',
+
+                DB::raw("
+                    CASE
+                        WHEN h.sppbjktid ILIKE 'PB%' THEN 'SPPB'
+                        WHEN h.sppbjktid ILIKE 'PJ%' THEN 'SPPJ'
+                        WHEN h.sppbjktid ILIKE 'PK%' THEN 'SPPK'
+                        WHEN h.sppbjktid ILIKE 'PT%' THEN 'SPPT'
+                        ELSE NULL
+                    END as doc_type
+                "),
+
+                DB::raw('COALESCE(b.id, j.id, k.id, t.id) as doc_id'),
+
                 'h.keperluan',
                 'h.department_id',
                 'h.created_by',
@@ -325,6 +344,12 @@ class ReportCanvassSheetController extends Controller
             )
 
             ->addColumn('department_name', fn ($row) => $departments[$row->department_id] ?? ''
+            )
+
+            ->addColumn('cs_hash', fn ($row) => \Hashids::encode($row->cs_pk)
+            )
+
+            ->addColumn('doc_hash', fn ($row) => $row->doc_id ? \Hashids::encode($row->doc_id) : null
             )
 
             ->make(true);
