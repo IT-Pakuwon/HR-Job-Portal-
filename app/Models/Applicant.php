@@ -68,6 +68,7 @@ class Applicant extends Model
 
     public function driverLicenses()
     {
-        return $this->hasMany(ApplicantDriverLicense::class, 'applicant_id', 'applicant_id');
+        return $this->hasMany(ApplicantDriverLicense::class, 'applicant_id', 'applicant_id')
+            ->where('group_cpny_id', $this->group_cpny_id);
     }
 }
