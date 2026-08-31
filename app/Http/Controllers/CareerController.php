@@ -1535,7 +1535,7 @@ class CareerController extends Controller
             $data = [
                 'name'      => $applicant->full_name ?? 'Pelamar',
                 'job_title' => $jobposting->job_title ?? '-',
-                'url'       => url("https://careerjakarta.pakuwon.com/checkform/{$encryptedDocId}"),
+                'url'       => url("/checkform/{$encryptedDocId}"),
             ];
             Mail::send('emails.mailapplicant_remapped_form', $data, function ($message) use ($applicant) {
                 $message->to($applicant->email_address)
@@ -1553,7 +1553,7 @@ class CareerController extends Controller
             ]));
             $data = [
                 'name' => $applicant->full_name ?? 'Pelamar',
-                'url'  => url("https://careerjakarta.pakuwon.com/checkform/{$encryptedDocId}"),
+                'url'  => url("/checkform/{$encryptedDocId}"),
             ];
             Mail::send('emails.mailapplicant', $data, function ($message) use ($applicant) {
                 $message->to($applicant->email_address)
@@ -2762,7 +2762,7 @@ class CareerController extends Controller
             ->first();
         $jobTitle = $jobposting->job_title ?? 'Your Application';
 
-        $careerPortalUrl = url("https://careerjakarta.pakuwon.com");
+        $careerPortalUrl = url("/");
 
 
         $data = [
