@@ -417,15 +417,6 @@ const VplUsageForm = {
         return true;
     },
 
-    // ------------------------------------------------------------------
-    // ATTACHMENT (optional for CUSTOMERSERVICE — see VplUsageController::store/update)
-    // ------------------------------------------------------------------
-
-    toggleAttachmentRequiredMark(prefix) {
-        const dept = document.getElementById(`${prefix}_department`)?.value ?? '';
-        document.getElementById(`${prefix}_attach_required`)?.classList.toggle('hidden', dept === 'CUSTOMERSERVICE');
-    },
-
     setReviewEnabled(enabled) {
         const reviewBtn = document.getElementById('c_reviewBtn');
         if (!reviewBtn) return;
@@ -577,7 +568,6 @@ const VplUsageForm = {
             setTimeout(() => VplUsageForm.loadWarehouseOptions('create'), 50);
             VplUsageForm.toggleUsageDateSection();
             VplUsageForm.toggleEventDateSection();
-            VplUsageForm.toggleAttachmentRequiredMark('c');
         });
 
         ['closeCreateModal', 'closeCreateModalFooter'].forEach((id) => {
@@ -616,7 +606,6 @@ const VplUsageForm = {
         $('#c_department').on('change', () => {
             VplUsageForm.toggleUsageDateSection();
             VplUsageForm.toggleEventDateSection();
-            VplUsageForm.toggleAttachmentRequiredMark('c');
             VplUsageForm.applyDefaultPurpose();
         });
         $('#c_whs_id').on('change', () => VplUsageForm.loadPickerProducts('create'));
@@ -688,7 +677,6 @@ const VplUsageForm = {
         VplUsageForm.toggleBtn('c_openAddProductBtn', true);
         VplUsageForm.toggleUsageDateSection();
         VplUsageForm.toggleEventDateSection();
-        VplUsageForm.toggleAttachmentRequiredMark('c');
         VplUsageForm.showFormView('create');
     },
 
@@ -718,8 +706,6 @@ const VplUsageForm = {
             eventDateInput.min = VplUsageForm.todayISO();
             eventDateInput.value = t.event_date ? String(t.event_date).substring(0, 10) : '';
         }
-
-        VplUsageForm.toggleAttachmentRequiredMark('e');
 
         const refWrap = document.getElementById('e_ref_display_wrapper');
         if (t.ref_usage_id) {

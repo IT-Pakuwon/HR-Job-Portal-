@@ -462,7 +462,7 @@
                 {{-- Attachments --}}
                 <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
                     <div class="flex items-center justify-between border-b border-slate-200 px-5 py-2 dark:border-white/10">
-                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Attachments <span id="c_attach_required" class="text-red-500">*</span></h3>
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Attachments <span class="text-red-500">*</span></h3>
                         <button type="button" id="c_addAttach"
                             class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
                             <i class="fa-solid fa-plus text-[10px]"></i> Add File
@@ -842,7 +842,7 @@
                 {{-- New Attachments --}}
                 <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
                     <div class="flex items-center justify-between border-b border-slate-200 px-5 py-2 dark:border-white/10">
-                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Add Attachments <span id="e_attach_required" class="text-red-500">*</span></h3>
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Add Attachments <span class="text-red-500">*</span></h3>
                         <button type="button" id="e_addAttach"
                             class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
                             <i class="fa-solid fa-plus text-[10px]"></i> Add File

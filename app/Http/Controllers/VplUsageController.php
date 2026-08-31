@@ -302,14 +302,9 @@ class VplUsageController extends Controller
             return response()->json(['error' => 'Remark is required.'], 422);
         }
 
-        // CUSTOMERSERVICE usage/return docs have no supporting document to attach
-        // (no event of their own — see the event_date exemption below), so attachment
-        // is optional for them; every other department must attach proof of usage.
-        if ($request->department !== 'CUSTOMERSERVICE') {
-            $hasValidAttachment = collect($request->file('attachment', []))->filter(fn ($f) => $f && $f->isValid())->isNotEmpty();
-            if (!$hasValidAttachment) {
-                return response()->json(['error' => 'Attachment is required.'], 422);
-            }
+        $hasValidAttachment = collect($request->file('attachment', []))->filter(fn ($f) => $f && $f->isValid())->isNotEmpty();
+        if (!$hasValidAttachment) {
+            return response()->json(['error' => 'Attachment is required.'], 422);
         }
 
         // Every department other than CUSTOMERSERVICE must record the date of the
@@ -488,12 +483,10 @@ class VplUsageController extends Controller
             return response()->json(['error' => 'Remark is required.'], 422);
         }
 
-        if ($usage->department !== 'CUSTOMERSERVICE') {
-            $existingAttachCount = Attachment::where('docid', $usage->usage_id)->where('status', 'A')->count();
-            $hasValidAttachment = collect($request->file('attachment', []))->filter(fn ($f) => $f && $f->isValid())->isNotEmpty();
-            if ($existingAttachCount === 0 && !$hasValidAttachment) {
-                return response()->json(['error' => 'Attachment is required.'], 422);
-            }
+        $existingAttachCount = Attachment::where('docid', $usage->usage_id)->where('status', 'A')->count();
+        $hasValidAttachment = collect($request->file('attachment', []))->filter(fn ($f) => $f && $f->isValid())->isNotEmpty();
+        if ($existingAttachCount === 0 && !$hasValidAttachment) {
+            return response()->json(['error' => 'Attachment is required.'], 422);
         }
 
         if ($usage->department !== 'CUSTOMERSERVICE' && $usage->usagetype !== 'Return') {
