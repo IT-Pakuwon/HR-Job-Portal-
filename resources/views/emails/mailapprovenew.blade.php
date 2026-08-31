@@ -20,6 +20,8 @@
         $date = $date ?? '-';
         $createdby = $createdby ?? '-';
         $url = $url ?? '#';
+        $tenant = $tenant ?? null;
+        $voucherLines = $voucher_lines ?? [];
 
         $map = [
             'P' => [
@@ -108,6 +110,12 @@
                                     <td style="background:#f9fafb; font-weight:bold;">Department</td>
                                     <td>{{ $deptname }}</td>
                                 </tr>
+                                @if($tenant)
+                                <tr>
+                                    <td style="background:#f9fafb; font-weight:bold;">Tenant</td>
+                                    <td>{{ $tenant }}</td>
+                                </tr>
+                                @endif
                                 <tr>
                                     <td style="background:#f9fafb; font-weight:bold;">Date</td>
                                     <td>{{ $date }}</td>
@@ -118,6 +126,28 @@
                                 </tr>
 
                             </table>
+
+                            @if(count($voucherLines))
+                            <table cellspacing="0" cellpadding="6" style="width:100%; margin:0 0 20px; border-collapse:collapse;">
+                                <tr>
+                                    <td colspan="4" style="font-weight:bold; padding:0 0 8px; border:none;">Voucher Detail</td>
+                                </tr>
+                                <tr>
+                                    <td style="background:#f3f4f6; font-weight:bold; border:1px solid #e5e7eb;">Voucher</td>
+                                    <td style="background:#f3f4f6; font-weight:bold; border:1px solid #e5e7eb;">Qty</td>
+                                    <td style="background:#f3f4f6; font-weight:bold; border:1px solid #e5e7eb;">Total Nominal</td>
+                                    <td style="background:#f3f4f6; font-weight:bold; border:1px solid #e5e7eb;">Exp Date</td>
+                                </tr>
+                                @foreach($voucherLines as $line)
+                                <tr>
+                                    <td style="border:1px solid #e5e7eb;">{{ $line['name'] }}</td>
+                                    <td style="border:1px solid #e5e7eb;">{{ $line['qty'] }}</td>
+                                    <td style="border:1px solid #e5e7eb;">Rp {{ $line['nominal'] }}</td>
+                                    <td style="border:1px solid #e5e7eb;">{{ $line['exp'] }}</td>
+                                </tr>
+                                @endforeach
+                            </table>
+                            @endif
 
                             <p style="text-align:center; margin:30px 0;">
                                 <a href="{{ $url }}" target="_blank"
