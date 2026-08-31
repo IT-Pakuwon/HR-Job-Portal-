@@ -8,6 +8,7 @@ use App\Exports\VplProductReportExport;
 use App\Exports\VplProductStockExport;
 use App\Exports\VplStockSummaryExport;
 use App\Exports\VplStockVoucherExport;
+use App\Exports\VplTrialBalanceSummaryGroupExport;
 use App\Models\MsVplAging;
 use App\Models\MsVplProduct;
 use App\Models\MsVplProductBal;
@@ -67,7 +68,7 @@ class VplReportController extends Controller
         $hasVPPRMTNACCESS   = $user->hasRole('VPPRMTNACCESS');
         $hasVPLOYALTYACCESS = $user->hasRole('VPLOYALTYACCESS');
 
-        $tabCount = 5 + ($hasVPLOYALTYACCESS ? 1 : 0);
+        $tabCount = 6 + ($hasVPLOYALTYACCESS ? 1 : 0);
 
         $defaultReport = 'stock-voucher';
 
@@ -107,6 +108,9 @@ class VplReportController extends Controller
             case 'product-report':
                 return $this->productReportJson($request);
 
+            case 'summary-group':
+                return $this->summaryGroupJson($request);
+
             default:
                 abort(404);
         }
@@ -131,6 +135,9 @@ class VplReportController extends Controller
 
             case 'product-report':
                 return $this->productReportExport($request);
+
+            case 'summary-group':
+                return $this->summaryGroupExport($request);
 
             default:
                 abort(404);
@@ -902,6 +909,280 @@ class VplReportController extends Controller
 
             return null;
         }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | TRIAL BALANCE SUMMARY GROUP (Begin/In/Transfer/Out-by-purpose/End per
+    | product+expiry batch, split by the department that made each movement —
+    | ports the legacy voucher_das "Trial Balance Summary Group" report
+    | (resources/views/voucher_das/Views/vplledger/trialbalancesummarygroup.blade.php)
+    | onto the new ms_vpl_/tr_vpl_ schema. That legacy report read from a DB
+    | view (view_vpl_trial_balance_summary_group) which does not actually exist
+    | on the live database (confirmed via SHOW FULL TABLES) — there is no working
+    | reference implementation, only the blade's column headers, so the
+    | Begin/In/Transfer/Out semantics below are inferred, not copied.
+    |--------------------------------------------------------------------------
+    */
+    private function summaryGroupJson(Request $request)
+    {
+        [$cpnyid, $year, $month] = $this->resolveStockVoucherParams($request);
+        $whsId = $this->resolveSummaryGroupWhsId($request);
+
+        $groups = $this->buildSummaryGroupReport($cpnyid, $year, $month, $whsId);
+
+        return view('pages.report-vpl.partials.summary-group-table', [
+            'groups'      => $groups,
+            'purposeCols' => $this->summaryGroupPurposeColumns(),
+            'cpnyid'      => $cpnyid,
+            'year'        => $year,
+            'month'       => $month,
+        ]);
+    }
+
+    private function summaryGroupExport(Request $request)
+    {
+        [$cpnyid, $year, $month] = $this->resolveStockVoucherParams($request);
+        $whsId = $this->resolveSummaryGroupWhsId($request);
+
+        $groups = $this->buildSummaryGroupReport($cpnyid, $year, $month, $whsId);
+
+        $filename = "summary-group-{$cpnyid}-{$year}-".str_pad((string) $month, 2, '0', STR_PAD_LEFT).'.xlsx';
+
+        return Excel::download(
+            new VplTrialBalanceSummaryGroupExport($groups, $this->summaryGroupPurposeColumns(), $cpnyid, $year, $month),
+            $filename
+        );
+    }
+
+    /** Optional WhsOwner filter — only the three warehouses this module actually uses. */
+    private function resolveSummaryGroupWhsId(Request $request): ?string
+    {
+        $whsId = $request->input('whs_id');
+
+        return in_array($whsId, [self::WHS_COLLECTION, self::WHS_LOYALTY, self::WHS_PROMOTION], true) ? $whsId : null;
+    }
+
+    /** Out columns: one per raw purpose_id already tracked by PURPOSE_MAP, plus a catch-all for anything unmapped — granular, not collapsed into the 4-bucket Loyalty/Promotion/Entertainment/Internal Use used elsewhere. */
+    private function summaryGroupPurposeColumns(): array
+    {
+        return array_merge(array_keys(self::PURPOSE_MAP), ['Other']);
+    }
+
+    private function buildSummaryGroupReport(string $cpnyid, int $year, int $month, ?string $whsId = null): array
+    {
+        [$batchMeta, $inByMonth, $transferByMonth, $outByMonth] = $this->summaryGroupMovementRows($cpnyid, $year);
+
+        if ($whsId !== null) {
+            $batchMeta = array_filter($batchMeta, fn ($meta) => $meta['whs_id'] === $whsId);
+        }
+
+        if (empty($batchMeta)) {
+            return [];
+        }
+
+        $products    = MsVplProduct::where('cpnyid', $cpnyid)->get()->keyBy('product_id');
+        $purposeCols = $this->summaryGroupPurposeColumns();
+        $zeroOut     = array_fill_keys($purposeCols, 0.0);
+
+        $rows = [];
+
+        foreach ($batchMeta as $key => $meta) {
+            $product = $products->get($meta['product_id']);
+
+            if (!$product) {
+                continue;
+            }
+
+            // $transferByMonth is already signed (negative = this warehouse sent stock
+            // out, positive = this warehouse received stock in), so it's added, not
+            // subtracted, when rolling the balance forward.
+            $beginning = 0.0;
+            for ($m = 1; $m < $month; $m++) {
+                $beginning += ($inByMonth[$key][$m] ?? 0) + ($transferByMonth[$key][$m] ?? 0) - array_sum($outByMonth[$key][$m] ?? []);
+            }
+
+            $monthIn       = $inByMonth[$key][$month] ?? 0.0;
+            $monthTransfer = $transferByMonth[$key][$month] ?? 0.0;
+            $monthOut      = array_merge($zeroOut, $outByMonth[$key][$month] ?? []);
+            $monthOutTotal = array_sum($monthOut);
+            $ending        = $beginning + $monthIn + $monthTransfer - $monthOutTotal;
+
+            $rows[] = [
+                'product_id'     => $product->product_id,
+                'tenant'         => $product->product_name,
+                'category_label' => $product->product_category === 'F&B' ? 'F&B' : 'NON F&B',
+                'whs_id'         => $meta['whs_id'],
+                'expired_date'   => $this->expiredKey($meta['expired_date']) === 'NULL' ? null : $meta['expired_date'],
+                'beginning'      => $beginning,
+                'in_total'       => $monthIn,
+                'transfer'       => $monthTransfer,
+                'out'            => $monthOut,
+                'out_total'      => $monthOutTotal,
+                'ending'         => $ending,
+            ];
+        }
+
+        usort($rows, function ($a, $b) {
+            return [$a['category_label'], $a['tenant'], $a['expired_date'], $a['whs_id']]
+                <=> [$b['category_label'], $b['tenant'], $b['expired_date'], $b['whs_id']];
+        });
+
+        return $this->attachSummaryGroupCategoryHeaders($rows);
+    }
+
+    /**
+     * Raw Begin/In/Transfer/Out movement figures for every (product+expiry+warehouse)
+     * batch touched anywhere in the given year, bucketed by calendar month so
+     * buildSummaryGroupReport() can sum months 1..selected-month-1 for Beginning and
+     * read the selected month directly for In/Transfer/Out. "WhsOwner" is the warehouse
+     * itself (whs_id — WHCOLLECTION/WHLOYALTY/WHPROMOTION), each movement attributed to
+     * whichever warehouse it actually happened at — not a department.
+     *
+     * In    = Receive (at whichever warehouse the receive detail targets — normally
+     *         WHCOLLECTION) + Return Usage (qty_return_usage), attributed to the
+     *         warehouse the usage was returned at. Return Usage reverses a prior
+     *         Usage-Out, so it's added back rather than netted against the Out-purpose
+     *         bucket it came from (same convention batchOutBreakdown()/inMovementRows()
+     *         already use elsewhere in this controller).
+     * Transfer = both legs of a WHCOLLECTION<->WHLOYALTY Transfer/ReturnTf are posted:
+     *         the source warehouse's row gets a negative entry, the destination
+     *         warehouse's row gets a positive entry, so each warehouse's own balance
+     *         stays self-consistent.
+     * Out   = Usage (usagetype != 'Return') at WHPROMOTION/WHLOYALTY, attributed to the
+     *         warehouse it was used at and bucketed by its own purpose_id (falling back
+     *         to 'Other' for anything not in PURPOSE_MAP).
+     *
+     * @return array{0: array<string, array{product_id: string, expired_date: mixed, whs_id: string}>, 1: array<string, array<int, float>>, 2: array<string, array<int, float>>, 3: array<string, array<int, array<string, float>>>}
+     */
+    private function summaryGroupMovementRows(string $cpnyid, int $year): array
+    {
+        $batchMeta       = [];
+        $inByMonth       = [];
+        $transferByMonth = [];
+        $outByMonth      = [];
+
+        $touch = function (string $key, string $productId, $expiredDate, string $whsId) use (&$batchMeta) {
+            if (!isset($batchMeta[$key])) {
+                $batchMeta[$key] = ['product_id' => $productId, 'expired_date' => $expiredDate, 'whs_id' => $whsId];
+            }
+        };
+
+        $receives = TrxVplReceiveDetail::query()
+            ->join('tr_vpl_receive', 'tr_vpl_receive.receive_id', '=', 'tr_vpl_receive_detail.receive_id')
+            ->where('tr_vpl_receive.cpnyid', $cpnyid)
+            ->where('tr_vpl_receive.status', 'C')
+            ->whereYear('tr_vpl_receive.receive_date', $year)
+            ->select([
+                'tr_vpl_receive_detail.product_id',
+                'tr_vpl_receive_detail.expired_date',
+                'tr_vpl_receive_detail.qty_receive',
+                'tr_vpl_receive_detail.whs_id',
+                'tr_vpl_receive.receive_date',
+            ])
+            ->get();
+
+        foreach ($receives as $r) {
+            $key = $r->product_id.'|'.$this->expiredKey($r->expired_date).'|'.$r->whs_id;
+            $touch($key, $r->product_id, $r->expired_date, $r->whs_id);
+            $m = Carbon::parse($r->receive_date)->month;
+            $inByMonth[$key][$m] = ($inByMonth[$key][$m] ?? 0) + (float) $r->qty_receive;
+        }
+
+        // A transfer has two legs (from_whs_id/to_whs_id), each attributed to its own
+        // warehouse's row: the source warehouse gets a negative entry (stock leaving),
+        // the destination warehouse gets a positive entry (stock arriving). Both legs
+        // are posted for every completed Transfer/ReturnTf regardless of which two
+        // warehouses are involved (WHCOLLECTION<->WHLOYALTY and WHCOLLECTION<->WHPROMOTION
+        // both occur live) — unlike the other reports in this controller, which only
+        // track the WHCOLLECTION<->WHLOYALTY leg because they roll everything up to a
+        // single WHCOLLECTION-scoped balance, this report needs every warehouse's own
+        // balance to be self-consistent, so a Collection->Promotion transfer can't be
+        // left out of scope the way it is elsewhere.
+        $transfers = TrxVplTransferDetail::query()
+            ->join('tr_vpl_transfer', 'tr_vpl_transfer.transfer_id', '=', 'tr_vpl_transfer_detail.transfer_id')
+            ->where('tr_vpl_transfer.cpnyid', $cpnyid)
+            ->where('tr_vpl_transfer.status', 'C')
+            ->whereIn('tr_vpl_transfer.transfertype', ['Transfer', 'ReturnTf'])
+            ->whereYear('tr_vpl_transfer.transfer_date', $year)
+            ->select([
+                'tr_vpl_transfer_detail.product_id',
+                'tr_vpl_transfer_detail.expired_date',
+                'tr_vpl_transfer_detail.qty_transfer',
+                'tr_vpl_transfer_detail.from_whs_id',
+                'tr_vpl_transfer_detail.to_whs_id',
+                'tr_vpl_transfer.transfer_date',
+            ])
+            ->get();
+
+        foreach ($transfers as $t) {
+            $expiredKey = $this->expiredKey($t->expired_date);
+            $m          = Carbon::parse($t->transfer_date)->month;
+            $qty        = abs((float) $t->qty_transfer);
+
+            $fromKey = $t->product_id.'|'.$expiredKey.'|'.$t->from_whs_id;
+            $toKey   = $t->product_id.'|'.$expiredKey.'|'.$t->to_whs_id;
+            $touch($fromKey, $t->product_id, $t->expired_date, $t->from_whs_id);
+            $touch($toKey, $t->product_id, $t->expired_date, $t->to_whs_id);
+
+            $transferByMonth[$fromKey][$m] = ($transferByMonth[$fromKey][$m] ?? 0) - $qty;
+            $transferByMonth[$toKey][$m]   = ($transferByMonth[$toKey][$m] ?? 0) + $qty;
+        }
+
+        $usages = TrxVplUsageDetail::query()
+            ->join('tr_vpl_usage', 'tr_vpl_usage.usage_id', '=', 'tr_vpl_usage_detail.usage_id')
+            ->where('tr_vpl_usage.cpnyid', $cpnyid)
+            ->where('tr_vpl_usage.status', 'C')
+            ->whereIn('tr_vpl_usage_detail.whs_id', [self::WHS_PROMOTION, self::WHS_LOYALTY])
+            ->whereYear('tr_vpl_usage.usage_date', $year)
+            ->select([
+                'tr_vpl_usage_detail.product_id',
+                'tr_vpl_usage_detail.expired_date',
+                'tr_vpl_usage_detail.whs_id',
+                'tr_vpl_usage_detail.purpose_id',
+                'tr_vpl_usage_detail.qty_usage',
+                'tr_vpl_usage_detail.qty_return_usage',
+                'tr_vpl_usage.usagetype',
+                'tr_vpl_usage.usage_date',
+            ])
+            ->get();
+
+        foreach ($usages as $u) {
+            $key = $u->product_id.'|'.$this->expiredKey($u->expired_date).'|'.$u->whs_id;
+            $touch($key, $u->product_id, $u->expired_date, $u->whs_id);
+            $m = Carbon::parse($u->usage_date)->month;
+
+            if ($u->usagetype === 'Return') {
+                $inByMonth[$key][$m] = ($inByMonth[$key][$m] ?? 0) + abs((float) $u->qty_return_usage);
+                continue;
+            }
+
+            $bucket = array_key_exists($u->purpose_id, self::PURPOSE_MAP) ? $u->purpose_id : 'Other';
+            $outByMonth[$key][$m][$bucket] = ($outByMonth[$key][$m][$bucket] ?? 0) + (float) $u->qty_usage;
+        }
+
+        return [$batchMeta, $inByMonth, $transferByMonth, $outByMonth];
+    }
+
+    /** Turn the flat, sorted rows into category-header / detail render rows — flat, no tenant subtotal, matching the legacy report's plain-DataTable shape. */
+    private function attachSummaryGroupCategoryHeaders(array $rows): array
+    {
+        if (empty($rows)) {
+            return [];
+        }
+
+        $output = [];
+
+        foreach (collect($rows)->groupBy('category_label') as $categoryLabel => $categoryRows) {
+            $output[] = ['type' => 'category_header', 'category_label' => $categoryLabel];
+
+            foreach ($categoryRows as $r) {
+                $r['type'] = 'detail';
+                $output[]  = $r;
+            }
+        }
+
+        return $output;
     }
 
     /*
