@@ -216,12 +216,12 @@
                 {{-- Header Info --}}
                 <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
                     <div class="border-b border-slate-200 px-6 py-3 dark:border-white/10">
-                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Settlement Information</h3>
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Settlement Information <span class="text-slate-400 font-normal normal-case text-[11px]">(locked to selected Job List row)</span></h3>
                     </div>
                     <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-4">
                         <div>
                             <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Company <span class="text-red-500">*</span></label>
-                            <select name="cpnyid" id="c_cpnyid" class="w-full select2-create" required>
+                            <select name="cpnyid" id="c_cpnyid" class="w-full select2-create" required disabled>
                                 @foreach($usercpny as $p)
                                     <option value="{{ $p->cpny_id }}" {{ $p->cpny_id == $usercpny2?->cpny_id ? 'selected' : '' }}>{{ $p->cpny_id }}</option>
                                 @endforeach
@@ -229,7 +229,7 @@
                         </div>
                         <div>
                             <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Department <span class="text-red-500">*</span></label>
-                            <select name="department" id="c_department" class="w-full select2-create" required>
+                            <select name="department" id="c_department" class="w-full select2-create" required disabled>
                                 @foreach($userdept as $p)
                                     <option value="{{ $p->department_id }}" {{ $p->department_id == $userdept2?->department_id ? 'selected' : '' }}>{{ $p->department_id }}</option>
                                 @endforeach
@@ -237,7 +237,7 @@
                         </div>
                         <div>
                             <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">V/P Type <span class="text-red-500">*</span></label>
-                            <select name="vp_type" id="c_vp_type" class="w-full select2-create" required>
+                            <select name="vp_type" id="c_vp_type" class="w-full select2-create" required disabled>
                                 <option value=""></option>
                                 <option value="V" selected>Voucher</option>
                                 <option value="P">Product</option>
@@ -245,9 +245,10 @@
                         </div>
                         <div>
                             <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Usage Doc <span class="text-red-500">*</span></label>
-                            <select name="usage_id" id="c_usage_id" class="w-full select2-create" required>
+                            <select id="c_usage_id" class="w-full select2-create" required disabled>
                                 <option value="">Select company, department &amp; type first...</option>
                             </select>
+                            <input type="hidden" name="usage_id" id="c_usage_id_hidden">
                         </div>
                         <div class="md:col-span-4">
                             <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Remark <span class="text-red-500">*</span></label>
