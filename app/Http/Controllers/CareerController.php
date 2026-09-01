@@ -363,6 +363,9 @@ class CareerController extends Controller
             ->where('status', 'A')
             ->get();
 
+        $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
+        $isSby = $groupCompanyId === 'SBY';
+
         $remapped_from = null;
         $remapped_to = null;
 
@@ -397,7 +400,7 @@ class CareerController extends Controller
             'assessmentGroups', 'tr_assessment', 'tr_assessment_user', 'assessmentGroupsUser', 'agenda', 'userlist',
             'typestep', 'payrolls', 'onboarding', 'sign', 'canAccessPayroll', 'canAccessAssessment', 'canAccessSchedule', 'companyaddress',
             'canAccessChecklist', 'canAccessInterviewUser', 'canAccessInterviewHC', 'canAccessPayroll', 'canAccessJoin',
-            'remapped_from', 'remapped_to'
+            'remapped_from', 'remapped_to', 'isSby'
         ));
     }
 
