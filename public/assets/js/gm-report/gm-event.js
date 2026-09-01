@@ -418,7 +418,7 @@
         return { min: min - pad, max: max + pad };
     }
 
-    function renderGantt(events) {
+    function renderGantt(events, domainEvents) {
         var axisEl = document.getElementById('eventGanttAxis');
         var rowsEl = document.getElementById('eventGanttRows');
         if (!axisEl || !rowsEl) return;
@@ -429,7 +429,7 @@
             return;
         }
 
-        var domain = ganttDomain(events);
+        var domain = ganttDomain(domainEvents || events);
         var span   = domain.max - domain.min;
         var pct    = function (v) { return ((v - domain.min) / span) * 100; };
 
@@ -471,6 +471,51 @@
     // between; the row just shows that company as a fixed, non-clickable pill.
     var ganttEvents = [];
     var ganttActiveCompany = null;
+    var ganttPage = 1;
+    var GANTT_PAGE_SIZE = 10;
+
+    function ganttCurrentEvents() {
+        return ganttActiveCompany
+            ? ganttEvents.filter(function (ev) { return ev.cpny === ganttActiveCompany; })
+            : ganttEvents;
+    }
+
+    function renderGanttPagination(total) {
+        var el = document.getElementById('eventGanttPagination');
+        if (!el) return;
+
+        var pageCount = Math.ceil(total / GANTT_PAGE_SIZE);
+        if (pageCount <= 1) { el.innerHTML = ''; return; }
+
+        var start = (ganttPage - 1) * GANTT_PAGE_SIZE + 1;
+        var end = Math.min(ganttPage * GANTT_PAGE_SIZE, total);
+
+        el.innerHTML = '<div class="mt-2 flex items-center justify-between border-t border-slate-100 pt-2 dark:border-slate-700/60">'
+            + '<span class="text-[10.5px] font-medium text-slate-400 dark:text-slate-500">Showing ' + start + '–' + end + ' of ' + total + '</span>'
+            + '<div class="flex items-center gap-1">'
+            +   '<button type="button" data-dir="prev" class="gantt-page-btn rounded-md px-2 py-1 text-[10.5px] font-semibold text-slate-500 hover:bg-slate-100 disabled:pointer-events-none disabled:opacity-40 dark:text-slate-400 dark:hover:bg-slate-800"' + (ganttPage <= 1 ? ' disabled' : '') + '>Prev</button>'
+            +   '<span class="px-1 text-[10.5px] font-semibold text-slate-500 dark:text-slate-400">' + ganttPage + ' / ' + pageCount + '</span>'
+            +   '<button type="button" data-dir="next" class="gantt-page-btn rounded-md px-2 py-1 text-[10.5px] font-semibold text-slate-500 hover:bg-slate-100 disabled:pointer-events-none disabled:opacity-40 dark:text-slate-400 dark:hover:bg-slate-800"' + (ganttPage >= pageCount ? ' disabled' : '') + '>Next</button>'
+            + '</div></div>';
+
+        el.querySelectorAll('.gantt-page-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                ganttPage += btn.getAttribute('data-dir') === 'next' ? 1 : -1;
+                renderGanttPage();
+            });
+        });
+    }
+
+    function renderGanttPage() {
+        var events = ganttCurrentEvents();
+        var pageCount = Math.max(1, Math.ceil(events.length / GANTT_PAGE_SIZE));
+        if (ganttPage > pageCount) ganttPage = pageCount;
+        if (ganttPage < 1) ganttPage = 1;
+
+        var start = (ganttPage - 1) * GANTT_PAGE_SIZE;
+        renderGantt(events.slice(start, start + GANTT_PAGE_SIZE), events);
+        renderGanttPagination(events.length);
+    }
 
     function ganttCompanies() {
         var seen = {};
@@ -517,10 +562,9 @@
         el.querySelectorAll('.gantt-cpny-btn').forEach(function (btn) {
             btn.addEventListener('click', function () {
                 ganttActiveCompany = btn.getAttribute('data-cpny') || null;
+                ganttPage = 1;
                 renderGanttCompanyFilter();
-                renderGantt(ganttActiveCompany
-                    ? ganttEvents.filter(function (ev) { return ev.cpny === ganttActiveCompany; })
-                    : ganttEvents);
+                renderGanttPage();
             });
         });
     }
@@ -531,6 +575,7 @@
         var rowsEl = document.getElementById('eventGanttRows');
         if (rowsEl) rowsEl.innerHTML = '<p class="py-6 text-center text-xs text-slate-400">Loading…</p>';
         ganttActiveCompany = null;
+        ganttPage = 1;
         fetch(routes.eventStatusStrip + utils.buildParams(), {
             headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
             signal: xhrTimeline.signal,
@@ -539,7 +584,7 @@
             .then(function (res) {
                 ganttEvents = res.data || [];
                 renderGanttCompanyFilter();
-                renderGantt(ganttEvents);
+                renderGanttPage();
                 computeEventInsights();
             })
             .catch(function (e) { if (e.name !== 'AbortError') console.error('event timeline:', e); });

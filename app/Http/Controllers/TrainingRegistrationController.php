@@ -154,7 +154,7 @@ class TrainingRegistrationController extends Controller
                 'training_id' => $d->training_id,
                 'training_name' => $d->schedule->training->training_name ?? null,
                 'docid' => $d->training_detail_id,
-                'schedule_date' => $d->schedule_date,
+                'schedule_date' => $d->schedule_date?->format('Y-m-d'),
                 'start_time' => $d->schedule_start_time,
                 'end_time' => $d->schedule_end_time,
                 'mode' => $d->training_mode,
@@ -290,7 +290,7 @@ class TrainingRegistrationController extends Controller
                 'schedule_id' => $r->schedule_id,
                 'docid' => $r->training_regist_id,
                 'training_name' => $r->schedule?->schedule?->training?->training_name ?? null,
-                'schedule_date' => $r->schedule_date ?? $r->schedule?->schedule_date,
+                'schedule_date' => ($r->schedule_date ?? $r->schedule?->schedule_date)?->format('Y-m-d'),
                 'status' => $r->effective_status,
                 'offer_expires_at' => $r->status_registration === TrLndTrainingRegistration::REG_STATUS_OFFERED
                     ? $r->offer_expires_at
@@ -941,7 +941,7 @@ class TrainingRegistrationController extends Controller
                     'cpny_name' => $companyNames[$r->cpny_id] ?? $r->cpny_id,
                     'department_id' => $r->department_id,
                     'department_name' => $departmentNames[$r->department_id] ?? $r->department_id,
-                    'schedule_date' => $r->schedule_date ?? $r->schedule?->schedule_date,
+                    'schedule_date' => ($r->schedule_date ?? $r->schedule?->schedule_date)?->format('Y-m-d'),
                     'waiting_since' => $apr->aprv_datebefore,
                 ];
             })
@@ -991,7 +991,7 @@ class TrainingRegistrationController extends Controller
                 'cpny_name' => $companyNames[$r->cpny_id] ?? $r->cpny_id,
                 'department_id' => $r->department_id,
                 'department_name' => $departmentNames[$r->department_id] ?? $r->department_id,
-                'schedule_date' => $r->schedule_date ?? $r->schedule?->schedule_date,
+                'schedule_date' => ($r->schedule_date ?? $r->schedule?->schedule_date)?->format('Y-m-d'),
                 'status' => $r->effective_status,
                 'registered_at' => $r->created_at,
             ];
@@ -1058,7 +1058,7 @@ class TrainingRegistrationController extends Controller
                     'cpny_id' => $r->cpny_id,
                     'approval_status' => $r->status,
                     'training_name' => $r->schedule?->schedule?->training?->training_name ?? null,
-                    'schedule_date' => $r->schedule_date ?? $r->schedule?->schedule_date,
+                    'schedule_date' => ($r->schedule_date ?? $r->schedule?->schedule_date)?->format('Y-m-d'),
                     'schedule_status' => $r->schedule?->status ?? null,
                     'quota_options' => $quotas
                         ->where('schedule_id', $r->schedule_id)

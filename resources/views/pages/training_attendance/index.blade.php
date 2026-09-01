@@ -38,9 +38,16 @@
                 <div id="checkinArea" class="hidden space-y-3">
                     <div class="rounded-xl border-2 border-dashed border-gray-300 p-4 text-center dark:border-gray-600">
                         <label class="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">📷 Scan Barcode</label>
-                        <input type="text" id="scanInput" autocomplete="off"
-                            placeholder="Click here, then scan — or type the code and press Enter"
-                            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-center text-sm text-gray-800 focus:border-gray-900 focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-white">
+                        <div class="flex gap-2">
+                            <input type="text" id="scanInput" autocomplete="off"
+                                placeholder="Click here, then scan — or type the code and press Enter"
+                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-center text-sm text-gray-800 focus:border-gray-900 focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-white">
+                            <button type="button" id="scanSubmitBtn"
+                                class="flex-none rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200">
+                                Check In
+                            </button>
+                        </div>
+                        <p class="mt-1 text-[11px] text-gray-400">Didn't pop up after scanning? Click Check In.</p>
                     </div>
 
                     <input type="text" id="searchName" placeholder="🔎 Search by name…"
@@ -331,29 +338,69 @@
             renderRoster();
         }
 
+        function initials(name) {
+            return (name || '?')
+                .trim()
+                .split(/\s+/)
+                .slice(0, 2)
+                .map((w) => w[0]?.toUpperCase())
+                .join('');
+        }
+
+        function infoRow(icon, label, value) {
+            return `
+                <div class="flex items-start gap-2.5 py-1.5">
+                    <span class="mt-0.5 flex-none text-sm">${icon}</span>
+                    <span class="flex-1 text-sm text-gray-700 dark:text-gray-300">
+                        <span class="text-gray-400 dark:text-gray-500">${label}</span> ${value}
+                    </span>
+                </div>
+            `;
+        }
+
         function openAttendModal(row) {
             const already = !!row.attended_at;
-
-            let stateHtml = '';
-            if (already) {
-                stateHtml = `<p style="margin-top:10px;font-size:13px;color:#15803d;">✅ Attended at ${fmtDateTime(row.attended_at)}${row.attended_by ? ' by ' + row.attended_by : ''}</p>`;
-            }
-
             const canAttend = !already;
+            const event = events.find((e) => String(e.id) === String(selectedEventId));
+
+            const stateHtml = already ? `
+                <div class="mt-3 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-400">
+                    <span>✅</span>
+                    <span>Attended ${fmtDateTime(row.attended_at)}${row.attended_by ? ' · by ' + row.attended_by : ''}</span>
+                </div>
+            ` : '';
 
             Swal.fire({
-                title: row.name,
+                title: false,
                 html: `
-                    <div style="text-align:left;font-size:13px;">
-                        <p><strong>Doc ID:</strong> ${row.docid}</p>
-                        <p><strong>Company:</strong> ${row.cpny_name ?? '-'}</p>
-                        <p><strong>Department:</strong> ${row.department_name ?? '-'}</p>
+                    <div class="text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-12 w-12 flex-none items-center justify-center rounded-full bg-gray-100 text-base font-bold text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                                ${initials(row.name)}
+                            </div>
+                            <div class="min-w-0">
+                                <p class="truncate text-lg font-bold text-gray-900 dark:text-white">${row.name}</p>
+                                <span class="inline-block rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[11px] text-gray-500 dark:bg-gray-700 dark:text-gray-400">${row.docid}</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 divide-y divide-gray-100 border-y border-gray-100 dark:divide-gray-700 dark:border-gray-700">
+                            ${infoRow('🎓', 'Training', event?.training_name ?? '-')}
+                            ${infoRow('📶', 'Level', event?.grade_name ?? '-')}
+                            ${infoRow('🏢', 'Company', row.cpny_name ?? '-')}
+                            ${infoRow('👥', 'Department', row.department_name ?? '-')}
+                        </div>
                         ${stateHtml}
                     </div>
                 `,
                 showCancelButton: canAttend,
                 confirmButtonText: canAttend ? 'Attend' : 'Close',
                 cancelButtonText: 'Cancel',
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'rounded-2xl dark:bg-gray-800',
+                    confirmButton: 'rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-700 mx-1',
+                    cancelButton: 'rounded-lg border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700 mx-1',
+                },
             }).then((result) => {
                 if (!canAttend || !result.isConfirmed) return;
 
@@ -378,12 +425,9 @@
             if (row) openAttendModal(row);
         });
 
-        $('#scanInput').on('keydown', function (e) {
-            if (e.key !== 'Enter') return;
-            e.preventDefault();
-
-            const code = $(this).val().trim();
-            $(this).val('');
+        function submitScanCode() {
+            const code = $('#scanInput').val().trim();
+            $('#scanInput').val('');
             if (!code || !selectedEventId) return;
 
             $.ajax({
@@ -401,7 +445,18 @@
                     toast('error', xhr.responseJSON?.message || 'Barcode tidak dikenali');
                 },
             });
+        }
+
+        $('#scanInput').on('keydown', function (e) {
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+            submitScanCode();
         });
+
+        // Fallback for scanners/paste flows that don't fire a real Enter
+        // keystroke — the popup only opens on submit, so without this the
+        // scanned code just sits in the box with no visible next step.
+        $('#scanSubmitBtn').on('click', submitScanCode);
 
         let afterEventRows = [];
         let afterEventCanUndo = false;

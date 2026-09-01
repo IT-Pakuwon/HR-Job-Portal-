@@ -116,7 +116,7 @@ class TrainingSessionController extends Controller
                     'training_poster' => $header->training_poster,
                     'training_poster_url' => $header->training_poster ? Storage::disk('public')->url($header->training_poster) : null,
                     'is_ext_speaker' => (bool) $header->is_ext_speaker,
-                    'schedule_date' => $detail->schedule_date,
+                    'schedule_date' => $detail->schedule_date?->format('Y-m-d'),
                     'start_time' => $detail->schedule_start_time,
                     'end_time' => $detail->schedule_end_time,
                     'mode' => $detail->training_mode,
@@ -469,6 +469,7 @@ class TrainingSessionController extends Controller
             'schedule_date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
+            'registration_deadline' => 'nullable|date|after_or_equal:today',
             'reason' => 'required|string|max:500',
         ]);
 
@@ -486,6 +487,13 @@ class TrainingSessionController extends Controller
                 'schedule_date' => $newDate,
                 'schedule_start_time' => $request->start_time,
                 'schedule_end_time' => $request->end_time,
+                'registration_deadline' => $request->filled('registration_deadline')
+                    ? $request->registration_deadline
+                    : $detail->registration_deadline,
+                // Moving a CLOSED schedule's date only makes sense if the
+                // intent is to accept registrations again — the validated
+                // schedule_date is already required to be >= today.
+                'status' => $currentLabel === 'CLOSED' ? self::STATUS_CODE_MAP['PUBLISHED'] : $detail->status,
                 'updated_by' => $updatedBy,
             ]);
 

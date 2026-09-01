@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\TrTrainingScheduleDetail;
+use App\Models\MsLndTrainingSchedule;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
@@ -13,8 +13,7 @@ class CloseTrainingRegistrations extends Command
 
     public function handle(): void
     {
-        $due = TrTrainingScheduleDetail::on('pgsql5')
-            ->where('status', 'PUBLISHED')
+        $due = MsLndTrainingSchedule::where('status', 'P')
             ->whereNotNull('registration_deadline')
             ->where('registration_deadline', '<=', now()->toDateString())
             ->get();
@@ -22,14 +21,14 @@ class CloseTrainingRegistrations extends Command
         foreach ($due as $detail) {
             try {
                 $detail->update([
-                    'status' => 'CLOSED',
+                    'status' => 'C',
                     'updated_by' => 'system',
                 ]);
 
-                Log::info('Training schedule auto-closed', ['docid' => $detail->docid, 'schedule_date' => $detail->schedule_date]);
+                Log::info('Training schedule auto-closed', ['schedule_id' => $detail->schedule_id, 'schedule_date' => $detail->schedule_date]);
             } catch (\Throwable $e) {
                 Log::error('Training schedule auto-close failed', [
-                    'docid' => $detail->docid,
+                    'schedule_id' => $detail->schedule_id,
                     'message' => $e->getMessage(),
                 ]);
             }

@@ -219,6 +219,13 @@
                     </div>
                 </div>
                 <div>
+                    <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Registration Deadline</label>
+                    <input type="date" id="reschedule_deadline"
+                        class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-900 dark:text-white"
+                        min="{{ now()->format('Y-m-d') }}">
+                    <p class="mt-1 text-xs text-gray-400">Leave as-is to keep the current deadline.</p>
+                </div>
+                <div>
                     <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Reason</label>
                     <textarea id="reschedule_reason" rows="2"
                         class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-900 dark:text-white"
@@ -938,6 +945,7 @@
                 $('#reschedule_date').val(s.schedule_date);
                 $('#reschedule_start_time').val(s.start_time ? s.start_time.slice(0, 5) : '');
                 $('#reschedule_end_time').val(s.end_time ? s.end_time.slice(0, 5) : '');
+                $('#reschedule_deadline').val(s.registration_deadline || '');
                 $('#reschedule_reason').val('');
                 $('#rescheduleModal').removeClass('hidden');
             });
@@ -963,6 +971,7 @@
                         schedule_date: $('#reschedule_date').val(),
                         start_time: $('#reschedule_start_time').val(),
                         end_time: $('#reschedule_end_time').val(),
+                        registration_deadline: $('#reschedule_deadline').val(),
                         reason: $('#reschedule_reason').val(),
                     },
                     success: function(res) {

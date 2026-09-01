@@ -213,6 +213,7 @@ class TrainingWaitlistNotifier
             'new_date' => $newDate,
             'reason' => $reason,
             'url' => $url,
+            'systemLabel' => 'Learning & Development System',
         ], function ($m) use ($to, $registration) {
             $m->to($to)
                 ->subject($registration->training_regist_id . ' - Jadwal Training Diubah')

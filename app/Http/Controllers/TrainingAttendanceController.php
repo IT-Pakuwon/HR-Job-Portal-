@@ -65,7 +65,7 @@ class TrainingAttendanceController extends Controller
                 'docid' => $d->training_detail_id,
                 'training_name' => $training->training_name ?? null,
                 'grade_name' => $gradeNames[$schedule->job_level ?? null] ?? ($schedule->job_level ?? null),
-                'schedule_date' => $d->schedule_date,
+                'schedule_date' => $d->schedule_date?->format('Y-m-d'),
                 'start_time' => $d->schedule_start_time,
                 'end_time' => $d->schedule_end_time,
                 'mode' => $d->training_mode,
