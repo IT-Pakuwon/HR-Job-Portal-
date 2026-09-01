@@ -976,6 +976,17 @@ class JobapplicantController extends Controller
             return response()->json(['error' => 'Apply record not found'], 404);
         }
 
+        $newJobposting = DB::connection('mysql3')
+            ->table('hr_trx_jobposting')
+            ->where('docid', $request->new_jobid)
+            ->first();
+
+        if (!$newJobposting) {
+            return response()->json(['error' => 'Job posting not found'], 404);
+        }
+
+        $groupCompanyId = strtoupper(trim((string) $newJobposting->group_cpny_id));
+
         $user = auth()->user()->username ?? 'system';
 
         DB::connection('mysql3')->beginTransaction();
@@ -1004,6 +1015,8 @@ class JobapplicantController extends Controller
             // Insert apply baru
             DB::connection('mysql3')->table('hr_trx_job_apply')->insert([
                 'docid' => $apply->docid,
+                'cpnyid' => $newJobposting->cpnyid,
+                'group_cpny_id' => $groupCompanyId,
                 'jobid' => $request->new_jobid,
                 'applicant_id' => $apply->applicant_id,
                 'apply_date' => now(),
@@ -1020,12 +1033,15 @@ class JobapplicantController extends Controller
             // Insert steps baru
             $steps = DB::connection('mysql3')
                 ->table('hr_ms_job_step')
+                ->where('group_cpny_id', $groupCompanyId)
                 ->orderBy('step_order', 'ASC')
                 ->get();
 
             foreach ($steps as $step) {
                 DB::connection('mysql3')->table('hr_trx_job_apply_step')->insert([
                     'docid' => $apply->docid,
+                    'cpnyid' => $newJobposting->cpnyid,
+                    'group_cpny_id' => $groupCompanyId,
                     'jobid' => $request->new_jobid,
                     'applicant_id' => $apply->applicant_id,
                     'step_id' => $step->step_id,

@@ -172,10 +172,14 @@ class CareerController extends Controller
         $applicant_additional = ApplicantAdditional::where('applicant_id', $career->applicant_id)->first();
         $applicant_organization = ApplicantOrganization::where('applicant_id', $career->applicant_id)->get();
 
-        $jobapplystep = JobApplyStep::leftjoin('hr_ms_job_step', 'hr_trx_job_apply_step.step_id', '=', 'hr_ms_job_step.step_id')
+        $jobapplystep = JobApplyStep::leftjoin('hr_ms_job_step', function ($join) {
+                $join->on('hr_trx_job_apply_step.step_id', '=', 'hr_ms_job_step.step_id')
+                    ->on('hr_trx_job_apply_step.group_cpny_id', '=', 'hr_ms_job_step.group_cpny_id');
+            })
             ->select('hr_trx_job_apply_step.*', 'hr_ms_job_step.step_descr')
             ->where('hr_trx_job_apply_step.docid', $career->docid)
             ->where('hr_trx_job_apply_step.jobid', $career->docidposting)
+            ->when(!empty($career->group_cpny_id), fn ($q) => $q->where('hr_trx_job_apply_step.group_cpny_id', $career->group_cpny_id))
             ->when($career->status !== 'T', fn ($q) => $q->where('hr_trx_job_apply_step.status', '<>', 'X'))
             ->orderBy('hr_trx_job_apply_step.step_order', 'ASC')
             ->get();
@@ -184,7 +188,10 @@ class CareerController extends Controller
         $jobres = JobpostingResponsiblities::where('docid', $career->docidposting)->get();
         $jobqua = JobpostingQualification::where('docid', $career->docidposting)->get();
 
-        $tr_checklist = Trchecklist::leftjoin('hr_ms_doc_checklist', 'hr_trx_doc_checklist.checklist_id', '=', 'hr_ms_doc_checklist.checklist_id')
+        $tr_checklist = Trchecklist::leftjoin('hr_ms_doc_checklist', function ($join) {
+                $join->on('hr_trx_doc_checklist.checklist_id', '=', 'hr_ms_doc_checklist.checklist_id')
+                    ->on('hr_trx_doc_checklist.group_cpny_id', '=', 'hr_ms_doc_checklist.group_cpny_id');
+            })
             ->select('hr_trx_doc_checklist.*', 'hr_ms_doc_checklist.checklist_descr')
             ->where('hr_trx_doc_checklist.jobapply_id', $career->docid)
             ->orderBy('hr_trx_doc_checklist.step_order', 'ASC')
@@ -197,7 +204,10 @@ class CareerController extends Controller
             ->first();
 
         if ($tr_assessment) {
-            $assessmentData = TrAssessmentdetail::leftjoin('hr_ms_interview_assessment', 'hr_trx_interview_assessment_detail.assessment_id', '=', 'hr_ms_interview_assessment.assessment_id')
+            $assessmentData = TrAssessmentdetail::leftjoin('hr_ms_interview_assessment', function ($join) {
+                    $join->on('hr_trx_interview_assessment_detail.assessment_id', '=', 'hr_ms_interview_assessment.assessment_id')
+                        ->on('hr_trx_interview_assessment_detail.group_cpny_id', '=', 'hr_ms_interview_assessment.group_cpny_id');
+                })
                 ->select('hr_trx_interview_assessment_detail.*', 'hr_ms_interview_assessment.assessment_group', 'hr_ms_interview_assessment.assessment_descr')
                 ->where('hr_trx_interview_assessment_detail.docid', $tr_assessment->docid)
                 ->orderBy('hr_ms_interview_assessment.step_order_group', 'ASC')
@@ -212,9 +222,9 @@ class CareerController extends Controller
                     'assessment_group' => $first->assessment_group,
                     'assessment_type' => $first->assessment_type,
                     'selected_score' => $group
-                        ->filter(fn ($item) => $item->assessment_score_value > 0)
+                        ->filter(fn ($item) => $item->assessment_score_value !== null)
                         ->pluck('assessment_score_value')
-                        ->first() ?? 0,
+                        ->first(),
                     'options' => $group->map(function ($item) {
                         return [
                             'assessment_score' => $item->assessment_score,
@@ -232,7 +242,10 @@ class CareerController extends Controller
             ->first();
 
         if ($tr_assessment_user) {
-            $assessmentData_user = TrAssessmentdetail::leftjoin('hr_ms_interview_assessment', 'hr_trx_interview_assessment_detail.assessment_id', '=', 'hr_ms_interview_assessment.assessment_id')
+            $assessmentData_user = TrAssessmentdetail::leftjoin('hr_ms_interview_assessment', function ($join) {
+                    $join->on('hr_trx_interview_assessment_detail.assessment_id', '=', 'hr_ms_interview_assessment.assessment_id')
+                        ->on('hr_trx_interview_assessment_detail.group_cpny_id', '=', 'hr_ms_interview_assessment.group_cpny_id');
+                })
                 ->select('hr_trx_interview_assessment_detail.*', 'hr_ms_interview_assessment.assessment_group', 'hr_ms_interview_assessment.assessment_descr')
                 ->where('hr_trx_interview_assessment_detail.docid', $tr_assessment_user->docid)
                 ->orderBy('hr_ms_interview_assessment.step_order_group', 'ASC')
@@ -247,9 +260,9 @@ class CareerController extends Controller
                     'assessment_group' => $first->assessment_group,
                     'assessment_type' => $first->assessment_type,
                     'selected_score' => $group
-                        ->filter(fn ($item) => $item->assessment_score_value > 0)
+                        ->filter(fn ($item) => $item->assessment_score_value !== null)
                         ->pluck('assessment_score_value')
-                        ->first() ?? 0,
+                        ->first(),
                     'options' => $group->map(function ($item) {
                         return [
                             'assessment_score' => $item->assessment_score,
@@ -311,7 +324,7 @@ class CareerController extends Controller
         //     ->where('hr_trx_job_apply_step.status','<>','X')
         //     ->orderBy('hr_trx_job_apply_step.step_order', 'ASC')
         //     ->get();
-        $typestep = MJobApplyStep::where('schedule', 1)->get();
+        $typestep = MJobApplyStep::where('schedule', 1)->where('group_cpny_id', $career->group_cpny_id)->get();
         $payrolls = Payrollconfirm::where('jobapply_id', $career->docid)->get();
 
         $sign = SignPayroll::where('docid', $career->docid)->orderby('aprvid', 'ASC')->get();
@@ -432,11 +445,11 @@ class CareerController extends Controller
 
         // Update detail scores
         foreach ($request->scores as $index => $value) {
-            // Reset semua score_value jadi 0 dulu di group ini
+            // Reset semua score_value jadi null (belum dipilih) dulu di group ini
             TrAssessmentdetail::where('docid', $assessment->docid)
                 ->where('step_order_group', $index + 1)
                 ->update([
-                    'assessment_score_value' => 0,
+                    'assessment_score_value' => null,
                     'updated_user' => $user->username,
                     'updated_at' => $now,
                 ]);
@@ -479,11 +492,11 @@ class CareerController extends Controller
 
         // Update detail scores
         foreach ($request->scores as $index => $value) {
-            // Reset semua score_value jadi 0 dulu di group ini
+            // Reset semua score_value jadi null (belum dipilih) dulu di group ini
             TrAssessmentdetail::where('docid', $assessment->docid)
                 ->where('step_order_group', $index + 1)
                 ->update([
-                    'assessment_score_value' => 0,
+                    'assessment_score_value' => null,
                     'updated_user' => $user->username,
                     'updated_at' => $now,
                 ]);
@@ -967,6 +980,7 @@ class CareerController extends Controller
             $docid = $doctype.$tglbln.sprintf('%05d', $urutan);
 
             $ms_checklist = Mschecklist::where('status', 'A')
+                ->where('group_cpny_id', $career->group_cpny_id)
                 ->orderby('step_order', 'ASC')
                 ->get();
 
@@ -974,6 +988,8 @@ class CareerController extends Controller
                 Trchecklist::create([
                     'docid' => $docid,
                     'jobapply_id' => $career->docid,
+                    'cpnyid' => $career->cpnyid,
+                    'group_cpny_id' => $career->group_cpny_id,
                     'jobid' => $career->jobid,
                     'applicant_id' => $career->applicant_id,
                     'checklist_id' => $cek->checklist_id,
@@ -1021,7 +1037,8 @@ class CareerController extends Controller
                 ], 409);
             }
 
-            $ms_checklist = MsAssessment::orderBy('step_order_group', 'ASC')
+            $ms_checklist = MsAssessment::where('group_cpny_id', $career->group_cpny_id)
+                ->orderBy('step_order_group', 'ASC')
                 ->orderBy('step_order', 'ASC')
                 ->get();
 
@@ -1064,6 +1081,8 @@ class CareerController extends Controller
                     TrAssessmentdetail::create([
                         'docid' => $docid,
                         'jobapply_id' => $career->docid,
+                        'cpnyid' => $career->cpnyid,
+                        'group_cpny_id' => $career->group_cpny_id,
                         'jobid' => $career->jobid,
                         'applicant_id' => $career->applicant_id,
                         'assessment_id' => $cek->assessment_id,
@@ -1071,7 +1090,7 @@ class CareerController extends Controller
                         'step_order' => $cek->step_order,
                         'assessment_type' => $cek->assessment_type,
                         'assessment_score' => $cek->assessment_score,
-                        'assessment_score_value' => 0,
+                        'assessment_score_value' => null,
                         'created_user' => $user->username,
                         'status' => 'P',
                     ]);
@@ -1081,6 +1100,8 @@ class CareerController extends Controller
                 TrAssessment::create([
                     'docid' => $docid,
                     'jobapply_id' => $career->docid,
+                    'cpnyid' => $career->cpnyid,
+                    'group_cpny_id' => $career->group_cpny_id,
                     'jobid' => $career->jobid,
                     'applicant_id' => $career->applicant_id,
                     'type' => $type,
@@ -1745,7 +1766,8 @@ class CareerController extends Controller
                 ], 409);
             }
 
-            $ms_checklist = MsAssessment::orderBy('step_order_group', 'ASC')
+            $ms_checklist = MsAssessment::where('group_cpny_id', $career->group_cpny_id)
+                ->orderBy('step_order_group', 'ASC')
                 ->orderBy('step_order', 'ASC')
                 ->get();
 
@@ -1788,6 +1810,8 @@ class CareerController extends Controller
                     TrAssessmentdetail::create([
                         'docid' => $docid,
                         'jobapply_id' => $career->docid,
+                        'cpnyid' => $career->cpnyid,
+                        'group_cpny_id' => $career->group_cpny_id,
                         'jobid' => $career->jobid,
                         'applicant_id' => $career->applicant_id,
                         'assessment_id' => $cek->assessment_id,
@@ -1805,6 +1829,8 @@ class CareerController extends Controller
                 TrAssessment::create([
                     'docid' => $docid,
                     'jobapply_id' => $career->docid,
+                    'cpnyid' => $career->cpnyid,
+                    'group_cpny_id' => $career->group_cpny_id,
                     'jobid' => $career->jobid,
                     'applicant_id' => $career->applicant_id,
                     'type' => $type,

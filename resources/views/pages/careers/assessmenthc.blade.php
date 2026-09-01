@@ -49,7 +49,7 @@
         </thead>
         <tbody class="divide-y divide-gray-100 dark:divide-gray-700/40">
             @foreach ($assessmentGroups as $groupIndex => $group)
-                @php $selectedScore = $group['selected_score'] ?? 0; @endphp
+                @php $selectedScore = $group['selected_score']; @endphp
                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/20">
                     <td class="py-3 pl-5 pr-3 align-middle text-xs font-semibold text-gray-800 dark:text-gray-100">
                         {{ $group['assessment_group'] }}
@@ -59,13 +59,13 @@
                             <label class="flex cursor-pointer flex-col items-center gap-1 text-[10px] leading-tight text-gray-500 dark:text-gray-400">
                                 <span>{{ $option['assessment_descr'] }}</span>
                                 <input type="radio" name="scores[{{ $groupIndex }}]" value="{{ $score }}"
-                                    {{ $selectedScore == $score ? 'checked' : '' }}
+                                    {{ $selectedScore !== null && $selectedScore == $score ? 'checked' : '' }}
                                     onclick="updateScoreHC({{ $groupIndex }}, {{ $score }})">
                             </label>
                         </td>
                     @endforeach
                     <td id="scoreCellHC-{{ $groupIndex }}" class="py-3 pl-2 pr-5 text-center align-middle text-sm font-bold text-gray-800 dark:text-gray-100">
-                        {{ $selectedScore }}
+                        {{ $selectedScore ?? '-' }}
                     </td>
                 </tr>
             @endforeach

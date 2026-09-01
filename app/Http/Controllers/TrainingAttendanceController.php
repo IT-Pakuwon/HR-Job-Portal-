@@ -189,6 +189,8 @@ class TrainingAttendanceController extends Controller
                 ->first();
 
             if (!$registration) {
+                \Illuminate\Support\Facades\Log::warning('Unrecognized attendance scan', ['raw_code' => $request->code, 'resolved_code' => $code]);
+
                 return response()->json(['success' => false, 'message' => 'Barcode tidak dikenali'], 404);
             }
 
