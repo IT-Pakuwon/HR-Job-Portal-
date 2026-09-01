@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Agenda;
 use App\Models\Applicant;
+use App\Models\ApplicantAdditional;
 use App\Models\ApplicantCourse;
 use App\Models\ApplicantDriverLicense;
 use App\Models\ApplicantEducation;
 use App\Models\ApplicantFamily;
 use App\Models\ApplicantLanguage;
 use App\Models\ApplicantMarital;
+use App\Models\ApplicantOrganization;
 use App\Models\ApplicantReference;
 use App\Models\ApplicantSkill;
 use App\Models\ApplicantSW;
@@ -167,6 +169,8 @@ class CareerController extends Controller
         $applicant_course = ApplicantCourse::where('applicant_id', $career->applicant_id)->get();
         $applicant_sw = ApplicantSW::where('applicant_id', $career->applicant_id)->get();
         $applicant_skill = ApplicantSkill::where('applicant_id', $career->applicant_id)->get();
+        $applicant_additional = ApplicantAdditional::where('applicant_id', $career->applicant_id)->first();
+        $applicant_organization = ApplicantOrganization::where('applicant_id', $career->applicant_id)->get();
 
         $jobapplystep = JobApplyStep::leftjoin('hr_ms_job_step', 'hr_trx_job_apply_step.step_id', '=', 'hr_ms_job_step.step_id')
             ->select('hr_trx_job_apply_step.*', 'hr_ms_job_step.step_descr')
@@ -400,7 +404,7 @@ class CareerController extends Controller
             'assessmentGroups', 'tr_assessment', 'tr_assessment_user', 'assessmentGroupsUser', 'agenda', 'userlist',
             'typestep', 'payrolls', 'onboarding', 'sign', 'canAccessPayroll', 'canAccessAssessment', 'canAccessSchedule', 'companyaddress',
             'canAccessChecklist', 'canAccessInterviewUser', 'canAccessInterviewHC', 'canAccessPayroll', 'canAccessJoin',
-            'remapped_from', 'remapped_to', 'isSby'
+            'remapped_from', 'remapped_to', 'isSby', 'applicant_additional', 'applicant_organization'
         ));
     }
 
