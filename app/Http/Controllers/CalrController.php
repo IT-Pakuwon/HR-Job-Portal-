@@ -74,6 +74,7 @@ class CalrController extends Controller
 
     public function storeCalr(Request $request)
     {
+        // dd($request->all());
         $request->validate([
             'rfca_eid'      => 'required|string',
             'rfca_amount'   => 'required|numeric|min:0',
