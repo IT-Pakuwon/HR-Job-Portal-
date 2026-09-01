@@ -966,8 +966,7 @@ class CalrNonPurchController extends Controller
             'rfpnonpurchaseid' => ['required', 'string'],
             'description' => ['required', 'array', 'min:1'],
             'description.*' => ['required', 'string'],
-            'price' => ['required', 'array', 'min:1'],
-            'price.*' => ['required'],
+            'price' => ['nullable', 'array'],
             'taxcodeid' => ['required', 'array', 'min:1'],
             'taxcodeid.*' => ['required', 'string'],
         ]);
@@ -1034,13 +1033,13 @@ class CalrNonPurchController extends Controller
 
             foreach ($descs as $i => $desc) {
                 $desc = trim((string) ($desc ?? ''));
-                $priceRaw = $prices[$i] ?? null;
+                $priceRaw = $prices[$i] ?? 0;
 
-                if ($desc === '' || $priceRaw === null || $priceRaw === '') {
+                if ($desc === '') {
                     continue;
                 }
 
-                $price = $toFloat($priceRaw);
+                $price = $toFloat($priceRaw === '' ? 0 : $priceRaw);
                 $taxCodeId = trim((string) ($taxCodeIds[$i] ?? ''));
 
                 if ($taxCodeId === '') {
@@ -1117,13 +1116,13 @@ class CalrNonPurchController extends Controller
 
             foreach ($descs as $i => $desc) {
                 $desc = trim((string) ($desc ?? ''));
-                $priceRaw = $prices[$i] ?? null;
+                $priceRaw = $prices[$i] ?? 0;
 
-                if ($desc === '' || $priceRaw === null || $priceRaw === '') {
+                if ($desc === '') {
                     continue;
                 }
 
-                $price = $toFloat($priceRaw);
+                $price = $toFloat($priceRaw === '' ? 0 : $priceRaw);
                 $taxCodeId = trim((string) ($taxCodeIds[$i] ?? ''));
                 $tax = $taxMap->get($taxCodeId);
                 $rate = (float) ($tax->taxrate ?? 0);

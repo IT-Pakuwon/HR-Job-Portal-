@@ -386,10 +386,12 @@
                         </select>
                     </div>
                     @endif
+                    @if($isAdmin)
                     <a href="{{ route('vpl.msproduct.setupwarehouse') }}" target="_blank"
                         class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]">
                         <i class="fa-solid fa-sliders text-xs"></i> Setup
                     </a>
+                    @endif
                     <button id="btnNewStock"
                         class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-700 dark:bg-blue-600 dark:hover:bg-blue-500">
                         <i class="fa-solid fa-plus text-xs"></i> New Stock
