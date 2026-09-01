@@ -1,76 +1,99 @@
-<!DOCTYPE html>
-<html>
+@extends('emails.layouts.master')
 
-<head>
-    <meta charset="UTF-8">
-    <title>Jadwal Training Diubah</title>
-</head>
+@section('title', 'Jadwal Training Diubah')
 
-<body style="margin:0; padding:0; font-family:Arial, Helvetica, sans-serif; background-color:#f4f6f9;">
+@section('icon', '🔄')
 
-    <table width="100%" cellspacing="0" cellpadding="0" style="background:#f4f6f9;">
-        <tr>
-            <td align="left" style="margin: 0; padding: 0">
-                <table width="100%" cellspacing="0" cellpadding="0"
-                    style="
-                            background: #ffffff;
-                            color: #111827;
-                            font-family: Arial, Helvetica, sans-serif;
-                            line-height: 1.6;
-                            border-collapse: collapse;
-        ">
-                    <tr>
-                        <td style="background:#f59e0b; padding:20px; text-align:center; color:#ffffff;">
-                            <h2 style="margin:0; font-size:22px;">{{ $docid }} — Jadwal Diubah</h2>
-                        </td>
-                    </tr>
+@section('header', 'Jadwal Training Diubah')
 
-                    <tr>
-                        <td style="padding:30px; color:#333333; font-size:14px; line-height:1.6;">
-                            <p style="margin-top:0;">Halo <strong>{{ $name }}</strong>,</p>
-                            <p>Jadwal training <strong>{{ $training_name }}</strong> yang Anda ikuti telah diubah.</p>
+@section('subtitle')
+Seat/waiting list Anda tetap dipertahankan pada tanggal baru.
+@endsection
 
-                            <table cellspacing="0" cellpadding="6" style="width:100%; margin:20px 0;">
-                                <tr>
-                                    <td style="background:#f9fafb; font-weight:bold; width:30%;">Training</td>
-                                    <td>{{ $training_name }}</td>
-                                </tr>
-                                @if ($old_date)
-                                <tr>
-                                    <td style="background:#f9fafb; font-weight:bold;">Tanggal Lama</td>
-                                    <td style="text-decoration:line-through; color:#888888;">{{ \Carbon\Carbon::parse($old_date)->format('d M Y') }}</td>
-                                </tr>
-                                @endif
-                                <tr>
-                                    <td style="background:#f9fafb; font-weight:bold;">Tanggal Baru</td>
-                                    <td><strong>{{ \Carbon\Carbon::parse($new_date)->format('d M Y') }}</strong></td>
-                                </tr>
-                                <tr>
-                                    <td style="background:#f9fafb; font-weight:bold;">Alasan</td>
-                                    <td>{{ $reason }}</td>
-                                </tr>
-                            </table>
+@section('content')
 
-                            <p>Seat/waiting list Anda tetap dipertahankan pada tanggal baru. Jika Anda tidak dapat hadir pada tanggal baru ini, silakan batalkan registrasi Anda melalui tautan di bawah.</p>
+{{-- Registration ID highlight box --}}
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;">
+    <tr>
+        <td style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:12px;padding:14px 20px;">
+            <p style="margin:0 0 2px;font-size:10px;font-weight:700;color:#b45309;letter-spacing:0.1em;text-transform:uppercase;">Registration ID</p>
+            <p style="margin:0;font-size:20px;font-weight:800;color:#92400e;letter-spacing:0.04em;font-family:Courier New,Courier,monospace;">{{ $docid }}</p>
+        </td>
+    </tr>
+</table>
 
-                            <p style="text-align:center; margin:30px 0;">
-                                <a href="{{ $url }}" target="_blank"
-                                    style="background:#111827; color:#ffffff; text-decoration:none; padding:12px 24px; border-radius:6px; font-weight:bold; display:inline-block;">
-                                    Lihat Registrasi Saya →
-                                </a>
-                            </p>
+<p style="margin:0 0 24px;font-size:14px;color:#334155;line-height:1.6;">
+    Halo <strong>{{ $name }}</strong>, jadwal training <strong>{{ $training_name }}</strong> yang Anda ikuti telah diubah.
+</p>
 
-                            <p style="margin-top:30px; font-size:12px; color:#888888; text-align:center;">
-                                Email ini dikirim secara otomatis oleh sistem Pakuwon.<br>
-                                Jangan membalas email ini.
-                            </p>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
+{{-- Detail rows --}}
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
 
-</body>
+    <tr>
+        <td width="130" style="padding:11px 16px 11px 0;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
+            Training
+        </td>
+        <td style="padding:11px 0;font-size:13px;font-weight:700;color:#1e293b;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
+            {{ $training_name }}
+        </td>
+    </tr>
 
-</html>
+    @if ($old_date)
+    <tr>
+        <td style="padding:11px 16px 11px 0;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
+            Tanggal Lama
+        </td>
+        <td style="padding:11px 0;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
+            <span style="display:inline-block;padding:3px 14px;border-radius:999px;background:#fee2e2;border:1.5px solid #fca5a5;color:#991b1b;font-size:12px;font-weight:700;letter-spacing:0.02em;text-decoration:line-through;">
+                {{ \Carbon\Carbon::parse($old_date)->format('d M Y') }}
+            </span>
+        </td>
+    </tr>
+    @endif
+
+    <tr>
+        <td style="padding:11px 16px 11px 0;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
+            Tanggal Baru
+        </td>
+        <td style="padding:11px 0;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
+            <span style="display:inline-block;padding:3px 14px;border-radius:999px;background:#dcfce7;border:1.5px solid #86efac;color:#166534;font-size:12px;font-weight:800;letter-spacing:0.02em;">
+                {{ \Carbon\Carbon::parse($new_date)->format('d M Y') }}
+            </span>
+        </td>
+    </tr>
+
+    <tr>
+        <td style="padding:13px 16px 13px 0;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;vertical-align:top;">
+            Alasan
+        </td>
+        <td style="padding:13px 0;font-size:13px;color:#475569;line-height:1.6;vertical-align:top;">
+            {{ $reason }}
+        </td>
+    </tr>
+
+</table>
+
+{{-- Cancel notice --}}
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;">
+    <tr>
+        <td style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:14px 18px;">
+            <p style="margin:0;font-size:12.5px;color:#92400e;line-height:1.6;">
+                Jika Anda tidak dapat hadir pada tanggal baru, silakan batalkan registrasi Anda melalui tombol di bawah agar seat dapat dialokasikan ke peserta lain.
+            </p>
+        </td>
+    </tr>
+</table>
+
+{{-- CTA button --}}
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px;">
+    <tr>
+        <td align="center">
+            <a href="{{ $url }}" target="_blank"
+                style="display:inline-block;background:#1d4ed8;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:13px;font-weight:700;letter-spacing:0.02em;">
+                Lihat Registrasi Saya &rarr;
+            </a>
+        </td>
+    </tr>
+</table>
+
+@endsection

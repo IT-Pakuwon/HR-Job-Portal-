@@ -776,6 +776,7 @@
                     <div id="eventGanttRows" class="space-y-1.5">
                         <p class="py-6 text-center text-xs text-slate-400">Loading…</p>
                     </div>
+                    <div id="eventGanttPagination"></div>
                 </div>
             </x-card-chart.card-shell>
 
