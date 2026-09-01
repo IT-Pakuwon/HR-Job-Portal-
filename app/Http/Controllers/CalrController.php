@@ -408,8 +408,9 @@ class CalrController extends Controller
         // Convenience: encode ID untuk email/dll
         $eid_calrid = Hashids::encode((string) $calr->id);
 
-        $loginUsername = $user->username ?? $user->name ?? null;
-        $canUpload     = $calr->created_by === $loginUsername;
+        $loginUsername = trim((string) ($user->username ?? $user->name ?? ''));
+        $canUpload     = $loginUsername !== ''
+            && strcasecmp(trim((string) $calr->created_by), $loginUsername) === 0;
 
         $isApprover = TrApproval::where('refnbr', $calr->calrid)
             ->where('aprv_doctype', 'CA')
@@ -438,6 +439,49 @@ class CalrController extends Controller
             'canUpload'   => $canUpload,
             'isApprover'  => $isApprover,
         ]);
+    }
+
+    public function uploadCalrAttachments(Request $request, string $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $calr = TrCalr::findOrFail($id);
+        $user = $request->user();
+        $username = trim((string) ($user->username ?? $user->name ?? ''));
+
+        if ($username === '' || strcasecmp(trim((string) $calr->created_by), $username) !== 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only the CALR creator can upload attachments.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'attachments'   => 'required|array|min:1|max:10',
+            'attachments.*' => 'required|file|max:10240',
+        ]);
+
+        try {
+            $uploader = app(TrAttachmentController::class);
+            $uploader->uploadInternal([
+                'refnbr'       => $calr->calrid,
+                'doctype'      => 'CA',
+                'cpny_id'      => $calr->cpny_id,
+                'department_id'=> $calr->department_id,
+                'base_folder'  => 'att-purchasing-app/ca',
+                'created_by'   => $username,
+            ], $validated['attachments']);
+
+            return $uploader->listAttachments($request, 'CA', $calr->calrid);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Upload attachment failed.',
+            ], 500);
+        }
     }
 
 

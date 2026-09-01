@@ -1201,6 +1201,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/calrlist', [CalrListController::class, 'index'])->name('calrlist');
         Route::get('/calrlist/json', [CalrListController::class, 'json'])->name('calrlist.json');
         Route::get('/showcalr/{hash}', [CalrController::class, 'showCalr']);
+        Route::post('/showcalr/{hash}/attachments', [CalrController::class, 'uploadCalrAttachments'])
+            ->name('calr.attachments.upload');
         // PDF (internal & vendor)
         Route::get('/pdf_calr/{hash}', [CalrController::class, 'printCalr'])->name('calrs.print');
         Route::get('/pdf_calr_vendor/{hash}', [CalrController::class, 'printCalrVendor'])->name('calrs.printvendor');
