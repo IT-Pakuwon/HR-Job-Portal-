@@ -195,7 +195,7 @@
                 <strong>7. Pph Pasal 21</strong><br>
                 Jika terdapat imbalance (kurang / lebih bayar) pada perhitungan Pph 21 (SPT Tahunan) yang terjadi
                 dikarenakan karyawan bekerja di lebih dari satu tempat atau pindah kerja dalam periode satu tahun
-                (Diluar Pakuwon Group Jakarta) menjadi tanggung jawab karyawan masing-masing.
+                (Diluar Pakuwon Group) menjadi tanggung jawab karyawan masing-masing.
             </td>
         </tr>
         <tr>

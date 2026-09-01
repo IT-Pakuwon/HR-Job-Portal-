@@ -1,31 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Your Employment Start Schedule</title>
-</head>
-<body style="font-family: Arial, Helvetica, sans-serif; color:#111; line-height:1.6;">
-  <p>Dear  {{ $full_name }} ,</p>
+@extends('emails.layouts.career')
 
-  <p>We are pleased to share your employment schedule details:</p>
+@section('title', 'Employment Start Schedule')
+@section('preheader', 'Your official start date and onboarding details.')
+@section('icon', '🎉')
+@section('header', 'Welcome to the Team')
+@section('subtitle', 'Your employment start schedule')
 
-  <ul>    
-    <li><strong>Official Start Date:</strong> {{ $work_start_date }}</li>
-  </ul>
+@section('content')
+    <p style="margin:0 0 12px;">Dear {{ $full_name }},</p>
 
-  <p>
-    Please ensure you are available on the dates above. On your first day, kindly bring a valid ID and any onboarding
-    documents requested by HR. If you have questions or need to propose an adjustment, feel free to reply to this email.
-  </p>
+    <p style="margin:0 0 4px;">We're pleased to share your employment schedule details:</p>
 
-  <p>We look forward to welcoming you on your first day.</p>
+    @include('emails.partials.detail-table', ['rows' => [
+        ['label' => 'Official Start Date', 'value' => $work_start_date],
+    ]])
 
-   <p>Warm Regards,</p>
-    <p><strong>Talent Acquisition Pakuwon Group Jakarta</strong></p>
+    <p style="margin:0 0 12px;">Please ensure you're available on the date above. On your first day, kindly bring a valid ID and any onboarding documents requested by HR. If you have questions or need to propose an adjustment, feel free to reply to this email.</p>
 
-  <hr style="border:none; border-top:1px solid #e5e7eb; margin:20px 0;">
-  <small style="color:#6b7280;">
-    This is an automated message from Pakuwon System. If you believe you received this in error, please contact HR.
-  </small>
-</body>
-</html>
+    <p style="margin:0 0 4px;">We look forward to welcoming you on your first day.</p>
+
+    <p style="margin:22px 0 0;">Warm regards,<br><strong>Talent Acquisition Pakuwon Group</strong></p>
+@endsection

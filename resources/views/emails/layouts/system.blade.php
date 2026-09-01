@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Pakuwon Career')</title>
+    <title>@yield('title', 'Pakuwon System')</title>
 </head>
 <body style="margin:0;padding:0;background:#eef1f6;font-family:Arial,Helvetica,sans-serif;color:#1e293b;">
 
@@ -20,12 +20,12 @@
 
                     {{-- Header --}}
                     <tr>
-                        <td style="background-color:#4338ca;background:linear-gradient(135deg,#312e81 0%,#4338ca 55%,#6366f1 100%);border-radius:14px 14px 0 0;padding:30px 36px 26px;">
+                        <td style="background-color:#334155;background:linear-gradient(135deg,#1e293b 0%,#334155 55%,#475569 100%);border-radius:14px 14px 0 0;padding:30px 36px 26px;">
                             <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                                 <tr>
                                     <td>
-                                        <p style="margin:0 0 14px;display:inline-block;background:rgba(255,255,255,0.15);border-radius:999px;padding:3px 12px;font-size:10px;font-weight:700;color:#c7d2fe;letter-spacing:0.12em;text-transform:uppercase;">
-                                            {{ $systemLabel ?? 'Pakuwon Career' }}
+                                        <p style="margin:0 0 14px;display:inline-block;background:rgba(255,255,255,0.15);border-radius:999px;padding:3px 12px;font-size:10px;font-weight:700;color:#cbd5e1;letter-spacing:0.12em;text-transform:uppercase;">
+                                            {{ $systemLabel ?? 'Pakuwon System' }}
                                         </p>
                                     </td>
                                 </tr>
@@ -34,14 +34,14 @@
                                         <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                                             <tr>
                                                 <td style="background:rgba(255,255,255,0.18);border-radius:10px;width:44px;height:44px;text-align:center;vertical-align:middle;font-size:20px;">
-                                                    @yield('icon', '📩')
+                                                    @yield('icon', '🔔')
                                                 </td>
                                                 <td width="14"></td>
                                                 <td valign="middle">
                                                     <h1 style="margin:0 0 3px;font-size:21px;font-weight:800;color:#ffffff;line-height:1.25;letter-spacing:-0.01em;">
                                                         @yield('header')
                                                     </h1>
-                                                    <p style="margin:0;font-size:12.5px;color:#c7d2fe;line-height:1.5;">
+                                                    <p style="margin:0;font-size:12.5px;color:#cbd5e1;line-height:1.5;">
                                                         @yield('subtitle')
                                                     </p>
                                                 </td>
@@ -67,12 +67,12 @@
                                 <tr>
                                     <td>
                                         <p style="margin:0;font-size:11px;color:#94a3b8;line-height:1.7;">
-                                            This is an automated email from <strong style="color:#64748b;">Talent Acquisition, {{ $company ?? 'Pakuwon Group' }}</strong>.<br>
+                                            This is an automated email from <strong style="color:#64748b;">{{ $systemLabel ?? 'Pakuwon System' }}</strong>.<br>
                                             Please do not reply directly to this email.
                                         </p>
                                     </td>
                                     <td align="right" valign="middle">
-                                        <p style="margin:0;font-size:11px;font-weight:700;color:#cbd5e1;">Pakuwon Career</p>
+                                        <p style="margin:0;font-size:11px;font-weight:700;color:#cbd5e1;">Pakuwon System</p>
                                     </td>
                                 </tr>
                             </table>

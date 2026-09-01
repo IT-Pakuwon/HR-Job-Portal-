@@ -1,43 +1,18 @@
 @extends('emails.layouts.career')
 
 @section('title', 'Complete Your Application')
-
+@section('preheader', 'Please fill out your application form to continue.')
 @section('icon', '📝')
-
 @section('header', 'Complete Your Application')
-
-@section('subtitle')
-One more step to join the recruitment process at Pakuwon Career.
-@endsection
+@section('subtitle', 'One more step to join Pakuwon Group')
 
 @section('content')
+    <p style="margin:0 0 12px;">Dear {{ $name }},</p>
 
-<p style="margin:0 0 16px;font-size:14px;color:#334155;line-height:1.7;">
-    Dear <strong>{{ $name ?? 'Candidate' }}</strong>,
-</p>
+    <p style="margin:0 0 12px;">Thank you for your interest in <strong>Pakuwon Group</strong>.</p>
+    <p style="margin:0 0 4px;">To continue in our recruitment process, please fill out your application form using the button below.</p>
 
-<p style="margin:0 0 16px;font-size:13px;color:#475569;line-height:1.75;">
-    Thank you for your interest in joining <strong>Pakuwon Group Jakarta</strong>.
-</p>
+    @include('emails.partials.button', ['url' => $url, 'label' => 'Continue Your Application'])
 
-<p style="margin:0 0 28px;font-size:13px;color:#475569;line-height:1.75;">
-    To continue your recruitment process, please complete your application form using the button below.
-</p>
-
-<table width="100%" cellpadding="0" cellspacing="0" border="0">
-    <tr>
-        <td align="center">
-            <a href="{{ $url }}" target="_blank"
-                style="display:inline-block;background:#4338ca;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:13px;font-weight:700;letter-spacing:0.02em;">
-                Complete Your Application &rarr;
-            </a>
-        </td>
-    </tr>
-</table>
-
-<p style="margin:32px 0 0;font-size:13px;color:#475569;line-height:1.75;">
-    Warm regards,<br>
-    <strong style="color:#1e293b;">Talent Acquisition Pakuwon Group Jakarta</strong>
-</p>
-
+    <p style="margin:22px 0 0;">Warm regards,<br><strong>Talent Acquisition Pakuwon Group</strong></p>
 @endsection

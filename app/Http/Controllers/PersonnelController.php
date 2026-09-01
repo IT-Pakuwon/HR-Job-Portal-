@@ -1103,6 +1103,18 @@ class PersonnelController extends Controller
             ->orderBy('department_name')
             ->get();
 
+        if (!empty($personnel->departementid) && !$departments->contains('department_id', $personnel->departementid)) {
+            $currentDepartment = DepartmentHR::query()
+                ->select('department_id', 'department_name', 'division_id')
+                ->where('group_cpny_id', $groupCompanyId)
+                ->where('department_id', $personnel->departementid)
+                ->first();
+
+            if ($currentDepartment) {
+                $departments->push($currentDepartment);
+            }
+        }
+
         $attachment = TrAttachment::where('refnbr', $personnel->docid)
             ->where('cpny_id', $personnel->cpnyid)
             ->where('status', 'A')
