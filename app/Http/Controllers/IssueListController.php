@@ -94,6 +94,9 @@ class IssueListController extends Controller
             7 => 'status',
         ];
 
+        // Hitung total sebelum filter search diterapkan
+        $recordsTotal = (clone $base)->count();
+
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
                 $q->where('issueid', 'ilike', "%{$search}%")
@@ -103,12 +106,12 @@ class IssueListController extends Controller
                   ->orWhere('cpny_id', 'ilike', "%{$search}%")
                   ->orWhere('created_by', 'ilike', "%{$search}%")
                   ->orWhere('status', 'ilike', "%{$search}%")
+                  ->orWhereRaw("CASE WHEN status='D' THEN 'Revise' WHEN status='P' THEN 'On Progress' WHEN status='C' THEN 'Completed' WHEN status='X' THEN 'Cancel' WHEN status='R' THEN 'Rejected' ELSE status END ILIKE ?", ["%{$search}%"])
                   ->orWhereRaw("TO_CHAR(issuedate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
             });
         }
 
-        // Hitung total dan filtered
-        $recordsTotal    = (clone $base)->count();
+        // Hitung filtered setelah search diterapkan
         $recordsFiltered = (clone $base)->count();
 
         // Ordering

@@ -341,17 +341,6 @@ class SpbJobsController extends Controller
                     6 => 'tr_spb.created_by',
                 ];
 
-                if ($search !== '') {
-                    $base->where(function ($q) use ($search) {
-                        $q->where('tr_spb.spbid', 'ilike', "%{$search}%")
-                        ->orWhere('sppb.sppbid', 'ilike', "%{$search}%")
-                        ->orWhere('tr_spb.cpny_id', 'ilike', "%{$search}%")
-                        ->orWhere('tr_spb.keperluan', 'ilike', "%{$search}%")
-                        ->orWhere('tr_spb.created_by', 'ilike', "%{$search}%")
-                        ->orWhereRaw("TO_CHAR(tr_spb.spbdate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
-                    });
-                }
-
                 break;
 
             default:
@@ -364,26 +353,58 @@ class SpbJobsController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | SEARCH
+        | TOTAL COUNTS (before search filter)
         |--------------------------------------------------------------------------
         */
 
+        $recordsTotal = (clone $base)->count();
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH
+        |--------------------------------------------------------------------------
+        | 'spbflow' joins tr_spb + tr_sppb, both of which have
+        | spbid/created_by/cpny_id/keperluan, so those columns must stay
+        | table-qualified there to avoid an ambiguous-column SQL error.
+        | 'issue' mode uses TrIssue, which has no 'keperluan' column, so that
+        | field is skipped there.
+        */
+
         if ($search !== '') {
-            $base->where(function ($q) use ($search) {
-                $q->where('spbid', 'ilike', "%$search%")
-                  ->orWhere('created_by', 'ilike', "%$search%")
-                  ->orWhere('cpny_id', 'ilike', "%$search%")
-                  ->orWhere('keperluan', 'ilike', "%$search%");
+            $base->where(function ($q) use ($search, $mode, $scope) {
+                if ($scope === 'spbflow') {
+                    $q->where('tr_spb.spbid', 'ilike', "%$search%")
+                      ->orWhere('sppb.sppbid', 'ilike', "%$search%")
+                      ->orWhere('tr_spb.cpny_id', 'ilike', "%$search%")
+                      ->orWhere('tr_spb.created_by', 'ilike', "%$search%")
+                      ->orWhere('tr_spb.keperluan', 'ilike', "%$search%")
+                      ->orWhereRaw("TO_CHAR(tr_spb.spbdate,'YYYY-MM-DD') ILIKE ?", ["%$search%"]);
+                } elseif ($mode === 'issue') {
+                    $q->where('issueid', 'ilike', "%$search%")
+                      ->orWhere('spbid', 'ilike', "%$search%")
+                      ->orWhere('created_by', 'ilike', "%$search%")
+                      ->orWhere('cpny_id', 'ilike', "%$search%");
+                } elseif ($mode === 'sppb') {
+                    $q->where('sppbid', 'ilike', "%$search%")
+                      ->orWhere('spbid', 'ilike', "%$search%")
+                      ->orWhere('created_by', 'ilike', "%$search%")
+                      ->orWhere('cpny_id', 'ilike', "%$search%")
+                      ->orWhere('keperluan', 'ilike', "%$search%");
+                } else {
+                    $q->where('spbid', 'ilike', "%$search%")
+                      ->orWhere('created_by', 'ilike', "%$search%")
+                      ->orWhere('cpny_id', 'ilike', "%$search%")
+                      ->orWhere('keperluan', 'ilike', "%$search%");
+                }
             });
         }
 
         /*
         |--------------------------------------------------------------------------
-        | TOTAL COUNTS
+        | FILTERED COUNT (after search filter)
         |--------------------------------------------------------------------------
         */
 
-        $recordsTotal = (clone $base)->count();
         $recordsFiltered = (clone $base)->count();
 
         /*
