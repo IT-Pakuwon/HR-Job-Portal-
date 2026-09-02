@@ -1713,6 +1713,84 @@ class PersonnelController extends Controller
         ]);
     }
 
+    public function printPdfPersonnel($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $personnel = Personnel::findOrFail($id);
+
+        $companyName = MsCompany::query()
+            ->where('cpny_id', $personnel->cpnyid)
+            ->where('group_cpny_id', $personnel->group_cpny_id)
+            ->value('cpny_name');
+
+        $departmentName = DepartmentHR::query()
+            ->where('department_id', $personnel->departementid)
+            ->where('group_cpny_id', $personnel->group_cpny_id)
+            ->value('department_name');
+
+        $divisionName = Division::query()
+            ->where('division_id', $personnel->division_id)
+            ->where('group_cpny_id', $personnel->group_cpny_id)
+            ->value('division_name');
+
+        $approval = TrApproval::where('refnbr', $personnel->docid)
+            ->where('aprv_cpnyid', $personnel->cpnyid)
+            ->where('status', '<>', 'X')
+            ->orderBy('created_at')
+            ->orderBy('aprv_leveling')
+            ->get();
+
+        $jobres = JobResponsiblities::query()
+            ->where('docid', $personnel->docid)
+            ->where('cpnyid', $personnel->cpnyid)
+            ->where('group_cpny_id', $personnel->group_cpny_id)
+            ->get();
+
+        $jobqua = JobQualification::query()
+            ->where('docid', $personnel->docid)
+            ->where('cpnyid', $personnel->cpnyid)
+            ->where('group_cpny_id', $personnel->group_cpny_id)
+            ->get();
+
+        $statusDoc = match ($personnel->status) {
+            'D' => 'Revise',
+            'H' => 'Draft',
+            'P' => 'On Progress',
+            'C' => 'Completed',
+            'X' => 'Cancelled',
+            'R' => 'Rejected',
+            default => 'Unknown',
+        };
+
+        $createdByName = ucwords(strtolower((string) ($personnel->created_user ?? '-')));
+        $reqDateFmt = $personnel->date
+            ? Carbon::parse($personnel->date)->format('d M Y')
+            : '-';
+
+        $pdf = \PDF::loadView('pages.personnels.pdf_personnel', [
+            'personnel' => $personnel,
+            'companyName' => $companyName,
+            'departmentName' => $departmentName,
+            'divisionName' => $divisionName,
+            'approval' => $approval,
+            'jobres' => $jobres,
+            'jobqua' => $jobqua,
+            'statusDoc' => $statusDoc,
+            'createdByName' => $createdByName,
+            'reqDateFmt' => $reqDateFmt,
+        ]);
+
+        $pdf->setPaper('A4', 'portrait');
+
+        return $pdf->stream("PRF_{$personnel->docid}.pdf");
+    }
+
     public function fetchComments(Request $request, $refnbr)
     {
         $request->validate([
@@ -2228,7 +2306,7 @@ class PersonnelController extends Controller
             $eduParts = array_filter([
                 $personnel->education ?? null,
                 // $personnel->education_jurusan ?? null,
-                'All Major',
+                'Semua Jurusan',
             ], fn ($v) => filled($v));
 
             if (count($eduParts)) {
@@ -2238,7 +2316,7 @@ class PersonnelController extends Controller
                     'group_cpny_id' => $personnel->group_cpny_id,
                     'refid' => $personnel->docid,
                     'no_job_qualification' => $no++,
-                    'job_qualification_descr' => 'Minimum Education '.implode(' ', $eduParts),
+                    'job_qualification_descr' => 'Minimal Pendidikan '.implode(' ', $eduParts),
                     'created_user' => $user->username,
                     'status' => 'P',
                 ]);
@@ -2251,11 +2329,11 @@ class PersonnelController extends Controller
 
             $desc = null;
             if (filled($start) && filled($role)) {
-                $desc = "Having Experience {$start} years as {$role}";
+                $desc = "Memiliki Pengalaman {$start} tahun sebagai {$role}";
             } elseif (filled($start)) {
-                $desc = "Having Experience {$start} years";
+                $desc = "Memiliki Pengalaman {$start} tahun";
             } elseif (filled($role)) {
-                $desc = "Having Experience as {$role}";
+                $desc = "Memiliki Pengalaman sebagai {$role}";
             }
 
             if ($desc) {

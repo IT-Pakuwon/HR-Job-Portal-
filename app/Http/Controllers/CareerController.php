@@ -20,6 +20,8 @@ use App\Models\Autonbr;
 use App\Models\AutonbrJobportal;
 use App\Models\Career;
 use App\Models\CompanyAddress;
+use App\Models\DepartmentHR;
+use App\Models\Division;
 use App\Models\GroupAccspecific;
 use App\Models\JobApply;
 use App\Models\JobApplyStep;
@@ -35,9 +37,11 @@ use App\Models\MsCompany;
 use App\Models\MsDepartment;
 use App\Models\Msonboarding;
 use App\Models\Payrollconfirm;
+use App\Models\Personnel;
 use App\Models\SignPayroll;
 use App\Models\TrApproval;
 use App\Models\TrAssessment;
+use App\Models\TrAttachment;
 use App\Models\TrAssessmentdetail;
 use App\Models\Trchecklist;
 use App\Models\TrMessage;
@@ -196,6 +200,21 @@ class CareerController extends Controller
             ->where('hr_trx_doc_checklist.jobapply_id', $career->docid)
             ->orderBy('hr_trx_doc_checklist.step_order', 'ASC')
             ->get();
+
+        // PRF checklist item is auto-linked to the PRF document the job posting was raised from,
+        // instead of requiring a manual upload.
+        $prfAttachments = $jobposting && $jobposting->refid
+            ? TrAttachment::where('refnbr', $jobposting->refid)
+                ->where('doctype', 'PRF')
+                ->where('status', 'A')
+                ->orderByDesc('attachment_date')
+                ->get()
+            : collect();
+
+        $prfPersonnel = $jobposting && $jobposting->refid
+            ? Personnel::where('docid', $jobposting->refid)->first()
+            : null;
+        $prfHash = $prfPersonnel ? Hashids::encode($prfPersonnel->id) : null;
 
         // ========== HC ASSESSMENT ==========
         $assessmentGroups = [];
@@ -413,7 +432,7 @@ class CareerController extends Controller
         return view('pages.careers.showcareers', compact(
             'hash', 'career', 'applicant', 'applicant_family', 'applicant_marital', 'applicant_education', 'applicant_working',
             'applicant_reference', 'applicant_language', 'applicant_course', 'applicant_sw', 'applicant_skill', 'jobapplystep',
-            'jobres', 'jobqua', 'jobposting', 'tr_checklist', 'year', 'photo', 'cv', 'coverletter', 'transkip', 'ijazah', 'user', 'datenow',
+            'jobres', 'jobqua', 'jobposting', 'tr_checklist', 'prfAttachments', 'prfPersonnel', 'prfHash', 'year', 'photo', 'cv', 'coverletter', 'transkip', 'ijazah', 'user', 'datenow',
             'assessmentGroups', 'tr_assessment', 'tr_assessment_user', 'assessmentGroupsUser', 'agenda', 'userlist',
             'typestep', 'payrolls', 'onboarding', 'sign', 'canAccessPayroll', 'canAccessAssessment', 'canAccessSchedule', 'companyaddress',
             'canAccessChecklist', 'canAccessInterviewUser', 'canAccessInterviewHC', 'canAccessPayroll', 'canAccessJoin',
@@ -2615,9 +2634,125 @@ class CareerController extends Controller
         $object = $bucket->object($row->checklist_attachfile);
         abort_unless($object->exists(), 404, 'File not found on GCS');
 
-        $url = $object->signedUrl(new \DateTime('+5 minutes'), ['version' => 'v4']);
+        $applicantName = Applicant::where('applicant_id', $row->applicant_id)->value('full_name');
+
+        $checklistDescr = Mschecklist::where('checklist_id', $row->checklist_id)
+            ->where('group_cpny_id', $row->group_cpny_id)
+            ->value('checklist_descr');
+
+        $ext = pathinfo($row->checklist_filename ?: $row->checklist_attachfile, PATHINFO_EXTENSION);
+
+        $sanitize = fn ($value) => trim(preg_replace('/[\/\\\\:*?"<>|]+/', '', (string) $value));
+
+        $saveAsName = trim($sanitize($applicantName ?: 'Applicant').'_'.$sanitize($checklistDescr ?: 'Document'));
+        if ($ext) {
+            $saveAsName .= '.'.$ext;
+        }
+
+        $url = $object->signedUrl(new \DateTime('+5 minutes'), [
+            'version' => 'v4',
+            'saveAsName' => $saveAsName,
+        ]);
 
         return redirect()->away($url);
+    }
+
+    public function viewPrfAttachment($id)
+    {
+        $att = TrAttachment::where('id', $id)->where('doctype', 'PRF')->where('status', 'A')->firstOrFail();
+
+        $objectPath = trim((string) $att->filename, '/');
+        if (!str_contains($objectPath, '/')) {
+            $folder = trim((string) $att->folder, '/');
+            if ($folder !== '') {
+                $objectPath = $folder.'/'.$objectPath;
+            }
+        }
+        abort_if($objectPath === '', 404);
+
+        $config = config('filesystems.disks.gcs');
+        $storage = new StorageClient([
+            'projectId' => $config['project_id'],
+            'keyFilePath' => $config['key_file'],
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+        $object = $bucket->object($objectPath);
+        abort_unless($object->exists(), 404, 'File not found on GCS');
+
+        $url = $object->signedUrl(new \DateTime('+15 minutes'), ['version' => 'v4']);
+
+        return redirect()->away($url);
+    }
+
+    public function printPrfPdf($docid)
+    {
+        $personnel = Personnel::where('docid', $docid)->firstOrFail();
+
+        $companyName = MsCompany::query()
+            ->where('cpny_id', $personnel->cpnyid)
+            ->where('group_cpny_id', $personnel->group_cpny_id)
+            ->value('cpny_name');
+
+        $departmentName = DepartmentHR::query()
+            ->where('department_id', $personnel->departementid)
+            ->where('group_cpny_id', $personnel->group_cpny_id)
+            ->value('department_name');
+
+        $divisionName = Division::query()
+            ->where('division_id', $personnel->division_id)
+            ->where('group_cpny_id', $personnel->group_cpny_id)
+            ->value('division_name');
+
+        $approval = TrApproval::where('refnbr', $personnel->docid)
+            ->where('aprv_cpnyid', $personnel->cpnyid)
+            ->where('status', '<>', 'X')
+            ->orderBy('created_at')
+            ->orderBy('aprv_leveling')
+            ->get();
+
+        $jobres = JobResponsiblities::query()
+            ->where('docid', $personnel->docid)
+            ->where('cpnyid', $personnel->cpnyid)
+            ->where('group_cpny_id', $personnel->group_cpny_id)
+            ->get();
+
+        $jobqua = JobQualification::query()
+            ->where('docid', $personnel->docid)
+            ->where('cpnyid', $personnel->cpnyid)
+            ->where('group_cpny_id', $personnel->group_cpny_id)
+            ->get();
+
+        $statusDoc = match ($personnel->status) {
+            'D' => 'Revise',
+            'H' => 'Draft',
+            'P' => 'On Progress',
+            'C' => 'Completed',
+            'X' => 'Cancelled',
+            'R' => 'Rejected',
+            default => 'Unknown',
+        };
+
+        $createdByName = ucwords(strtolower((string) ($personnel->created_user ?? '-')));
+        $reqDateFmt = $personnel->date
+            ? Carbon::parse($personnel->date)->format('d M Y')
+            : '-';
+
+        $pdf = \PDF::loadView('pages.personnels.pdf_personnel', [
+            'personnel' => $personnel,
+            'companyName' => $companyName,
+            'departmentName' => $departmentName,
+            'divisionName' => $divisionName,
+            'approval' => $approval,
+            'jobres' => $jobres,
+            'jobqua' => $jobqua,
+            'statusDoc' => $statusDoc,
+            'createdByName' => $createdByName,
+            'reqDateFmt' => $reqDateFmt,
+        ]);
+
+        $pdf->setPaper('A4', 'portrait');
+
+        return $pdf->stream("PRF_{$personnel->docid}.pdf");
     }
 
     public function downloadDocument(Request $request, $hash, $type)
@@ -2650,10 +2785,11 @@ class CareerController extends Controller
         $content = $storage->bucket($config['bucket'])->object($gcsPath)->downloadAsString();
         $name = preg_replace('/\s+/', '', $applicant->full_name ?? 'Applicant');
         $filename = "{$label}_{$name}.pdf";
+        $disposition = $request->query('disposition') === 'inline' ? 'inline' : 'attachment';
 
         return response($content, 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => $disposition . '; filename="' . $filename . '"',
         ]);
     }
 }

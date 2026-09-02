@@ -9,31 +9,64 @@
         </thead>
         <tbody class="divide-y divide-gray-100 dark:divide-gray-700/40">
             @foreach ($tr_checklist as $p)
-                @php $uploaded = !empty($p->checklist_attachfile); @endphp
+                @php
+                    $isPrfItem = strtoupper(trim((string) $p->checklist_descr)) === 'PRF';
+                    $uploaded = $isPrfItem ? ($prfAttachments ?? collect())->isNotEmpty() : !empty($p->checklist_attachfile);
+                @endphp
                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/20 {{ $uploaded ? 'bg-emerald-50/30 dark:bg-emerald-900/5' : '' }}">
                     <td class="py-3 pl-5 pr-3 {{ $uploaded ? 'border-l-2 border-emerald-400' : 'border-l-2 border-transparent' }}">
                         <span class="text-xs font-medium {{ $uploaded ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400' }}">{{ $p->step_order }}</span>
                     </td>
                     <td class="px-3 py-3 text-sm {{ $uploaded ? 'font-medium text-gray-800 dark:text-gray-100' : 'text-gray-600 dark:text-gray-300' }}">
                         {{ $p->checklist_descr }}
+                        @if ($isPrfItem)
+                            <span class="ml-1.5 inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-300">Auto-linked</span>
+                        @endif
                     </td>
                     <td class="py-3 pl-3 pr-5">
-                        <div class="flex items-center justify-end gap-2">
-                            @if ($uploaded)
-                                <a href="{{ route('checklist.view', $p->id) }}" target="_blank"
-                                    class="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 transition hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300">
-                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>
-                                    View
-                                </a>
-                            @else
-                                <span class="text-xs italic text-gray-400">No document</span>
-                            @endif
-                            <button class="upload-btn inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-500 transition hover:border-indigo-300 hover:text-indigo-600 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400 dark:hover:border-indigo-500 dark:hover:text-indigo-400"
-                                data-id="{{ $p->id }}" data-descr="{{ $p->checklist_descr }}">
-                                <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/></svg>
-                                Upload
-                            </button>
-                        </div>
+                        @if ($isPrfItem)
+                            <div class="flex items-center justify-end gap-3">
+                                @foreach ($prfAttachments as $att)
+                                    <a href="{{ route('checklist.prf-attachment.view', $att->id) }}" target="_blank"
+                                        class="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 transition hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300">
+                                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>
+                                        {{ $att->attachment_name }}
+                                    </a>
+                                @endforeach
+
+                                @if ($prfPersonnel)
+                                    <a href="{{ route('checklist.prf-pdf', $prfPersonnel->docid) }}" target="_blank"
+                                        class="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 transition hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+                                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                                        Download PDF
+                                    </a>
+                                    <a href="{{ url('/showpersonnels/'.$prfHash) }}" target="_blank"
+                                        class="inline-flex items-center gap-1 text-xs font-medium text-gray-500 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
+                                        View PRF
+                                    </a>
+                                @elseif ($prfAttachments->isEmpty())
+                                    <span class="text-xs italic text-gray-400">No PRF document found</span>
+                                @endif
+                            </div>
+                        @else
+                            <div class="flex items-center justify-end gap-2">
+                                @if ($uploaded)
+                                    <a href="{{ route('checklist.view', $p->id) }}"
+                                        class="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 transition hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300">
+                                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                                        Download
+                                    </a>
+                                @else
+                                    <span class="text-xs italic text-gray-400">No document</span>
+                                @endif
+                                <button class="upload-btn inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-500 transition hover:border-indigo-300 hover:text-indigo-600 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400 dark:hover:border-indigo-500 dark:hover:text-indigo-400"
+                                    data-id="{{ $p->id }}" data-descr="{{ $p->checklist_descr }}">
+                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/></svg>
+                                    Upload
+                                </button>
+                            </div>
+                        @endif
                     </td>
                 </tr>
             @endforeach

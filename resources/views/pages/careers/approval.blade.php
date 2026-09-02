@@ -47,7 +47,15 @@
     </div>
     @endif
 
-    <div x-data="{ subtab: 'step', init: function() { this.$watch('subtab', () => { this.$el.scrollIntoView({ behavior: 'smooth' }); }); } }" class="w-full">
+    <div x-data="{
+            subtab: sessionStorage.getItem('careerSubtab_{{ $career->docid }}') || 'step',
+            init: function() {
+                this.$watch('subtab', (value) => {
+                    sessionStorage.setItem('careerSubtab_{{ $career->docid }}', value);
+                    this.$el.scrollIntoView({ behavior: 'smooth' });
+                });
+            }
+        }" class="w-full">
 
         {{-- ── Sub-tabs + progress ─────────────────────────────────────── --}}
         @php

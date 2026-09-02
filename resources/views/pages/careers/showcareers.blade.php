@@ -1,6 +1,5 @@
 ﻿<x-app-layout>
     <div class="max-w-9xl mx-auto flex flex-col gap-3 p-2" x-data="tabsComponent()" x-init="initializeComponent()">
-
         {{-- ── Back navigation ──────────────────────────────────────── --}}
         <a href="{{ route('jobapplicant') }}"
             class="inline-flex w-fit items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors duration-150 hover:bg-gray-200/60 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-white">

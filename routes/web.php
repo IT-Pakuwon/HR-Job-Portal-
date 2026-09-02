@@ -266,6 +266,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/personnels', [PersonnelController::class, 'index'])->name('personnels');
         Route::get('/personnels/json', [PersonnelController::class, 'json'])->name('personnels.json');
         Route::get('/showpersonnels/{hash}', [PersonnelController::class, 'showPersonnel']);
+        Route::get('/pdf_prf/{hash}', [PersonnelController::class, 'printPdfPersonnel'])->name('personnel.print.pdf');
         Route::get('/personnel/{id}/comments', [PersonnelController::class, 'fetchComments']);
         Route::get('/personnel/{id}/check-approval/{action}', [PersonnelController::class, 'checkApproval']);
         Route::get('/api/sites/{cpnyid}', [PersonnelController::class, 'getSitesByCompany']);
@@ -522,6 +523,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/payrollconfirm/reveal', [CareerController::class, 'revealSalary'])->name('payrollconfirm.reveal');
     Route::get('/payrollconfirm/{id}', [CareerController::class, 'getPayroll'])->name('payrollconfirm.get');
     Route::get('/checklist/{id}/view', [CareerController::class, 'viewDocument'])->name('checklist.view');
+    Route::get('/checklist/prf-attachment/{id}/view', [CareerController::class, 'viewPrfAttachment'])->name('checklist.prf-attachment.view');
+    Route::get('/checklist/prf-pdf/{docid}', [CareerController::class, 'printPrfPdf'])->name('checklist.prf-pdf');
 
     Route::get('/jobpostings', [JobpostingController::class, 'index'])->name('jobpostings');
     Route::get('/jobpostings/json', [JobpostingController::class, 'json'])->name('jobpostings.json');
