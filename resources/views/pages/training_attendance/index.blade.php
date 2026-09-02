@@ -39,15 +39,38 @@
                     <div class="rounded-xl border-2 border-dashed border-gray-300 p-4 text-center dark:border-gray-600">
                         <label class="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">📷 Scan Barcode</label>
                         <div class="flex gap-2">
-                            <input type="text" id="scanInput" autocomplete="off"
-                                placeholder="Click here, then scan — or type the code and press Enter"
-                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-center text-sm text-gray-800 focus:border-gray-900 focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-white">
+                            <textarea id="scanInput" rows="1" autocomplete="off"
+                                placeholder="Click here, then scan — or type the code and click Check In"
+                                class="w-full resize-none overflow-hidden rounded-lg border border-gray-300 px-3 py-2 text-center text-sm text-gray-800 focus:border-gray-900 focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-white"></textarea>
                             <button type="button" id="scanSubmitBtn"
                                 class="flex-none rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200">
                                 Check In
                             </button>
+                            <button type="button" id="openQrScannerBtn" title="Scan with camera"
+                                class="flex-none rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                                📷
+                            </button>
                         </div>
-                        <p class="mt-1 text-[11px] text-gray-400">Didn't pop up after scanning? Click Check In.</p>
+                        <p class="mt-1 text-[11px] text-gray-400">Didn't pop up after scanning? Click Check In. No scanner? Click 📷 to use the camera — reads QR codes and barcodes.</p>
+                    </div>
+
+                    {{-- Camera QR/Barcode Scanner Modal --}}
+                    <div id="qrScannerModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+                        <div class="relative flex w-full max-w-sm flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-800">
+                            <div class="flex items-center justify-between gap-4 border-b border-gray-100 px-5 py-3 dark:border-gray-700">
+                                <h2 class="text-sm font-bold text-gray-900 dark:text-white">📷 Scan QR / Barcode</h2>
+                                <button type="button" id="closeQrScannerBtn"
+                                    class="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white">
+                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="p-4">
+                                <div id="qrReader" class="overflow-hidden rounded-lg bg-black"></div>
+                                <p class="mt-2 text-center text-[11px] text-gray-400">Point the camera at a QR code or barcode.</p>
+                            </div>
+                        </div>
                     </div>
 
                     <input type="text" id="searchName" placeholder="🔎 Search by name…"
@@ -126,6 +149,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
         .select2-container--default .select2-selection--single {
             height: 34px;
@@ -289,6 +313,8 @@
             $('.tab-panel').addClass('hidden');
             $('#tab-' + tab).removeClass('hidden');
 
+            if (tab !== 'checkin' && typeof closeQrScanner === 'function') closeQrScanner();
+
             if (!selectedEventId) return;
             if (tab === 'checkin') loadRoster();
             else if (tab === 'after') loadAfterEvent();
@@ -358,40 +384,60 @@
             `;
         }
 
+        function attendCardHtml(row, bannerHtml) {
+            const event = events.find((e) => String(e.id) === String(selectedEventId));
+
+            return `
+                <div class="text-left">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-12 w-12 flex-none items-center justify-center rounded-full bg-gray-100 text-base font-bold text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                            ${initials(row.name)}
+                        </div>
+                        <div class="min-w-0">
+                            <p class="truncate text-lg font-bold text-gray-900 dark:text-white">${row.name}</p>
+                            <span class="inline-block rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[11px] text-gray-500 dark:bg-gray-700 dark:text-gray-400">${row.docid}</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 divide-y divide-gray-100 border-y border-gray-100 dark:divide-gray-700 dark:border-gray-700">
+                        ${infoRow('🎓', 'Training', event?.training_name ?? '-')}
+                        ${infoRow('📶', 'Level', event?.grade_name ?? '-')}
+                        ${infoRow('🏢', 'Company', row.cpny_name ?? '-')}
+                        ${infoRow('👥', 'Department', row.department_name ?? '-')}
+                    </div>
+                    ${bannerHtml || ''}
+                </div>
+            `;
+        }
+
+        function attendBannerHtml(text) {
+            return `
+                <div class="mt-3 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-400">
+                    <span>✅</span>
+                    <span>${text}</span>
+                </div>
+            `;
+        }
+
+        function markAttend(row) {
+            return $.ajax({
+                url: routeUrl('attend', row.id),
+                method: 'POST',
+                headers: csrfHeaders,
+            });
+        }
+
+        // Manual roster click — a deliberate click on a specific name still
+        // asks for confirmation before marking attendance.
         function openAttendModal(row) {
             const already = !!row.attended_at;
             const canAttend = !already;
-            const event = events.find((e) => String(e.id) === String(selectedEventId));
-
-            const stateHtml = already ? `
-                <div class="mt-3 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-400">
-                    <span>✅</span>
-                    <span>Attended ${fmtDateTime(row.attended_at)}${row.attended_by ? ' · by ' + row.attended_by : ''}</span>
-                </div>
-            ` : '';
+            const bannerHtml = already
+                ? attendBannerHtml(`Attended ${fmtDateTime(row.attended_at)}${row.attended_by ? ' · by ' + row.attended_by : ''}`)
+                : '';
 
             Swal.fire({
                 title: false,
-                html: `
-                    <div class="text-left">
-                        <div class="flex items-center gap-3">
-                            <div class="flex h-12 w-12 flex-none items-center justify-center rounded-full bg-gray-100 text-base font-bold text-gray-700 dark:bg-gray-700 dark:text-gray-200">
-                                ${initials(row.name)}
-                            </div>
-                            <div class="min-w-0">
-                                <p class="truncate text-lg font-bold text-gray-900 dark:text-white">${row.name}</p>
-                                <span class="inline-block rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[11px] text-gray-500 dark:bg-gray-700 dark:text-gray-400">${row.docid}</span>
-                            </div>
-                        </div>
-                        <div class="mt-4 divide-y divide-gray-100 border-y border-gray-100 dark:divide-gray-700 dark:border-gray-700">
-                            ${infoRow('🎓', 'Training', event?.training_name ?? '-')}
-                            ${infoRow('📶', 'Level', event?.grade_name ?? '-')}
-                            ${infoRow('🏢', 'Company', row.cpny_name ?? '-')}
-                            ${infoRow('👥', 'Department', row.department_name ?? '-')}
-                        </div>
-                        ${stateHtml}
-                    </div>
-                `,
+                html: attendCardHtml(row, bannerHtml),
                 showCancelButton: canAttend,
                 confirmButtonText: canAttend ? 'Attend' : 'Close',
                 cancelButtonText: 'Cancel',
@@ -404,18 +450,51 @@
             }).then((result) => {
                 if (!canAttend || !result.isConfirmed) return;
 
-                $.ajax({
-                    url: routeUrl('attend', row.id),
-                    method: 'POST',
-                    headers: csrfHeaders,
-                    success: function (res) {
-                        toast(res.success ? 'success' : 'error', res.message || 'Attendance recorded');
-                        if (res.success) patchRoster(res.data);
-                    },
-                    error: function (xhr) {
-                        toast('error', xhr.responseJSON?.message || 'Gagal mencatat attendance');
-                    },
+                markAttend(row).done(function (res) {
+                    toast(res.success ? 'success' : 'error', res.message || 'Attendance recorded');
+                    if (res.success) patchRoster(res.data);
+                }).fail(function (xhr) {
+                    toast('error', xhr.responseJSON?.message || 'Gagal mencatat attendance');
                 });
+            });
+        }
+
+        // Scan flow — the scan itself is the confirmation, so a fresh match
+        // is checked in immediately; this just flashes who got checked in
+        // (auto-dismisses) instead of waiting on a click. A repeat scan of
+        // someone already attended just shows their existing state.
+        function autoAttendFromScan(row) {
+            if (row.attended_at) {
+                Swal.fire({
+                    title: false,
+                    html: attendCardHtml(row, attendBannerHtml(`Already attended ${fmtDateTime(row.attended_at)}${row.attended_by ? ' · by ' + row.attended_by : ''}`)),
+                    showConfirmButton: false,
+                    showCancelButton: false,
+                    timer: 1800,
+                    timerProgressBar: true,
+                    customClass: { popup: 'rounded-2xl dark:bg-gray-800' },
+                });
+                return;
+            }
+
+            markAttend(row).done(function (res) {
+                if (!res.success) {
+                    toast('error', res.message || 'Gagal mencatat attendance');
+                    return;
+                }
+
+                patchRoster(res.data);
+                Swal.fire({
+                    title: false,
+                    html: attendCardHtml(res.data, attendBannerHtml('Checked in')),
+                    showConfirmButton: false,
+                    showCancelButton: false,
+                    timer: 1800,
+                    timerProgressBar: true,
+                    customClass: { popup: 'rounded-2xl dark:bg-gray-800' },
+                });
+            }).fail(function (xhr) {
+                toast('error', xhr.responseJSON?.message || 'Gagal mencatat attendance');
             });
         }
 
@@ -425,10 +504,11 @@
             if (row) openAttendModal(row);
         });
 
-        function submitScanCode() {
-            const code = $('#scanInput').val().trim();
-            $('#scanInput').val('');
+        function handleScannedCode(code) {
+            code = (code || '').trim();
             if (!code || !selectedEventId) return;
+
+            console.log('[scan] raw code captured:', JSON.stringify(code));
 
             $.ajax({
                 url: routeTemplates.scan,
@@ -438,7 +518,7 @@
                 success: function (res) {
                     if (res.success) {
                         patchRoster(res.data);
-                        openAttendModal(res.data);
+                        autoAttendFromScan(res.data);
                     }
                 },
                 error: function (xhr) {
@@ -447,16 +527,93 @@
             });
         }
 
-        $('#scanInput').on('keydown', function (e) {
-            if (e.key !== 'Enter') return;
-            e.preventDefault();
-            submitScanCode();
+        function submitScanCode() {
+            const code = $('#scanInput').val();
+            $('#scanInput').val('');
+            handleScannedCode(code);
+        }
+
+        // Camera-based QR/barcode scanning — same handleScannedCode() path as
+        // a physical scanner or manual paste, just fed by a decoded video
+        // frame instead of a keyboard event.
+        let qrCamera = null;
+        let qrCameraBusy = false;
+
+        function openQrScanner() {
+            if (typeof Html5Qrcode === 'undefined') {
+                toast('error', 'Camera scanner gagal dimuat — cek koneksi internet');
+                return;
+            }
+
+            $('#qrScannerModal').removeClass('hidden');
+            qrCameraBusy = false;
+            qrCamera = new Html5Qrcode('qrReader');
+
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            const onDecoded = function (decodedText) {
+                if (qrCameraBusy) return;
+                qrCameraBusy = true;
+                closeQrScanner();
+                handleScannedCode(decodedText);
+            };
+            const onFrame = function () { /* per-frame miss, ignore */ };
+
+            // Asking for facingMode:'environment' outright fails on most
+            // laptop/desktop webcams (no rear camera exists to satisfy it),
+            // which silently prevented the camera from ever opening there —
+            // so enumerate real cameras and pick one instead of assuming.
+            Html5Qrcode.getCameras().then(function (cameras) {
+                if (!cameras || !cameras.length) {
+                    toast('error', 'Tidak ada kamera yang terdeteksi di perangkat ini');
+                    closeQrScanner();
+                    return;
+                }
+
+                const backCamera = cameras.find((c) => /back|rear|environment/i.test(c.label));
+                const cameraId = (backCamera || cameras[cameras.length - 1]).id;
+
+                qrCamera.start(cameraId, config, onDecoded, onFrame).catch(function (err) {
+                    toast('error', 'Tidak bisa mengakses kamera: ' + err);
+                    closeQrScanner();
+                });
+            }).catch(function (err) {
+                toast('error', 'Tidak bisa mengakses kamera (izin ditolak?): ' + err);
+                closeQrScanner();
+            });
+        }
+
+        function closeQrScanner() {
+            $('#qrScannerModal').addClass('hidden');
+            if (qrCamera) {
+                const camera = qrCamera;
+                qrCamera = null;
+                camera.stop().then(function () { camera.clear(); }).catch(function () {});
+            }
+        }
+
+        $('#openQrScannerBtn').on('click', openQrScanner);
+        $('#closeQrScannerBtn').on('click', closeQrScanner);
+
+        // Multi-line payloads (a vCard QR has \r\n between every field) make
+        // a hardware scanner send Enter keystrokes *inside* the scan, not
+        // just at the end — treating every Enter as "submit now" was
+        // cutting scans off after the first line (e.g. just "BEGIN:VCARD").
+        // Debouncing on quiet-time instead lets the whole burst land first;
+        // #scanInput is a <textarea> so those in-between Enters just become
+        // newlines in the value rather than triggering anything.
+        let scanDebounceTimer = null;
+
+        $('#scanInput').on('input', function () {
+            clearTimeout(scanDebounceTimer);
+            scanDebounceTimer = setTimeout(function () {
+                if ($('#scanInput').val().trim()) submitScanCode();
+            }, 150);
         });
 
-        // Fallback for scanners/paste flows that don't fire a real Enter
-        // keystroke — the popup only opens on submit, so without this the
-        // scanned code just sits in the box with no visible next step.
-        $('#scanSubmitBtn').on('click', submitScanCode);
+        $('#scanSubmitBtn').on('click', function () {
+            clearTimeout(scanDebounceTimer);
+            submitScanCode();
+        });
 
         let afterEventRows = [];
         let afterEventCanUndo = false;
