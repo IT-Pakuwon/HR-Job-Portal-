@@ -529,8 +529,7 @@
             type: "POST",
             data: {
                 _token: "{{ csrf_token() }}",
-                docid: docid,
-                group_cpny_id: "{{ $career->group_cpny_id }}" // docid alone can collide across SBY/JKT
+                docid: docid
             },
             success: function(response) {
                 if (response.success) {
@@ -570,12 +569,11 @@
 <script>
     $(document).ready(function() {
         let docid = "{{ $career->docid }}";
-        let groupCpnyId = "{{ $career->group_cpny_id }}"; // docid alone can collide across SBY/JKT
 
         // Reject
         $(document).on("click", "#rejectBtn", function() {
             $("#rejectReason").val("");
-            $.get(`/career/${docid}/check-reject-permission`, { group_cpny_id: groupCpnyId }, function(res) {
+            $.get(`/career/${docid}/check-reject-permission`, function(res) {
                 if (res.canReject) checkApproval(docid, "reject");
                 else toastr.warning("You are not allowed to reject at this step.");
             }).fail(function() { toastr.error("Failed to verify reject permission."); });
@@ -587,7 +585,7 @@
             let $spinner = $("#loadingSpinnerContainer");
             $("#rejectTaskModal").addClass("hidden");
             $spinner.fadeIn();
-            $.post(`/career/${docid}/reject`, { _token: "{{ csrf_token() }}", docid, reason, group_cpny_id: groupCpnyId })
+            $.post(`/career/${docid}/reject`, { _token: "{{ csrf_token() }}", docid, reason })
                 .done(function(r) { if (r.success) { location.reload(); } else { toastr.error("Failed to reject."); } })
                 .fail(function(xhr) { toastr.error(xhr.status === 403 ? "You can't reject!" : "Error rejecting."); })
                 .always(function() { $spinner.fadeOut(); });
@@ -596,7 +594,7 @@
         // Rollback
         $(document).on("click", ".rollbackBtn", function() {
             $("#rollbackReason").val("");
-            $.get(`/career/${docid}/check-rollback-permission`, { group_cpny_id: groupCpnyId }, function(res) {
+            $.get(`/career/${docid}/check-rollback-permission`, function(res) {
                 if (res.canRollback) checkApproval(docid, "rollback");
                 else toastr.warning(res.message || "You are not allowed to rollback at this step.");
             }).fail(function() { toastr.error("Failed to verify rollback permission."); });
@@ -608,7 +606,7 @@
             let $spinner = $("#loadingSpinnerContainer");
             $("#rollbackTaskModal").addClass("hidden");
             $spinner.fadeIn();
-            $.post(`/career/${docid}/rollback`, { _token: "{{ csrf_token() }}", docid, reason, group_cpny_id: groupCpnyId })
+            $.post(`/career/${docid}/rollback`, { _token: "{{ csrf_token() }}", docid, reason })
                 .done(function(r) { if (r.success) { location.reload(); } else { toastr.error("Failed to rollback."); } })
                 .fail(function(xhr) { toastr.error(xhr.status === 403 ? "You can't rollback!" : "Error rolling back."); })
                 .always(function() { $spinner.fadeOut(); });
@@ -616,7 +614,7 @@
 
         // checkApproval
         function checkApproval(docid, action) {
-            $.get(`/career/${docid}/check-approval/${action}`, { group_cpny_id: groupCpnyId }, function(res) {
+            $.get(`/career/${docid}/check-approval/${action}`, function(res) {
                 if (res.canPerformAction) {
                     if (action === "reject") { $("#rejectTaskModal").removeClass("hidden").css("z-index", "60"); }
                     else if (action === "rollback") { $("#rollbackTaskModal").removeClass("hidden").css("z-index", "60"); }

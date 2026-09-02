@@ -624,9 +624,9 @@ class CareerController extends Controller
         $datestamp = Carbon::now()->toDateTimeString();
         $user = request()->user(); // Ambil user yang login
 
-        // docid is only unique WITHIN a group_cpny_id (SBY/JKT sequences can collide), so the
-        // caller must also send group_cpny_id or this can silently act on another company's apply.
-        $groupCpnyId = strtoupper(trim((string) $request->input('group_cpny_id')));
+        // docid is only unique WITHIN a group_cpny_id (SBY/JKT sequences can collide), so it must
+        // be paired with the logged-in user's own group — not a client-supplied value.
+        $groupCpnyId = strtoupper(trim((string) ($user->group_cpny_id ?? '')));
         $career = Career::where('docid', $docid)
             ->where('group_cpny_id', $groupCpnyId)
             ->whereNotIn('status', ['T', 'X'])
@@ -740,7 +740,7 @@ class CareerController extends Controller
         $datestamp = Carbon::now()->toDateTimeString();
         $user = request()->user(); // Ambil user yang login
 
-        $groupCpnyId = strtoupper(trim((string) $request->input('group_cpny_id')));
+        $groupCpnyId = strtoupper(trim((string) ($user->group_cpny_id ?? '')));
         $career = Career::where('docid', $docid)
             ->where('group_cpny_id', $groupCpnyId)
             ->whereNotIn('status', ['T', 'X'])
@@ -838,7 +838,7 @@ class CareerController extends Controller
         $user = Auth::user();
         $username = $user ? $user->username : 'system';
 
-        $groupCpnyId = strtoupper(trim((string) $request->input('group_cpny_id')));
+        $groupCpnyId = strtoupper(trim((string) ($user->group_cpny_id ?? '')));
         $career = Career::where('docid', $docid)
             ->where('group_cpny_id', $groupCpnyId)
             ->whereNotIn('status', ['T', 'X'])
@@ -930,11 +930,11 @@ class CareerController extends Controller
         }
     }
 
-    public function checkApproval(Request $request, $id, $action)
+    public function checkApproval($id, $action)
     {
         $user = Auth::user(); // user login
 
-        $groupCpnyId = strtoupper(trim((string) $request->query('group_cpny_id')));
+        $groupCpnyId = strtoupper(trim((string) ($user->group_cpny_id ?? '')));
         $career = Career::where('docid', $id)->where('group_cpny_id', $groupCpnyId)->whereNotIn('status', ['T', 'X'])->first();
         if (!$career) {
             return response()->json(['canPerformAction' => false, 'message' => 'Career not found'], 404);
@@ -1481,11 +1481,11 @@ class CareerController extends Controller
         return response()->json(['success' => 'Email has been sent to applicant.']);
     }
 
-    public function checkRejectPermission(Request $request, $docid)
+    public function checkRejectPermission($docid)
     {
         $user = Auth::user();
 
-        $groupCpnyId = strtoupper(trim((string) $request->query('group_cpny_id')));
+        $groupCpnyId = strtoupper(trim((string) ($user->group_cpny_id ?? '')));
         $career = Career::where('docid', $docid)->where('group_cpny_id', $groupCpnyId)->whereNotIn('status', ['T', 'X'])->first();
 
         $step = JobApplyStep::where('docid', $docid)
@@ -1504,11 +1504,11 @@ class CareerController extends Controller
         return response()->json(['canReject' => false]);
     }
 
-    public function checkRollbackPermission(Request $request, $docid)
+    public function checkRollbackPermission($docid)
     {
         $user = Auth::user();
 
-        $groupCpnyId = strtoupper(trim((string) $request->query('group_cpny_id')));
+        $groupCpnyId = strtoupper(trim((string) ($user->group_cpny_id ?? '')));
         $career = Career::where('docid', $docid)->where('group_cpny_id', $groupCpnyId)->whereNotIn('status', ['T', 'X'])->first();
 
         $step = JobApplyStep::where('docid', $docid)
