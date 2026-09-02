@@ -197,9 +197,24 @@ class CareerController extends Controller
             ->orderBy('hr_trx_job_apply_step.step_order', 'ASC')
             ->get();
 
-        $jobposting = Jobposting::where('docid', $career->docidposting)->first();
-        $jobres = JobpostingResponsiblities::where('docid', $career->docidposting)->get();
-        $jobqua = JobpostingQualification::where('docid', $career->docidposting)->get();
+        // docidposting (JOB docid) is only unique WITHIN a group_cpny_id, same collision as
+        // applicant_id/docid elsewhere — must be paired with $career->group_cpny_id.
+        $jobposting = Jobposting::where('docid', $career->docidposting)
+            ->where('group_cpny_id', $career->group_cpny_id)
+            ->first();
+        $jobres = JobpostingResponsiblities::where('docid', $career->docidposting)
+            ->where('group_cpny_id', $career->group_cpny_id)
+            ->get();
+        $jobqua = JobpostingQualification::where('docid', $career->docidposting)
+            ->where('group_cpny_id', $career->group_cpny_id)
+            ->get();
+
+        $companyName = $jobposting
+            ? MsCompany::where('cpny_id', $jobposting->cpnyid)->where('group_cpny_id', $jobposting->group_cpny_id)->value('cpny_name')
+            : null;
+        $departmentName = $jobposting
+            ? DepartmentHR::where('department_id', $jobposting->departementid)->where('group_cpny_id', $jobposting->group_cpny_id)->value('department_name')
+            : null;
 
         $tr_checklist = Trchecklist::leftjoin('hr_ms_doc_checklist', function ($join) {
                 $join->on('hr_trx_doc_checklist.checklist_id', '=', 'hr_ms_doc_checklist.checklist_id')
@@ -441,7 +456,7 @@ class CareerController extends Controller
         return view('pages.careers.showcareers', compact(
             'hash', 'career', 'applicant', 'applicant_family', 'applicant_marital', 'applicant_education', 'applicant_working',
             'applicant_reference', 'applicant_language', 'applicant_course', 'applicant_sw', 'applicant_skill', 'jobapplystep',
-            'jobres', 'jobqua', 'jobposting', 'tr_checklist', 'prfAttachments', 'prfPersonnel', 'prfHash', 'year', 'photo', 'cv', 'coverletter', 'transkip', 'ijazah', 'user', 'datenow',
+            'jobres', 'jobqua', 'jobposting', 'companyName', 'departmentName', 'tr_checklist', 'prfAttachments', 'prfPersonnel', 'prfHash', 'year', 'photo', 'cv', 'coverletter', 'transkip', 'ijazah', 'user', 'datenow',
             'assessmentGroups', 'tr_assessment', 'tr_assessment_user', 'assessmentGroupsUser', 'agenda', 'userlist',
             'typestep', 'payrolls', 'onboarding', 'sign', 'canAccessPayroll', 'canAccessAssessment', 'canAccessSchedule', 'companyaddress',
             'canAccessChecklist', 'canAccessInterviewUser', 'canAccessInterviewHC', 'canAccessPayroll', 'canAccessJoin',

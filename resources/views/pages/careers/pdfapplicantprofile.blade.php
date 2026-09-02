@@ -541,7 +541,7 @@
             @forelse($applicant_sw as $p)
             <tr>
                 <td>
-                    @if($p->sw_type === 'S')
+                    @if($p->sw_type === 'Strengths')
                         <span class="badge-s">Strength</span>
                     @else
                         <span class="badge-w">Weakness</span>

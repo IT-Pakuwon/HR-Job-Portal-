@@ -508,8 +508,8 @@
                                     <p class="py-8 text-center text-sm italic text-gray-400">No strengths &amp; weaknesses data available</p>
                                 @else
                                     @php
-                                        $strengths  = $applicant_sw->where('sw_type', 'S');
-                                        $weaknesses = $applicant_sw->where('sw_type', '!=', 'S');
+                                        $strengths  = $applicant_sw->where('sw_type', 'Strengths');
+                                        $weaknesses = $applicant_sw->where('sw_type', 'Weaknesses');
                                     @endphp
                                     @if($strengths->isNotEmpty())
                                         <p class="mb-1 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Strengths</p>
