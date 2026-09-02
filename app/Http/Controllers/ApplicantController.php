@@ -46,14 +46,16 @@ class ApplicantController extends Controller
     {
         $applicant = Applicant::with('driverLicenses')->findOrFail($id);
 
-        $applicant_family = ApplicantFamily::where('applicant_id', $applicant->applicant_id)->get();
-        $applicant_marital = ApplicantMarital::where('applicant_id', $applicant->applicant_id)->get();
-        $applicant_education = ApplicantEducation::where('applicant_id', $applicant->applicant_id)->get();
-        $applicant_working = ApplicantWorking::where('applicant_id', $applicant->applicant_id)->get();
-        $applicant_language = ApplicantLanguage::where('applicant_id', $applicant->applicant_id)->get();
-        $applicant_course = ApplicantCourse::where('applicant_id', $applicant->applicant_id)->get();
-        $applicant_sw = ApplicantSW::where('applicant_id', $applicant->applicant_id)->get();
-        $applicant_skill = ApplicantSkill::where('applicant_id', $applicant->applicant_id)->get();
+        // applicant_id is only unique WITHIN a group_cpny_id (SBY/JKT sequences can collide),
+        // so every child lookup must also pin group_cpny_id or it can pull another applicant's data.
+        $applicant_family = ApplicantFamily::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $applicant->group_cpny_id)->get();
+        $applicant_marital = ApplicantMarital::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $applicant->group_cpny_id)->get();
+        $applicant_education = ApplicantEducation::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $applicant->group_cpny_id)->get();
+        $applicant_working = ApplicantWorking::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $applicant->group_cpny_id)->get();
+        $applicant_language = ApplicantLanguage::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $applicant->group_cpny_id)->get();
+        $applicant_course = ApplicantCourse::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $applicant->group_cpny_id)->get();
+        $applicant_sw = ApplicantSW::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $applicant->group_cpny_id)->get();
+        $applicant_skill = ApplicantSkill::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $applicant->group_cpny_id)->get();
 
         $year = now()->year;
         $photo = 'http://127.0.0.1:7777/attachments/'.$year.'/'.$applicant->upload_photo;

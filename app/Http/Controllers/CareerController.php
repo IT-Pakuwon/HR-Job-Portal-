@@ -46,6 +46,7 @@ use App\Models\TrAssessmentdetail;
 use App\Models\Trchecklist;
 use App\Models\TrMessage;
 use App\Models\Tronboarding;
+use App\Http\Controllers\Traits\ScopesApplicantCompanies;
 use App\Models\User;
 use App\Models\ViewCareer;
 use Google\Cloud\Storage\StorageClient;
@@ -62,13 +63,17 @@ use Vinkla\Hashids\Facades\Hashids;
 
 class CareerController extends Controller
 {
+    use ScopesApplicantCompanies;
+
     public function index()
     {
-        $incompletedprofile = ViewCareer::where('status_app', 'H')->count();
-        $completedprofile = ViewCareer::where('status_app', 'P')->count();
-        $nocandidate = ViewCareer::where('status', 'H')->count();
-        $candidate = ViewCareer::where('status', 'P')->count();
-        $join = ViewCareer::where('status', 'C')->count();
+        $base = $this->scopeApplicantCompanies(ViewCareer::query(), Auth::user());
+
+        $incompletedprofile = (clone $base)->where('status_app', 'H')->count();
+        $completedprofile = (clone $base)->where('status_app', 'P')->count();
+        $nocandidate = (clone $base)->where('status', 'H')->count();
+        $candidate = (clone $base)->where('status', 'P')->count();
+        $join = (clone $base)->where('status', 'C')->count();
 
         return view('pages.careers.careers', compact('incompletedprofile', 'completedprofile', 'nocandidate', 'candidate', 'join'));
     }
@@ -77,7 +82,7 @@ class CareerController extends Controller
     {
         $cpnyid = $request->query('cpnyid');
 
-        $query = ViewCareer::query();
+        $query = $this->scopeApplicantCompanies(ViewCareer::query(), Auth::user());
         if (!empty($cpnyid)) {
             $query->where('cpnyid', $cpnyid);
         }
@@ -97,7 +102,7 @@ class CareerController extends Controller
         $status = $request->query('status');
         $cpnyid = $request->query('cpnyid');
 
-        $query = ViewCareer::query();
+        $query = $this->scopeApplicantCompanies(ViewCareer::query(), Auth::user());
 
         if (!empty($status_app)) {
             $query->where('status_app', $status_app);
@@ -151,6 +156,7 @@ class CareerController extends Controller
         $datenow = Carbon::now()->format('Y-m-d');
         $timenow = date('Y-m-d H:i:s');
         $career = ViewCareer::findOrFail($id);
+        $this->assertApplicantCompanyAccess($user, $career->group_cpny_id, $career->cpnyid);
         $job_apply = Career::find($id);
 
         $hasGroupAccess = GroupAccspecific::where('username', $user->username)
@@ -163,18 +169,21 @@ class CareerController extends Controller
             $job_apply->save();
         }
         // dd($job_apply);
-        $applicant = Applicant::where('applicant_id', $career->applicant_id)->first();
-        $applicant_family = ApplicantFamily::where('applicant_id', $career->applicant_id)->get();
-        $applicant_marital = ApplicantMarital::where('applicant_id', $career->applicant_id)->get();
-        $applicant_education = ApplicantEducation::where('applicant_id', $career->applicant_id)->get();
-        $applicant_working = ApplicantWorking::where('applicant_id', $career->applicant_id)->get();
-        $applicant_reference = ApplicantReference::where('applicant_id', $career->applicant_id)->get();
-        $applicant_language = ApplicantLanguage::where('applicant_id', $career->applicant_id)->get();
-        $applicant_course = ApplicantCourse::where('applicant_id', $career->applicant_id)->get();
-        $applicant_sw = ApplicantSW::where('applicant_id', $career->applicant_id)->get();
-        $applicant_skill = ApplicantSkill::where('applicant_id', $career->applicant_id)->get();
-        $applicant_additional = ApplicantAdditional::where('applicant_id', $career->applicant_id)->first();
-        $applicant_organization = ApplicantOrganization::where('applicant_id', $career->applicant_id)->get();
+        // applicant_id is only unique WITHIN a group_cpny_id (SBY/JKT sequences collide with
+        // each other), so every lookup here must also pin group_cpny_id or it can pull another
+        // applicant's data entirely — see ApplicantController::showSelfRegister() for precedent.
+        $applicant = Applicant::where('applicant_id', $career->applicant_id)->where('group_cpny_id', $career->group_cpny_id)->first();
+        $applicant_family = ApplicantFamily::where('applicant_id', $career->applicant_id)->where('group_cpny_id', $career->group_cpny_id)->get();
+        $applicant_marital = ApplicantMarital::where('applicant_id', $career->applicant_id)->where('group_cpny_id', $career->group_cpny_id)->get();
+        $applicant_education = ApplicantEducation::where('applicant_id', $career->applicant_id)->where('group_cpny_id', $career->group_cpny_id)->get();
+        $applicant_working = ApplicantWorking::where('applicant_id', $career->applicant_id)->where('group_cpny_id', $career->group_cpny_id)->get();
+        $applicant_reference = ApplicantReference::where('applicant_id', $career->applicant_id)->where('group_cpny_id', $career->group_cpny_id)->get();
+        $applicant_language = ApplicantLanguage::where('applicant_id', $career->applicant_id)->where('group_cpny_id', $career->group_cpny_id)->get();
+        $applicant_course = ApplicantCourse::where('applicant_id', $career->applicant_id)->where('group_cpny_id', $career->group_cpny_id)->get();
+        $applicant_sw = ApplicantSW::where('applicant_id', $career->applicant_id)->where('group_cpny_id', $career->group_cpny_id)->get();
+        $applicant_skill = ApplicantSkill::where('applicant_id', $career->applicant_id)->where('group_cpny_id', $career->group_cpny_id)->get();
+        $applicant_additional = ApplicantAdditional::where('applicant_id', $career->applicant_id)->where('group_cpny_id', $career->group_cpny_id)->first();
+        $applicant_organization = ApplicantOrganization::where('applicant_id', $career->applicant_id)->where('group_cpny_id', $career->group_cpny_id)->get();
 
         $jobapplystep = JobApplyStep::leftjoin('hr_ms_job_step', function ($join) {
                 $join->on('hr_trx_job_apply_step.step_id', '=', 'hr_ms_job_step.step_id')
@@ -615,7 +624,13 @@ class CareerController extends Controller
         $datestamp = Carbon::now()->toDateTimeString();
         $user = request()->user(); // Ambil user yang login
 
-        $career = Career::where('docid', $docid)->whereNotIn('status', ['T', 'X'])->first();
+        // docid is only unique WITHIN a group_cpny_id (SBY/JKT sequences can collide), so the
+        // caller must also send group_cpny_id or this can silently act on another company's apply.
+        $groupCpnyId = strtoupper(trim((string) $request->input('group_cpny_id')));
+        $career = Career::where('docid', $docid)
+            ->where('group_cpny_id', $groupCpnyId)
+            ->whereNotIn('status', ['T', 'X'])
+            ->first();
 
         if (!$career) {
             return response()->json(['success' => false, 'message' => 'Career not found'], 404);
@@ -648,6 +663,7 @@ class CareerController extends Controller
 
         $t_approval = JobApplyStep::where('docid', $career->docid)
             ->where('jobid', $career->jobid)
+            ->where('group_cpny_id', $career->group_cpny_id)
             ->where('status', 'P')
             ->orderBy('step_order', 'ASC')
             ->first();
@@ -687,6 +703,7 @@ class CareerController extends Controller
 
         $t_approval_next = JobApplyStep::where('docid', $career->docid)
             ->where('jobid', $career->jobid)
+            ->where('group_cpny_id', $career->group_cpny_id)
             ->where('status', 'P')
             ->orderBy('step_order', 'ASC')
             ->first();
@@ -703,6 +720,7 @@ class CareerController extends Controller
         // Hitung apakah ini adalah approval terakhir
         $count_approval = JobApplyStep::where('docid', $career->docid)
             ->where('jobid', $career->jobid)
+            ->where('group_cpny_id', $career->group_cpny_id)
             ->where('status', 'P')
             ->count();
 
@@ -722,7 +740,11 @@ class CareerController extends Controller
         $datestamp = Carbon::now()->toDateTimeString();
         $user = request()->user(); // Ambil user yang login
 
-        $career = Career::where('docid', $docid)->whereNotIn('status', ['T', 'X'])->first();
+        $groupCpnyId = strtoupper(trim((string) $request->input('group_cpny_id')));
+        $career = Career::where('docid', $docid)
+            ->where('group_cpny_id', $groupCpnyId)
+            ->whereNotIn('status', ['T', 'X'])
+            ->first();
         if (!$career) {
             return response()->json(['success' => false, 'message' => 'Career not found'], 404);
         }
@@ -757,6 +779,7 @@ class CareerController extends Controller
 
         $t_approval = JobApplyStep::where('docid', $career->docid)
             ->where('jobid', $career->jobid)
+            ->where('group_cpny_id', $career->group_cpny_id)
             ->where('status', 'P')
             ->orderBy('step_order', 'ASC')
             ->first();
@@ -788,6 +811,7 @@ class CareerController extends Controller
         // Tutup semua step pending lainnya
         $t_aprv_sisa = JobApplyStep::where('docid', $career->docid)
             ->where('jobid', $career->jobid)
+            ->where('group_cpny_id', $career->group_cpny_id)
             ->where('status', 'P')
             ->get();
 
@@ -814,7 +838,11 @@ class CareerController extends Controller
         $user = Auth::user();
         $username = $user ? $user->username : 'system';
 
-        $career = Career::where('docid', $docid)->whereNotIn('status', ['T', 'X'])->first();
+        $groupCpnyId = strtoupper(trim((string) $request->input('group_cpny_id')));
+        $career = Career::where('docid', $docid)
+            ->where('group_cpny_id', $groupCpnyId)
+            ->whereNotIn('status', ['T', 'X'])
+            ->first();
         if (!$career) {
             return response()->json(['success' => false, 'message' => 'Career not found'], 404);
         }
@@ -848,12 +876,14 @@ class CareerController extends Controller
         }
 
         TrApproval::where('refnbr', $docid)   // mapping dari docid → refnbr
+            ->where('aprv_cpnyid', $career->cpnyid) // TrApproval has no group_cpny_id; cpnyid disambiguates the docid collision instead
             ->where('status', 'P')
             ->delete();
 
         /** Ambil step terakhir yang sudah Approved / Rejected */
         $targetStep = JobApplyStep::where('docid', $career->docid)
             ->where('jobid', $career->jobid)
+            ->where('group_cpny_id', $career->group_cpny_id)
             ->whereIn('status', ['A', 'R'])
             ->orderBy('step_order', 'DESC')
             ->first();
@@ -900,11 +930,12 @@ class CareerController extends Controller
         }
     }
 
-    public function checkApproval($id, $action)
+    public function checkApproval(Request $request, $id, $action)
     {
         $user = Auth::user(); // user login
 
-        $career = Career::where('docid', $id)->whereNotIn('status', ['T', 'X'])->first();
+        $groupCpnyId = strtoupper(trim((string) $request->query('group_cpny_id')));
+        $career = Career::where('docid', $id)->where('group_cpny_id', $groupCpnyId)->whereNotIn('status', ['T', 'X'])->first();
         if (!$career) {
             return response()->json(['canPerformAction' => false, 'message' => 'Career not found'], 404);
         }
@@ -1381,11 +1412,12 @@ class CareerController extends Controller
             ? 'https://careerdemo.pakuwon.com'
             : 'https://careerjakarta.pakuwon.com';
 
-        $applicant = Applicant::where('applicant_id', $career->applicant_id)->first();
+        $applicant = Applicant::where('applicant_id', $career->applicant_id)->where('group_cpny_id', $career->group_cpny_id)->first();
 
         $jobapply = JobApply::where('docid', $career->docid)
             ->where('applicant_id', $applicant->applicant_id)
             ->where('jobid', $career->jobid)
+            ->where('group_cpny_id', $career->group_cpny_id)
             ->first();
 
         $jobapply->status = 'P';
@@ -1449,13 +1481,15 @@ class CareerController extends Controller
         return response()->json(['success' => 'Email has been sent to applicant.']);
     }
 
-    public function checkRejectPermission($docid)
+    public function checkRejectPermission(Request $request, $docid)
     {
         $user = Auth::user();
 
-        $career = Career::where('docid', $docid)->whereNotIn('status', ['T', 'X'])->first();
+        $groupCpnyId = strtoupper(trim((string) $request->query('group_cpny_id')));
+        $career = Career::where('docid', $docid)->where('group_cpny_id', $groupCpnyId)->whereNotIn('status', ['T', 'X'])->first();
 
         $step = JobApplyStep::where('docid', $docid)
+            ->where('group_cpny_id', $groupCpnyId)
             ->when($career, fn ($q) => $q->where('jobid', $career->jobid))
             ->where('status', 'P')
             ->orderBy('step_order', 'ASC')
@@ -1470,13 +1504,15 @@ class CareerController extends Controller
         return response()->json(['canReject' => false]);
     }
 
-    public function checkRollbackPermission($docid)
+    public function checkRollbackPermission(Request $request, $docid)
     {
         $user = Auth::user();
 
-        $career = Career::where('docid', $docid)->whereNotIn('status', ['T', 'X'])->first();
+        $groupCpnyId = strtoupper(trim((string) $request->query('group_cpny_id')));
+        $career = Career::where('docid', $docid)->where('group_cpny_id', $groupCpnyId)->whereNotIn('status', ['T', 'X'])->first();
 
         $step = JobApplyStep::where('docid', $docid)
+            ->where('group_cpny_id', $groupCpnyId)
             ->when($career, fn ($q) => $q->where('jobid', $career->jobid))
             ->whereIn('status', ['A', 'R'])
             ->orderBy('step_order', 'DESC')
@@ -1495,8 +1531,12 @@ class CareerController extends Controller
     {
         // dd($request->all());
         // $employee = \DB::table('employees')->where('id', $request->employee_id)->first();
-        $applicant = Applicant::where('applicant_id', $request->applicant_id)->first();
         $company = MsCompany::where('cpny_id', $request->cpnyid)->first();
+        // applicant_id is only unique WITHIN a group_cpny_id (SBY/JKT sequences can collide),
+        // so pin it via the company's own group instead of matching applicant_id alone.
+        $applicant = Applicant::where('applicant_id', $request->applicant_id)
+            ->where('group_cpny_id', $company->group_cpny_id ?? null)
+            ->first();
 
         $templatePath = storage_path('app/templates/PayrollConfirmation.docx');
         $tempDocPath = storage_path('app/temp_filled.docx');
@@ -1536,8 +1576,12 @@ class CareerController extends Controller
     {
         // dd($request->all());
         // $employee = \DB::table('employees')->where('id', $request->employee_id)->first();
-        $applicant = Applicant::where('applicant_id', $request->applicant_id)->first();
         $company = MsCompany::where('cpny_id', $request->cpnyid)->first();
+        // applicant_id is only unique WITHIN a group_cpny_id (SBY/JKT sequences can collide),
+        // so pin it via the company's own group instead of matching applicant_id alone.
+        $applicant = Applicant::where('applicant_id', $request->applicant_id)
+            ->where('group_cpny_id', $company->group_cpny_id ?? null)
+            ->first();
 
         $templatePath = storage_path('app/templates/PayrollConfirmation.docx');
         $tempDocPath = storage_path('app/temp_filled.docx');
@@ -1575,9 +1619,11 @@ class CareerController extends Controller
     public function pdfPayrollconfirmation(Request $request)
     {
         // dd($request->all());
-        $applicant = Applicant::where('applicant_id', $request->applicant_id)->first();
-        $company = MsCompany::select(['cpny_id', 'cpny_name'])->where('cpny_id', $request->cpnyid)->first();
-        $payrollconfirm = Payrollconfirm::where('applicant_id', $request->applicant_id)->first();
+        $company = MsCompany::select(['cpny_id', 'cpny_name', 'group_cpny_id'])->where('cpny_id', $request->cpnyid)->first();
+        // applicant_id is only unique WITHIN a group_cpny_id (SBY/JKT sequences can collide),
+        // so pin it via the company's own group instead of matching applicant_id alone.
+        $applicant = Applicant::where('applicant_id', $request->applicant_id)->where('group_cpny_id', $company->group_cpny_id ?? null)->first();
+        $payrollconfirm = Payrollconfirm::where('applicant_id', $request->applicant_id)->where('group_cpny_id', $company->group_cpny_id ?? null)->first();
         $dept = MsDepartment::where('department_id', $request->departementid)->first();
         $t_approval = SignPayroll::where('docid', $request->jobapply_id)
             ->orderby('aprvid', 'ASC')
@@ -1625,8 +1671,12 @@ class CareerController extends Controller
     {
         // dd($request->all());
 
-        $applicant = Applicant::where('applicant_id', $request->applicant_id)->first();
         $company = MsCompany::where('cpny_id', $request->cpnyid)->first();
+        // applicant_id is only unique WITHIN a group_cpny_id (SBY/JKT sequences can collide),
+        // so pin it via the company's own group instead of matching applicant_id alone.
+        $applicant = Applicant::where('applicant_id', $request->applicant_id)
+            ->where('group_cpny_id', $company->group_cpny_id ?? null)
+            ->first();
         $datebirth = Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y');
         $payrollconfirm = Payrollconfirm::where('applicant_id', $request->applicant_id)->first();
 
@@ -1722,8 +1772,12 @@ class CareerController extends Controller
     {
         // dd($request->all());
 
-        $applicant = Applicant::where('applicant_id', $request->applicant_id)->first();
         $company = MsCompany::where('cpny_id', $request->cpnyid)->first();
+        // applicant_id is only unique WITHIN a group_cpny_id (SBY/JKT sequences can collide),
+        // so pin it via the company's own group instead of matching applicant_id alone.
+        $applicant = Applicant::where('applicant_id', $request->applicant_id)
+            ->where('group_cpny_id', $company->group_cpny_id ?? null)
+            ->first();
         $datebirth = Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y');
 
         $data = [
@@ -1743,8 +1797,12 @@ class CareerController extends Controller
     {
         // dd($request->all());
 
-        $applicant = Applicant::where('applicant_id', $request->applicant_id)->first();
         $company = MsCompany::where('cpny_id', $request->cpnyid)->first();
+        // applicant_id is only unique WITHIN a group_cpny_id (SBY/JKT sequences can collide),
+        // so pin it via the company's own group instead of matching applicant_id alone.
+        $applicant = Applicant::where('applicant_id', $request->applicant_id)
+            ->where('group_cpny_id', $company->group_cpny_id ?? null)
+            ->first();
         $datebirth = Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y');
 
         $data = [
@@ -2162,13 +2220,17 @@ class CareerController extends Controller
             return response()->json(['message' => 'Data tidak lengkap'], 422);
         }
 
-        $applicant = Applicant::where('applicant_id', $request->applicant_id)->first();
-        if (!$applicant) {
-            return response()->json(['message' => 'Data pelamar tidak ditemukan'], 422);
-        }
         $company = MsCompany::where('cpny_id', $request->cpnyid)->first();
         if (!$company) {
             return response()->json(['message' => 'Data perusahaan tidak ditemukan'], 422);
+        }
+        // applicant_id is only unique WITHIN a group_cpny_id (SBY/JKT sequences can collide),
+        // so pin it via the company's own group instead of matching applicant_id alone.
+        $applicant = Applicant::where('applicant_id', $request->applicant_id)
+            ->where('group_cpny_id', $company->group_cpny_id)
+            ->first();
+        if (!$applicant) {
+            return response()->json(['message' => 'Data pelamar tidak ditemukan'], 422);
         }
 
         $datebirth = Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y');
@@ -2187,16 +2249,16 @@ class CareerController extends Controller
             $photo = $object->signedUrl($expiration);
         }
 
-        $applicant_family = ApplicantFamily::where('applicant_id', $applicant->applicant_id)->get();
-        $applicant_marital = ApplicantMarital::where('applicant_id', $applicant->applicant_id)->get();
-        $applicant_education = ApplicantEducation::where('applicant_id', $applicant->applicant_id)->orderBy('id', 'asc')->get();
-        $applicant_working = ApplicantWorking::where('applicant_id', $applicant->applicant_id)->get();
-        $applicant_language = ApplicantLanguage::where('applicant_id', $applicant->applicant_id)->get();
-        $applicant_course = ApplicantCourse::where('applicant_id', $applicant->applicant_id)->get();
-        $applicant_sw = ApplicantSW::where('applicant_id', $applicant->applicant_id)->orderBy('sw_type', 'asc')->get();
-        $applicant_skill = ApplicantSkill::where('applicant_id', $applicant->applicant_id)->get();
-        $applicant_driver_license = ApplicantDriverLicense::where('applicant_id', $applicant->applicant_id)->get();
-        $applicant_reference = ApplicantReference::where('applicant_id', $applicant->applicant_id)->get();
+        $applicant_family = ApplicantFamily::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $applicant->group_cpny_id)->get();
+        $applicant_marital = ApplicantMarital::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $applicant->group_cpny_id)->get();
+        $applicant_education = ApplicantEducation::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $applicant->group_cpny_id)->orderBy('id', 'asc')->get();
+        $applicant_working = ApplicantWorking::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $applicant->group_cpny_id)->get();
+        $applicant_language = ApplicantLanguage::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $applicant->group_cpny_id)->get();
+        $applicant_course = ApplicantCourse::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $applicant->group_cpny_id)->get();
+        $applicant_sw = ApplicantSW::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $applicant->group_cpny_id)->orderBy('sw_type', 'asc')->get();
+        $applicant_skill = ApplicantSkill::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $applicant->group_cpny_id)->get();
+        $applicant_driver_license = ApplicantDriverLicense::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $applicant->group_cpny_id)->get();
+        $applicant_reference = ApplicantReference::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $applicant->group_cpny_id)->get();
 
         $data = [
             'cpnyid' => $company->cpny_name,
@@ -2464,8 +2526,11 @@ class CareerController extends Controller
             $payroll->updated_user = $user->username ?? $user->name ?? 'system';
             $payroll->save();
 
-            // Pastikan applicant ada
-            $applicant = Applicant::where('applicant_id', $data['applicant_id'])->firstOrFail();
+            // Pastikan applicant ada — pinned to the resolved payroll's own group_cpny_id since
+            // applicant_id alone can collide across SBY/JKT.
+            $applicant = Applicant::where('applicant_id', $data['applicant_id'])
+                ->where('group_cpny_id', $payroll->group_cpny_id)
+                ->firstOrFail();
 
             // Tentukan penerima email:
             // kalau mapping User->notification_email ada, pakai itu; kalau tidak, fallback ke email applicant
@@ -2517,7 +2582,7 @@ class CareerController extends Controller
     public function sendemail_rejected_applicant($career, $user)
     {
         // Ambil data applicant
-        $applicant = Applicant::where('applicant_id', $career->applicant_id)->first();
+        $applicant = Applicant::where('applicant_id', $career->applicant_id)->where('group_cpny_id', $career->group_cpny_id)->first();
         if (!$applicant || empty($applicant->email_address)) {
             // Jangan gagal total — log saja dan keluar
             \Log::warning('Applicant email not found for rejection notice', [
@@ -2634,7 +2699,7 @@ class CareerController extends Controller
         $object = $bucket->object($row->checklist_attachfile);
         abort_unless($object->exists(), 404, 'File not found on GCS');
 
-        $applicantName = Applicant::where('applicant_id', $row->applicant_id)->value('full_name');
+        $applicantName = Applicant::where('applicant_id', $row->applicant_id)->where('group_cpny_id', $row->group_cpny_id)->value('full_name');
 
         $checklistDescr = Mschecklist::where('checklist_id', $row->checklist_id)
             ->where('group_cpny_id', $row->group_cpny_id)
@@ -2761,7 +2826,8 @@ class CareerController extends Controller
         abort_if(!$id, 404);
 
         $career = ViewCareer::findOrFail($id);
-        $applicant = Applicant::where('applicant_id', $career->applicant_id)->firstOrFail();
+        $this->assertApplicantCompanyAccess(Auth::user(), $career->group_cpny_id, $career->cpnyid);
+        $applicant = Applicant::where('applicant_id', $career->applicant_id)->where('group_cpny_id', $career->group_cpny_id)->firstOrFail();
 
         $fieldMap = [
             'cv' => ['field' => 'upload_cv',            'label' => 'CurriculumVitae'],

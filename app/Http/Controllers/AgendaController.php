@@ -711,8 +711,11 @@ class AgendaController extends Controller
             // }
 
 
-            $jobapply = JobApply::where('docid', $agenda->refid)->first();
+            // $agenda->refid is a JAP docid, only unique WITHIN a group_cpny_id — pair with
+            // $agenda->group_cpny_id or this can pull another group's job apply.
+            $jobapply = JobApply::where('docid', $agenda->refid)->where('group_cpny_id', $agenda->group_cpny_id)->first();
             $jobapplystep = JobApplyStep::where('docid', $jobapply->docid)
+                ->where('group_cpny_id', $agenda->group_cpny_id)
                 ->where('status','A')
                 ->orderby('step_order','DESC')
                 ->first();
@@ -984,10 +987,14 @@ class AgendaController extends Controller
 
     public function sendemail_interview($agenda, $user)
     {
+        // $agenda->refid is a JAP docid, which is only unique WITHIN a group_cpny_id
+        // (unlike Agenda's own docid, which uses a global sequence) — so it must be
+        // paired with $agenda->group_cpny_id or this can pull another group's step.
+        $jobstep = JobApplyStep::where('docid', $agenda->refid)
+            ->where('group_cpny_id', $agenda->group_cpny_id)
+            ->first();
 
-        $jobstep = JobApplyStep::where('docid', $agenda->refid)->first();
-
-        $applicant = Applicant::where('applicant_id', $jobstep->applicant_id)->first();
+        $applicant = Applicant::where('applicant_id', $jobstep->applicant_id)->where('group_cpny_id', $agenda->group_cpny_id)->first();
         $jobposting = Jobposting::where('docid', $jobstep->jobid)->first();
 
         if (!$applicant || empty($applicant->email_address)) {
