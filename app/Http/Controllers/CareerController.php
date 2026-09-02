@@ -1942,6 +1942,8 @@ class CareerController extends Controller
             Payrollconfirm::create([
                 'docid' => $docid,
                 'jobapply_id' => $career->docid,
+                'cpnyid' => $career->cpnyid,
+                'group_cpny_id' => $career->group_cpny_id,
                 'jobid' => $career->jobid,
                 'applicant_id' => $career->applicant_id,
                 'offer_date' => $datenow,
@@ -2061,6 +2063,8 @@ class CareerController extends Controller
                 Tronboarding::create([
                     'docid' => $docid,
                     'jobapply_id' => $career->docid,
+                    'cpnyid' => $career->cpnyid,
+                    'group_cpny_id' => $career->group_cpny_id,
                     'jobid' => $career->jobid,
                     'applicant_id' => $career->applicant_id,
                     'checklist_id' => $cek->checklist_onboarding_id,
@@ -2336,9 +2340,13 @@ class CareerController extends Controller
                 'aprvname.*' => 'required|string',
             ]);
 
+            $career = Career::where('docid', $request->jobapply_id)->first();
+
             foreach ($request->aprvid as $i => $ord) {
                 SignPayroll::create([
                     'docid' => $request->jobapply_id,
+                    'cpnyid' => $career->cpnyid ?? null,
+                    'group_cpny_id' => $career->group_cpny_id ?? null,
                     'aprvid' => $ord,
                     'aprvusername' => $request->aprvusername[$i],  // username
                     'name' => $request->aprvname[$i],      // name
