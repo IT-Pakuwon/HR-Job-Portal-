@@ -6,8 +6,9 @@ use App\Models\TrTicket;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
 
-class EngTicketExport implements FromCollection, WithHeadings
+class EngTicketExport implements FromCollection, WithHeadings, WithMapping
 {
     protected $request;
 
@@ -96,6 +97,7 @@ class EngTicketExport implements FromCollection, WithHeadings
         }
 
         return $query
+            ->with(['site', 'location', 'subLocation'])
             ->orderByDesc('ticketdate')
             ->get([
                 'ticketid',
@@ -104,10 +106,14 @@ class EngTicketExport implements FromCollection, WithHeadings
                 'ticket_categoryid',
                 'ticket_subcategoryid',
                 'issue_summary',
+                'issue_descr',
+                'solution_descr',
                 'pic_ticket',
                 'ticket_priority',
                 'status_pekerjaan',
                 'created_by',
+                'location_id',
+                'sub_location_id',
             ]);
     }
 
@@ -120,10 +126,57 @@ class EngTicketExport implements FromCollection, WithHeadings
             'Category',
             'Subcategory',
             'Summary',
+            'Issue Description',
+            'Solution',
             'PIC',
             'Priority',
             'Workflow',
             'Requester',
+            'Location',
+            'Sub Location',
+        ];
+    }
+
+    public function map($ticket): array
+    {
+        $location = $this->locationDisplayFor($ticket);
+
+        return [
+            $ticket->ticketid,
+            $ticket->ticketdate,
+            $ticket->ticket_type,
+            $ticket->ticket_categoryid,
+            $ticket->ticket_subcategoryid,
+            $ticket->issue_summary,
+            strip_tags((string) $ticket->issue_descr),
+            strip_tags((string) $ticket->solution_descr),
+            $ticket->pic_ticket,
+            $ticket->ticket_priority,
+            $ticket->status_pekerjaan,
+            $ticket->created_by,
+            $location['location_name'],
+            $location['sub_location_name'],
+        ];
+    }
+
+    /**
+     * ENGSUPPORTTICKET / BSSUPPORTTICKET store a ms_site id in location_id.
+     * BA_BS / BA_ENG / BA_FO store a ms_location id in location_id plus a
+     * ms_sub_location id in sub_location_id — mirrors
+     * EngTicketController::locationDisplayFor().
+     */
+    protected function locationDisplayFor(TrTicket $ticket): array
+    {
+        if (in_array($ticket->ticket_type, ['BA_BS', 'BA_ENG', 'BA_FO'], true)) {
+            return [
+                'location_name' => optional($ticket->location)->location_name,
+                'sub_location_name' => optional($ticket->subLocation)->sub_location_name,
+            ];
+        }
+
+        return [
+            'location_name' => optional($ticket->site)->site_name,
+            'sub_location_name' => null,
         ];
     }
 }
