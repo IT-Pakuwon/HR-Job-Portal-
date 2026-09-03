@@ -29,41 +29,58 @@ function bindOpenEditTicket() {
 
 function openEditTicketModal(eid) {
 
-    if (typeof closeTicketDetailModal === 'function') {
+    // The detail/view modal shares a single open/close animation lock with
+    // every other ticket modal (see modal.js) — if it's actually open right
+    // now, its close animation has to finish (~220ms) before openModal()
+    // below is allowed to run, otherwise this call is silently swallowed.
+    const $detailModal = $('#ticketDetailModal');
+    const wasDetailOpen = $detailModal.length && $detailModal.hasClass('flex');
+
+    if (wasDetailOpen && typeof closeTicketDetailModal === 'function') {
         closeTicketDetailModal();
     }
 
-    initIssueDescrEditor();
+    const showEditForm = function () {
 
-    resetCreateTicketForm();
+        initIssueDescrEditor();
 
-    $('#ticket_eid')
-        .val(eid);
+        resetCreateTicketForm();
 
-    $('.modal-title')
-        .text('Edit Ticket');
+        $('#ticket_eid')
+            .val(eid);
 
-    $('.modal-description')
-        .text(
-            'Update existing ticket request.'
+        $('.modal-title')
+            .text('Edit Ticket');
+
+        $('.modal-description')
+            .text(
+                'Update existing ticket request.'
+            );
+
+        $('#btn_submit_ticket')
+            .html(`
+                <i class="fa-solid fa-floppy-disk text-xs"></i>
+                Update Ticket
+            `);
+
+        loadEditTicket(eid);
+
+        openModal(
+            Ticket.modal.create
         );
 
-    $('#btn_submit_ticket')
-        .html(`
-            <i class="fa-solid fa-floppy-disk text-xs"></i>
-            Update Ticket
-        `);
+        const url = `/editoprtekticket/${eid}`;
 
-    loadEditTicket(eid);
+        if (window.location.pathname !== url) {
+            window.history.pushState({}, "", url);
+        }
 
-    openModal(
-        Ticket.modal.create
-    );
+    };
 
-    const url = `/editoprtekticket/${eid}`;
-
-    if (window.location.pathname !== url) {
-        window.history.pushState({}, "", url);
+    if (wasDetailOpen) {
+        setTimeout(showEditForm, 240);
+    } else {
+        showEditForm();
     }
 
 }
