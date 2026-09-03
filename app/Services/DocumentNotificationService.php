@@ -171,7 +171,7 @@ class DocumentNotificationService
                 'COMPLETED'                 => ['key' => 'COMPLETED',  'label' => 'Completed',       'message' => 'Your ticket has been completed successfully.',                      'expire' => 'completed'],
                 'REOPEN'                    => ['key' => 'REOPEN',     'label' => 'Reopened',        'message' => 'Your ticket has been reopened for further action.',                 'expire' => 'attention'],
                 'CANCEL'                    => ['key' => 'CANCEL',     'label' => 'Cancelled',       'message' => 'Your ticket has been cancelled by IT. Please contact IT if needed.','expire' => 'completed'],
-                'REVISED'                   => ['key' => 'REVISED',    'label' => 'Revision Needed', 'message' => 'Your completed ticket was sent back for revision. Please review and respond again.', 'expire' => 'attention'],
+                'REVISED'                   => ['key' => 'REVISED',    'label' => 'Revision Needed', 'message' => 'Your completed ticket was sent back for revision. Please review and edit, then save to resubmit.', 'expire' => 'attention'],
                 'REJECTED'                  => ['key' => 'REJECTED',   'label' => 'Rejected',        'message' => 'Your ticket has been rejected and is now closed.',                  'expire' => 'completed'],
             ];
 
@@ -179,14 +179,15 @@ class DocumentNotificationService
             $longTermStatuses = array_diff(array_keys($ticketMeta), $oneDayStatuses);
 
             // ENVISION CHECKED / SOLVED only ever notifies the PIC (the
-            // requester isn't the one who needs to act). REJECTED and REVISED
-            // are terminal-for-the-PIC / actionable-by-both respectively —
-            // the requester matches via the normal branch below (they can
-            // edit a REVISED ticket, or just needs to know about REJECTED),
-            // and gets an extra OR branch here so the PIC sees it too (they
-            // can respond to a REVISED ticket).
+            // requester isn't the one who needs to act). REJECTED is terminal
+            // and notifies both — the requester matches via the normal
+            // branch below, and gets an extra OR branch here so the PIC sees
+            // it too. REVISED needs no special casing: only the requester
+            // needs to act (edit + save), so it matches via the normal
+            // branch — the PIC is waiting and gets notified separately once
+            // the requester resubmits (see EngTicketController::update()).
             $picExclusiveStatuses = ['ENVISION CHECKED / SOLVED'];
-            $picAlsoStatuses      = ['REJECTED', 'REVISED'];
+            $picAlsoStatuses      = ['REJECTED'];
 
             $tickets = TrTicket::where(fn($q) =>
                     $q->where(fn($q2) =>

@@ -479,7 +479,7 @@
 
         {{-- Calendar Status Filter --}}
         <div id="ticketCalendarStatusFilterRow"
-            class="grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-7">
+            class="grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-8">
 
             <button type="button" class="calendar-status-filter text-left" data-state="UNSCHEDULED">
                 <div class="calendar-status-card flex h-full items-center gap-3 rounded-lg border border-gray-600 bg-gray-300/30 p-3 text-gray-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:text-gray-300 dark:hover:bg-gray-700">
@@ -514,6 +514,18 @@
                         <p class="whitespace-normal break-words text-sm font-medium">Reschedule</p>
                     </div>
                     <p class="shrink-0 text-base font-bold" data-count="RESCHEDULE">0</p>
+                </div>
+            </button>
+
+            <button type="button" class="calendar-status-filter text-left" data-state="REVISED">
+                <div class="calendar-status-card flex h-full items-center gap-3 rounded-lg border border-amber-700 bg-amber-200/20 p-3 text-amber-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-100 hover:shadow-md active:scale-95">
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center">
+                        <span class="h-3 w-3 rounded-full bg-amber-500"></span>
+                    </div>
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="whitespace-normal break-words text-sm font-medium">Revised</p>
+                    </div>
+                    <p class="shrink-0 text-base font-bold" data-count="REVISED">0</p>
                 </div>
             </button>
 

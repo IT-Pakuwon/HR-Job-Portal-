@@ -260,6 +260,11 @@ const EngTicketCalendar = {
                 border: '#c2410c',
                 text:   '#ffffff',
             },
+            REVISED: {
+                bg:     '#f59e0b',
+                border: '#b45309',
+                text:   '#ffffff',
+            },
             LATE: {
                 bg:     '#ef4444',
                 border: '#b91c1c',

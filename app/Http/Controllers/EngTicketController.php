@@ -78,7 +78,6 @@ class EngTicketController extends Controller
         'response' => [
             'CREATED',
             'TRANSFER',
-            'REVISED',
         ],
 
         'process' => [
@@ -894,6 +893,10 @@ class EngTicketController extends Controller
             return 'REJECTED';
         }
 
+        if ($ticket->status_pekerjaan === 'REVISED') {
+            return 'REVISED';
+        }
+
         // Unscheduled means "not yet responded to" — not "no working dates
         // filled". Once Response happens the ticket is always at least
         // Scheduled, whether or not that Response filled working dates.
@@ -1194,6 +1197,11 @@ class EngTicketController extends Controller
             'Invalid ticket type for Engineering Ticket.'
         );
 
+        // Editing a REVISED ticket is the requester's acknowledgement that
+        // they're done — saving reopens it (CREATED) so the PIC can respond
+        // again. Editing a CREATED ticket is a plain edit, no transition.
+        $wasRevised = $ticket->status_pekerjaan === 'REVISED';
+
         DB::connection('pgsql5')->beginTransaction();
 
         try {
@@ -1208,6 +1216,7 @@ class EngTicketController extends Controller
                 'ticketdate' => $request->filled('ticketdate')
                     ? Carbon::parse($request->ticketdate)
                     : $ticket->ticketdate,
+                'status_pekerjaan' => $wasRevised ? 'CREATED' : $ticket->status_pekerjaan,
                 'updated_by' => auth()->user()->username,
             ]);
 
@@ -1217,7 +1226,7 @@ class EngTicketController extends Controller
                 'department_id' => $ticket->department_id,
                 'pic_ticket' => auth()->user()->username,
                 'response_date' => now(),
-                'response_summary' => 'Ticket Updated',
+                'response_summary' => $wasRevised ? 'Ticket Resubmitted After Revision' : 'Ticket Updated',
                 'response_descr' => $ticket->issue_descr,
                 'status_pekerjaan' => $ticket->status_pekerjaan,
                 'status' => 'A',
@@ -1226,9 +1235,9 @@ class EngTicketController extends Controller
 
             DB::connection('pgsql5')->commit();
 
-            // Requester edited a REVISED ticket — let the PIC know the
-            // revision is done and it's ready for them to respond again.
-            if ($ticket->status_pekerjaan === 'REVISED' && $ticket->pic_ticket) {
+            // Requester just resubmitted a REVISED ticket — it's back to
+            // CREATED now, so let the PIC know it's ready for a response.
+            if ($wasRevised && $ticket->pic_ticket) {
                 $eid = Hashids::encode($ticket->id);
                 $docUrl = url('/showoprtekticket/'.$eid);
 
@@ -1241,14 +1250,14 @@ class EngTicketController extends Controller
                     [
                         'cpnyid' => $ticket->cpny_id,
                         'deptname' => $ticket->department_id,
-                        'info' => 'The requester has updated the ticket after your revision request. Please review and respond again.',
+                        'info' => 'The requester has resubmitted the ticket after your revision request. Please respond again.',
                     ]
                 );
 
                 $this->notificationService->ticketWhatsapp(
                     $ticket,
-                    'REVISED',
-                    'Ticket has been updated by the requester following the revision request. Please review and respond.'
+                    'OPEN',
+                    'Dokumen telah selesai direvisi. Ticket sudah kembali Open dan siap untuk direspon.'
                 );
             }
 
@@ -3105,10 +3114,16 @@ class EngTicketController extends Controller
             'transfer', 'completed', 'reopen', 'cancel', 'revise', 'rejected',
         ];
 
+        // 'revise' is the tile key, but the actual status_pekerjaan value is
+        // 'REVISED' — strtoupper('revise') would look for the old retired
+        // 'REVISE' dead-end status instead.
+        $statusValueOverrides = ['revise' => 'REVISED'];
+
         $counts = ['all' => $base()->count()];
 
         foreach ($statuses as $s) {
-            $counts[$s] = $base()->where('status_pekerjaan', strtoupper($s))->count();
+            $statusValue = $statusValueOverrides[$s] ?? strtoupper($s);
+            $counts[$s] = $base()->where('status_pekerjaan', $statusValue)->count();
         }
 
         $counts['my_ticket'] = TrTicket::query()
@@ -3652,7 +3667,6 @@ class EngTicketController extends Controller
                 && in_array($ticket->status_pekerjaan, [
                     'CREATED',
                     'TRANSFER',
-                    'REVISED',
                 ]),
 
             'can_approve' => $isApprover,

@@ -29,6 +29,10 @@ function bindOpenEditTicket() {
 
 function openEditTicketModal(eid) {
 
+    if (typeof closeTicketDetailModal === 'function') {
+        closeTicketDetailModal();
+    }
+
     initIssueDescrEditor();
 
     resetCreateTicketForm();
