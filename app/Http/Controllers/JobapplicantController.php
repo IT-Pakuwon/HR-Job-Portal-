@@ -53,6 +53,14 @@ class JobapplicantController extends Controller
             || $user->hasFullDataScope();
     }
 
+    // HCBPACCESS => bisa lihat semua applicant pada job di company-nya sendiri
+    // (userCpnyIds tetap membatasi ke company user), tanpa dibatasi division lagi.
+    private function canSkipDivisionRestriction($user): bool
+    {
+        return $this->hasFullApplicantAccess($user)
+            || $this->hasRole($user, 'HCBPACCESS');
+    }
+
     // RECACCALLDEPT => bisa lihat semua company, bukan cuma company yang di-assign ke user
     private function userCpnyIds($user): array
     {
@@ -214,11 +222,12 @@ class JobapplicantController extends Controller
         $userCpnyIds = $this->userCpnyIds($user);
 
         $canFilterJobTL = $this->hasFullApplicantAccess($user);
+        $skipDivisionRestriction = $this->canSkipDivisionRestriction($user);
 
-        // RECACCESS (tanpa RECACCALLDEPT/RECDIRACCESS) hanya boleh lihat applicant
-        // pada job posting yang division-nya sama dengan division user tsb.
+        // RECACCESS (tanpa RECACCALLDEPT/RECDIRACCESS/HCBPACCESS) hanya boleh lihat
+        // applicant pada job posting yang division-nya sama dengan division user tsb.
         $allowedJobIds = null;
-        if (!$canFilterJobTL) {
+        if (!$skipDivisionRestriction) {
             $divisionIds = $this->userDivisionIds($user);
 
             $allowedJobIds = DB::connection('mysql3')
@@ -240,7 +249,7 @@ class JobapplicantController extends Controller
             ->when(!empty($userCpnyIds), function ($q) use ($userCpnyIds) {
                 $q->whereIn('cpnyid', $userCpnyIds);
             })
-            ->when(!$canFilterJobTL, function ($q) use ($allowedJobIds) {
+            ->when(!$skipDivisionRestriction, function ($q) use ($allowedJobIds) {
                 $q->whereIn('docidposting', $allowedJobIds);
             });
 
@@ -295,6 +304,7 @@ class JobapplicantController extends Controller
             $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
 
             $canFilterJobTL = $this->hasFullApplicantAccess($user);
+            $skipDivisionRestriction = $this->canSkipDivisionRestriction($user);
             $jobTLExact = $canFilterJobTL ? trim((string) $request->input('job_tl_exact', '')) : '';
             $status = $request->query('status');
             $start = (int) $request->input('start', 0);
@@ -339,7 +349,7 @@ class JobapplicantController extends Controller
                 ->when(!empty($userCpnyIds), function ($q) use ($userCpnyIds) {
                     $q->whereIn('vc.cpnyid', $userCpnyIds);
                 })
-                ->when(!$canFilterJobTL, function ($q) use ($user) {
+                ->when(!$skipDivisionRestriction, function ($q) use ($user) {
                     $divisionIds = $this->userDivisionIds($user);
                     if (empty($divisionIds)) {
                         $q->whereRaw('1=0');
@@ -762,7 +772,7 @@ class JobapplicantController extends Controller
                 ? collect($applicantToGroup)->filter(fn ($g) => $g === $groupKey)->keys()->values()
                 : collect([$applicant->applicant_id]);
 
-            $canFilterJobTL = $this->hasFullApplicantAccess($user);
+            $skipDivisionRestriction = $this->canSkipDivisionRestriction($user);
 
             $rows = DB::connection('mysql3')
                 ->table('viewtrxcareer as vc')
@@ -784,7 +794,7 @@ class JobapplicantController extends Controller
                 ->when(!empty($userCpnyIds), function ($q) use ($userCpnyIds) {
                     $q->whereIn('vc.cpnyid', $userCpnyIds);
                 })
-                ->when(!$canFilterJobTL, function ($q) use ($user) {
+                ->when(!$skipDivisionRestriction, function ($q) use ($user) {
                     $divisionIds = $this->userDivisionIds($user);
                     if (empty($divisionIds)) {
                         $q->whereRaw('1=0');

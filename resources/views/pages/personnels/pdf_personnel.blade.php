@@ -161,6 +161,10 @@
         }
 
         /* ============ APPROVAL ============ */
+        .approval-section {
+            page-break-inside: avoid;
+        }
+
         .approval-table {
             table-layout: fixed;
             border-collapse: collapse;
@@ -201,7 +205,7 @@
         .red { color: #b02a2a; }
         .orange { color: #a15c00; }
 
-        /* ============ TOP BAR / FOOTER ============ */
+        /* ============ TOP BAR ============ */
         .pdf-topbar {
             position: fixed;
             top: -9mm;
@@ -209,21 +213,6 @@
             right: 0;
             height: 4px;
             background: #3730a3;
-        }
-
-        .pdf-footer {
-            position: fixed;
-            bottom: -11mm;
-            left: 0;
-            right: 0;
-            border-top: 1px solid #e5e5e5;
-            padding-top: 6px;
-            font-size: 8.5px;
-            color: #999;
-        }
-
-        .pdf-footer td:last-child {
-            text-align: right;
         }
     </style>
 </head>
@@ -283,13 +272,13 @@
     <table class="meta-row">
         <tr>
             <td style="text-align:left;">{{ $companyName ?: $personnel->cpnyid }}</td>
-            <td style="text-align:right;">Doc No. {{ $personnel->docid }} &nbsp;&middot;&nbsp; {{ $statusDoc }}</td>
+            <td style="text-align:right;">{{ $reqDateFmt }}</td>
         </tr>
     </table>
 
     <div class="doc-title">
         <h1>Personnel Requisition Form</h1>
-        <div class="sub">Daftar Permintaan Personalia &nbsp;&middot;&nbsp; PRF</div>
+        <div class="sub">{{ $personnel->docid }} &nbsp;&middot;&nbsp; {{ $statusDoc }}</div>
     </div>
 
     <hr class="header-rule">
@@ -329,7 +318,7 @@
         <tr>
             <td>
                 <div class="field-label">Immediate Superior <span class="en">( Nama Pengawas )</span></div>
-                <div class="field-value">{{ $personnel->immediate_superior ?: '-' }}</div>
+                <div class="field-value">{{ $immediateSuperiorName ? ucwords(strtolower($immediateSuperiorName)) : ($personnel->immediate_superior ?: '-') }}</div>
             </td>
             <td>
                 <div class="field-label">Superior Position <span class="en">( Jabatan Pengawas )</span></div>
@@ -415,7 +404,7 @@
     </div>
 
     {{-- APPROVAL --}}
-    <div class="section">
+    <div class="section approval-section">
         <div class="section-title">Approval</div>
         <table class="approval-table">
             <tr>
@@ -426,11 +415,5 @@
         </table>
     </div>
 
-    <table class="pdf-footer">
-        <tr>
-            <td>Personnel Requisition Form &middot; {{ $personnel->docid }}</td>
-            <td>Generated {{ \Carbon\Carbon::now()->format('d M Y H:i') }}</td>
-        </tr>
-    </table>
 </body>
 </html>
