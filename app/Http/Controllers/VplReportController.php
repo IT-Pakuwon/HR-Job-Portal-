@@ -66,24 +66,11 @@ class VplReportController extends Controller
             return redirect()->route('login');
         }
 
-        $hasVPCOLLACCESS    = $user->hasRole('VPCOLLACCESS');
-        $hasVPPRMTNACCESS   = $user->hasRole('VPPRMTNACCESS');
-        $hasVPLOYALTYACCESS = $user->hasRole('VPLOYALTYACCESS');
-        $hasStockOutAccess  = $hasVPPRMTNACCESS || $hasVPLOYALTYACCESS;
-
-        $tabCount = 6 + ($hasVPLOYALTYACCESS ? 1 : 0) + ($hasStockOutAccess ? 1 : 0);
+        $tabCount = 8;
 
         $defaultReport = 'stock-voucher';
 
         return view('pages.report-vpl.index', [
-
-            'hasVPCOLLACCESS'    => $hasVPCOLLACCESS,
-
-            'hasVPPRMTNACCESS'   => $hasVPPRMTNACCESS,
-
-            'hasVPLOYALTYACCESS' => $hasVPLOYALTYACCESS,
-
-            'hasStockOutAccess'  => $hasStockOutAccess,
 
             'tabCount'      => $tabCount,
 
