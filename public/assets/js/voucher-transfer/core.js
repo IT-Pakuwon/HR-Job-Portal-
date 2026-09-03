@@ -22,6 +22,7 @@ const VplTransfer = {
         delDetail: '',
         delAttach: '',
         data:    (id) => `${VplTransfer.routes.base}/${id}/data`,
+        pdf:     (id) => `${VplTransfer.routes.base}/${id}/pdf`,
         update:  (id) => `${VplTransfer.routes.base}/${id}/update`,
         cancel:  (id) => `${VplTransfer.routes.base}/${id}/cancel`,
         approve: (id) => `${VplTransfer.routes.base}/${id}/approve`,

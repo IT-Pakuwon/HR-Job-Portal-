@@ -21,6 +21,7 @@ const VplUsage = {
         delDetail:  '',
         delAttach:  '',
         data:    (id) => `${VplUsage.routes.base}/${id}/data`,
+        pdf:     (id) => `${VplUsage.routes.base}/${id}/pdf`,
         update:  (id) => `${VplUsage.routes.base}/${id}/update`,
         cancel:  (id) => `${VplUsage.routes.base}/${id}/cancel`,
         approve: (id) => `${VplUsage.routes.base}/${id}/approve`,
