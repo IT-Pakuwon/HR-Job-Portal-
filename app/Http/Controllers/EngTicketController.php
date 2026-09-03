@@ -111,8 +111,21 @@ class EngTicketController extends Controller
 
     protected function canTransition(
         string $current,
-        string $action
+        string $action,
+        ?string $ticketType = null
     ): bool {
+        // BA_ENG skips the Process step entirely: PIC goes straight from
+        // Response to Pending or Complete.
+        if ($ticketType === self::BA_ENG_TICKET_TYPE) {
+            if ($action === 'process') {
+                return false;
+            }
+
+            if (in_array($action, ['pending', 'complete'], true) && $current === 'RESPONSE') {
+                return true;
+            }
+        }
+
         return in_array(
             $current,
             $this->workflowTransitions[$action] ?? []
@@ -1365,7 +1378,7 @@ class EngTicketController extends Controller
         abort_unless(
             $this->buildActions($ticket)['can_view'],
             403,
-            'You do not have access to view this ticket.'
+            'You do not have acceloh nLohss to view this ticket.'
         );
 
         /*
@@ -2017,7 +2030,8 @@ class EngTicketController extends Controller
         abort_if(
             !$this->canTransition(
                 $ticket->status_pekerjaan,
-                'process'
+                'process',
+                $ticket->ticket_type
             ),
             403
         );
@@ -2177,7 +2191,8 @@ class EngTicketController extends Controller
         abort_if(
             !$this->canTransition(
                 $ticket->status_pekerjaan,
-                'pending'
+                'pending',
+                $ticket->ticket_type
             ),
             403
         );
@@ -2560,7 +2575,8 @@ class EngTicketController extends Controller
         abort_if(
             !$this->canTransition(
                 $ticket->status_pekerjaan,
-                'complete'
+                'complete',
+                $ticket->ticket_type
             ),
             403
         );
@@ -2752,6 +2768,13 @@ class EngTicketController extends Controller
             'working_end_date' => 'nullable|date|after_or_equal:working_start_date',
         ]);
 
+        // BA_ENG has no Process step, so a reopened ticket has nowhere to go
+        // from REOPEN. Land it back on RESPONSE instead, which the PIC can
+        // move to Pending/Complete directly.
+        $reopenStatus = $ticket->ticket_type === self::BA_ENG_TICKET_TYPE
+            ? 'RESPONSE'
+            : 'REOPEN';
+
         DB::connection('pgsql5')->beginTransaction();
 
         try {
@@ -2768,7 +2791,7 @@ class EngTicketController extends Controller
 
                 'status' => 'P',
 
-                'status_pekerjaan' => 'REOPEN',
+                'status_pekerjaan' => $reopenStatus,
 
                 'updated_by' => auth()->user()->username,
             ]);
@@ -2798,7 +2821,7 @@ class EngTicketController extends Controller
 
                 'working_end_date' => $request->working_end_date,
 
-                'status_pekerjaan' => 'REOPEN',
+                'status_pekerjaan' => $reopenStatus,
 
                 'status' => 'A',
 
@@ -3611,6 +3634,7 @@ class EngTicketController extends Controller
 
             'can_process' => $isPIC
                 && $ticket->status === 'P'
+                && $ticket->ticket_type !== self::BA_ENG_TICKET_TYPE
                 && in_array($ticket->status_pekerjaan, [
                     'RESPONSE',
                     'PENDING',
@@ -3621,7 +3645,7 @@ class EngTicketController extends Controller
             'can_pending' => $isPIC
                 && $ticket->status === 'P'
                 && in_array($ticket->status_pekerjaan, [
-                    'PROCESS',
+                    $ticket->ticket_type === self::BA_ENG_TICKET_TYPE ? 'RESPONSE' : 'PROCESS',
                 ]),
 
             'can_transfer' => (
@@ -3639,10 +3663,9 @@ class EngTicketController extends Controller
 
             'can_complete' => $isPIC
                 && $ticket->status === 'P'
-                && in_array($ticket->status_pekerjaan, [
-                    'PROCESS',
-                    'PENDING',
-                ]),
+                && in_array($ticket->status_pekerjaan, $ticket->ticket_type === self::BA_ENG_TICKET_TYPE
+                    ? ['RESPONSE', 'PENDING']
+                    : ['PROCESS', 'PENDING']),
 
             // Staff can reopen a completed/cancelled ticket at any time. The
             // requester additionally gets a self-service window of 7 days
