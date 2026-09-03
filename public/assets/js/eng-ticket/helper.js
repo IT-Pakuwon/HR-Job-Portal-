@@ -571,7 +571,7 @@ function workflowBadgeClass(status) {
                 dark:text-rose-300
             `;
 
-        case 'REVISE':
+        case 'REVISED':
             return `
                 bg-amber-100
                 text-amber-700

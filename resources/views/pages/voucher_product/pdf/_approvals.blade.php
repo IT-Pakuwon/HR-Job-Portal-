@@ -18,16 +18,12 @@
     <tbody>
         <tr>
             <td>
-                <div class="sign-space"></div>
-                <div class="sign-rule"></div>
                 <div class="sign-name">{{ $createdUser ?: '-' }}</div>
                 <div class="sign-meta">Created &middot; {{ optional($createdDate)->format('d M Y H:i') }}</div>
             </td>
             @foreach($approvals as $ap)
                 @php $meta = $statusMeta[$ap->status] ?? ['label' => 'Pending', 'pending' => true]; @endphp
                 <td>
-                    <div class="sign-space"></div>
-                    <div class="sign-rule"></div>
                     <div class="sign-name">{{ $ap->aprv_name }}</div>
                     <div class="sign-meta {{ $meta['pending'] ? 'sign-meta-pending' : '' }}">{{ $meta['label'] }}{{ $ap->aprv_dateafter ? ' · '.\Illuminate\Support\Carbon::parse($ap->aprv_dateafter)->format('d M Y H:i') : '' }}</div>
                 </td>

@@ -417,7 +417,7 @@
             {{-- Revise --}}
             <button type="button" class="text-left">
 
-                <a href="#" class="ticket-status-filter group block h-full" data-status="REVISE">
+                <a href="#" class="ticket-status-filter group block h-full" data-status="REVISED">
 
                     <div
                         class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-amber-700 bg-amber-200/20 p-3 text-amber-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-100 hover:shadow-md active:scale-95">
@@ -429,7 +429,7 @@
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
 
                             <p class="whitespace-normal break-words text-sm font-medium">
-                                Revise
+                                Revised
                             </p>
 
                         </div>
@@ -628,7 +628,7 @@
                             <option value="PROCESS">Process</option>
                             <option value="PENDING">Pending</option>
                             <option value="COMPLETE_REQUESTED">Awaiting Approval</option>
-                            <option value="REVISE">Revise</option>
+                            <option value="REVISED">Revised</option>
                             <option value="TRANSFER">Transfer</option>
                             <option value="REOPEN">Reopen</option>
                             <option value="COMPLETED">Completed</option>

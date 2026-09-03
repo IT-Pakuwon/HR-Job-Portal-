@@ -55,6 +55,7 @@ class TicketNotificationService
         'PENDING APPROVAL',
         'COMPLETED',
         'REVISE',
+        'REVISED',
     ];
 
     protected function getCompanyChatId(

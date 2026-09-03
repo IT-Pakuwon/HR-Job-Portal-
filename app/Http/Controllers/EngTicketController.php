@@ -78,13 +78,13 @@ class EngTicketController extends Controller
         'response' => [
             'CREATED',
             'TRANSFER',
+            'REVISED',
         ],
 
         'process' => [
             'RESPONSE',
             'REOPEN',
             'PENDING',
-            'REVISE',
         ],
 
         'pending' => [
@@ -455,7 +455,7 @@ class EngTicketController extends Controller
 
             'revise' => $baseCount()->where(
                 'status_pekerjaan',
-                'REVISE'
+                'REVISED'
             )->count(),
 
             'rejected' => $baseCount()->where(
@@ -1167,7 +1167,7 @@ class EngTicketController extends Controller
 
         abort_if(
             $ticket->status !== 'P'
-                || $ticket->status_pekerjaan !== 'CREATED',
+                || !in_array($ticket->status_pekerjaan, ['CREATED', 'REVISED'], true),
             403
         );
 
@@ -1219,12 +1219,38 @@ class EngTicketController extends Controller
                 'response_date' => now(),
                 'response_summary' => 'Ticket Updated',
                 'response_descr' => $ticket->issue_descr,
-                'status_pekerjaan' => 'CREATED',
+                'status_pekerjaan' => $ticket->status_pekerjaan,
                 'status' => 'A',
                 'created_by' => auth()->user()->username,
             ]);
 
             DB::connection('pgsql5')->commit();
+
+            // Requester edited a REVISED ticket — let the PIC know the
+            // revision is done and it's ready for them to respond again.
+            if ($ticket->status_pekerjaan === 'REVISED' && $ticket->pic_ticket) {
+                $eid = Hashids::encode($ticket->id);
+                $docUrl = url('/showoprtekticket/'.$eid);
+
+                app(ApprovalController::class)->notifyRequesterOnStatus(
+                    $ticket->ticketid,
+                    'Eng Ticket',
+                    'D',
+                    $ticket->pic_ticket,
+                    $docUrl,
+                    [
+                        'cpnyid' => $ticket->cpny_id,
+                        'deptname' => $ticket->department_id,
+                        'info' => 'The requester has updated the ticket after your revision request. Please review and respond again.',
+                    ]
+                );
+
+                $this->notificationService->ticketWhatsapp(
+                    $ticket,
+                    'REVISED',
+                    'Ticket has been updated by the requester following the revision request. Please review and respond.'
+                );
+            }
 
             if ($request->hasFile('attachments')) {
                 $meta = [
@@ -1919,10 +1945,12 @@ class EngTicketController extends Controller
     }
 
     /**
-     * Sends the ticket back to the PIC for rework, with a required reason.
-     * Unlike rejectTicket(), the ticket stays actionable — it lands in the
-     * REVISE stage and the PIC can click "Process" again once they've seen
-     * the reason (REVISE is in $workflowTransitions['process']).
+     * Sends the ticket back to REVISED, with a required reason. Unlike
+     * rejectTicket(), the ticket stays actionable: the requester can edit
+     * it again, and the PIC/Eng can respond again — same permissions as a
+     * freshly created ticket (see workflowTransitions['response'] and the
+     * can_edit/can_response checks in buildActions()), but kept as its own
+     * status so revised tickets stay distinguishable from newly created ones.
      */
     public function reviseTicket(Request $request, $hash)
     {
@@ -1951,7 +1979,7 @@ class EngTicketController extends Controller
             function (string $refnbr, Carbon $now) use ($ticket, $request, $docUrl) {
                 $ticket->update([
                     'status' => 'P',
-                    'status_pekerjaan' => 'REVISE',
+                    'status_pekerjaan' => 'REVISED',
                     'updated_by' => auth()->user()->username,
                 ]);
 
@@ -1963,7 +1991,7 @@ class EngTicketController extends Controller
                     'response_date' => $now,
                     'response_summary' => 'Ticket Completion Revised',
                     'response_descr' => $request->response_descr,
-                    'status_pekerjaan' => 'REVISE',
+                    'status_pekerjaan' => 'REVISED',
                     'status' => 'A',
                     'created_by' => auth()->user()->username,
                 ]);
@@ -3605,7 +3633,7 @@ class EngTicketController extends Controller
 
             'can_edit' => $isRequester
                 && $ticket->status === 'P'
-                && $ticket->status_pekerjaan === 'CREATED',
+                && in_array($ticket->status_pekerjaan, ['CREATED', 'REVISED'], true),
 
             'can_cancel' => (
                 ($isRequester && $ticket->status_pekerjaan === 'CREATED')
@@ -3624,6 +3652,7 @@ class EngTicketController extends Controller
                 && in_array($ticket->status_pekerjaan, [
                     'CREATED',
                     'TRANSFER',
+                    'REVISED',
                 ]),
 
             'can_approve' => $isApprover,
@@ -3639,7 +3668,6 @@ class EngTicketController extends Controller
                     'RESPONSE',
                     'PENDING',
                     'REOPEN',
-                    'REVISE',
                 ]),
 
             'can_pending' => $isPIC

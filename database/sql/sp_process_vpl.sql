@@ -1,15 +1,32 @@
--- Lives on connection `pgsql5` / database `db_das_test`. Not deployed by any
+-- Lives on connection `pgsql5` / database `db_das` (production). Not deployed by any
 -- migration/trigger/pg_cron job today; every doctype (VPR/VPT/VPU/VPS) is
 -- invoked manually via `CALL sp_process_vpl(doctype, docid, cpny_id, activity, user)`.
--- This file is the first version-controlled copy of the live definition
--- (previously DB-only). Keep it in sync by hand after any live ALTER/CREATE
--- OR REPLACE against pgsql5 until proper migrations are set up for it.
+-- Keep this file in sync by hand after any live ALTER/CREATE OR REPLACE against
+-- pgsql5 until proper migrations are set up for it.
 --
--- 2026-08-10: added a cross-document guard in the VPS branch (SPS-06 gap,
--- see agenthub/vpl_sp_qa_5_settlement_results.md) — a Settlement Submit is
--- now blocked while another settlement document still has an active,
--- non-reversed ledger credit for the same usage line, preventing the same
--- usage line from being over-credited by stacked settlement documents.
+-- 2026-09-03: re-synced from the LIVE db_das definition via pg_get_functiondef —
+-- the previous version-controlled copy (2643 lines) was stale relative to
+-- production (3004 lines) and was missing the usagetype-aware Return handling
+-- and the department('CUSTOMERSERVICE')-based posting-period logic that had
+-- already been deployed directly to prod by someone else. On top of that live
+-- copy, this sync ALSO fixes a gap in that same department-based posting-date
+-- work: VPT/VPU/VPS's v_perpost/v_year/v_month (the ms_vpl_product_bal period
+-- bucket) had already been switched to use CURRENT_TIMESTAMP (non-CUSTOMERSERVICE
+-- / "Promotion") vs the document's own date (CUSTOMERSERVICE / "Loyalty"), but
+-- the tr_vpl_ledger row's own refdate/postdate columns were left reading the raw
+-- document date field unconditionally in all 4 ledger INSERTs (2 in VPT, 1 in
+-- VPU, 1 in VPS) — so the ledger and the balance table disagreed on posting date.
+-- Added a `v_post_date` variable set identically to how v_perpost/etc. are
+-- already decided in each branch, and pointed those 4 INSERTs at it instead.
+-- Net posting-date rule per doctype, confirmed with the user:
+--   Receive             -> receive_date (unchanged)
+--   Transfer/ReturnTf   -> completed-approval time (CURRENT_TIMESTAMP at SP run)
+--   Usage/Return-Usage at Promotion (dept <> CUSTOMERSERVICE) -> completed-approval time
+--   Usage/Return-Usage at Loyalty (dept = CUSTOMERSERVICE)    -> usage_date (unchanged)
+--   Settlement at Promotion (dept <> CUSTOMERSERVICE) -> completed-approval time
+--   Settlement at Loyalty (dept = CUSTOMERSERVICE)    -> settlement_date (unchanged)
+-- Verified by a dry-run CREATE OR REPLACE PROCEDURE wrapped in BEGIN/ROLLBACK
+-- against live db_das (compiled clean, nothing committed) before real deploy.
 CREATE OR REPLACE PROCEDURE public.sp_process_vpl(IN p_doctype character varying, IN p_docid character varying, IN p_cpny_id character varying, IN p_activity character varying, IN p_user character varying)
  LANGUAGE plpgsql
 AS $procedure$
@@ -22,6 +39,11 @@ DECLARE
     v_activity  VARCHAR(20);
     v_qty       INTEGER;
     v_row_count INTEGER := 0;
+    v_usagetype VARCHAR(20);
+		v_department VARCHAR(25);
+		v_usage_date DATE;
+		v_settlement_date DATE;
+		v_post_date TIMESTAMP;
 
     r_detail RECORD;
 BEGIN
@@ -190,6 +212,38 @@ BEGIN
 									r_detail.linenbr,
 									r_detail.qty_receive;
 					END IF;
+
+            /*
+            ============================================================
+            VALIDASI STATUS MASTER PRODUCT & WAREHOUSE (added 2026-08-10, SPM-02 fix)
+
+            Hanya diblokir jika master DITEMUKAN dan berstatus non-aktif.
+            Baris master yang tidak ditemukan sama sekali tidak diblokir
+            di sini (di luar scope perbaikan ini).
+            ============================================================
+            */
+
+            IF EXISTS (
+                SELECT 1 FROM ms_vpl_product p
+                WHERE p.product_id = r_detail.product_id
+                  AND p.cpnyid = p_cpny_id
+                  AND COALESCE(p.status, '') <> 'A'
+            ) THEN
+                RAISE EXCEPTION
+                    'Product % (company %) berstatus tidak aktif. Dokumen %, line %.',
+                    r_detail.product_id, p_cpny_id, p_docid, r_detail.linenbr;
+            END IF;
+
+            IF EXISTS (
+                SELECT 1 FROM ms_vpl_warehouse w
+                WHERE w.whs_id = r_detail.whs_id
+                  AND w.cpnyid = p_cpny_id
+                  AND COALESCE(w.status, '') <> 'A'
+            ) THEN
+                RAISE EXCEPTION
+                    'Warehouse % (company %) berstatus tidak aktif. Dokumen %, line %.',
+                    r_detail.whs_id, p_cpny_id, p_docid, r_detail.linenbr;
+            END IF;
 
 					/*
 					============================================================
@@ -744,33 +798,60 @@ BEGIN
     ================================================================
     */
 
-    SELECT
-        h.cpnyid,
-        TO_CHAR(h.transfer_date, 'YYYYMM'),
-        TO_CHAR(h.transfer_date, 'YYYY'),
-        EXTRACT(MONTH FROM h.transfer_date)::INTEGER
-    INTO
-        v_cpnyid,
-        v_perpost,
-        v_year,
-        v_month
-    FROM tr_vpl_transfer h
-    WHERE h.transfer_id = p_docid
-      AND h.cpnyid = p_cpny_id
-    FOR UPDATE;
+--     SELECT
+--         h.cpnyid,
+--         TO_CHAR(h.transfer_date, 'YYYYMM'),
+--         TO_CHAR(h.transfer_date, 'YYYY'),
+--         EXTRACT(MONTH FROM h.transfer_date)::INTEGER
+--     INTO
+--         v_cpnyid,
+--         v_perpost,
+--         v_year,
+--         v_month
+--     FROM tr_vpl_transfer h
+--     WHERE h.transfer_id = p_docid
+--       AND h.cpnyid = p_cpny_id
+--     FOR UPDATE;
+-- 
+--     IF NOT FOUND THEN
+--         RAISE EXCEPTION
+--             'Dokumen transfer % dengan company % tidak ditemukan.',
+--             p_docid,
+--             p_cpny_id;
+--     END IF;
+-- 
+--     IF v_perpost IS NULL THEN
+--         RAISE EXCEPTION
+--             'Transfer date dokumen % tidak boleh kosong.',
+--             p_docid;
+--     END IF;
 
-    IF NOT FOUND THEN
-        RAISE EXCEPTION
-            'Dokumen transfer % dengan company % tidak ditemukan.',
-            p_docid,
-            p_cpny_id;
-    END IF;
+		SELECT
+				h.cpnyid
+		INTO
+				v_cpnyid
+		FROM tr_vpl_transfer h
+		WHERE h.transfer_id = p_docid
+			AND h.cpnyid = p_cpny_id
+		FOR UPDATE;
 
-    IF v_perpost IS NULL THEN
-        RAISE EXCEPTION
-            'Transfer date dokumen % tidak boleh kosong.',
-            p_docid;
-    END IF;
+		IF NOT FOUND THEN
+				RAISE EXCEPTION
+						'Dokumen transfer % dengan company % tidak ditemukan.',
+						p_docid,
+						p_cpny_id;
+		END IF;
+
+		/*
+		================================================================
+		PERIODE POSTING MENGGUNAKAN DATETIME SAAT PROSES
+		================================================================
+		*/
+
+		v_perpost := TO_CHAR(CURRENT_TIMESTAMP, 'YYYYMM');
+		v_year    := TO_CHAR(CURRENT_TIMESTAMP, 'YYYY');
+		v_month   := EXTRACT(MONTH FROM CURRENT_TIMESTAMP)::INTEGER;
+		v_post_date := CURRENT_TIMESTAMP;
 
     /*
     ================================================================
@@ -853,6 +934,49 @@ BEGIN
                 r_detail.linenbr,
                 r_detail.qty_transfer;
         END IF;
+
+            /*
+            ============================================================
+            VALIDASI STATUS MASTER PRODUCT & WAREHOUSE (added 2026-08-10, SPM-02 fix)
+
+            Hanya diblokir jika master DITEMUKAN dan berstatus non-aktif.
+            Baris master yang tidak ditemukan sama sekali tidak diblokir
+            di sini (di luar scope perbaikan ini).
+            ============================================================
+            */
+
+            IF EXISTS (
+                SELECT 1 FROM ms_vpl_product p
+                WHERE p.product_id = r_detail.product_id
+                  AND p.cpnyid = p_cpny_id
+                  AND COALESCE(p.status, '') <> 'A'
+            ) THEN
+                RAISE EXCEPTION
+                    'Product % (company %) berstatus tidak aktif. Dokumen %, line %.',
+                    r_detail.product_id, p_cpny_id, p_docid, r_detail.linenbr;
+            END IF;
+
+            IF EXISTS (
+                SELECT 1 FROM ms_vpl_warehouse w
+                WHERE w.whs_id = r_detail.from_whs_id
+                  AND w.cpnyid = p_cpny_id
+                  AND COALESCE(w.status, '') <> 'A'
+            ) THEN
+                RAISE EXCEPTION
+                    'Warehouse % (company %) berstatus tidak aktif. Dokumen %, line %.',
+                    r_detail.from_whs_id, p_cpny_id, p_docid, r_detail.linenbr;
+            END IF;
+
+            IF EXISTS (
+                SELECT 1 FROM ms_vpl_warehouse w
+                WHERE w.whs_id = r_detail.to_whs_id
+                  AND w.cpnyid = p_cpny_id
+                  AND COALESCE(w.status, '') <> 'A'
+            ) THEN
+                RAISE EXCEPTION
+                    'Warehouse % (company %) berstatus tidak aktif. Dokumen %, line %.',
+                    r_detail.to_whs_id, p_cpny_id, p_docid, r_detail.linenbr;
+            END IF;
 
         /*
         ============================================================
@@ -1030,10 +1154,10 @@ BEGIN
         VALUES
         (
             p_docid,
-            r_detail.transfer_date,
+            v_post_date,
             r_detail.ref_transfer_id,
             p_cpny_id,
-            r_detail.transfer_date,
+            v_post_date,
             v_perpost,
             r_detail.linenbr,
             r_detail.product_id,
@@ -1084,10 +1208,10 @@ BEGIN
         VALUES
         (
             p_docid,
-            r_detail.transfer_date,
+            v_post_date,
             r_detail.ref_transfer_id,
             p_cpny_id,
-            r_detail.transfer_date,
+            v_post_date,
             v_perpost,
             r_detail.linenbr,
             r_detail.product_id,
@@ -1484,8 +1608,6 @@ BEGIN
         v_activity,
         v_row_count;
 		
-    
-		
     ELSIF UPPER(TRIM(p_doctype)) = 'VPU' THEN
 
 			/*
@@ -1503,16 +1625,54 @@ BEGIN
 			================================================================
 			*/
 
+-- 			SELECT
+-- 					h.cpnyid,
+-- 					TO_CHAR(h.usage_date, 'YYYYMM'),
+-- 					TO_CHAR(h.usage_date, 'YYYY'),
+-- 					EXTRACT(MONTH FROM h.usage_date)::INTEGER,
+-- 					h.usagetype
+-- 			INTO
+-- 					v_cpnyid,
+-- 					v_perpost,
+-- 					v_year,
+-- 					v_month,
+-- 					v_usagetype
+-- 			FROM tr_vpl_usage h
+-- 			WHERE h.usage_id = p_docid
+-- 				AND h.cpnyid = p_cpny_id
+-- 			FOR UPDATE;
+-- 
+-- 			IF NOT FOUND THEN
+-- 					RAISE EXCEPTION
+-- 							'Dokumen usage % dengan company % tidak ditemukan.',
+-- 							p_docid,
+-- 							p_cpny_id;
+-- 			END IF;
+-- 
+-- 			IF v_perpost IS NULL THEN
+-- 					RAISE EXCEPTION
+-- 							'Usage date dokumen % tidak boleh kosong.',
+-- 							p_docid;
+-- 			END IF;
+-- 
+-- 			IF v_usagetype NOT IN ('Usage', 'Return') THEN
+-- 					RAISE EXCEPTION
+-- 							'Usagetype % pada dokumen % tidak dikenali (harus Usage atau Return).',
+-- 							v_usagetype,
+-- 							p_docid;
+-- 			END IF;
+
+
 			SELECT
 					h.cpnyid,
-					TO_CHAR(h.usage_date, 'YYYYMM'),
-					TO_CHAR(h.usage_date, 'YYYY'),
-					EXTRACT(MONTH FROM h.usage_date)::INTEGER
+					h.usage_date,
+					h.usagetype,
+					h.department
 			INTO
 					v_cpnyid,
-					v_perpost,
-					v_year,
-					v_month
+					v_usage_date,
+					v_usagetype,
+					v_department
 			FROM tr_vpl_usage h
 			WHERE h.usage_id = p_docid
 				AND h.cpnyid = p_cpny_id
@@ -1525,10 +1685,41 @@ BEGIN
 							p_cpny_id;
 			END IF;
 
-			IF v_perpost IS NULL THEN
+			IF v_usagetype NOT IN ('Usage', 'Return') THEN
 					RAISE EXCEPTION
-							'Usage date dokumen % tidak boleh kosong.',
+							'Usagetype % pada dokumen % tidak dikenali (harus Usage atau Return).',
+							v_usagetype,
 							p_docid;
+			END IF;
+				
+			/*
+			================================================================
+			PENENTUAN PERIODE POSTING
+			CUSTOMERSERVICE: pakai usage_date
+			Selain CUSTOMERSERVICE: pakai datetime saat SP dijalankan
+			================================================================
+			*/
+		
+			IF UPPER(TRIM(COALESCE(v_department, ''))) = 'CUSTOMERSERVICE' THEN
+
+					IF v_usage_date IS NULL THEN
+							RAISE EXCEPTION
+									'Usage date dokumen % tidak boleh kosong untuk department CUSTOMERSERVICE.',
+									p_docid;
+					END IF;
+
+					v_perpost := TO_CHAR(v_usage_date, 'YYYYMM');
+					v_year    := TO_CHAR(v_usage_date, 'YYYY');
+					v_month   := EXTRACT(MONTH FROM v_usage_date)::INTEGER;
+					v_post_date := v_usage_date;
+
+			ELSE
+
+					v_perpost := TO_CHAR(CURRENT_TIMESTAMP, 'YYYYMM');
+					v_year    := TO_CHAR(CURRENT_TIMESTAMP, 'YYYY');
+					v_month   := EXTRACT(MONTH FROM CURRENT_TIMESTAMP)::INTEGER;
+					v_post_date := CURRENT_TIMESTAMP;
+
 			END IF;
 
 			/*
@@ -1546,6 +1737,7 @@ BEGIN
 							d.expired_date,
 							d.whs_id,
 							COALESCE(d.qty_usage, 0) AS qty_usage,
+							COALESCE(d.qty_return_usage, 0) AS qty_return_usage,
 							d.purpose_id,
 							d.ref_usage_id,
 							h.usage_date
@@ -1589,7 +1781,7 @@ BEGIN
 									r_detail.linenbr;
 					END IF;
 
-					IF r_detail.qty_usage <= 0 THEN
+					IF v_usagetype = 'Usage' AND r_detail.qty_usage <= 0 THEN
 							RAISE EXCEPTION
 									'Qty usage harus lebih besar dari 0. '
 									'Dokumen %, line %, qty %.',
@@ -1597,6 +1789,47 @@ BEGIN
 									r_detail.linenbr,
 									r_detail.qty_usage;
 					END IF;
+
+					IF v_usagetype = 'Return' AND r_detail.qty_return_usage <= 0 THEN
+							RAISE EXCEPTION
+									'Qty return usage harus lebih besar dari 0. '
+									'Dokumen %, line %, qty %.',
+									p_docid,
+									r_detail.linenbr,
+									r_detail.qty_return_usage;
+					END IF;
+
+            /*
+            ============================================================
+            VALIDASI STATUS MASTER PRODUCT & WAREHOUSE (added 2026-08-10, SPM-02 fix)
+
+            Hanya diblokir jika master DITEMUKAN dan berstatus non-aktif.
+            Baris master yang tidak ditemukan sama sekali tidak diblokir
+            di sini (di luar scope perbaikan ini).
+            ============================================================
+            */
+
+            IF EXISTS (
+                SELECT 1 FROM ms_vpl_product p
+                WHERE p.product_id = r_detail.product_id
+                  AND p.cpnyid = p_cpny_id
+                  AND COALESCE(p.status, '') <> 'A'
+            ) THEN
+                RAISE EXCEPTION
+                    'Product % (company %) berstatus tidak aktif. Dokumen %, line %.',
+                    r_detail.product_id, p_cpny_id, p_docid, r_detail.linenbr;
+            END IF;
+
+            IF EXISTS (
+                SELECT 1 FROM ms_vpl_warehouse w
+                WHERE w.whs_id = r_detail.whs_id
+                  AND w.cpnyid = p_cpny_id
+                  AND COALESCE(w.status, '') <> 'A'
+            ) THEN
+                RAISE EXCEPTION
+                    'Warehouse % (company %) berstatus tidak aktif. Dokumen %, line %.',
+                    r_detail.whs_id, p_cpny_id, p_docid, r_detail.linenbr;
+            END IF;
 
 					/*
 					============================================================
@@ -1653,24 +1886,33 @@ BEGIN
 
 							/*
 							Qty transaksi disimpan positif dulu.
-							Pada insert ledger nanti dijadikan negatif.
+							Pada insert ledger nanti dijadikan negatif untuk Usage,
+							positif untuk Return.
 							*/
 
-							v_qty := r_detail.qty_usage;
+							v_qty := CASE
+									WHEN v_usagetype = 'Return' THEN r_detail.qty_return_usage
+									ELSE r_detail.qty_usage
+							END;
 
 					ELSIF v_activity IN ('Reject', 'Revise') THEN
 
 							/*
-							Usage aktif harus mempunyai net ledger negatif.
+							Usage aktif harus mempunyai net ledger negatif;
+							Return aktif harus mempunyai net ledger positif
+							(kebalikan dari Usage, karena Submit-Return menulis qty positif).
 							*/
 
-							IF v_qty >= 0 THEN
+							IF (v_usagetype = 'Usage' AND v_qty >= 0)
+								OR (v_usagetype = 'Return' AND v_qty <= 0) THEN
 									RAISE EXCEPTION
-											'Usage tidak dapat di-%. '
-											'Dokumen sudah tidak mempunyai usage aktif. '
+											'% tidak dapat di-%. '
+											'Dokumen sudah tidak mempunyai % aktif. '
 											'Dokumen %, line %, product %, expired date %, '
 											'warehouse %, net ledger %.',
+											v_usagetype,
 											LOWER(v_activity),
+											LOWER(v_usagetype),
 											p_docid,
 											r_detail.linenbr,
 											r_detail.product_id,
@@ -1694,11 +1936,9 @@ BEGIN
 					INSERT TR_VPL_LEDGER
 					============================================================
 
-					Submit:
-							qty = -v_qty
-
-					Reject / Revise:
-							qty = +v_qty
+					Usage  Submit: qty = -v_qty | Reject/Revise: qty = +v_qty
+					Return Submit: qty = +v_qty | Reject/Revise: qty = -v_qty
+					(Return membalikkan arah stock dibanding Usage)
 					============================================================
 					*/
 
@@ -1725,23 +1965,27 @@ BEGIN
 					VALUES
 					(
 							p_docid,
-							r_detail.usage_date,
+							v_post_date,
 							r_detail.ref_usage_id,
 							p_cpny_id,
-							r_detail.usage_date,
+							v_post_date,
 							v_perpost,
 							r_detail.linenbr,
 							r_detail.product_id,
 							r_detail.expired_date,
 							r_detail.whs_id,
 							r_detail.purpose_id,
-							'Usage',
+							v_usagetype,
 							v_activity,
 
 							CASE
-									WHEN v_activity = 'Submit'
+									WHEN v_activity = 'Submit' AND v_usagetype = 'Usage'
 											THEN v_qty * -1
-									ELSE v_qty
+									WHEN v_activity = 'Submit' AND v_usagetype = 'Return'
+											THEN v_qty
+									WHEN v_activity IN ('Reject', 'Revise') AND v_usagetype = 'Usage'
+											THEN v_qty
+									ELSE v_qty * -1
 							END,
 
 							'A',
@@ -1858,231 +2102,303 @@ BEGIN
 							perpost = v_perpost,
 
 							period01in =
-									COALESCE(period01in, 0)
-									+ CASE
-											WHEN v_month = 1
-											 AND v_activity IN ('Reject', 'Revise')
-											THEN v_qty
-											ELSE 0
-										END,
+							COALESCE(period01in, 0)
+							+ CASE
+									WHEN v_month = 1
+									 AND (
+										 (v_usagetype = 'Usage' AND v_activity IN ('Reject', 'Revise'))
+										 OR (v_usagetype = 'Return' AND v_activity = 'Submit')
+									 )
+									THEN v_qty
+									ELSE 0
+								END,
 
-							period01out =
-									COALESCE(period01out, 0)
-									+ CASE
-											WHEN v_month = 1
-											 AND v_activity = 'Submit'
-											THEN v_qty
-											ELSE 0
-										END,
+						period01out =
+								COALESCE(period01out, 0)
+								+ CASE
+										WHEN v_month = 1
+										 AND (
+											 (v_usagetype = 'Usage' AND v_activity = 'Submit')
+											 OR (v_usagetype = 'Return' AND v_activity IN ('Reject', 'Revise'))
+										 )
+										THEN v_qty
+										ELSE 0
+									END,
 
 
 							period02in =
-									COALESCE(period02in, 0)
-									+ CASE
-											WHEN v_month = 2
-											 AND v_activity IN ('Reject', 'Revise')
-											THEN v_qty
-											ELSE 0
-										END,
+							COALESCE(period02in, 0)
+							+ CASE
+									WHEN v_month = 2
+									 AND (
+										 (v_usagetype = 'Usage' AND v_activity IN ('Reject', 'Revise'))
+										 OR (v_usagetype = 'Return' AND v_activity = 'Submit')
+									 )
+									THEN v_qty
+									ELSE 0
+								END,
 
-							period02out =
-									COALESCE(period02out, 0)
-									+ CASE
-											WHEN v_month = 2
-											 AND v_activity = 'Submit'
-											THEN v_qty
-											ELSE 0
-										END,
+						period02out =
+								COALESCE(period02out, 0)
+								+ CASE
+										WHEN v_month = 2
+										 AND (
+											 (v_usagetype = 'Usage' AND v_activity = 'Submit')
+											 OR (v_usagetype = 'Return' AND v_activity IN ('Reject', 'Revise'))
+										 )
+										THEN v_qty
+										ELSE 0
+									END,
 
 
 							period03in =
-									COALESCE(period03in, 0)
-									+ CASE
-											WHEN v_month = 3
-											 AND v_activity IN ('Reject', 'Revise')
-											THEN v_qty
-											ELSE 0
-										END,
+							COALESCE(period03in, 0)
+							+ CASE
+									WHEN v_month = 3
+									 AND (
+										 (v_usagetype = 'Usage' AND v_activity IN ('Reject', 'Revise'))
+										 OR (v_usagetype = 'Return' AND v_activity = 'Submit')
+									 )
+									THEN v_qty
+									ELSE 0
+								END,
 
-							period03out =
-									COALESCE(period03out, 0)
-									+ CASE
-											WHEN v_month = 3
-											 AND v_activity = 'Submit'
-											THEN v_qty
-											ELSE 0
-										END,
+						period03out =
+								COALESCE(period03out, 0)
+								+ CASE
+										WHEN v_month = 3
+										 AND (
+											 (v_usagetype = 'Usage' AND v_activity = 'Submit')
+											 OR (v_usagetype = 'Return' AND v_activity IN ('Reject', 'Revise'))
+										 )
+										THEN v_qty
+										ELSE 0
+									END,
 
 
 							period04in =
-									COALESCE(period04in, 0)
-									+ CASE
-											WHEN v_month = 4
-											 AND v_activity IN ('Reject', 'Revise')
-											THEN v_qty
-											ELSE 0
-										END,
+							COALESCE(period04in, 0)
+							+ CASE
+									WHEN v_month = 4
+									 AND (
+										 (v_usagetype = 'Usage' AND v_activity IN ('Reject', 'Revise'))
+										 OR (v_usagetype = 'Return' AND v_activity = 'Submit')
+									 )
+									THEN v_qty
+									ELSE 0
+								END,
 
-							period04out =
-									COALESCE(period04out, 0)
-									+ CASE
-											WHEN v_month = 4
-											 AND v_activity = 'Submit'
-											THEN v_qty
-											ELSE 0
-										END,
+						period04out =
+								COALESCE(period04out, 0)
+								+ CASE
+										WHEN v_month = 4
+										 AND (
+											 (v_usagetype = 'Usage' AND v_activity = 'Submit')
+											 OR (v_usagetype = 'Return' AND v_activity IN ('Reject', 'Revise'))
+										 )
+										THEN v_qty
+										ELSE 0
+									END,
 
 
 							period05in =
-									COALESCE(period05in, 0)
-									+ CASE
-											WHEN v_month = 5
-											 AND v_activity IN ('Reject', 'Revise')
-											THEN v_qty
-											ELSE 0
-										END,
+							COALESCE(period05in, 0)
+							+ CASE
+									WHEN v_month = 5
+									 AND (
+										 (v_usagetype = 'Usage' AND v_activity IN ('Reject', 'Revise'))
+										 OR (v_usagetype = 'Return' AND v_activity = 'Submit')
+									 )
+									THEN v_qty
+									ELSE 0
+								END,
 
-							period05out =
-									COALESCE(period05out, 0)
-									+ CASE
-											WHEN v_month = 5
-											 AND v_activity = 'Submit'
-											THEN v_qty
-											ELSE 0
-										END,
+						period05out =
+								COALESCE(period05out, 0)
+								+ CASE
+										WHEN v_month = 5
+										 AND (
+											 (v_usagetype = 'Usage' AND v_activity = 'Submit')
+											 OR (v_usagetype = 'Return' AND v_activity IN ('Reject', 'Revise'))
+										 )
+										THEN v_qty
+										ELSE 0
+									END,
 
 
 							period06in =
-									COALESCE(period06in, 0)
-									+ CASE
-											WHEN v_month = 6
-											 AND v_activity IN ('Reject', 'Revise')
-											THEN v_qty
-											ELSE 0
-										END,
+							COALESCE(period06in, 0)
+							+ CASE
+									WHEN v_month = 6
+									 AND (
+										 (v_usagetype = 'Usage' AND v_activity IN ('Reject', 'Revise'))
+										 OR (v_usagetype = 'Return' AND v_activity = 'Submit')
+									 )
+									THEN v_qty
+									ELSE 0
+								END,
 
-							period06out =
-									COALESCE(period06out, 0)
-									+ CASE
-											WHEN v_month = 6
-											 AND v_activity = 'Submit'
-											THEN v_qty
-											ELSE 0
-										END,
+						period06out =
+								COALESCE(period06out, 0)
+								+ CASE
+										WHEN v_month = 6
+										 AND (
+											 (v_usagetype = 'Usage' AND v_activity = 'Submit')
+											 OR (v_usagetype = 'Return' AND v_activity IN ('Reject', 'Revise'))
+										 )
+										THEN v_qty
+										ELSE 0
+									END,
 
 
 							period07in =
-									COALESCE(period07in, 0)
-									+ CASE
-											WHEN v_month = 7
-											 AND v_activity IN ('Reject', 'Revise')
-											THEN v_qty
-											ELSE 0
-										END,
+							COALESCE(period07in, 0)
+							+ CASE
+									WHEN v_month = 7
+									 AND (
+										 (v_usagetype = 'Usage' AND v_activity IN ('Reject', 'Revise'))
+										 OR (v_usagetype = 'Return' AND v_activity = 'Submit')
+									 )
+									THEN v_qty
+									ELSE 0
+								END,
 
-							period07out =
-									COALESCE(period07out, 0)
-									+ CASE
-											WHEN v_month = 7
-											 AND v_activity = 'Submit'
-											THEN v_qty
-											ELSE 0
-										END,
+						period07out =
+								COALESCE(period07out, 0)
+								+ CASE
+										WHEN v_month = 7
+										 AND (
+											 (v_usagetype = 'Usage' AND v_activity = 'Submit')
+											 OR (v_usagetype = 'Return' AND v_activity IN ('Reject', 'Revise'))
+										 )
+										THEN v_qty
+										ELSE 0
+									END,
 
 
 							period08in =
-									COALESCE(period08in, 0)
-									+ CASE
-											WHEN v_month = 8
-											 AND v_activity IN ('Reject', 'Revise')
-											THEN v_qty
-											ELSE 0
-										END,
+							COALESCE(period08in, 0)
+							+ CASE
+									WHEN v_month = 8
+									 AND (
+										 (v_usagetype = 'Usage' AND v_activity IN ('Reject', 'Revise'))
+										 OR (v_usagetype = 'Return' AND v_activity = 'Submit')
+									 )
+									THEN v_qty
+									ELSE 0
+								END,
 
-							period08out =
-									COALESCE(period08out, 0)
-									+ CASE
-											WHEN v_month = 8
-											 AND v_activity = 'Submit'
-											THEN v_qty
-											ELSE 0
-										END,
+						period08out =
+								COALESCE(period08out, 0)
+								+ CASE
+										WHEN v_month = 8
+										 AND (
+											 (v_usagetype = 'Usage' AND v_activity = 'Submit')
+											 OR (v_usagetype = 'Return' AND v_activity IN ('Reject', 'Revise'))
+										 )
+										THEN v_qty
+										ELSE 0
+									END,
 
 
 							period09in =
-									COALESCE(period09in, 0)
-									+ CASE
-											WHEN v_month = 9
-											 AND v_activity IN ('Reject', 'Revise')
-											THEN v_qty
-											ELSE 0
-										END,
+							COALESCE(period09in, 0)
+							+ CASE
+									WHEN v_month = 9
+									 AND (
+										 (v_usagetype = 'Usage' AND v_activity IN ('Reject', 'Revise'))
+										 OR (v_usagetype = 'Return' AND v_activity = 'Submit')
+									 )
+									THEN v_qty
+									ELSE 0
+								END,
 
-							period09out =
-									COALESCE(period09out, 0)
-									+ CASE
-											WHEN v_month = 9
-											 AND v_activity = 'Submit'
-											THEN v_qty
-											ELSE 0
-										END,
+						period09out =
+								COALESCE(period09out, 0)
+								+ CASE
+										WHEN v_month = 9
+										 AND (
+											 (v_usagetype = 'Usage' AND v_activity = 'Submit')
+											 OR (v_usagetype = 'Return' AND v_activity IN ('Reject', 'Revise'))
+										 )
+										THEN v_qty
+										ELSE 0
+									END,
 
 
 							period10in =
-									COALESCE(period10in, 0)
-									+ CASE
-											WHEN v_month = 10
-											 AND v_activity IN ('Reject', 'Revise')
-											THEN v_qty
-											ELSE 0
-										END,
+							COALESCE(period10in, 0)
+							+ CASE
+									WHEN v_month = 10
+									 AND (
+										 (v_usagetype = 'Usage' AND v_activity IN ('Reject', 'Revise'))
+										 OR (v_usagetype = 'Return' AND v_activity = 'Submit')
+									 )
+									THEN v_qty
+									ELSE 0
+								END,
 
-							period10out =
-									COALESCE(period10out, 0)
-									+ CASE
-											WHEN v_month = 10
-											 AND v_activity = 'Submit'
-											THEN v_qty
-											ELSE 0
-										END,
+						period10out =
+								COALESCE(period10out, 0)
+								+ CASE
+										WHEN v_month = 10
+										 AND (
+											 (v_usagetype = 'Usage' AND v_activity = 'Submit')
+											 OR (v_usagetype = 'Return' AND v_activity IN ('Reject', 'Revise'))
+										 )
+										THEN v_qty
+										ELSE 0
+									END,
 
 
 							period11in =
-									COALESCE(period11in, 0)
-									+ CASE
-											WHEN v_month = 11
-											 AND v_activity IN ('Reject', 'Revise')
-											THEN v_qty
-											ELSE 0
-										END,
+							COALESCE(period11in, 0)
+							+ CASE
+									WHEN v_month = 11
+									 AND (
+										 (v_usagetype = 'Usage' AND v_activity IN ('Reject', 'Revise'))
+										 OR (v_usagetype = 'Return' AND v_activity = 'Submit')
+									 )
+									THEN v_qty
+									ELSE 0
+								END,
 
-							period11out =
-									COALESCE(period11out, 0)
-									+ CASE
-											WHEN v_month = 11
-											 AND v_activity = 'Submit'
-											THEN v_qty
-											ELSE 0
-										END,
+						period11out =
+								COALESCE(period11out, 0)
+								+ CASE
+										WHEN v_month = 11
+										 AND (
+											 (v_usagetype = 'Usage' AND v_activity = 'Submit')
+											 OR (v_usagetype = 'Return' AND v_activity IN ('Reject', 'Revise'))
+										 )
+										THEN v_qty
+										ELSE 0
+									END,
 
 
 							period12in =
-									COALESCE(period12in, 0)
-									+ CASE
-											WHEN v_month = 12
-											 AND v_activity IN ('Reject', 'Revise')
-											THEN v_qty
-											ELSE 0
-										END,
+							COALESCE(period12in, 0)
+							+ CASE
+									WHEN v_month = 12
+									 AND (
+										 (v_usagetype = 'Usage' AND v_activity IN ('Reject', 'Revise'))
+										 OR (v_usagetype = 'Return' AND v_activity = 'Submit')
+									 )
+									THEN v_qty
+									ELSE 0
+								END,
 
-							period12out =
-									COALESCE(period12out, 0)
-									+ CASE
-											WHEN v_month = 12
-											 AND v_activity = 'Submit'
-											THEN v_qty
-											ELSE 0
-										END,
+						period12out =
+								COALESCE(period12out, 0)
+								+ CASE
+										WHEN v_month = 12
+										 AND (
+											 (v_usagetype = 'Usage' AND v_activity = 'Submit')
+											 OR (v_usagetype = 'Return' AND v_activity IN ('Reject', 'Revise'))
+										 )
+										THEN v_qty
+										ELSE 0
+									END,
 
 							updated_user = p_user,
 							updated_at = CURRENT_TIMESTAMP
@@ -2101,12 +2417,16 @@ BEGIN
 					============================================================
 					*/
 
-					IF v_activity = 'Submit' THEN
+					/*
+					Submit+Usage dan Reject/Revise+Return: stock berkurang
+					(harus tersedia dan qty harus mencukupi).
 
-							/*
-							Usage Submit:
-							stock harus tersedia dan qty harus mencukupi.
-							*/
+					Reject/Revise+Usage dan Submit+Return: stock bertambah
+					(create record jika belum ada).
+					*/
+
+					IF (v_activity = 'Submit' AND v_usagetype = 'Usage')
+						OR (v_activity IN ('Reject', 'Revise') AND v_usagetype = 'Return') THEN
 
 							UPDATE ms_vpl_product_detail
 							SET
@@ -2124,9 +2444,10 @@ BEGIN
 
 							IF NOT FOUND THEN
 									RAISE EXCEPTION
-											'Stock tidak ditemukan atau tidak mencukupi untuk Usage. '
+											'Stock tidak ditemukan atau tidak mencukupi untuk %. '
 											'Dokumen %, line %, product %, expired date %, '
-											'warehouse %, qty usage %.',
+											'warehouse %, qty %.',
+											v_usagetype,
 											p_docid,
 											r_detail.linenbr,
 											r_detail.product_id,
@@ -2138,8 +2459,8 @@ BEGIN
 					ELSE
 
 							/*
-							Reject / Revise:
-							voucher dikembalikan ke stock.
+							Reject/Revise+Usage: voucher dikembalikan ke stock.
+							Submit+Return: barang yang dikembalikan menambah stock.
 							*/
 
 							UPDATE ms_vpl_product_detail
@@ -2156,8 +2477,9 @@ BEGIN
 								AND whs_id = r_detail.whs_id;
 
 							/*
-							Secara normal record pasti ada karena sebelumnya pernah Submit.
-							Tetapi jika record tidak ada, create kembali.
+							Secara normal record pasti ada karena sebelumnya pernah Submit
+							(untuk Reject/Revise+Usage). Untuk Submit+Return baris master
+							mungkin belum pernah ada sama sekali. Jika tidak ada, create.
 							*/
 
 							IF NOT FOUND THEN
@@ -2211,24 +2533,7 @@ BEGIN
 					p_docid,
 					v_activity,
 					v_row_count;
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-
+	
 
     ELSIF UPPER(TRIM(p_doctype)) = 'VPS' THEN
 
@@ -2240,35 +2545,94 @@ BEGIN
         */
 
         v_row_count := 0;
+-- 
+--         SELECT
+--             h.cpnyid,
+--             TO_CHAR(h.settlement_date, 'YYYYMM'),
+--             TO_CHAR(h.settlement_date, 'YYYY'),
+--             EXTRACT(MONTH FROM h.settlement_date)::INTEGER
+--         INTO
+--             v_cpnyid,
+--             v_perpost,
+--             v_year,
+--             v_month
+--         FROM tr_vpl_settlement h
+--         WHERE h.settlement_id = p_docid
+--           AND h.cpnyid = p_cpny_id
+--         FOR UPDATE;
+-- 
+--         IF NOT FOUND THEN
+--             RAISE EXCEPTION
+--                 'Dokumen settlement % dengan company % tidak ditemukan.',
+--                 p_docid,
+--                 p_cpny_id;
+--         END IF;
+-- 
+--         IF v_perpost IS NULL THEN
+--             RAISE EXCEPTION
+--                 'Settlement date dokumen % tidak boleh kosong.',
+--                 p_docid;
+--         END IF;
 
-        SELECT
-            h.cpnyid,
-            TO_CHAR(h.settlement_date, 'YYYYMM'),
-            TO_CHAR(h.settlement_date, 'YYYY'),
-            EXTRACT(MONTH FROM h.settlement_date)::INTEGER
-        INTO
-            v_cpnyid,
-            v_perpost,
-            v_year,
-            v_month
-        FROM tr_vpl_settlement h
-        WHERE h.settlement_id = p_docid
-          AND h.cpnyid = p_cpny_id
-        FOR UPDATE;
 
-        IF NOT FOUND THEN
-            RAISE EXCEPTION
-                'Dokumen settlement % dengan company % tidak ditemukan.',
-                p_docid,
-                p_cpny_id;
-        END IF;
+				SELECT
+						h.cpnyid,
+						h.settlement_date,
+						h.department
+				INTO
+						v_cpnyid,
+						v_settlement_date,
+						v_department
+				FROM tr_vpl_settlement h
+				WHERE h.settlement_id = p_docid
+					AND h.cpnyid = p_cpny_id
+				FOR UPDATE;
 
-        IF v_perpost IS NULL THEN
-            RAISE EXCEPTION
-                'Settlement date dokumen % tidak boleh kosong.',
-                p_docid;
-        END IF;
+				IF NOT FOUND THEN
+						RAISE EXCEPTION
+								'Dokumen settlement % dengan company % tidak ditemukan.',
+								p_docid,
+								p_cpny_id;
+				END IF;
+				
+				/*
+				================================================================
+				PENENTUAN PERIODE POSTING
 
+				CUSTOMERSERVICE: pakai settlement_date
+
+				Selain CUSTOMERSERVICE: pakai datetime saat SP dijalankan
+				================================================================
+				*/
+
+				IF UPPER(TRIM(COALESCE(v_department, ''))) = 'CUSTOMERSERVICE' THEN
+
+						IF v_settlement_date IS NULL THEN
+								RAISE EXCEPTION
+										'Settlement date dokumen % tidak boleh kosong untuk department CUSTOMERSERVICE.',
+										p_docid;
+						END IF;
+
+						v_perpost := TO_CHAR(v_settlement_date, 'YYYYMM');
+						v_year    := TO_CHAR(v_settlement_date, 'YYYY');
+						v_month   := EXTRACT(MONTH FROM v_settlement_date)::INTEGER;
+						v_post_date := v_settlement_date;
+
+				ELSE
+
+						v_perpost := TO_CHAR(CURRENT_TIMESTAMP, 'YYYYMM');
+						v_year    := TO_CHAR(CURRENT_TIMESTAMP, 'YYYY');
+						v_month   := EXTRACT(MONTH FROM CURRENT_TIMESTAMP)::INTEGER;
+						v_post_date := CURRENT_TIMESTAMP;
+
+				END IF;
+				
+				/*
+				================================================================
+				LOOP SETIAP LINE DETAIL USAGE
+				================================================================
+				*/
+					
         FOR r_detail IN
             SELECT
                 d.id,
@@ -2345,6 +2709,38 @@ BEGIN
                     r_detail.linenbr,
                     r_detail.qty_usage,
                     r_detail.qty_settlement;
+            END IF;
+
+            /*
+            ============================================================
+            VALIDASI STATUS MASTER PRODUCT & WAREHOUSE (added 2026-08-10, SPM-02 fix)
+
+            Hanya diblokir jika master DITEMUKAN dan berstatus non-aktif.
+            Baris master yang tidak ditemukan sama sekali tidak diblokir
+            di sini (di luar scope perbaikan ini).
+            ============================================================
+            */
+
+            IF EXISTS (
+                SELECT 1 FROM ms_vpl_product p
+                WHERE p.product_id = r_detail.product_id
+                  AND p.cpnyid = p_cpny_id
+                  AND COALESCE(p.status, '') <> 'A'
+            ) THEN
+                RAISE EXCEPTION
+                    'Product % (company %) berstatus tidak aktif. Dokumen %, line %.',
+                    r_detail.product_id, p_cpny_id, p_docid, r_detail.linenbr;
+            END IF;
+
+            IF EXISTS (
+                SELECT 1 FROM ms_vpl_warehouse w
+                WHERE w.whs_id = r_detail.whs_id
+                  AND w.cpnyid = p_cpny_id
+                  AND COALESCE(w.status, '') <> 'A'
+            ) THEN
+                RAISE EXCEPTION
+                    'Warehouse % (company %) berstatus tidak aktif. Dokumen %, line %.',
+                    r_detail.whs_id, p_cpny_id, p_docid, r_detail.linenbr;
             END IF;
 
             /*
@@ -2453,10 +2849,10 @@ BEGIN
             VALUES
             (
                 p_docid,
-                r_detail.settlement_date,
+                v_post_date,
                 r_detail.usage_id,
                 p_cpny_id,
-                r_detail.settlement_date,
+                v_post_date,
                 v_perpost,
                 r_detail.linenbr,
                 r_detail.product_id,
@@ -2640,4 +3036,4 @@ BEGIN
     END IF;
 
 END;
-$procedure$;
+$procedure$

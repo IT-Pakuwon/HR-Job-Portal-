@@ -57,14 +57,11 @@
 
     table.sign-table { width: 100%; table-layout: fixed; border-collapse: collapse; }
     table.sign-table thead th { border-bottom: 1.5px solid #111827; padding: 6px 6px 8px; font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; color: #374151; text-align: center; }
-    table.sign-table tbody td { border-right: 1px solid #e5e7eb; padding: 0 10mm; text-align: center; vertical-align: top; }
+    table.sign-table tbody td { border-right: 1px solid #e5e7eb; padding: 12px 10mm; text-align: center; vertical-align: top; }
     table.sign-table tbody td:last-child { border-right: none; }
 
-    /* Blank reserved area above the rule — where a signature/stamp would go */
-    .sign-space { height: 14mm; }
-    .sign-rule { border-top: 1px dotted #9ca3af; margin: 0 8mm 8px; }
     .sign-name { font-weight: 700; font-size: 9.5px; color: #111827; margin-bottom: 3px; }
-    .sign-meta { font-size: 8px; color: #6b7280; padding-bottom: 10px; }
+    .sign-meta { font-size: 8px; color: #6b7280; }
     .sign-meta-pending { font-style: italic; }
 
     /* ---------------------------------------------------------- */

@@ -1400,7 +1400,7 @@ function getTimelineIconStyle(workflow) {
                     `
             };
 
-        case 'REVISE':
+        case 'REVISED':
             return {
                 icon: 'fa-solid fa-rotate-left',
                 wrap:
