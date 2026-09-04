@@ -628,8 +628,13 @@
 
                 {{-- Attachments --}}
                 <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
-                    <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
+                    <div class="flex items-center justify-between border-b border-slate-200 px-5 py-2 dark:border-white/10">
                         <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Attachments</h3>
+                        <button type="button" id="v_addAttachBtn"
+                            class="hidden inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Add File
+                        </button>
+                        <input type="file" id="v_addAttachInput" name="attachment[]" multiple class="hidden">
                     </div>
                     <div id="v_attachBody" class="divide-y divide-slate-100 dark:divide-white/10 empty:p-4 empty:text-sm empty:text-slate-400"></div>
                 </div>
@@ -948,6 +953,7 @@
         refDetails: '{{ route("usagevp.ref-details") }}',
         delDetail:  '{{ route("usagevp.detail.delete") }}',
         delAttach:  '{{ route("usagevp.attachment.delete") }}',
+        addAttach: (id) => `{{ url("usagevp") }}/${id}/attachment/add`,
         data: (id) => `{{ url("usagevp") }}/${id}/data`,
         update: (id) => `{{ url("usagevp") }}/${id}/update`,
         cancel: (id) => `{{ url("usagevp") }}/${id}/cancel`,

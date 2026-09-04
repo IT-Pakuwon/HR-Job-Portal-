@@ -3310,6 +3310,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/usagevp/{id}/edit', [VplUsageController::class, 'edit'])->name('usagevp.edit');
         Route::post('/usagevp/{id}/update', [VplUsageController::class, 'update'])->name('usagevp.update');
         Route::post('/usagevp/{id}/cancel', [VplUsageController::class, 'cancel'])->name('usagevp.cancel');
+        Route::post('/usagevp/{id}/attachment/add', [VplUsageController::class, 'addAttachment'])->name('usagevp.attachment.add');
     });
 
     Route::middleware('access:USAGEVP,DELETE')->group(function () {
