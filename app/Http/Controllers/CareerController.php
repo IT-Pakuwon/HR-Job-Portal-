@@ -2525,10 +2525,10 @@ class CareerController extends Controller
     public function updateSchedule(Request $request)
     {
         $data = $request->validate([
-            'applicant_id' => ['required', 'string'],
-            'jobapply_id' => ['nullable', 'string'],
-            'availability_date' => ['required', 'date'],
-            'work_start_date' => ['required', 'date', 'after_or_equal:availability_date'],
+            'applicant_id'      => ['required', 'string'],
+            'jobapply_id'       => ['nullable', 'string'],
+            'work_start_date'   => ['required', 'date'],
+            'availability_date' => ['required', 'date', 'after_or_equal:work_start_date'],
         ]);
 
         DB::beginTransaction();
@@ -2543,6 +2543,16 @@ class CareerController extends Controller
                 $payrollQuery->where('jobapply_id', $data['jobapply_id']);
             }
             $payroll = $payrollQuery->firstOrFail();
+
+            // Onboarding schedule boleh mundur dari tanggal Payroll, tapi tidak boleh
+            // lebih awal dari tanggal yang sudah dikonfirmasi di Payroll Confirmation Data.
+            if ($payroll->work_start_date && Carbon::parse($data['work_start_date'])->lt(Carbon::parse($payroll->work_start_date))) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tanggal Mulai Kerja tidak boleh sebelum tanggal yang sudah dikonfirmasi di Payroll (' . Carbon::parse($payroll->work_start_date)->translatedFormat('d F Y') . ').'
+                ], 422);
+            }
 
             $payroll->availability_date = $data['availability_date'];
             $payroll->work_start_date = $data['work_start_date'];

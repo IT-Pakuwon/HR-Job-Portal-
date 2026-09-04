@@ -760,6 +760,7 @@
                         <div>
                             <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Usage Type</label>
                             <input type="text" id="e_usagetype_display" readonly class="h-11 w-full rounded-lg border border-slate-200 bg-slate-100 px-4 text-sm dark:border-white/10 dark:bg-white/[0.04]">
+                            <input type="hidden" id="e_usagetype">
                         </div>
                         <div id="e_ref_display_wrapper" class="hidden">
                             <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Reference Usage Doc</label>

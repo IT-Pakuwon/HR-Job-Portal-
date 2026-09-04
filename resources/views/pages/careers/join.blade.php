@@ -117,14 +117,17 @@
                 <input type="hidden" name="jobapply_id" value="{{ $career->docid ?? '' }}">
                 <input type="hidden" name="cpnyid" value="{{ $career->cpnyid ?? '' }}">
 
+                @php($scheduleMinWorkStart = optional($schedulePayroll)->work_start_date ? \Carbon\Carbon::parse($schedulePayroll->work_start_date)->format('Y-m-d') : '')
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div class="flex flex-col">
                         <label for="sch_work_start_date"
                             class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Tanggal Mulai Kerja</label>
                         <input type="date" id="sch_work_start_date" name="work_start_date" disabled
-                            value="{{ optional($schedulePayroll)->work_start_date ? \Carbon\Carbon::parse($schedulePayroll->work_start_date)->format('Y-m-d') : '' }}"
+                            value="{{ $scheduleMinWorkStart }}"
+                            @if ($scheduleMinWorkStart) min="{{ $scheduleMinWorkStart }}" @endif
                             class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:disabled:bg-gray-700/40"
                             required>
+                        <p class="mt-1 text-[11px] text-gray-400">Tidak boleh sebelum tanggal yang sudah dikonfirmasi di Payroll.</p>
                     </div>
                     <div class="flex flex-col">
                         <label for="sch_availability_date"
@@ -390,6 +393,10 @@
                         Object.values(xhr.responseJSON.errors).forEach(arr => arr[0] && msgs.push(
                             arr[0]));
                         toastr.error(msgs.join('<br>'), 'Validation Error', {
+                            escapeHtml: true
+                        });
+                    } else if (xhr.status === 422 && xhr.responseJSON?.message) {
+                        toastr.error(xhr.responseJSON.message, 'Validation Error', {
                             escapeHtml: true
                         });
                     } else {
