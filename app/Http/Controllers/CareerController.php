@@ -350,7 +350,10 @@ class CareerController extends Controller
         }
 
         $agenda = Agenda::where('refid', $career->docid)->get();
-        $userlist = User::where('status', 'A')->orderby('name', 'ASC')->get();
+        $userlist = User::where('status', 'A')
+            ->where('group_cpny_id', $career->group_cpny_id)
+            ->orderby('name', 'ASC')
+            ->get();
         $agenda = Agenda::where('refid', $career->docid)->get();
 
         // $typestep = JobApplyStep::leftjoin('hr_ms_job_step', 'hr_trx_job_apply_step.step_id', '=', 'hr_ms_job_step.step_id')
@@ -413,6 +416,7 @@ class CareerController extends Controller
 
         $companyaddress = CompanyAddress::whereNotNull('site')
             ->where('status', 'A')
+            ->where('group_cpny_id', $career->group_cpny_id)
             ->get();
 
         $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));

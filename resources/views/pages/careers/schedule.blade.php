@@ -52,102 +52,131 @@
 
 {{-- ── Create Schedule Modal ──────────────────────────────────────── --}}
 <div id="agendaModal" style="display:none;"
-    class="fixed inset-0 z-9999 flex items-center justify-center bg-black/40">
-    <div class="w-full max-w-xl rounded-lg bg-white shadow-xl dark:bg-gray-800">
-        <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-700">
-            <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Create Schedule</h3>
-            <button type="button" onclick="closeAgendaModal()" class="text-gray-400 transition hover:text-gray-600 focus:outline-none">
+    class="fixed inset-0 z-9999 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+    <div class="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 dark:bg-gray-800">
+        {{-- Header --}}
+        <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+            <div class="flex items-center gap-3">
+                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
+                    <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008Z"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Create Schedule</h3>
+                    <p class="text-[11px] text-gray-400">Set up an interview or event for this applicant</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeAgendaModal()"
+                class="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 focus:outline-none dark:hover:bg-gray-700 dark:hover:text-gray-200">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
-        <form id="createAgendaForm" class="space-y-4 p-5">
+
+        <form id="createAgendaForm" class="flex-1 space-y-5 overflow-y-auto px-6 py-5">
             @csrf
             <input type="hidden" name="refid" value="{{ $career->docid }}" />
             <input type="hidden" name="cpnyid" value="{{ $jobposting->cpnyid }}" />
             <input type="hidden" name="departementid" value="{{ $jobposting->departementid }}" />
 
-            <div>
-                <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">Title</label>
-                <input type="text" name="title" required
-                    class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-            </div>
-
-            <div>
-                <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">Description</label>
-                <textarea name="description" required rows="2"
-                    class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"></textarea>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
+            {{-- Details --}}
+            <div class="space-y-4">
+                <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Details</p>
                 <div>
-                    <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">Start Date</label>
-                    <input type="datetime-local" name="startdate" required
-                        class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                    <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">Title</label>
+                    <input type="text" name="title" required placeholder="e.g. Interview with HR"
+                        class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 transition focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-900/40">
                 </div>
                 <div>
-                    <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">End Date</label>
-                    <input type="datetime-local" name="enddate" required
-                        class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                    <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">Description</label>
+                    <textarea name="description" required rows="2" placeholder="Additional notes for this schedule"
+                        class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 transition focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-900/40"></textarea>
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">Type</label>
-                    <select name="reftype" required
-                        class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                        <option value="">Select type</option>
-                        <option value="IU">Interview User</option>
-                        <option value="IH">Interview HC</option>
-                        <option value="IHU">Interview HC & User</option>
-                    </select>
+            {{-- When --}}
+            <div class="space-y-4 border-t border-gray-100 pt-5 dark:border-gray-700/60">
+                <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">When</p>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">Start Date</label>
+                        <input type="datetime-local" name="startdate" required
+                            class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 transition focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-900/40">
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">End Date</label>
+                        <input type="datetime-local" name="enddate" required
+                            class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 transition focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-900/40">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">Type</label>
+                        <select name="reftype" required
+                            class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 transition focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-900/40">
+                            <option value="">Select type</option>
+                            <option value="IU">Interview User</option>
+                            <option value="IH">Interview HC</option>
+                            <option value="IHU">Interview HC & User</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">Site</label>
+                        <select name="site" id="siteDropdown" required
+                            class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 transition focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-900/40">
+                            <option value="">Select site</option>
+                            @foreach ($companyaddress as $site)
+                                <option value="{{ $site->site }}">
+                                    {{ $site->site }}{{ $site->sitelocation ? ' (' . $site->sitelocation . ')' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Where --}}
+            <div class="space-y-4 border-t border-gray-100 pt-5 dark:border-gray-700/60">
+                <div class="flex items-center justify-between">
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Where</p>
+                    <span class="text-[10px] italic text-gray-400">Auto-filled from selected site</span>
                 </div>
                 <div>
-                    <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">Site</label>
-                    <select name="site" id="siteDropdown" required
-                        class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                        <option value="">Select site</option>
-                        @foreach ($companyaddress as $site)
-                            <option value="{{ $site->site }}">
-                                {{ $site->site }}{{ $site->sitelocation ? ' (' . $site->sitelocation . ')' : '' }}
-                            </option>
+                    <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">Location</label>
+                    <input type="text" name="location" id="locationField" readonly
+                        class="w-full cursor-not-allowed rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700/60 dark:text-gray-400">
+                </div>
+                <div>
+                    <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">Address</label>
+                    <textarea name="location_address" id="addressField" readonly rows="2"
+                        class="w-full cursor-not-allowed rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700/60 dark:text-gray-400"></textarea>
+                </div>
+            </div>
+
+            {{-- Who --}}
+            <div class="space-y-4 border-t border-gray-100 pt-5 dark:border-gray-700/60">
+                <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Who</p>
+                <div>
+                    <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">Participant</label>
+                    <select class="select2 w-full" name="participant[]" multiple required>
+                        @foreach ($userlist as $p)
+                            <option value="{{ $p->username }}">{{ $p->name }}</option>
                         @endforeach
                     </select>
                 </div>
             </div>
-
-            <div>
-                <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">Location</label>
-                <input type="text" name="location" id="locationField" readonly
-                    class="w-full cursor-not-allowed rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400">
-            </div>
-
-            <div>
-                <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">Address</label>
-                <textarea name="location_address" id="addressField" readonly rows="2"
-                    class="w-full cursor-not-allowed rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400"></textarea>
-            </div>
-
-            <div>
-                <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">Participant</label>
-                <select class="select2 w-full" name="participant[]" multiple required>
-                    @foreach ($userlist as $p)
-                        <option value="{{ $p->username }}">{{ $p->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="flex justify-end gap-2 border-t border-gray-100 pt-4 dark:border-gray-700">
-                <button type="button" onclick="closeAgendaModal()"
-                    class="rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-500 transition hover:bg-gray-50 focus:outline-none dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700">
-                    Cancel
-                </button>
-                <button id="createAgendaSubmit" type="submit"
-                    class="rounded-lg bg-gray-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900">
-                    Save
-                </button>
-            </div>
         </form>
+
+        {{-- Footer --}}
+        <div class="flex justify-end gap-2 border-t border-gray-100 bg-gray-50/60 px-6 py-4 dark:border-gray-700 dark:bg-gray-800/60">
+            <button type="button" onclick="closeAgendaModal()"
+                class="rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-500 transition hover:bg-gray-50 focus:outline-none dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700">
+                Cancel
+            </button>
+            <button id="createAgendaSubmit" type="submit" form="createAgendaForm"
+                class="inline-flex items-center gap-1.5 rounded-lg bg-gray-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100">
+                <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                Save
+            </button>
+        </div>
     </div>
 </div>
 
