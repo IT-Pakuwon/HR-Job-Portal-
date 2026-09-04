@@ -132,10 +132,10 @@
                             <div class="{{ $row }}">
                                 <div class="{{ $label }}">
                                     <x-heroicon-o-building-office-2 class="h-5 w-5 text-gray-400" />
-                                    <span>Floor-Unit</span>
+                                    <span>Floor - Store No</span>
                                 </div>
                                 <span class="{{ $value }}">
-                                    {{ $sppt->no_unit_tenant }}
+                                    {{ $sppt->tenant_unit_label ?: $sppt->no_unit_tenant }}
                                 </span>
                             </div>
 
