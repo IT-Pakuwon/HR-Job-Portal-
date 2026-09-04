@@ -767,6 +767,7 @@ class DocumentNotificationService
                         'ms_vpl_product_detail.whs_id',
                         DB::raw('(ms_vpl_product_detail.qty_available - COALESCE(ms_vpl_product_detail.qty_reserved, 0)) AS qty_pickable'),
                         DB::raw('(ms_vpl_product_detail.expired_date::date - CURRENT_DATE) AS days_left'),
+                        'ms_vpl_product.id AS msproduct_id',
                         'ms_vpl_product.product_name',
                         'ms_vpl_product.product_type'
                     )
@@ -778,7 +779,7 @@ class DocumentNotificationService
 
                     return [
                         'key'        => 'VPLEXP_' . $r->product_id . '_' . $r->whs_id . '_' . optional($r->expired_date)->format('Ymd') . '_H' . $daysLeft,
-                        'hid'        => Hashids::encode($r->id),
+                        'hid'        => Hashids::encode($r->msproduct_id),
                         'docid'      => $r->product_id,
                         'status'     => 'VPL_EXPIRING',
                         'label'      => "Expiring in {$daysLeft}d",

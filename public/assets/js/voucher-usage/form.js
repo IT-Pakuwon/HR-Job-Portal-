@@ -432,6 +432,17 @@ const VplUsageForm = {
     DEFAULT_PURPOSE_DEPT:  'CUSTOMERSERVICE',
     DEFAULT_PURPOSE_VALUE: 'Redeem PG Card',
 
+    // COLLECTION department Usage docs may only be recorded as "Write Off" — see
+    // VplUsageHelper.COLLECTION_PURPOSE_VALUE.
+    COLLECTION_DEPT: 'COLLECTION',
+
+    /** True when the row being built belongs to a COLLECTION-department Usage doc. */
+    isCollectionUsage(prefix) {
+        const dept      = document.getElementById(`${prefix}_department`)?.value ?? '';
+        const usageType = document.getElementById(`${prefix}_usagetype`)?.value ?? '';
+        return dept === VplUsageForm.COLLECTION_DEPT && usageType === 'Usage';
+    },
+
     /** Turns any not-yet-enhanced Purpose <select> in the given detail body into select2. */
     initPurposeSelects(prefix) {
         const modalId = prefix === 'c' ? 'createModal' : 'editModal';
@@ -518,7 +529,8 @@ const VplUsageForm = {
         const whsId  = document.getElementById(`${prefix}_whs_id`)?.value ?? '';
         VplUsage.state[key]++;
         const idx = VplUsage.state[key];
-        const html = VplUsageHelper.buildDetailRow(prefix, idx, whsId);
+        const restrictPurpose = VplUsageForm.isCollectionUsage(prefix);
+        const html = VplUsageHelper.buildDetailRow(prefix, idx, whsId, null, restrictPurpose);
 
         document.getElementById(`${prefix}_detailBody`).insertAdjacentHTML('beforeend', html);
         VplUsageForm.initPurposeSelects(prefix);
@@ -695,6 +707,7 @@ const VplUsageForm = {
         document.getElementById('e_vp_type_display').value      = data.vp_label;
         document.getElementById('e_vp_type').value               = t.vp_type;
         document.getElementById('e_usagetype_display').value    = data.usagetype_label;
+        document.getElementById('e_usagetype').value             = t.usagetype;
         document.getElementById('e_remark').value                = t.usage_remark ?? '';
         document.getElementById('e_title').textContent           = `Edit Usage — ${t.usage_id}`;
 
