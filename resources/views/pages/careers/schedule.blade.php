@@ -121,7 +121,7 @@
                     <div>
                         <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">Site</label>
                         <select name="site" id="siteDropdown" required
-                            class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 transition focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-900/40">
+                            class="select2-site w-full">
                             <option value="">Select site</option>
                             @foreach ($companyaddress as $site)
                                 <option value="{{ $site->site }}">
@@ -335,6 +335,13 @@
     $(document).ready(function() {
         $('.select2').select2({
             placeholder: "Select participants",
+            allowClear: true,
+            width: '100%',
+            dropdownParent: $('#agendaModal')
+        });
+
+        $('.select2-site').select2({
+            placeholder: "Select site",
             allowClear: true,
             width: '100%',
             dropdownParent: $('#agendaModal')
