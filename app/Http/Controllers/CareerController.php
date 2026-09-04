@@ -1459,7 +1459,7 @@ class CareerController extends Controller
             \Mail::send('emails.mailapplicant_remapped', $data, function ($message) use ($applicant) {
                 $message->to($applicant->email_address)
                         ->subject('📩 Update Posisi Lamaran Anda di Pakuwon Career');
-                $message->from('digitalserver@pakuwon.com', 'Pakuwon Career');
+                $message->from('recruitment@pakuwon.com', 'Pakuwon Career');
             });
         } elseif ($is_remapped && $applicant->process_step != 2) {
             // Remapped + hasn't filled form — notify position change and send form link
@@ -1473,7 +1473,7 @@ class CareerController extends Controller
             \Mail::send('emails.mailapplicant_remapped_form', $data, function ($message) use ($applicant) {
                 $message->to($applicant->email_address)
                         ->subject('📩 Update Posisi Lamaran Anda di Pakuwon Career');
-                $message->from('digitalserver@pakuwon.com', 'Pakuwon Career');
+                $message->from('recruitment@pakuwon.com', 'Pakuwon Career');
             });
         } else {
             // Not remapped + hasn't filled form — send form link
@@ -1485,7 +1485,7 @@ class CareerController extends Controller
             \Mail::send('emails.mailapplicant', $data, function ($message) use ($applicant) {
                 $message->to($applicant->email_address)
                         ->subject('📩 Lengkapi Aplikasi Anda di Pakuwon Career');
-                $message->from('digitalserver@pakuwon.com', 'Pakuwon Career');
+                $message->from('recruitment@pakuwon.com', 'Pakuwon Career');
             });
         }
 
@@ -2379,7 +2379,7 @@ class CareerController extends Controller
                     \Mail::send('emails.mailapprove', $data, function ($message) use ($email, $data) {
                         $message->to($email)
                             ->subject($data['docid'].' - Waiting Approval Apply Candidate')
-                            ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+                            ->from('recruitment@pakuwon.com', 'Pakuwon System');
                     });
                 }
             }
@@ -2575,7 +2575,7 @@ class CareerController extends Controller
             \Mail::send('emails.mailjoinapplicant', $emailData, function ($message) use ($recipients) {
                 $message->to($recipients)
                     ->subject('Your Employment Start Schedule')
-                    ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+                    ->from('recruitment@pakuwon.com', 'Pakuwon System');
             });
 
             DB::commit();
