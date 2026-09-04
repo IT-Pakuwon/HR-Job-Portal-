@@ -2825,6 +2825,10 @@ class CareerController extends Controller
             ? Carbon::parse($personnel->date)->format('d M Y')
             : '-';
 
+        $immediateSuperiorName = User::query()
+            ->where('username', $personnel->immediate_superior)
+            ->value('name');
+
         $pdf = \PDF::loadView('pages.personnels.pdf_personnel', [
             'personnel' => $personnel,
             'companyName' => $companyName,
@@ -2836,6 +2840,7 @@ class CareerController extends Controller
             'statusDoc' => $statusDoc,
             'createdByName' => $createdByName,
             'reqDateFmt' => $reqDateFmt,
+            'immediateSuperiorName' => $immediateSuperiorName,
         ]);
 
         $pdf->setPaper('A4', 'portrait');
