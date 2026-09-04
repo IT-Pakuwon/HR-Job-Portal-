@@ -34,9 +34,9 @@
                 ->search(fn ($group) => array_key_exists($defaultReport, $group['tabs']));
         @endphp
 
-        <div class="space-y-2">
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-gray-200 pb-2 dark:border-gray-700">
             {{-- Group Selector --}}
-            <nav class="flex flex-wrap gap-1.5" aria-label="Report groups">
+            <nav class="flex shrink-0 flex-wrap gap-1.5" aria-label="Report groups">
                 @foreach($reportGroups as $groupKey => $group)
                     <a href="#" data-group="{{ $groupKey }}"
                         @class([
@@ -49,18 +49,20 @@
                 @endforeach
             </nav>
 
+            <div class="hidden h-5 w-px shrink-0 bg-gray-300 dark:bg-gray-600 sm:block"></div>
+
             {{-- Report Tabs (scoped to the active group) --}}
-            <div class="border-b border-gray-200 dark:border-gray-700">
+            <div class="min-w-0 flex-1">
                 @foreach($reportGroups as $groupKey => $group)
                     <nav data-group-tabs="{{ $groupKey }}"
-                        @class(['-mb-px flex gap-1 overflow-x-auto', 'hidden' => $defaultGroup !== $groupKey])
+                        @class(['flex gap-1 overflow-x-auto', 'hidden' => $defaultGroup !== $groupKey])
                         aria-label="Report tabs — {{ $group['label'] }}">
                         @foreach($group['tabs'] as $key => $tab)
                             <a href="#" data-report="{{ $key }}"
                                 @class([
-                                    'report-filter inline-flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition',
-                                    'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400' => $defaultReport === $key,
-                                    'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' => $defaultReport !== $key,
+                                    'report-filter inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition',
+                                    'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400' => $defaultReport === $key,
+                                    'text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200' => $defaultReport !== $key,
                                 ])>
                                 <span class="text-base">{{ $tab['icon'] }}</span>
                                 {{ $tab['label'] }}
@@ -111,8 +113,8 @@
     </div>
 
     <script>
-        const REPORT_TAB_ACTIVE   = ['border-indigo-500', 'text-indigo-600', 'dark:border-indigo-400', 'dark:text-indigo-400'];
-        const REPORT_TAB_INACTIVE = ['border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700', 'dark:text-gray-400', 'dark:hover:text-gray-200'];
+        const REPORT_TAB_ACTIVE   = ['bg-indigo-50', 'text-indigo-600', 'dark:bg-indigo-500/10', 'dark:text-indigo-400'];
+        const REPORT_TAB_INACTIVE = ['text-gray-500', 'hover:bg-gray-100', 'hover:text-gray-700', 'dark:text-gray-400', 'dark:hover:bg-gray-700', 'dark:hover:text-gray-200'];
 
         const GROUP_TAB_ACTIVE   = ['bg-indigo-600', 'text-white', 'shadow-sm'];
         const GROUP_TAB_INACTIVE = ['bg-gray-100', 'text-gray-600', 'hover:bg-gray-200', 'dark:bg-gray-800', 'dark:text-gray-300', 'dark:hover:bg-gray-700'];

@@ -6,6 +6,7 @@ use App\Models\Autonbr;
 use App\Models\BudgetDetail;
 use App\Models\StagingIfcaIcStkIssue;
 use App\Models\StagingIfcaPoApprove;
+use App\Models\SysUserRole;
 use App\Models\TrIMBudget;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -32,6 +33,21 @@ class CostControlDashboardController extends Controller
             ->filter()
             ->values()
             ->all();
+    }
+
+    // Cost Control users who also work VP Collection get an extra Expired
+    // Voucher / Settlement view folded into this dashboard (mirrors Dashboard Collection).
+    private function hasVpCollectionAccess(): bool
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return false;
+        }
+
+        return SysUserRole::where('username', $user->username)
+            ->where('role_id', 'VPCOLLACCESS')
+            ->exists();
     }
 
     public function summaryJson(Request $request)
@@ -96,15 +112,26 @@ class CostControlDashboardController extends Controller
                     - (float) ($row->total_used ?? 0);
             });
 
+        $vpCollectionStats = [];
+
+        if ($this->hasVpCollectionAccess()) {
+            $vpCollection = app(VpCollectionDashboardController::class);
+
+            $vpCollectionStats = [
+                'expired' => $vpCollection->expiredCount(),
+                'waiting_settlement' => $vpCollection->waitingSettlementCount(),
+            ];
+        }
+
         return response()->json([
             'success' => true,
-            'data' => [
+            'data' => array_merge([
                 'waiting_approval' => $waitingApproval,
                 'pending_po' => $pendingPo,
                 'pending_issue' => $pendingIssue,
                 'budget' => round($budget),
                 'im_budget' => $imBudget,
-            ],
+            ], $vpCollectionStats),
         ]);
     }
 
@@ -260,6 +287,22 @@ class CostControlDashboardController extends Controller
             'success' => true,
             'data' => $rows,
         ]);
+    }
+
+    public function expiredJson(Request $request)
+    {
+        abort_unless($request->ajax(), 404);
+        abort_unless($this->hasVpCollectionAccess(), 403);
+
+        return app(VpCollectionDashboardController::class)->expiredJson($request);
+    }
+
+    public function waitingSettlementJson(Request $request)
+    {
+        abort_unless($request->ajax(), 404);
+        abort_unless($this->hasVpCollectionAccess(), 403);
+
+        return app(VpCollectionDashboardController::class)->waitingSettlementJson($request);
     }
 
     public function imBudgetJson(Request $request)

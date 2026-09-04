@@ -24,6 +24,12 @@ class MultiDashboardController extends Controller
 
         $isItStaff = $user && $user->isAdmin();
 
+        $hasVpCollectionAccess = $user
+            ? SysUserRole::where('username', $user->username)
+                ->where('role_id', 'VPCOLLACCESS')
+                ->exists()
+            : false;
+
         $dataFeed = new DataFeed();
 
         $doctypes = Autonbr::query()
@@ -48,6 +54,7 @@ class MultiDashboardController extends Controller
             'akses_cc' => $akses_cc,
             'isGA' => $isGA,
             'isItStaff' => $isItStaff,
+            'hasVpCollectionAccess' => $hasVpCollectionAccess,
         ]);
     }
 

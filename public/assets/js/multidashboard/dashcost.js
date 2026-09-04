@@ -24,6 +24,8 @@
         pendingIssue:   "/cost-control-dashboard/pending-issue-json",
         budget:         "/cost-control-dashboard/budget-json",
         imBudget:       "/cost-control-dashboard/im-budget-json",
+        expired:        "/cost-control-dashboard/expired-json",
+        waitingSettlement: "/cost-control-dashboard/waiting-settlement-json",
         doctypes:       "/cost-control-dashboard/approval-doctypes-json",
     };
 
@@ -104,6 +106,8 @@
             po:       data.pending_po || 0,
             issue:    data.pending_issue || 0,
             imBudget: data.im_budget || 0,
+            expired:  data.expired || 0,
+            waitingSettlement: data.waiting_settlement || 0,
         };
 
         const total = Object.values(counts).reduce((sum, c) => sum + c, 0) || 1;
@@ -167,6 +171,15 @@
 
         const s = map[row.status] || { text: "Unknown", bg: "rgba(156,163,175,0.1)", color: "#6b7280" };
         return badge(s.text, s.bg, s.color);
+    }
+
+    function expiryBucketBadge(row) {
+        const isDark = document.documentElement.classList.contains("dark");
+        const urgent = row.bucket === "H-30";
+        const style = urgent
+            ? (isDark ? { bg: "rgba(239,68,68,0.15)", color: "#fca5a5" } : { bg: "rgba(239,68,68,0.1)", color: "#dc2626" })
+            : (isDark ? { bg: "rgba(245,158,11,0.15)", color: "#fbbf24" } : { bg: "rgba(245,158,11,0.1)", color: "#b45309" });
+        return `<span style="background:${style.bg};color:${style.color};border:1px solid ${style.color}60" class="inline-block shrink-0 rounded-full px-2.5 py-0.5 text-center text-[11px] font-semibold whitespace-nowrap">${row.bucket} · ${row.days_left}d</span>`;
     }
 
     function imBudgetStatusBadge(status) {
@@ -370,6 +383,34 @@
                 { label: "Requested", value: formatCurrency(row.total_budget_requested) },
             ],
             searchFields: row => [row.imbudgetid, row.cpny_id, row.department_id, row.user_peminta, row.csid],
+        },
+        expired: {
+            icon: "⏰", badgeBg: "bg-amber-100 dark:bg-amber-900/30",
+            title: row => `${row.product_id} - ${row.product_name || ""}`,
+            link: row => `${row.url}/${row.hid}/view`,
+            status: row => expiryBucketBadge(row),
+            fields: row => [
+                { label: "Type", value: row.product_type_label },
+                { label: "Expired Date", value: row.expired_date },
+                { label: "Company", value: row.cpnyid },
+                { label: "Warehouse", value: row.whs_id },
+                { label: "Qty Available", value: row.qty_pickable },
+            ],
+            searchFields: row => [row.product_id, row.product_name, row.cpnyid, row.whs_id, row.product_type_label],
+        },
+        "waiting-settlement": {
+            icon: "🧾", badgeBg: "bg-fuchsia-100 dark:bg-fuchsia-900/30",
+            title: row => row.usage_id,
+            link: row => `${row.url}/${row.eid}`,
+            fields: row => [
+                { label: "Usage Date", value: row.usage_date },
+                { label: "Event Date", value: row.event_date },
+                { label: "Requester", value: row.user_peminta },
+                { label: "Company", value: row.cpnyid },
+                { label: "Dept", value: row.department },
+                { label: "Remark", value: row.usage_remark },
+            ],
+            searchFields: row => [row.usage_id, row.user_peminta, row.cpnyid, row.department, row.usage_remark],
         },
     };
 
@@ -579,6 +620,8 @@
             "issue":            urls.pendingIssue,
             "budget":           urls.budget,
             "imbudget":         urls.imBudget,
+            "expired":          urls.expired,
+            "waiting-settlement": urls.waitingSettlement,
         };
 
         fetch(urlMap[tab] || urls.approval, {
@@ -631,7 +674,7 @@
         sortColumn = null;
         sortDirection = "asc";
 
-        ["approval", "approval-history", "po", "issue", "budget", "imbudget"].forEach((name) => {
+        ["approval", "approval-history", "po", "issue", "budget", "imbudget", "expired", "waiting-settlement"].forEach((name) => {
             const btn = document.getElementById(`tab-${name}`);
             if (!btn) return;
             btn.className =
@@ -662,6 +705,8 @@
         $("#tab-issue").on("click",            () => activateTab("issue"));
         $("#tab-budget").on("click",           () => activateTab("budget"));
         $("#tab-imbudget").on("click",         () => activateTab("imbudget"));
+        $("#tab-expired").on("click",          () => activateTab("expired"));
+        $("#tab-waiting-settlement").on("click", () => activateTab("waiting-settlement"));
 
         $("#dashboardFilter").on("change", function () {
             if (activeTab === "approval" || activeTab === "approval-history") {

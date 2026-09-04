@@ -4,11 +4,14 @@
 
         <div>
             <h1 class="text-xl font-bold text-slate-900 dark:text-white">
-                Cost Control Dashboard
+                Dashboard Cost Control
             </h1>
 
             <p class="text-xs text-slate-500 dark:text-slate-400">
                 Approval • PO Monitoring • Budget Monitoring • IM Budget
+                @if($hasVpCollectionAccess ?? false)
+                    • Expired Voucher • Settlement
+                @endif
             </p>
         </div>
 
@@ -50,7 +53,7 @@
 
     </div>
 
-    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 {{ ($hasVpCollectionAccess ?? false) ? 'xl:grid-cols-7' : 'xl:grid-cols-5' }}">
 
         <div
             class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
@@ -149,6 +152,50 @@
             </div>
         </div>
 
+        @if($hasVpCollectionAccess ?? false)
+
+            <div
+                class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
+                <div class="flex items-center justify-between">
+                    <div class="min-w-0">
+                        <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                            Expired Voucher (H-60/H-30)
+                        </div>
+                        <div id="expiredCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">
+                            0
+                        </div>
+                    </div>
+                    <div class="rounded-lg bg-amber-500/10 p-2 text-base">
+                        ⏰
+                    </div>
+                </div>
+                <div class="mt-2 h-1 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
+                    <div id="expiredBar" class="h-full rounded-full bg-amber-500 transition-all duration-500" style="width:0%"></div>
+                </div>
+            </div>
+
+            <div
+                class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
+                <div class="flex items-center justify-between">
+                    <div class="min-w-0">
+                        <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                            Waiting For Settlement
+                        </div>
+                        <div id="waitingSettlementCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">
+                            0
+                        </div>
+                    </div>
+                    <div class="rounded-lg bg-fuchsia-500/10 p-2 text-base">
+                        🧾
+                    </div>
+                </div>
+                <div class="mt-2 h-1 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
+                    <div id="waitingSettlementBar" class="h-full rounded-full bg-fuchsia-500 transition-all duration-500" style="width:0%"></div>
+                </div>
+            </div>
+
+        @endif
+
     </div>
 
     <div class="grid grid-cols-12 gap-6">
@@ -181,6 +228,18 @@
                 <button id="tab-imbudget">
                     📊 IM Budget
                 </button>
+
+                @if($hasVpCollectionAccess ?? false)
+
+                    <button id="tab-expired">
+                        ⏰ Expired Voucher List
+                    </button>
+
+                    <button id="tab-waiting-settlement">
+                        🧾 Waiting For Settlement
+                    </button>
+
+                @endif
             </div>
         </div>
 

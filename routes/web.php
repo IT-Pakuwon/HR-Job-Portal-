@@ -2271,6 +2271,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/pending-issue-json', 'pendingIssueJson')->name('costdashboard.issue');
             Route::get('/budget-json', 'budgetJson')->name('costdashboard.budget');
             Route::get('/im-budget-json', 'imBudgetJson')->name('costdashboard.imbudget');
+            Route::get('/expired-json', 'expiredJson')->name('costdashboard.expired');
+            Route::get('/waiting-settlement-json', 'waitingSettlementJson')->name('costdashboard.waiting-settlement');
             Route::get('/approval-doctypes-json', 'approvalDocTypes')->name('costdashboard.approval-doctypes');
         });
 
