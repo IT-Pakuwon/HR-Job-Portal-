@@ -23,7 +23,7 @@
                     ],
                 ],
                 'product' => [
-                    'label' => 'Product',
+                    'label' => 'Product Stock Reports',
                     'tabs'  => [
                         'product-report' => ['icon' => '🧾', 'label' => 'Product Report'],
                     ],
