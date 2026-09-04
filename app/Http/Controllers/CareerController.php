@@ -222,6 +222,7 @@ class CareerController extends Controller
             })
             ->select('hr_trx_doc_checklist.*', 'hr_ms_doc_checklist.checklist_descr')
             ->where('hr_trx_doc_checklist.jobapply_id', $career->docid)
+            ->where('hr_trx_doc_checklist.group_cpny_id', $career->group_cpny_id)
             ->orderBy('hr_trx_doc_checklist.step_order', 'ASC')
             ->get();
 
