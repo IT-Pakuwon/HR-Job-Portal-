@@ -57,6 +57,16 @@ class VplMsProductController extends Controller
         return Auth::user()->isPrimaryAdmin();
     }
 
+    // Editing a product (form + save) is restricted to its creator; admin and
+    // DIRECTORACCESS still bypass, same as everywhere else in this controller.
+    private function canEditProduct(MsVplProduct $product): bool
+    {
+        if ($this->isFullAccess() || Auth::user()->hasFullDataScope()) {
+            return true;
+        }
+        return $product->created_user === Auth::user()->username;
+    }
+
     // Uploads a product photo to GCS under att-vpl/product-photo/ and
     // returns the object path (stored in ms_vpl_product.product_photo).
     private function uploadProductPhoto($file, string $product_id): string
@@ -210,14 +220,16 @@ class VplMsProductController extends Controller
                     $toggleClass = $active ? 'deactivateProduct' : 'activateProduct';
                     $toggleLabel = $active ? 'Deactivate'        : 'Activate';
                     $toggleIcon  = $active ? 'fa-ban text-red-500' : 'fa-circle-check text-green-600';
+                    $canEdit     = $this->canEditProduct($row);
 
                     return '
                         <button class="action-btn inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
-                            data-id="'     . $row->id      . '"
-                            data-active="' . ($active ? '1' : '0') . '"
-                            data-toggle="' . $toggleClass   . '"
-                            data-label="'  . $toggleLabel   . '"
-                            data-icon="'   . $toggleIcon    . '">
+                            data-id="'       . $row->id      . '"
+                            data-active="'   . ($active ? '1' : '0') . '"
+                            data-toggle="'   . $toggleClass   . '"
+                            data-label="'    . $toggleLabel   . '"
+                            data-icon="'     . $toggleIcon    . '"
+                            data-can-edit="' . ($canEdit ? '1' : '0') . '">
                             Actions <i class="fa-solid fa-chevron-down text-[10px]"></i>
                         </button>';
                 })
@@ -317,6 +329,10 @@ class VplMsProductController extends Controller
             abort(403);
         }
 
+        if (!$this->canEditProduct($msproduct)) {
+            abort(403);
+        }
+
         $hasStock = MsVplProductDetail::where('product_id', $msproduct->product_id)
             ->where('status', 'A')
             ->where('qty_available', '>', 0)
@@ -349,6 +365,12 @@ class VplMsProductController extends Controller
             return response()->json([
                 'message' => 'Product photo is required for Product type.',
             ], 422);
+        }
+
+        if ($msproduct && !$this->canEditProduct($msproduct)) {
+            return response()->json([
+                'message' => 'You are not authorized to edit this product.',
+            ], 403);
         }
 
         try {
@@ -484,6 +506,7 @@ class VplMsProductController extends Controller
             'stock'       => $stock,
             'attachments' => $attachments,
             'photo_url'   => $this->photoSignedUrl($msproduct->product_photo),
+            'can_edit'    => $this->canEditProduct($msproduct),
         ]);
     }
 
