@@ -1,79 +1,119 @@
-<div class="space-y-3">
+<div class="flex flex-col">
 
-    {{-- ── Documents ────────────────────────────────────────────── --}}
-    <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800">
-        <div class="border-b border-gray-100 px-5 py-3 dark:border-gray-700/60">
-            <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Documents</p>
-        </div>
-        <div class="divide-y divide-gray-100 dark:divide-gray-700/60">
-            <div class="flex items-center justify-between px-5 py-3">
-                <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Payroll Confirmation PDF</p>
-                <form id="payrollpdf" class="flex-shrink-0">
-                    @csrf
-                    <input type="hidden" name="applicant_id" value="{{ $applicant->applicant_id ?? '' }}">
-                    <input type="hidden" name="job_title" value="{{ $career->job_title ?? '' }}">
-                    <input type="hidden" name="cpnyid" value="{{ $career->cpnyid ?? '' }}">
-                    <input type="hidden" name="departementid" value="{{ $career->departementid ?? '' }}">
-                    <input type="hidden" name="job_level" value="{{ $career->job_level ?? '' }}">
-                    <input type="hidden" name="refid" value="{{ $career->refid ?? '' }}">
-                    <input type="hidden" name="jobapply_id" value="{{ $career->docid ?? '' }}">
-                    <button type="submit"
-                        class="inline-flex items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900">
-                        <i data-lucide="eye" class="h-3.5 w-3.5"></i>
-                        Preview
-                    </button>
-                </form>
+    {{-- ── Phase 1 · Documents ──────────────────────────────────── --}}
+    <div class="flex items-stretch gap-4">
+        <div class="flex flex-shrink-0 flex-col items-center">
+            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-white">
+                <i data-lucide="check" class="h-4 w-4"></i>
             </div>
-            <div class="flex items-center justify-between px-5 py-3">
-                <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Offering Letter PDF</p>
-                <form id="offeringForm" class="flex-shrink-0">
-                    @csrf
-                    <input type="hidden" name="applicant_id" value="{{ $applicant->applicant_id ?? '' }}">
-                    <input type="hidden" name="job_title" value="{{ $career->job_title ?? '' }}">
-                    <input type="hidden" name="cpnyid" value="{{ $career->cpnyid ?? '' }}">
-                    <input type="hidden" name="departementid" value="{{ $career->departementid ?? '' }}">
-                    <input type="hidden" name="job_level" value="{{ $career->job_level ?? '' }}">
-                    <button type="submit"
-                        class="inline-flex items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900">
-                        <i data-lucide="eye" class="h-3.5 w-3.5"></i>
-                        Preview
-                    </button>
-                </form>
+            <div class="mt-1 w-0.5 flex-1 bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+        <div class="mb-5 flex-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700/60 dark:bg-gray-800">
+            <div class="flex items-center justify-between border-b border-gray-100 px-5 py-3 dark:border-gray-700/60">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Phase 1</span>
+                    <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">Documents Generated</p>
+                </div>
+                <span class="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10.5px] font-semibold text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400">Completed</span>
+            </div>
+            <div class="divide-y divide-gray-100 dark:divide-gray-700/60">
+                <div class="flex items-center justify-between px-5 py-3">
+                    <div class="flex items-center gap-2.5">
+                        <i data-lucide="check" class="h-3.5 w-3.5 text-emerald-500"></i>
+                        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Payroll Confirmation PDF</p>
+                    </div>
+                    <form id="payrollpdf" class="flex-shrink-0">
+                        @csrf
+                        <input type="hidden" name="applicant_id" value="{{ $applicant->applicant_id ?? '' }}">
+                        <input type="hidden" name="job_title" value="{{ $career->job_title ?? '' }}">
+                        <input type="hidden" name="cpnyid" value="{{ $career->cpnyid ?? '' }}">
+                        <input type="hidden" name="departementid" value="{{ $career->departementid ?? '' }}">
+                        <input type="hidden" name="job_level" value="{{ $career->job_level ?? '' }}">
+                        <input type="hidden" name="refid" value="{{ $career->refid ?? '' }}">
+                        <input type="hidden" name="jobapply_id" value="{{ $career->docid ?? '' }}">
+                        <button type="submit"
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:border-gray-400 hover:text-gray-800 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400">
+                            <i data-lucide="eye" class="h-3.5 w-3.5"></i>
+                            Preview
+                        </button>
+                    </form>
+                </div>
+                <div class="flex items-center justify-between px-5 py-3">
+                    <div class="flex items-center gap-2.5">
+                        <i data-lucide="check" class="h-3.5 w-3.5 text-emerald-500"></i>
+                        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Offering Letter PDF</p>
+                    </div>
+                    <form id="offeringForm" class="flex-shrink-0">
+                        @csrf
+                        <input type="hidden" name="applicant_id" value="{{ $applicant->applicant_id ?? '' }}">
+                        <input type="hidden" name="job_title" value="{{ $career->job_title ?? '' }}">
+                        <input type="hidden" name="cpnyid" value="{{ $career->cpnyid ?? '' }}">
+                        <input type="hidden" name="departementid" value="{{ $career->departementid ?? '' }}">
+                        <input type="hidden" name="job_level" value="{{ $career->job_level ?? '' }}">
+                        <button type="submit"
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:border-gray-400 hover:text-gray-800 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400">
+                            <i data-lucide="eye" class="h-3.5 w-3.5"></i>
+                            Preview
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 
-    {{-- ── Payroll Confirmation Data ────────────────────────────── --}}
-    <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800">
+    {{-- ── Phase 2 · Payroll Confirmation ───────────────────────── --}}
+    <div class="flex items-stretch gap-4">
+        <div class="flex flex-shrink-0 flex-col items-center">
+            <div class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold {{ $payrolls->count() > 0 ? 'bg-indigo-600 text-white' : 'border-2 border-gray-300 text-gray-400 dark:border-gray-600' }}">2</div>
+            <div class="mt-1 w-0.5 flex-1 bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+        <div class="mb-5 flex-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700/60 dark:bg-gray-800">
 
-        <div class="flex items-center justify-between border-b border-gray-100 px-5 py-3 dark:border-gray-700/60">
-            <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">Payroll Confirmation Data</p>
+        <div class="flex flex-wrap items-center justify-between gap-2.5 border-b border-gray-100 px-5 py-3 dark:border-gray-700/60">
+            <div class="flex items-center gap-2.5">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Phase 2</span>
+                <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">Payroll Confirmation Data</p>
+                <span class="rounded-full bg-indigo-50 px-2.5 py-0.5 text-[10.5px] font-semibold text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400">{{ $payrolls->count() }} Record{{ $payrolls->count() === 1 ? '' : 's' }}</span>
+            </div>
             <button id="addPayrollBtn"
-                class="inline-flex items-center gap-1.5 rounded-lg bg-gray-900 px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900">
+                class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-700 focus:outline-none active:scale-95">
                 <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
                 </svg>
                 Add
             </button>
         </div>
+        <div class="flex items-center gap-1.5 border-b border-gray-100 bg-amber-50 px-5 py-2 dark:border-gray-700/60 dark:bg-amber-900/10">
+            <i data-lucide="lock" class="h-3 w-3 text-amber-600 dark:text-amber-400"></i>
+            <span class="text-[11px] font-medium text-amber-700 dark:text-amber-400">Salary figures are masked &mdash; password verification is required to reveal, edit or export.</span>
+        </div>
 
         {{-- Payroll Modal --}}
         <div id="payrollModal"
             class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 p-4">
-            <div class="w-full max-w-5xl rounded-lg bg-white p-6 dark:bg-gray-800">
-                <h3 class="mb-5 text-sm font-bold text-gray-800 dark:text-white">Form Payroll</h3>
-                <form id="payrollForm">
+            <div class="max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex items-start gap-3 border-b border-gray-100 px-6 py-5 dark:border-gray-700/60">
+                    <div class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13"></path><path d="M8 12h13"></path><path d="M8 18h13"></path><path d="M3 6h.01"></path><path d="M3 12h.01"></path><path d="M3 18h.01"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-800 dark:text-white">Payroll Confirmation</h3>
+                        <p class="mt-0.5 text-xs text-gray-400">Tax, bank and employment details for this applicant.</p>
+                    </div>
+                </div>
+                <form id="payrollForm" class="px-6 py-5">
                     @csrf
                     <input type="hidden" name="jobapply_id" value="{{ $career->docid ?? '' }}">
                     <input type="hidden" name="jobid" value="{{ $career->docidposting ?? '' }}">
                     <input type="hidden" name="applicant_id" value="{{ $applicant->applicant_id ?? '' }}">
                     <input type="hidden" name="id" id="payroll_id">
 
+                    <p class="mb-3 text-[10px] font-bold uppercase tracking-widest text-gray-400">Tax &amp; Bank Details</p>
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div class="flex flex-col">
                             <label for="tax_liability" class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Dependants</label>
                             <select name="tax_liability" id="tax_liability"
-                                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                 required>
                                 <option value="">Select</option>
                                 <option value="TK0">TK0</option>
@@ -85,41 +125,74 @@
                         <div class="flex flex-col">
                             <label for="npwp_id" class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">NPWP</label>
                             <input type="text" name="npwp_id" id="npwp_id"
-                                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                 required>
                         </div>
                         <div class="flex flex-col">
                             <label for="bank_account" class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Rekening</label>
                             <input type="text" name="bank_account" id="bank_account"
-                                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                 required>
                         </div>
                         <div class="flex flex-col">
                             <label for="bank_name" class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Bank</label>
                             <select name="bank_name" id="bank_name"
-                                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                 required>
                                 <option value="">Bank Name</option>
                                 <option value="BCA">BCA</option>
                                 <option value="MANDIRI">MANDIRI</option>
                             </select>
                         </div>
+                    </div>
+
+                    <p class="mb-3 mt-6 text-[10px] font-bold uppercase tracking-widest text-gray-400">Compensation &amp; Facilities</p>
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div class="flex flex-col">
-                            <label for="net_salary" class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Salary</label>
+                            <label for="net_salary" class="mb-1 flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400">
+                                Salary
+                                <svg class="h-3 w-3 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+                            </label>
                             <input type="text" name="net_salary" id="net_salary" inputmode="numeric"
-                                class="money-separator w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                class="money-separator w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                 placeholder="0" required>
                         </div>
                         <div class="flex flex-col">
                             <label for="other_facility" class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Fasilitas</label>
                             <input type="text" name="other_facility" id="other_facility"
-                                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                 required>
                         </div>
+                    </div>
+
+                    <p class="mb-3 mt-6 text-[10px] font-bold uppercase tracking-widest text-gray-400">Employment Period &amp; Status</p>
+                    <div class="flex flex-col">
+                        <label for="employment_status" class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Status Kepegawaian</label>
+                        <select name="employment_status" id="employment_status"
+                            class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                            required>
+                            <option value="">Employment Status</option>
+                            <option value="PKWT">PKWT</option>
+                            <option value="PKWTT">PKWTT</option>
+                        </select>
+                        <div id="contract_term_wrap" class="mt-3 hidden">
+                            <label for="contract_term" class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">Contract Term (PKWT)</label>
+                            <select name="contract_term" id="contract_term"
+                                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                                <option value="">Select Contract Term</option>
+                                <option value="2">Contract 2 bulan</option>
+                                <option value="3">Contract 3 bulan</option>
+                                <option value="6">Contract 6 bulan</option>
+                                <option value="12">Contract 12 bulan</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div class="flex flex-col">
                             <label for="work_start_date" class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Tgl Masuk Kerja</label>
                             <input type="date" name="work_start_date" id="work_start_date"
-                                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                 required>
                         </div>
                         <div class="flex flex-col">
@@ -130,35 +203,13 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 flex flex-col">
-                        <label for="employment_status" class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Status Kepegawaian</label>
-                        <select name="employment_status" id="employment_status"
-                            class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                            required>
-                            <option value="">Employment Status</option>
-                            <option value="PKWT">PKWT</option>
-                            <option value="PKWTT">PKWTT</option>
-                        </select>
-                        <div id="contract_term_wrap" class="mt-3 hidden">
-                            <label for="contract_term" class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">Contract Term (PKWT)</label>
-                            <select name="contract_term" id="contract_term"
-                                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                                <option value="">Select Contract Term</option>
-                                <option value="2">Contract 2 bulan</option>
-                                <option value="3">Contract 3 bulan</option>
-                                <option value="6">Contract 6 bulan</option>
-                                <option value="12">Contract 12 bulan</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="mt-6 flex justify-end gap-2">
+                    <div class="mt-6 flex justify-end gap-2 border-t border-gray-100 pt-5 dark:border-gray-700/60">
                         <button type="button" id="closeModal"
                             class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-50 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
                             Batal
                         </button>
                         <button type="submit"
-                            class="inline-flex items-center rounded-lg bg-gray-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900">
+                            class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700 focus:outline-none active:scale-95">
                             Simpan
                         </button>
                     </div>
@@ -167,6 +218,44 @@
         </div>
 
         {{-- Payroll Table --}}
+        <style>
+            /* Force a flat, professional table (global table CSS loaded elsewhere in the
+               app, e.g. DataTables' base stylesheet, can otherwise leak a boxed/gridline
+               look onto this plain, non-DataTable table). Reset every cell, then apply
+               only the intended styling: a tinted header band and hairline row dividers,
+               no vertical grid lines anywhere. */
+            #payrollTable,
+            #payrollTable th,
+            #payrollTable td {
+                border-width: 0 !important;
+                border-style: solid !important;
+                box-shadow: none !important;
+                background-image: none !important;
+            }
+            #payrollTable {
+                border-collapse: collapse !important;
+                background: transparent !important;
+            }
+            #payrollTable thead tr {
+                background-color: #f9fafb !important;
+            }
+            #payrollTable thead th {
+                border-bottom: 1px solid #f3f4f6 !important;
+            }
+            #payrollTable tbody td {
+                border-bottom: 1px solid #f3f4f6 !important;
+            }
+            #payrollTable tbody tr:last-child td {
+                border-bottom: 0 !important;
+            }
+            .dark #payrollTable thead tr {
+                background-color: rgba(55, 65, 81, .3) !important;
+            }
+            .dark #payrollTable thead th,
+            .dark #payrollTable tbody td {
+                border-bottom-color: rgba(55, 65, 81, .4) !important;
+            }
+        </style>
         <div class="overflow-x-auto">
             <table class="w-full" id="payrollTable">
                 <thead>
@@ -203,7 +292,9 @@
                             <td class="whitespace-nowrap px-4 py-2.5 text-xs text-gray-600 dark:text-gray-300">{{ $p->other_facility }}</td>
                             <td class="whitespace-nowrap px-4 py-2.5 text-xs text-gray-600 dark:text-gray-300">{{ \Carbon\Carbon::parse($p->work_start_date)->translatedFormat('d F Y') }}</td>
                             <td class="whitespace-nowrap px-4 py-2.5 text-xs text-gray-600 dark:text-gray-300">{{ \Carbon\Carbon::parse($p->availability_date)->translatedFormat('d F Y') }}</td>
-                            <td class="whitespace-nowrap px-4 py-2.5 text-xs text-gray-600 dark:text-gray-300">{{ $p->employment_status }} - Contract {{ $p->contract_term }} bulan</td>
+                            <td class="whitespace-nowrap px-4 py-2.5 text-xs">
+                                <span class="rounded-full bg-indigo-50 px-2.5 py-1 font-semibold text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400">{{ $p->employment_status }} - Contract {{ $p->contract_term }} bulan</span>
+                            </td>
                             <td class="whitespace-nowrap px-4 py-2.5 text-xs">
                                 <button class="editPayrollBtn inline-flex items-center rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:border-gray-400 hover:text-gray-800 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400">
                                     Edit
@@ -218,15 +309,24 @@
                 </tbody>
             </table>
         </div>
+        </div>
     </div>
 
-    {{-- ── Payroll Sign ──────────────────────────────────────────── --}}
-    <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800">
+    {{-- ── Phase 3 · Approval Chain ─────────────────────────────── --}}
+    <div class="flex items-start gap-4">
+        <div class="flex flex-shrink-0 flex-col items-center">
+            <div class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold {{ $sign->count() > 0 ? 'bg-indigo-600 text-white' : 'border-2 border-gray-300 text-gray-400 dark:border-gray-600' }}">3</div>
+        </div>
+        <div class="flex-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700/60 dark:bg-gray-800">
 
         <div class="flex items-center justify-between border-b border-gray-100 px-5 py-3 dark:border-gray-700/60">
-            <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">Payroll Sign</p>
+            <div class="flex items-center gap-2.5">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Phase 3</span>
+                <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">Approval Chain</p>
+                <span class="rounded-full bg-indigo-50 px-2.5 py-0.5 text-[10.5px] font-semibold text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400">{{ $sign->count() }} Signer{{ $sign->count() === 1 ? '' : 's' }}</span>
+            </div>
             <button id="addSignBtn"
-                class="inline-flex items-center gap-1.5 rounded-lg bg-gray-900 px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900">
+                class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-700 focus:outline-none active:scale-95">
                 <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
                 </svg>
@@ -237,72 +337,51 @@
         {{-- Sign Modal --}}
         <div id="signModal"
             class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 p-4">
-            <div class="w-full max-w-4xl rounded-lg bg-white p-6 dark:bg-gray-800">
-                <h3 class="mb-5 text-sm font-bold text-gray-800 dark:text-white">Form Sign</h3>
-                <form id="signForm">
+            <div class="w-full max-w-4xl overflow-hidden rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex items-start gap-3 border-b border-gray-100 px-6 py-5 dark:border-gray-700/60">
+                    <div class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
+                        <svg class="h-4.5 w-4.5" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-800 dark:text-white">Add Signers</h3>
+                        <p class="mt-0.5 text-xs text-gray-400">Set the approval order for this payroll confirmation.</p>
+                    </div>
+                </div>
+                <form id="signForm" class="px-6 py-5">
                     @csrf
                     <input type="hidden" name="jobapply_id" value="{{ $career->docid ?? '' }}">
                     <input type="hidden" name="jobid" value="{{ $career->docidposting ?? '' }}">
                     <input type="hidden" name="applicant_id" value="{{ $applicant->applicant_id ?? '' }}">
                     <input type="hidden" name="id" id="sign_id">
 
-                    <div id="signRows" class="space-y-4"></div>
+                    <div id="signRows" class="space-y-3"></div>
 
-                    <div class="mt-4">
+                    <div class="mt-3">
                         <button type="button" id="addSignRow"
-                            class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:border-gray-400 focus:outline-none dark:border-gray-600 dark:text-gray-400">
-                            + Add Row
+                            class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-gray-300 px-3 py-2 text-xs font-semibold text-gray-500 transition hover:border-indigo-400 hover:text-indigo-600 focus:outline-none dark:border-gray-600 dark:text-gray-400 dark:hover:border-indigo-500 dark:hover:text-indigo-400">
+                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                            Add Signer
                         </button>
                     </div>
 
-                    <div class="mt-6 flex justify-end gap-2">
+                    <div class="mt-6 flex justify-end gap-2 border-t border-gray-100 pt-5 dark:border-gray-700/60">
                         <button type="button" id="closeModalsign"
                             class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-50 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
                             Batal
                         </button>
                         <button type="submit"
-                            class="inline-flex items-center rounded-lg bg-gray-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900">
+                            class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700 focus:outline-none active:scale-95">
                             Simpan
                         </button>
                     </div>
                 </form>
 
                 <template id="signRowTemplate">
-                    <div class="sign-row grid items-end gap-3"
-                        style="grid-template-columns: 72px minmax(0, 1.15fr) minmax(0, 0.85fr) 36px;">
-                        <div class="flex flex-col">
-                            <label class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Urutan</label>
-                            <select name="aprvid[]"
-                                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                required>
-                                <option value="" disabled selected>Urutan</option>
-                                @for ($i = 1; $i <= 10; $i++)
-                                    <option value="{{ $i }}">{{ $i }}</option>
-                                @endfor
-                            </select>
-                        </div>
-                        <div class="flex flex-col">
-                            <label class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Nama</label>
-                            <select name="aprvusername[]"
-                                class="sign-employee-select w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                required>
-                                <option value="">Select Employee</option>
-                                @foreach ($userlist as $u)
-                                    <option value="{{ $u->username }}" data-name="{{ $u->name }}">{{ $u->name }}</option>
-                                @endforeach
-                            </select>
-                            <input type="hidden" name="aprvname[]" class="aprvname-input">
-                        </div>
-                        <div class="flex flex-col">
-                            <label class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Jabatan</label>
-                            <input type="text" name="jabatan[]"
-                                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                required>
-                        </div>
+                    <div class="sign-row relative rounded-lg border border-gray-200 p-3.5 dark:border-gray-700">
                         <button type="button"
-                            class="removeSignRow inline-flex h-[38px] w-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-500 transition hover:border-red-300 hover:bg-red-100 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-200 dark:border-red-900/60 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40"
+                            class="removeSignRow absolute right-2.5 top-2.5 inline-flex h-6 w-6 items-center justify-center rounded-md text-gray-300 transition hover:bg-red-50 hover:text-red-500 focus:outline-none dark:text-gray-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
                             title="Delete row" aria-label="Delete row">
-                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
                                 aria-hidden="true">
                                 <path d="M3 6h18" />
@@ -311,42 +390,67 @@
                                 <path d="M10 11v5M14 11v5" />
                             </svg>
                         </button>
+                        <div class="grid gap-3 pr-8" style="grid-template-columns: 88px minmax(0, 1.15fr) minmax(0, 0.85fr);">
+                            <div class="flex flex-col">
+                                <label class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Urutan</label>
+                                <select name="aprvid[]"
+                                    class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                    required>
+                                    <option value="" disabled selected>Urutan</option>
+                                    @for ($i = 1; $i <= 10; $i++)
+                                        <option value="{{ $i }}">{{ $i }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+                            <div class="flex flex-col">
+                                <label class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Nama</label>
+                                <select name="aprvusername[]"
+                                    class="sign-employee-select w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                    required>
+                                    <option value="">Select Employee</option>
+                                    @foreach ($userlist as $u)
+                                        <option value="{{ $u->username }}" data-name="{{ $u->name }}">{{ $u->name }}</option>
+                                    @endforeach
+                                </select>
+                                <input type="hidden" name="aprvname[]" class="aprvname-input">
+                            </div>
+                            <div class="flex flex-col">
+                                <label class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Jabatan</label>
+                                <input type="text" name="jabatan[]"
+                                    class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                    required>
+                            </div>
+                        </div>
                     </div>
                 </template>
             </div>
         </div>
 
-        {{-- Sign Table --}}
-        <div class="overflow-x-auto">
-            <table class="w-full" id="signTable">
-                <thead>
-                    <tr class="border-b border-gray-100 dark:border-gray-700/60">
-                        <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400">Urutan</th>
-                        <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400">Nama</th>
-                        <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400">Jabatan</th>
-                        <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-gray-700/40">
-                    @forelse ($sign as $p)
-                        <tr data-id="{{ $p->id }}" class="hover:bg-gray-50 dark:hover:bg-gray-700/20">
-                            <td class="whitespace-nowrap px-4 py-2.5 text-xs font-semibold text-gray-800 dark:text-gray-100">{{ $p->aprvid }}</td>
-                            <td class="whitespace-nowrap px-4 py-2.5 text-xs text-gray-600 dark:text-gray-300">{{ $p->name }}</td>
-                            <td class="whitespace-nowrap px-4 py-2.5 text-xs text-gray-600 dark:text-gray-300">{{ $p->jabatan }}</td>
-                            <td class="whitespace-nowrap px-4 py-2.5 text-xs">
-                                <div class="flex items-center gap-1.5">
-                                    <button class="editsignBtn inline-flex items-center rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:border-gray-400 hover:text-gray-800 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400">Edit</button>
-                                    <button class="deletesignBtn inline-flex items-center rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-500 transition hover:bg-red-50 focus:outline-none active:scale-95 dark:border-red-800/40 dark:text-red-400">Delete</button>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="4" class="py-6 text-center text-xs italic text-gray-400 dark:text-gray-500">No Sign data found.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+        {{-- Sign List (approval order) --}}
+        <div id="signList" class="px-5 py-4">
+            @forelse ($sign as $p)
+                <div class="sign-row-item flex items-start gap-3.5" data-id="{{ $p->id }}">
+                    <div class="flex flex-shrink-0 flex-col items-center">
+                        <div class="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-50 text-[11px] font-bold text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">{{ $p->aprvid }}</div>
+                        @if (!$loop->last)
+                            <div class="mt-1 h-8 w-0.5 bg-gray-200 dark:bg-gray-700"></div>
+                        @endif
+                    </div>
+                    <div class="flex flex-1 items-center justify-between {{ $loop->last ? '' : 'pb-4' }}">
+                        <div class="flex items-center gap-2.5">
+                            <div class="flex h-6 w-6 items-center justify-center rounded-full bg-gray-800 text-[10px] font-bold text-white dark:bg-gray-600">{{ strtoupper(substr($p->name, 0, 1)) }}</div>
+                            <span class="text-xs font-semibold text-gray-800 dark:text-gray-100">{{ $p->name }}</span>
+                            <span class="text-[11px] text-gray-400">{{ $p->jabatan }}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <button class="editsignBtn inline-flex items-center rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:border-gray-400 hover:text-gray-800 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400">Edit</button>
+                            <button class="deletesignBtn inline-flex items-center rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-500 transition hover:bg-red-50 focus:outline-none active:scale-95 dark:border-red-800/40 dark:text-red-400">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="py-6 text-center text-xs italic text-gray-400 dark:text-gray-500">No Sign data found.</div>
+            @endforelse
         </div>
 
         {{-- Password Verify Modal --}}
@@ -376,6 +480,7 @@
             </div>
         </div>
 
+        </div>
     </div>
 </div>
 <script>
@@ -574,7 +679,7 @@
     });
 
     $('.editsignBtn').click(function() {
-        var id = $(this).closest('tr').data('id');
+        var id = $(this).closest('.sign-row-item').data('id');
         $.get('/signconfirm/' + id, function(data) {
             $('[name="aprvid"]').val(data.aprvid);
             $('[name="aprvusername"]').val(data.name);
@@ -701,7 +806,7 @@
 
         // (Opsional) Prefill saat edit single: isi baris pertama
         $('.editsignBtn').on('click', function() {
-            const id = $(this).closest('tr').data('id');
+            const id = $(this).closest('.sign-row-item').data('id');
             $.get('/signconfirm/' + id, function(data) {
                 rows.empty();
                 addRow();
@@ -746,8 +851,8 @@
 <script>
     // Hapus row Sign
     $(document).on('click', '.deletesignBtn', function() {
-        const $tr = $(this).closest('tr');
-        const id = $tr.data('id');
+        const $row = $(this).closest('.sign-row-item');
+        const id = $row.data('id');
 
         if (!confirm('Hapus data sign ini?')) return;
 
@@ -760,16 +865,12 @@
             success: function(resp) {
                 if (resp && resp.success) {
                     toastr.success('Data sign berhasil dihapus.');
-                    $tr.remove();
+                    $row.remove();
 
-                    if ($('#signTable tbody tr').length === 0) {
-                        $('#signTable tbody').html(`
-              <tr>
-                <td colspan="4" class="py-6 text-center text-xs italic text-gray-400 dark:text-gray-500">
-                  No Sign data found.
-                </td>
-              </tr>
-            `);
+                    if ($('#signList .sign-row-item').length === 0) {
+                        $('#signList').html(
+                            '<div class="py-6 text-center text-xs italic text-gray-400 dark:text-gray-500">No Sign data found.</div>'
+                        );
                     }
                 } else {
                     toastr.error('Gagal menghapus data sign.');

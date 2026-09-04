@@ -227,14 +227,6 @@ class CareerController extends Controller
 
         // PRF checklist item is auto-linked to the PRF document the job posting was raised from,
         // instead of requiring a manual upload.
-        $prfAttachments = $jobposting && $jobposting->refid
-            ? TrAttachment::where('refnbr', $jobposting->refid)
-                ->where('doctype', 'PRF')
-                ->where('status', 'A')
-                ->orderByDesc('attachment_date')
-                ->get()
-            : collect();
-
         $prfPersonnel = $jobposting && $jobposting->refid
             ? Personnel::where('docid', $jobposting->refid)->first()
             : null;
@@ -456,7 +448,7 @@ class CareerController extends Controller
         return view('pages.careers.showcareers', compact(
             'hash', 'career', 'applicant', 'applicant_family', 'applicant_marital', 'applicant_education', 'applicant_working',
             'applicant_reference', 'applicant_language', 'applicant_course', 'applicant_sw', 'applicant_skill', 'jobapplystep',
-            'jobres', 'jobqua', 'jobposting', 'companyName', 'departmentName', 'tr_checklist', 'prfAttachments', 'prfPersonnel', 'prfHash', 'year', 'photo', 'cv', 'coverletter', 'transkip', 'ijazah', 'user', 'datenow',
+            'jobres', 'jobqua', 'jobposting', 'companyName', 'departmentName', 'tr_checklist', 'prfPersonnel', 'prfHash', 'year', 'photo', 'cv', 'coverletter', 'transkip', 'ijazah', 'user', 'datenow',
             'assessmentGroups', 'tr_assessment', 'tr_assessment_user', 'assessmentGroupsUser', 'agenda', 'userlist',
             'typestep', 'payrolls', 'onboarding', 'sign', 'canAccessPayroll', 'canAccessAssessment', 'canAccessSchedule', 'companyaddress',
             'canAccessChecklist', 'canAccessInterviewUser', 'canAccessInterviewHC', 'canAccessPayroll', 'canAccessJoin',
@@ -2148,7 +2140,9 @@ class CareerController extends Controller
             $tglbln = substr($year, 2).$month;
             $docid = $doctype.$tglbln.sprintf('%05d', $urutan);
 
-            $ms_onboarding = Msonboarding::orderby('step_order', 'ASC')
+            $ms_onboarding = Msonboarding::where('status', 'A')
+                ->where('group_cpny_id', $career->group_cpny_id)
+                ->orderby('step_order', 'ASC')
                 ->get();
 
             foreach ($ms_onboarding as $cek) {
@@ -2248,6 +2242,12 @@ class CareerController extends Controller
             return response()->json(['message' => 'Data pelamar tidak ditemukan'], 422);
         }
 
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+        $this->assertApplicantCompanyAccess($user, $applicant->group_cpny_id, $company->cpny_id);
+
         $datebirth = Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y');
 
         $year = now()->year;
@@ -2274,6 +2274,8 @@ class CareerController extends Controller
         $applicant_skill = ApplicantSkill::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $applicant->group_cpny_id)->get();
         $applicant_driver_license = ApplicantDriverLicense::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $applicant->group_cpny_id)->get();
         $applicant_reference = ApplicantReference::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $applicant->group_cpny_id)->get();
+        $applicant_additional = ApplicantAdditional::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $applicant->group_cpny_id)->first();
+        $applicant_organization = ApplicantOrganization::where('applicant_id', $applicant->applicant_id)->where('group_cpny_id', $applicant->group_cpny_id)->get();
 
         $data = [
             'cpnyid' => $company->cpny_name,
@@ -2293,6 +2295,8 @@ class CareerController extends Controller
             'applicant_sw' => $applicant_sw,
             'applicant_driver_license' => $applicant_driver_license,
             'applicant_reference' => $applicant_reference,
+            'applicant_additional' => $applicant_additional,
+            'applicant_organization' => $applicant_organization,
         ];
 
         $pdf = \PDF::loadView('pages.careers.pdfapplicantprofile', $data)
