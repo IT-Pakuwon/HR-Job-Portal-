@@ -189,7 +189,7 @@
             <td class="meta-label">Nama Tenant</td>
             <td>{{ $nama_tenant }}</td>
 
-            <td class="meta-label">No Unit Tenant</td>
+            <td class="meta-label">Floor - Store No</td>
             <td>{{ $no_unit_tenant }}</td>
         </tr>
 
