@@ -1,5 +1,4 @@
 let ticketStatusFilter = "";
-let ticketSearchTimeout;
 
 const isIT = window.isIT || false;
 
@@ -35,7 +34,14 @@ const ticketTable = $("#ticketTable").DataTable({
 
     searching: true,
 
-    dom: "lrtip",
+    dom: '<"dt-toolbar"lf>rtip',
+
+    searchDelay: 500,
+
+    language: {
+        search: "",
+        searchPlaceholder: "Ticket / Summary / PIC",
+    },
 
     ordering: true,
 
@@ -47,7 +53,7 @@ const ticketTable = $("#ticketTable").DataTable({
         data: function (d) {
             d.status = ticketStatusFilter;
 
-            d.search = $("#filter_search").val();
+            d.search = d.search.value;
 
             d.status_filter = $("#filter_status").val();
 
@@ -949,7 +955,7 @@ const TICKET_FILTER_KEY = 'ticketFilterState';
 
 function saveFilterState() {
     const state = {
-        search:            $('#filter_search').val(),
+        search:            ticketTable.search(),
         status:            $('#filter_status').val(),
         status_pekerjaan:  $('#filter_status_pekerjaan').val(),
         category_id:       $('#filter_category_id').val(),
@@ -968,7 +974,8 @@ function restoreFilterState() {
     try {
         const state = JSON.parse(raw);
 
-        $('#filter_search').val(state.search || '');
+        ticketTable.search(state.search || '');
+        $('#ticketTable_wrapper .dataTables_filter input').val(state.search || '');
 
         if ($.fn.select2) {
             $('#filter_status').val(state.status || '').trigger('change');
@@ -1000,9 +1007,13 @@ $(document).on('click', '#btn_apply_filter', function () {
     ticketTable.ajax.reload();
 });
 
+$(document).on('search', '#ticketTable', function () {
+    saveFilterState();
+});
+
 $(document).on('click', '#btn_reset_filter', function () {
     sessionStorage.removeItem(TICKET_FILTER_KEY);
-    $('#filter_search').val('');
+    $('#ticketTable_wrapper .dataTables_filter input').val('');
     $('#filter_status').val('').trigger('change');
     $('#filter_status_pekerjaan').val('').trigger('change');
     $('#filter_category_id').val('').trigger('change');
@@ -1011,7 +1022,7 @@ $(document).on('click', '#btn_reset_filter', function () {
     $('#filter_date_to').val('');
     ticketStatusFilter = '';
     $('.ticket-status-card').removeClass('active');
-    ticketTable.ajax.reload();
+    ticketTable.search('').ajax.reload();
 });
 
 $(document).ready(function () {
@@ -1035,7 +1046,7 @@ $(document).ready(function () {
 
 function doExportTicket() {
     const params = new URLSearchParams({
-        search:      $('#filter_search').val() || '',
+        search:      ticketTable.search() || '',
         status:      $('#filter_status_pekerjaan').val() || '',
         category_id: $('#filter_category_id').val() || '',
         date_from:   $('#filter_date_from').val() || '',
