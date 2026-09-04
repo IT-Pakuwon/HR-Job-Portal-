@@ -389,6 +389,10 @@
                 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Settlement information &amp; approval workflow.</p>
             </div>
             <div class="flex items-center gap-2">
+                <button type="button" id="v_printBtn" title="Print PDF"
+                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                    <i class="fa-solid fa-print text-base"></i>
+                </button>
                 <button type="button" id="v_msgToggleBtn"
                     class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
                     <i class="fa-regular fa-comments text-base"></i>

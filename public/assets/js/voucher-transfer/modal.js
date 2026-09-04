@@ -218,6 +218,12 @@ const VplTransferDetailModal = {
         };
     },
 
+    initPrint() {
+        document.getElementById('v_printBtn').onclick = () => {
+            window.open(VplTransfer.routes.pdf(VplTransfer.state.currentViewId), '_blank');
+        };
+    },
+
     initDiscussion() {
         const btn    = document.getElementById('v_msgToggleBtn');
         const panel  = document.getElementById('v_discussionPanel');
@@ -279,6 +285,7 @@ const VplTransferDetailModal = {
             document.getElementById(btnId)?.addEventListener('click', () => VplTransferDetailModal.hide());
         });
 
+        VplTransferDetailModal.initPrint();
         VplTransferDetailModal.initDiscussion();
 
         // Add attachment directly from the view modal

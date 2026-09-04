@@ -447,7 +447,7 @@ const ticketTable = $("#ticketTable").DataTable({
             className: "px-5 py-4 whitespace-nowrap align-top",
 
             render: function (data, type, row) {
-                return renderTicketStatusBadge(data);
+                return renderTicketStatusBadge(data, row.status_pekerjaan);
             },
         },
 
@@ -695,6 +695,25 @@ function buildTicketActions(row) {
     const can = row.actions || {};
 
     const actions = [];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Edit
+    |--------------------------------------------------------------------------
+    */
+
+    if (can.can_edit) {
+
+        actions.push({
+
+            label: 'Edit Ticket',
+
+            icon: 'ti ti-edit',
+
+            onclick:
+                `openEditTicketModal('${row.eid}')`
+        });
+    }
 
     /*
     |--------------------------------------------------------------------------

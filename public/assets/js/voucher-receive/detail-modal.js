@@ -301,6 +301,11 @@ const VplReceiveDetailModal = {
             VplReceiveModal.open('editModal');
         });
 
+        // Print PDF
+        $('#v_printBtn').on('click', () => {
+            window.open(VplReceive.routes.pdf(VplReceive.state.currentViewId), '_blank');
+        });
+
         // Discussion panel toggle
         $('#v_msgToggleBtn').on('click', () => {
             $('#v_discussionPanel').toggleClass('hidden');

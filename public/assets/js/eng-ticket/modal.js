@@ -80,6 +80,14 @@ function closeModal(modalSelector) {
         return;
     }
 
+    // Nothing to close — bail before touching the shared animating lock,
+    // otherwise a stray close() call (e.g. "make sure the detail modal is
+    // closed" before opening a different modal) blocks that other modal's
+    // openModal() call for 220ms even though this one was never open.
+    if (!modal.hasClass('flex')) {
+        return;
+    }
+
     if (modalAnimating) {
         return;
     }

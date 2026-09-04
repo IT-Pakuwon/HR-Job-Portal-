@@ -84,7 +84,6 @@ class EngTicketController extends Controller
             'RESPONSE',
             'REOPEN',
             'PENDING',
-            'REVISE',
         ],
 
         'pending' => [
@@ -111,8 +110,21 @@ class EngTicketController extends Controller
 
     protected function canTransition(
         string $current,
-        string $action
+        string $action,
+        ?string $ticketType = null
     ): bool {
+        // BA_ENG skips the Process step entirely: PIC goes straight from
+        // Response to Pending or Complete.
+        if ($ticketType === self::BA_ENG_TICKET_TYPE) {
+            if ($action === 'process') {
+                return false;
+            }
+
+            if (in_array($action, ['pending', 'complete'], true) && $current === 'RESPONSE') {
+                return true;
+            }
+        }
+
         return in_array(
             $current,
             $this->workflowTransitions[$action] ?? []
@@ -442,7 +454,7 @@ class EngTicketController extends Controller
 
             'revise' => $baseCount()->where(
                 'status_pekerjaan',
-                'REVISE'
+                'REVISED'
             )->count(),
 
             'rejected' => $baseCount()->where(
@@ -881,6 +893,10 @@ class EngTicketController extends Controller
             return 'REJECTED';
         }
 
+        if ($ticket->status_pekerjaan === 'REVISED') {
+            return 'REVISED';
+        }
+
         // Unscheduled means "not yet responded to" — not "no working dates
         // filled". Once Response happens the ticket is always at least
         // Scheduled, whether or not that Response filled working dates.
@@ -1154,7 +1170,7 @@ class EngTicketController extends Controller
 
         abort_if(
             $ticket->status !== 'P'
-                || $ticket->status_pekerjaan !== 'CREATED',
+                || !in_array($ticket->status_pekerjaan, ['CREATED', 'REVISED'], true),
             403
         );
 
@@ -1181,6 +1197,11 @@ class EngTicketController extends Controller
             'Invalid ticket type for Engineering Ticket.'
         );
 
+        // Editing a REVISED ticket is the requester's acknowledgement that
+        // they're done — saving reopens it (CREATED) so the PIC can respond
+        // again. Editing a CREATED ticket is a plain edit, no transition.
+        $wasRevised = $ticket->status_pekerjaan === 'REVISED';
+
         DB::connection('pgsql5')->beginTransaction();
 
         try {
@@ -1195,6 +1216,7 @@ class EngTicketController extends Controller
                 'ticketdate' => $request->filled('ticketdate')
                     ? Carbon::parse($request->ticketdate)
                     : $ticket->ticketdate,
+                'status_pekerjaan' => $wasRevised ? 'CREATED' : $ticket->status_pekerjaan,
                 'updated_by' => auth()->user()->username,
             ]);
 
@@ -1204,14 +1226,40 @@ class EngTicketController extends Controller
                 'department_id' => $ticket->department_id,
                 'pic_ticket' => auth()->user()->username,
                 'response_date' => now(),
-                'response_summary' => 'Ticket Updated',
+                'response_summary' => $wasRevised ? 'Ticket Resubmitted After Revision' : 'Ticket Updated',
                 'response_descr' => $ticket->issue_descr,
-                'status_pekerjaan' => 'CREATED',
+                'status_pekerjaan' => $ticket->status_pekerjaan,
                 'status' => 'A',
                 'created_by' => auth()->user()->username,
             ]);
 
             DB::connection('pgsql5')->commit();
+
+            // Requester just resubmitted a REVISED ticket — it's back to
+            // CREATED now, so let the PIC know it's ready for a response.
+            if ($wasRevised && $ticket->pic_ticket) {
+                $eid = Hashids::encode($ticket->id);
+                $docUrl = url('/showoprtekticket/'.$eid);
+
+                app(ApprovalController::class)->notifyRequesterOnStatus(
+                    $ticket->ticketid,
+                    'Eng Ticket',
+                    'D',
+                    $ticket->pic_ticket,
+                    $docUrl,
+                    [
+                        'cpnyid' => $ticket->cpny_id,
+                        'deptname' => $ticket->department_id,
+                        'info' => 'The requester has resubmitted the ticket after your revision request. Please respond again.',
+                    ]
+                );
+
+                $this->notificationService->ticketWhatsapp(
+                    $ticket,
+                    'OPEN',
+                    'Dokumen telah selesai direvisi. Ticket sudah kembali Open dan siap untuk direspon.'
+                );
+            }
 
             if ($request->hasFile('attachments')) {
                 $meta = [
@@ -1365,7 +1413,7 @@ class EngTicketController extends Controller
         abort_unless(
             $this->buildActions($ticket)['can_view'],
             403,
-            'You do not have access to view this ticket.'
+            'You do not have acceloh nLohss to view this ticket.'
         );
 
         /*
@@ -1906,10 +1954,12 @@ class EngTicketController extends Controller
     }
 
     /**
-     * Sends the ticket back to the PIC for rework, with a required reason.
-     * Unlike rejectTicket(), the ticket stays actionable — it lands in the
-     * REVISE stage and the PIC can click "Process" again once they've seen
-     * the reason (REVISE is in $workflowTransitions['process']).
+     * Sends the ticket back to REVISED, with a required reason. Unlike
+     * rejectTicket(), the ticket stays actionable: the requester can edit
+     * it again, and the PIC/Eng can respond again — same permissions as a
+     * freshly created ticket (see workflowTransitions['response'] and the
+     * can_edit/can_response checks in buildActions()), but kept as its own
+     * status so revised tickets stay distinguishable from newly created ones.
      */
     public function reviseTicket(Request $request, $hash)
     {
@@ -1938,7 +1988,7 @@ class EngTicketController extends Controller
             function (string $refnbr, Carbon $now) use ($ticket, $request, $docUrl) {
                 $ticket->update([
                     'status' => 'P',
-                    'status_pekerjaan' => 'REVISE',
+                    'status_pekerjaan' => 'REVISED',
                     'updated_by' => auth()->user()->username,
                 ]);
 
@@ -1950,7 +2000,7 @@ class EngTicketController extends Controller
                     'response_date' => $now,
                     'response_summary' => 'Ticket Completion Revised',
                     'response_descr' => $request->response_descr,
-                    'status_pekerjaan' => 'REVISE',
+                    'status_pekerjaan' => 'REVISED',
                     'status' => 'A',
                     'created_by' => auth()->user()->username,
                 ]);
@@ -2017,7 +2067,8 @@ class EngTicketController extends Controller
         abort_if(
             !$this->canTransition(
                 $ticket->status_pekerjaan,
-                'process'
+                'process',
+                $ticket->ticket_type
             ),
             403
         );
@@ -2177,7 +2228,8 @@ class EngTicketController extends Controller
         abort_if(
             !$this->canTransition(
                 $ticket->status_pekerjaan,
-                'pending'
+                'pending',
+                $ticket->ticket_type
             ),
             403
         );
@@ -2560,7 +2612,8 @@ class EngTicketController extends Controller
         abort_if(
             !$this->canTransition(
                 $ticket->status_pekerjaan,
-                'complete'
+                'complete',
+                $ticket->ticket_type
             ),
             403
         );
@@ -2752,6 +2805,13 @@ class EngTicketController extends Controller
             'working_end_date' => 'nullable|date|after_or_equal:working_start_date',
         ]);
 
+        // BA_ENG has no Process step, so a reopened ticket has nowhere to go
+        // from REOPEN. Land it back on RESPONSE instead, which the PIC can
+        // move to Pending/Complete directly.
+        $reopenStatus = $ticket->ticket_type === self::BA_ENG_TICKET_TYPE
+            ? 'RESPONSE'
+            : 'REOPEN';
+
         DB::connection('pgsql5')->beginTransaction();
 
         try {
@@ -2768,7 +2828,7 @@ class EngTicketController extends Controller
 
                 'status' => 'P',
 
-                'status_pekerjaan' => 'REOPEN',
+                'status_pekerjaan' => $reopenStatus,
 
                 'updated_by' => auth()->user()->username,
             ]);
@@ -2798,7 +2858,7 @@ class EngTicketController extends Controller
 
                 'working_end_date' => $request->working_end_date,
 
-                'status_pekerjaan' => 'REOPEN',
+                'status_pekerjaan' => $reopenStatus,
 
                 'status' => 'A',
 
@@ -3054,10 +3114,16 @@ class EngTicketController extends Controller
             'transfer', 'completed', 'reopen', 'cancel', 'revise', 'rejected',
         ];
 
+        // 'revise' is the tile key, but the actual status_pekerjaan value is
+        // 'REVISED' — strtoupper('revise') would look for the old retired
+        // 'REVISE' dead-end status instead.
+        $statusValueOverrides = ['revise' => 'REVISED'];
+
         $counts = ['all' => $base()->count()];
 
         foreach ($statuses as $s) {
-            $counts[$s] = $base()->where('status_pekerjaan', strtoupper($s))->count();
+            $statusValue = $statusValueOverrides[$s] ?? strtoupper($s);
+            $counts[$s] = $base()->where('status_pekerjaan', $statusValue)->count();
         }
 
         $counts['my_ticket'] = TrTicket::query()
@@ -3582,7 +3648,7 @@ class EngTicketController extends Controller
 
             'can_edit' => $isRequester
                 && $ticket->status === 'P'
-                && $ticket->status_pekerjaan === 'CREATED',
+                && in_array($ticket->status_pekerjaan, ['CREATED', 'REVISED'], true),
 
             'can_cancel' => (
                 ($isRequester && $ticket->status_pekerjaan === 'CREATED')
@@ -3611,17 +3677,17 @@ class EngTicketController extends Controller
 
             'can_process' => $isPIC
                 && $ticket->status === 'P'
+                && $ticket->ticket_type !== self::BA_ENG_TICKET_TYPE
                 && in_array($ticket->status_pekerjaan, [
                     'RESPONSE',
                     'PENDING',
                     'REOPEN',
-                    'REVISE',
                 ]),
 
             'can_pending' => $isPIC
                 && $ticket->status === 'P'
                 && in_array($ticket->status_pekerjaan, [
-                    'PROCESS',
+                    $ticket->ticket_type === self::BA_ENG_TICKET_TYPE ? 'RESPONSE' : 'PROCESS',
                 ]),
 
             'can_transfer' => (
@@ -3639,10 +3705,9 @@ class EngTicketController extends Controller
 
             'can_complete' => $isPIC
                 && $ticket->status === 'P'
-                && in_array($ticket->status_pekerjaan, [
-                    'PROCESS',
-                    'PENDING',
-                ]),
+                && in_array($ticket->status_pekerjaan, $ticket->ticket_type === self::BA_ENG_TICKET_TYPE
+                    ? ['RESPONSE', 'PENDING']
+                    : ['PROCESS', 'PENDING']),
 
             // Staff can reopen a completed/cancelled ticket at any time. The
             // requester additionally gets a self-service window of 7 days

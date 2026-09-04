@@ -3,138 +3,74 @@
     <div class="max-w-9xl mx-auto space-y-4 p-2">
 
         {{-- Report Selector --}}
-        {{-- Tailwind safelist: lg:grid-cols-1 lg:grid-cols-2 lg:grid-cols-3 lg:grid-cols-4 lg:grid-cols-5 lg:grid-cols-6 lg:grid-cols-7 lg:grid-cols-8 lg:grid-cols-9 --}}
         @php
-            $lgCols = match(true) {
-                $tabCount <= 1 => 'lg:grid-cols-1',
-                $tabCount == 2 => 'lg:grid-cols-2',
-                $tabCount == 3 => 'lg:grid-cols-3',
-                $tabCount == 4 => 'lg:grid-cols-4',
-                $tabCount == 5 => 'lg:grid-cols-5',
-                $tabCount == 6 => 'lg:grid-cols-6',
-                $tabCount == 7 => 'lg:grid-cols-7',
-                $tabCount == 8 => 'lg:grid-cols-8',
-                default        => 'lg:grid-cols-9',
-            };
+            $reportGroups = [
+                'voucher-stock' => [
+                    'label' => 'Voucher Stock Reports',
+                    'tabs'  => [
+                        'stock-voucher'     => ['icon' => '🎟️', 'label' => 'Stock Voucher'],
+                        'stock-summary'     => ['icon' => '📊', 'label' => 'Stock & Aging Summary'],
+                        'stock-out-voucher' => ['icon' => '📤', 'label' => 'Stock Out Voucher'],
+                        'loyalty-usage'     => ['icon' => '🎁', 'label' => 'Loyalty Usage Rate'],
+                    ],
+                ],
+                'ledger-stock' => [
+                    'label' => 'Ledger & Stock Detail',
+                    'tabs'  => [
+                        'product-stock' => ['icon' => '📦', 'label' => 'Voucher & Product Stock'],
+                        'in-out'        => ['icon' => '🔀', 'label' => 'In & Out Voucher Product'],
+                        'summary-group' => ['icon' => '⚖️', 'label' => 'Summary Group'],
+                    ],
+                ],
+                'product' => [
+                    'label' => 'Product Stock Reports',
+                    'tabs'  => [
+                        'product-report' => ['icon' => '🧾', 'label' => 'Product Report'],
+                    ],
+                ],
+            ];
+
+            $defaultGroup = collect($reportGroups)
+                ->search(fn ($group) => array_key_exists($defaultReport, $group['tabs']));
         @endphp
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4 {{ $lgCols }}">
 
-            {{-- Stock Voucher --}}
-            <a href="#" data-report="stock-voucher"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/40 dark:hover:bg-gray-800/70">
-                <div class="flex items-center gap-4">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 text-lg dark:bg-purple-500/15">
-                        🎟️
-                    </div>
-                    <div>
-                        <p class="font-semibold text-gray-800 dark:text-gray-200">Stock Voucher</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Voucher stock movement by warehouse</p>
-                    </div>
-                </div>
-            </a>
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-gray-200 pb-2 dark:border-gray-700">
+            {{-- Group Selector --}}
+            <nav class="flex shrink-0 flex-wrap gap-1.5" aria-label="Report groups">
+                @foreach($reportGroups as $groupKey => $group)
+                    <a href="#" data-group="{{ $groupKey }}"
+                        @class([
+                            'report-group-filter inline-flex shrink-0 items-center rounded-full px-3.5 py-1.5 text-xs font-semibold transition',
+                            'bg-indigo-600 text-white shadow-sm' => $defaultGroup === $groupKey,
+                            'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700' => $defaultGroup !== $groupKey,
+                        ])>
+                        {{ $group['label'] }}
+                    </a>
+                @endforeach
+            </nav>
 
-            {{-- Stock & Aging Summary --}}
-            <a href="#" data-report="stock-summary"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/40 dark:hover:bg-gray-800/70">
-                <div class="flex items-center gap-4">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 text-lg dark:bg-indigo-500/15">
-                        📊
-                    </div>
-                    <div>
-                        <p class="font-semibold text-gray-800 dark:text-gray-200">Stock & Aging Summary</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Per-tenant aging, sources & usage breakdown</p>
-                    </div>
-                </div>
-            </a>
+            <div class="hidden h-5 w-px shrink-0 bg-gray-300 dark:bg-gray-600 sm:block"></div>
 
-            @if($hasVPLOYALTYACCESS)
-                {{-- Loyalty Usage Rate --}}
-                <a href="#" data-report="loyalty-usage"
-                    class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/40 dark:hover:bg-gray-800/70">
-                    <div class="flex items-center gap-4">
-                        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-lg dark:bg-emerald-500/15">
-                            🎁
-                        </div>
-                        <div>
-                            <p class="font-semibold text-gray-800 dark:text-gray-200">Loyalty Usage Rate</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Usage at WHLOYALTY vs. stock at WHLOYALTY</p>
-                        </div>
-                    </div>
-                </a>
-            @endif
-
-            @if($hasStockOutAccess)
-                {{-- Stock Out Voucher --}}
-                <a href="#" data-report="stock-out-voucher"
-                    class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/40 dark:hover:bg-gray-800/70">
-                    <div class="flex items-center gap-4">
-                        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-lg dark:bg-amber-500/15">
-                            📤
-                        </div>
-                        <div>
-                            <p class="font-semibold text-gray-800 dark:text-gray-200">Stock Out Voucher</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Laporan Stok Out Voucher — Promotion or Loyalty</p>
-                        </div>
-                    </div>
-                </a>
-            @endif
-
-            {{-- In & Out Voucher Product --}}
-            <a href="#" data-report="in-out"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/40 dark:hover:bg-gray-800/70">
-                <div class="flex items-center gap-4">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-lg dark:bg-amber-500/15">
-                        🔀
-                    </div>
-                    <div>
-                        <p class="font-semibold text-gray-800 dark:text-gray-200">In &amp; Out Voucher Product</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Every ledger movement, every warehouse</p>
-                    </div>
-                </div>
-            </a>
-
-            {{-- Voucher & Product Stock --}}
-            <a href="#" data-report="product-stock"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/40 dark:hover:bg-gray-800/70">
-                <div class="flex items-center gap-4">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100 text-lg dark:bg-sky-500/15">
-                        📦
-                    </div>
-                    <div>
-                        <p class="font-semibold text-gray-800 dark:text-gray-200">Voucher & Product Stock</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Current stock per product, expiry & warehouse</p>
-                    </div>
-                </div>
-            </a>
-
-            {{-- Product Report --}}
-            <a href="#" data-report="product-report"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/40 dark:hover:bg-gray-800/70">
-                <div class="flex items-center gap-4">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-100 text-lg dark:bg-teal-500/15">
-                        🧾
-                    </div>
-                    <div>
-                        <p class="font-semibold text-gray-800 dark:text-gray-200">Product Report</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Laporan Stok Product — Begin/In/Out/Ending per item</p>
-                    </div>
-                </div>
-            </a>
-
-            {{-- Trial Balance Summary Group --}}
-            <a href="#" data-report="summary-group"
-                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/40 dark:hover:bg-gray-800/70">
-                <div class="flex items-center gap-4">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-100 text-lg dark:bg-violet-500/15">
-                        ⚖️
-                    </div>
-                    <div>
-                        <p class="font-semibold text-gray-800 dark:text-gray-200">Summary Group</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Trial balance Begin/In/Transfer/Out per warehouse</p>
-                    </div>
-                </div>
-            </a>
-
+            {{-- Report Tabs (scoped to the active group) --}}
+            <div class="min-w-0 flex-1">
+                @foreach($reportGroups as $groupKey => $group)
+                    <nav data-group-tabs="{{ $groupKey }}"
+                        @class(['flex gap-1 overflow-x-auto', 'hidden' => $defaultGroup !== $groupKey])
+                        aria-label="Report tabs — {{ $group['label'] }}">
+                        @foreach($group['tabs'] as $key => $tab)
+                            <a href="#" data-report="{{ $key }}"
+                                @class([
+                                    'report-filter inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition',
+                                    'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400' => $defaultReport === $key,
+                                    'text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200' => $defaultReport !== $key,
+                                ])>
+                                <span class="text-base">{{ $tab['icon'] }}</span>
+                                {{ $tab['label'] }}
+                            </a>
+                        @endforeach
+                    </nav>
+                @endforeach
+            </div>
         </div>
 
         {{-- REPORT CONTENT --}}
@@ -148,17 +84,13 @@
                 @include('pages.report-vpl.stock-summary')
             </div>
 
-            @if($hasVPLOYALTYACCESS)
-                <div id="report-loyalty-usage" @class(['hidden' => $defaultReport !== 'loyalty-usage'])>
-                    @include('pages.report-vpl.loyalty-usage')
-                </div>
-            @endif
+            <div id="report-loyalty-usage" @class(['hidden' => $defaultReport !== 'loyalty-usage'])>
+                @include('pages.report-vpl.loyalty-usage')
+            </div>
 
-            @if($hasStockOutAccess)
-                <div id="report-stock-out-voucher" @class(['hidden' => $defaultReport !== 'stock-out-voucher'])>
-                    @include('pages.report-vpl.stock-out-voucher')
-                </div>
-            @endif
+            <div id="report-stock-out-voucher" @class(['hidden' => $defaultReport !== 'stock-out-voucher'])>
+                @include('pages.report-vpl.stock-out-voucher')
+            </div>
 
             <div id="report-in-out" @class(['hidden' => $defaultReport !== 'in-out'])>
                 @include('pages.report-vpl.in-out')
@@ -181,11 +113,39 @@
     </div>
 
     <script>
+        const REPORT_TAB_ACTIVE   = ['bg-indigo-50', 'text-indigo-600', 'dark:bg-indigo-500/10', 'dark:text-indigo-400'];
+        const REPORT_TAB_INACTIVE = ['text-gray-500', 'hover:bg-gray-100', 'hover:text-gray-700', 'dark:text-gray-400', 'dark:hover:bg-gray-700', 'dark:hover:text-gray-200'];
+
+        const GROUP_TAB_ACTIVE   = ['bg-indigo-600', 'text-white', 'shadow-sm'];
+        const GROUP_TAB_INACTIVE = ['bg-gray-100', 'text-gray-600', 'hover:bg-gray-200', 'dark:bg-gray-800', 'dark:text-gray-300', 'dark:hover:bg-gray-700'];
+
+        $(document).on('click', '.report-group-filter', function(e) {
+
+            e.preventDefault();
+
+            let group = $(this).data('group');
+
+            $('.report-group-filter').removeClass(GROUP_TAB_ACTIVE).addClass(GROUP_TAB_INACTIVE);
+
+            $(this).removeClass(GROUP_TAB_INACTIVE).addClass(GROUP_TAB_ACTIVE);
+
+            $('[data-group-tabs]').addClass('hidden');
+
+            $('[data-group-tabs="' + group + '"]').removeClass('hidden');
+
+            $('[data-group-tabs="' + group + '"] .report-filter').first().trigger('click');
+
+        });
+
         $(document).on('click', '.report-filter', function(e) {
 
             e.preventDefault();
 
             let report = $(this).data('report');
+
+            $('.report-filter').removeClass(REPORT_TAB_ACTIVE).addClass(REPORT_TAB_INACTIVE);
+
+            $(this).removeClass(REPORT_TAB_INACTIVE).addClass(REPORT_TAB_ACTIVE);
 
             $('#reportContainer > div').addClass('hidden');
 

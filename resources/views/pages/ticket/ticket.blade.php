@@ -393,21 +393,7 @@
             <div
                 class="mt-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
 
-                <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-7">
-
-                    {{-- Search --}}
-                    <div>
-
-                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">
-
-                            Search
-
-                        </label>
-
-                        <input type="text" id="filter_search" placeholder="Ticket / Summary / PIC"
-                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-800">
-
-                    </div>
+                <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
 
                     {{-- Status --}}
                     <div>

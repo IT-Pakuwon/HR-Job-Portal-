@@ -2274,6 +2274,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/pending-issue-json', 'pendingIssueJson')->name('costdashboard.issue');
             Route::get('/budget-json', 'budgetJson')->name('costdashboard.budget');
             Route::get('/im-budget-json', 'imBudgetJson')->name('costdashboard.imbudget');
+            Route::get('/expired-json', 'expiredJson')->name('costdashboard.expired');
+            Route::get('/waiting-settlement-json', 'waitingSettlementJson')->name('costdashboard.waiting-settlement');
             Route::get('/approval-doctypes-json', 'approvalDocTypes')->name('costdashboard.approval-doctypes');
         });
 
@@ -3288,6 +3290,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/usagevp/all', [VplUsageController::class, 'all'])->name('usagevp.all');
         Route::get('/usagevp/{id}', [VplUsageController::class, 'show'])->where('id', '[0-9]+')->name('usagevp.show');
         Route::get('/usagevp/{id}/data', [VplUsageController::class, 'showData'])->where('id', '[0-9]+')->name('usagevp.data');
+        Route::get('/usagevp/{id}/pdf', [VplUsageController::class, 'printPdf'])->where('id', '[0-9]+')->name('usagevp.pdf');
         Route::get('/usagevp/attachment/{id}/view', [VplUsageController::class, 'viewAttachment'])->where('id', '[0-9]+')->name('usagevp.attachment.view');
         Route::get('/showusagevp/{eid}', [VplUsageController::class, 'index'])->name('showusagevp');
         Route::post('/usagevp/ajax/warehouse', [VplUsageController::class, 'getUsageWarehouse'])->name('usagevp.warehouse');
@@ -3327,6 +3330,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/settlementvp/joblist', [VplSettlementController::class, 'jobList'])->name('settlementvp.joblist');
         Route::get('/settlementvp/{id}', [VplSettlementController::class, 'show'])->where('id', '[0-9]+')->name('settlementvp.show');
         Route::get('/settlementvp/{id}/data', [VplSettlementController::class, 'showData'])->where('id', '[0-9]+')->name('settlementvp.data');
+        Route::get('/settlementvp/{id}/pdf', [VplSettlementController::class, 'printPdf'])->where('id', '[0-9]+')->name('settlementvp.pdf');
         Route::get('/settlementvp/attachment/{id}/view', [VplSettlementController::class, 'viewAttachment'])->where('id', '[0-9]+')->name('settlementvp.attachment.view');
         Route::get('/showsettlementvp/{eid}', [VplSettlementController::class, 'index'])->name('showsettlementvp');
         Route::post('/settlementvp/ajax/usage-options', [VplSettlementController::class, 'getSettleableUsageOptions'])->name('settlementvp.usage-options');
@@ -3361,6 +3365,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/transfervp/all', [VplTransferController::class, 'all'])->name('transfervp.all');
         Route::get('/transfervp/{id}', [VplTransferController::class, 'show'])->name('transfervp.show');
         Route::get('/transfervp/{id}/data', [VplTransferController::class, 'showData'])->name('transfervp.data');
+        Route::get('/transfervp/{id}/pdf', [VplTransferController::class, 'printPdf'])->where('id', '[0-9]+')->name('transfervp.pdf');
         Route::get('/transfervp/attachment/{id}/view', [VplTransferController::class, 'viewAttachment'])->where('id', '[0-9]+')->name('transfervp.attachment.view');
         Route::get('/showtransfervp/{eid}', [VplTransferController::class, 'index'])->name('showtransfervp');
         Route::post('/transfervp/ajax/from-whs', [VplTransferController::class, 'getFromWhs'])->name('transfervp.from-whs');
@@ -3400,6 +3405,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/requestvp/all', [VplReceiveController::class, 'all'])->name('requestvp.all');
         Route::get('/requestvp/{id}', [VplReceiveController::class, 'show'])->name('requestvp.show');
         Route::get('/requestvp/{id}/data', [VplReceiveController::class, 'showData'])->name('requestvp.data');
+        Route::get('/requestvp/{id}/pdf', [VplReceiveController::class, 'printPdf'])->where('id', '[0-9]+')->name('requestvp.pdf');
         Route::get('/requestvp/attachment/{id}/view', [VplReceiveController::class, 'viewAttachment'])->where('id', '[0-9]+')->name('requestvp.attachment.view');
         Route::get('/showreceivevp/{eid}', [VplReceiveController::class, 'index'])->name('receivevp.show');
         Route::post('/requestvp/ajax/products', [VplReceiveController::class, 'getProducts'])->name('requestvp.products');

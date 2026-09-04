@@ -126,7 +126,7 @@ function renderTicketInformation(ticket) {
 
     $("#detail_issue_summary").text(ticket.issue_summary || "-");
 
-    $("#detail_status_badge").html(renderTicketStatusBadge(ticket.status));
+    $("#detail_status_badge").html(renderTicketStatusBadge(ticket.status, ticket.status_pekerjaan));
 
     $("#detail_requester").text(ticket.created_by || "-");
 
@@ -1400,7 +1400,7 @@ function getTimelineIconStyle(workflow) {
                     `
             };
 
-        case 'REVISE':
+        case 'REVISED':
             return {
                 icon: 'fa-solid fa-rotate-left',
                 wrap:

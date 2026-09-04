@@ -26,6 +26,7 @@ use Vinkla\Hashids\Facades\Hashids;
 
 use DataTables;
 use Mail;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class VplTransferController extends Controller
 {
@@ -279,6 +280,56 @@ class VplTransferController extends Controller
             'can_add_attachment'  => $can_add_attachment,
             'current_user'        => $user->name,
         ]);
+    }
+
+    // -------------------------------------------------------
+    // PRINT PDF
+    // -------------------------------------------------------
+    public function printPdf(int $id)
+    {
+        $user     = Auth::user();
+        $transfer = TrxVplTransfer::find($id);
+        abort_unless($transfer, 404);
+
+        $isAssignedApprover = TrApproval::where('refnbr', $transfer->transfer_id)
+            ->where('aprv_doctype', self::DOCTYPE)
+            ->where('status', '<>', 'X')
+            ->where(function ($q) use ($user) {
+                $q->where('aprv_username', $user->username)
+                  ->orWhere('aprv_username', 'like', '%' . $user->username . '%');
+            })
+            ->exists();
+        abort_unless(
+            $this->hasDepartmentAccess($user, $transfer->cpnyid, $transfer->department)
+                || $isAssignedApprover
+                || $user->hasFullDataScope(),
+            403,
+            'You do not have access to view this document.'
+        );
+
+        $details = TrxVplTransferDetail::join('ms_vpl_product', 'tr_vpl_transfer_detail.product_id', '=', 'ms_vpl_product.product_id')
+            ->select('tr_vpl_transfer_detail.*', 'ms_vpl_product.product_name', 'ms_vpl_product.product_uom')
+            ->where('transfer_id', $transfer->transfer_id)
+            ->orderBy('linenbr')
+            ->get();
+
+        $approvals = TrApproval::where('refnbr', $transfer->transfer_id)
+            ->where('aprv_doctype', self::DOCTYPE)
+            ->where('status', '<>', 'X')
+            ->orderBy('created_at', 'asc')
+            ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
+            ->get();
+
+        $company = Company::where('cpnyid', $transfer->cpnyid)->first();
+
+        $pdf = Pdf::loadView('pages.voucher_product.pdf.transfer', [
+            'transfer'    => $transfer,
+            'details'     => $details,
+            'approvals'   => $approvals,
+            'companyName' => $company->cpnyname ?? $transfer->cpnyid,
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->stream($transfer->transfer_id.'.pdf');
     }
 
     // -------------------------------------------------------

@@ -571,7 +571,7 @@ function workflowBadgeClass(status) {
                 dark:text-rose-300
             `;
 
-        case 'REVISE':
+        case 'REVISED':
             return `
                 bg-amber-100
                 text-amber-700
@@ -592,7 +592,31 @@ function workflowBadgeClass(status) {
     }
 
 }
-function renderTicketStatusBadge(status) {
+function renderTicketStatusBadge(status, statusPekerjaan) {
+
+    // REVISED overrides the coarse P/C/X badge — the ticket is technically
+    // still "Open" (status='P'), but the requester needs to know it's
+    // sitting on them to edit + resubmit, not just generically open.
+    if ((statusPekerjaan || '').toUpperCase() === 'REVISED') {
+        return `
+            <span class="
+                inline-flex
+                items-center
+                rounded-full
+                px-2.5 py-1
+                text-[11px]
+                font-semibold
+
+                bg-amber-100
+                text-amber-700
+
+                dark:bg-amber-900/30
+                dark:text-amber-300
+            ">
+                Revised
+            </span>
+        `;
+    }
 
     switch ((status || '').toUpperCase()) {
 

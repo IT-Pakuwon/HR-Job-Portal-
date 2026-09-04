@@ -206,6 +206,12 @@ const VplUsageDetailModal = {
         };
     },
 
+    initPrint() {
+        document.getElementById('v_printBtn').onclick = () => {
+            window.open(VplUsage.routes.pdf(VplUsage.state.currentViewId), '_blank');
+        };
+    },
+
     initDiscussion() {
         const btn    = document.getElementById('v_msgToggleBtn');
         const panel  = document.getElementById('v_discussionPanel');
@@ -267,6 +273,7 @@ const VplUsageDetailModal = {
             document.getElementById(btnId)?.addEventListener('click', () => VplUsageDetailModal.hide());
         });
 
+        VplUsageDetailModal.initPrint();
         VplUsageDetailModal.initDiscussion();
     },
 };

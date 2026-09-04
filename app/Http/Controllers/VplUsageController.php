@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Http\Controllers\Traits\UploadsVplAttachment;
 use App\Models\Attachment;
+use App\Models\Company;
 use App\Models\MsCategory;
 use App\Models\MsVplProduct;
 use App\Models\MsVplProductDetail;
@@ -22,6 +23,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Vinkla\Hashids\Facades\Hashids;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class VplUsageController extends Controller
 {
@@ -266,6 +268,57 @@ class VplUsageController extends Controller
             'can_cancel' => $can_cancel,
             'current_user' => $user->name,
         ]);
+    }
+
+    // -------------------------------------------------------
+    // PRINT PDF
+    // -------------------------------------------------------
+    public function printPdf(int $id)
+    {
+        $user = Auth::user();
+        $usage = TrxVplUsage::find($id);
+        abort_unless($usage, 404);
+
+        $isAssignedApprover = TrApproval::where('refnbr', $usage->usage_id)
+            ->where('aprv_doctype', self::DOCTYPE)
+            ->where('status', '<>', 'X')
+            ->where(function ($q) use ($user) {
+                $q->where('aprv_username', $user->username)
+                  ->orWhere('aprv_username', 'like', '%' . $user->username . '%');
+            })
+            ->exists();
+        abort_unless(
+            $this->hasDepartmentAccess($user, $usage->cpnyid, $usage->department)
+                || $usage->created_user === $user->name
+                || $isAssignedApprover
+                || $user->hasFullDataScope(),
+            403,
+            'You do not have access to view this document.'
+        );
+
+        $details = TrxVplUsageDetail::join('ms_vpl_product', 'tr_vpl_usage_detail.product_id', '=', 'ms_vpl_product.product_id')
+            ->select('tr_vpl_usage_detail.*', 'ms_vpl_product.product_name', 'ms_vpl_product.product_uom')
+            ->where('usage_id', $usage->usage_id)
+            ->orderBy('linenbr')
+            ->get();
+
+        $approvals = TrApproval::where('refnbr', $usage->usage_id)
+            ->where('aprv_doctype', self::DOCTYPE)
+            ->where('status', '<>', 'X')
+            ->orderBy('created_at', 'asc')
+            ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
+            ->get();
+
+        $company = Company::where('cpnyid', $usage->cpnyid)->first();
+
+        $pdf = Pdf::loadView('pages.voucher_product.pdf.usage', [
+            'usage' => $usage,
+            'details' => $details,
+            'approvals' => $approvals,
+            'companyName' => $company->cpnyname ?? $usage->cpnyid,
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->stream($usage->usage_id.'.pdf');
     }
 
     // -------------------------------------------------------

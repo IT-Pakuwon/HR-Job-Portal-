@@ -35,6 +35,7 @@ const VplReceive = {
         index:      '/requestvp',
 
         data:    (id)  => `${VplReceive.routes.base}/${id}/data`,
+        pdf:     (id)  => `${VplReceive.routes.base}/${id}/pdf`,
         update:  (id)  => `${VplReceive.routes.editBase}/${id}`,
         approve: (id)  => `${VplReceive.routes.base}/${id}/approve`,
         reject:  (id)  => `${VplReceive.routes.base}/${id}/reject`,

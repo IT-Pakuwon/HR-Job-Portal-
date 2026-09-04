@@ -20,12 +20,8 @@
                     <i class="fa-solid fa-warehouse mr-1 text-gray-400"></i> Warehouse
                 </label>
                 <select id="stkout_whsid" class="form-input w-full">
-                    @if($hasVPPRMTNACCESS ?? false)
-                        <option value="WHPROMOTION">Promotion</option>
-                    @endif
-                    @if($hasVPLOYALTYACCESS ?? false)
-                        <option value="WHLOYALTY">Loyalty</option>
-                    @endif
+                    <option value="WHPROMOTION">Promotion</option>
+                    <option value="WHLOYALTY">Loyalty</option>
                 </select>
             </div>
 

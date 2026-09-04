@@ -16,6 +16,7 @@ const VplSettlement = {
         usageLines:   '',
         delAttach:    '',
         data:    (id) => `${VplSettlement.routes.base}/${id}/data`,
+        pdf:     (id) => `${VplSettlement.routes.base}/${id}/pdf`,
         update:  (id) => `${VplSettlement.routes.base}/${id}/update`,
         cancel:  (id) => `${VplSettlement.routes.base}/${id}/cancel`,
         approve: (id) => `${VplSettlement.routes.base}/${id}/approve`,

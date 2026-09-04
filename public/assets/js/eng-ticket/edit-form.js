@@ -29,37 +29,58 @@ function bindOpenEditTicket() {
 
 function openEditTicketModal(eid) {
 
-    initIssueDescrEditor();
+    // The detail/view modal shares a single open/close animation lock with
+    // every other ticket modal (see modal.js) — if it's actually open right
+    // now, its close animation has to finish (~220ms) before openModal()
+    // below is allowed to run, otherwise this call is silently swallowed.
+    const $detailModal = $('#ticketDetailModal');
+    const wasDetailOpen = $detailModal.length && $detailModal.hasClass('flex');
 
-    resetCreateTicketForm();
+    if (wasDetailOpen && typeof closeTicketDetailModal === 'function') {
+        closeTicketDetailModal();
+    }
 
-    $('#ticket_eid')
-        .val(eid);
+    const showEditForm = function () {
 
-    $('.modal-title')
-        .text('Edit Ticket');
+        initIssueDescrEditor();
 
-    $('.modal-description')
-        .text(
-            'Update existing ticket request.'
+        resetCreateTicketForm();
+
+        $('#ticket_eid')
+            .val(eid);
+
+        $('.modal-title')
+            .text('Edit Ticket');
+
+        $('.modal-description')
+            .text(
+                'Update existing ticket request.'
+            );
+
+        $('#btn_submit_ticket')
+            .html(`
+                <i class="fa-solid fa-floppy-disk text-xs"></i>
+                Update Ticket
+            `);
+
+        loadEditTicket(eid);
+
+        openModal(
+            Ticket.modal.create
         );
 
-    $('#btn_submit_ticket')
-        .html(`
-            <i class="fa-solid fa-floppy-disk text-xs"></i>
-            Update Ticket
-        `);
+        const url = `/editoprtekticket/${eid}`;
 
-    loadEditTicket(eid);
+        if (window.location.pathname !== url) {
+            window.history.pushState({}, "", url);
+        }
 
-    openModal(
-        Ticket.modal.create
-    );
+    };
 
-    const url = `/editoprtekticket/${eid}`;
-
-    if (window.location.pathname !== url) {
-        window.history.pushState({}, "", url);
+    if (wasDetailOpen) {
+        setTimeout(showEditForm, 240);
+    } else {
+        showEditForm();
     }
 
 }

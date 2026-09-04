@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Http\Controllers\Traits\UploadsVplAttachment;
 use App\Models\Attachment;
+use App\Models\Company;
 use App\Models\MsCategory;
 use App\Models\MsVplProduct;
 use App\Models\TrApproval;
@@ -21,6 +22,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Vinkla\Hashids\Facades\Hashids;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class VplSettlementController extends Controller
 {
@@ -311,6 +313,56 @@ class VplSettlementController extends Controller
             'can_cancel' => $can_cancel,
             'current_user' => $user->name,
         ]);
+    }
+
+    // -------------------------------------------------------
+    // PRINT PDF
+    // -------------------------------------------------------
+    public function printPdf(int $id)
+    {
+        $user = Auth::user();
+        $settlement = TrxVplSettlement::find($id);
+        abort_unless($settlement, 404);
+
+        $isAssignedApprover = TrApproval::where('refnbr', $settlement->settlement_id)
+            ->where('aprv_doctype', self::DOCTYPE)
+            ->where('status', '<>', 'X')
+            ->where(function ($q) use ($user) {
+                $q->where('aprv_username', $user->username)
+                  ->orWhere('aprv_username', 'like', '%' . $user->username . '%');
+            })
+            ->exists();
+        abort_unless(
+            $this->hasDepartmentAccess($user, $settlement->cpnyid, $settlement->department)
+                || $isAssignedApprover
+                || $user->hasFullDataScope(),
+            403,
+            'You do not have access to view this document.'
+        );
+
+        $details = TrxVplSettlementDetail::join('ms_vpl_product', 'tr_vpl_settlement_detail.product_id', '=', 'ms_vpl_product.product_id')
+            ->select('tr_vpl_settlement_detail.*', 'ms_vpl_product.product_name', 'ms_vpl_product.product_uom')
+            ->where('settlement_id', $settlement->settlement_id)
+            ->orderBy('linenbr')
+            ->get();
+
+        $approvals = TrApproval::where('refnbr', $settlement->settlement_id)
+            ->where('aprv_doctype', self::DOCTYPE)
+            ->where('status', '<>', 'X')
+            ->orderBy('created_at', 'asc')
+            ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
+            ->get();
+
+        $company = Company::where('cpnyid', $settlement->cpnyid)->first();
+
+        $pdf = Pdf::loadView('pages.voucher_product.pdf.settlement', [
+            'settlement' => $settlement,
+            'details' => $details,
+            'approvals' => $approvals,
+            'companyName' => $company->cpnyname ?? $settlement->cpnyid,
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->stream($settlement->settlement_id.'.pdf');
     }
 
     // -------------------------------------------------------

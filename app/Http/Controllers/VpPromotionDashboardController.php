@@ -8,7 +8,7 @@ class VpPromotionDashboardController extends VplDashboardController
 {
     protected function expiryProductTypes(): array
     {
-        return ['P'];
+        return ['V', 'P'];
     }
 
     protected function expiryWarehouseId(): string

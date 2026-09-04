@@ -104,6 +104,16 @@ abstract class VplDashboardController extends Controller
             );
     }
 
+    public function expiredCount(): int
+    {
+        return $this->expiredQuery()->count();
+    }
+
+    public function waitingSettlementCount(): int
+    {
+        return $this->waitingSettlementQuery()->count();
+    }
+
     // Expired/expiring batches (H-60 / H-30) for this dashboard's product_type(s)/warehouse.
     public function expiredJson(Request $request)
     {
