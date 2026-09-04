@@ -555,10 +555,14 @@ class VplReportController extends Controller
      */
     private function batchStockRows(string $cpnyid, int $year, int $month): array
     {
-        // Universe of tenant+expiry batches tracked at WHCOLLECTION this year.
+        // Universe of tenant+expiry batches: normally everything is received at
+        // WHCOLLECTION first and moves out from there, but a migration/opening-balance
+        // receive can post directly into WHLOYALTY/WHPROMOTION (see VPR26090002) — pull
+        // balances from all 3 tracked warehouses so a batch that only ever existed
+        // outside WHCOLLECTION still shows up, instead of being silently dropped.
         $balances = MsVplProductBal::where('cpnyid', $cpnyid)
             ->where('year', $year)
-            ->where('whs_id', self::WHS_COLLECTION)
+            ->whereIn('whs_id', [self::WHS_COLLECTION, self::WHS_LOYALTY, self::WHS_PROMOTION])
             ->get();
 
         if ($balances->isEmpty()) {
@@ -585,28 +589,38 @@ class VplReportController extends Controller
                 continue;
             }
 
+            // A batch can carry a begqty row at more than one of the 3 warehouses (e.g.
+            // WHCOLLECTION *and* a direct-to-WHLOYALTY receive for the same expiry) —
+            // sum begqty across every warehouse row seen for this key rather than
+            // overwriting, so opening balance isn't lost to whichever row is read last.
+            if (!isset($rows[$key])) {
+                $rows[$key] = [
+                    'product'        => $product,
+                    'bal'            => $bal,
+                    'category_label' => $product->product_category === 'F&B' ? 'F&B' : 'NON F&B',
+                    'beginning'      => 0.0,
+                ];
+            }
+
+            $rows[$key]['beginning'] += (float) $bal->begqty;
+        }
+
+        foreach ($rows as $key => &$row) {
             $in  = $monthlyIn[$key] ?? [];
             $out = $monthlyOutAmt[$key] ?? [];
 
-            $beginning = (float) $bal->begqty;
-
             for ($m = 1; $m < $month; $m++) {
-                $beginning += ($in[$m] ?? 0) - ($out[$m] ?? 0);
+                $row['beginning'] += ($in[$m] ?? 0) - ($out[$m] ?? 0);
             }
 
             $monthIn  = $in[$month] ?? 0;
             $monthOut = $out[$month] ?? 0;
 
-            $rows[$key] = [
-                'product'        => $product,
-                'bal'            => $bal,
-                'category_label' => $product->product_category === 'F&B' ? 'F&B' : 'NON F&B',
-                'beginning'      => $beginning,
-                'month_in'       => $monthIn,
-                'month_out'      => $monthOut,
-                'ending'         => $beginning + $monthIn - $monthOut,
-            ];
+            $row['month_in']  = $monthIn;
+            $row['month_out'] = $monthOut;
+            $row['ending']    = $row['beginning'] + $monthIn - $monthOut;
         }
+        unset($row);
 
         return $rows;
     }
@@ -1324,8 +1338,9 @@ class VplReportController extends Controller
 
     /**
      * Latest receive_type per product+expiry batch, from completed receives landing at
-     * WHCOLLECTION. If a batch was topped up under more than one source over time, the
-     * most recent receive's type wins (edge case — batches are expected to share one source).
+     * any of the 3 tracked warehouses (see batchStockRows()). If a batch was topped up
+     * under more than one source over time, the most recent receive's type wins (edge
+     * case — batches are expected to share one source).
      *
      * @return array<string, string>
      */
@@ -1335,7 +1350,7 @@ class VplReportController extends Controller
             ->join('tr_vpl_receive', 'tr_vpl_receive.receive_id', '=', 'tr_vpl_receive_detail.receive_id')
             ->where('tr_vpl_receive.cpnyid', $cpnyid)
             ->where('tr_vpl_receive.status', 'C')
-            ->where('tr_vpl_receive_detail.whs_id', self::WHS_COLLECTION)
+            ->whereIn('tr_vpl_receive_detail.whs_id', [self::WHS_COLLECTION, self::WHS_LOYALTY, self::WHS_PROMOTION])
             ->select([
                 'tr_vpl_receive_detail.product_id',
                 'tr_vpl_receive_detail.expired_date',
@@ -2166,7 +2181,10 @@ class VplReportController extends Controller
             $month = (int) substr((string) $row->perpost, 4, 2);
             $qty   = (float) $row->qty;
 
-            if ($row->whs_id === self::WHS_COLLECTION && $row->transaction_source === 'Receive') {
+            if ($row->transaction_source === 'Receive') {
+                // A Receive can post directly to WHLOYALTY/WHPROMOTION (migration/opening
+                // balance docs, e.g. VPR26090002) as well as the normal WHCOLLECTION path
+                // — count it as In wherever it landed so its value isn't silently dropped.
                 $monthlyIn[$key][$month] = ($monthlyIn[$key][$month] ?? 0) + $qty;
             } elseif ($row->whs_id === self::WHS_COLLECTION && $row->transaction_source === 'Transfer In' && $row->from_whs_id === self::WHS_LOYALTY) {
                 $monthlyIn[$key][$month] = ($monthlyIn[$key][$month] ?? 0) + $qty;
@@ -2182,7 +2200,7 @@ class VplReportController extends Controller
         return [$monthlyIn, $monthlyOut];
     }
 
-    /** Receive + Return-Transfer-In lines landing at WHCOLLECTION in the given month. */
+    /** Receive (any of the 3 tracked warehouses — see batchStockRows()) + Return-Transfer-In lines landing at WHCOLLECTION, in the given month. */
     private function inMovementRows(string $cpnyid, Carbon $monthStart, Carbon $monthEnd): array
     {
         $rows = [];
@@ -2191,7 +2209,7 @@ class VplReportController extends Controller
             ->join('tr_vpl_receive', 'tr_vpl_receive.receive_id', '=', 'tr_vpl_receive_detail.receive_id')
             ->where('tr_vpl_receive.cpnyid', $cpnyid)
             ->where('tr_vpl_receive.status', 'C')
-            ->where('tr_vpl_receive_detail.whs_id', self::WHS_COLLECTION)
+            ->whereIn('tr_vpl_receive_detail.whs_id', [self::WHS_COLLECTION, self::WHS_LOYALTY, self::WHS_PROMOTION])
             ->whereBetween('tr_vpl_receive.receive_date', [$monthStart, $monthEnd])
             ->select([
                 'tr_vpl_receive_detail.product_id',
