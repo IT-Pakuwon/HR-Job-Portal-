@@ -516,7 +516,7 @@ class VplUsageController extends Controller
             self::DOCTYPE,
             'P',
             self::DOCTYPE_DSC,
-            route('usagevp.show', $usage->id),
+            route('showusagevp', Hashids::encode($usage->id)),
             ['info' => $request->usage_remark ?? '', 'createdby' => $user->name]
         );
 
@@ -711,7 +711,7 @@ class VplUsageController extends Controller
             self::DOCTYPE,
             'P',
             self::DOCTYPE_DSC,
-            route('usagevp.show', $id),
+            route('showusagevp', Hashids::encode($id)),
             ['info' => $usage->usage_remark ?? '', 'createdby' => $user->name]
         );
 
@@ -777,7 +777,7 @@ class VplUsageController extends Controller
                     self::DOCTYPE,
                     'P',
                     self::DOCTYPE_DSC,
-                    route('usagevp.show', $id),
+                    route('showusagevp', Hashids::encode($id)),
                     ['info' => $usage->usage_remark ?? '', 'createdby' => $usage->created_user]
                 );
             },
@@ -788,7 +788,7 @@ class VplUsageController extends Controller
                     self::DOCTYPE_DSC,
                     'C',
                     $usage->user_peminta,
-                    route('usagevp.show', $id),
+                    route('showusagevp', Hashids::encode($id)),
                     ['cpnyid' => $usage->cpnyid, 'deptname' => $usage->department]
                 );
             }
@@ -832,7 +832,7 @@ class VplUsageController extends Controller
                     self::DOCTYPE_DSC,
                     'R',
                     $usage->user_peminta,
-                    route('usagevp.show', $id),
+                    route('showusagevp', Hashids::encode($id)),
                     ['info' => $request->message, 'cpnyid' => $usage->cpnyid, 'deptname' => $usage->department]
                 );
             }
@@ -880,7 +880,7 @@ class VplUsageController extends Controller
                     self::DOCTYPE_DSC,
                     'D',
                     $usage->user_peminta,
-                    route('usagevp.show', $id),
+                    route('showusagevp', Hashids::encode($id)),
                     ['info' => $request->message.' (Silahkan revisi dokumen ini)', 'cpnyid' => $usage->cpnyid, 'deptname' => $usage->department]
                 );
             }

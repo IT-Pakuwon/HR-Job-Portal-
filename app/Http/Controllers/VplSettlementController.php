@@ -511,7 +511,7 @@ class VplSettlementController extends Controller
             self::DOCTYPE,
             'P',
             self::DOCTYPE_DSC,
-            route('settlementvp.show', $settlement->id),
+            route('showsettlementvp', Hashids::encode($settlement->id)),
             ['info' => $request->settlement_remark ?? '', 'createdby' => $user->name]
         );
 
@@ -640,7 +640,7 @@ class VplSettlementController extends Controller
             self::DOCTYPE,
             'P',
             self::DOCTYPE_DSC,
-            route('settlementvp.show', $id),
+            route('showsettlementvp', Hashids::encode($id)),
             ['info' => $settlement->settlement_remark ?? '', 'createdby' => $user->name]
         );
 
@@ -684,7 +684,7 @@ class VplSettlementController extends Controller
                     self::DOCTYPE,
                     'P',
                     self::DOCTYPE_DSC,
-                    route('settlementvp.show', $id),
+                    route('showsettlementvp', Hashids::encode($id)),
                     ['info' => $settlement->settlement_remark ?? '', 'createdby' => $settlement->created_user]
                 );
             },
@@ -695,7 +695,7 @@ class VplSettlementController extends Controller
                     self::DOCTYPE_DSC,
                     'C',
                     $settlement->user_peminta,
-                    route('settlementvp.show', $id),
+                    route('showsettlementvp', Hashids::encode($id)),
                     ['cpnyid' => $settlement->cpnyid, 'deptname' => $settlement->department]
                 );
             }
@@ -739,7 +739,7 @@ class VplSettlementController extends Controller
                     self::DOCTYPE_DSC,
                     'R',
                     $settlement->user_peminta,
-                    route('settlementvp.show', $id),
+                    route('showsettlementvp', Hashids::encode($id)),
                     ['info' => $request->message, 'cpnyid' => $settlement->cpnyid, 'deptname' => $settlement->department]
                 );
             }
@@ -785,7 +785,7 @@ class VplSettlementController extends Controller
                     self::DOCTYPE_DSC,
                     'D',
                     $settlement->user_peminta,
-                    route('settlementvp.show', $id),
+                    route('showsettlementvp', Hashids::encode($id)),
                     ['info' => $request->message.' (Silahkan revisi dokumen ini)', 'cpnyid' => $settlement->cpnyid, 'deptname' => $settlement->department]
                 );
             }
