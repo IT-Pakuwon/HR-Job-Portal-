@@ -4,31 +4,71 @@
 
         {{-- Report Selector --}}
         @php
-            $reportTabs = [
-                'stock-voucher'     => ['icon' => '🎟️', 'label' => 'Stock Voucher'],
-                'stock-summary'     => ['icon' => '📊', 'label' => 'Stock & Aging Summary'],
-                'loyalty-usage'     => ['icon' => '🎁', 'label' => 'Loyalty Usage Rate'],
-                'stock-out-voucher' => ['icon' => '📤', 'label' => 'Stock Out Voucher'],
-                'in-out'            => ['icon' => '🔀', 'label' => 'In & Out Voucher Product'],
-                'product-stock'     => ['icon' => '📦', 'label' => 'Voucher & Product Stock'],
-                'product-report'    => ['icon' => '🧾', 'label' => 'Product Report'],
-                'summary-group'     => ['icon' => '⚖️', 'label' => 'Summary Group'],
+            $reportGroups = [
+                'voucher-stock' => [
+                    'label' => 'Voucher Stock Reports',
+                    'tabs'  => [
+                        'stock-voucher'     => ['icon' => '🎟️', 'label' => 'Stock Voucher'],
+                        'stock-summary'     => ['icon' => '📊', 'label' => 'Stock & Aging Summary'],
+                        'stock-out-voucher' => ['icon' => '📤', 'label' => 'Stock Out Voucher'],
+                        'loyalty-usage'     => ['icon' => '🎁', 'label' => 'Loyalty Usage Rate'],
+                    ],
+                ],
+                'ledger-stock' => [
+                    'label' => 'Ledger & Stock Detail',
+                    'tabs'  => [
+                        'product-stock' => ['icon' => '📦', 'label' => 'Voucher & Product Stock'],
+                        'in-out'        => ['icon' => '🔀', 'label' => 'In & Out Voucher Product'],
+                        'summary-group' => ['icon' => '⚖️', 'label' => 'Summary Group'],
+                    ],
+                ],
+                'product' => [
+                    'label' => 'Product',
+                    'tabs'  => [
+                        'product-report' => ['icon' => '🧾', 'label' => 'Product Report'],
+                    ],
+                ],
             ];
+
+            $defaultGroup = collect($reportGroups)
+                ->search(fn ($group) => array_key_exists($defaultReport, $group['tabs']));
         @endphp
-        <div class="border-b border-gray-200 dark:border-gray-700">
-            <nav class="-mb-px flex gap-1 overflow-x-auto" aria-label="Report tabs">
-                @foreach($reportTabs as $key => $tab)
-                    <a href="#" data-report="{{ $key }}"
+
+        <div class="space-y-2">
+            {{-- Group Selector --}}
+            <nav class="flex flex-wrap gap-1.5" aria-label="Report groups">
+                @foreach($reportGroups as $groupKey => $group)
+                    <a href="#" data-group="{{ $groupKey }}"
                         @class([
-                            'report-filter inline-flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition',
-                            'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400' => $defaultReport === $key,
-                            'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' => $defaultReport !== $key,
+                            'report-group-filter inline-flex shrink-0 items-center rounded-full px-3.5 py-1.5 text-xs font-semibold transition',
+                            'bg-indigo-600 text-white shadow-sm' => $defaultGroup === $groupKey,
+                            'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700' => $defaultGroup !== $groupKey,
                         ])>
-                        <span class="text-base">{{ $tab['icon'] }}</span>
-                        {{ $tab['label'] }}
+                        {{ $group['label'] }}
                     </a>
                 @endforeach
             </nav>
+
+            {{-- Report Tabs (scoped to the active group) --}}
+            <div class="border-b border-gray-200 dark:border-gray-700">
+                @foreach($reportGroups as $groupKey => $group)
+                    <nav data-group-tabs="{{ $groupKey }}"
+                        @class(['-mb-px flex gap-1 overflow-x-auto', 'hidden' => $defaultGroup !== $groupKey])
+                        aria-label="Report tabs — {{ $group['label'] }}">
+                        @foreach($group['tabs'] as $key => $tab)
+                            <a href="#" data-report="{{ $key }}"
+                                @class([
+                                    'report-filter inline-flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition',
+                                    'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400' => $defaultReport === $key,
+                                    'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' => $defaultReport !== $key,
+                                ])>
+                                <span class="text-base">{{ $tab['icon'] }}</span>
+                                {{ $tab['label'] }}
+                            </a>
+                        @endforeach
+                    </nav>
+                @endforeach
+            </div>
         </div>
 
         {{-- REPORT CONTENT --}}
@@ -73,6 +113,27 @@
     <script>
         const REPORT_TAB_ACTIVE   = ['border-indigo-500', 'text-indigo-600', 'dark:border-indigo-400', 'dark:text-indigo-400'];
         const REPORT_TAB_INACTIVE = ['border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700', 'dark:text-gray-400', 'dark:hover:text-gray-200'];
+
+        const GROUP_TAB_ACTIVE   = ['bg-indigo-600', 'text-white', 'shadow-sm'];
+        const GROUP_TAB_INACTIVE = ['bg-gray-100', 'text-gray-600', 'hover:bg-gray-200', 'dark:bg-gray-800', 'dark:text-gray-300', 'dark:hover:bg-gray-700'];
+
+        $(document).on('click', '.report-group-filter', function(e) {
+
+            e.preventDefault();
+
+            let group = $(this).data('group');
+
+            $('.report-group-filter').removeClass(GROUP_TAB_ACTIVE).addClass(GROUP_TAB_INACTIVE);
+
+            $(this).removeClass(GROUP_TAB_INACTIVE).addClass(GROUP_TAB_ACTIVE);
+
+            $('[data-group-tabs]').addClass('hidden');
+
+            $('[data-group-tabs="' + group + '"]').removeClass('hidden');
+
+            $('[data-group-tabs="' + group + '"] .report-filter').first().trigger('click');
+
+        });
 
         $(document).on('click', '.report-filter', function(e) {
 

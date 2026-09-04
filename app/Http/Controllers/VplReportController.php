@@ -1019,6 +1019,7 @@ class VplReportController extends Controller
             $monthOut      = array_merge($zeroOut, $outByMonth[$key][$month] ?? []);
             $monthOutTotal = array_sum($monthOut);
             $ending        = $beginning + $monthIn + $monthTransfer - $monthOutTotal;
+            $nominal       = (float) $product->product_value;
 
             $rows[] = [
                 'product_id'     => $product->product_id,
@@ -1026,12 +1027,14 @@ class VplReportController extends Controller
                 'category_label' => $product->product_category === 'F&B' ? 'F&B' : 'NON F&B',
                 'whs_id'         => $meta['whs_id'],
                 'expired_date'   => $this->expiredKey($meta['expired_date']) === 'NULL' ? null : $meta['expired_date'],
+                'nominal'        => $nominal,
                 'beginning'      => $beginning,
                 'in_total'       => $monthIn,
                 'transfer'       => $monthTransfer,
                 'out'            => $monthOut,
                 'out_total'      => $monthOutTotal,
                 'ending'         => $ending,
+                'value'          => $ending * $nominal,
             ];
         }
 

@@ -2,7 +2,7 @@
     $forExport  = $forExport ?? false;
     $perpost    = $year.str_pad((string) $month, 2, '0', STR_PAD_LEFT);
     $detailRows = collect($groups)->where('type', 'detail');
-    $colCount   = 10 + count($purposeCols); // Perpost/Company/WhsOwner/ProductID/Expiry/Name/Begin/In/Transfer/[Out...]/End
+    $colCount   = 12 + count($purposeCols); // Perpost/Company/WhsOwner/ProductID/Expiry/Name/Nominal/Begin/In/Transfer/[Out...]/End/Value
     // Export mode emits raw numbers (so Excel sees real, summable numbers) instead of
     // pre-formatted "50.000" strings — PhpSpreadsheet's HTML importer misreads the dot
     // as a decimal point and silently corrupts those. Excel-side formatting is applied
@@ -41,6 +41,7 @@
                     <th class="px-3 py-3 text-left font-semibold">Product ID</th>
                     <th class="px-3 py-3 text-left font-semibold">Expired Date</th>
                     <th class="px-3 py-3 text-left font-semibold">Name</th>
+                    <th class="px-3 py-3 text-right font-semibold">Nominal</th>
                     <th class="px-3 py-3 text-right font-semibold">Begin Qty</th>
                     <th class="px-3 py-3 text-right font-semibold">In</th>
                     <th class="px-3 py-3 text-right font-semibold">Transfer</th>
@@ -48,6 +49,7 @@
                         <th class="px-3 py-3 text-right font-semibold whitespace-nowrap {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">Out<br>{{ $label }}</th>
                     @endforeach
                     <th class="px-3 py-3 text-right font-semibold border-l border-gray-200 dark:border-gray-700">End Qty</th>
+                    <th class="px-3 py-3 text-right font-semibold">End Value (Rp)</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-700/60">
@@ -74,6 +76,7 @@
                             <td class="px-3 py-2">{{ $row['product_id'] }}</td>
                             <td class="px-3 py-2 tabular-nums">{{ $row['expired_date'] ? \Carbon\Carbon::parse($row['expired_date'])->format('d-M-y') : 'No Expired' }}</td>
                             <td class="px-3 py-2 font-medium text-gray-900 dark:text-gray-100">{{ $row['tenant'] }}</td>
+                            <td class="px-3 py-2 text-right tabular-nums">{{ $n($row['nominal']) }}</td>
                             <td class="px-3 py-2 text-right tabular-nums">{{ $n($row['beginning']) }}</td>
                             <td class="px-3 py-2 text-right tabular-nums">{{ $n($row['in_total']) }}</td>
                             <td class="px-3 py-2 text-right tabular-nums">{{ $n($row['transfer']) }}</td>
@@ -81,6 +84,7 @@
                                 <td class="px-3 py-2 text-right tabular-nums {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">{{ $n($row['out'][$label] ?? 0) }}</td>
                             @endforeach
                             <td class="px-3 py-2 text-right tabular-nums font-semibold text-gray-900 dark:text-gray-100 border-l border-gray-200 dark:border-gray-700">{{ $n($row['ending']) }}</td>
+                            <td class="px-3 py-2 text-right tabular-nums font-semibold text-gray-900 dark:text-gray-100">{{ $n($row['value']) }}</td>
                         </tr>
                     @endif
                 @empty
@@ -98,6 +102,7 @@
                 <tfoot class="sticky bottom-0 z-10 border-t-2 border-violet-100 bg-gray-50 dark:border-violet-900/40 dark:bg-gray-900">
                     <tr class="text-xs font-bold uppercase tracking-wide text-gray-700 dark:text-gray-200">
                         <td colspan="6" class="px-3 py-3 text-right">Grand Total</td>
+                        <td class="px-3 py-3 text-right tabular-nums text-violet-700 dark:text-violet-300">{{ $n($detailRows->sum('nominal')) }}</td>
                         <td class="px-3 py-3 text-right tabular-nums text-violet-700 dark:text-violet-300">{{ $n($detailRows->sum('beginning')) }}</td>
                         <td class="px-3 py-3 text-right tabular-nums text-violet-700 dark:text-violet-300">{{ $n($detailRows->sum('in_total')) }}</td>
                         <td class="px-3 py-3 text-right tabular-nums text-violet-700 dark:text-violet-300">{{ $n($detailRows->sum('transfer')) }}</td>
@@ -105,6 +110,7 @@
                             <td class="px-3 py-3 text-right tabular-nums text-violet-700 dark:text-violet-300 {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">{{ $n($detailRows->sum(fn($r) => $r['out'][$label] ?? 0)) }}</td>
                         @endforeach
                         <td class="px-3 py-3 text-right tabular-nums text-violet-700 dark:text-violet-300 border-l border-gray-200 dark:border-gray-700">{{ $n($detailRows->sum('ending')) }}</td>
+                        <td class="px-3 py-3 text-right tabular-nums text-violet-700 dark:text-violet-300">{{ $n($detailRows->sum('value')) }}</td>
                     </tr>
                 </tfoot>
             @endif
