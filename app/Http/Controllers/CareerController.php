@@ -236,6 +236,7 @@ class CareerController extends Controller
         // ========== HC ASSESSMENT ==========
         $assessmentGroups = [];
         $tr_assessment = TrAssessment::where('jobapply_id', $career->docid)
+            ->where('group_cpny_id', $career->group_cpny_id)
             ->where('type', 'hc')
             ->first();
 
@@ -274,6 +275,7 @@ class CareerController extends Controller
         // ========== USER ASSESSMENT ==========
         $assessmentGroupsUser = [];
         $tr_assessment_user = TrAssessment::where('jobapply_id', $career->docid)
+            ->where('group_cpny_id', $career->group_cpny_id)
             ->where('type', 'user')
             ->first();
 
@@ -350,12 +352,11 @@ class CareerController extends Controller
             $ijazah = $object->signedUrl($expiration);
         }
 
-        $agenda = Agenda::where('refid', $career->docid)->get();
+        $agenda = Agenda::where('refid', $career->docid)->where('group_cpny_id', $career->group_cpny_id)->get();
         $userlist = User::where('status', 'A')
             ->where('group_cpny_id', $career->group_cpny_id)
             ->orderby('name', 'ASC')
             ->get();
-        $agenda = Agenda::where('refid', $career->docid)->get();
 
         // $typestep = JobApplyStep::leftjoin('hr_ms_job_step', 'hr_trx_job_apply_step.step_id', '=', 'hr_ms_job_step.step_id')
         //     ->select('hr_trx_job_apply_step.step_id', 'hr_ms_job_step.step_descr')
@@ -364,11 +365,11 @@ class CareerController extends Controller
         //     ->orderBy('hr_trx_job_apply_step.step_order', 'ASC')
         //     ->get();
         $typestep = MJobApplyStep::where('schedule', 1)->where('group_cpny_id', $career->group_cpny_id)->get();
-        $payrolls = Payrollconfirm::where('jobapply_id', $career->docid)->get();
+        $payrolls = Payrollconfirm::where('jobapply_id', $career->docid)->where('group_cpny_id', $career->group_cpny_id)->get();
 
-        $sign = SignPayroll::where('docid', $career->docid)->orderby('aprvid', 'ASC')->get();
+        $sign = SignPayroll::where('docid', $career->docid)->where('group_cpny_id', $career->group_cpny_id)->orderby('aprvid', 'ASC')->get();
 
-        $onboarding = Tronboarding::where('jobapply_id', $career->docid)->first();
+        $onboarding = Tronboarding::where('jobapply_id', $career->docid)->where('group_cpny_id', $career->group_cpny_id)->first();
         // dd($career->subgrade_id);
         $canAccessPayroll = GroupAccspecific::where('username', $user->username)
             ->where('group_access_id', 'PAYROLL')
@@ -468,8 +469,13 @@ class CareerController extends Controller
         $now = now();
         $docid = $request->docid;
 
+        // jobapply_id is only unique WITHIN a group_cpny_id, so it must be paired with the
+        // logged-in user's own group — not a client-supplied value.
+        $groupCpnyId = strtoupper(trim((string) ($user->group_cpny_id ?? '')));
+
         // Update header (TrAssessment)
         $assessment = TrAssessment::where('jobapply_id', $docid)
+            ->where('group_cpny_id', $groupCpnyId)
             ->where('type', 'hc')
             ->first();
         // dd($assessment);
@@ -515,8 +521,13 @@ class CareerController extends Controller
         $now = now();
         $docid = $request->docid;
 
+        // jobapply_id is only unique WITHIN a group_cpny_id, so it must be paired with the
+        // logged-in user's own group — not a client-supplied value.
+        $groupCpnyId = strtoupper(trim((string) ($user->group_cpny_id ?? '')));
+
         // Update header (TrAssessment)
         $assessment = TrAssessment::where('jobapply_id', $docid)
+            ->where('group_cpny_id', $groupCpnyId)
             ->where('type', 'user')
             ->first();
         // dd($assessment);
@@ -648,7 +659,7 @@ class CareerController extends Controller
             return response()->json(['success' => false, 'message' => 'Career not found'], 404);
         }
 
-        $jobposting = Jobposting::where('docid', $career->jobid)->first();
+        $jobposting = Jobposting::where('docid', $career->jobid)->where('group_cpny_id', $career->group_cpny_id)->first();
 
         if (!$jobposting) {
             return response()->json(['success' => false, 'message' => 'Job Posting not found'], 404);
@@ -761,7 +772,7 @@ class CareerController extends Controller
             return response()->json(['success' => false, 'message' => 'Career not found'], 404);
         }
 
-        $jobposting = Jobposting::where('docid', $career->jobid)->first();
+        $jobposting = Jobposting::where('docid', $career->jobid)->where('group_cpny_id', $career->group_cpny_id)->first();
         if (!$jobposting) {
             return response()->json(['success' => false, 'message' => 'Job Posting not found'], 404);
         }
@@ -859,7 +870,7 @@ class CareerController extends Controller
             return response()->json(['success' => false, 'message' => 'Career not found'], 404);
         }
 
-        $jobposting = Jobposting::where('docid', $career->jobid)->first();
+        $jobposting = Jobposting::where('docid', $career->jobid)->where('group_cpny_id', $career->group_cpny_id)->first();
         if (!$jobposting) {
             return response()->json(['success' => false, 'message' => 'Job Posting not found'], 404);
         }
@@ -952,7 +963,7 @@ class CareerController extends Controller
             return response()->json(['canPerformAction' => false, 'message' => 'Career not found'], 404);
         }
 
-        $jobposting = Jobposting::where('docid', $career->jobid)->first();
+        $jobposting = Jobposting::where('docid', $career->jobid)->where('group_cpny_id', $career->group_cpny_id)->first();
         if (!$jobposting) {
             return response()->json(['canPerformAction' => false, 'message' => 'Job posting not found'], 404);
         }
@@ -1006,6 +1017,7 @@ class CareerController extends Controller
 
             $existing = Trchecklist::where('jobid', $career->jobid)
                 ->where('applicant_id', $career->applicant_id)
+                ->where('group_cpny_id', $career->group_cpny_id)
                 ->first();
 
             if ($existing) {
@@ -1089,6 +1101,7 @@ class CareerController extends Controller
             // Validasi awal
             $existing = TrAssessment::where('jobid', $career->jobid)
                 ->where('applicant_id', $career->applicant_id)
+                ->where('group_cpny_id', $career->group_cpny_id)
                 ->whereIn('type', $types)
                 ->exists();
 
@@ -1448,7 +1461,7 @@ class CareerController extends Controller
 
         if ($is_remapped && $applicant->process_step == 2) {
             // Remapped + already filled form — notify of position change only
-            $jobposting = Jobposting::where('docid', $career->jobid)->first();
+            $jobposting = Jobposting::where('docid', $career->jobid)->where('group_cpny_id', $career->group_cpny_id)->first();
             $division = \App\Models\Division::where('division_id', $jobposting->division_id ?? '')->value('division_name');
             $department = \App\Models\DepartmentHR::where('department_id', $jobposting->departementid ?? '')->value('department_name');
             $data = [
@@ -1464,7 +1477,7 @@ class CareerController extends Controller
             });
         } elseif ($is_remapped && $applicant->process_step != 2) {
             // Remapped + hasn't filled form — notify position change and send form link
-            $jobposting = Jobposting::where('docid', $career->jobid)->first();
+            $jobposting = Jobposting::where('docid', $career->jobid)->where('group_cpny_id', $career->group_cpny_id)->first();
             $encryptedDocId = Crypt::encryptString($career->applicant_id);
             $data = [
                 'name' => $applicant->full_name ?? 'Pelamar',
@@ -1845,6 +1858,7 @@ class CareerController extends Controller
             // Validasi awal
             $existing = TrAssessment::where('jobid', $career->jobid)
                 ->where('applicant_id', $career->applicant_id)
+                ->where('group_cpny_id', $career->group_cpny_id)
                 ->whereIn('type', $types)
                 ->exists();
 
@@ -1993,6 +2007,7 @@ class CareerController extends Controller
             $payrollExists = Payrollconfirm::where('jobapply_id', $career->docid)
                 ->where('applicant_id', $career->applicant_id)
                 ->where('jobid', $career->jobid)
+                ->where('group_cpny_id', $career->group_cpny_id)
                 ->exists();
 
             if ($payrollExists) {
@@ -2321,7 +2336,7 @@ class CareerController extends Controller
         $datestamp = Carbon::now()->toDateTimeString();
         DB::beginTransaction();
         try {
-            $jobposting = Jobposting::where('docid', $career->jobid)->first();
+            $jobposting = Jobposting::where('docid', $career->jobid)->where('group_cpny_id', $career->group_cpny_id)->first();
 
             // Ambil template approval dari master TrApproval
             $approvals = TrApproval::where('refnbr', $jobposting->refid)
@@ -2445,7 +2460,12 @@ class CareerController extends Controller
                 'aprvname.*' => 'required|string',
             ]);
 
-            $career = Career::where('docid', $request->jobapply_id)->first();
+            // docid is only unique WITHIN a group_cpny_id (SBY/JKT sequences can collide), so it must
+            // be paired with the logged-in user's own group — not a client-supplied value.
+            $groupCpnyId = strtoupper(trim((string) ($user->group_cpny_id ?? '')));
+            $career = Career::where('docid', $request->jobapply_id)
+                ->where('group_cpny_id', $groupCpnyId)
+                ->first();
 
             foreach ($request->aprvid as $i => $ord) {
                 SignPayroll::create([
@@ -2628,7 +2648,7 @@ class CareerController extends Controller
         }
 
         // Ambil info job (untuk subjek/konten)
-        $jobposting = Jobposting::where('docid', $career->jobid)->first();
+        $jobposting = Jobposting::where('docid', $career->jobid)->where('group_cpny_id', $career->group_cpny_id)->first();
         $jobTitle = $jobposting->job_title ?? 'Your Application';
 
         $careerPortalBase = config('app.name') === 'Pakuwon System Demo'
