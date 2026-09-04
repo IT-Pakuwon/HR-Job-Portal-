@@ -375,7 +375,7 @@ class VplMsProductController extends Controller
                 // Counter per (type + company), never resets
                 // Generates: V100001 (AW), V200001 (EP), P300001 (PSA), etc.
                 $cpnyPrefix = self::COMPANY_PREFIX[$request->cpnyid] ?? '0';
-                $auto       = $this->nextAutonbr($request->product_type, 0, $request->cpnyid, $username, 'VPL Product');
+                $auto       = $this->nextAutonbrByCpnyid($request->product_type, 0, '00', $request->cpnyid, $username, 'VPL Product');
                 $product_id = $request->product_type . $cpnyPrefix . sprintf('%05d', $auto['next']);
 
                 $photoPath = $request->hasFile('product_photo')
