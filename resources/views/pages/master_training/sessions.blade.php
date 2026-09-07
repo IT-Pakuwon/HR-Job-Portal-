@@ -645,6 +645,10 @@
                     if (isExt && !$b.find('.date-ext-speaker').val().trim()) {
                         incomplete = true;
                     }
+
+                    if (!isExt && !$b.find('.date-speaker').val()) {
+                        incomplete = true;
+                    }
                 });
 
                 if (incomplete) {
@@ -1004,13 +1008,21 @@
                 e.preventDefault();
 
                 let quota = [];
+                let quotaIncomplete = false;
                 $('#quotaRows [data-row-id]').each(function() {
                     let cpnyId = $(this).find('.quota-company').val();
                     let qty = $(this).find('.quota-qty').val();
                     if (cpnyId && qty) {
                         quota.push({ cpny_id: cpnyId, quota_pax: qty });
+                    } else if (cpnyId || qty) {
+                        quotaIncomplete = true;
                     }
                 });
+
+                if (quotaIncomplete || quota.length === 0) {
+                    Swal.fire({ icon: 'warning', title: 'Incomplete quota', text: 'Choose a company and enter a qty for every quota row before saving.' });
+                    return;
+                }
 
                 function readSpeaker($block) {
                     let $sel = $block.find('.date-speaker');
