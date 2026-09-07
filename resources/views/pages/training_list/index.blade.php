@@ -62,6 +62,8 @@
                             <tr class="text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 <th class="py-2 pr-4">Doc ID</th>
                                 <th class="py-2 pr-4">Training</th>
+                                <th class="py-2 pr-4">Level</th>
+                                <th class="py-2 pr-4">Speaker</th>
                                 <th class="py-2 pr-4">Date</th>
                                 <th class="py-2 pr-4">Status</th>
                                 <th class="py-2 pr-4">Actions</th>
@@ -69,6 +71,7 @@
                         </thead>
                         <tbody id="mineBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
                     </table>
+                    <div id="minePagination"></div>
                 </div>
             </div>
 
@@ -95,15 +98,43 @@
                     <div id="approvalsEmpty" class="hidden rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
                         Nothing waiting on your approval right now.
                     </div>
+                    <div id="approvalsPagination"></div>
                 </div>
             </div>
 
             {{-- Waitlist Management (HCDEVACCESS) --}}
             @if (Auth::user()->hasRole('HCDEVACCESS'))
-                <div id="tab-waitlist" class="tab-panel hidden">
-                    <p class="mb-2 text-xs text-gray-500 dark:text-gray-400">
+                <div id="tab-waitlist" class="tab-panel hidden space-y-3">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
                         Slots forfeited after a schedule closes (H-3) don't auto-requeue — pick who to accept into the freed seat. You can also choose a different company's quota for the person.
                     </p>
+
+                    <div class="flex flex-wrap items-center gap-2.5 rounded-xl border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+                        <span class="flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400">
+                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
+                            Filter
+                        </span>
+                        <div class="w-full sm:w-80">
+                            <select id="waitlistTrainingFilter">
+                                <option value="">All Training Events</option>
+                            </select>
+                        </div>
+                        <div class="relative min-w-45 flex-1">
+                            <svg class="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                            <input id="waitlistSearch" type="text" placeholder="Search by employee or doc ID"
+                                class="w-full rounded-lg border border-gray-300 py-1.5 pl-8 pr-2.5 text-xs text-gray-700 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:ring-gray-700">
+                        </div>
+                        <div class="w-full sm:w-48">
+                            <select id="waitlistApprovalFilter">
+                                <option value="">All Approval Statuses</option>
+                                <option value="P">Pending</option>
+                                <option value="C">Approved</option>
+                                <option value="R">Rejected</option>
+                            </select>
+                        </div>
+                        <button id="waitlistResetBtn" class="rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white">Reset</button>
+                    </div>
+
                     <div class="overflow-x-auto">
                         <table class="responsive-table min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
                             <thead>
@@ -123,30 +154,86 @@
                         <div id="waitlistEmpty" class="hidden rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
                             No one is waitlisted right now.
                         </div>
+                        <div id="waitlistPagination"></div>
                     </div>
                 </div>
             @endif
 
             {{-- List Registration (HCDEVACCESS) --}}
             @if (Auth::user()->hasRole('HCDEVACCESS'))
-                <div id="tab-allregs" class="tab-panel hidden space-y-3">
+                <div id="tab-allregs" class="tab-panel hidden space-y-4">
                     <p class="text-xs text-gray-500 dark:text-gray-400">
                         Every training registration across all employees, with its current status.
                     </p>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <input id="allRegsSearch" type="text" placeholder="Search by employee or doc ID"
-                            class="rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
-                        <select id="allRegsStatusFilter" class="rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
-                            <option value="">All Statuses</option>
-                            <option value="P">Waiting Approval</option>
-                            <option value="C">Approved</option>
-                            <option value="R">Rejected</option>
-                            <option value="W">Waiting List</option>
-                            <option value="O">Slot Offered</option>
-                            <option value="X">Cancelled</option>
-                        </select>
-                        <button id="allRegsResetBtn" class="text-xs font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white">Reset</button>
+
+                    {{-- Filters — Training Event also rescopes the summary cards below --}}
+                    <div class="flex flex-wrap items-center gap-2.5 rounded-xl border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+                        <span class="flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400">
+                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
+                            Filter
+                        </span>
+                        <div class="w-full sm:w-80">
+                            <select id="allRegsTrainingFilter">
+                                <option value="">All Training Events</option>
+                            </select>
+                        </div>
+                        <div class="relative min-w-45 flex-1">
+                            <svg class="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                            <input id="allRegsSearch" type="text" placeholder="Search by employee or doc ID"
+                                class="w-full rounded-lg border border-gray-300 py-1.5 pl-8 pr-2.5 text-xs text-gray-700 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:ring-gray-700">
+                        </div>
+                        <div class="w-full sm:w-48">
+                            <select id="allRegsStatusFilter">
+                                <option value="">All Statuses</option>
+                                <option value="P">Waiting Approval</option>
+                                <option value="C">Approved</option>
+                                <option value="R">Rejected</option>
+                                <option value="W">Waiting List</option>
+                                <option value="O">Slot Offered</option>
+                                <option value="X">Cancelled</option>
+                            </select>
+                        </div>
+                        <button id="allRegsResetBtn" class="rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white">Reset</button>
+                        <button id="allRegsExportBtn" class="flex items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-700 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200">
+                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" /></svg>
+                            Export
+                        </button>
                     </div>
+
+                    {{-- Summary cards --}}
+                    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                        <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                            <p class="text-[10px] font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400">Waiting Approval</p>
+                            <p id="statWaitingApproval" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
+                        </div>
+                        <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                            <p class="text-[10px] font-bold uppercase tracking-wide text-green-600 dark:text-green-400">Approved</p>
+                            <p id="statApproved" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
+                        </div>
+                        <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                            <p class="text-[10px] font-bold uppercase tracking-wide text-red-600 dark:text-red-400">Rejected</p>
+                            <p id="statRejected" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
+                        </div>
+                        <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                            <p class="text-[10px] font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">Cancelled</p>
+                            <p id="statCancelled" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
+                        <div class="flex items-center justify-between gap-2">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Reserved / Total Quota</p>
+                            <span id="quotaOverallValue" class="text-sm font-bold text-gray-800 dark:text-white">-</span>
+                        </div>
+                        <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                            <div id="quotaOverallBar" class="h-full rounded-full bg-gray-900 dark:bg-white" style="width:0%"></div>
+                        </div>
+
+                        <p class="mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Per Company</p>
+                        <div id="quotaByCompany" class="flex flex-nowrap gap-2 overflow-x-auto pb-1"></div>
+                        <p id="quotaByCompanyEmpty" class="hidden text-xs text-gray-400">No quota configured for this training.</p>
+                    </div>
+
                     <div class="overflow-x-auto">
                         <table class="responsive-table min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
                             <thead>
@@ -165,6 +252,7 @@
                         <div id="allRegsEmpty" class="hidden rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
                             No registrations found.
                         </div>
+                        <div id="allRegsPagination"></div>
                     </div>
                 </div>
             @endif
@@ -307,6 +395,43 @@
         }
         .select2-container {
             width: 100% !important;
+        }
+        .select2-filter .select2-selection--single {
+            height: 30px !important;
+            border-radius: 8px;
+            border-color: #d1d5db;
+        }
+        .select2-filter .select2-selection--single:focus {
+            outline: none;
+        }
+        .select2-filter .select2-selection--single .select2-selection__rendered {
+            font-size: 12px !important;
+            line-height: 28px !important;
+            padding-right: 40px;
+        }
+        .select2-filter .select2-selection--single .select2-selection__arrow {
+            height: 28px !important;
+        }
+        .select2-filter .select2-selection--single .select2-selection__clear {
+            margin-right: 4px;
+        }
+        .select2-filter.select2-container--focus .select2-selection--single,
+        .select2-filter.select2-container--open .select2-selection--single {
+            border-color: #9ca3af;
+            box-shadow: 0 0 0 2px #e5e7eb;
+            outline: none;
+        }
+        html.dark .select2-filter .select2-selection--single {
+            background: #1f2937;
+            border-color: #4b5563;
+        }
+        html.dark .select2-filter .select2-selection--single .select2-selection__rendered {
+            color: #e5e7eb;
+        }
+        html.dark .select2-filter.select2-container--focus .select2-selection--single,
+        html.dark .select2-filter.select2-container--open .select2-selection--single {
+            border-color: #6b7280;
+            box-shadow: 0 0 0 2px #374151;
         }
         .dateCardOption {
             cursor: pointer;
@@ -624,16 +749,433 @@
         .rejectConfirmBtn:hover {
             background: #b91c1c !important;
         }
+        .feedbackModalPopup {
+            padding: 0 !important;
+            border-radius: 16px !important;
+            width: 560px !important;
+            max-width: calc(100vw - 32px) !important;
+        }
+        .feedbackModalPopup .swal2-html-container {
+            margin: 0 !important;
+            padding: 0 !important;
+            max-height: none !important;
+        }
+        .feedbackModalPopup .swal2-actions {
+            flex-direction: column;
+            width: 100%;
+            gap: 4px;
+            margin: 0 !important;
+            padding: 16px 24px 20px !important;
+            border-top: 1px solid #f0f1f3;
+            background: #fafafa;
+            border-radius: 0 0 16px 16px;
+        }
+        .feedbackModal-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 20px 24px;
+            border-bottom: 1px solid #f0f1f3;
+        }
+        .feedbackModal-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #374151, #111827);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .feedbackModal-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #111827;
+            margin: 0;
+            text-align: left;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+        .feedbackModal-subtitle {
+            font-size: 11px;
+            color: #6b7280;
+            margin: 3px 0 0;
+        }
+        .feedbackModal-body {
+            padding: 20px 24px 24px;
+            text-align: left;
+            max-height: 58vh;
+            overflow-y: auto;
+        }
+        .feedbackModal-notice {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            color: #92400e;
+            font-size: 12px;
+            margin-bottom: 16px;
+        }
+        .feedbackModal-question {
+            padding: 16px;
+            border-radius: 12px;
+            background: #f9fafb;
+            border: 1px solid #f0f1f3;
+        }
+        .feedbackModal-question + .feedbackModal-question {
+            margin-top: 12px;
+        }
+        .feedbackModal-qHead {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .feedbackModal-qNum {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #111827;
+            color: #fff;
+            font-size: 10.5px;
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .feedbackModal-qText {
+            font-size: 13px;
+            font-weight: 600;
+            color: #111827;
+            line-height: 1.4;
+        }
+        .feedbackModal-choiceGroup {
+            display: flex;
+            gap: 8px;
+        }
+        .feedbackModal-choice {
+            position: relative;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 9px 12px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            cursor: pointer;
+            transition: border-color .15s, background .15s, color .15s;
+        }
+        .feedbackModal-choice input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .feedbackModal-choice:has(input:checked) {
+            border-color: #111827;
+            background: #111827;
+            color: #fff;
+        }
+        .feedbackModal-choice:has(input:disabled) {
+            cursor: not-allowed;
+        }
+        .feedbackModal-choice:has(input:disabled):not(:has(input:checked)) {
+            opacity: .5;
+        }
+        .feedbackModal-ratingGroup {
+            display: flex;
+            gap: 8px;
+        }
+        .feedbackModal-ratingItem {
+            position: relative;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            color: #374151;
+            cursor: pointer;
+            transition: border-color .15s, background .15s, color .15s;
+        }
+        .feedbackModal-ratingItem input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .feedbackModal-ratingItem:has(input:checked) {
+            border-color: #f59e0b;
+            background: #fffbeb;
+            color: #b45309;
+        }
+        .feedbackModal-ratingItem:has(input:disabled) {
+            cursor: not-allowed;
+        }
+        .feedbackModal-ratingItem:has(input:disabled):not(:has(input:checked)) {
+            opacity: .5;
+        }
+        .feedbackModal-ratingScale {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 6px;
+            font-size: 10.5px;
+            color: #9ca3af;
+        }
+        .feedbackModal-textarea {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 9px 12px;
+            font-size: 13px;
+            color: #111827;
+            background: #fff;
+            resize: vertical;
+            min-height: 60px;
+            font-family: inherit;
+        }
+        .feedbackModal-textarea:focus {
+            outline: none;
+            border-color: #111827;
+            box-shadow: 0 0 0 3px rgba(17, 24, 39, .08);
+        }
+        .feedbackModal-textarea:disabled {
+            background: #f9fafb;
+            color: #6b7280;
+            cursor: not-allowed;
+        }
+        .feedbackConfirmBtn {
+            background: #111827 !important;
+            color: #fff !important;
+            border: none !important;
+            padding: 11px 0 !important;
+            width: 100%;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            border-radius: 8px !important;
+            box-shadow: none !important;
+        }
+        .feedbackConfirmBtn:hover {
+            background: #374151 !important;
+        }
+        .viewModalPopup {
+            padding: 0 !important;
+            border-radius: 16px !important;
+            width: 480px !important;
+            max-width: calc(100vw - 32px) !important;
+        }
+        .viewModalPopup .swal2-html-container {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .viewModalPopup .swal2-actions {
+            margin: 0 !important;
+            padding: 16px 24px 20px !important;
+            border-top: 1px solid #f0f1f3;
+            background: #fafafa;
+            border-radius: 0 0 16px 16px;
+        }
+        .viewModal-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 20px 24px;
+            border-bottom: 1px solid #f0f1f3;
+        }
+        .viewModal-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #374151, #111827);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .viewModal-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #111827;
+            margin: 0;
+            text-align: left;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+        .viewModal-subtitle {
+            font-size: 11px;
+            color: #6b7280;
+            margin: 3px 0 0;
+            font-family: monospace;
+        }
+        .viewModal-body {
+            padding: 20px 24px 24px;
+            text-align: left;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        .viewModal-card {
+            padding: 4px 14px;
+            border-radius: 12px;
+            background: #f9fafb;
+            border: 1px solid #f0f1f3;
+        }
+        .viewModal-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 12px;
+            padding: 8px 0;
+        }
+        .viewModal-row + .viewModal-row {
+            border-top: 1px solid #eef0f2;
+        }
+        .viewModal-key {
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: .03em;
+            text-transform: uppercase;
+            color: #9ca3af;
+            flex-shrink: 0;
+        }
+        .viewModal-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: #111827;
+            text-align: right;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+        .viewModal-sectionTitle {
+            margin: 20px 0 10px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .03em;
+            text-transform: uppercase;
+            color: #6b7280;
+        }
+        .approvalStepList {
+            display: flex;
+            flex-direction: column;
+        }
+        .approvalStep {
+            display: flex;
+            gap: 10px;
+            position: relative;
+            padding-bottom: 18px;
+        }
+        .approvalStep:last-child {
+            padding-bottom: 0;
+        }
+        .approvalStep::before {
+            content: '';
+            position: absolute;
+            left: 11px;
+            top: 24px;
+            bottom: 0;
+            width: 1px;
+            background: #e5e7eb;
+        }
+        .approvalStep:last-child::before {
+            display: none;
+        }
+        .approvalStep-marker {
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            z-index: 1;
+        }
+        .approvalStep-marker.approved {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        .approvalStep-marker.rejected {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .approvalStep-marker.pending {
+            background: #fef9c3;
+            color: #a16207;
+        }
+        .approvalStep-marker.neutral {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+        .approvalStep-body {
+            min-width: 0;
+            flex: 1;
+            padding-top: 2px;
+        }
+        .approvalStep-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .approvalStep-level {
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: .03em;
+            text-transform: uppercase;
+            color: #9ca3af;
+        }
+        .approvalStep-badge {
+            font-size: 10.5px;
+            font-weight: 700;
+        }
+        .approvalStep-badge.approved { color: #16a34a; }
+        .approvalStep-badge.rejected { color: #dc2626; }
+        .approvalStep-badge.pending { color: #a16207; }
+        .approvalStep-badge.neutral { color: #6b7280; }
+        .approvalStep-name {
+            margin-top: 2px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #111827;
+        }
+        .approvalStep-when {
+            margin-top: 1px;
+            font-size: 11px;
+            color: #6b7280;
+        }
     </style>
     <script>
         const jsonUrl = "{{ route('training-list.json') }}";
         const myUrl = "{{ route('training-list.my') }}";
         const certificateUrl = "{{ route('training-list.certificate', ['id' => '__ID__']) }}";
+        const cancelUrlTpl = "{{ route('training-list.cancel', ['scheduleId' => '__ID__']) }}";
         const colleaguesUrl = "{{ route('training-list.colleagues') }}";
         const pendingApprovalsUrl = "{{ route('training-list.pending-approvals') }}";
+        const approvalUrlTpl = "{{ route('approval.get', ['refnbr' => '__REF__', 'doctype' => 'TRN']) }}";
+        const isHcdevaccess = @json(Auth::user()->hasRole('HCDEVACCESS'));
         @if (Auth::user()->hasRole('HCDEVACCESS'))
         const waitlistUrl = "{{ route('training-list.waitlist') }}";
         const allRegistrationsUrl = "{{ route('training-list.all-registrations') }}";
+        const registrationSummaryUrl = "{{ route('training-list.registration-summary') }}";
+        const allRegistrationsExportUrl = "{{ route('training-list.all-registrations.export') }}";
         @endif
         const csrfHeaders = { 'X-CSRF-TOKEN': '{{ csrf_token() }}' };
         const initialEid = @json($initialEid);
@@ -652,9 +1194,71 @@
             return `<span class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${cls}">${label}</span>`;
         }
 
+        // ms_lnd_training_schedule.status: single-letter codes (see
+        // TrainingRegistrationController::SCHEDULE_*).
+        const scheduleStatusLabels = {
+            D: ['Draft', 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'],
+            P: ['Published', 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'],
+            C: ['Closed', 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'],
+            X: ['Cancelled', 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'],
+        };
+
+        function scheduleStatusBadge(status) {
+            const [label, cls] = scheduleStatusLabels[status] || [status ?? '-', 'bg-gray-100 text-gray-600'];
+            return `<span class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${cls}">${label}</span>`;
+        }
+
         function fmtDate(d) {
             if (!d) return '-';
             return new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        // Calendar-day comparison against a 'Y-m-d' string (matches the
+        // schedule_date < today check in TrainingRegistrationController::cancel())
+        // — same-day is not "passed" yet, only strictly earlier dates are.
+        function isDateStrPast(dateStr) {
+            if (!dateStr) return false;
+            const now = new Date();
+            const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            return dateStr < todayStr;
+        }
+
+        const PAGE_SIZE = 10;
+
+        // Slices a filtered row array down to one page, clamping the given
+        // page number into range (e.g. after a filter shrinks the result set
+        // below the previously-viewed page).
+        function paginateRows(rows, page) {
+            const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+            const clamped = Math.min(Math.max(1, page), totalPages);
+            const start = (clamped - 1) * PAGE_SIZE;
+            return { pageRows: rows.slice(start, start + PAGE_SIZE), page: clamped, totalPages };
+        }
+
+        function renderPagination(containerId, totalItems, page, totalPages, onChange) {
+            const $el = $('#' + containerId);
+
+            if (totalPages <= 1) {
+                $el.empty();
+                return;
+            }
+
+            const start = totalItems === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+            const end = Math.min(page * PAGE_SIZE, totalItems);
+
+            $el.html(`
+                <div class="flex flex-wrap items-center justify-between gap-2 pt-3 text-xs text-gray-500 dark:text-gray-400">
+                    <span>Showing ${start}-${end} of ${totalItems}</span>
+                    <div class="flex items-center gap-1">
+                        <button type="button" class="paginationPrevBtn rounded-lg px-2.5 py-1 font-semibold text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:text-gray-300 dark:hover:bg-gray-800" ${page <= 1 ? 'disabled' : ''}>Prev</button>
+                        <span class="px-1 font-medium text-gray-600 dark:text-gray-300">Page ${page} of ${totalPages}</span>
+                        <button type="button" class="paginationNextBtn rounded-lg px-2.5 py-1 font-semibold text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:text-gray-300 dark:hover:bg-gray-800" ${page >= totalPages ? 'disabled' : ''}>Next</button>
+                    </div>
+                </div>
+            `);
+
+            $el.find('.paginationPrevBtn').on('click', () => onChange(page - 1));
+            $el.find('.paginationNextBtn').on('click', () => onChange(page + 1));
         }
 
         // Always shows the field (so a single-option pick reads as "already
@@ -1246,101 +1850,100 @@
 
         let myRegistrationsRows = [];
 
-        function feedbackActionHtml(r) {
+        function feedbackMenuItem(r) {
             if (r.can_fill_feedback) {
-                const label = r.feedback_submitted ? '✏️ Edit Feedback' : '📝 Fill Feedback';
-                return `<button class="fillFeedbackBtn rounded-lg border border-indigo-300 px-2.5 py-1 text-xs font-semibold text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-900/20" data-id="${r.id}">${label}</button>`;
+                const label = r.feedback_submitted ? 'Edit Feedback' : 'Fill Feedback';
+                return `<button type="button" class="fillFeedbackBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-indigo-600 transition hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/20" data-id="${r.id}">📝 ${label}</button>`;
             }
             if (r.feedback_submitted) {
-                return `<button class="fillFeedbackBtn rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">👁 View Feedback</button>`;
+                return `<button type="button" class="fillFeedbackBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">👁 View Feedback</button>`;
             }
             if (r.has_attended) {
-                return `<span class="text-[11px] text-gray-400">Feedback not open yet</span>`;
+                return `<span class="block px-3 py-2 text-xs text-gray-400">Feedback not open yet</span>`;
             }
             return '';
         }
 
-        function certificateActionHtml(r) {
+        function certificateMenuItem(r) {
             if (r.can_view_certificate) {
-                return `<a href="${certificateUrl.replace('__ID__', r.id)}" target="_blank" class="inline-block rounded-lg border border-amber-300 px-2.5 py-1 text-xs font-semibold text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-900/20">🎓 Certificate</a>`;
+                return `<a href="${certificateUrl.replace('__ID__', r.id)}" target="_blank" class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-amber-700 transition hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-900/20">🎓 Certificate</a>`;
             }
             if (r.has_attended) {
-                return `<span class="text-[11px] text-gray-400">Certificate not available yet</span>`;
+                return `<span class="block px-3 py-2 text-xs text-gray-400">Certificate not available yet</span>`;
             }
             return '';
         }
+
+        let minePage = 1;
 
         function loadMine() {
             $.get(myUrl, function (res) {
-                const rows = res.data || [];
-                myRegistrationsRows = rows;
-                $('#mineEmpty').toggleClass('hidden', rows.length > 0);
-                const $body = $('#mineBody').empty();
-
-                rows.forEach(function (r) {
-                    let actionHtml = '';
-                    if (r.status === 'C') {
-                        actionHtml = `
-                            <button class="viewBarcodeBtn rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">🎫 Barcode</button>
-                            <button class="cancelBtn rounded-lg border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${r.id}" data-schedule-id="${r.schedule_id}">Cancel</button>
-                        `;
-                    } else if (r.status === 'O') {
-                        actionHtml = `
-                            <button class="acceptOfferBtn rounded-lg bg-green-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-green-700" data-id="${r.id}">Accept</button>
-                            <button class="declineOfferBtn rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">Decline</button>
-                        `;
-                    }
-
-                    const feedbackHtml = feedbackActionHtml(r);
-                    const certificateHtml = certificateActionHtml(r);
-
-                    $body.append(`
-                        <tr>
-                            <td class="py-2 pr-4 font-mono text-xs" data-label="Doc ID">${r.docid}</td>
-                            <td class="py-2 pr-4 wrap-break-word text-sm text-gray-800 dark:text-gray-100" data-label="Training">${r.training_name ?? '-'}</td>
-                            <td class="py-2 pr-4 whitespace-nowrap" data-label="Date">${fmtDate(r.schedule_date)}</td>
-                            <td class="py-2 pr-4" data-label="Status">${statusBadge(r.status)}</td>
-                            <td class="py-2 pr-4" data-label="Actions">
-                                <div class="flex flex-wrap items-center gap-1.5">
-                                    ${actionHtml}
-                                    ${feedbackHtml}
-                                    ${certificateHtml}
-                                </div>
-                            </td>
-                        </tr>
-                    `);
-                });
+                myRegistrationsRows = res.data || [];
+                minePage = 1;
+                renderMine();
             });
         }
 
-        $(document).on('click', '.viewBarcodeBtn', function () {
-            const id = $(this).data('id');
+        function renderMine() {
+            const rows = myRegistrationsRows;
+            $('#mineEmpty').toggleClass('hidden', rows.length > 0);
+            const $body = $('#mineBody').empty();
 
-            $.get(`/training-list/my/${id}/barcode-status`, function (res) {
-                const bodyHtml = res.available
-                    ? `
-                        <div style="text-align:center;">
-                            <img src="/training-list/my/${id}/barcode-image" alt="Barcode" style="max-width:100%;height:auto;">
-                            <p style="margin-top:10px;font-size:12px;letter-spacing:.05em;color:#374151;font-family:monospace;">${res.code}</p>
-                            <p style="margin-top:4px;font-size:11px;color:#6b7280;">Show this to HR to check in, or they can type the code above manually.</p>
-                        </div>
-                    `
-                    : `<p style="text-align:center;font-size:13px;color:#6b7280;padding:20px 0;">${res.message}</p>`;
+            const { pageRows, page, totalPages } = paginateRows(rows, minePage);
+            minePage = page;
 
-                Swal.fire({
-                    title: 'Attendance Barcode',
-                    html: bodyHtml,
-                    confirmButtonText: 'Close',
-                    showCancelButton: false,
-                });
-            }).fail(function (xhr) {
-                toast('error', xhr.responseJSON?.message || 'Gagal memuat barcode');
+            pageRows.forEach(function (r) {
+                const cancelHtml = (isHcdevaccess && !['R', 'X'].includes(r.status) && !isDateStrPast(r.schedule_date))
+                    ? `<button type="button" class="cancelBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${r.id}">🗑 Cancel</button>`
+                    : '';
+                const feedbackHtml = feedbackMenuItem(r);
+                const certificateHtml = certificateMenuItem(r);
+                const viewHtml = `<button type="button" class="viewRegBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">👁 View</button>`;
+
+                $body.append(`
+                    <tr>
+                        <td class="py-2 pr-4 font-mono text-xs" data-label="Doc ID">${r.docid}</td>
+                        <td class="py-2 pr-4 wrap-break-word text-sm text-gray-800 dark:text-gray-100" data-label="Training">${r.training_name ?? '-'}</td>
+                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Level">${r.grade_name ?? '-'}</td>
+                        <td class="py-2 pr-4 wrap-break-word" data-label="Speaker">${r.speaker_name ?? '-'}</td>
+                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Date">${fmtDate(r.schedule_date)}</td>
+                        <td class="py-2 pr-4" data-label="Status">${statusBadge(r.status)}</td>
+                        <td class="py-2 pr-4" data-label="Actions">
+                            <div class="relative inline-block text-left" x-data="{ open: false, top: 0, left: 0 }" @click.outside="open = false">
+                                <button type="button" @click="
+                                        const b = \$el.getBoundingClientRect();
+                                        top = b.bottom + window.scrollY + 4;
+                                        left = b.right + window.scrollX - 192;
+                                        open = !open;
+                                    "
+                                    class="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                                    Actions
+                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                                </button>
+                                <template x-teleport="body">
+                                    <div x-show="open" x-transition style="display:none;" @click="open = false"
+                                        :style="'position:absolute; top:' + top + 'px; left:' + left + 'px;'"
+                                        class="z-50 w-48 origin-top-right overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                                        ${viewHtml}
+                                        ${feedbackHtml}
+                                        ${certificateHtml}
+                                        ${cancelHtml}
+                                    </div>
+                                </template>
+                            </div>
+                        </td>
+                    </tr>
+                `);
             });
-        });
+
+            renderPagination('minePagination', rows.length, page, totalPages, (p) => {
+                minePage = p;
+                renderMine();
+            });
+        }
 
         $(document).on('click', '.cancelBtn', function () {
             const id = $(this).data('id');
-            const scheduleId = $(this).data('schedule-id');
 
             Swal.fire({
                 title: 'Cancel this registration?',
@@ -1351,7 +1954,7 @@
                 if (!result.isConfirmed) return;
 
                 $.ajax({
-                    url: `/training-list/${scheduleId}/cancel`,
+                    url: cancelUrlTpl.replace('__ID__', id),
                     method: 'POST',
                     headers: csrfHeaders,
                     success: function (res) {
@@ -1365,70 +1968,155 @@
             });
         });
 
-        $(document).on('click', '.acceptOfferBtn, .declineOfferBtn', function () {
+        function approvalStatusMeta(status) {
+            switch (status) {
+                case 'A': return { label: 'Approved', cls: 'approved', icon: '✓' };
+                case 'R': return { label: 'Rejected', cls: 'rejected', icon: '✕' };
+                case 'P': return { label: 'Waiting', cls: 'pending', icon: '…' };
+                default: return { label: status || '-', cls: 'neutral', icon: '•' };
+            }
+        }
+
+        function fmtDateTime(d) {
+            if (!d) return null;
+            return new Date(d).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        function renderApprovalLineHtml(rows) {
+            if (!rows.length) {
+                return `<p class="text-xs text-gray-400">No approval line configured for this document.</p>`;
+            }
+            return rows.map((step) => {
+                const meta = approvalStatusMeta(step.status);
+                const whenLabel = (step.status === 'A' || step.status === 'R')
+                    ? fmtDateTime(step.aprv_dateafter)
+                    : (step.aprv_datebefore ? 'Since ' + fmtDateTime(step.aprv_datebefore) : null);
+
+                return `
+                    <div class="approvalStep">
+                        <div class="approvalStep-marker ${meta.cls}">${meta.icon}</div>
+                        <div class="approvalStep-body">
+                            <div class="approvalStep-top">
+                                <span class="approvalStep-level">Level ${step.aprv_leveling}</span>
+                                <span class="approvalStep-badge ${meta.cls}">${meta.label}</span>
+                            </div>
+                            <div class="approvalStep-name">${step.aprv_name ?? '-'}</div>
+                            ${whenLabel ? `<div class="approvalStep-when">${whenLabel}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        $(document).on('click', '.viewRegBtn', function () {
             const id = $(this).data('id');
-            const isAccept = $(this).hasClass('acceptOfferBtn');
+            const r = myRegistrationsRows.find((row) => row.id === id);
+            if (!r) return;
+
+            const scheduleLabel = r.start_time
+                ? `${fmtDate(r.schedule_date)} · ${r.start_time}-${r.end_time ?? ''}`
+                : fmtDate(r.schedule_date);
+            const modeLabel = r.mode
+                ? `${r.mode}${r.location || r.platform ? ' · ' + (r.location || r.platform) : ''}`
+                : '-';
+
+            const infoRows = [
+                ['Status', statusBadge(r.status)],
+                ['Schedule', scheduleLabel],
+                ['Mode / Location', modeLabel],
+                ['Speaker', r.speaker_name || '-'],
+                ['Level', r.grade_name || '-'],
+            ];
+            const infoHtml = infoRows.map(([k, v]) => `
+                <div class="viewModal-row">
+                    <span class="viewModal-key">${k}</span>
+                    <span class="viewModal-value">${v}</span>
+                </div>
+            `).join('');
 
             Swal.fire({
-                title: isAccept ? 'Accept this slot?' : 'Decline this slot?',
-                icon: isAccept ? 'question' : 'warning',
-                showCancelButton: true,
-                confirmButtonText: isAccept ? 'Yes, accept' : 'Yes, decline',
-            }).then((result) => {
-                if (!result.isConfirmed) return;
-
-                $.ajax({
-                    url: `/training-list/${id}/offer/${isAccept ? 'accept' : 'decline'}`,
-                    method: 'POST',
-                    headers: csrfHeaders,
-                    success: function (res) {
-                        toast(res.success ? 'success' : 'error', res.message);
-                        if (res.success) loadMine();
-                    },
-                    error: function (xhr) {
-                        toast('error', xhr.responseJSON?.message || 'Gagal memproses offer');
-                    },
-                });
+                html: `
+                    <div class="viewModal-header">
+                        <div class="viewModal-icon">🎓</div>
+                        <div style="min-width:0;">
+                            <p class="viewModal-title">${r.training_name ?? '-'}</p>
+                            <p class="viewModal-subtitle">${r.docid}</p>
+                        </div>
+                    </div>
+                    <div class="viewModal-body">
+                        <div class="viewModal-card">${infoHtml}</div>
+                        <h4 class="viewModal-sectionTitle">Approval Line</h4>
+                        <div id="viewModalApprovalList" class="approvalStepList">
+                            <p class="text-xs text-gray-400">Loading…</p>
+                        </div>
+                    </div>
+                `,
+                confirmButtonText: 'Close',
+                showCancelButton: false,
+                customClass: { popup: 'viewModalPopup', confirmButton: 'ticketConfirmBtn' },
+                didOpen: () => {
+                    $.get(approvalUrlTpl.replace('__REF__', r.docid))
+                        .done((res) => {
+                            $('#viewModalApprovalList').html(renderApprovalLineHtml(res.data || []));
+                        })
+                        .fail(() => {
+                            $('#viewModalApprovalList').html('<p class="text-xs text-red-500">Failed to load approval line.</p>');
+                        });
+                },
             });
         });
 
         let pendingApprovalRows = [];
+        let approvalsPage = 1;
 
         // Tab only appears once this actually finds something waiting on the
         // current user — called on initial page load (not just when the tab
         // is clicked) so the tab can decide its own visibility up front.
         function loadPendingApprovals() {
             $.get(pendingApprovalsUrl, function (res) {
-                const rows = res.data || [];
-                pendingApprovalRows = rows;
+                pendingApprovalRows = res.data || [];
+                approvalsPage = 1;
 
-                $('#approvalsTabBtn').toggleClass('hidden', rows.length === 0);
-                $('#approvalsTabCount').text(rows.length || '');
+                $('#approvalsTabBtn').toggleClass('hidden', pendingApprovalRows.length === 0);
+                $('#approvalsTabCount').text(pendingApprovalRows.length || '');
 
-                $('#approvalsEmpty').toggleClass('hidden', rows.length > 0);
-                const $body = $('#approvalsBody').empty();
+                renderPendingApprovals();
+            });
+        }
 
-                rows.forEach(function (r) {
-                    $body.append(`
-                        <tr>
-                            <td class="py-2 pr-4 font-mono text-xs" data-label="Doc ID">${r.docid}</td>
-                            <td class="py-2 pr-4" data-label="Employee">
-                                <span class="block text-xs font-semibold text-gray-800 dark:text-gray-100">${r.name ?? r.username}</span>
-                                <span class="block text-[11px] text-gray-400">${r.username}</span>
-                            </td>
-                            <td class="py-2 pr-4" data-label="Company / Dept">${r.cpny_name ?? r.cpny_id} / ${r.department_name ?? r.department_id}</td>
-                            <td class="py-2 pr-4" data-label="Training">${r.training_name ?? '-'}</td>
-                            <td class="py-2 pr-4 whitespace-nowrap" data-label="Schedule Date">${fmtDate(r.schedule_date)}</td>
-                            <td class="py-2 pr-4 whitespace-nowrap" data-label="Waiting Since">${fmtDate(r.waiting_since)}</td>
-                            <td class="py-2 pr-4" data-label="Action">
-                                <div class="flex items-center gap-1.5">
-                                    <button class="approveRegBtn rounded-lg bg-green-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-green-700" data-id="${r.id}">Approve</button>
-                                    <button class="rejectRegBtn rounded-lg border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${r.id}">Reject</button>
-                                </div>
-                            </td>
-                        </tr>
-                    `);
-                });
+        function renderPendingApprovals() {
+            const rows = pendingApprovalRows;
+            $('#approvalsEmpty').toggleClass('hidden', rows.length > 0);
+            const $body = $('#approvalsBody').empty();
+
+            const { pageRows, page, totalPages } = paginateRows(rows, approvalsPage);
+            approvalsPage = page;
+
+            pageRows.forEach(function (r) {
+                $body.append(`
+                    <tr>
+                        <td class="py-2 pr-4 font-mono text-xs" data-label="Doc ID">${r.docid}</td>
+                        <td class="py-2 pr-4" data-label="Employee">
+                            <span class="block text-xs font-semibold text-gray-800 dark:text-gray-100">${r.name ?? r.username}</span>
+                            <span class="block text-[11px] text-gray-400">${r.username}</span>
+                        </td>
+                        <td class="py-2 pr-4" data-label="Company / Dept">${r.cpny_name ?? r.cpny_id} / ${r.department_name ?? r.department_id}</td>
+                        <td class="py-2 pr-4" data-label="Training">${r.training_name ?? '-'}</td>
+                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Schedule Date">${fmtDate(r.schedule_date)}</td>
+                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Waiting Since">${fmtDate(r.waiting_since)}</td>
+                        <td class="py-2 pr-4" data-label="Action">
+                            <div class="flex items-center gap-1.5">
+                                <button class="approveRegBtn rounded-lg bg-green-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-green-700" data-id="${r.id}">Approve</button>
+                                <button class="rejectRegBtn rounded-lg border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${r.id}">Reject</button>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            });
+
+            renderPagination('approvalsPagination', rows.length, page, totalPages, (p) => {
+                approvalsPage = p;
+                renderPendingApprovals();
             });
         }
 
@@ -1486,26 +2174,36 @@
 
             let inputHtml = '';
             if (q.question_type === 'Single Choice') {
-                inputHtml = (q.options || []).map((opt) => `
-                    <label style="display:flex;align-items:center;gap:6px;margin-top:4px;font-size:13px;">
+                inputHtml = `<div class="feedbackModal-choiceGroup">` + (q.options || []).map((opt) => `
+                    <label class="feedbackModal-choice">
                         <input type="radio" name="${name}" value="${opt}" ${q.answer_text === opt ? 'checked' : ''} ${readOnly ? 'disabled' : ''}>
                         ${opt}
                     </label>
-                `).join('');
-            } else if (q.question_type === 'Rating') {
-                inputHtml = `<div style="display:flex;gap:12px;margin-top:4px;">` + (q.options || []).map((opt) => `
-                    <label style="display:flex;flex-direction:column;align-items:center;font-size:12px;">
-                        <input type="radio" name="${name}" value="${opt}" ${String(q.answer_number ?? '') === String(opt) ? 'checked' : ''} ${readOnly ? 'disabled' : ''}>
-                        ${opt}
-                    </label>
                 `).join('') + `</div>`;
+            } else if (q.question_type === 'Rating') {
+                const options = q.options || [];
+                inputHtml = `
+                    <div class="feedbackModal-ratingGroup">` + options.map((opt) => `
+                        <label class="feedbackModal-ratingItem">
+                            <input type="radio" name="${name}" value="${opt}" ${String(q.answer_number ?? '') === String(opt) ? 'checked' : ''} ${readOnly ? 'disabled' : ''}>
+                            ${opt}
+                        </label>
+                    `).join('') + `</div>
+                    <div class="feedbackModal-ratingScale">
+                        <span>Sangat tidak puas</span>
+                        <span>Sangat puas</span>
+                    </div>
+                `;
             } else {
-                inputHtml = `<textarea name="${name}" rows="2" style="width:100%;margin-top:4px;font-size:13px;border:1px solid #d1d5db;border-radius:6px;padding:6px;" ${readOnly ? 'disabled' : ''}>${q.answer_text ?? ''}</textarea>`;
+                inputHtml = `<textarea class="feedbackModal-textarea" name="${name}" rows="2" ${readOnly ? 'disabled' : ''}>${q.answer_text ?? ''}</textarea>`;
             }
 
             return `
-                <div style="margin-bottom:14px;text-align:left;">
-                    <label style="font-size:13px;font-weight:600;color:#111827;">${q.question_order}. ${q.question_text}</label>
+                <div class="feedbackModal-question">
+                    <div class="feedbackModal-qHead">
+                        <span class="feedbackModal-qNum">${q.question_order}</span>
+                        <span class="feedbackModal-qText">${q.question_text}</span>
+                    </div>
                     ${inputHtml}
                 </div>
             `;
@@ -1517,16 +2215,32 @@
                 const questions = res.questions || [];
                 const questionsHtml = questions.map((q) => renderFeedbackQuestion(q, readOnly)).join('');
                 const notice = readOnly
-                    ? `<p style="font-size:12px;color:#b45309;margin-bottom:10px;">Feedback window is currently closed — showing your submitted answers (read only).</p>`
+                    ? `<div class="feedbackModal-notice">⚠️ Feedback window is currently closed — showing your submitted answers (read only).</div>`
                     : '';
 
                 Swal.fire({
-                    title: `${readOnly ? 'Feedback' : 'Fill Feedback'} — ${row.training_name ?? ''}`,
-                    html: `${notice}<div>${questionsHtml}</div>`,
-                    width: 560,
+                    html: `
+                        <div class="feedbackModal-header">
+                            <div class="feedbackModal-icon">📝</div>
+                            <div>
+                                <h3 class="feedbackModal-title">${readOnly ? 'Feedback' : 'Fill Feedback'}</h3>
+                                <p class="feedbackModal-subtitle">${row.training_name ?? ''}</p>
+                            </div>
+                        </div>
+                        <div class="feedbackModal-body">
+                            ${notice}
+                            <div>${questionsHtml}</div>
+                        </div>
+                    `,
                     showCancelButton: !readOnly,
+                    buttonsStyling: false,
                     confirmButtonText: readOnly ? 'Close' : 'Submit',
                     cancelButtonText: 'Cancel',
+                    customClass: {
+                        popup: 'feedbackModalPopup',
+                        confirmButton: 'feedbackConfirmBtn',
+                        cancelButton: 'ticketCancelBtn',
+                    },
                     preConfirm: () => {
                         if (readOnly) return true;
 
@@ -1565,45 +2279,139 @@
         });
 
         @if (Auth::user()->hasRole('HCDEVACCESS'))
+        $('#waitlistTrainingFilter').select2({
+            containerCssClass: 'select2-filter',
+            dropdownCssClass: 'select2-filter',
+            placeholder: 'All Training Events',
+            allowClear: true,
+            width: '100%',
+            templateSelection: (data) => $('<span></span>').text(data.text).attr('title', data.text),
+        });
+        $('#waitlistApprovalFilter').select2({
+            containerCssClass: 'select2-filter',
+            dropdownCssClass: 'select2-filter',
+            minimumResultsForSearch: -1,
+            width: '100%',
+        });
+
         let waitlistRows = [];
+        let waitlistPage = 1;
 
         function loadWaitlist() {
             $.get(waitlistUrl, function (res) {
                 waitlistRows = res.data || [];
-                $('#waitlistEmpty').toggleClass('hidden', waitlistRows.length > 0);
-                const $body = $('#waitlistBody').empty();
-
-                waitlistRows.forEach(function (r) {
-                    const canAccept = r.schedule_status === 'C' && r.approval_status === 'C';
-                    const approvalHtml = r.approval_status === 'C'
-                        ? '<span class="text-xs font-semibold text-green-600 dark:text-green-400">Approved</span>'
-                        : r.approval_status === 'R'
-                            ? '<span class="text-xs font-semibold text-red-600 dark:text-red-400">Rejected</span>'
-                            : '<span class="text-xs text-amber-600 dark:text-amber-400">Pending</span>';
-                    const actionHtml = canAccept
-                        ? `<button class="manualAcceptBtn rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-700 dark:bg-white dark:text-gray-900" data-id="${r.id}">Accept</button>`
-                        : r.approval_status === 'R'
-                            ? '<span class="text-xs text-gray-400">Rejected</span>'
-                            : '<span class="text-xs text-gray-400">Waiting for approval</span>';
-
-                    $body.append(`
-                        <tr>
-                            <td class="py-2 pr-4 font-mono text-xs" data-label="Doc ID">${r.docid}</td>
-                            <td class="py-2 pr-4" data-label="Employee">
-                                <span class="block text-xs font-semibold text-gray-800 dark:text-gray-100">${r.name ?? r.username}</span>
-                                <span class="block text-[11px] text-gray-400">${r.username}</span>
-                            </td>
-                            <td class="py-2 pr-4" data-label="Company">${r.cpny_id}</td>
-                            <td class="py-2 pr-4" data-label="Training">${r.training_name ?? '-'}</td>
-                            <td class="py-2 pr-4" data-label="Date">${fmtDate(r.schedule_date)}</td>
-                            <td class="py-2 pr-4" data-label="Schedule Status">${r.schedule_status ?? '-'}</td>
-                            <td class="py-2 pr-4" data-label="Approval">${approvalHtml}</td>
-                            <td class="py-2 pr-4" data-label="Action">${actionHtml}</td>
-                        </tr>
-                    `);
-                });
+                waitlistPage = 1;
+                populateWaitlistTrainingFilterOptions();
+                renderWaitlist();
             });
         }
+
+        function populateWaitlistTrainingFilterOptions() {
+            const $select = $('#waitlistTrainingFilter');
+            const current = $select.val();
+
+            const trainings = [...new Map(
+                waitlistRows
+                    .filter((r) => r.training_id)
+                    .map((r) => [r.training_id, r.training_name ?? r.training_id])
+            ).entries()].sort((a, b) => a[1].localeCompare(b[1]));
+
+            $select.find('option:not(:first)').remove();
+            trainings.forEach(([id, name]) => $select.append(new Option(name, id)));
+
+            if (current && trainings.some(([id]) => String(id) === current)) {
+                $select.val(current);
+            }
+
+            $select.trigger('change.select2');
+        }
+
+        function renderWaitlist() {
+            const search = ($('#waitlistSearch').val() || '').toLowerCase().trim();
+            const trainingFilter = $('#waitlistTrainingFilter').val();
+            const approvalFilter = $('#waitlistApprovalFilter').val();
+
+            const rows = waitlistRows.filter((r) => {
+                if (trainingFilter && String(r.training_id) !== trainingFilter) return false;
+                if (approvalFilter && r.approval_status !== approvalFilter) return false;
+                if (search) {
+                    const haystack = `${r.docid} ${r.name} ${r.username} ${r.training_name ?? ''}`.toLowerCase();
+                    if (!haystack.includes(search)) return false;
+                }
+                return true;
+            });
+
+            $('#waitlistEmpty').toggleClass('hidden', rows.length > 0);
+            const $body = $('#waitlistBody').empty();
+
+            const { pageRows, page, totalPages } = paginateRows(rows, waitlistPage);
+            waitlistPage = page;
+
+            pageRows.forEach(function (r) {
+                const canAccept = r.schedule_status === 'C' && r.approval_status === 'C';
+                const approvalHtml = r.approval_status === 'C'
+                    ? '<span class="text-xs font-semibold text-green-600 dark:text-green-400">Approved</span>'
+                    : r.approval_status === 'R'
+                        ? '<span class="text-xs font-semibold text-red-600 dark:text-red-400">Rejected</span>'
+                        : '<span class="text-xs text-amber-600 dark:text-amber-400">Pending</span>';
+                // Manual accept only applies once a schedule has actually
+                // CLOSED (H-3) — while it's still Published, a freed seat
+                // auto-promotes on its own (promoteWaitlistIfOpen), so the
+                // reason Accept isn't offered yet may be the schedule, not
+                // the approval.
+                let actionHtml;
+                if (canAccept) {
+                    actionHtml = `<button class="manualAcceptBtn rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-700 dark:bg-white dark:text-gray-900" data-id="${r.id}">Accept</button>`;
+                } else if (r.approval_status === 'R') {
+                    actionHtml = '<span class="text-xs text-gray-400">Rejected</span>';
+                } else if (r.approval_status !== 'C') {
+                    actionHtml = '<span class="text-xs text-gray-400">Waiting for approval</span>';
+                } else {
+                    actionHtml = '<span class="text-xs text-gray-400">Schedule still open — auto-offered when a seat frees up</span>';
+                }
+
+                $body.append(`
+                    <tr>
+                        <td class="py-2 pr-4 font-mono text-xs" data-label="Doc ID">${r.docid}</td>
+                        <td class="py-2 pr-4" data-label="Employee">
+                            <span class="block text-xs font-semibold text-gray-800 dark:text-gray-100">${r.name ?? r.username}</span>
+                            <span class="block text-[11px] text-gray-400">${r.username}</span>
+                        </td>
+                        <td class="py-2 pr-4" data-label="Company">${r.cpny_id}</td>
+                        <td class="py-2 pr-4" data-label="Training">${r.training_name ?? '-'}</td>
+                        <td class="py-2 pr-4" data-label="Date">${fmtDate(r.schedule_date)}</td>
+                        <td class="py-2 pr-4" data-label="Schedule Status">${scheduleStatusBadge(r.schedule_status)}</td>
+                        <td class="py-2 pr-4" data-label="Approval">${approvalHtml}</td>
+                        <td class="py-2 pr-4" data-label="Action">${actionHtml}</td>
+                    </tr>
+                `);
+            });
+
+            renderPagination('waitlistPagination', rows.length, page, totalPages, (p) => {
+                waitlistPage = p;
+                renderWaitlist();
+            });
+        }
+
+        $('#waitlistSearch').on('input', function () {
+            waitlistPage = 1;
+            renderWaitlist();
+        });
+        $('#waitlistApprovalFilter').on('change', function () {
+            waitlistPage = 1;
+            renderWaitlist();
+        });
+        $('#waitlistTrainingFilter').on('change', function () {
+            waitlistPage = 1;
+            renderWaitlist();
+        });
+        $('#waitlistResetBtn').on('click', function () {
+            $('#waitlistSearch').val('');
+            $('#waitlistApprovalFilter').val('').trigger('change.select2');
+            $('#waitlistTrainingFilter').val('').trigger('change.select2');
+            waitlistPage = 1;
+            renderWaitlist();
+        });
 
         $(document).on('click', '.manualAcceptBtn', function () {
             const id = $(this).data('id');
@@ -1656,21 +2464,107 @@
             });
         });
 
+        $('#allRegsTrainingFilter').select2({
+            containerCssClass: 'select2-filter',
+            dropdownCssClass: 'select2-filter',
+            placeholder: 'All Training Events',
+            allowClear: true,
+            width: '100%',
+            // Full name as a title tooltip since long training names truncate
+            // in the box itself.
+            templateSelection: (data) => $('<span></span>').text(data.text).attr('title', data.text),
+        });
+        $('#allRegsStatusFilter').select2({
+            containerCssClass: 'select2-filter',
+            dropdownCssClass: 'select2-filter',
+            minimumResultsForSearch: -1,
+            width: '100%',
+        });
+
         let allRegistrationRows = [];
+        let allRegsPage = 1;
 
         function loadAllRegistrations() {
             $.get(allRegistrationsUrl, function (res) {
                 allRegistrationRows = res.data || [];
+                allRegsPage = 1;
                 renderAllRegistrations();
+            });
+            loadRegistrationSummary();
+        }
+
+        // Cards are scoped only by the Training Event filter (a dedicated
+        // backend fetch, since quota totals aren't derivable from the
+        // registration rows alone) — search/status stay table-only filters
+        // so the overview cards keep reading as a stable summary.
+        function loadRegistrationSummary() {
+            const trainingId = $('#allRegsTrainingFilter').val();
+
+            $.get(registrationSummaryUrl, trainingId ? { training_id: trainingId } : {}, function (res) {
+                populateTrainingFilterOptions(res.trainings || []);
+                renderSummaryCards(res);
+            });
+        }
+
+        function populateTrainingFilterOptions(trainings) {
+            const $select = $('#allRegsTrainingFilter');
+            const current = $select.val();
+
+            $select.find('option:not(:first)').remove();
+            trainings.forEach((t) => $select.append(new Option(t.training_name, t.training_id)));
+
+            if (current && trainings.some((t) => String(t.training_id) === current)) {
+                $select.val(current);
+            }
+
+            // Re-sync select2's rendered box after the underlying <select>'s
+            // options changed programmatically — namespaced so it doesn't
+            // re-fire the plain 'change' handler below (which would re-fetch
+            // the summary and recurse back into this function).
+            $select.trigger('change.select2');
+        }
+
+        function renderSummaryCards(res) {
+            const counts = res.status_counts || {};
+            $('#statWaitingApproval').text(counts.waiting_approval ?? 0);
+            $('#statApproved').text(counts.approved ?? 0);
+            $('#statRejected').text(counts.rejected ?? 0);
+            $('#statCancelled').text(counts.cancelled ?? 0);
+
+            const overall = res.overall || { reserved: 0, total_quota: 0 };
+            const overallPct = overall.total_quota > 0 ? Math.min(100, Math.round((overall.reserved / overall.total_quota) * 100)) : 0;
+            $('#quotaOverallValue').text(`${overall.reserved} / ${overall.total_quota}`);
+            $('#quotaOverallBar').css('width', `${overallPct}%`).css('background', overallPct >= 100 ? '#dc2626' : '');
+
+            const byCompany = res.by_company || [];
+            $('#quotaByCompanyEmpty').toggleClass('hidden', byCompany.length > 0);
+            const $grid = $('#quotaByCompany').empty();
+
+            byCompany.forEach((c) => {
+                const pct = c.total_quota > 0 ? Math.min(100, Math.round((c.reserved / c.total_quota) * 100)) : 0;
+                const barColor = pct >= 100 ? '#dc2626' : '#111827';
+                $grid.append(`
+                    <div class="min-w-40 flex-1 rounded-lg border border-gray-100 p-2.5 dark:border-gray-700">
+                        <div class="flex items-center justify-between gap-2 text-xs">
+                            <span class="truncate font-semibold text-gray-700 dark:text-gray-200" title="${c.cpny_name}">${c.cpny_name}</span>
+                            <span class="shrink-0 font-medium text-gray-500 dark:text-gray-400">${c.reserved}/${c.total_quota}</span>
+                        </div>
+                        <div class="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                            <div class="h-full rounded-full" style="width:${pct}%;background:${barColor};"></div>
+                        </div>
+                    </div>
+                `);
             });
         }
 
         function renderAllRegistrations() {
             const search = ($('#allRegsSearch').val() || '').toLowerCase().trim();
             const statusFilter = $('#allRegsStatusFilter').val();
+            const trainingFilter = $('#allRegsTrainingFilter').val();
 
             const rows = allRegistrationRows.filter((r) => {
                 if (statusFilter && r.status !== statusFilter) return false;
+                if (trainingFilter && String(r.training_id) !== trainingFilter) return false;
                 if (search) {
                     const haystack = `${r.docid} ${r.name} ${r.username} ${r.training_name ?? ''}`.toLowerCase();
                     if (!haystack.includes(search)) return false;
@@ -1681,7 +2575,10 @@
             $('#allRegsEmpty').toggleClass('hidden', rows.length > 0);
             const $body = $('#allRegsBody').empty();
 
-            rows.forEach(function (r) {
+            const { pageRows, page, totalPages } = paginateRows(rows, allRegsPage);
+            allRegsPage = page;
+
+            pageRows.forEach(function (r) {
                 $body.append(`
                     <tr>
                         <td class="py-2 pr-4 font-mono text-xs" data-label="Doc ID">${r.docid}</td>
@@ -1697,14 +2594,49 @@
                     </tr>
                 `);
             });
+
+            renderPagination('allRegsPagination', rows.length, page, totalPages, (p) => {
+                allRegsPage = p;
+                renderAllRegistrations();
+            });
         }
 
-        $('#allRegsSearch').on('input', renderAllRegistrations);
-        $('#allRegsStatusFilter').on('change', renderAllRegistrations);
+        $('#allRegsSearch').on('input', function () {
+            allRegsPage = 1;
+            renderAllRegistrations();
+        });
+        $('#allRegsStatusFilter').on('change', function () {
+            allRegsPage = 1;
+            renderAllRegistrations();
+        });
+        $('#allRegsTrainingFilter').on('change', function () {
+            allRegsPage = 1;
+            renderAllRegistrations();
+            loadRegistrationSummary();
+        });
         $('#allRegsResetBtn').on('click', function () {
             $('#allRegsSearch').val('');
-            $('#allRegsStatusFilter').val('');
+            $('#allRegsStatusFilter').val('').trigger('change.select2');
+            $('#allRegsTrainingFilter').val('').trigger('change.select2');
+            allRegsPage = 1;
             renderAllRegistrations();
+            loadRegistrationSummary();
+        });
+
+        // Same training/status/search filters as the table — the download
+        // matches what's currently on screen, not just the current page.
+        $('#allRegsExportBtn').on('click', function () {
+            const params = new URLSearchParams();
+            const trainingId = $('#allRegsTrainingFilter').val();
+            const status = $('#allRegsStatusFilter').val();
+            const search = ($('#allRegsSearch').val() || '').trim();
+
+            if (trainingId) params.set('training_id', trainingId);
+            if (status) params.set('status', status);
+            if (search) params.set('search', search);
+
+            const qs = params.toString();
+            window.location.href = allRegistrationsExportUrl + (qs ? '?' + qs : '');
         });
         @endif
 

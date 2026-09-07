@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\TrainingAllRegistrationsExport;
 use App\Http\Controllers\Traits\HasAttendanceWindow;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Http\Controllers\Traits\UploadsToGcs;
@@ -27,6 +28,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
 use Picqer\Barcode\BarcodeGeneratorPNG;
 use Vinkla\Hashids\Facades\Hashids;
 
@@ -283,7 +285,13 @@ class TrainingRegistrationController extends Controller
             ->pluck('training_regist_id')
             ->unique();
 
-        $rows = $registrations->map(function ($r) use ($answeredDocIds) {
+        $placeIds = $registrations->pluck('schedule.places_id')->filter()->unique();
+        $placeNames = $placeIds->isEmpty() ? collect() : MsLndPlaces::whereIn('places_id', $placeIds)->pluck('places_name', 'places_id');
+
+        $gradeIds = $registrations->pluck('schedule.job_level')->filter()->unique();
+        $gradeNames = $gradeIds->isEmpty() ? collect() : StoGrading::whereIn('grade_id', $gradeIds)->pluck('grade_name', 'grade_id');
+
+        $rows = $registrations->map(function ($r) use ($answeredDocIds, $placeNames, $gradeNames) {
             $hasAttended = (bool) $r->completed_at;
             $feedbackOpen = (bool) $r->schedule?->is_feedback_open;
             $feedbackSubmitted = $answeredDocIds->contains($r->training_regist_id);
@@ -297,6 +305,13 @@ class TrainingRegistrationController extends Controller
                 'docid' => $r->training_regist_id,
                 'training_name' => $r->schedule?->schedule?->training?->training_name ?? null,
                 'schedule_date' => ($r->schedule_date ?? $r->schedule?->schedule_date)?->format('Y-m-d'),
+                'start_time' => $r->schedule?->schedule_start_time,
+                'end_time' => $r->schedule?->schedule_end_time,
+                'mode' => $r->schedule?->training_mode,
+                'location' => $r->schedule?->places_id ? ($placeNames[$r->schedule->places_id] ?? $r->schedule->places_id) : null,
+                'platform' => $r->schedule?->training_platform,
+                'speaker_name' => $r->schedule?->training_speaker_name ?: $r->schedule?->training_ext_speaker_name,
+                'grade_name' => $r->schedule?->job_level ? ($gradeNames[$r->schedule->job_level] ?? $r->schedule->job_level) : null,
                 'status' => $r->effective_status,
                 'offer_expires_at' => $r->status_registration === TrLndTrainingRegistration::REG_STATUS_OFFERED
                     ? $r->offer_expires_at
@@ -356,7 +371,6 @@ class TrainingRegistrationController extends Controller
             'scheduleDate' => $schedule->schedule_date,
             'certificateNo' => $certificateNo,
             'issueDate' => now(),
-            'logo' => $company->cpny_id ?? null,
             'companyName' => $companyAddress->cpnyname ?? $company->cpny_name ?? '-',
         ])->setPaper('a4', 'landscape');
 
@@ -648,22 +662,36 @@ class TrainingRegistrationController extends Controller
         }
     }
 
+    /**
+     * HCDEVACCESS-only admin cancel — approval participants can only
+     * approve/reject their own step (see approve()/reject()); cancelling a
+     * registration outright (Approved, Waiting List, or Pending/Offered) is
+     * an HR action. Blocked only once the row is already terminal (Rejected
+     * or already Cancelled) — nothing left to cancel at that point.
+     */
     public function cancel(Request $request, $id)
     {
         $registration = TrLndTrainingRegistration::findOrFail($id);
         $user = Auth::user();
 
-        if (strcasecmp((string) $registration->user_registration, (string) $user->username) !== 0) {
+        if (!$user->hasRole('HCDEVACCESS')) {
             abort(403);
         }
 
-        if ($registration->status !== TrLndTrainingRegistration::STATUS_APPROVED) {
-            return response()->json(['success' => false, 'message' => 'Hanya registrasi berstatus Approved yang dapat dibatalkan'], 422);
+        if ($registration->status === TrLndTrainingRegistration::STATUS_REJECTED
+            || $registration->status_registration === TrLndTrainingRegistration::REG_STATUS_CANCELLED) {
+            return response()->json(['success' => false, 'message' => 'Registrasi ini sudah tidak aktif'], 422);
+        }
+
+        $scheduleDate = $registration->schedule_date ?? $registration->schedule?->schedule_date;
+        if ($scheduleDate && $scheduleDate->lt(Carbon::today())) {
+            return response()->json(['success' => false, 'message' => 'Registrasi ini tidak dapat dibatalkan karena jadwal trainingnya sudah lewat'], 422);
         }
 
         DB::connection('pgsql5')->beginTransaction();
 
         try {
+            $wasOffered = $registration->status_registration === TrLndTrainingRegistration::REG_STATUS_OFFERED;
             $heldSeat = !$registration->status_registration;
 
             $registration->status_registration = TrLndTrainingRegistration::REG_STATUS_CANCELLED;
@@ -675,6 +703,8 @@ class TrainingRegistrationController extends Controller
 
             if ($heldSeat) {
                 TrainingRegistrationService::promoteWaitlistIfOpen($registration);
+            } elseif ($wasOffered) {
+                TrainingRegistrationService::cascadeToNextWaitlist($registration);
             }
 
             DB::connection('pgsql5')->commit();
@@ -860,10 +890,24 @@ class TrainingRegistrationController extends Controller
             $user->username,
             $user->name,
             function (string $refnbr, Carbon $now) use ($registration, $docUrl) {
+                // A rejected row is already excluded from the seat-usage count
+                // (see json()/waitlistForOffer()'s status != 'R' filter), so
+                // the quota number frees up on its own — but nobody is
+                // auto-promoted unless this row was actually holding/offered
+                // that seat (a still-waitlisted row wasn't occupying one).
+                $wasOffered = $registration->status_registration === TrLndTrainingRegistration::REG_STATUS_OFFERED;
+                $heldSeat = !$registration->status_registration;
+
                 $registration->status = TrLndTrainingRegistration::STATUS_REJECTED;
                 $registration->updated_by = Auth::user()->username;
                 $registration->updated_at = $now;
                 $registration->save();
+
+                if ($heldSeat) {
+                    TrainingRegistrationService::promoteWaitlistIfOpen($registration);
+                } elseif ($wasOffered) {
+                    TrainingRegistrationService::cascadeToNextWaitlist($registration);
+                }
 
                 app(ApprovalController::class)->notifyRequesterOnStatus(
                     $refnbr,
@@ -990,6 +1034,7 @@ class TrainingRegistrationController extends Controller
             return [
                 'id' => $r->id,
                 'docid' => $r->training_regist_id,
+                'training_id' => $r->training_id,
                 'training_name' => $r->schedule?->schedule?->training?->training_name ?? null,
                 'username' => $r->user_registration,
                 'name' => $names[$r->user_registration] ?? $r->user_registration,
@@ -1004,6 +1049,121 @@ class TrainingRegistrationController extends Controller
         })->values();
 
         return response()->json(['data' => $data]);
+    }
+
+    /**
+     * HCDEVACCESS-only: Excel download of the List Registration tab, honoring
+     * the same training/status/search filters currently applied on screen
+     * (see TrainingAllRegistrationsExport, which mirrors allRegistrations()
+     * above row-for-row).
+     */
+    public function exportAllRegistrations(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user->hasRole('HCDEVACCESS')) {
+            abort(403, 'Anda tidak memiliki akses HCDEVACCESS');
+        }
+
+        return Excel::download(
+            new TrainingAllRegistrationsExport(
+                $request->query('training_id'),
+                $request->query('status'),
+                $request->query('search')
+            ),
+            'training-registrations-' . now()->format('Ymd_His') . '.xlsx'
+        );
+    }
+
+    /**
+     * HCDEVACCESS-only: quota utilization + status-count overview for the
+     * List Registration tab, optionally scoped to one training event
+     * (?training_id=). The training filter list only offers events that
+     * currently have a PUBLISHED schedule (what HR can still act on right
+     * now); once picked, totals cover every schedule of that training
+     * regardless of its own status — same when nothing is picked, just
+     * across all trainings.
+     */
+    public function registrationSummary(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user->hasRole('HCDEVACCESS')) {
+            abort(403, 'Anda tidak memiliki akses HCDEVACCESS');
+        }
+
+        $trainingId = $request->query('training_id');
+
+        $publishedTrainingIds = MsLndTrainingSchedule::where('status', self::SCHEDULE_PUBLISHED)
+            ->pluck('training_id')
+            ->unique();
+
+        $trainingOptions = $publishedTrainingIds->isEmpty()
+            ? collect()
+            : MsTrainingEvent::whereIn('training_id', $publishedTrainingIds)
+                ->orderBy('training_name')
+                ->get(['training_id', 'training_name']);
+
+        $scheduleQuery = MsLndTrainingSchedule::query();
+        if ($trainingId) {
+            $scheduleQuery->where('training_id', $trainingId);
+        }
+        $scheduleIds = $scheduleQuery->pluck('schedule_id');
+
+        $quotas = MsLndTrainingQuota::whereIn('schedule_id', $scheduleIds)->get();
+        $companyNames = MsCompany::whereIn('cpny_id', $quotas->pluck('cpny_id')->unique())
+            ->pluck('cpny_name', 'cpny_id');
+
+        $totalByCpny = $quotas->groupBy('cpny_id')->map(fn ($g) => (int) $g->sum('quota_pax'));
+
+        // Reserved = currently holding or offered a seat (not cancelled, not
+        // rejected) — the same "used" definition as json()/waitlistForOffer().
+        $reservedByCpny = TrLndTrainingRegistration::whereIn('schedule_id', $scheduleIds)
+            ->where(function ($q) {
+                $q->whereNull('status_registration')
+                    ->orWhere('status_registration', TrLndTrainingRegistration::REG_STATUS_OFFERED);
+            })
+            ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
+            ->select('cpny_id', DB::raw('count(*) as cnt'))
+            ->groupBy('cpny_id')
+            ->pluck('cnt', 'cpny_id');
+
+        $byCompany = $totalByCpny->keys()
+            ->merge($reservedByCpny->keys())
+            ->unique()
+            ->map(fn ($cpnyId) => [
+                'cpny_id' => $cpnyId,
+                'cpny_name' => $companyNames[$cpnyId] ?? $cpnyId,
+                'reserved' => (int) ($reservedByCpny[$cpnyId] ?? 0),
+                'total_quota' => (int) ($totalByCpny[$cpnyId] ?? 0),
+            ])
+            ->sortByDesc('total_quota')
+            ->values();
+
+        $statusCounts = TrLndTrainingRegistration::whereIn('schedule_id', $scheduleIds)
+            ->select('status', 'status_registration', DB::raw('count(*) as cnt'))
+            ->groupBy('status', 'status_registration')
+            ->get()
+            ->reduce(function ($carry, $row) {
+                $effective = $row->status_registration ?: $row->status;
+                $carry[$effective] = ($carry[$effective] ?? 0) + (int) $row->cnt;
+                return $carry;
+            }, []);
+
+        return response()->json([
+            'trainings' => $trainingOptions->values(),
+            'overall' => [
+                'reserved' => (int) $byCompany->sum('reserved'),
+                'total_quota' => (int) $byCompany->sum('total_quota'),
+            ],
+            'by_company' => $byCompany,
+            'status_counts' => [
+                'waiting_approval' => $statusCounts['P'] ?? 0,
+                'approved' => $statusCounts['C'] ?? 0,
+                'rejected' => $statusCounts['R'] ?? 0,
+                'cancelled' => $statusCounts['X'] ?? 0,
+            ],
+        ]);
     }
 
     /**
@@ -1063,6 +1223,7 @@ class TrainingRegistrationController extends Controller
                     'name' => $names[$r->user_registration] ?? $r->user_registration,
                     'cpny_id' => $r->cpny_id,
                     'approval_status' => $r->status,
+                    'training_id' => $r->training_id,
                     'training_name' => $r->schedule?->schedule?->training?->training_name ?? null,
                     'schedule_date' => ($r->schedule_date ?? $r->schedule?->schedule_date)?->format('Y-m-d'),
                     'schedule_status' => $r->schedule?->status ?? null,
