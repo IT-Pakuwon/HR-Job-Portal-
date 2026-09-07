@@ -579,7 +579,8 @@
                 {
                     index: 2,
                     type: 'text',
-                    placeholder: 'Apply Date'
+                    placeholder: 'Apply Date',
+                    title: 'Type a single date, or a range like 2026-08-01 - 2026-08-31'
                 },
                 {
                     index: 3,
@@ -601,16 +602,18 @@
                 {
                     index: 7,
                     type: 'text',
-                    placeholder: 'Height'
+                    placeholder: 'Height',
+                    title: 'Type a value, a range like 160-180, or >=170'
                 },
                 {
                     index: 8,
                     type: 'text',
-                    placeholder: 'Weight'
+                    placeholder: 'Weight',
+                    title: 'Type a value, a range like 60-80, or >=70'
                 },
                 {
                     index: 9,
-                    type: 'text',
+                    type: 'select2tags',
                     placeholder: 'Company',
                     className: 'whitespace-normal break-words'
                 },
@@ -635,17 +638,44 @@
                 if (col.type === 'select') {
                     $el = $(`
         <select id="filterStep"
-            class="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 truncate text-ellipsis dark:border-gray-700">
+            class="w-full text-sm">
             <option value="">All Step</option >
         </select>
     `);
-
 
                     if (col.options) {
                         Object.entries(col.options).forEach(([val, label]) => {
                             $el.append(`<option value="${val}">${label}</option>`);
                         });
                     }
+
+                    $filters.append($el);
+
+                    $el.select2({
+                        placeholder: 'All Step',
+                        width: '100%',
+                        allowClear: true
+                    });
+
+                    $el.on('change', function() {
+                        applicantTable
+                            .column(col.index)
+                            .search(this.value || '')
+                            .draw();
+                    });
+
+                } else if (col.type === 'select2tags') {
+                    $el = $(`<select id="filterCompany" class="w-full text-sm"></select>`);
+
+                    $filters.append($el);
+
+                    $el.select2({
+                        tags: true,
+                        placeholder: `Search ${col.placeholder}`,
+                        width: '100%',
+                        allowClear: true,
+                        multiple: false
+                    });
 
                     $el.on('change', function() {
                         applicantTable
@@ -658,7 +688,7 @@
                     $el = $(`
             <input type="text"
                  class="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-700"
-                placeholder="Search ${col.placeholder}">
+                placeholder="Search ${col.placeholder}"${col.title ? ` title="${col.title}"` : ''}>
         `);
 
                     let debounce;
@@ -672,9 +702,9 @@
                                 .draw();
                         }, 300);
                     });
-                }
 
-                $filters.append($el);
+                    $filters.append($el);
+                }
             });
 
             // ===== Init DataTable =====

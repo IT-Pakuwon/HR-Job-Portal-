@@ -33,6 +33,42 @@ class JobapplicantController extends Controller
         return $this->splitCsv($user->division_id);
     }
 
+    // Accepts a plain value ("170"), an operator (">=170", "<180"), or a
+    // "min-max" range ("160-180") on a numeric column; falls back to the
+    // existing LIKE-on-string behavior for anything else.
+    private function applyNumericRangeSearch($query, string $val, string $dbcol, string $likeExpr): void
+    {
+        if (preg_match('/^\s*(>=|<=|>|<)\s*(\d+(?:\.\d+)?)\s*$/', $val, $m)) {
+            $query->where($dbcol, $m[1], (float) $m[2]);
+        } elseif (preg_match('/^\s*(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s*$/', $val, $m)) {
+            $a = (float) $m[1];
+            $b = (float) $m[2];
+            if ($a > $b) {
+                [$a, $b] = [$b, $a];
+            }
+            $query->whereBetween($dbcol, [$a, $b]);
+        } else {
+            $query->whereRaw("{$likeExpr} LIKE ?", ["%{$val}%"]);
+        }
+    }
+
+    // Accepts a "YYYY-MM-DD - YYYY-MM-DD" (or "... to ...") range on a date
+    // column; falls back to the existing LIKE-on-string behavior otherwise,
+    // so typing a single date (or a partial "2026-08") still works as before.
+    private function applyDateRangeSearch($query, string $val, string $dbcol): void
+    {
+        if (preg_match('/^\s*(\d{4}-\d{2}-\d{2})\s*(?:-|to)\s*(\d{4}-\d{2}-\d{2})\s*$/i', $val, $m)) {
+            [$from, $to] = [$m[1], $m[2]];
+            if ($from > $to) {
+                [$from, $to] = [$to, $from];
+            }
+            $query->where($dbcol, '>=', "{$from} 00:00:00")
+                ->where($dbcol, '<=', "{$to} 23:59:59");
+        } else {
+            $query->where($dbcol, 'like', "%{$val}%");
+        }
+    }
+
     private function hasRole($user, string $roleId): bool
     {
         return SysUserRole::query()
@@ -474,20 +510,11 @@ class JobapplicantController extends Controller
                 if ($name === 'apply_step') {
                     $query->where($dbcol, $val);
                 } elseif ($name === 'match_score_percentage') {
-                    if (preg_match('/^\s*(>=|<=|>|<)\s*(\d+)\s*$/', $val, $m)) {
-                        $op = $m[1];
-                        $num = (int) $m[2];
-                        $query->where('vs.match_score_percentage', $op, $num);
-                    } elseif (preg_match('/^\s*(\d+)\s*-\s*(\d+)\s*$/', $val, $m)) {
-                        $a = (int) $m[1];
-                        $b = (int) $m[2];
-                        if ($a > $b) {
-                            [$a, $b] = [$b, $a];
-                        }
-                        $query->whereBetween('vs.match_score_percentage', [$a, $b]);
-                    } else {
-                        $query->whereRaw('CAST(IFNULL(vs.match_score_percentage,0) AS CHAR) LIKE ?', ["%{$val}%"]);
-                    }
+                    $this->applyNumericRangeSearch($query, $val, 'vs.match_score_percentage', 'CAST(IFNULL(vs.match_score_percentage,0) AS CHAR)');
+                } elseif ($name === 'height' || $name === 'weight') {
+                    $this->applyNumericRangeSearch($query, $val, $dbcol, "CAST(IFNULL({$dbcol},0) AS CHAR)");
+                } elseif ($name === 'apply_date') {
+                    $this->applyDateRangeSearch($query, $val, $dbcol);
                 } else {
                     $query->where($dbcol, 'like', "%{$val}%");
                 }

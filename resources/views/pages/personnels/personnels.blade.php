@@ -278,22 +278,56 @@
                 personnelsTable.ajax.url(currentUrl.pathname + currentUrl.search).load();
             }
 
-            $('#filterDivisionAllDept').on('change', function() {
-                const divisionId = $(this).val();
-                $('#filterDepartmentAllDept option').each(function() {
-                    const optionDivision = $(this).data('division');
-                    $(this).toggle(!$(this).val() || !divisionId || optionDivision == divisionId);
+            if (hasAllDeptAccess) {
+                $('#filterCompanyAllDept').select2({
+                    placeholder: 'All Company',
+                    width: '100%',
+                    allowClear: true
                 });
-                $('#filterDepartmentAllDept').val('');
-                reloadAllDeptFilters();
-            });
+                $('#filterDivisionAllDept').select2({
+                    placeholder: 'All Division',
+                    width: '100%',
+                    allowClear: true
+                });
+                $('#filterDepartmentAllDept').select2({
+                    placeholder: 'All Department',
+                    width: '100%',
+                    allowClear: true
+                });
 
-            $('#filterCompanyAllDept, #filterDepartmentAllDept').on('change', reloadAllDeptFilters);
-            $('#resetAllDeptFilters').on('click', function() {
-                $('#filterCompanyAllDept, #filterDivisionAllDept, #filterDepartmentAllDept').val('');
-                $('#filterDepartmentAllDept option').show();
-                reloadAllDeptFilters();
-            });
+                // cache the full, group-scoped department list once so the division
+                // filter can rebuild the dropdown client-side without another request
+                const allDeptOptions = $('#filterDepartmentAllDept option[value!=""]').map(function() {
+                    return {
+                        value: $(this).val(),
+                        text: $(this).text(),
+                        division: $(this).data('division')
+                    };
+                }).get();
+
+                function rebuildDeptOptions(divisionId) {
+                    const $dept = $('#filterDepartmentAllDept');
+                    $dept.empty().append('<option value="">All Department</option>');
+                    allDeptOptions
+                        .filter(o => !divisionId || String(o.division) == String(divisionId))
+                        .forEach(o => {
+                            $dept.append(`<option value="${o.value}" data-division="${o.division}">${o.text}</option>`);
+                        });
+                    $dept.val('').trigger('change');
+                }
+
+                $('#filterDivisionAllDept').on('change', function() {
+                    rebuildDeptOptions($(this).val());
+                    reloadAllDeptFilters();
+                });
+
+                $('#filterCompanyAllDept, #filterDepartmentAllDept').on('change', reloadAllDeptFilters);
+                $('#resetAllDeptFilters').on('click', function() {
+                    rebuildDeptOptions('');
+                    $('#filterCompanyAllDept, #filterDivisionAllDept').val('').trigger('change');
+                    reloadAllDeptFilters();
+                });
+            }
             function toggleActionColumn(table, data) {
 
                 let hasToggle = data.some(r =>
