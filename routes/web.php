@@ -3348,6 +3348,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/settlementvp/{id}/edit', [VplSettlementController::class, 'edit'])->name('settlementvp.edit');
         Route::post('/settlementvp/{id}/update', [VplSettlementController::class, 'update'])->name('settlementvp.update');
         Route::post('/settlementvp/{id}/cancel', [VplSettlementController::class, 'cancel'])->name('settlementvp.cancel');
+        Route::post('/settlementvp/{id}/attachment/add', [VplSettlementController::class, 'addAttachment'])->name('settlementvp.attachment.add');
     });
 
     Route::middleware('access:SETTLEMENTVP,DELETE')->group(function () {

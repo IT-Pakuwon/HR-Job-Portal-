@@ -98,6 +98,9 @@ const VplSettlementDetailModal = {
         } else {
             attachBody.innerHTML = '<p class="p-4 text-sm text-slate-400">No attachments.</p>';
         }
+        const addAttachBtn = document.getElementById('v_addAttachBtn');
+        addAttachBtn.classList.toggle('hidden', !data.can_add_attachment);
+        addAttachBtn.classList.toggle('inline-flex', !!data.can_add_attachment);
 
         // Approval timeline
         document.getElementById('v_approvalBody').innerHTML = VplSettlementHelper.renderTimeline(data.approvals);
@@ -197,6 +200,41 @@ const VplSettlementDetailModal = {
         };
     },
 
+    initAttachmentUpload() {
+        const btn   = document.getElementById('v_addAttachBtn');
+        const input = document.getElementById('v_addAttachInput');
+
+        btn.onclick = () => input.click();
+        input.onchange = () => {
+            if (!input.files || input.files.length === 0) return;
+            VplSettlementDetailModal.uploadAttachment(input.files);
+        };
+    },
+
+    uploadAttachment(files) {
+        const id = VplSettlement.state.currentViewId;
+        const formData = new FormData();
+        Array.from(files).forEach((f) => formData.append('attachment[]', f));
+        formData.append('_token', VplSettlement.csrf());
+
+        $.ajax({
+            type:        'POST',
+            url:         VplSettlement.routes.addAttach(id),
+            data:        formData,
+            contentType: false,
+            processData: false,
+            success() {
+                document.getElementById('v_addAttachInput').value = '';
+                VplSettlement.toast('success', 'Attachment added.');
+                VplSettlementDetailModal.open(id);
+            },
+            error(xhr) {
+                document.getElementById('v_addAttachInput').value = '';
+                VplSettlement.toast('error', xhr.responseJSON?.error ?? 'Failed to add attachment.');
+            },
+        });
+    },
+
     initPrint() {
         document.getElementById('v_printBtn').onclick = () => {
             window.open(VplSettlement.routes.pdf(VplSettlement.state.currentViewId), '_blank');
@@ -265,5 +303,6 @@ const VplSettlementDetailModal = {
 
         VplSettlementDetailModal.initPrint();
         VplSettlementDetailModal.initDiscussion();
+        VplSettlementDetailModal.initAttachmentUpload();
     },
 };
