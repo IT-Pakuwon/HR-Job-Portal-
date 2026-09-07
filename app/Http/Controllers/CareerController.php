@@ -67,15 +67,17 @@ class CareerController extends Controller
 
     public function index()
     {
-        $base = $this->scopeApplicantCompanies(ViewCareer::query(), Auth::user());
+        $user = Auth::user();
+        $base = $this->scopeApplicantCompanies(ViewCareer::query(), $user);
 
         $incompletedprofile = (clone $base)->where('status_app', 'H')->count();
         $completedprofile = (clone $base)->where('status_app', 'P')->count();
         $nocandidate = (clone $base)->where('status', 'H')->count();
         $candidate = (clone $base)->where('status', 'P')->count();
         $join = (clone $base)->where('status', 'C')->count();
+        $companyOptions = $this->applicantCompanyOptions($user);
 
-        return view('pages.careers.careers', compact('incompletedprofile', 'completedprofile', 'nocandidate', 'candidate', 'join'));
+        return view('pages.careers.careers', compact('incompletedprofile', 'completedprofile', 'nocandidate', 'candidate', 'join', 'companyOptions'));
     }
 
     public function stats(Request $request)
@@ -113,27 +115,6 @@ class CareerController extends Controller
         }
 
         if (!empty($cpnyid)) {
-            $query->where('cpnyid', $cpnyid);
-        }
-
-        $career = $query->orderBy('id', 'desc')->get();
-
-        return response()->json(['data' => $career]);
-    }
-
-    public function jsonxxx(Request $request)
-    {
-        $status_app = $request->query('status_app');
-        $status = $request->query('status');
-        $cpnyid = $request->query('cpnyid');
-
-        $query = ViewCareer::query();
-
-        if (!empty($status_app)) {
-            $query->where('status_app', $status_app);
-        } elseif (!empty($status)) {
-            $query->where('status', $status);
-        } elseif (!empty($cpnyid)) {
             $query->where('cpnyid', $cpnyid);
         }
 

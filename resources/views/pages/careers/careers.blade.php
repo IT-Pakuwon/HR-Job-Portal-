@@ -10,10 +10,9 @@
             {{-- <label for="cpnyidFilter" class="mr-2 font-semibold text-gray-700 dark:text-gray-300"></label> --}}
             <select id="cpnyidFilter" class="rounded border px-3 py-1">
                 <option value="">All</option>
-                <option value="AW">AW</option>
-                <option value="EP">EP</option>
-                <option value="PSA">PSA</option>
-                <option value="GPS">GPS</option>
+                @foreach ($companyOptions as $company)
+                    <option value="{{ $company->cpny_id }}">{{ $company->cpny_id }}</option>
+                @endforeach
             </select>
         </div>
 

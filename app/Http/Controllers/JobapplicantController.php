@@ -970,6 +970,13 @@ class JobapplicantController extends Controller
             'new_jobid' => 'required|string',
         ]);
 
+        $authUser = auth()->user();
+        if (!$authUser) {
+            return response()->json(['error' => 'Your session has expired. Please sign in again.'], 401);
+        }
+
+        $groupCompanyId = strtoupper(trim((string) $authUser->group_cpny_id));
+
         $decoded = Hashids::decode($request->apply_id);
         $id = $decoded[0] ?? null;
 
@@ -986,18 +993,23 @@ class JobapplicantController extends Controller
             return response()->json(['error' => 'Apply record not found'], 404);
         }
 
+        // docid/id can collide across groups, so the apply record must be pinned to the
+        // logged-in user's own group_cpny_id before it's allowed to be touched at all.
+        if (strtoupper(trim((string) $apply->group_cpny_id)) !== $groupCompanyId) {
+            return response()->json(['error' => 'Apply record not found'], 404);
+        }
+
         $newJobposting = DB::connection('mysql3')
             ->table('hr_trx_jobposting')
             ->where('docid', $request->new_jobid)
+            ->where('group_cpny_id', $groupCompanyId)
             ->first();
 
         if (!$newJobposting) {
             return response()->json(['error' => 'Job posting not found'], 404);
         }
 
-        $groupCompanyId = strtoupper(trim((string) $newJobposting->group_cpny_id));
-
-        $user = auth()->user()->username ?? 'system';
+        $user = $authUser->username ?? 'system';
 
         DB::connection('mysql3')->beginTransaction();
         try {
@@ -1006,6 +1018,7 @@ class JobapplicantController extends Controller
                 ->table('hr_trx_job_apply_step')
                 ->where('docid', $apply->docid)
                 ->where('jobid', $apply->jobid)
+                ->where('group_cpny_id', $groupCompanyId)
                 ->update([
                     'status' => 'X',
                     'updated_user' => $user,

@@ -168,6 +168,7 @@ class PersonnelController extends Controller
 
         // 🔽 dropdown department (buat filter HCBP)
         $departments = DepartmentHR::where('status', 'A')
+            ->where('group_cpny_id', strtoupper(trim((string) $user->group_cpny_id)))
             ->orderBy('department_name')
             ->get();
 

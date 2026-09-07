@@ -46,6 +46,21 @@ trait ScopesApplicantCompanies
             ->toArray();
     }
 
+    // Companies to offer in a "filter by company" dropdown: same boundary as
+    // scopeApplicantCompanies() — the user's own group_cpny_id, narrowed to their
+    // assigned companies unless they hold full access.
+    private function applicantCompanyOptions($user)
+    {
+        $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
+        $cpnyIds = $this->applicantCpnyIds($user);
+
+        return MsCompany::where('status', 'A')
+            ->where('group_cpny_id', $groupCompanyId)
+            ->when(!empty($cpnyIds), fn ($q) => $q->whereIn('cpny_id', $cpnyIds))
+            ->orderBy('cpny_name')
+            ->get(['cpny_id', 'cpny_name']);
+    }
+
     // Hard group_cpny_id boundary (SBY/JKT/...) plus, within that group, the
     // companies the user is actually assigned to (all of them for full-access roles).
     private function scopeApplicantCompanies($query, $user)
