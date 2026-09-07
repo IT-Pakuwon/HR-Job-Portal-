@@ -149,7 +149,6 @@ const VplMasterDatalist = {
     initActionMenu() {
         const $menu  = $('#actionMenu');
         const MENU_W = 176;
-        const MENU_H = 90;
         const MARGIN = 8;
 
         // ── open ──
@@ -159,14 +158,19 @@ const VplMasterDatalist = {
             const $btn = $(this);
             const rect = this.getBoundingClientRect();
 
-            const id     = $btn.data('id');
-            const toggle = $btn.data('toggle');
+            const id      = $btn.data('id');
+            const toggle  = $btn.data('toggle');
+            const canEdit = String($btn.data('can-edit')) === '1';
 
-            $('#actionMenuEdit')  .data('id', id);
+            $('#actionMenuEdit')
+                .data('id', id)
+                .toggle(canEdit);
+            $('#actionMenuDivider').toggle(canEdit);
             $('#actionMenuToggle').data('id', id).data('toggle', toggle);
             $('#actionMenuToggleLabel').text($btn.data('label'));
             $('#actionMenuToggleIcon') .attr('class', 'fa-solid w-4 ' + $btn.data('icon'));
 
+            const MENU_H = canEdit ? 90 : 46;
             let top  = rect.bottom + MARGIN;
             let left = rect.right  - MENU_W;
 

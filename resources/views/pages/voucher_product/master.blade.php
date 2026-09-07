@@ -622,7 +622,7 @@
             class="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-white/[0.05]">
             <i class="fa-solid fa-pen-to-square w-4 text-amber-500"></i> Edit
         </button>
-        <div class="border-t border-slate-100 dark:border-white/10"></div>
+        <div id="actionMenuDivider" class="border-t border-slate-100 dark:border-white/10"></div>
         <button id="actionMenuToggle"
             class="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm transition hover:bg-slate-50 dark:hover:bg-white/[0.05]">
             <i id="actionMenuToggleIcon" class="fa-solid fa-ban w-4"></i>

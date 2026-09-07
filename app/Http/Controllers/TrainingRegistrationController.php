@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Traits\HasAttendanceWindow;
 use App\Http\Controllers\Traits\HasAutonbr;
+use App\Http\Controllers\Traits\UploadsToGcs;
 use App\Models\CompanyAddress;
 use App\Models\MsCategory;
 use App\Models\MsCompany;
@@ -25,7 +26,6 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Picqer\Barcode\BarcodeGeneratorPNG;
 use Vinkla\Hashids\Facades\Hashids;
@@ -34,6 +34,7 @@ class TrainingRegistrationController extends Controller
 {
     use HasAutonbr;
     use HasAttendanceWindow;
+    use UploadsToGcs;
 
     protected const DOCTYPE = 'TRN';
 
@@ -131,7 +132,12 @@ class TrainingRegistrationController extends Controller
         $placeNames = MsLndPlaces::whereIn('places_id', $details->pluck('places_id')->filter()->unique())
             ->pluck('places_name', 'places_id');
 
-        $scheduleOptions = $details->map(function ($d) use ($myRegs, $usage, $companyNames, $gradeNames, $speakerNames, $placeNames) {
+        // One signed URL per distinct poster object, not per schedule row —
+        // several dates in a batch share the same training_poster.
+        $posterUrls = $details->pluck('schedule.training_poster')->filter()->unique()
+            ->mapWithKeys(fn ($path) => [$path => $this->gcsSignedUrl($path)]);
+
+        $scheduleOptions = $details->map(function ($d) use ($myRegs, $usage, $companyNames, $gradeNames, $speakerNames, $placeNames, $posterUrls) {
             $grouped = $usage->get($d->schedule_id, collect());
 
             $eligibleCompanies = $d->quota->map(function ($q) use ($grouped, $companyNames) {
@@ -161,7 +167,7 @@ class TrainingRegistrationController extends Controller
                 'location' => $d->places_id ? ($placeNames[$d->places_id] ?? $d->places_id) : null,
                 'platform' => $d->training_platform,
                 'meeting_link' => $d->training_meeting_link,
-                'poster_url' => $d->schedule->training_poster ? Storage::disk('public')->url($d->schedule->training_poster) : null,
+                'poster_url' => $d->schedule->training_poster ? ($posterUrls[$d->schedule->training_poster] ?? null) : null,
                 'grade_id' => $d->schedule->job_level,
                 'grade_name' => $gradeNames[$d->schedule->job_level] ?? $d->schedule->job_level,
                 'speaker_name' => $d->training_speaker_name ?: $d->training_ext_speaker_name,

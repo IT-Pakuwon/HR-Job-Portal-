@@ -486,7 +486,7 @@ class VplTransferController extends Controller
             self::DOCTYPE,
             'P',
             self::DOCTYPE_DSC,
-            route('transfervp.show', $transfer->id),
+            route('showtransfervp', Hashids::encode($transfer->id)),
             ['info' => $request->transfer_remark ?? '', 'createdby' => $user->name]
         );
 
@@ -667,7 +667,7 @@ class VplTransferController extends Controller
             self::DOCTYPE,
             'P',
             self::DOCTYPE_DSC,
-            route('transfervp.show', $id),
+            route('showtransfervp', Hashids::encode($id)),
             ['info' => $transfer->transfer_remark ?? '', 'createdby' => $user->name]
         );
 
@@ -730,7 +730,7 @@ class VplTransferController extends Controller
                     self::DOCTYPE,
                     'P',
                     self::DOCTYPE_DSC,
-                    route('transfervp.show', $id),
+                    route('showtransfervp', Hashids::encode($id)),
                     ['info' => $transfer->transfer_remark ?? '', 'createdby' => $transfer->created_user]
                 );
             },
@@ -741,7 +741,7 @@ class VplTransferController extends Controller
                     self::DOCTYPE_DSC,
                     'C',
                     $transfer->user_transfer,
-                    route('transfervp.show', $id),
+                    route('showtransfervp', Hashids::encode($id)),
                     ['cpnyid' => $transfer->cpnyid, 'deptname' => $transfer->department]
                 );
             }
@@ -782,7 +782,7 @@ class VplTransferController extends Controller
                     self::DOCTYPE_DSC,
                     'R',
                     $transfer->user_transfer,
-                    route('transfervp.show', $id),
+                    route('showtransfervp', Hashids::encode($id)),
                     ['info' => $request->message, 'cpnyid' => $transfer->cpnyid, 'deptname' => $transfer->department]
                 );
             },
@@ -832,7 +832,7 @@ class VplTransferController extends Controller
                     self::DOCTYPE_DSC,
                     'D',
                     $transfer->user_transfer,
-                    route('transfervp.show', $id),
+                    route('showtransfervp', Hashids::encode($id)),
                     ['info' => $request->message . ' (Silahkan revisi dokumen ini)', 'cpnyid' => $transfer->cpnyid, 'deptname' => $transfer->department]
                 );
             }

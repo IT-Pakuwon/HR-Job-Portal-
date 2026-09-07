@@ -108,6 +108,10 @@ const VplUsageDetailModal = {
             attachBody.innerHTML = '<p class="p-4 text-sm text-slate-400">No attachments.</p>';
         }
 
+        const addAttachBtn = document.getElementById('v_addAttachBtn');
+        addAttachBtn.classList.toggle('hidden', !data.can_add_attachment);
+        addAttachBtn.classList.toggle('inline-flex', !!data.can_add_attachment);
+
         // Approval timeline
         document.getElementById('v_approvalBody').innerHTML = VplUsageHelper.renderTimeline(data.approvals);
 
@@ -238,6 +242,30 @@ const VplUsageDetailModal = {
         };
     },
 
+    _uploadAttachment(files) {
+        const id = VplUsage.state.currentViewId;
+        const formData = new FormData();
+        Array.from(files).forEach((f) => formData.append('attachment[]', f));
+        formData.append('_token', VplUsage.csrf());
+
+        $.ajax({
+            type:        'POST',
+            url:         VplUsage.routes.addAttach(id),
+            data:        formData,
+            contentType: false,
+            processData: false,
+            success() {
+                document.getElementById('v_addAttachInput').value = '';
+                VplUsage.toast('success', 'Attachment added.');
+                VplUsageDetailModal.open(id);
+            },
+            error(xhr) {
+                document.getElementById('v_addAttachInput').value = '';
+                VplUsage.toast('error', xhr.responseJSON?.error ?? 'Failed to add attachment.');
+            },
+        });
+    },
+
     show() {
         const modal    = document.getElementById('viewModal');
         const backdrop = modal.querySelector('.modal-backdrop');
@@ -275,5 +303,14 @@ const VplUsageDetailModal = {
 
         VplUsageDetailModal.initPrint();
         VplUsageDetailModal.initDiscussion();
+
+        // Add attachment directly from the view modal
+        document.getElementById('v_addAttachBtn')?.addEventListener('click', () => {
+            document.getElementById('v_addAttachInput').click();
+        });
+        document.getElementById('v_addAttachInput')?.addEventListener('change', function () {
+            if (!this.files || this.files.length === 0) return;
+            VplUsageDetailModal._uploadAttachment(this.files);
+        });
     },
 };

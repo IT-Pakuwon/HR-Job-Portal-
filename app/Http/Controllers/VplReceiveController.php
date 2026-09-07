@@ -430,7 +430,7 @@ class VplReceiveController extends Controller
             self::DOCTYPE,
             'P',
             self::DOCTYPE_DSC,
-            url('/vpl/showreceivevp/'.$receive->id),
+            route('receivevp.show', Hashids::encode($receive->id)),
             ['info' => $request->receive_remark ?? '', 'createdby' => $user->name]
         );
 
@@ -570,7 +570,7 @@ class VplReceiveController extends Controller
             self::DOCTYPE,
             'P',
             self::DOCTYPE_DSC,
-            url('/vpl/showreceivevp/'.$id),
+            route('receivevp.show', Hashids::encode($id)),
             ['info' => $request->receive_remark ?? '', 'createdby' => $user->name]
         );
 
@@ -615,7 +615,7 @@ class VplReceiveController extends Controller
                     self::DOCTYPE,
                     'P',
                     self::DOCTYPE_DSC,
-                    url('/vpl/showreceivevp/'.$id),
+                    route('receivevp.show', Hashids::encode($id)),
                     ['info' => $receive->receive_remark ?? '', 'createdby' => $receive->created_user]
                 );
             },
@@ -626,11 +626,11 @@ class VplReceiveController extends Controller
                     self::DOCTYPE_DSC,
                     'C',
                     $receive->user_penerima,
-                    url('/vpl/showreceivevp/'.$id),
+                    route('receivevp.show', Hashids::encode($id)),
                     ['cpnyid' => $receive->cpnyid, 'deptname' => $receive->department]
                 );
 
-                $this->notifyRoleAccessUsers($receive, url('/vpl/showreceivevp/'.$id));
+                $this->notifyRoleAccessUsers($receive, route('receivevp.show', Hashids::encode($id)));
             }
         );
 
@@ -749,7 +749,7 @@ class VplReceiveController extends Controller
                     self::DOCTYPE_DSC,
                     'R',
                     $receive->user_penerima,
-                    url('/vpl/showreceivevp/'.$id),
+                    route('receivevp.show', Hashids::encode($id)),
                     ['info' => $request->message, 'cpnyid' => $receive->cpnyid, 'deptname' => $receive->department]
                 );
             }
@@ -792,7 +792,7 @@ class VplReceiveController extends Controller
                     self::DOCTYPE_DSC,
                     'D',
                     $receive->user_penerima,
-                    url('/vpl/showreceivevp/'.$id),
+                    route('receivevp.show', Hashids::encode($id)),
                     ['info' => $request->message.' (Silahkan revisi dokumen ini)', 'cpnyid' => $receive->cpnyid, 'deptname' => $receive->department]
                 );
             }

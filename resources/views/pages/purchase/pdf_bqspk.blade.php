@@ -174,7 +174,7 @@
             </tr>
 
             <tr class="summary">
-                <td colspan="7" class="text-right">PPN 11%</td>
+                <td colspan="7" class="text-right">PPN</td>
                 <td class="text-right">{{ rp($ppn) }}</td>
             </tr>
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Traits\HasAutonbr;
+use App\Http\Controllers\Traits\UploadsToGcs;
 use App\Models\MsCompany;
 use App\Models\MsLndPlaces;
 use App\Models\MsTrainingEvent;
@@ -17,12 +18,15 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Vinkla\Hashids\Facades\Hashids;
 
 class TrainingSessionController extends Controller
 {
     use HasAutonbr;
+    use UploadsToGcs;
+
+    protected const POSTER_FOLDER = 'att-training';
 
     protected const DETAIL_DOCTYPE = 'TSC';
     protected const SCHEDULE_DOCTYPE = 'TSD';
@@ -60,6 +64,17 @@ class TrainingSessionController extends Controller
         abort_if(!$id, 404);
 
         return MsTrainingEvent::findOrFail($id);
+    }
+
+    /**
+     * Company/user scoping for schedule & quota setup follows the same
+     * group_cpny_id partition used across the rest of the app (Personnel,
+     * ApprovalDashboard, etc.) — an HR admin in group JKT may only quota
+     * JKT-group companies.
+     */
+    private function userGroupCpnyId(): string
+    {
+        return strtoupper(trim((string) Auth::user()?->group_cpny_id));
     }
 
     /**
@@ -101,6 +116,11 @@ class TrainingSessionController extends Controller
             ? collect()
             : MsCompany::whereIn('cpny_id', $cpnyIds)->pluck('cpny_name', 'cpny_id');
 
+        // One signed URL per distinct poster object, not per date row —
+        // several dates in a batch share the same header->training_poster.
+        $posterUrls = $headers->pluck('training_poster')->filter()->unique()
+            ->mapWithKeys(fn ($path) => [$path => $this->gcsSignedUrl($path)]);
+
         $rows = collect();
 
         foreach ($headers as $header) {
@@ -114,7 +134,7 @@ class TrainingSessionController extends Controller
                     'grade_name' => $gradeNames[$header->job_level] ?? $header->job_level,
                     'training_detail_name' => $header->training_detail_name,
                     'training_poster' => $header->training_poster,
-                    'training_poster_url' => $header->training_poster ? Storage::disk('public')->url($header->training_poster) : null,
+                    'training_poster_url' => $header->training_poster ? ($posterUrls[$header->training_poster] ?? null) : null,
                     'is_ext_speaker' => (bool) $header->is_ext_speaker,
                     'schedule_date' => $detail->schedule_date?->format('Y-m-d'),
                     'start_time' => $detail->schedule_start_time,
@@ -209,12 +229,12 @@ class TrainingSessionController extends Controller
             'dates.*.platform' => 'nullable|string|max:100',
             'dates.*.meeting_link' => 'nullable|string|max:255',
             'dates.*.registration_deadline' => 'nullable|date|after_or_equal:today',
-            'dates.*.speaker_username' => 'nullable|string|max:50',
+            'dates.*.speaker_username' => ['required_if:is_ext_speaker,0', 'nullable', 'string', 'max:50', $this->speakerGroupRule()],
             'dates.*.speaker_name' => 'nullable|string|max:255',
             'dates.*.ext_speaker_name' => 'required_if:is_ext_speaker,1|nullable|string|max:255',
-            'quota' => 'nullable|array',
-            'quota.*.cpny_id' => 'required_with:quota|string|max:10',
-            'quota.*.quota_pax' => 'required_with:quota|integer|min:1',
+            'quota' => 'required|array|min:1',
+            'quota.*.cpny_id' => ['required', 'string', 'max:10', $this->quotaCompanyRule()],
+            'quota.*.quota_pax' => 'required|integer|min:1',
         ];
     }
 
@@ -238,13 +258,40 @@ class TrainingSessionController extends Controller
             'platform' => 'nullable|string|max:100',
             'meeting_link' => 'nullable|string|max:255',
             'registration_deadline' => 'nullable|date|after_or_equal:today',
-            'speaker_username' => 'nullable|string|max:50',
+            'speaker_username' => ['required_if:is_ext_speaker,0', 'nullable', 'string', 'max:50', $this->speakerGroupRule()],
             'speaker_name' => 'nullable|string|max:255',
             'ext_speaker_name' => 'required_if:is_ext_speaker,1|nullable|string|max:255',
-            'quota' => 'nullable|array',
-            'quota.*.cpny_id' => 'required_with:quota|string|max:10',
-            'quota.*.quota_pax' => 'required_with:quota|integer|min:1',
+            'quota' => 'required|array|min:1',
+            'quota.*.cpny_id' => ['required', 'string', 'max:10', $this->quotaCompanyRule()],
+            'quota.*.quota_pax' => 'required|integer|min:1',
         ];
+    }
+
+    /**
+     * A quota row's company must belong to the acting user's own
+     * group_cpny_id — mirrors the companySearch() picker scoping so a
+     * direct API call can't quota a company outside the admin's group.
+     */
+    private function quotaCompanyRule()
+    {
+        $groupCpnyId = $this->userGroupCpnyId();
+
+        return Rule::exists(MsCompany::class, 'cpny_id')->where(function ($query) use ($groupCpnyId) {
+            $query->where('status', 'A')->where('group_cpny_id', $groupCpnyId);
+        });
+    }
+
+    /**
+     * An internal speaker must belong to the acting user's own group_cpny_id
+     * — mirrors speakerSearch()'s picker scoping.
+     */
+    private function speakerGroupRule()
+    {
+        $groupCpnyId = $this->userGroupCpnyId();
+
+        return Rule::exists(User::class, 'username')->where(function ($query) use ($groupCpnyId) {
+            $query->where('group_cpny_id', $groupCpnyId);
+        });
     }
 
     private function generateTrainingDetailCode(string $username): string
@@ -297,7 +344,7 @@ class TrainingSessionController extends Controller
             $isExtSpeaker = $request->boolean('is_ext_speaker');
 
             $posterPath = $request->hasFile('training_poster')
-                ? $request->file('training_poster')->store('training_posters', 'public')
+                ? $this->gcsUpload($request->file('training_poster'), self::POSTER_FOLDER)
                 : null;
 
             $schedule = MsLndTrainingDetail::create([
@@ -395,11 +442,9 @@ class TrainingSessionController extends Controller
             ];
 
             if ($request->hasFile('training_poster')) {
-                if ($schedule->training_poster) {
-                    Storage::disk('public')->delete($schedule->training_poster);
-                }
+                $this->gcsDelete($schedule->training_poster);
 
-                $scheduleUpdate['training_poster'] = $request->file('training_poster')->store('training_posters', 'public');
+                $scheduleUpdate['training_poster'] = $this->gcsUpload($request->file('training_poster'), self::POSTER_FOLDER);
             }
 
             $schedule->update($scheduleUpdate);
@@ -620,7 +665,7 @@ class TrainingSessionController extends Controller
     {
         $search = trim((string) $request->get('q', ''));
 
-        $query = User::query();
+        $query = User::query()->where('group_cpny_id', $this->userGroupCpnyId());
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
@@ -643,7 +688,9 @@ class TrainingSessionController extends Controller
     {
         $search = trim((string) $request->get('q', ''));
 
-        $query = MsCompany::query()->where('status', 'A');
+        $query = MsCompany::query()
+            ->where('status', 'A')
+            ->where('group_cpny_id', $this->userGroupCpnyId());
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {

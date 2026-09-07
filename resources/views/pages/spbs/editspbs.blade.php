@@ -2846,6 +2846,45 @@
             const $selSub = $('#modal_sub_location_id');
             let currentLocRow = null;
 
+            function ensureSelect2() {
+                if ($selLoc.hasClass('select2-hidden-accessible')) $selLoc.select2('destroy');
+                if ($selSub.hasClass('select2-hidden-accessible')) $selSub.select2('destroy');
+                $selLoc.select2({
+                    dropdownParent: $lokasiModal,
+                    width: '100%',
+                    placeholder: 'choose',
+                    allowClear: true
+                });
+                $selSub.select2({
+                    dropdownParent: $lokasiModal,
+                    width: '100%',
+                    placeholder: 'choose',
+                    allowClear: true
+                });
+            }
+
+            function fillSelect($sel, list, selectedVal) {
+                $sel.empty().append('<option value="">choose </option>');
+                (list || []).forEach(it => $sel.append(new Option(it.text, it.value)));
+                $sel.val(selectedVal || null);
+                if ($sel.hasClass('select2-hidden-accessible')) $sel.trigger('change.select2');
+            }
+
+            function loadSubLocations(cpny, loc, selectedSub) {
+                if (!cpny || !loc) {
+                    fillSelect($selSub, [], null);
+                    return;
+                }
+
+                $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`)
+                    .done(function(list) {
+                        fillSelect($selSub, list, selectedSub);
+                    })
+                    .fail(function() {
+                        toastr.error('Gagal memuat sub location.');
+                    });
+            }
+
             function openLokasiModal(forRow) {
                 currentLocRow = forRow;
 
@@ -2855,26 +2894,27 @@
                     return;
                 }
 
-                // reset dropdown
-                $selLoc.empty().append('<option value="">choose </option>');
-                $selSub.empty().append('<option value="">choose </option>');
+                $lokasiModal.removeClass('hidden').addClass('flex');
+                ensureSelect2();
+
+                fillSelect($selLoc, [], null);
+                fillSelect($selSub, [], null);
 
                 // load locations
                 $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`)
                     .done(function(list) {
-                        list.forEach(it => $selLoc.append(new Option(it.text, it.value)));
-
                         // preselect jika row sudah punya value
                         const curLoc = currentLocRow.find('.locationIdField').val();
+                        fillSelect($selLoc, list, curLoc || null);
+
                         if (curLoc) {
-                            $selLoc.val(curLoc).trigger('change');
+                            const curSub = currentLocRow.find('.subLocationIdField').val();
+                            loadSubLocations(cpny, curLoc, curSub);
                         }
                     })
                     .fail(function() {
                         toastr.error('Gagal memuat lokasi.');
                     });
-
-                $lokasiModal.removeClass('hidden').addClass('flex');
             }
 
             function closeLokasiModal() {
@@ -2889,35 +2929,22 @@
             // Close modal
             $('#closeLokasi, #cancelLokasi').on('click', closeLokasiModal);
 
-            // Ketika location dipilih → load sublocations
-            $selLoc.on('change', function() {
+            // Ketika location dipilih oleh user → load sublocations
+            // (select2:select hanya terpicu oleh interaksi user, bukan set value programatik)
+            $selLoc.on('select2:select', function(e) {
                 const cpny = $('select[name="cpnyid"]').val();
-                const loc = $(this).val();
-                $selSub.empty().append('<option value="">choose </option>');
-
-                if (!loc) return;
-
-                $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`)
-                    .done(function(list) {
-                        list.forEach(it => $selSub.append(new Option(it.text, it.value)));
-
-                        // preselect jika row sudah punya sub_location_id
-                        if (currentLocRow) {
-                            const curSub = currentLocRow.find('.subLocationIdField').val();
-                            if (curSub) $selSub.val(curSub);
-                        }
-                    })
-                    .fail(function() {
-                        toastr.error('Gagal memuat sub location.');
-                    });
+                loadSubLocations(cpny, e.params.data.id, null);
+            });
+            $selLoc.on('select2:clear', function() {
+                fillSelect($selSub, [], null);
             });
 
             // Save ke row aktif
             $('#saveLokasi').on('click', function() {
                 const locId = $selLoc.val();
-                const locText = $('#modal_location_id option:selected').text();
+                const locText = $selLoc.find('option:selected').text();
                 const subId = $selSub.val();
-                const subText = $('#modal_sub_location_id option:selected').text();
+                const subText = $selSub.find('option:selected').text();
 
                 if (!locId || !subId) {
                     toastr.error('Pilih Location dan Sub Location.');
@@ -2938,11 +2965,8 @@
 
             // Jika company berubah dan modal terbuka → reload lokasi
             $('select[name="cpnyid"]').on('change', function() {
-                if ($lokasiModal.is(':visible')) {
-                    // reset dan panggil open ulang dengan row yang sama
-                    $selLoc.empty().append('<option value="">choose </option>');
-                    $selSub.empty().append('<option value="">choose </option>');
-                    if (currentLocRow) openLokasiModal(currentLocRow);
+                if ($lokasiModal.is(':visible') && currentLocRow) {
+                    openLokasiModal(currentLocRow);
                 }
             });
         });

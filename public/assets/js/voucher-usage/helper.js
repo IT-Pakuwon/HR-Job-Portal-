@@ -103,8 +103,19 @@ const VplUsageHelper = {
      * origin  = when set (Return mode), the row is seeded from a referenced Usage
      *           line and the product/whs/expiry cells become read-only.
      */
-    /** Purpose dropdown options, sourced from ms_category (doctype=VPU, categoryid=type, groups=PURPOSE). */
-    purposeOptionsHTML(selected = '') {
+    /** WHCOLLECTION Usage docs may only be recorded against this purpose. */
+    COLLECTION_PURPOSE_VALUE: 'Write Off',
+
+    /**
+     * Purpose dropdown options, sourced from ms_category (doctype=VPU, categoryid=type, groups=PURPOSE).
+     * restrictToWriteOff locks the field to the single Collection-usage purpose (WHCOLLECTION + Usage type).
+     */
+    purposeOptionsHTML(selected = '', restrictToWriteOff = false) {
+        if (restrictToWriteOff) {
+            const value = VplUsageHelper.COLLECTION_PURPOSE_VALUE;
+            return `<option value="${value}" selected>${value}</option>`;
+        }
+
         const purposes = window.VplUsageConfig?.purposes ?? [];
         const opts = purposes.map((p) => {
             const safe = String(p).replace(/"/g, '&quot;');
@@ -113,7 +124,7 @@ const VplUsageHelper = {
         return `<option value="">Select...</option>${opts}`;
     },
 
-    buildDetailRow(prefix, idx, whsId = '', origin = null) {
+    buildDetailRow(prefix, idx, whsId = '', origin = null, restrictPurpose = false) {
         const mode = prefix === 'c' ? 'create' : 'edit';
 
         if (origin) {
@@ -184,7 +195,7 @@ const VplUsageHelper = {
                 <td class="px-3 py-2">
                     <select name="addmore[${idx}][purpose_id]"
                         class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-white/10 dark:bg-[#0b1220] dark:text-white">
-                        ${VplUsageHelper.purposeOptionsHTML()}
+                        ${VplUsageHelper.purposeOptionsHTML('', restrictPurpose)}
                     </select>
                 </td>
                 <td class="px-3 py-2">

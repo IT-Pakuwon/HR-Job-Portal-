@@ -1,8 +1,8 @@
 @props(['items' => []])
 
-<div class="mb-3 flex flex-wrap items-center justify-between gap-3">
-    <nav class="flex" aria-label="Breadcrumb">
-        <ol class="flex flex-wrap items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+<div class="mb-3 flex flex-nowrap items-center justify-between gap-3">
+    <nav class="flex min-w-0 overflow-x-auto" aria-label="Breadcrumb">
+        <ol class="flex flex-nowrap items-center gap-1.5 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
             @foreach ($items as $index => $item)
                 @php $isLast = $index === count($items) - 1; @endphp
                 <li class="flex items-center gap-1.5">
@@ -34,7 +34,7 @@
     </nav>
 
     @if (trim($slot) !== '')
-        <div class="flex items-center">
+        <div class="flex shrink-0 items-center">
             {{ $slot }}
         </div>
     @endif

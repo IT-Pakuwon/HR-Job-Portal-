@@ -168,6 +168,9 @@ const VplMasterViewModal = {
         VplMasterViewModal._setText('viewModal_checkExp',   p.product_check_exp == 1 ? 'Yes' : 'No');
         VplMasterViewModal._setText('viewModal_remarks',    p.product_remark || '-');
 
+        // Edit button — only for the product's creator (or admin/full-scope; decided server-side)
+        $('#btnViewModalEdit').toggle(!!res.can_edit);
+
         // Stock detail: tabs (by warehouse) + expiry filter, both driven off
         // the same raw rows so switching either re-renders without a refetch.
         VplMasterViewModal.currentStock = res.stock ?? [];

@@ -34,25 +34,28 @@ class SendEventH7PaidReminder extends Command
             return self::SUCCESS;
         }
 
-        // Same for every event this run, so resolve once.
+        // Same for every event this run, so resolve once; per-event company
+        // scoping happens below via User::scopedCompanyIds().
         $gmUsernames = SysUserRole::query()
             ->where('role_id', 'GMACCESS')
             ->where('status', 'A')
             ->pluck('username');
 
-        $gmEmails = User::query()
+        $gmUsers = User::query()
             ->whereIn('username', $gmUsernames)
             ->where('status', 'A')
-            ->get()
-            ->map(fn (User $u) => $this->resolveEmail($u))
-            ->filter()
-            ->values();
+            ->get();
 
         $sent = 0;
         $failed = 0;
 
         foreach ($events as $event) {
-            $emails = collect($gmEmails);
+            // GM reminders are scoped to their own company, same as the calendar UI.
+            $emails = $gmUsers
+                ->filter(fn (User $u) => in_array($event->cpnyid, $u->scopedCompanyIds(), true))
+                ->map(fn (User $u) => $this->resolveEmail($u))
+                ->filter()
+                ->values();
 
             // PIC (internal): pic_event is a comma-separated list of User.name values
             // (free-text entry is allowed on the form, so not every name resolves).

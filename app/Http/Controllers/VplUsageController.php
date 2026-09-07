@@ -231,6 +231,10 @@ class VplUsageController extends Controller
         $can_cancel = $usage->created_user === $user->name
             && ($usage->status === 'D' || ($usage->status === 'P' && !$anyApproved));
 
+        // Add attachment from the view page: creator only, any status except
+        // Cancelled/Rejected/Hold (Hold already manages attachments via the edit modal)
+        $can_add_attachment = $usage->created_user === $user->name && !in_array($usage->status, ['X', 'R', 'D'], true);
+
         return response()->json([
             'usage' => $usage,
             'hash' => Hashids::encode($usage->id),
@@ -266,6 +270,7 @@ class VplUsageController extends Controller
             'can_revise' => $can_revise,
             'can_edit' => $can_edit,
             'can_cancel' => $can_cancel,
+            'can_add_attachment' => $can_add_attachment,
             'current_user' => $user->name,
         ]);
     }
@@ -516,7 +521,7 @@ class VplUsageController extends Controller
             self::DOCTYPE,
             'P',
             self::DOCTYPE_DSC,
-            route('usagevp.show', $usage->id),
+            route('showusagevp', Hashids::encode($usage->id)),
             ['info' => $request->usage_remark ?? '', 'createdby' => $user->name]
         );
 
@@ -711,7 +716,7 @@ class VplUsageController extends Controller
             self::DOCTYPE,
             'P',
             self::DOCTYPE_DSC,
-            route('usagevp.show', $id),
+            route('showusagevp', Hashids::encode($id)),
             ['info' => $usage->usage_remark ?? '', 'createdby' => $user->name]
         );
 
@@ -777,7 +782,7 @@ class VplUsageController extends Controller
                     self::DOCTYPE,
                     'P',
                     self::DOCTYPE_DSC,
-                    route('usagevp.show', $id),
+                    route('showusagevp', Hashids::encode($id)),
                     ['info' => $usage->usage_remark ?? '', 'createdby' => $usage->created_user]
                 );
             },
@@ -788,7 +793,7 @@ class VplUsageController extends Controller
                     self::DOCTYPE_DSC,
                     'C',
                     $usage->user_peminta,
-                    route('usagevp.show', $id),
+                    route('showusagevp', Hashids::encode($id)),
                     ['cpnyid' => $usage->cpnyid, 'deptname' => $usage->department]
                 );
             }
@@ -832,7 +837,7 @@ class VplUsageController extends Controller
                     self::DOCTYPE_DSC,
                     'R',
                     $usage->user_peminta,
-                    route('usagevp.show', $id),
+                    route('showusagevp', Hashids::encode($id)),
                     ['info' => $request->message, 'cpnyid' => $usage->cpnyid, 'deptname' => $usage->department]
                 );
             }
@@ -880,7 +885,7 @@ class VplUsageController extends Controller
                     self::DOCTYPE_DSC,
                     'D',
                     $usage->user_peminta,
-                    route('usagevp.show', $id),
+                    route('showusagevp', Hashids::encode($id)),
                     ['info' => $request->message.' (Silahkan revisi dokumen ini)', 'cpnyid' => $usage->cpnyid, 'deptname' => $usage->department]
                 );
             }
@@ -954,6 +959,40 @@ class VplUsageController extends Controller
         $detail->delete();
 
         return response()->json(['success' => 'Detail deleted.']);
+    }
+
+    public function addAttachment(Request $request, int $id)
+    {
+        $user = Auth::user();
+        $usage = TrxVplUsage::find($id);
+
+        if (!$usage) {
+            return response()->json(['error' => 'Not found.'], 404);
+        }
+        if ($usage->created_user !== $user->name || in_array($usage->status, ['X', 'R', 'D'], true)) {
+            return response()->json(['error' => 'You are not allowed to modify this document.'], 403);
+        }
+
+        $hasValidAttachment = collect($request->file('attachment', []))->filter(fn ($f) => $f && $f->isValid())->isNotEmpty();
+        if (!$hasValidAttachment) {
+            return response()->json(['error' => 'Please choose at least one file.'], 422);
+        }
+
+        $this->saveAttachments($request, $usage->usage_id, Carbon::now()->year, $user);
+
+        $attachments = Attachment::where('docid', $usage->usage_id)->where('status', 'A')->get();
+
+        return response()->json([
+            'success' => 'Attachment added.',
+            'attachments' => $attachments->map(fn ($a) => [
+                'id' => $a->id,
+                'name' => $a->name,
+                'attachfile' => $a->attachfile,
+                'extention' => $a->extention,
+                'created_user' => $a->created_user,
+                'created_at' => $a->created_at?->format('Y-m-d H:i'),
+            ]),
+        ]);
     }
 
     public function deleteAttachment(Request $request)

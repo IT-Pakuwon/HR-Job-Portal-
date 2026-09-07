@@ -20,6 +20,7 @@ const VplUsage = {
         refDetails: '',
         delDetail:  '',
         delAttach:  '',
+        addAttach:  (id) => `${VplUsage.routes.base}/${id}/attachment/add`,
         data:    (id) => `${VplUsage.routes.base}/${id}/data`,
         pdf:     (id) => `${VplUsage.routes.base}/${id}/pdf`,
         update:  (id) => `${VplUsage.routes.base}/${id}/update`,
