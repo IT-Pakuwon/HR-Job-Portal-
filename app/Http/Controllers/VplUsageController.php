@@ -1001,6 +1001,13 @@ class VplUsageController extends Controller
         if (!$attach) {
             return response()->json(['error' => 'Not found.'], 404);
         }
+
+        $user = Auth::user();
+        $usage = TrxVplUsage::where('usage_id', $attach->docid)->first();
+        if (!$usage || $usage->created_user !== $user->name || $usage->status !== 'D') {
+            return response()->json(['error' => 'You are not allowed to modify this document.'], 403);
+        }
+
         $attach->delete();
 
         return response()->json(['success' => 'Attachment deleted.']);
