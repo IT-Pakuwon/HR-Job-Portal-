@@ -19,9 +19,6 @@
                     <span id="approvalsTabCount" class="ml-1 inline-flex rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"></span>
                 </button>
                 @if (Auth::user()->hasRole('HCDEVACCESS'))
-                    <button class="tabBtn border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="waitlist">
-                        Waitlist Management
-                    </button>
                     <button class="tabBtn border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="allregs">
                         List Registration
                     </button>
@@ -102,59 +99,6 @@
                 </div>
             </div>
 
-            {{-- Waitlist Management (HCDEVACCESS) --}}
-            @if (Auth::user()->hasRole('HCDEVACCESS'))
-                <div id="tab-waitlist" class="tab-panel hidden space-y-3">
-                    <p class="text-xs text-gray-500 dark:text-gray-400">
-                        Slots forfeited after a schedule closes (H-3) don't auto-requeue — pick who to accept into the freed seat. You can also choose a different company's quota for the person.
-                    </p>
-
-                    <div class="flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-gray-900">
-                        <div class="w-full sm:w-56">
-                            <select id="waitlistTrainingFilter" class="w-full">
-                                <option value="">All Training Events</option>
-                            </select>
-                        </div>
-                        <div class="relative w-full sm:w-64">
-                            <svg class="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                            <input id="waitlistSearch" type="text" placeholder="Search by employee or doc ID"
-                                class="w-full rounded-lg border border-gray-300 py-1.5 pl-8 pr-2.5 text-xs text-gray-700 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:ring-gray-700">
-                        </div>
-                        <div class="w-full sm:w-48">
-                            <select id="waitlistApprovalFilter" class="w-full">
-                                <option value="">All Approval Statuses</option>
-                                <option value="P">Pending</option>
-                                <option value="C">Approved</option>
-                                <option value="R">Rejected</option>
-                            </select>
-                        </div>
-                        <button id="waitlistResetBtn" class="text-xs font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white">Reset</button>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="responsive-table min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
-                            <thead>
-                                <tr class="text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    <th class="py-2 pr-4">Doc ID</th>
-                                    <th class="py-2 pr-4">Employee</th>
-                                    <th class="py-2 pr-4">Company</th>
-                                    <th class="py-2 pr-4">Training</th>
-                                    <th class="py-2 pr-4">Date</th>
-                                    <th class="py-2 pr-4">Schedule Status</th>
-                                    <th class="py-2 pr-4">Approval</th>
-                                    <th class="py-2 pr-4">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="waitlistBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
-                        </table>
-                        <div id="waitlistEmpty" class="hidden rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
-                            No one is waitlisted right now.
-                        </div>
-                        <div id="waitlistPagination"></div>
-                    </div>
-                </div>
-            @endif
-
             {{-- List Registration (HCDEVACCESS) --}}
             @if (Auth::user()->hasRole('HCDEVACCESS'))
                 <div id="tab-allregs" class="tab-panel hidden space-y-4">
@@ -163,40 +107,61 @@
                     </p>
 
                     {{-- Filters — Training Event also rescopes the summary cards below --}}
-                    <div class="flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-gray-900">
-                        <div class="w-full sm:w-56">
-                            <select id="allRegsTrainingFilter" class="w-full">
-                                <option value="">All Training Events</option>
-                            </select>
+                    <div class="rounded-2xl border border-gray-200 bg-linear-to-br from-gray-50 to-cyan-50/30 p-6 shadow-sm dark:border-gray-700 dark:from-gray-800/40 dark:to-cyan-900/10">
+                        <div class="grid grid-cols-1 items-end gap-4 md:grid-cols-2 lg:grid-cols-4">
+
+                            <div class="space-y-1">
+                                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                    <i class="fa-solid fa-chalkboard-user mr-1 text-gray-400"></i> Training Event
+                                </label>
+                                <select id="allRegsTrainingFilter" class="w-full">
+                                    <option value="">All Training Events</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                    <i class="fa-solid fa-magnifying-glass mr-1 text-gray-400"></i> Search
+                                </label>
+                                <input id="allRegsSearch" type="text" placeholder="Employee or doc ID" class="form-input w-full">
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                    <i class="fa-solid fa-list-check mr-1 text-gray-400"></i> Status
+                                </label>
+                                <select id="allRegsStatusFilter" class="w-full">
+                                    <option value="">All Statuses</option>
+                                    <option value="P">Waiting Approval</option>
+                                    <option value="C">Approved</option>
+                                    <option value="R">Rejected</option>
+                                    <option value="W">Waiting List</option>
+                                    <option value="O">Slot Offered</option>
+                                    <option value="X">Cancelled</option>
+                                </select>
+                            </div>
+
+                            <div class="flex gap-2">
+                                <button type="button" id="allRegsExportBtn" class="flex w-full items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-black hover:shadow active:scale-[0.98] dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-white">
+                                    <i class="fa-solid fa-file-arrow-down"></i> Export
+                                </button>
+                                <button type="button" id="allRegsResetBtn" class="flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 shadow-sm transition hover:border-gray-400 hover:bg-gray-50 active:scale-[0.98] dark:border-gray-600 dark:bg-transparent dark:text-gray-200 dark:hover:bg-gray-700/40">
+                                    <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+                                </button>
+                            </div>
+
                         </div>
-                        <div class="relative w-full sm:w-64">
-                            <svg class="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                            <input id="allRegsSearch" type="text" placeholder="Search by employee or doc ID"
-                                class="w-full rounded-lg border border-gray-300 py-1.5 pl-8 pr-2.5 text-xs text-gray-700 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:ring-gray-700">
-                        </div>
-                        <div class="w-full sm:w-52">
-                            <select id="allRegsStatusFilter" class="w-full">
-                                <option value="">All Statuses</option>
-                                <option value="P">Waiting Approval</option>
-                                <option value="C">Approved</option>
-                                <option value="R">Rejected</option>
-                                <option value="W">Waiting List</option>
-                                <option value="O">Slot Offered</option>
-                                <option value="X">Cancelled</option>
-                            </select>
-                        </div>
-                        <button id="allRegsResetBtn" class="text-xs font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white">Reset</button>
-                        <button id="allRegsExportBtn" class="ml-auto flex items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-700 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200">
-                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" /></svg>
-                            Export
-                        </button>
                     </div>
 
                     {{-- Summary cards --}}
-                    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <div class="grid grid-cols-2 gap-3 sm:grid-cols-5">
                         <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
                             <p class="text-[10px] font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400">Waiting Approval</p>
                             <p id="statWaitingApproval" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
+                        </div>
+                        <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                            <p class="text-[10px] font-bold uppercase tracking-wide text-sky-600 dark:text-sky-400">Waiting List</p>
+                            <p id="statWaitingList" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
                         </div>
                         <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
                             <p class="text-[10px] font-bold uppercase tracking-wide text-green-600 dark:text-green-400">Approved</p>
@@ -234,9 +199,14 @@
                                     <th class="py-2 pr-4">Employee</th>
                                     <th class="py-2 pr-4">Company / Dept</th>
                                     <th class="py-2 pr-4">Training</th>
+                                    <th class="py-2 pr-4">Level</th>
                                     <th class="py-2 pr-4">Schedule Date</th>
+                                    <th class="py-2 pr-4">Training Status</th>
                                     <th class="py-2 pr-4">Registered On</th>
                                     <th class="py-2 pr-4">Status</th>
+                                    <th class="py-2 pr-4">Approval</th>
+                                    <th class="py-2 pr-4">Queue #</th>
+                                    <th class="py-2 pr-4">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="allRegsBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
@@ -340,13 +310,11 @@
                date cell actually falls in DOM/source order. */
             #tab-mine .responsive-table td[data-label="Doc ID"],
             #tab-approvals .responsive-table td[data-label="Doc ID"],
-            #tab-waitlist .responsive-table td[data-label="Doc ID"],
             #tab-allregs .responsive-table td[data-label="Doc ID"] {
                 grid-row: 1;
                 grid-column: 1;
             }
             #tab-mine .responsive-table td[data-label="Date"],
-            #tab-waitlist .responsive-table td[data-label="Date"],
             #tab-approvals .responsive-table td[data-label="Schedule Date"],
             #tab-allregs .responsive-table td[data-label="Schedule Date"] {
                 grid-row: 1;
@@ -389,7 +357,7 @@
             width: 100% !important;
         }
         .select2-filter .select2-selection--single {
-            height: 30px !important;
+            height: 38px !important;
             border-radius: 8px;
             border-color: #d1d5db;
             transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -398,13 +366,13 @@
             border-color: #9ca3af;
         }
         .select2-filter .select2-selection--single .select2-selection__rendered {
-            font-size: 12px !important;
-            line-height: 28px !important;
-            padding-left: 10px;
+            font-size: 13px !important;
+            line-height: 36px !important;
+            padding-left: 12px;
             padding-right: 36px;
         }
         .select2-filter .select2-selection--single .select2-selection__arrow {
-            height: 28px !important;
+            height: 36px !important;
         }
         .select2-filter .select2-selection--single .select2-selection__clear {
             margin-right: 4px;
@@ -1183,14 +1151,15 @@
         const approvalUrlTpl = "{{ route('approval.get', ['refnbr' => '__REF__', 'doctype' => 'TRN']) }}";
         const isHcdevaccess = @json(Auth::user()->hasRole('HCDEVACCESS'));
         @if (Auth::user()->hasRole('HCDEVACCESS'))
-        const waitlistUrl = "{{ route('training-list.waitlist') }}";
         const allRegistrationsUrl = "{{ route('training-list.all-registrations') }}";
         const registrationSummaryUrl = "{{ route('training-list.registration-summary') }}";
         const allRegistrationsExportUrl = "{{ route('training-list.all-registrations.export') }}";
+        const allRegsViewUrlTpl = "{{ route('training-list.allregs.show', ['eid' => '__EID__'], false) }}";
         @endif
         const csrfHeaders = { 'X-CSRF-TOKEN': '{{ csrf_token() }}' };
         const initialEid = @json($initialEid);
         const initialMyEid = @json($initialMyEid ?? null);
+        const initialAllRegsEid = @json($initialAllRegsEid ?? null);
 
         const statusLabels = {
             P: ['Waiting Approval', 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'],
@@ -1332,7 +1301,6 @@
 
             if (tab === 'mine') loadMine();
             if (tab === 'approvals') loadPendingApprovals();
-            if (tab === 'waitlist') loadWaitlist();
             if (tab === 'allregs') loadAllRegistrations();
         });
 
@@ -1444,11 +1412,12 @@
                     // count toward schedule_count and appear in View Detail as informational.
                     // Per-schedule status (Approved/Rejected/Waitlisted/etc.) is shown
                     // inside View Detail rather than duplicated here on the card.
-                    const openSchedules = r.schedules.filter((s) => !s.my_status && s.is_open);
+                    const openSchedules = r.schedules.filter((s) => !s.my_status && s.is_open && s.level_match);
 
                     let registerBtnHtml = '';
                     if (!r.eligible) {
-                        registerBtnHtml = '<span class="flex items-center justify-center rounded-lg border border-dashed border-gray-200 px-2 py-1.5 text-center text-[11px] text-gray-400 dark:border-gray-700">Not available for your company</span>';
+                        const reasonText = r.level_eligible ? 'Not available for your company' : 'Your Level can\'t Register to This Training';
+                        registerBtnHtml = `<span class="flex items-center justify-center rounded-lg border border-dashed border-gray-200 px-2 py-1.5 text-center text-[11px] text-gray-400 dark:border-gray-700">${reasonText}</span>`;
                     } else if (openSchedules.length > 0) {
                         const anyAvailable = openSchedules.some((s) => s.eligible_companies.some((c) => c.available > 0));
                         const btnCls = anyAvailable ? 'bg-gray-900 hover:bg-gray-700 dark:bg-white dark:text-gray-900' : 'bg-sky-600 hover:bg-sky-500 text-white';
@@ -1569,16 +1538,18 @@
                     const month = d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
                     const year = d.getFullYear();
 
-                    const quotaHtml = s.eligible_companies.length
-                        ? s.eligible_companies.map((c) => capacityBar(c)).join('')
-                        : '<p class="text-xs text-gray-400">Not available for your company</p>';
+                    const quotaHtml = !s.level_match
+                        ? '<p class="text-xs text-gray-400">Your Level can\'t Register to This Training</p>'
+                        : s.eligible_companies.length
+                            ? s.eligible_companies.map((c) => capacityBar(c)).join('')
+                            : '<p class="text-xs text-gray-400">Not available for your company</p>';
 
                     let actionHtml;
                     if (s.my_status) {
                         actionHtml = myStatusChip(s.my_status);
                     } else if (!s.is_open) {
                         actionHtml = '<span class="text-xs text-gray-400">Registration closed</span>';
-                    } else if (!s.eligible_companies.length) {
+                    } else if (!s.level_match || !s.eligible_companies.length) {
                         actionHtml = '';
                     } else {
                         const anyAvailable = s.eligible_companies.some((c) => c.available > 0);
@@ -1789,7 +1760,7 @@
             const training = cardsByDocid[docid];
             if (!training) return;
 
-            const openSchedules = training.schedules.filter((s) => !s.my_status && s.is_open);
+            const openSchedules = training.schedules.filter((s) => !s.my_status && s.is_open && s.level_match);
 
             const thumbHtml = training.poster_url
                 ? `<img class="ticketModal-thumb" src="${training.poster_url}">`
@@ -2037,9 +2008,9 @@
 
         let myViewModalActive = false;
 
-        function openMyViewModal(r, { pushUrl = true } = {}) {
+        function openMyViewModal(r, { pushUrl = true, urlTpl = myViewUrlTpl } = {}) {
             if (pushUrl && r.eid) {
-                const targetPath = myViewUrlTpl.replace('__EID__', r.eid);
+                const targetPath = urlTpl.replace('__EID__', r.eid);
                 if (location.pathname !== targetPath) {
                     history.pushState({ trainingMyView: true }, '', targetPath);
                 }
@@ -2329,195 +2300,6 @@
         });
 
         @if (Auth::user()->hasRole('HCDEVACCESS'))
-        $('#waitlistTrainingFilter').select2({
-            containerCssClass: 'select2-filter',
-            dropdownCssClass: 'select2-filter',
-            placeholder: 'All Training Events',
-            allowClear: true,
-            width: '100%',
-            templateSelection: (data) => $('<span></span>').text(data.text).attr('title', data.text),
-        });
-        $('#waitlistApprovalFilter').select2({
-            containerCssClass: 'select2-filter',
-            dropdownCssClass: 'select2-filter',
-            minimumResultsForSearch: -1,
-            width: '100%',
-        });
-
-        let waitlistRows = [];
-        let waitlistPage = 1;
-
-        function loadWaitlist() {
-            $.get(waitlistUrl, function (res) {
-                waitlistRows = res.data || [];
-                waitlistPage = 1;
-                populateWaitlistTrainingFilterOptions();
-                renderWaitlist();
-            });
-        }
-
-        function populateWaitlistTrainingFilterOptions() {
-            const $select = $('#waitlistTrainingFilter');
-            const current = $select.val();
-
-            const trainings = [...new Map(
-                waitlistRows
-                    .filter((r) => r.training_id)
-                    .map((r) => [r.training_id, r.training_name ?? r.training_id])
-            ).entries()].sort((a, b) => a[1].localeCompare(b[1]));
-
-            $select.find('option:not(:first)').remove();
-            trainings.forEach(([id, name]) => $select.append(new Option(name, id)));
-
-            if (current && trainings.some(([id]) => String(id) === current)) {
-                $select.val(current);
-            }
-
-            // Re-sync select2's rendered box after the underlying <select>'s
-            // options changed programmatically — namespaced so it doesn't
-            // re-fire the plain 'change' handler below.
-            $select.trigger('change.select2');
-        }
-
-        function renderWaitlist() {
-            const search = ($('#waitlistSearch').val() || '').toLowerCase().trim();
-            const trainingFilter = $('#waitlistTrainingFilter').val();
-            const approvalFilter = $('#waitlistApprovalFilter').val();
-
-            const rows = waitlistRows.filter((r) => {
-                if (trainingFilter && String(r.training_id) !== trainingFilter) return false;
-                if (approvalFilter && r.approval_status !== approvalFilter) return false;
-                if (search) {
-                    const haystack = `${r.docid} ${r.name} ${r.username} ${r.training_name ?? ''}`.toLowerCase();
-                    if (!haystack.includes(search)) return false;
-                }
-                return true;
-            });
-
-            $('#waitlistEmpty').toggleClass('hidden', rows.length > 0);
-            const $body = $('#waitlistBody').empty();
-
-            const { pageRows, page, totalPages } = paginateRows(rows, waitlistPage);
-            waitlistPage = page;
-
-            pageRows.forEach(function (r) {
-                const canAccept = r.schedule_status === 'C' && r.approval_status === 'C';
-                const approvalHtml = r.approval_status === 'C'
-                    ? '<span class="text-xs font-semibold text-green-600 dark:text-green-400">Approved</span>'
-                    : r.approval_status === 'R'
-                        ? '<span class="text-xs font-semibold text-red-600 dark:text-red-400">Rejected</span>'
-                        : '<span class="text-xs text-amber-600 dark:text-amber-400">Pending</span>';
-                // Manual accept only applies once a schedule has actually
-                // CLOSED (H-3) — while it's still Published, a freed seat
-                // auto-promotes on its own (promoteWaitlistIfOpen), so the
-                // reason Accept isn't offered yet may be the schedule, not
-                // the approval.
-                let actionHtml;
-                if (canAccept) {
-                    actionHtml = `<button class="manualAcceptBtn rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-700 dark:bg-white dark:text-gray-900" data-id="${r.id}">Accept</button>`;
-                } else if (r.approval_status === 'R') {
-                    actionHtml = '<span class="text-xs text-gray-400">Rejected</span>';
-                } else if (r.approval_status !== 'C') {
-                    actionHtml = '<span class="text-xs text-gray-400">Waiting for approval</span>';
-                } else {
-                    actionHtml = '<span class="text-xs text-gray-400">Schedule still open — auto-offered when a seat frees up</span>';
-                }
-
-                $body.append(`
-                    <tr>
-                        <td class="py-2 pr-4 font-mono text-xs" data-label="Doc ID">${r.docid}</td>
-                        <td class="py-2 pr-4" data-label="Employee">
-                            <span class="block text-xs font-semibold text-gray-800 dark:text-gray-100">${r.name ?? r.username}</span>
-                            <span class="block text-[11px] text-gray-400">${r.username}</span>
-                        </td>
-                        <td class="py-2 pr-4" data-label="Company">${r.cpny_id}</td>
-                        <td class="py-2 pr-4" data-label="Training">${r.training_name ?? '-'}</td>
-                        <td class="py-2 pr-4" data-label="Date">${fmtDate(r.schedule_date)}</td>
-                        <td class="py-2 pr-4" data-label="Schedule Status">${scheduleStatusBadge(r.schedule_status)}</td>
-                        <td class="py-2 pr-4" data-label="Approval">${approvalHtml}</td>
-                        <td class="py-2 pr-4" data-label="Action">${actionHtml}</td>
-                    </tr>
-                `);
-            });
-
-            renderPagination('waitlistPagination', rows.length, page, totalPages, (p) => {
-                waitlistPage = p;
-                renderWaitlist();
-            });
-        }
-
-        $('#waitlistSearch').on('input', function () {
-            waitlistPage = 1;
-            renderWaitlist();
-        });
-        $('#waitlistApprovalFilter').on('change', function () {
-            waitlistPage = 1;
-            renderWaitlist();
-        });
-        $('#waitlistTrainingFilter').on('change', function () {
-            waitlistPage = 1;
-            renderWaitlist();
-        });
-        $('#waitlistResetBtn').on('click', function () {
-            $('#waitlistSearch').val('');
-            $('#waitlistApprovalFilter').val('').trigger('change.select2');
-            $('#waitlistTrainingFilter').val('').trigger('change.select2');
-            waitlistPage = 1;
-            renderWaitlist();
-        });
-
-        $(document).on('click', '.manualAcceptBtn', function () {
-            const id = $(this).data('id');
-            const r = waitlistRows.find((x) => String(x.id) === String(id));
-            if (!r) return;
-
-            const opts = (r.quota_options || []).map((q) => {
-                const sel = q.cpny_id === r.cpny_id ? ' selected' : '';
-                const label = `${q.cpny_name} — ${q.available}/${q.quota_pax} seats`;
-                return `<option value="${q.cpny_id}"${sel}>${label}</option>`;
-            }).join('');
-
-            Swal.fire({
-                title: `Accept ${r.name ?? r.username}?`,
-                html: `
-                    <div style="text-align:left;font-size:13px;">
-                        <p><strong>Doc ID:</strong> ${r.docid}</p>
-                        <p><strong>Training:</strong> ${r.training_name ?? '-'}</p>
-                        <p><strong>Date:</strong> ${fmtDate(r.schedule_date)}</p>
-                        <div style="margin-top:12px;">
-                            <label class="ticketModal-label">🏢 Use Quota From</label>
-                            <select id="swalAcceptCpny" class="ticketModal-select">${opts}</select>
-                            <p style="font-size:11px;color:#6b7280;margin-top:6px;">
-                                Defaults to the participant's own company (${r.cpny_id}). Pick another company to consume its quota instead.
-                            </p>
-                        </div>
-                    </div>
-                `,
-                showCancelButton: true,
-                confirmButtonText: 'Yes, accept',
-                cancelButtonText: 'Cancel',
-            }).then((result) => {
-                if (!result.isConfirmed) return;
-
-                const cpnyId = document.getElementById('swalAcceptCpny')?.value ?? r.cpny_id;
-
-                $.ajax({
-                    url: `/training-list/${id}/manual-accept`,
-                    method: 'POST',
-                    headers: csrfHeaders,
-                    data: { cpny_id: cpnyId },
-                    success: function (res) {
-                        toast(res.success ? 'success' : 'error', res.message);
-                        if (res.success) loadWaitlist();
-                    },
-                    error: function (xhr) {
-                        toast('error', xhr.responseJSON?.message || 'Gagal menerima peserta');
-                    },
-                });
-            });
-        });
-
-
         $('#allRegsTrainingFilter').select2({
             containerCssClass: 'select2-filter',
             dropdownCssClass: 'select2-filter',
@@ -2537,12 +2319,19 @@
 
         let allRegistrationRows = [];
         let allRegsPage = 1;
+        let initialAllRegsEidHandled = false;
 
         function loadAllRegistrations() {
             $.get(allRegistrationsUrl, function (res) {
                 allRegistrationRows = res.data || [];
                 allRegsPage = 1;
                 renderAllRegistrations();
+
+                if (!initialAllRegsEidHandled && initialAllRegsEid) {
+                    initialAllRegsEidHandled = true;
+                    const match = allRegistrationRows.find((row) => row.eid === initialAllRegsEid);
+                    if (match) openMyViewModal(match, { pushUrl: false, urlTpl: allRegsViewUrlTpl });
+                }
             });
             loadRegistrationSummary();
         }
@@ -2581,6 +2370,7 @@
         function renderSummaryCards(res) {
             const counts = res.status_counts || {};
             $('#statWaitingApproval').text(counts.waiting_approval ?? 0);
+            $('#statWaitingList').text(counts.waiting_list ?? 0);
             $('#statApproved').text(counts.approved ?? 0);
             $('#statRejected').text(counts.rejected ?? 0);
             $('#statCancelled').text(counts.cancelled ?? 0);
@@ -2633,6 +2423,29 @@
             allRegsPage = page;
 
             pageRows.forEach(function (r) {
+                const viewHtml = `<button type="button" class="allRegsViewBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">👁 View</button>`;
+
+                const acceptHtml = r.can_accept
+                    ? `<button type="button" class="allRegsAcceptBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-green-600 transition hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20" data-id="${r.id}">✅ Accept</button>`
+                    : '';
+
+                // Same guard as TrainingRegistrationController::cancel(): a
+                // Rejected/already-Cancelled row has nothing left to cancel,
+                // and a past schedule date can no longer be backed out of.
+                const canCancel = !['R', 'X'].includes(r.status) && !isDateStrPast(r.schedule_date);
+                const cancelHtml = canCancel
+                    ? `<button type="button" class="allRegsCancelBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${r.id}">🗑 Cancel</button>`
+                    : '';
+
+                // Approval progress, distinct from the combined Status column —
+                // this is what decides whether Accept can show up at all for a
+                // waitlisted row (see can_accept in allRegistrations()).
+                const approvalHtml = r.approval_status === 'C'
+                    ? '<span class="text-xs font-semibold text-green-600 dark:text-green-400">Approved</span>'
+                    : r.approval_status === 'R'
+                        ? '<span class="text-xs font-semibold text-red-600 dark:text-red-400">Rejected</span>'
+                        : '<span class="text-xs text-amber-600 dark:text-amber-400">Pending</span>';
+
                 $body.append(`
                     <tr>
                         <td class="py-2 pr-4 font-mono text-xs" data-label="Doc ID">${r.docid}</td>
@@ -2642,9 +2455,36 @@
                         </td>
                         <td class="py-2 pr-4" data-label="Company / Dept">${r.cpny_name ?? r.cpny_id} / ${r.department_name ?? r.department_id}</td>
                         <td class="py-2 pr-4" data-label="Training">${r.training_name ?? '-'}</td>
+                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Level">${r.grade_name ?? '-'}</td>
                         <td class="py-2 pr-4 whitespace-nowrap" data-label="Schedule Date">${fmtDate(r.schedule_date)}</td>
+                        <td class="py-2 pr-4" data-label="Training Status">${scheduleStatusBadge(r.schedule_status)}</td>
                         <td class="py-2 pr-4 whitespace-nowrap" data-label="Registered On">${fmtDate(r.registered_at)}</td>
                         <td class="py-2 pr-4" data-label="Status">${statusBadge(r.status)}</td>
+                        <td class="py-2 pr-4" data-label="Approval">${approvalHtml}</td>
+                        <td class="py-2 pr-4 text-center" data-label="Queue #">${r.queue_no ? `<span class="inline-flex items-center rounded-full bg-sky-100 px-2 py-0.5 text-xs font-semibold text-sky-700 dark:bg-sky-900/40 dark:text-sky-300">#${r.queue_no}</span>` : '-'}</td>
+                        <td class="py-2 pr-4" data-label="Action">
+                            <div class="relative inline-block text-left" x-data="{ open: false, top: 0, left: 0 }" @click.outside="open = false">
+                                <button type="button" @click="
+                                        const b = \$el.getBoundingClientRect();
+                                        top = b.bottom + window.scrollY + 4;
+                                        left = b.right + window.scrollX - 192;
+                                        open = !open;
+                                    "
+                                    class="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                                    Actions
+                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                                </button>
+                                <template x-teleport="body">
+                                    <div x-show="open" x-transition style="display:none;" @click="open = false"
+                                        :style="'position:absolute; top:' + top + 'px; left:' + left + 'px;'"
+                                        class="z-50 w-48 origin-top-right overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                                        ${viewHtml}
+                                        ${acceptHtml}
+                                        ${cancelHtml}
+                                    </div>
+                                </template>
+                            </div>
+                        </td>
                     </tr>
                 `);
             });
@@ -2654,6 +2494,90 @@
                 renderAllRegistrations();
             });
         }
+
+        $(document).on('click', '.allRegsViewBtn', function () {
+            const id = $(this).data('id');
+            const r = allRegistrationRows.find((row) => row.id === id);
+            if (!r) return;
+            openMyViewModal(r, { urlTpl: allRegsViewUrlTpl });
+        });
+
+        $(document).on('click', '.allRegsCancelBtn', function () {
+            const id = $(this).data('id');
+
+            Swal.fire({
+                title: 'Cancel this registration?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, cancel it',
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                $.ajax({
+                    url: cancelUrlTpl.replace('__ID__', id),
+                    method: 'POST',
+                    headers: csrfHeaders,
+                    success: function (res) {
+                        toast(res.success ? 'success' : 'error', res.message);
+                        if (res.success) loadAllRegistrations();
+                    },
+                    error: function (xhr) {
+                        toast('error', xhr.responseJSON?.message || 'Gagal membatalkan registrasi');
+                    },
+                });
+            });
+        });
+
+        $(document).on('click', '.allRegsAcceptBtn', function () {
+            const id = $(this).data('id');
+            const r = allRegistrationRows.find((row) => String(row.id) === String(id));
+            if (!r) return;
+
+            const opts = (r.quota_options || []).map((q) => {
+                const sel = q.cpny_id === r.cpny_id ? ' selected' : '';
+                const label = `${q.cpny_name} — ${q.available}/${q.quota_pax} seats`;
+                return `<option value="${q.cpny_id}"${sel}>${label}</option>`;
+            }).join('');
+
+            Swal.fire({
+                title: `Accept ${r.name ?? r.username}?`,
+                html: `
+                    <div style="text-align:left;font-size:13px;">
+                        <p><strong>Doc ID:</strong> ${r.docid}</p>
+                        <p><strong>Training:</strong> ${r.training_name ?? '-'}</p>
+                        <p><strong>Date:</strong> ${fmtDate(r.schedule_date)}</p>
+                        <div style="margin-top:12px;">
+                            <label class="ticketModal-label">🏢 Use Quota From</label>
+                            <select id="swalAllRegsAcceptCpny" class="ticketModal-select">${opts}</select>
+                            <p style="font-size:11px;color:#6b7280;margin-top:6px;">
+                                Defaults to the participant's own company (${r.cpny_id}). Pick another company to consume its quota instead.
+                            </p>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Yes, accept',
+                cancelButtonText: 'Cancel',
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                const cpnyId = document.getElementById('swalAllRegsAcceptCpny')?.value ?? r.cpny_id;
+
+                $.ajax({
+                    url: `/training-list/${id}/manual-accept`,
+                    method: 'POST',
+                    headers: csrfHeaders,
+                    data: { cpny_id: cpnyId },
+                    success: function (res) {
+                        toast(res.success ? 'success' : 'error', res.message);
+                        if (res.success) loadAllRegistrations();
+                    },
+                    error: function (xhr) {
+                        toast('error', xhr.responseJSON?.message || 'Gagal menerima peserta');
+                    },
+                });
+            });
+        });
 
         $('#allRegsSearch').on('input', function () {
             allRegsPage = 1;
@@ -2699,6 +2623,9 @@
 
         if (initialMyEid) {
             $('.tabBtn[data-tab="mine"]').trigger('click');
+        }
+        if (initialAllRegsEid) {
+            $('.tabBtn[data-tab="allregs"]').trigger('click');
         }
     </script>
 </x-app-layout>

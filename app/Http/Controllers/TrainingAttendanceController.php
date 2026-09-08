@@ -51,12 +51,9 @@ class TrainingAttendanceController extends Controller
             ->groupBy('schedule_id')
             ->pluck('cnt', 'schedule_id');
 
-        $gradeIds = $details->pluck('schedule.job_level')->filter()->unique();
-        $gradeNames = $gradeIds->isEmpty()
-            ? collect()
-            : StoGrading::whereIn('grade_id', $gradeIds)->pluck('grade_name', 'grade_id');
+        $levelLabels = StoGrading::labelsFor($details->pluck('schedule.job_level'));
 
-        $rows = $details->map(function ($d) use ($gradeNames, $approvedCounts) {
+        $rows = $details->map(function ($d) use ($approvedCounts, $levelLabels) {
             $schedule = $d->schedule;
             $training = $schedule?->training;
 
@@ -64,7 +61,7 @@ class TrainingAttendanceController extends Controller
                 'id' => $d->schedule_id,
                 'docid' => $d->training_detail_id,
                 'training_name' => $training->training_name ?? null,
-                'grade_name' => $gradeNames[$schedule->job_level ?? null] ?? ($schedule->job_level ?? null),
+                'grade_name' => $levelLabels[$schedule->job_level ?? null] ?? ($schedule->job_level ?? null),
                 'schedule_date' => $d->schedule_date?->format('Y-m-d'),
                 'start_time' => $d->schedule_start_time,
                 'end_time' => $d->schedule_end_time,

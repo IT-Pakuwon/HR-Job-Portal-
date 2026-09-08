@@ -15,11 +15,13 @@ use App\Models\MsLndTrainingSchedule;
 use App\Models\MsLndTrainingQuota;
 use App\Models\MsTrainingEvent;
 use App\Models\StoGrading;
+use App\Models\StoSubGradingJobLevel;
 use App\Models\TrApproval;
 use App\Models\TrLndTrainingFeedbackAnswer;
 use App\Models\TrLndTrainingRegistration;
 use App\Models\TrMessage;
 use App\Models\User;
+use App\Models\ViewUsersTalenta;
 use App\Services\TrainingRegistrationService;
 use App\Services\TrainingWaitlistNotifier;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -52,7 +54,7 @@ class TrainingRegistrationController extends Controller
 
     public function index()
     {
-        return view('pages.training_list.index', ['initialEid' => null, 'initialMyEid' => null]);
+        return view('pages.training_list.index', ['initialEid' => null, 'initialMyEid' => null, 'initialAllRegsEid' => null]);
     }
 
     /**
@@ -68,7 +70,7 @@ class TrainingRegistrationController extends Controller
 
         MsTrainingEvent::findOrFail($id);
 
-        return view('pages.training_list.index', ['initialEid' => $eid, 'initialMyEid' => null]);
+        return view('pages.training_list.index', ['initialEid' => $eid, 'initialMyEid' => null, 'initialAllRegsEid' => null]);
     }
 
     /**
@@ -85,7 +87,27 @@ class TrainingRegistrationController extends Controller
             ->where('user_registration', Auth::user()->username)
             ->firstOrFail();
 
-        return view('pages.training_list.index', ['initialEid' => null, 'initialMyEid' => $eid]);
+        return view('pages.training_list.index', ['initialEid' => null, 'initialMyEid' => $eid, 'initialAllRegsEid' => null]);
+    }
+
+    /**
+     * Same shareable-URL convention as showMy() above, but for the
+     * HCDEVACCESS-only List Registration tab — any employee's registration,
+     * not just the caller's own (showMy()'s ownership check would 404 an HR
+     * admin trying to open someone else's).
+     */
+    public function showAllRegs($eid)
+    {
+        if (!Auth::user()->hasRole('HCDEVACCESS')) {
+            abort(403, 'Anda tidak memiliki akses HCDEVACCESS');
+        }
+
+        $id = Hashids::decode($eid)[0] ?? null;
+        abort_if(!$id, 404);
+
+        TrLndTrainingRegistration::findOrFail($id);
+
+        return view('pages.training_list.index', ['initialEid' => null, 'initialMyEid' => null, 'initialAllRegsEid' => $eid]);
     }
 
     /**
@@ -144,8 +166,8 @@ class TrainingRegistrationController extends Controller
             ->groupBy('schedule_id');
 
         $companyNames = MsCompany::whereIn('cpny_id', $userCpnyIds)->pluck('cpny_name', 'cpny_id');
-        $gradeNames = StoGrading::whereIn('grade_id', $details->pluck('schedule.job_level')->filter()->unique())
-            ->pluck('grade_name', 'grade_id');
+        $myLevelGroup = $this->jobLevelGroupsFor(collect([$user]))->get($user->username);
+        $levelLabels = StoGrading::labelsFor($details->pluck('schedule.job_level'));
         $speakerNames = User::whereIn('username', $details->pluck('training_speaker_username')->filter()->unique())
             ->pluck('name', 'username');
         $placeNames = MsLndPlaces::whereIn('places_id', $details->pluck('places_id')->filter()->unique())
@@ -156,7 +178,7 @@ class TrainingRegistrationController extends Controller
         $posterUrls = $details->pluck('schedule.training_poster')->filter()->unique()
             ->mapWithKeys(fn ($path) => [$path => $this->gcsSignedUrl($path)]);
 
-        $scheduleOptions = $details->map(function ($d) use ($myRegs, $usage, $companyNames, $gradeNames, $speakerNames, $placeNames, $posterUrls) {
+        $scheduleOptions = $details->map(function ($d) use ($myRegs, $usage, $companyNames, $myLevelGroup, $levelLabels, $speakerNames, $placeNames, $posterUrls) {
             $grouped = $usage->get($d->schedule_id, collect());
 
             $eligibleCompanies = $d->quota->map(function ($q) use ($grouped, $companyNames) {
@@ -174,6 +196,15 @@ class TrainingRegistrationController extends Controller
 
             $mine = $myRegs->get($d->schedule_id);
 
+            // Schedules created before the Level picker switched to
+            // group_job_level still hold a legacy numeric grade_id — there's
+            // no equivalent group to compare against, so the gate doesn't
+            // apply to those. Unresolved caller level (null) is also treated
+            // as a match — HR-maintained level mapping may not cover every
+            // employee yet, and that gap shouldn't silently lock people out.
+            $isLegacyLevel = $d->schedule->job_level !== null && ctype_digit((string) $d->schedule->job_level);
+            $levelMatch = $isLegacyLevel || $myLevelGroup === null || $myLevelGroup === $d->schedule->job_level;
+
             return [
                 'id' => $d->schedule_id,
                 'training_id' => $d->training_id,
@@ -188,7 +219,8 @@ class TrainingRegistrationController extends Controller
                 'meeting_link' => $d->training_meeting_link,
                 'poster_url' => $d->schedule->training_poster ? ($posterUrls[$d->schedule->training_poster] ?? null) : null,
                 'grade_id' => $d->schedule->job_level,
-                'grade_name' => $gradeNames[$d->schedule->job_level] ?? $d->schedule->job_level,
+                'grade_name' => $levelLabels[$d->schedule->job_level] ?? $d->schedule->job_level,
+                'level_match' => $levelMatch,
                 'speaker_name' => $d->training_speaker_name ?: $d->training_ext_speaker_name,
                 'registration_deadline' => $d->registration_deadline,
                 'is_open' => !$d->registration_deadline || !Carbon::parse($d->registration_deadline)->isPast(),
@@ -223,7 +255,8 @@ class TrainingRegistrationController extends Controller
                 'levels' => $schedules->pluck('grade_name')->filter()->unique()->values(),
                 'speakers' => $schedules->pluck('speaker_name')->filter()->unique()->values(),
                 'schedule_count' => $schedules->count(),
-                'eligible' => $schedules->contains(fn ($s) => count($s['eligible_companies']) > 0),
+                'level_eligible' => $schedules->contains(fn ($s) => $s['level_match']),
+                'eligible' => $schedules->contains(fn ($s) => count($s['eligible_companies']) > 0 && $s['level_match']),
                 'schedules' => $schedules->values(),
             ];
         })->values();
@@ -248,6 +281,62 @@ class TrainingRegistrationController extends Controller
             ->map(fn ($v) => trim($v))
             ->filter()
             ->values();
+    }
+
+    /**
+     * Each user's own level group (the same group_job_level bucket a
+     * schedule's job_level is now set to) — resolved via ms_user.npk ->
+     * view_users_talenta.employee_id -> job_level title -> matched against
+     * hr_ms_sto_subgrading_joblevel.job_level_id.
+     *
+     * Both Talenta's title and job_level_id carry a " - N" disambiguation
+     * suffix for duplicate titles (e.g. "Supervisor - 1"); stripped on both
+     * sides before matching so "Supervisor" and "Supervisor - 1" line up
+     * with the same group.
+     *
+     * A user who can't be resolved (no npk, no Talenta record, no matching
+     * subgrade row) maps to null — callers treat that as "can't tell, don't
+     * block" rather than a hard mismatch, since this is HR-maintained
+     * reference data that may not cover every employee yet.
+     *
+     * @return \Illuminate\Support\Collection<string, ?string> username => group_job_level
+     */
+    private function jobLevelGroupsFor(\Illuminate\Support\Collection $users): \Illuminate\Support\Collection
+    {
+        $npks = $users->pluck('npk')->filter()->unique()->values();
+
+        if ($npks->isEmpty()) {
+            return $users->mapWithKeys(fn ($u) => [$u->username => null]);
+        }
+
+        $titlesByNpk = ViewUsersTalenta::whereIn('employee_id', $npks)->pluck('job_level', 'employee_id');
+
+        $groupCpnyIds = $users->pluck('group_cpny_id')->filter()
+            ->map(fn ($v) => strtoupper(trim($v)))->unique()->values();
+
+        $stripSuffix = fn ($title) => strtolower(trim(preg_replace('/\s*-\s*\d+$/', '', (string) $title)));
+
+        $groupByKey = [];
+        StoSubGradingJobLevel::where('status', 'A')
+            ->whereIn('group_cpny_id', $groupCpnyIds)
+            ->whereNotNull('job_level_id')
+            ->get(['group_cpny_id', 'job_level_id', 'group_job_level'])
+            ->each(function ($row) use (&$groupByKey, $stripSuffix) {
+                $key = strtoupper(trim($row->group_cpny_id)).'|'.$stripSuffix($row->job_level_id);
+                $groupByKey[$key] ??= $row->group_job_level;
+            });
+
+        return $users->mapWithKeys(function ($user) use ($titlesByNpk, $groupByKey, $stripSuffix) {
+            $title = $titlesByNpk[$user->npk] ?? null;
+
+            if (!$title) {
+                return [$user->username => null];
+            }
+
+            $key = strtoupper(trim($user->group_cpny_id)).'|'.$stripSuffix($title);
+
+            return [$user->username => $groupByKey[$key] ?? null];
+        });
     }
 
     /**
@@ -305,10 +394,9 @@ class TrainingRegistrationController extends Controller
         $placeIds = $registrations->pluck('schedule.places_id')->filter()->unique();
         $placeNames = $placeIds->isEmpty() ? collect() : MsLndPlaces::whereIn('places_id', $placeIds)->pluck('places_name', 'places_id');
 
-        $gradeIds = $registrations->pluck('schedule.schedule.job_level')->filter()->unique();
-        $gradeNames = $gradeIds->isEmpty() ? collect() : StoGrading::whereIn('grade_id', $gradeIds)->pluck('grade_name', 'grade_id');
+        $levelLabels = StoGrading::labelsFor($registrations->pluck('schedule.schedule.job_level'));
 
-        $rows = $registrations->map(function ($r) use ($answeredDocIds, $placeNames, $gradeNames) {
+        $rows = $registrations->map(function ($r) use ($answeredDocIds, $placeNames, $levelLabels) {
             $hasAttended = (bool) $r->completed_at;
             $feedbackOpen = (bool) $r->schedule?->is_feedback_open;
             $feedbackSubmitted = $answeredDocIds->contains($r->training_regist_id);
@@ -328,7 +416,7 @@ class TrainingRegistrationController extends Controller
                 'location' => $r->schedule?->places_id ? ($placeNames[$r->schedule->places_id] ?? $r->schedule->places_id) : null,
                 'platform' => $r->schedule?->training_platform,
                 'speaker_name' => $r->schedule?->training_speaker_name ?: $r->schedule?->training_ext_speaker_name,
-                'grade_name' => $r->schedule?->schedule?->job_level ? ($gradeNames[$r->schedule->schedule->job_level] ?? $r->schedule->schedule->job_level) : null,
+                'grade_name' => $levelLabels[$r->schedule?->schedule?->job_level] ?? $r->schedule?->schedule?->job_level,
                 'status' => $r->effective_status,
                 'offer_expires_at' => $r->status_registration === TrLndTrainingRegistration::REG_STATUS_OFFERED
                     ? $r->offer_expires_at
@@ -371,11 +459,7 @@ class TrainingRegistrationController extends Controller
         $training = $trainingDetail?->training;
         abort_unless($trainingDetail && $training, 422, 'Data training tidak lengkap');
 
-        $gradeName = $trainingDetail->job_level;
-        if ($trainingDetail->job_level) {
-            $grade = StoGrading::where('grade_id', $trainingDetail->job_level)->first();
-            $gradeName = $grade->grade_name ?? $trainingDetail->job_level;
-        }
+        $gradeName = StoGrading::labelsFor([$trainingDetail->job_level])->get($trainingDetail->job_level);
 
         $company = MsCompany::where('cpny_id', $registration->cpny_id)->first();
         $companyAddress = CompanyAddress::where('cpnyid', $registration->cpny_id)->first();
@@ -524,6 +608,29 @@ class TrainingRegistrationController extends Controller
             }
 
             $participants->push($participant);
+        }
+
+        // Level gate: a schedule's job_level is a group_job_level bucket (see
+        // TrainingSessionController::levelSearch) — every participant must
+        // resolve to that same bucket via their own npk. A participant who
+        // can't be resolved (no npk/Talenta record/subgrade mapping) is let
+        // through rather than blocked, since this is HR-maintained reference
+        // data that may not cover everyone yet.
+        $scheduleLevelGroup = $detail->schedule?->job_level;
+        $isLegacyLevel = $scheduleLevelGroup !== null && ctype_digit((string) $scheduleLevelGroup);
+        if ($scheduleLevelGroup && !$isLegacyLevel) {
+            $levelGroups = $this->jobLevelGroupsFor($participants);
+
+            foreach ($participants as $participant) {
+                $participantLevel = $levelGroups->get($participant->username);
+
+                if ($participantLevel !== null && $participantLevel !== $scheduleLevelGroup) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Peserta {$participant->username} tidak berada pada level yang sesuai untuk training ini",
+                    ], 422);
+                }
+            }
         }
 
         // Duplicate prevention guardrail: no active (non-cancelled, non-rejected)
@@ -1047,9 +1154,75 @@ class TrainingRegistrationController extends Controller
         $deptIds = $registrations->pluck('department_id')->filter()->unique();
         $departmentNames = $deptIds->isEmpty() ? collect() : MsDepartment::whereIn('department_id', $deptIds)->pluck('department_name', 'department_id');
 
-        $data = $registrations->map(function ($r) use ($names, $companyNames, $departmentNames) {
+        $placeIds = $registrations->pluck('schedule.places_id')->filter()->unique();
+        $placeNames = $placeIds->isEmpty() ? collect() : MsLndPlaces::whereIn('places_id', $placeIds)->pluck('places_name', 'places_id');
+
+        $levelLabels = StoGrading::labelsFor($registrations->pluck('schedule.schedule.job_level'));
+
+        // Queue position within each schedule's waitlist, oldest-first — same
+        // ordering waitlistForOffer()/the Waitlist Management tab uses, just
+        // surfaced here as an actual number so this tab can double as that
+        // queue view instead of a separate one.
+        $queueNumbers = collect();
+        $registrations
+            ->filter(fn ($r) => $r->status_registration === TrLndTrainingRegistration::REG_STATUS_WAITLISTED
+                && $r->status !== TrLndTrainingRegistration::STATUS_REJECTED)
+            ->groupBy('schedule_id')
+            ->each(function ($group) use ($queueNumbers) {
+                // flatMap()->collapse() would silently drop these registration-id
+                // keys (collapse() re-indexes numerically) — build the map by hand
+                // instead so `$queueNumbers[$r->id]` lookups below actually hit.
+                $group->sortBy('created_at')->values()->each(fn ($r, $i) => $queueNumbers->put($r->id, $i + 1));
+            });
+
+        // Accept only ever applies to Waiting List rows whose approval has
+        // completed on a schedule that's already Closed (see manualAccept()
+        // above) — quota/usage is only worth fetching for that subset, not
+        // every registration on the page.
+        $eligibleScheduleIds = $registrations->filter(fn ($r) => $r->status_registration === TrLndTrainingRegistration::REG_STATUS_WAITLISTED
+                && $r->status === TrLndTrainingRegistration::STATUS_APPROVED
+                && $r->schedule?->status === self::SCHEDULE_CLOSED)
+            ->pluck('schedule_id')->unique();
+
+        $quotas = $eligibleScheduleIds->isEmpty() ? collect() : MsLndTrainingQuota::whereIn('schedule_id', $eligibleScheduleIds)->get();
+        $quotaCompanyNames = MsCompany::whereIn('cpny_id', $quotas->pluck('cpny_id')->unique())->pluck('cpny_name', 'cpny_id');
+
+        $usage = $eligibleScheduleIds->isEmpty() ? collect() : TrLndTrainingRegistration::whereIn('schedule_id', $eligibleScheduleIds)
+            ->where(function ($q) {
+                $q->whereNull('status_registration')
+                    ->orWhere('status_registration', TrLndTrainingRegistration::REG_STATUS_OFFERED);
+            })
+            ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
+            ->select('schedule_id', 'cpny_id', DB::raw('count(*) as cnt'))
+            ->groupBy('schedule_id', 'cpny_id')
+            ->get()
+            ->groupBy('schedule_id');
+
+        $data = $registrations->map(function ($r) use ($names, $companyNames, $departmentNames, $placeNames, $levelLabels, $queueNumbers, $quotas, $quotaCompanyNames, $usage) {
+            $canAccept = $r->status_registration === TrLndTrainingRegistration::REG_STATUS_WAITLISTED
+                && $r->status === TrLndTrainingRegistration::STATUS_APPROVED
+                && $r->schedule?->status === self::SCHEDULE_CLOSED;
+
+            $quotaOptions = collect();
+            if ($canAccept) {
+                $usedByCpny = collect($usage->get($r->schedule_id, collect()));
+                $quotaOptions = $quotas->where('schedule_id', $r->schedule_id)
+                    ->map(function ($q) use ($usedByCpny, $quotaCompanyNames) {
+                        $used = (int) $usedByCpny->where('cpny_id', $q->cpny_id)->sum('cnt');
+
+                        return [
+                            'cpny_id' => $q->cpny_id,
+                            'cpny_name' => $quotaCompanyNames[$q->cpny_id] ?? $q->cpny_id,
+                            'quota_pax' => $q->quota_pax,
+                            'used' => $used,
+                            'available' => max(0, $q->quota_pax - $used),
+                        ];
+                    })->values();
+            }
+
             return [
                 'id' => $r->id,
+                'eid' => Hashids::encode($r->id),
                 'docid' => $r->training_regist_id,
                 'training_id' => $r->training_id,
                 'training_name' => $r->schedule?->schedule?->training?->training_name ?? null,
@@ -1059,9 +1232,22 @@ class TrainingRegistrationController extends Controller
                 'cpny_name' => $companyNames[$r->cpny_id] ?? $r->cpny_id,
                 'department_id' => $r->department_id,
                 'department_name' => $departmentNames[$r->department_id] ?? $r->department_id,
+                'grade_name' => $levelLabels[$r->schedule?->schedule?->job_level] ?? $r->schedule?->schedule?->job_level,
                 'schedule_date' => ($r->schedule_date ?? $r->schedule?->schedule_date)?->format('Y-m-d'),
+                'start_time' => $r->schedule?->schedule_start_time,
+                'end_time' => $r->schedule?->schedule_end_time,
+                'mode' => $r->schedule?->training_mode,
+                'location' => $r->schedule?->places_id ? ($placeNames[$r->schedule->places_id] ?? $r->schedule->places_id) : null,
+                'platform' => $r->schedule?->training_platform,
+                'speaker_name' => $r->schedule?->training_speaker_name ?: $r->schedule?->training_ext_speaker_name,
+                'schedule_status' => $r->schedule?->status,
+                'approval_status' => $r->status,
+                'status_registration' => $r->status_registration,
+                'queue_no' => $queueNumbers[$r->id] ?? null,
                 'status' => $r->effective_status,
                 'registered_at' => $r->created_at,
+                'can_accept' => $canAccept,
+                'quota_options' => $quotaOptions,
             ];
         })->values();
 
@@ -1179,88 +1365,8 @@ class TrainingRegistrationController extends Controller
                 'approved' => $statusCounts['C'] ?? 0,
                 'rejected' => $statusCounts['R'] ?? 0,
                 'cancelled' => $statusCounts['X'] ?? 0,
+                'waiting_list' => $statusCounts[TrLndTrainingRegistration::REG_STATUS_WAITLISTED] ?? 0,
             ],
-        ]);
-    }
-
-    /**
-     * HCDEVACCESS-only: waitlisted people, with every company quota row for
-     * their schedule (available seats) so HR can also reassign which
-     * company's quota a person consumes when accepting post-close.
-     */
-    public function waitlistForOffer(Request $request)
-    {
-        $user = Auth::user();
-
-        if (!$user->hasRole('HCDEVACCESS')) {
-            abort(403, 'Anda tidak memiliki akses HCDEVACCESS');
-        }
-
-        $scheduleId = $request->query('schedule_id');
-
-        $query = TrLndTrainingRegistration::where('status_registration', TrLndTrainingRegistration::REG_STATUS_WAITLISTED)
-            ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
-            ->with('schedule.schedule.training');
-
-        if ($scheduleId) {
-            $query->where('schedule_id', $scheduleId);
-        }
-
-        $rows = $query->orderBy('created_at')->get();
-
-        $scheduleIds = $rows->pluck('schedule_id')->unique();
-
-        $quotas = MsLndTrainingQuota::whereIn('schedule_id', $scheduleIds)->get();
-
-        $usage = TrLndTrainingRegistration::whereIn('schedule_id', $scheduleIds)
-            ->where(function ($q) {
-                $q->whereNull('status_registration')
-                    ->orWhere('status_registration', TrLndTrainingRegistration::REG_STATUS_OFFERED);
-            })
-            ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
-            ->select('schedule_id', 'cpny_id', DB::raw('count(*) as cnt'))
-            ->groupBy('schedule_id', 'cpny_id')
-            ->get()
-            ->groupBy('schedule_id');
-
-        $companyNames = MsCompany::whereIn('cpny_id', $quotas->pluck('cpny_id')->unique())
-            ->pluck('cpny_name', 'cpny_id');
-
-        $usernames = $rows->pluck('user_registration')->unique();
-        $names = $usernames->isEmpty() ? collect() : User::whereIn('username', $usernames)->pluck('name', 'username');
-
-        return response()->json([
-            'data' => $rows->map(function ($r) use ($quotas, $usage, $companyNames, $names) {
-                $usedByCpny = collect($usage->get($r->schedule_id, collect()));
-
-                return [
-                    'id' => $r->id,
-                    'docid' => $r->training_regist_id,
-                    'username' => $r->user_registration,
-                    'name' => $names[$r->user_registration] ?? $r->user_registration,
-                    'cpny_id' => $r->cpny_id,
-                    'approval_status' => $r->status,
-                    'training_id' => $r->training_id,
-                    'training_name' => $r->schedule?->schedule?->training?->training_name ?? null,
-                    'schedule_date' => ($r->schedule_date ?? $r->schedule?->schedule_date)?->format('Y-m-d'),
-                    'schedule_status' => $r->schedule?->status ?? null,
-                    'quota_options' => $quotas
-                        ->where('schedule_id', $r->schedule_id)
-                        ->map(function ($q) use ($usedByCpny, $companyNames) {
-                            $used = (int) $usedByCpny->where('cpny_id', $q->cpny_id)->sum('cnt');
-
-                            return [
-                                'cpny_id' => $q->cpny_id,
-                                'cpny_name' => $companyNames[$q->cpny_id] ?? $q->cpny_id,
-                                'quota_pax' => $q->quota_pax,
-                                'used' => $used,
-                                'available' => max(0, $q->quota_pax - $used),
-                            ];
-                        })
-                        ->values(),
-                    'created_at' => $r->created_at,
-                ];
-            }),
         ]);
     }
 

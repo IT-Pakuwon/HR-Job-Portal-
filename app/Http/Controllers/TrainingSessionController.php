@@ -8,6 +8,7 @@ use App\Models\MsCompany;
 use App\Models\MsLndPlaces;
 use App\Models\MsTrainingEvent;
 use App\Models\StoGrading;
+use App\Models\StoSubGradingJobLevel;
 use App\Models\MsLndTrainingDetail;
 use App\Models\MsLndTrainingSchedule;
 use App\Models\MsLndTrainingQuota;
@@ -96,8 +97,7 @@ class TrainingSessionController extends Controller
      */
     private function decorateSchedules($headers)
     {
-        $gradeNames = StoGrading::whereIn('grade_id', $headers->pluck('job_level')->unique())
-            ->pluck('grade_name', 'grade_id');
+        $levelLabels = StoGrading::labelsFor($headers->pluck('job_level'));
 
         $allDetails = $headers->flatMap(fn ($h) => $h->details);
 
@@ -131,7 +131,7 @@ class TrainingSessionController extends Controller
                     'training_detail_id' => $header->training_detail_id,
                     'training_id' => $header->training_id,
                     'job_level' => $header->job_level,
-                    'grade_name' => $gradeNames[$header->job_level] ?? $header->job_level,
+                    'grade_name' => $levelLabels[$header->job_level] ?? $header->job_level,
                     'training_detail_name' => $header->training_detail_name,
                     'training_poster' => $header->training_poster,
                     'training_poster_url' => $header->training_poster ? ($posterUrls[$header->training_poster] ?? null) : null,
@@ -216,7 +216,7 @@ class TrainingSessionController extends Controller
     private function batchRules(): array
     {
         return [
-            'job_level' => 'required|string|max:20',
+            'job_level' => 'required|string|max:50',
             'training_detail_name' => 'required|string|max:255',
             'training_poster' => 'nullable|image|max:5120',
             'is_ext_speaker' => 'required|boolean',
@@ -246,7 +246,7 @@ class TrainingSessionController extends Controller
     private function dateRules(): array
     {
         return [
-            'job_level' => 'required|string|max:20',
+            'job_level' => 'required|string|max:50',
             'training_detail_name' => 'required|string|max:255',
             'training_poster' => 'nullable|image|max:5120',
             'is_ext_speaker' => 'required|boolean',
@@ -640,25 +640,31 @@ class TrainingSessionController extends Controller
         ]);
     }
 
-    public function gradeSearch(Request $request)
+    /**
+     * Level options for the schedule "Level" picker: distinct group_job_level
+     * labels from hr_ms_sto_subgrading_joblevel, scoped to the caller's
+     * company group. The label itself is what gets stored on
+     * ms_lnd_training_detail.job_level — there's no separate id to key on.
+     */
+    public function levelSearch(Request $request)
     {
         $search = trim((string) $request->get('q', ''));
 
-        $query = StoGrading::query()->where('status', 'A');
+        $query = StoSubGradingJobLevel::query()
+            ->where('status', 'A')
+            ->where('group_cpny_id', $this->userGroupCpnyId())
+            ->whereNotNull('group_job_level');
 
         if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('grade_id', 'ilike', "%{$search}%")
-                    ->orWhere('grade_name', 'ilike', "%{$search}%");
-            });
+            $query->where('group_job_level', 'ilike', "%{$search}%");
         }
 
-        $rows = $query->orderBy('grade_name')->limit(50)->get();
+        $levels = $query->distinct()->orderBy('group_job_level')->limit(50)->pluck('group_job_level');
 
         return response()->json([
-            'results' => $rows->map(fn ($row) => [
-                'id' => $row->grade_id,
-                'text' => $row->grade_name,
+            'results' => $levels->map(fn ($level) => [
+                'id' => $level,
+                'text' => $level,
             ]),
         ]);
     }
