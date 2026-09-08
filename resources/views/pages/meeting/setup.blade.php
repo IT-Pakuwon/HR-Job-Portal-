@@ -164,6 +164,7 @@
                                 <th>Accessories</th>
                                 <th>Qty</th>
                                 <th>Zoom</th>
+                                <th>Zoom Type</th>
                                 <th>MS Teams</th>
                                 <th>Connect</th>
                                 <th class="text-right">Action</th>
@@ -402,6 +403,22 @@
                             <input type="text" name="userid_zoom"
                                 class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                 placeholder="zoom@email.com">
+
+                        </div>
+
+                        {{-- ZOOM ACCOUNT TYPE --}}
+                        <div>
+
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Zoom Account Type
+                            </label>
+
+                            <select name="zoom_account"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                                <option value="">-- Select --</option>
+                                <option value="business">Business</option>
+                                <option value="pro">Pro</option>
+                            </select>
 
                         </div>
 
@@ -793,6 +810,22 @@
 
                             <input type="text" name="userid_zoom" id="edit_userid_zoom"
                                 class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+
+                        </div>
+
+                        {{-- ZOOM ACCOUNT TYPE --}}
+                        <div>
+
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Zoom Account Type
+                            </label>
+
+                            <select name="zoom_account" id="edit_zoom_account"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                                <option value="">-- Select --</option>
+                                <option value="business">Business</option>
+                                <option value="pro">Pro</option>
+                            </select>
 
                         </div>
 
@@ -1446,6 +1479,10 @@
                         name: 'userid_zoom'
                     },
                     {
+                        data: 'zoom_account',
+                        name: 'zoom_account'
+                    },
+                    {
                         data: 'userid_msteams',
                         name: 'userid_msteams'
                     },
@@ -1905,6 +1942,7 @@
                     $('#edit_acc_qty').val(data.acc_qty);
 
                     $('#edit_userid_zoom').val(data.userid_zoom);
+                    $('#edit_zoom_account').val(data.zoom_account);
                     $('#edit_userid_msteams').val(data.userid_msteams);
 
                     openEditAccessoriesModal();

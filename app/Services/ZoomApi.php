@@ -19,15 +19,15 @@ class ZoomApi
             
     }
 
-    public function createMeeting($data,$user_idzoom)
+    public function createMeeting($data,$user_idzoom,string $account = 'business')
     {
-        
+
         $user_id = $user_idzoom;
         $password = Str::random(7);
         // $user_id = 'me';
         $response = $this->client->request('POST', 'users/'.$user_id.'/meetings', [
             'headers' => [
-                'Authorization' => 'Bearer ' . $this->generateToken(),
+                'Authorization' => 'Bearer ' . $this->generateToken($account),
                 'Content-Type' => 'application/json',
                 'Accept'        => 'application/json',
             ],
@@ -50,11 +50,11 @@ class ZoomApi
         return json_decode($response->getBody());
     }
 
-    public function updateMeeting($meeting_id, $data) {
+    public function updateMeeting($meeting_id, $data, string $account = 'business') {
         $password = Str::random(7);
         $response = $this->client->request('PATCH', 'meetings/' . $meeting_id, [
             'headers' => [
-                'Authorization' => 'Bearer ' . $this->generateToken(),
+                'Authorization' => 'Bearer ' . $this->generateToken($account),
                 'Content-Type' => 'application/json',
                 // 'Accept'        => 'application/json',
             ],
@@ -80,11 +80,11 @@ class ZoomApi
               
     }
 
-    public function getinvitation($id)
+    public function getinvitation($id, string $account = 'business')
     {
         $response = $this->client->request('GET', 'meetings/'.$id.'/invitation', [
             'headers' => [
-                'Authorization' => 'Bearer ' . $this->generateToken(),
+                'Authorization' => 'Bearer ' . $this->generateToken($account),
                 'Content-Type' => 'application/json',
                 'Accept'        => 'application/json',
             ],
@@ -94,11 +94,11 @@ class ZoomApi
         return json_decode($response->getBody(),true);
     }
 
-    public function deletezoom($id)
+    public function deletezoom($id, string $account = 'business')
     {
         $response = $this->client->request('delete', 'meetings/'.$id, [
             'headers' => [
-                'Authorization' => 'Bearer ' . $this->generateToken(),
+                'Authorization' => 'Bearer ' . $this->generateToken($account),
                 'Content-Type' => 'application/json',
                 'Accept'        => 'application/json',
             ],
@@ -122,11 +122,15 @@ class ZoomApi
 
 
     // }
-    protected function generateToken()
+    protected function generateToken(string $account = 'business')
     {
-        $clientId = config('services.zoom.client_id');
-        $clientSecret = config('services.zoom.client_secret');
-        $accountId = config('services.zoom.account_id');
+        $clientId = config("services.zoom.$account.client_id");
+        $clientSecret = config("services.zoom.$account.client_secret");
+        $accountId = config("services.zoom.$account.account_id");
+
+        if (empty($clientId) || empty($clientSecret) || empty($accountId)) {
+            throw new \RuntimeException("Zoom credentials for account '{$account}' are not configured.");
+        }
 
         $client = new Client(['base_uri' => 'https://zoom.us/oauth/token']);
         $authHeader = base64_encode($clientId . ':' . $clientSecret);

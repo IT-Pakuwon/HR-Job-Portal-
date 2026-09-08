@@ -1128,8 +1128,9 @@ class AgendaController extends Controller
             ->where('id',$meeting->acc_id)
             ->first();
         $user_idzoom = $accessories->user_idzoom;
-         
-                
+        $zoomAccount = $accessories->zoom_account ?: 'business';
+
+
         $data = [
             'topic' => $meeting->title,
             'type' => 2,
@@ -1141,12 +1142,13 @@ class AgendaController extends Controller
                 'waiting_room' => false
             ]
         ];
-                
-        $api_zoom = $this->zoomApi->createMeeting($data,$user_idzoom);        
-        $getinvitation = $this->zoomApi->getinvitation($api_zoom->id);
+
+        $api_zoom = $this->zoomApi->createMeeting($data,$user_idzoom,$zoomAccount);
+        $getinvitation = $this->zoomApi->getinvitation($api_zoom->id,$zoomAccount);
 
         $meeting->zoom_id = $api_zoom->id;
-        $meeting->info_zoom = $getinvitation['invitation'];        
+        $meeting->zoom_account = $zoomAccount;
+        $meeting->info_zoom = $getinvitation['invitation'];
         $meeting->save();
          
         

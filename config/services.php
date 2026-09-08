@@ -44,9 +44,16 @@ return [
     ],
 
     'zoom' => [
-        'client_id' => env('ZOOM_CLIENT_ID'),
-        'client_secret' => env('ZOOM_CLIENT_SECRET'),
-        'account_id' => env('ZOOM_ACCOUNT_ID'),
+        'business' => [
+            'client_id' => env('ZOOM_BUSINESS_CLIENT_ID'),
+            'client_secret' => env('ZOOM_BUSINESS_CLIENT_SECRET'),
+            'account_id' => env('ZOOM_BUSINESS_ACCOUNT_ID'),
+        ],
+        'pro' => [
+            'client_id' => env('ZOOM_PRO_CLIENT_ID'),
+            'client_secret' => env('ZOOM_PRO_CLIENT_SECRET'),
+            'account_id' => env('ZOOM_PRO_ACCOUNT_ID'),
+        ],
     ],
 
     'whatsapp' => [

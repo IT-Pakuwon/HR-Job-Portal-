@@ -398,6 +398,7 @@ class MeetingRoomSetupController extends Controller
             'acc_name' => 'required|string|max:255',
             'acc_qty' => 'nullable|numeric',
             'userid_zoom' => 'nullable|string|max:255',
+            'zoom_account' => 'nullable|in:business,pro',
             'userid_msteams' => 'nullable|string|max:255',
         ]);
 
@@ -410,6 +411,7 @@ class MeetingRoomSetupController extends Controller
                 'acc_name' => $request->acc_name,
                 'acc_qty' => $request->acc_qty,
                 'userid_zoom' => $request->userid_zoom,
+                'zoom_account' => $request->zoom_account,
                 'userid_msteams' => $request->userid_msteams,
                 'status' => 'A',
                 'status_teams' => $request->filled('userid_msteams') ? 'A' : 'X',
@@ -444,6 +446,7 @@ class MeetingRoomSetupController extends Controller
             'acc_name' => 'required|string|max:255',
             'acc_qty' => 'nullable|numeric',
             'userid_zoom' => 'nullable|string|max:255',
+            'zoom_account' => 'nullable|in:business,pro',
             'userid_msteams' => 'nullable|string|max:255',
         ]);
 
@@ -456,6 +459,7 @@ class MeetingRoomSetupController extends Controller
                 'acc_name' => $request->acc_name,
                 'acc_qty' => $request->acc_qty,
                 'userid_zoom' => $request->userid_zoom,
+                'zoom_account' => $request->zoom_account,
                 'userid_msteams' => $request->userid_msteams,
                 'updated_by' => Auth::user()->username ?? Auth::user()->name,
             ]);

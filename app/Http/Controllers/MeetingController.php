@@ -677,6 +677,7 @@ class MeetingController extends Controller
 
             if (!empty($zoomResult['success'])) {
                 $meeting->zoom_id = $zoomResult['zoom_id'] ?? null;
+                $meeting->zoom_account = $zoomResult['zoom_account'] ?? null;
                 $meeting->msteams_join_url = $zoomResult['zoom_join_url'] ?? null;
                 $meeting->info_zoom = json_encode([
                     'password' => $zoomResult['zoom_password'] ?? null,
@@ -1003,6 +1004,7 @@ class MeetingController extends Controller
 
             if (!empty($zoomResult['success'])) {
                 $meeting->zoom_id = $zoomResult['zoom_id'] ?? null;
+                $meeting->zoom_account = $zoomResult['zoom_account'] ?? null;
                 $meeting->msteams_join_url = $zoomResult['zoom_join_url'] ?? null;
                 $meeting->info_zoom = json_encode([
                     'password' => $zoomResult['zoom_password'] ?? null,
@@ -2702,6 +2704,8 @@ class MeetingController extends Controller
             ];
         }
 
+        $account = $accessory->zoom_account ?: 'business';
+
         try {
             $duration = Carbon::parse($meeting->start_meeting_time)
                 ->diffInMinutes(Carbon::parse($meeting->end_meeting_time));
@@ -2712,7 +2716,7 @@ class MeetingController extends Controller
                 'start_time' => $meeting->start_meeting_time,
                 'duration' => max((int) $duration, 1),
                 'agenda' => $meeting->meeting_descr,
-            ], $accessory->userid_zoom);
+            ], $accessory->userid_zoom, $account);
 
             if (empty($result->join_url)) {
                 return [
@@ -2724,6 +2728,7 @@ class MeetingController extends Controller
             return [
                 'success' => true,
                 'zoom_id' => $result->id ?? null,
+                'zoom_account' => $account,
                 'zoom_join_url' => $result->join_url,
                 'zoom_password' => $result->password ?? null,
                 'zoom_start_url' => $result->start_url ?? null,
@@ -2757,7 +2762,7 @@ class MeetingController extends Controller
                 'start_time' => $meeting->start_meeting_time,
                 'duration' => max((int) $duration, 1),
                 'agenda' => $meeting->meeting_descr,
-            ]);
+            ], $meeting->zoom_account ?: 'business');
 
             return ['success' => true];
         } catch (\Throwable $e) {
@@ -2780,7 +2785,7 @@ class MeetingController extends Controller
         }
 
         try {
-            $this->zoomApi->deletezoom($meeting->zoom_id);
+            $this->zoomApi->deletezoom($meeting->zoom_id, $meeting->zoom_account ?: 'business');
 
             return ['success' => true];
         } catch (\Throwable $e) {
