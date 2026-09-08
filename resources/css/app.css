@@ -3,6 +3,8 @@
 /* @import "./additional-styles/style.css"; */
 @import "./additional-styles/utility-patterns.css" layer(components);
 
+@source "../views/**/*.blade.php";
+
 @plugin "@tailwindcss/forms" {
     strategy: base;
 }

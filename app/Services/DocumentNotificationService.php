@@ -786,6 +786,7 @@ class DocumentNotificationService
                         'message'    => "{$typeLabel} {$r->product_name} ({$r->whs_id}) — " . number_format($r->qty_pickable) . ' pcs still in stock, expiring on ' . optional($r->expired_date)->format('d M Y') . '.',
                         'cpnyid'     => $r->cpnyid,
                         'url'        => '/msproduct',
+                        'href'       => '/msproduct/' . Hashids::encode($r->msproduct_id) . '/view',
                         'by'         => null,
                         'updated_at' => $r->expired_date,
                     ];
