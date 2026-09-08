@@ -11,7 +11,7 @@ class MsMeetingAccessories extends Model
     protected $table = "ms_meeting_accessories";
     
     protected $fillable = [
-        'acc_id', 'room_id', 'acc_name', 'acc_qty', 'userid_zoom', 'userid_msteams', 'status', 'created_by', 'created_at', 'updated_by', 'updated_at'
+        'acc_id', 'room_id', 'acc_name', 'acc_qty', 'userid_zoom', 'userid_msteams', 'status', 'status_teams', 'status_zoom', 'created_by', 'created_at', 'updated_by', 'updated_at'
     ];
 
     public function creator()

@@ -2071,12 +2071,16 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/room/update/{id}', 'updateRoom')->name('room.update');
             Route::post('/room/status/{id}', 'updateRoomStatus')->name('room.status');
 
+            Route::get('/room/access/{roomId}', 'getRoomAccess')->name('room.access.get');
+            Route::post('/room/access/{roomId}', 'saveRoomAccess')->name('room.access.save');
+
             Route::get('/accessories/json', 'jsonAccessories')->name('accessories.json');
             Route::get('/accessories/find/{id}', 'findAccessories')->name('accessories.find');
 
             Route::post('/accessories/store', 'storeAccessories')->name('accessories.store');
             Route::post('/accessories/update/{id}', 'updateAccessories')->name('accessories.update');
             Route::post('/accessories/status/{id}', 'updateAccessoriesStatus')->name('accessories.status');
+            Route::post('/accessories/provider-status/{id}', 'updateAccessoriesProviderStatus')->name('accessories.provider-status');
 
             Route::get('/dateblock/json', 'jsonDateBlock')->name('dateblock.json');
             Route::get('/dateblock/find/{id}', 'findDateBlock')->name('dateblock.find');

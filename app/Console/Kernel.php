@@ -32,6 +32,12 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/retry-teams-links.log'));
 
+        // Retry Zoom link creation for bookings that failed to get one
+        $schedule->command('meeting:retry-zoom-links')
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/retry-zoom-links.log'));
+
         // Sync ENVISION tickets → ENVISION CHECKED/SOLVED every 5 minutes
         $schedule->command('ticket:sync-envision-solved')
             ->everyFiveMinutes()
