@@ -388,7 +388,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{hash}/show', [TrainingSessionController::class, 'show'])->name('mastertraining.show');
             Route::get('/{hash}/sessions', [TrainingSessionController::class, 'manage'])->name('mastertraining.sessions');
             Route::get('/{hash}/sessions/schedules', [TrainingSessionController::class, 'schedules'])->name('mastertraining.sessions.schedules');
-            Route::get('/sessions/grade-search', [TrainingSessionController::class, 'gradeSearch'])->name('mastertraining.sessions.grade-search');
+            Route::get('/sessions/level-search', [TrainingSessionController::class, 'levelSearch'])->name('mastertraining.sessions.level-search');
             Route::get('/sessions/speaker-search', [TrainingSessionController::class, 'speakerSearch'])->name('mastertraining.sessions.speaker-search');
             Route::get('/sessions/company-search', [TrainingSessionController::class, 'companySearch'])->name('mastertraining.sessions.company-search');
             Route::get('/sessions/place-search', [TrainingSessionController::class, 'placeSearch'])->name('mastertraining.sessions.place-search');
@@ -409,12 +409,12 @@ Route::middleware(['auth'])->group(function () {
         Route::middleware('access:TRAININGLIST,VIEW')->group(function () {
             Route::get('/', [TrainingRegistrationController::class, 'index'])->name('training-list');
             Route::get('/my/{eid}', [TrainingRegistrationController::class, 'showMy'])->name('training-list.my.show')->where('eid', '[A-Za-z0-9]+');
+            Route::get('/allregs/{eid}', [TrainingRegistrationController::class, 'showAllRegs'])->name('training-list.allregs.show')->where('eid', '[A-Za-z0-9]+');
             Route::get('/json', [TrainingRegistrationController::class, 'json'])->name('training-list.json');
             Route::get('/my', [TrainingRegistrationController::class, 'myRegistrations'])->name('training-list.my');
             Route::get('/colleagues', [TrainingRegistrationController::class, 'colleagues'])->name('training-list.colleagues');
             Route::get('/my/{id}/barcode-status', [TrainingRegistrationController::class, 'barcodeStatus'])->name('training-list.barcode.status')->where('id', '[0-9]+');
             Route::get('/my/{id}/barcode-image', [TrainingRegistrationController::class, 'barcodeImage'])->name('training-list.barcode.image')->where('id', '[0-9]+');
-            Route::get('/waitlist', [TrainingRegistrationController::class, 'waitlistForOffer'])->name('training-list.waitlist');
             Route::get('/pending-approvals', [TrainingRegistrationController::class, 'pendingApprovals'])->name('training-list.pending-approvals');
             Route::get('/all-registrations', [TrainingRegistrationController::class, 'allRegistrations'])->name('training-list.all-registrations');
             Route::get('/all-registrations/export', [TrainingRegistrationController::class, 'exportAllRegistrations'])->name('training-list.all-registrations.export');

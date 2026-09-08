@@ -822,7 +822,7 @@
                 dropdownParent: $('#scheduleModal'),
                 placeholder: 'Choose level',
                 ajax: {
-                    url: "{{ route('mastertraining.sessions.grade-search') }}",
+                    url: "{{ route('mastertraining.sessions.level-search') }}",
                     dataType: 'json',
                     delay: 250,
                     data: params => ({ q: params.term }),
