@@ -9,6 +9,7 @@
                 :status="$personnel->status"
                 :is-approver="$isApprover"
                 :can-edit="$canEdit"
+                :require-edit-access-on-revise="true"
                 :edit-url="url('/editpersonnels/' . $hash)"
             />
         </x-breadcrumb>
@@ -141,7 +142,7 @@
                                 <span>Created By</span>
                             </div>
                             <span class="{{ $value }}">
-                                {{ ucwords(strtolower($personnel->created_user ?? '-')) }}
+                                {{ $createdByName ?: ucwords(strtolower($personnel->created_user ?? '-')) }}
                             </span>
                         </div>
 
@@ -167,7 +168,7 @@
                             </div>
 
                             <span class="{{ $value }}">
-                                {{ ucwords(strtolower(optional($personnel)->immediate_superior)) ?? '-' }}
+                                {{ $immediateSuperiorName ?: (ucwords(strtolower(optional($personnel)->immediate_superior)) ?: '-') }}
                                 <span class="text-gray-400">•</span>
                                 {{ ucwords(strtolower(optional($personnel)->state_position)) ?? '-' }}
                             </span>
@@ -397,30 +398,30 @@
                             x-transition:leave="transition ease-in duration-200"
                             x-transition:leave-start="opacity-100 translate-y-0"
                             x-transition:leave-end="opacity-0 translate-y-2">
-                            <table class="w-full text-sm">
+                            <table class="w-full text-xs">
                                 <thead>
                                     <tr
                                         class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
-                                        <th class="p-3 text-left font-semibold">Level</th>
-                                        <th class="p-3 text-left font-semibold">Name</th>
-                                        <th class="p-3 text-left font-semibold">Date</th>
-                                        <th class="p-3 text-left font-semibold">Status</th>
+                                        <th class="w-16 px-3 py-2 text-left font-semibold whitespace-nowrap">Level</th>
+                                        <th class="px-3 py-2 text-left font-semibold">Name</th>
+                                        <th class="w-40 px-3 py-2 text-left font-semibold whitespace-nowrap">Date</th>
+                                        <th class="w-36 px-3 py-2 text-left font-semibold whitespace-nowrap">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach ($approval as $ap)
                                         <tr
                                             class="border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                            <td class="p-3 text-left text-gray-800 dark:text-gray-200">
+                                            <td class="px-3 py-2 text-left text-gray-800 dark:text-gray-200 whitespace-nowrap">
                                                 {{ $ap->aprv_leveling }}
                                             </td>
-                                            <td class="p-3 text-left text-gray-800 dark:text-gray-200">
+                                            <td class="px-3 py-2 text-left leading-tight text-gray-800 dark:text-gray-200">
                                                 {{ $ap->aprv_name }}
                                             </td>
-                                            <td class="p-3 text-left text-gray-700 dark:text-gray-300">
+                                            <td class="px-3 py-2 text-left text-gray-700 dark:text-gray-300 whitespace-nowrap">
                                                 {{ $ap->aprv_dateafter ?: '-' }}
                                             </td>
-                                            <td class="p-3 text-left">
+                                            <td class="px-3 py-2 text-left whitespace-nowrap">
                                                 @php
                                                     $statusText = '';
                                                     $statusClass = '';
@@ -447,7 +448,7 @@
                                                     }
                                                 @endphp
                                                 <span
-                                                    class="{{ $statusClass }} inline-block rounded-full px-3 py-1 text-sm font-semibold">{{ $statusText }}</span>
+                                                    class="{{ $statusClass }} inline-block whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold leading-none">{{ $statusText }}</span>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -517,15 +518,15 @@
 
                             <div class="flex w-full flex-col justify-center">
                                 <div id="commentList"
-                                    class="custom-scrollbar flex max-h-60 flex-col space-y-4 overflow-y-auto p-4">
-                                    <p class="py-4 text-center italic text-gray-500 dark:text-gray-400">Loading comments...</p>
+                                    class="custom-scrollbar flex max-h-60 flex-col space-y-3 overflow-y-auto p-4 text-sm">
+                                    <p class="py-4 text-center text-xs italic text-gray-500 dark:text-gray-400">Loading comments...</p>
                                 </div>
 
                                 <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
                                     <input id="commentInput" type="text" placeholder="Write a comment..."
-                                        class="flex-1 rounded-lg border border-transparent bg-gray-100 p-3 text-gray-800 transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400" />
+                                        class="flex-1 rounded-lg border border-transparent bg-gray-100 px-3 py-2.5 text-sm text-gray-800 transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400" />
                                     <button id="postCommentBtn" type="button"
-                                        class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                        class="rounded-lg bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
                                         Post 🚀
                                     </button>
                                 </div>
@@ -630,7 +631,7 @@
                 $list.empty();
                 if (!comments || comments.length === 0) {
                     $list.append(
-                        '<p class="py-4 text-center italic text-gray-500 dark:text-gray-400">No comments yet. Be the first to comment!</p>'
+                        '<p class="py-4 text-center text-xs italic text-gray-500 dark:text-gray-400">No comments yet. Be the first to comment!</p>'
                     );
                     return;
                 }
@@ -639,18 +640,18 @@
                     const msg = highlightMentions(c.message ?? '');
                     const when = prettyTime(c.created_at ?? c.createdAt ?? '');
                     $list.append(`
-        <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-          <p class=" text-sm  font-semibold">${user}
-            <span class="text-sm text-gray-500 dark:text-gray-400">(${when})</span>
+        <div class="mb-2 rounded-lg border border-gray-300 bg-gray-100 p-3 text-sm dark:border-gray-700 dark:bg-gray-800">
+          <p class="text-xs font-semibold leading-tight">${user}
+            <span class="font-normal text-gray-500 dark:text-gray-400">(${when})</span>
           </p>
-          <p class="text-gray-800 dark:text-gray-200">${msg}</p>
+          <p class="mt-1 text-sm leading-snug text-gray-800 dark:text-gray-200">${msg}</p>
         </div>
       `);
                 });
             }
 
             function loadComments() {
-                $list.html('<p class="text-gray-500 italic dark:text-gray-400">Loading comments...</p>');
+                $list.html('<p class="text-xs text-gray-500 italic dark:text-gray-400">Loading comments...</p>');
                 $.ajax({
                         url: `/personnel/${encodeURIComponent(docid)}/comments`,
                         type: 'GET',

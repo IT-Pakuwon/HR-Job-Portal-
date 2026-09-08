@@ -6,12 +6,17 @@
     'imBlockingId' => null,
     'imBlockingStatus' => null,
     'editUrl' => null,
+    'requireEditAccessOnRevise' => false,
 ])
 
 <div class="flex items-center justify-end">
     <div class="flex gap-3">
-        @if ($status === 'D' || $status === 'H' || ($status === 'P' && $canEdit))
-            {{-- Status Revise (D), Hold (H), or On Progress (P) with edit permission: show Edit button --}}
+        @if (
+            $status === 'H'
+            || ($status === 'D' && (!$requireEditAccessOnRevise || $canEdit))
+            || ($status === 'P' && $canEdit)
+        )
+            {{-- Draft tetap dapat diedit; akses Revise dapat diwajibkan oleh halaman pemanggil. --}}
             @if ($editUrl)
                 <a href="{{ $editUrl }}">
                     <button

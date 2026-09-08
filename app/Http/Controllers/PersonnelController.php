@@ -567,7 +567,7 @@ class PersonnelController extends Controller
                     $q->where('aprv_type', 'Normal')
                     ->orWhere(function ($q2) use ($positionCondition) {
                         $q2->where('aprv_type', 'Condition')
-                            ->where('aprv_condition', $positionCondition);
+                            ->whereRaw('LOWER(TRIM(aprv_condition)) = ?', [trim($positionCondition)]);
                     });
                 })
                 ->count();
@@ -1040,9 +1040,18 @@ class PersonnelController extends Controller
         $id = $decoded[0] ?? null;
         abort_if(!$id, 404);
 
-        $personnel = Personnel::findOrFail($id);
-
         $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
+        $personnel = Personnel::whereKey($id)
+            ->where('group_cpny_id', $groupCompanyId)
+            ->firstOrFail();
+
+        $canEdit = GroupAccspecific::where('username', $user->username)
+            ->where('group_cpny_id', $groupCompanyId)
+            ->where('group_access_id', 'EDIT')
+            ->where('status', 'A')
+            ->exists();
+
+        abort_if(in_array($personnel->status, ['D', 'P'], true) && !$canEdit, 403);
 
         $usercpny = Usercpny::where('username', $user->username)->get();
         $usercpny2 = Usercpny::where('username', $user->username)->first();
@@ -1201,6 +1210,19 @@ class PersonnelController extends Controller
         $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
         $isDraft = $request->boolean('is_draft');
 
+        $existingPersonnel = Personnel::whereKey($id)
+            ->where('group_cpny_id', $groupCompanyId)
+            ->firstOrFail();
+        $hasEditAccess = GroupAccspecific::where('username', $user->username)
+            ->where('group_cpny_id', $groupCompanyId)
+            ->where('group_access_id', 'EDIT')
+            ->where('status', 'A')
+            ->exists();
+
+        if (in_array($existingPersonnel->status, ['D', 'P'], true) && !$hasEditAccess) {
+            return response()->json(['message' => 'You are not authorized to edit this personnel requisition.'], 403);
+        }
+
         if ($isDraft && $groupCompanyId !== 'SBY') {
             return response()->json(['message' => 'Save as Draft hanya tersedia untuk group SBY.'], 403);
         }
@@ -1275,7 +1297,9 @@ class PersonnelController extends Controller
             $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
             $doctype = 'PRF';
             $datestamp = Carbon::now()->toDateTimeString();
-            $personnel = Personnel::findOrFail($id);
+            $personnel = Personnel::whereKey($id)
+                ->where('group_cpny_id', $groupCompanyId)
+                ->firstOrFail();
             $originalCpnyid = $personnel->cpnyid;
             $originalGroupCompanyId = $personnel->group_cpny_id ?: $groupCompanyId;
 
@@ -1289,6 +1313,7 @@ class PersonnelController extends Controller
             }
 
             if (!$isDraft && !$grading) {
+                DB::rollBack();
                 return response()->json([
                     'error' => 'Gagal menyimpan personnel',
                     'message' => 'Subgrading tidak ditemukan/Non-aktif',
@@ -1332,6 +1357,12 @@ class PersonnelController extends Controller
 
             // ===== Rebuild Approval Lines (hapus pending lama, build ulang dari master) =====
             // Ambil baris approval: Normal + Condition yang cocok dengan group_grade
+            $canEdit = GroupAccspecific::where('username', $user->username)
+                ->where('group_cpny_id', $groupCompanyId)
+                ->where('group_access_id', 'EDIT')
+                ->where('status', 'A')
+                ->exists();
+
             if (!$isDraft) {
                 $msApproval = MsApproval::where('aprv_doctype', $doctype)
                     ->where('aprv_cpnyid', $request->cpnyid)
@@ -1355,34 +1386,38 @@ class PersonnelController extends Controller
                     ], 422);
                 }
 
-                $canEdit = GroupAccspecific::where('username', $user->username)
-                    ->where('group_cpny_id', $groupCompanyId)
-                    ->where('group_access_id', 'EDIT')
-                    ->where('status', 'A')
-                    ->exists();
+                // Approval harus selalu mengikuti master terbaru ketika PRF diedit.
+                // Hapus pending lama dari company asal/tujuan agar tidak dobel,
+                // kemudian bentuk ulang Normal + Condition sesuai group_grade.
+                TrApproval::where('refnbr', $docid)
+                    ->where('aprv_doctype', $doctype)
+                    ->whereIn('aprv_cpnyid', array_values(array_unique(array_filter([
+                        $originalCpnyid,
+                        $request->cpnyid,
+                    ]))))
+                    ->where('status', 'P')
+                    ->delete();
 
-                if (!$canEdit) {
-                    // Hapus pending lama agar tidak dobel
-                    // TrApproval::where('refnbr', $docid)->where('status', 'P')->delete();
+                $firstApprovalLevel = (float) $msApproval->min('aprv_leveling');
 
-                    // Sisipkan approval baru
-                    foreach ($msApproval as $row) {
-                        $isFirstLevel = ((int) $row->aprv_leveling === (int) $msApproval->min('aprv_leveling'));
-                        TrApproval::create([
-                            'refnbr' => $docid,
-                            'aprv_leveling' => $row->aprv_leveling,
-                            'aprv_doctype' => $row->aprv_doctype,
-                            'aprv_cpnyid' => $row->aprv_cpnyid,
-                            'aprv_departementid' => $row->aprv_departementid,
-                            'aprv_username' => $row->aprv_username,
-                            'aprv_name' => $row->aprv_name,
-                            'aprv_datebefore' => $isFirstLevel ? $datestamp : null,
-                            'aprv_type' => $row->aprv_type,        // Normal / Condition
-                            'aprv_condition' => $row->aprv_condition,   // Staff / Manager (jika ada)
-                            'status' => 'P',
-                            'created_by' => $user->username,
-                        ]);
-                    }
+                foreach ($msApproval as $row) {
+                    $isFirstLevel = ((float) $row->aprv_leveling === $firstApprovalLevel);
+                    TrApproval::create([
+                        'refnbr' => $docid,
+                        'aprv_leveling' => $row->aprv_leveling,
+                        'aprv_doctype' => $row->aprv_doctype,
+                        'aprv_cpnyid' => $row->aprv_cpnyid,
+                        'aprv_departementid' => $row->aprv_departementid,
+                        'aprv_username' => $row->aprv_username,
+                        'aprv_name' => $row->aprv_name,
+                        'aprv_datebefore' => $isFirstLevel ? $datestamp : null,
+                        'aprv_type' => $row->aprv_type,
+                        'aprv_condition' => $row->aprv_condition,
+                        'aprv_start_nominal' => $row->aprv_start_nominal,
+                        'aprv_end_nominal' => $row->aprv_end_nominal,
+                        'status' => 'P',
+                        'created_by' => $user->username,
+                    ]);
                 }
             }
 
@@ -1624,6 +1659,15 @@ class PersonnelController extends Controller
             ->where('group_cpny_id', $personnel->group_cpny_id)
             ->value('division_name');
 
+        $createdByName = User::query()
+            ->where('username', $personnel->created_user)
+            ->where('group_cpny_id', $personnel->group_cpny_id)
+            ->value('name');
+        $immediateSuperiorName = User::query()
+            ->where('username', $personnel->immediate_superior)
+            ->where('group_cpny_id', $personnel->group_cpny_id)
+            ->value('name');
+
         // === Approval pakai TrApproval (refnbr & aprv_leveling) ===
         $approval = TrApproval::where('refnbr', $personnel->docid)
             ->where('aprv_cpnyid', $personnel->cpnyid)
@@ -1703,6 +1747,8 @@ class PersonnelController extends Controller
             'companyName' => $companyName,
             'departmentName' => $departmentName,
             'divisionName' => $divisionName,
+            'createdByName' => $createdByName,
+            'immediateSuperiorName' => $immediateSuperiorName,
             'jobres'     => $jobres,
             'jobqua'     => $jobqua,
             'approval'   => $approval,
