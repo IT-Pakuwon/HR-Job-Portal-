@@ -694,6 +694,15 @@ class CareerController extends Controller
             // $this->insert_psychotest($career, $user);
             $this->update_trx_approval($career, $user);
             $this->sendemail_applicant($career, $user);
+
+            $hasJoinStep = MJobApplyStep::where('group_cpny_id', $career->group_cpny_id)
+                ->where('step_id', 'OFF')
+                ->exists();
+
+            if (!$hasJoinStep) {
+                $this->insert_payroll_confirmation($career, $user);
+                $this->insert_onboarding($career, $user);
+            }
         }
 
         if ($t_approval->step_order == 1) {
@@ -2089,6 +2098,67 @@ class CareerController extends Controller
         return response()->json(['success' => true]);
     }
 
+    public function insert_payroll_confirmation($career, $user)
+    {
+        return DB::connection('mysql3')->transaction(function () use ($career, $user) {
+            // Serialisasi pembuatan payroll untuk lamaran yang sama.
+            Career::where('id', $career->id)->lockForUpdate()->firstOrFail();
+
+            $existing = Payrollconfirm::where('jobapply_id', $career->docid)
+                ->where('applicant_id', $career->applicant_id)
+                ->where('jobid', $career->jobid)
+                ->where('group_cpny_id', $career->group_cpny_id)
+                ->first();
+
+            if ($existing) {
+                return $existing;
+            }
+
+            $now = Carbon::now();
+            $year = $now->year;
+            $month = $now->format('m');
+
+            $number = DB::connection('pgsql2')->transaction(function () use ($year, $month) {
+                $autonbr = Autonbr::where('doctype', 'OFF')
+                    ->where('year', $year)
+                    ->where('month', $month)
+                    ->where('status', 'A')
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$autonbr) {
+                    Autonbr::create([
+                        'doctype' => 'OFF',
+                        'year' => $year,
+                        'month' => $month,
+                        'status' => 'A',
+                        'number' => 1,
+                    ]);
+
+                    return 1;
+                }
+
+                $number = $autonbr->number + 1;
+                $autonbr->update(['number' => $number]);
+
+                return $number;
+            });
+
+            // Tanggal kerja diisi kemudian melalui Save Schedule pada tab Join.
+            return Payrollconfirm::create([
+                'docid' => 'OFF'.$now->format('ym').sprintf('%05d', $number),
+                'jobapply_id' => $career->docid,
+                'cpnyid' => $career->cpnyid,
+                'group_cpny_id' => $career->group_cpny_id,
+                'jobid' => $career->jobid,
+                'applicant_id' => $career->applicant_id,
+                'offer_date' => $now->toDateString(),
+                'status' => 'P',
+                'created_user' => $user->username,
+            ]);
+        });
+    }
+
     public function insert_onboarding($career, $user)
     {
         // dd($career);
@@ -2177,7 +2247,10 @@ class CareerController extends Controller
 
     public function getChecklist($docid_onboarding)
     {
-        $checklists = Tronboarding::leftjoin('hr_ms_onboarding_checklist', 'hr_trx_onboarding_checklist.checklist_id', '=', 'hr_ms_onboarding_checklist.checklist_onboarding_id')
+        $checklists = Tronboarding::leftJoin('hr_ms_onboarding_checklist', function ($join) {
+            $join->on('hr_trx_onboarding_checklist.checklist_id', '=', 'hr_ms_onboarding_checklist.checklist_onboarding_id')
+                ->on('hr_trx_onboarding_checklist.group_cpny_id', '=', 'hr_ms_onboarding_checklist.group_cpny_id');
+        })
             ->select('hr_trx_onboarding_checklist.*', 'hr_ms_onboarding_checklist.checklist_onboarding_descr')
             ->where('hr_trx_onboarding_checklist.docid', $docid_onboarding)
             ->orderBy('hr_trx_onboarding_checklist.step_order', 'ASC')
@@ -2339,7 +2412,7 @@ class CareerController extends Controller
                 'aprv_departementid' => $approvals->aprv_departementid,
                 'aprv_username' => $approvals->aprv_username,
                 'aprv_name' => $approvals->aprv_name,
-                'aprv_datebefore' => $approvals->aprv_leveling == 2 ? $datestamp : null,
+                'aprv_datebefore' => $datestamp,
                 'aprv_type' => $approvals->aprv_type ?? null,
                 'aprv_condition' => $approvals->aprv_condition ?? null,
                 'aprv_start_nominal' => $approvals->aprv_start_nominal ?? null,
@@ -2540,11 +2613,21 @@ class CareerController extends Controller
             $username = $user ? $user->username : 'system';
 
             // Ambil payroll berdasar applicant_id, dan tambahkan filter jobapply_id kalau ada
-            $payrollQuery = Payrollconfirm::where('applicant_id', $data['applicant_id']);
+            $payrollQuery = Payrollconfirm::where('applicant_id', $data['applicant_id'])
+                ->where('group_cpny_id', strtoupper(trim((string) ($user->group_cpny_id ?? ''))));
             if (!empty($data['jobapply_id'])) {
                 $payrollQuery->where('jobapply_id', $data['jobapply_id']);
             }
-            $payroll = $payrollQuery->firstOrFail();
+            $payroll = $payrollQuery->first();
+
+            if (!$payroll) {
+                DB::rollBack();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Jadwal belum dapat disimpan karena data Payroll Confirmation untuk lamaran ini belum tersedia.',
+                ], 422);
+            }
 
             // Onboarding schedule boleh mundur dari tanggal Payroll, tapi tidak boleh
             // lebih awal dari tanggal yang sudah dikonfirmasi di Payroll Confirmation Data.

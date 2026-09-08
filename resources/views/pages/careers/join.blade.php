@@ -400,7 +400,12 @@
                             escapeHtml: true
                         });
                     } else {
-                        toastr.error('Terjadi kesalahan saat menyimpan jadwal.');
+                        const message = xhr.status === 419
+                            ? 'Sesi telah berakhir. Muat ulang halaman lalu coba kembali.'
+                            : (xhr.responseJSON?.message || 'Terjadi kesalahan saat menyimpan jadwal.');
+                        toastr.error(message, 'Gagal menyimpan jadwal', {
+                            escapeHtml: true
+                        });
                     }
                 })
                 .always(function() {
