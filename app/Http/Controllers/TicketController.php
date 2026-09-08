@@ -207,6 +207,7 @@ class TicketController extends Controller
 
         $allCompanies = MsCompany::query()
             ->where('status', 'A')
+            ->where('group_cpny_id', 'JKT')
             ->orderBy('cpny_name')
             ->get(['cpny_id', 'cpny_name']);
 
@@ -2396,6 +2397,7 @@ class TicketController extends Controller
 
         $companies = MsCompany::query()
             ->where('status', 'A')
+            ->where('group_cpny_id', 'JKT')
             ->orderBy('cpny_name')
             ->get(['cpny_id', 'cpny_name']);
 
@@ -2628,6 +2630,7 @@ class TicketController extends Controller
     {
         $companies = MsCompany::query()
             ->where('status', 'A')
+            ->where('group_cpny_id', 'JKT')
             ->orderBy('cpny_name')
             ->get(['cpny_id', 'cpny_name']);
 
