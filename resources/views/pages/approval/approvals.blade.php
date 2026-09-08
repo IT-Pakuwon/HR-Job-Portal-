@@ -21,6 +21,10 @@
                         class="approval-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
                         💰 Approval Group Biaya
                     </button>
+                    <button type="button" id="tabBtnApprovalSby"
+                        class="approval-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
+                        🏢 Approval SBY
+                    </button>
                 @endunless
             </div>
 
@@ -464,6 +468,103 @@
                     </table>
                 </div>
             </div>
+
+            {{-- ===================== TAB: Approval SBY ===================== --}}
+            <div id="tabPanelApprovalSby"
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                <div class="border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🏢 Approval
+                        SBY</h2>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        Approval lines for every company in the SBY group, across all document types and
+                        departments.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap items-end gap-3 px-5 pt-4">
+                    <div class="min-w-50 flex-1">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                            Filter Doc Type
+                        </label>
+                        <select id="sbyFilterDoctype"
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
+                            <option value="">All Document Type</option>
+                            @foreach ($doctypes as $dt)
+                                <option value="{{ $dt->doctype }}">{{ $dt->doctype }} - {{ $dt->doctype_descr }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="min-w-50 flex-1">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                            Filter Company
+                        </label>
+                        <select id="sbyFilterCompany"
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
+                            <option value="">All Company</option>
+                            @foreach ($sbyCompanies as $c)
+                                <option value="{{ $c->cpny_id }}">{{ $c->cpny_id }} - {{ $c->cpny_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="min-w-50 flex-1">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                            Filter Department
+                        </label>
+                        <select id="sbyFilterDept"
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
+                            <option value="">All Department</option>
+                            @foreach ($departments as $d)
+                                <option value="{{ $d->department_id }}">{{ $d->department_id }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="min-w-40 flex-1">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                            Filter Status
+                        </label>
+                        <select id="sbyFilterStatus"
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
+                            <option value="">All Status</option>
+                            <option value="A">Active</option>
+                            <option value="X">Inactive</option>
+                        </select>
+                    </div>
+
+                    <div class="mt-6">
+                        <button id="sbyClearUserFilters" type="button"
+                            class="rounded-lg border px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-600">
+                            Clear Filter
+                        </button>
+                    </div>
+                </div>
+
+                <div class="relative mt-4 overflow-hidden">
+                    <table id="approvalSbyTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                <th class="w-10 px-4 py-3"></th>
+                                <th class="col-actions w-24 px-2 py-3 text-left font-medium">Actions</th>
+                                <th class="col-level w-16 px-2 py-3 text-left font-medium">Level</th>
+                                <th class="col-doctype px-2 py-3 text-left font-medium">Doc Type</th>
+                                <th class="px-2 py-3 text-left font-medium">Company</th>
+                                <th class="px-2 py-3 text-left font-medium">Department</th>
+                                <th class="col-name px-2 py-3 text-left font-medium">Name</th>
+                                <th class="px-2 py-3 text-left font-medium">Type</th>
+                                <th class="px-2 py-3 text-left font-medium">Condition</th>
+                                <th class="col-start w-24 px-2 py-3 text-left font-medium">Start Nom</th>
+                                <th class="col-end w-24 px-2 py-3 text-left font-medium">End Nom</th>
+                                <th class="col-status w-24 px-2 py-3 text-left font-medium">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
             @endunless
         </div>
     </div>
@@ -771,6 +872,10 @@
                 groupbiaya: {
                     panel: '#tabPanelGroupBiaya',
                     btn: '#tabBtnGroupBiaya'
+                },
+                sby: {
+                    panel: '#tabPanelApprovalSby',
+                    btn: '#tabBtnApprovalSby'
                 }
             };
 
@@ -798,6 +903,9 @@
             });
             $('#tabBtnGroupBiaya').on('click', function() {
                 showTab('groupbiaya');
+            });
+            $('#tabBtnApprovalSby').on('click', function() {
+                showTab('sby');
             });
 
             // ===== DataTable =====
@@ -933,6 +1041,176 @@
                         }
                     }
                 ]
+            });
+
+            // ===== DataTable: Approval SBY (every SBY-group company, any doctype/department) =====
+            let sbyApprovalTable = $('#approvalSbyTable').DataTable({
+                ajax: {
+                    url: "{{ route('approvals.sby-companies.json') }}",
+                    type: "GET",
+                    dataSrc: 'data'
+                },
+                processing: true,
+                serverSide: true,
+                order: [
+                    [2, 'asc']
+                ],
+                lengthMenu: [
+                    [10, 25, 50, 100, 250, -1],
+                    [10, 25, 50, 100, 250, 'All']
+                ],
+                responsive: {
+                    details: {
+                        type: 'column',
+                        target: 0
+                    }
+                },
+                columnDefs: [{
+                    targets: 0,
+                    width: '28px',
+                    className: 'dtr-control',
+                    orderable: false,
+                    searchable: false
+                }],
+                dom: '<"dt-toolbar flex items-center justify-start gap-4"lBf>rtip',
+                buttons: [{
+                        extend: 'excelHtml5',
+                        text: '↓ Excel',
+                        title: 'Approval SBY',
+                        className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
+                    },
+                    {
+                        extend: 'csvHtml5',
+                        text: '↓ CSV',
+                        title: 'Approval SBY',
+                        className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
+                    }
+                ],
+                columns: [{
+                        data: null,
+                        defaultContent: ''
+                    }, {
+                        data: 'id',
+                        className: 'text-center col-actions',
+                        render: function(data, type, row) {
+                            return `
+                                        <div class="flex justify-center space-x-2">
+                                            <label class="switch">
+                                                <input type="checkbox" class="toggleStatus"
+                                                    data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
+                                                <span class="slider round"></span>
+                                            </label>
+                                            <button class="editApprovalBtn bg-blue-500 text-white px-2 py-1 rounded"
+                                                data-id="${data}">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="duplicateApprovalBtn bg-amber-500 text-white px-2 py-1 rounded"
+                                                title="Duplicate this template"
+                                                data-doctype="${row.aprv_doctype}"
+                                                data-cpnyid="${row.aprv_cpnyid}"
+                                                data-deptid="${row.aprv_departementid}">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                        </div>
+                                    `;
+                        }
+                    },
+                    {
+                        data: 'aprv_leveling',
+                        className: 'text-center col-level'
+                    },
+                    {
+                        data: 'aprv_doctype',
+                        className: 'col-doctype'
+                    },
+                    {
+                        data: 'aprv_cpnyid'
+                    },
+                    {
+                        data: 'aprv_departementid'
+                    },
+                    {
+                        data: 'aprv_name',
+                        className: 'col-name'
+                    },
+                    {
+                        data: 'aprv_type'
+                    },
+                    {
+                        data: 'aprv_condition'
+                    },
+                    {
+                        data: 'aprv_start_nominal',
+                        className: 'text-right col-start',
+                        render: function(data) {
+                            return data ? parseFloat(data).toLocaleString('id-ID') : '';
+                        }
+                    },
+                    {
+                        data: 'aprv_end_nominal',
+                        className: 'text-right col-end',
+                        render: function(data) {
+                            return data ? parseFloat(data).toLocaleString('id-ID') : '';
+                        }
+                    },
+                    {
+                        data: 'status',
+                        className: 'text-center col-status',
+                        render: function(data) {
+                            return data === 'A' ?
+                                '<span class="bg-green-300/30 text-green-600 font-semibold px-4 py-1 rounded">Active</span>' :
+                                '<span class="bg-red-300/30 text-red-600 font-semibold px-4 py-1 rounded">Inactive</span>';
+                        }
+                    }
+                ]
+            });
+
+            // Table lives inside a tab panel hidden at init time — recalc widths once shown.
+            $('#tabBtnApprovalSby').one('click', function() {
+                sbyApprovalTable.columns.adjust().responsive.recalc();
+            });
+
+            $('#sbyFilterDoctype, #sbyFilterCompany, #sbyFilterDept, #sbyFilterStatus').select2({
+                width: '100%'
+            });
+
+            function applySbyColumnFilter(selectId, colIndex) {
+                $(selectId).on('change', function() {
+                    const val = $(this).val();
+                    if (val) {
+                        const regex = '^' + $.fn.dataTable.util.escapeRegex(val) + '$';
+                        sbyApprovalTable.column(colIndex).search(regex, true, false).draw();
+                    } else {
+                        sbyApprovalTable.column(colIndex).search('', false, false).draw();
+                    }
+                });
+            }
+
+            // kolom: 3 = doctype, 4 = company, 5 = department, 11 = status
+            applySbyColumnFilter('#sbyFilterDoctype', 3);
+            applySbyColumnFilter('#sbyFilterCompany', 4);
+            applySbyColumnFilter('#sbyFilterDept', 5);
+            applySbyColumnFilter('#sbyFilterStatus', 11);
+
+            $('#sbyClearUserFilters').on('click', function() {
+                $('#sbyFilterDoctype').val('').trigger('change');
+                $('#sbyFilterCompany').val('').trigger('change');
+                $('#sbyFilterDept').val('').trigger('change');
+                $('#sbyFilterStatus').val('').trigger('change');
+
+                sbyApprovalTable.search('').columns().search('').draw();
             });
 
             // ===== INIT select2 =====
@@ -1499,6 +1777,7 @@
                     },
                     success: function() {
                         table.ajax.reload(null, false);
+                        if (sbyApprovalTable) sbyApprovalTable.ajax.reload(null, false);
                     }
                 });
             });
@@ -1586,6 +1865,7 @@
                     success: function() {
                         showTab('list');
                         table.ajax.reload(null, false);
+                        if (sbyApprovalTable) sbyApprovalTable.ajax.reload(null, false);
 
                         Swal.fire({
                             icon: 'success',
@@ -1710,6 +1990,7 @@
                     success: function() {
                         $('#editApprovalModal').addClass('hidden');
                         table.ajax.reload(null, false);
+                        if (sbyApprovalTable) sbyApprovalTable.ajax.reload(null, false);
 
                         Swal.fire({
                             icon: 'success',
@@ -2113,7 +2394,12 @@
             });
 
             // ADD Approval Group Biaya
+            // NOTE: show the modal (removes display:none) *before* building the line
+            // row — select2 measures the container width at init time, and it can't
+            // do that correctly while the modal is still hidden.
             $('#gbAddApprovalBtn').click(function() {
+                $('#gbApprovalModal').removeClass('hidden');
+
                 $('#gbApprovalModalTitle').text("Add Approval Group Biaya");
                 $('#gbApprovalForm')[0].reset();
                 $('#gb_id').val('');
@@ -2133,7 +2419,6 @@
 
                 gbLineIdxCounter = 0;
                 gbAddLineRow();
-                $('#gbApprovalModal').removeClass('hidden');
             });
 
             // EDIT Approval Group Biaya

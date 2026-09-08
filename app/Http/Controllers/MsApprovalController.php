@@ -100,6 +100,12 @@ class MsApprovalController extends Controller
             ->orderBy('groupbiayadescr')
             ->get();
 
+        $sbyCompanies = MsCompany::select('cpny_id', 'cpny_name')
+            ->where('status', 'A')
+            ->where('group_cpny_id', 'SBY')
+            ->orderBy('cpny_id')
+            ->get();
+
         return view('pages.approval.approvals', [
             'doctypes'      => $doctypes,
             'departments'   => $departments,
@@ -108,6 +114,7 @@ class MsApprovalController extends Controller
             'type' => $type,
             'condition' => $condition,
             'groupbiaya' => $groupbiaya,
+            'sbyCompanies' => $sbyCompanies,
             'restrictAdmin' => $this->isRestrictedAdmin(),
         ]);
     }
@@ -135,6 +142,39 @@ class MsApprovalController extends Controller
                 ->whereIn('aprv_departementid', DepartmentHR::pluck('department_id'))
                 ->whereIn('aprv_cpnyid', $this->sbyCompanyIds());
         }
+
+        if (!$request->has('order')) {
+            $query->orderBy('aprv_doctype')
+                ->orderBy('aprv_departementid')
+                ->orderBy('aprv_leveling');
+        }
+
+        return DataTables::of($query)->make(true);
+    }
+
+    /**
+     * Approval list scoped to every company in the SBY group — any doctype,
+     * any department (unlike the adminsby-restricted *-sby* routes, which are
+     * additionally locked to doctype PRF and HR departments).
+     */
+    public function sbyJson(Request $request)
+    {
+        $query = MsApproval::query()
+            ->select([
+                'id',
+                'aprv_leveling',
+                'aprv_doctype',
+                'aprv_cpnyid',
+                'aprv_departementid',
+                'aprv_username',
+                'aprv_name',
+                'aprv_type',
+                'aprv_condition',
+                'aprv_start_nominal',
+                'aprv_end_nominal',
+                'status',
+            ])
+            ->whereIn('aprv_cpnyid', $this->sbyCompanyIds());
 
         if (!$request->has('order')) {
             $query->orderBy('aprv_doctype')

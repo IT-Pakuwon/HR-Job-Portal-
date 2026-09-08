@@ -52,7 +52,7 @@ class TrainingRegistrationController extends Controller
 
     public function index()
     {
-        return view('pages.training_list.index', ['initialEid' => null]);
+        return view('pages.training_list.index', ['initialEid' => null, 'initialMyEid' => null]);
     }
 
     /**
@@ -68,7 +68,24 @@ class TrainingRegistrationController extends Controller
 
         MsTrainingEvent::findOrFail($id);
 
-        return view('pages.training_list.index', ['initialEid' => $eid]);
+        return view('pages.training_list.index', ['initialEid' => $eid, 'initialMyEid' => null]);
+    }
+
+    /**
+     * Same browse page, but with a specific one of the caller's own
+     * registrations' view modal auto-opened — same hash-id/shareable-URL
+     * convention as show() above, scoped to My Registrations instead.
+     */
+    public function showMy($eid)
+    {
+        $id = Hashids::decode($eid)[0] ?? null;
+        abort_if(!$id, 404);
+
+        TrLndTrainingRegistration::where('id', $id)
+            ->where('user_registration', Auth::user()->username)
+            ->firstOrFail();
+
+        return view('pages.training_list.index', ['initialEid' => null, 'initialMyEid' => $eid]);
     }
 
     /**
@@ -288,7 +305,7 @@ class TrainingRegistrationController extends Controller
         $placeIds = $registrations->pluck('schedule.places_id')->filter()->unique();
         $placeNames = $placeIds->isEmpty() ? collect() : MsLndPlaces::whereIn('places_id', $placeIds)->pluck('places_name', 'places_id');
 
-        $gradeIds = $registrations->pluck('schedule.job_level')->filter()->unique();
+        $gradeIds = $registrations->pluck('schedule.schedule.job_level')->filter()->unique();
         $gradeNames = $gradeIds->isEmpty() ? collect() : StoGrading::whereIn('grade_id', $gradeIds)->pluck('grade_name', 'grade_id');
 
         $rows = $registrations->map(function ($r) use ($answeredDocIds, $placeNames, $gradeNames) {
@@ -311,7 +328,7 @@ class TrainingRegistrationController extends Controller
                 'location' => $r->schedule?->places_id ? ($placeNames[$r->schedule->places_id] ?? $r->schedule->places_id) : null,
                 'platform' => $r->schedule?->training_platform,
                 'speaker_name' => $r->schedule?->training_speaker_name ?: $r->schedule?->training_ext_speaker_name,
-                'grade_name' => $r->schedule?->job_level ? ($gradeNames[$r->schedule->job_level] ?? $r->schedule->job_level) : null,
+                'grade_name' => $r->schedule?->schedule?->job_level ? ($gradeNames[$r->schedule->schedule->job_level] ?? $r->schedule->schedule->job_level) : null,
                 'status' => $r->effective_status,
                 'offer_expires_at' => $r->status_registration === TrLndTrainingRegistration::REG_STATUS_OFFERED
                     ? $r->offer_expires_at

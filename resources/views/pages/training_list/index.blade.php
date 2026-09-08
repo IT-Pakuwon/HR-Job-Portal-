@@ -1166,6 +1166,8 @@
         const jsonUrl = "{{ route('training-list.json') }}";
         const myUrl = "{{ route('training-list.my') }}";
         const certificateUrl = "{{ route('training-list.certificate', ['id' => '__ID__']) }}";
+        const myViewUrlTpl = "{{ route('training-list.my.show', ['eid' => '__EID__'], false) }}";
+        const trainingListPath = "{{ route('training-list', [], false) }}";
         const cancelUrlTpl = "{{ route('training-list.cancel', ['scheduleId' => '__ID__']) }}";
         const colleaguesUrl = "{{ route('training-list.colleagues') }}";
         const pendingApprovalsUrl = "{{ route('training-list.pending-approvals') }}";
@@ -1179,6 +1181,7 @@
         @endif
         const csrfHeaders = { 'X-CSRF-TOKEN': '{{ csrf_token() }}' };
         const initialEid = @json($initialEid);
+        const initialMyEid = @json($initialMyEid ?? null);
 
         const statusLabels = {
             P: ['Waiting Approval', 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'],
@@ -1192,6 +1195,17 @@
         function statusBadge(status) {
             const [label, cls] = statusLabels[status] || [status, 'bg-gray-100 text-gray-600'];
             return `<span class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${cls}">${label}</span>`;
+        }
+
+        // Approved registrations read as plain text ("Registration Approved")
+        // rather than a colored pill, everywhere a per-schedule/my-status chip
+        // is shown — the colored badge is reserved for statuses that need to
+        // stand out (pending, rejected, waitlisted, offered).
+        function myStatusChip(status) {
+            if (status === 'C') {
+                return '<span class="text-xs text-gray-400">Registration Approved</span>';
+            }
+            return statusBadge(status);
         }
 
         // ms_lnd_training_schedule.status: single-letter codes (see
@@ -1419,11 +1433,9 @@
                     // covered — otherwise the employee can still register for another date.
                     // Past-deadline dates are excluded here (not registerable) but still
                     // count toward schedule_count and appear in View Detail as informational.
+                    // Per-schedule status (Approved/Rejected/Waitlisted/etc.) is shown
+                    // inside View Detail rather than duplicated here on the card.
                     const openSchedules = r.schedules.filter((s) => !s.my_status && s.is_open);
-                    const registeredStatuses = [...new Set(r.schedules.filter((s) => s.my_status).map((s) => s.my_status))];
-                    const registeredHtml = registeredStatuses.length
-                        ? `<div class="flex flex-wrap gap-1">${registeredStatuses.map(statusBadge).join('')}</div>`
-                        : '';
 
                     let registerBtnHtml = '';
                     if (!r.eligible) {
@@ -1459,7 +1471,6 @@
                         </div>
                         ${metaLine}
                         ${locationLine}
-                        ${registeredHtml}
                         <div class="mt-auto grid grid-cols-2 gap-2 pt-1">
                             ${detailBtn}
                             ${registerBtnHtml}
@@ -1555,7 +1566,7 @@
 
                     let actionHtml;
                     if (s.my_status) {
-                        actionHtml = statusBadge(s.my_status);
+                        actionHtml = myStatusChip(s.my_status);
                     } else if (!s.is_open) {
                         actionHtml = '<span class="text-xs text-gray-400">Registration closed</span>';
                     } else if (!s.eligible_companies.length) {
@@ -1875,12 +1886,19 @@
         }
 
         let minePage = 1;
+        let initialMyEidHandled = false;
 
         function loadMine() {
             $.get(myUrl, function (res) {
                 myRegistrationsRows = res.data || [];
                 minePage = 1;
                 renderMine();
+
+                if (!initialMyEidHandled && initialMyEid) {
+                    initialMyEidHandled = true;
+                    const match = myRegistrationsRows.find((row) => row.eid === initialMyEid);
+                    if (match) openMyViewModal(match, { pushUrl: false });
+                }
             });
         }
 
@@ -1902,7 +1920,7 @@
 
                 $body.append(`
                     <tr>
-                        <td class="py-2 pr-4 font-mono text-xs" data-label="Doc ID">${r.docid}</td>
+                        <td class="py-2 pr-4" data-label="Doc ID"><button type="button" class="viewRegBtn inline-flex items-center gap-1 rounded-lg border border-gray-300 px-2.5 py-1 font-mono text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">${r.docid}</button></td>
                         <td class="py-2 pr-4 wrap-break-word text-sm text-gray-800 dark:text-gray-100" data-label="Training">${r.training_name ?? '-'}</td>
                         <td class="py-2 pr-4 whitespace-nowrap" data-label="Level">${r.grade_name ?? '-'}</td>
                         <td class="py-2 pr-4 wrap-break-word" data-label="Speaker">${r.speaker_name ?? '-'}</td>
@@ -2008,10 +2026,16 @@
             }).join('');
         }
 
-        $(document).on('click', '.viewRegBtn', function () {
-            const id = $(this).data('id');
-            const r = myRegistrationsRows.find((row) => row.id === id);
-            if (!r) return;
+        let myViewModalActive = false;
+
+        function openMyViewModal(r, { pushUrl = true } = {}) {
+            if (pushUrl && r.eid) {
+                const targetPath = myViewUrlTpl.replace('__EID__', r.eid);
+                if (location.pathname !== targetPath) {
+                    history.pushState({ trainingMyView: true }, '', targetPath);
+                }
+            }
+            myViewModalActive = true;
 
             const scheduleLabel = r.start_time
                 ? `${fmtDate(r.schedule_date)} · ${r.start_time}-${r.end_time ?? ''}`
@@ -2063,7 +2087,24 @@
                             $('#viewModalApprovalList').html('<p class="text-xs text-red-500">Failed to load approval line.</p>');
                         });
                 },
+                didClose: () => {
+                    myViewModalActive = false;
+                    if (location.pathname !== trainingListPath) {
+                        history.pushState({ trainingList: true }, '', trainingListPath);
+                    }
+                },
             });
+        }
+
+        $(document).on('click', '.viewRegBtn', function () {
+            const id = $(this).data('id');
+            const r = myRegistrationsRows.find((row) => row.id === id);
+            if (!r) return;
+            openMyViewModal(r);
+        });
+
+        window.addEventListener('popstate', function () {
+            if (myViewModalActive) Swal.close();
         });
 
         let pendingApprovalRows = [];
@@ -2642,5 +2683,9 @@
 
         loadAvailable();
         loadPendingApprovals();
+
+        if (initialMyEid) {
+            $('.tabBtn[data-tab="mine"]').trigger('click');
+        }
     </script>
 </x-app-layout>
