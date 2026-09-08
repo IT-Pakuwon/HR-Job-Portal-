@@ -1413,7 +1413,7 @@ class EngTicketController extends Controller
         abort_unless(
             $this->buildActions($ticket)['can_view'],
             403,
-            'You do not have acceloh nLohss to view this ticket.'
+            'You do not have access ticket to company ' . ($ticket->company?->cpny_name ?: $ticket->cpny_id) . '.'
         );
 
         /*

@@ -479,6 +479,31 @@
                                 </p>
                             </div>
 
+                            <!-- ZOOM MEETING DETAILS (Meeting ID + Passcode) — Zoom only -->
+                            <div id="zoomDetailsBlock"
+                                class="hidden rounded-xl border border-purple-200 bg-purple-50 p-4 dark:border-purple-900/40 dark:bg-purple-900/10">
+
+                                <div class="mb-2 flex items-center justify-between">
+                                    <p class="text-xs font-semibold uppercase text-purple-700">Zoom Meeting Details</p>
+                                    <button id="copyZoomInlineBtn"
+                                        class="rounded border border-purple-300 px-2 py-1 text-xs text-purple-700 hover:bg-purple-100">
+                                        Copy Details
+                                    </button>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3 text-sm">
+                                    <div>
+                                        <p class="text-[11px] uppercase text-gray-400">Meeting ID</p>
+                                        <p id="view_zoom_id" class="font-mono"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-[11px] uppercase text-gray-400">Passcode</p>
+                                        <p id="view_zoom_password" class="font-mono"></p>
+                                    </div>
+                                </div>
+
+                            </div>
+
                         </div>
 
                         <!-- RIGHT -->
@@ -952,12 +977,16 @@
                 const teamsLink = document.getElementById('teamsLink');
                 const copyTeamsBtn = document.getElementById('copyTeamsBtn');
                 const copyZoomDetailsBtn = document.getElementById('copyZoomDetailsBtn');
+                const zoomDetailsBlock = document.getElementById('zoomDetailsBlock');
+                const viewZoomId = document.getElementById('view_zoom_id');
+                const viewZoomPassword = document.getElementById('view_zoom_password');
                 const teamsText = document.getElementById('view_teams');
 
                 // reset
                 teamsBar.classList.add('hidden');
                 teamsLink.href = '#';
                 copyZoomDetailsBtn.classList.add('hidden');
+                zoomDetailsBlock.classList.add('hidden');
                 window.currentZoomDetails = null;
 
                 const BAR_STYLES = {
@@ -999,6 +1028,10 @@
                             joinUrl: props.teams_url,
                             password: props.zoom_password,
                         };
+
+                        viewZoomId.textContent = props.zoom_id || '-';
+                        viewZoomPassword.textContent = props.zoom_password || '-';
+                        zoomDetailsBlock.classList.remove('hidden');
                     }
 
                     teamsText.innerHTML = isZoomMeeting ? `
@@ -1658,19 +1691,23 @@
                 .catch(() => Swal.fire({ icon: 'error', title: 'Failed', text: 'Could not copy link' }));
         });
 
-        document.getElementById('copyZoomDetailsBtn')?.addEventListener('click', function() {
+        function copyZoomDetailsToClipboard() {
             const d = window.currentZoomDetails;
             if (!d || !d.joinUrl) return;
 
             const lines = [
+                d.id ? `Meeting ID: ${d.id}` : null,
                 `Join link: ${d.joinUrl}`,
-                d.password ? `Password: ${d.password}` : null,
+                d.password ? `Passcode: ${d.password}` : null,
             ].filter(Boolean);
 
             navigator.clipboard.writeText(lines.join('\n'))
                 .then(() => Swal.fire({ icon: 'success', title: 'Copied!', text: 'Zoom details copied to clipboard', timer: 1500, showConfirmButton: false }))
                 .catch(() => Swal.fire({ icon: 'error', title: 'Failed', text: 'Could not copy Zoom details' }));
-        });
+        }
+
+        document.getElementById('copyZoomDetailsBtn')?.addEventListener('click', copyZoomDetailsToClipboard);
+        document.getElementById('copyZoomInlineBtn')?.addEventListener('click', copyZoomDetailsToClipboard);
 
         document.getElementById('cancelMeetingBtn')?.addEventListener('click', function() {
 
