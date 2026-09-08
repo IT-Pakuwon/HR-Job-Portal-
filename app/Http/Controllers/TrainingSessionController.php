@@ -297,35 +297,37 @@ class TrainingSessionController extends Controller
     private function generateTrainingDetailCode(string $username): string
     {
         $year = (int) Carbon::now()->year;
+        $month = Carbon::now()->format('m');
 
         $auto = $this->nextAutonbr(
             self::DETAIL_DOCTYPE,
             $year,
-            '00',
+            $month,
             $username,
             'Training Schedule Batch'
         );
 
         $yy = substr((string) $year, 2, 2);
 
-        return self::DETAIL_DOCTYPE . $yy . sprintf('%04d', $auto['next']);
+        return self::DETAIL_DOCTYPE . $yy . $month . sprintf('%04d', $auto['next']);
     }
 
     private function generateScheduleDateCode(string $username): string
     {
         $year = (int) Carbon::now()->year;
+        $month = Carbon::now()->format('m');
 
         $auto = $this->nextAutonbr(
             self::SCHEDULE_DOCTYPE,
             $year,
-            '00',
+            $month,
             $username,
             'Training Schedule Date'
         );
 
         $yy = substr((string) $year, 2, 2);
 
-        return self::SCHEDULE_DOCTYPE . $yy . sprintf('%04d', $auto['next']);
+        return self::SCHEDULE_DOCTYPE . $yy . $month . sprintf('%04d', $auto['next']);
     }
 
     public function storeSchedule(Request $request, $hash)

@@ -241,17 +241,18 @@ class MasterTrainingController extends Controller
     private function generateTrainingCode(string $username): string
     {
         $year = (int) Carbon::now()->year;
+        $month = Carbon::now()->format('m');
 
         $auto = $this->nextAutonbr(
             self::DOCTYPE,
             $year,
-            '00',
+            $month,
             $username,
             'Training Event'
         );
 
         $yy = substr((string) $year, 2, 2);
 
-        return self::DOCTYPE . $yy . sprintf('%04d', $auto['next']);
+        return self::DOCTYPE . $yy . $month . sprintf('%04d', $auto['next']);
     }
 }
