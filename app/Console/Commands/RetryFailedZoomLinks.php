@@ -8,47 +8,48 @@ use App\Models\TrMeeting;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
-class RetryFailedTeamsLinks extends Command
+class RetryFailedZoomLinks extends Command
 {
-    protected $signature = 'meeting:retry-teams-links';
-    protected $description = 'Retry Microsoft Teams meeting link creation for bookings that failed to get one';
+    protected $signature = 'meeting:retry-zoom-links';
+    protected $description = 'Retry Zoom meeting link creation for bookings that failed to get one';
 
     public function handle(MeetingController $meetingController): void
     {
-        // Any accessory wired to a Teams account can produce a Teams link,
-        // regardless of which room (or room status) the meeting was booked in.
-        $teamsAccessoryIds = MsMeetingAccessories::query()
-            ->whereNotNull('userid_msteams')
-            ->where('status_teams', 'A')
+        // Any accessory wired to a Zoom account (and switched on) can produce
+        // a Zoom link, regardless of which room the meeting was booked in.
+        $zoomAccessoryIds = MsMeetingAccessories::query()
+            ->whereNotNull('userid_zoom')
+            ->where('status_zoom', 'A')
             ->pluck('acc_id')
             ->map(fn ($id) => (string) $id)
             ->all();
 
-        if (empty($teamsAccessoryIds)) {
+        if (empty($zoomAccessoryIds)) {
             return;
         }
 
         $meetings = TrMeeting::on('pgsql5')
-            ->whereNull('msteams_join_url')
+            ->whereNull('zoom_id')
+            ->whereNull('msteams_event_id')
             ->where('status', '!=', 'X')
             ->where('end_meeting_time', '>=', now())
             ->whereNotNull('acc_id')
             ->where('acc_id', '!=', '')
             ->get()
-            ->filter(function ($meeting) use ($teamsAccessoryIds) {
+            ->filter(function ($meeting) use ($zoomAccessoryIds) {
                 $accIds = collect(explode(',', (string) $meeting->acc_id))
                     ->map(fn ($x) => trim($x))
                     ->filter();
 
-                return $accIds->intersect($teamsAccessoryIds)->isNotEmpty();
+                return $accIds->intersect($zoomAccessoryIds)->isNotEmpty();
             });
 
         foreach ($meetings as $meeting) {
             try {
-                $result = $meetingController->createTeamsMeetingFromAccessory($meeting);
+                $result = $meetingController->createZoomMeetingFromAccessory($meeting);
 
                 if (empty($result['success'])) {
-                    Log::error('Retry Teams link failed', [
+                    Log::error('Retry Zoom link failed', [
                         'docid' => $meeting->docid,
                         'message' => $result['message'] ?? null,
                     ]);
@@ -56,16 +57,18 @@ class RetryFailedTeamsLinks extends Command
                     continue;
                 }
 
-                $meeting->msteams_event_id = $result['msteams_event_id'] ?? null;
-                $meeting->msteams_join_url = $result['msteams_join_url'] ?? null;
-                $meeting->msteams_passcode = $result['msteams_passcode'] ?? null;
-                $meeting->msteams_meetingid = $result['msteams_meetingid'] ?? null;
+                $meeting->zoom_id = $result['zoom_id'] ?? null;
+                $meeting->msteams_join_url = $result['zoom_join_url'] ?? null;
+                $meeting->info_zoom = json_encode([
+                    'password' => $result['zoom_password'] ?? null,
+                    'start_url' => $result['zoom_start_url'] ?? null,
+                ]);
                 $meeting->updated_at = now();
                 $meeting->save();
 
-                Log::info('Retry Teams link succeeded', ['docid' => $meeting->docid]);
+                Log::info('Retry Zoom link succeeded', ['docid' => $meeting->docid]);
             } catch (\Throwable $e) {
-                Log::error('Retry Teams link exception', [
+                Log::error('Retry Zoom link exception', [
                     'docid' => $meeting->docid,
                     'message' => $e->getMessage(),
                 ]);

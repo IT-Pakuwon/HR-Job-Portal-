@@ -43,6 +43,12 @@ return [
         'scope' => env('MS_GRAPH_SCOPE', 'https://graph.microsoft.com/.default'),
     ],
 
+    'zoom' => [
+        'client_id' => env('ZOOM_CLIENT_ID'),
+        'client_secret' => env('ZOOM_CLIENT_SECRET'),
+        'account_id' => env('ZOOM_ACCOUNT_ID'),
+    ],
+
     'whatsapp' => [
         'url' => env('WHATSAPP_URL'),
 

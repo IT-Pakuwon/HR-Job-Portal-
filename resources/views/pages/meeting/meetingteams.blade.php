@@ -161,7 +161,7 @@
             </div>
 
             <div class="mt-4 rounded-lg bg-blue-50 px-4 py-3 text-sm text-blue-700 border border-blue-100">
-                ℹ️ Multiple bookings are allowed — you can proceed even if the slot is already booked.
+                ℹ️ Multiple overlapping bookings are allowed for Teams. Zoom accounts cannot be double-booked — an overlapping time on a Zoom-enabled accessory will be rejected.
             </div>
         </div>
 
@@ -694,10 +694,20 @@
             const action = document.getElementById('link_action_area');
 
             const isAdmin = !!action;
-            // Use roomStatus ('T' = Teams, 'Z' = Zoom) to determine type,
-            // so a Teams room pending link doesn't fall through to Zoom UI.
-            const isTeams = props.roomStatus === 'T';
-            const isZoom  = props.roomStatus === 'Z';
+
+            // Which provider to show is driven by the Teams/Zoom toggle on the
+            // accessory the meeting was booked with (Meeting Accessories admin
+            // screen). Fall back to the legacy per-room T/Z status only when
+            // the accessory carries no toggle info at all.
+            let isTeams, isZoom;
+
+            if (props.accTeamsEnabled || props.accZoomEnabled) {
+                isTeams = !!props.accTeamsEnabled;
+                isZoom = !isTeams && !!props.accZoomEnabled;
+            } else {
+                isTeams = props.roomStatus === 'T';
+                isZoom = props.roomStatus === 'Z';
+            }
 
             // =========================
             // 🟦 TEAMS (AUTO - NO PROCESS)
@@ -823,22 +833,22 @@
 
                     container.innerHTML = `
                         <div class="text-gray-400 text-sm">
-                            Waiting Zoom link
+                            Auto generating Zoom link...
                         </div>
                     `;
 
                     badge.innerHTML = `
                         <span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-700 rounded">
-                            Pending
+                            Generating
                         </span>
                     `;
 
-                    // ✅ ONLY ZOOM SHOW PROCESS
+                    // Fallback only: use if auto-generation failed (e.g. Zoom API error)
                     if (isAdmin) {
                         action.innerHTML = `
                             <button onclick="enableZoomProcess()"
-                                class="mt-2 px-3 py-1 text-sm bg-blue-600 text-white rounded">
-                                Process Zoom
+                                class="mt-2 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded dark:bg-gray-900 dark:hover:bg-gray-700">
+                                Paste Zoom link manually
                             </button>
                         `;
                     }

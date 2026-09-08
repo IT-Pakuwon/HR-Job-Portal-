@@ -466,7 +466,7 @@
                                 </div>
 
                                 <div>
-                                    <p class="text-[11px] uppercase text-gray-400">Teams</p>
+                                    <p class="text-[11px] uppercase text-gray-400">Meeting Type</p>
                                     <p id="view_teams"></p>
                                 </div>
 
@@ -499,19 +499,25 @@
                 </div>
 
 
-                <!-- TEAMS LINK BAR -->
+                <!-- ONLINE MEETING LINK BAR (Teams or Zoom) -->
                 <div id="teamsBar" class="flex hidden items-center justify-between border-t bg-blue-50 px-6 py-3">
 
-                    <span class="text-sm font-medium text-blue-700">
+                    <span id="teamsBarLabel" class="text-sm font-medium text-blue-700">
                         💬 Microsoft Teams Meeting
                     </span>
 
                     <div class="flex items-center gap-2">
 
-                        <!-- COPY BUTTON -->
+                        <!-- COPY LINK BUTTON -->
                         <button id="copyTeamsBtn"
                             class="rounded border border-blue-300 px-3 py-1.5 text-sm text-blue-700 hover:bg-blue-100">
                             Copy Link
+                        </button>
+
+                        <!-- COPY FULL ZOOM DETAILS (meeting ID + link + password) — Zoom only -->
+                        <button id="copyZoomDetailsBtn" class="hidden
+                            rounded border border-purple-300 px-3 py-1.5 text-sm text-purple-700 hover:bg-purple-100">
+                            Copy Zoom Details
                         </button>
 
                         <!-- JOIN BUTTON -->
@@ -697,7 +703,9 @@
                 const user = arg.event.extendedProps.user;
                 const room = arg.event.extendedProps.room;
                 const type = arg.event.extendedProps.type;
-                const isTeams = arg.event.extendedProps.isTeams;
+                const hasLink = arg.event.extendedProps.isTeams; // has ANY online link (Teams or Zoom share this flag)
+                const isZoomMeeting = !arg.event.extendedProps.accTeamsEnabled && arg.event.extendedProps.accZoomEnabled;
+                const providerLabel = !hasLink ? 'Pending' : (isZoomMeeting ? 'Zoom' : 'Teams');
 
                 const viewType = arg.view.type;
 
@@ -739,7 +747,7 @@
 
                     <div class="fc-event-meta">
                         ${type === 'external' ? 'External' : 'Internal'} •
-                        ${isTeams ? 'Teams' : 'No Teams'}
+                        ${providerLabel}
                     </div>
 
                 </div>
@@ -761,9 +769,10 @@
                 if (p.status === 'X') {
                     status = '❌ Cancelled';
                 } else if (!p.teams_url) {
-                    status = '🎥 No Teams/Zoom';
+                    status = '⏳ Generating link...';
                 } else {
-                    status = p.isTeams ? '💬 Teams Ready' : '🎥 Zoom Ready';
+                    const isZoomMeeting = !p.accTeamsEnabled && p.accZoomEnabled;
+                    status = isZoomMeeting ? '🎥 Zoom Ready' : '💬 Teams Ready';
                 }
 
                 const html = `
@@ -939,20 +948,64 @@
                 // document.getElementById('view_teams').innerText =
                 //     props.isTeams ? 'Available (Teams)' : 'Not Available';
                 const teamsBar = document.getElementById('teamsBar');
+                const teamsBarLabel = document.getElementById('teamsBarLabel');
                 const teamsLink = document.getElementById('teamsLink');
+                const copyTeamsBtn = document.getElementById('copyTeamsBtn');
+                const copyZoomDetailsBtn = document.getElementById('copyZoomDetailsBtn');
                 const teamsText = document.getElementById('view_teams');
 
                 // reset
                 teamsBar.classList.add('hidden');
                 teamsLink.href = '#';
+                copyZoomDetailsBtn.classList.add('hidden');
+                window.currentZoomDetails = null;
 
-                // ✅ PRIORITY 1: TEAMS LINK
+                const BAR_STYLES = {
+                    teams: {
+                        bar: 'flex items-center justify-between border-t bg-blue-50 px-6 py-3',
+                        label: 'text-sm font-medium text-blue-700',
+                        copyBtn: 'rounded border border-blue-300 px-3 py-1.5 text-sm text-blue-700 hover:bg-blue-100',
+                        joinBtn: 'rounded bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700',
+                        text: '💬 Microsoft Teams Meeting',
+                    },
+                    zoom: {
+                        bar: 'flex items-center justify-between border-t bg-purple-50 px-6 py-3',
+                        label: 'text-sm font-medium text-purple-700',
+                        copyBtn: 'rounded border border-purple-300 px-3 py-1.5 text-sm text-purple-700 hover:bg-purple-100',
+                        joinBtn: 'rounded bg-purple-600 px-3 py-1.5 text-sm text-white hover:bg-purple-700',
+                        text: '🎥 Zoom Meeting',
+                    },
+                };
+
+                // ✅ PRIORITY 1: ONLINE MEETING LINK (Teams or Zoom — the same
+                // join-link field is shared, so use the accessory's toggle to
+                // label it correctly)
                 if (props.isTeams && props.teams_url) {
 
-                    teamsBar.classList.remove('hidden');
+                    const isZoomMeeting = !props.accTeamsEnabled && props.accZoomEnabled;
+                    const style = isZoomMeeting ? BAR_STYLES.zoom : BAR_STYLES.teams;
+
+                    teamsBar.className = style.bar;
+                    teamsBarLabel.className = style.label;
+                    teamsBarLabel.textContent = style.text;
+                    copyTeamsBtn.className = style.copyBtn;
+                    teamsLink.className = style.joinBtn;
                     teamsLink.href = props.teams_url;
 
-                    teamsText.innerHTML = `
+                    if (isZoomMeeting) {
+                        copyZoomDetailsBtn.classList.remove('hidden');
+                        window.currentZoomDetails = {
+                            id: props.zoom_id,
+                            joinUrl: props.teams_url,
+                            password: props.zoom_password,
+                        };
+                    }
+
+                    teamsText.innerHTML = isZoomMeeting ? `
+                        <span class="flex items-center gap-2 text-sm text-purple-700 font-medium">
+                            🎥 Zoom Meeting
+                        </span>
+                    ` : `
                         <span class="flex items-center gap-2 text-sm text-blue-700 font-medium">
                             💬 Microsoft Teams Meeting
                         </span>
@@ -1601,8 +1654,22 @@
             const link = document.getElementById('teamsLink').href;
             if (!link || link === '#') return;
             navigator.clipboard.writeText(link)
-                .then(() => Swal.fire({ icon: 'success', title: 'Copied!', text: 'Teams link copied to clipboard', timer: 1500, showConfirmButton: false }))
+                .then(() => Swal.fire({ icon: 'success', title: 'Copied!', text: 'Link copied to clipboard', timer: 1500, showConfirmButton: false }))
                 .catch(() => Swal.fire({ icon: 'error', title: 'Failed', text: 'Could not copy link' }));
+        });
+
+        document.getElementById('copyZoomDetailsBtn')?.addEventListener('click', function() {
+            const d = window.currentZoomDetails;
+            if (!d || !d.joinUrl) return;
+
+            const lines = [
+                `Join link: ${d.joinUrl}`,
+                d.password ? `Password: ${d.password}` : null,
+            ].filter(Boolean);
+
+            navigator.clipboard.writeText(lines.join('\n'))
+                .then(() => Swal.fire({ icon: 'success', title: 'Copied!', text: 'Zoom details copied to clipboard', timer: 1500, showConfirmButton: false }))
+                .catch(() => Swal.fire({ icon: 'error', title: 'Failed', text: 'Could not copy Zoom details' }));
         });
 
         document.getElementById('cancelMeetingBtn')?.addEventListener('click', function() {

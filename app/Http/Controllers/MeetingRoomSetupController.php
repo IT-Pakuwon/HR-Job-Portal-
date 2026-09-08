@@ -202,15 +202,48 @@ class MeetingRoomSetupController extends Controller
 
             ->addIndexColumn()
 
-            ->editColumn('status', function ($row) {
-                return $row->status == 'A'
-                    ? '<span class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">Active</span>'
-                    : '<span class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">Inactive</span>';
+            ->addColumn('connect', function ($row) {
+                $teamsChecked = $row->status_teams == 'A' ? 'checked' : '';
+                $zoomChecked = $row->status_zoom == 'A' ? 'checked' : '';
+
+                // Colors are literal per-branch (not string-built) so Tailwind's
+                // JIT purge can find the full class names in this source file.
+                $toggle = function ($label, $checked, $onchange, $colorClass) {
+                    return '
+                        <label class="flex items-center gap-1.5 cursor-pointer select-none">
+                            <span class="relative inline-flex items-center">
+                                <input
+                                    type="checkbox"
+                                    class="peer sr-only"
+                                    '.$checked.'
+                                    onchange="'.$onchange.'">
+
+                                <span class="peer h-5 w-9 rounded-full bg-gray-300 transition
+                                    after:absolute after:left-[2px]
+                                    after:top-[2px]
+                                    after:h-4 after:w-4
+                                    after:rounded-full
+                                    after:bg-white
+                                    after:transition-all
+                                    after:content-[\'\']
+                                    '.$colorClass.'
+                                    peer-checked:after:translate-x-4">
+                                </span>
+                            </span>
+                            <span class="text-xs font-medium text-gray-600 dark:text-gray-300">'.$label.'</span>
+                        </label>
+                    ';
+                };
+
+                return '
+                    <div class="flex flex-col gap-1.5">
+                        '.$toggle('Teams', $teamsChecked, "updateAccessoriesProviderStatus(".$row->id.", 'teams', this.checked ? 'A' : 'X', this)", 'peer-checked:bg-blue-500').'
+                        '.$toggle('Zoom', $zoomChecked, "updateAccessoriesProviderStatus(".$row->id.", 'zoom', this.checked ? 'A' : 'X', this)", 'peer-checked:bg-purple-500').'
+                    </div>
+                ';
             })
 
             ->addColumn('action', function ($row) {
-                $checked = $row->status == 'A' ? 'checked' : '';
-
                 return '
                     <div class="flex items-center justify-end gap-3">
 
@@ -221,31 +254,11 @@ class MeetingRoomSetupController extends Controller
                             Edit
                         </button>
 
-                        <label class="relative inline-flex cursor-pointer items-center">
-                            <input
-                                type="checkbox"
-                                class="peer sr-only"
-                                '.$checked.'
-                                onchange="updateAccessoriesStatus('.$row->id.', this.checked ? \'A\' : \'X\', this)">
-
-                            <div class="peer h-6 w-11 rounded-full bg-gray-300 transition
-                                after:absolute after:left-[2px]
-                                after:top-[2px]
-                                after:h-5 after:w-5
-                                after:rounded-full
-                                after:bg-white
-                                after:transition-all
-                                after:content-[\'\']
-                                peer-checked:bg-emerald-500
-                                peer-checked:after:translate-x-full">
-                            </div>
-                        </label>
-
                     </div>
                 ';
             })
 
-            ->rawColumns(['status', 'action'])
+            ->rawColumns(['connect', 'action'])
             ->make(true);
     }
 
@@ -399,6 +412,8 @@ class MeetingRoomSetupController extends Controller
                 'userid_zoom' => $request->userid_zoom,
                 'userid_msteams' => $request->userid_msteams,
                 'status' => 'A',
+                'status_teams' => $request->filled('userid_msteams') ? 'A' : 'X',
+                'status_zoom' => $request->filled('userid_zoom') ? 'A' : 'X',
                 'created_by' => Auth::user()->username ?? Auth::user()->name,
                 'updated_by' => Auth::user()->username ?? Auth::user()->name,
             ]);
@@ -482,6 +497,46 @@ class MeetingRoomSetupController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Accessories status successfully updated.',
+            ]);
+        } catch (\Throwable $th) {
+            DB::connection('pgsql5')->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function updateAccessoriesProviderStatus(Request $request, $id)
+    {
+        $request->validate([
+            'provider' => 'required|in:teams,zoom',
+            'status' => 'required|in:A,X',
+        ]);
+
+        $field = $request->provider === 'teams' ? 'status_teams' : 'status_zoom';
+
+        DB::connection('pgsql5')->beginTransaction();
+
+        try {
+            $accessories = MsMeetingAccessories::findOrFail($id);
+
+            $accessories->update([
+                $field => $request->status,
+                // overall status stays Active as long as at least one provider is on,
+                // so booking/accessory-list queries (`where status = 'A'`) keep working
+                'status' => ($field === 'status_teams' ? $request->status : $accessories->status_teams) == 'A'
+                    || ($field === 'status_zoom' ? $request->status : $accessories->status_zoom) == 'A'
+                    ? 'A' : 'X',
+                'updated_by' => Auth::user()->username ?? Auth::user()->name,
+            ]);
+
+            DB::connection('pgsql5')->commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Accessories '.$request->provider.' status successfully updated.',
             ]);
         } catch (\Throwable $th) {
             DB::connection('pgsql5')->rollBack();

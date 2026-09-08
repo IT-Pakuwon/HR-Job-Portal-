@@ -165,7 +165,7 @@
                                 <th>Qty</th>
                                 <th>Zoom</th>
                                 <th>MS Teams</th>
-                                <th>Status</th>
+                                <th>Connect</th>
                                 <th class="text-right">Action</th>
 
                             </tr>
@@ -1450,14 +1450,14 @@
                         name: 'userid_msteams'
                     },
                     {
-                        data: 'status',
-                        width: '10%',
+                        data: 'connect',
+                        width: '14%',
                         orderable: false,
                         searchable: false,
                     },
                     {
                         data: 'action',
-                        width: '16%',
+                        width: '10%',
                         orderable: false,
                         searchable: false,
                         className: 'text-right'
@@ -2138,11 +2138,13 @@
 
         }
 
-        function updateAccessoriesStatus(id, status, el = null) {
+        function updateAccessoriesProviderStatus(id, provider, status, el = null) {
+
+            const label = provider === 'teams' ? 'Teams' : 'Zoom';
 
             Swal.fire({
                 title: 'Are you sure?',
-                text: 'Change accessories status?',
+                text: `${status === 'A' ? 'Enable' : 'Disable'} ${label} for this accessory?`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Yes, update',
@@ -2155,10 +2157,11 @@
                 }
 
                 $.ajax({
-                    url: `/meetingroom/setup/accessories/status/${id}`,
+                    url: `/meetingroom/setup/accessories/provider-status/${id}`,
                     type: 'POST',
                     data: {
                         _token: '{{ csrf_token() }}',
+                        provider: provider,
                         status: status
                     },
 

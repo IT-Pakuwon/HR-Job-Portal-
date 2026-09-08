@@ -124,14 +124,10 @@ class ZoomApi
     // }
     protected function generateToken()
     {
-        // $clientId = env('ZOOM_CLIENT_ID', '');
-        // $clientSecret = env('ZOOM_CLIENT_SECRET', '');
-        // $accountId = env('ZOOM_ACCOUNT_ID', '');
+        $clientId = config('services.zoom.client_id');
+        $clientSecret = config('services.zoom.client_secret');
+        $accountId = config('services.zoom.account_id');
 
-        $clientId = 'n7O2kL_7RamGpRw04uxIA';
-        $clientSecret = 'sndmCjWRuXTB5tA627M1huWUh1ehiSAe';
-        $accountId = '5a_wdwK6TjGg8dl2ITsY7A';
-        
         $client = new Client(['base_uri' => 'https://zoom.us/oauth/token']);
         $authHeader = base64_encode($clientId . ':' . $clientSecret);
         $response = $client->request('POST', '', [
