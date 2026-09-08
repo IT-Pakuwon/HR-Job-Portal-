@@ -171,6 +171,28 @@ class MeetingController extends Controller
           ->orderByRaw('CAST(room_id AS INTEGER) ASC')
             ->get();
 
+        // A 'T'/'Z' room is only actually bookable while its linked accessory
+        // still has that provider switched on — otherwise it's a disabled
+        // shell that shouldn't show up as a resource on this calendar.
+        $accessoriesByRoom = MsMeetingAccessories::query()
+            ->where('status', 'A')
+            ->get(['room_id', 'status_teams', 'status_zoom'])
+            ->groupBy(fn ($a) => (string) $a->room_id);
+
+        $rooms = $rooms->filter(function ($room) use ($accessoriesByRoom) {
+            $accs = $accessoriesByRoom->get((string) $room->room_id, collect());
+
+            if ($room->status === 'T') {
+                return $accs->contains(fn ($a) => $a->status_teams === 'A');
+            }
+
+            if ($room->status === 'Z') {
+                return $accs->contains(fn ($a) => $a->status_zoom === 'A');
+            }
+
+            return true;
+        })->values();
+
         $users = User::query()
             ->where('status', 'A')
             ->orderBy('name')
