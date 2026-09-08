@@ -109,30 +109,22 @@
                         Slots forfeited after a schedule closes (H-3) don't auto-requeue — pick who to accept into the freed seat. You can also choose a different company's quota for the person.
                     </p>
 
-                    <div class="flex flex-wrap items-center gap-2.5 rounded-xl border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-gray-900">
-                        <span class="flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400">
-                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
-                            Filter
-                        </span>
-                        <div class="w-full sm:w-80">
-                            <select id="waitlistTrainingFilter">
-                                <option value="">All Training Events</option>
-                            </select>
-                        </div>
-                        <div class="relative min-w-45 flex-1">
+                    <div class="flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+                        <select id="waitlistTrainingFilter" class="w-full truncate rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs text-gray-700 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200 dark:focus:ring-gray-700 sm:w-56">
+                            <option value="">All Training Events</option>
+                        </select>
+                        <div class="relative w-full sm:w-64">
                             <svg class="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                             <input id="waitlistSearch" type="text" placeholder="Search by employee or doc ID"
                                 class="w-full rounded-lg border border-gray-300 py-1.5 pl-8 pr-2.5 text-xs text-gray-700 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:ring-gray-700">
                         </div>
-                        <div class="w-full sm:w-48">
-                            <select id="waitlistApprovalFilter">
-                                <option value="">All Approval Statuses</option>
-                                <option value="P">Pending</option>
-                                <option value="C">Approved</option>
-                                <option value="R">Rejected</option>
-                            </select>
-                        </div>
-                        <button id="waitlistResetBtn" class="rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white">Reset</button>
+                        <select id="waitlistApprovalFilter" class="w-full truncate rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs text-gray-700 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200 dark:focus:ring-gray-700 sm:w-56">
+                            <option value="">All Approval Statuses</option>
+                            <option value="P">Pending</option>
+                            <option value="C">Approved</option>
+                            <option value="R">Rejected</option>
+                        </select>
+                        <button id="waitlistResetBtn" class="text-xs font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white">Reset</button>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -167,34 +159,26 @@
                     </p>
 
                     {{-- Filters — Training Event also rescopes the summary cards below --}}
-                    <div class="flex flex-wrap items-center gap-2.5 rounded-xl border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-gray-900">
-                        <span class="flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400">
-                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
-                            Filter
-                        </span>
-                        <div class="w-full sm:w-80">
-                            <select id="allRegsTrainingFilter">
-                                <option value="">All Training Events</option>
-                            </select>
-                        </div>
-                        <div class="relative min-w-45 flex-1">
+                    <div class="flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+                        <select id="allRegsTrainingFilter" class="w-full truncate rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs text-gray-700 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200 dark:focus:ring-gray-700 sm:w-56">
+                            <option value="">All Training Events</option>
+                        </select>
+                        <div class="relative w-full sm:w-64">
                             <svg class="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                             <input id="allRegsSearch" type="text" placeholder="Search by employee or doc ID"
                                 class="w-full rounded-lg border border-gray-300 py-1.5 pl-8 pr-2.5 text-xs text-gray-700 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:ring-gray-700">
                         </div>
-                        <div class="w-full sm:w-48">
-                            <select id="allRegsStatusFilter">
-                                <option value="">All Statuses</option>
-                                <option value="P">Waiting Approval</option>
-                                <option value="C">Approved</option>
-                                <option value="R">Rejected</option>
-                                <option value="W">Waiting List</option>
-                                <option value="O">Slot Offered</option>
-                                <option value="X">Cancelled</option>
-                            </select>
-                        </div>
-                        <button id="allRegsResetBtn" class="rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white">Reset</button>
-                        <button id="allRegsExportBtn" class="flex items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-700 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200">
+                        <select id="allRegsStatusFilter" class="w-full truncate rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs text-gray-700 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200 dark:focus:ring-gray-700 sm:w-56">
+                            <option value="">All Statuses</option>
+                            <option value="P">Waiting Approval</option>
+                            <option value="C">Approved</option>
+                            <option value="R">Rejected</option>
+                            <option value="W">Waiting List</option>
+                            <option value="O">Slot Offered</option>
+                            <option value="X">Cancelled</option>
+                        </select>
+                        <button id="allRegsResetBtn" class="text-xs font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white">Reset</button>
+                        <button id="allRegsExportBtn" class="ml-auto flex items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-700 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200">
                             <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" /></svg>
                             Export
                         </button>
@@ -395,43 +379,6 @@
         }
         .select2-container {
             width: 100% !important;
-        }
-        .select2-filter .select2-selection--single {
-            height: 30px !important;
-            border-radius: 8px;
-            border-color: #d1d5db;
-        }
-        .select2-filter .select2-selection--single:focus {
-            outline: none;
-        }
-        .select2-filter .select2-selection--single .select2-selection__rendered {
-            font-size: 12px !important;
-            line-height: 28px !important;
-            padding-right: 40px;
-        }
-        .select2-filter .select2-selection--single .select2-selection__arrow {
-            height: 28px !important;
-        }
-        .select2-filter .select2-selection--single .select2-selection__clear {
-            margin-right: 4px;
-        }
-        .select2-filter.select2-container--focus .select2-selection--single,
-        .select2-filter.select2-container--open .select2-selection--single {
-            border-color: #9ca3af;
-            box-shadow: 0 0 0 2px #e5e7eb;
-            outline: none;
-        }
-        html.dark .select2-filter .select2-selection--single {
-            background: #1f2937;
-            border-color: #4b5563;
-        }
-        html.dark .select2-filter .select2-selection--single .select2-selection__rendered {
-            color: #e5e7eb;
-        }
-        html.dark .select2-filter.select2-container--focus .select2-selection--single,
-        html.dark .select2-filter.select2-container--open .select2-selection--single {
-            border-color: #6b7280;
-            box-shadow: 0 0 0 2px #374151;
         }
         .dateCardOption {
             cursor: pointer;
@@ -2320,21 +2267,6 @@
         });
 
         @if (Auth::user()->hasRole('HCDEVACCESS'))
-        $('#waitlistTrainingFilter').select2({
-            containerCssClass: 'select2-filter',
-            dropdownCssClass: 'select2-filter',
-            placeholder: 'All Training Events',
-            allowClear: true,
-            width: '100%',
-            templateSelection: (data) => $('<span></span>').text(data.text).attr('title', data.text),
-        });
-        $('#waitlistApprovalFilter').select2({
-            containerCssClass: 'select2-filter',
-            dropdownCssClass: 'select2-filter',
-            minimumResultsForSearch: -1,
-            width: '100%',
-        });
-
         let waitlistRows = [];
         let waitlistPage = 1;
 
@@ -2363,8 +2295,7 @@
             if (current && trainings.some(([id]) => String(id) === current)) {
                 $select.val(current);
             }
-
-            $select.trigger('change.select2');
+            $select.attr('title', $select.find('option:selected').text());
         }
 
         function renderWaitlist() {
@@ -2443,13 +2374,14 @@
             renderWaitlist();
         });
         $('#waitlistTrainingFilter').on('change', function () {
+            $(this).attr('title', $(this).find('option:selected').text());
             waitlistPage = 1;
             renderWaitlist();
         });
         $('#waitlistResetBtn').on('click', function () {
             $('#waitlistSearch').val('');
-            $('#waitlistApprovalFilter').val('').trigger('change.select2');
-            $('#waitlistTrainingFilter').val('').trigger('change.select2');
+            $('#waitlistApprovalFilter').val('');
+            $('#waitlistTrainingFilter').val('');
             waitlistPage = 1;
             renderWaitlist();
         });
@@ -2505,22 +2437,6 @@
             });
         });
 
-        $('#allRegsTrainingFilter').select2({
-            containerCssClass: 'select2-filter',
-            dropdownCssClass: 'select2-filter',
-            placeholder: 'All Training Events',
-            allowClear: true,
-            width: '100%',
-            // Full name as a title tooltip since long training names truncate
-            // in the box itself.
-            templateSelection: (data) => $('<span></span>').text(data.text).attr('title', data.text),
-        });
-        $('#allRegsStatusFilter').select2({
-            containerCssClass: 'select2-filter',
-            dropdownCssClass: 'select2-filter',
-            minimumResultsForSearch: -1,
-            width: '100%',
-        });
 
         let allRegistrationRows = [];
         let allRegsPage = 1;
@@ -2557,12 +2473,7 @@
             if (current && trainings.some((t) => String(t.training_id) === current)) {
                 $select.val(current);
             }
-
-            // Re-sync select2's rendered box after the underlying <select>'s
-            // options changed programmatically — namespaced so it doesn't
-            // re-fire the plain 'change' handler below (which would re-fetch
-            // the summary and recurse back into this function).
-            $select.trigger('change.select2');
+            $select.attr('title', $select.find('option:selected').text());
         }
 
         function renderSummaryCards(res) {
@@ -2651,14 +2562,15 @@
             renderAllRegistrations();
         });
         $('#allRegsTrainingFilter').on('change', function () {
+            $(this).attr('title', $(this).find('option:selected').text());
             allRegsPage = 1;
             renderAllRegistrations();
             loadRegistrationSummary();
         });
         $('#allRegsResetBtn').on('click', function () {
             $('#allRegsSearch').val('');
-            $('#allRegsStatusFilter').val('').trigger('change.select2');
-            $('#allRegsTrainingFilter').val('').trigger('change.select2');
+            $('#allRegsStatusFilter').val('');
+            $('#allRegsTrainingFilter').val('');
             allRegsPage = 1;
             renderAllRegistrations();
             loadRegistrationSummary();

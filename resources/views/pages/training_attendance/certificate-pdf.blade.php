@@ -81,7 +81,7 @@
     }
 
     .body-text {
-        margin-top: 6mm;
+        margin: 6mm auto 0;
         max-width: 166mm;
         font-size: 14.5px;
         line-height: 1.55;
