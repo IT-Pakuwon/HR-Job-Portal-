@@ -408,7 +408,7 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('training-list')->group(function () {
         Route::middleware('access:TRAININGLIST,VIEW')->group(function () {
             Route::get('/', [TrainingRegistrationController::class, 'index'])->name('training-list');
-            Route::get('/my/{eid}', [TrainingRegistrationController::class, 'index'])->name('training-list.my.show')->where('eid', '[A-Za-z0-9]+');
+            Route::get('/my/{eid}', [TrainingRegistrationController::class, 'showMy'])->name('training-list.my.show')->where('eid', '[A-Za-z0-9]+');
             Route::get('/json', [TrainingRegistrationController::class, 'json'])->name('training-list.json');
             Route::get('/my', [TrainingRegistrationController::class, 'myRegistrations'])->name('training-list.my');
             Route::get('/colleagues', [TrainingRegistrationController::class, 'colleagues'])->name('training-list.colleagues');
@@ -2563,6 +2563,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/approvals/conditions', [MsApprovalController::class, 'conditions'])->name('approvals.conditions');
         Route::get('/approvals/group', [MsApprovalController::class, 'groupLines'])->name('approvals.group');
         Route::get('/approvals/departments-by-source', [MsApprovalController::class, 'departmentsBySource'])->name('approvals.departments_by_source');
+        Route::get('/approvals/sby-companies/json', [MsApprovalController::class, 'sbyJson'])->name('approvals.sby-companies.json');
 
         Route::get('/approvals-groupbiaya', [MsApprovalGroupBiayaController::class, 'index'])->name('approvalsgroupbiaya');
         Route::get('/approvals-groupbiaya/json', [MsApprovalGroupBiayaController::class, 'json'])->name('approvalsgroupbiaya.json');

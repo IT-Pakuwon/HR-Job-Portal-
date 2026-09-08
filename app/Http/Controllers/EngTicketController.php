@@ -3183,8 +3183,14 @@ class EngTicketController extends Controller
             })
             ->values();
 
+        $jktSiteCompanyIds = $this->jktSiteCompanyIds();
+
         $locations = MsSite::query()
             ->where('status', 'A')
+            ->where(function ($q) use ($jktSiteCompanyIds) {
+                $q->whereIn('cpny_id', $jktSiteCompanyIds)
+                    ->orWhere('cpny_id', 'ALL');
+            })
             ->orderBy('site_name')
             ->get([
                 'siteid',
@@ -3351,12 +3357,14 @@ class EngTicketController extends Controller
             ->values()
             ->toArray();
 
+        $jktUserCompanies = array_values(array_intersect($userCompanies, $this->jktSiteCompanyIds()));
+
         $query = MsSite::query()
             ->where('status', 'A')
-            ->where(function ($q) use ($userCompanies) {
+            ->where(function ($q) use ($jktUserCompanies) {
                 $q->whereIn(
                     'cpny_id',
-                    $userCompanies
+                    $jktUserCompanies
                 )
                 ->orWhere(
                     'cpny_id',
@@ -3458,6 +3466,17 @@ class EngTicketController extends Controller
                 'text' => $c->cpny_name,
             ])->values(),
         ]);
+    }
+
+    protected function jktSiteCompanyIds(): array
+    {
+        return MsCompany::query()
+            ->where('group_cpny_id', 'JKT')
+            ->pluck('cpny_id')
+            ->map(fn ($id) => trim((string) $id))
+            ->filter()
+            ->values()
+            ->toArray();
     }
 
     protected function resolveUserNames(array $usernames): array
