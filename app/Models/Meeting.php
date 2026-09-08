@@ -36,5 +36,6 @@ class Meeting extends Model
         'fullbooked',
         'info_zoom',
         'zoom_id',
+        'zoom_account',
     ];
 }
