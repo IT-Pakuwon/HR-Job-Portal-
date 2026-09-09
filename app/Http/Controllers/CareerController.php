@@ -2458,10 +2458,14 @@ class CareerController extends Controller
             $eid = Hashids::encode($career->id);
 
             if ($firstApproval) {
+                $deptName = DepartmentHR::where('department_id', $firstApproval->aprv_departementid)
+                    ->where('group_cpny_id', $career->group_cpny_id ?? $jobposting->group_cpny_id ?? null)
+                    ->value('department_name');
+
                 $data = [
                     'docid' => $firstApproval->refnbr,
                     'cpnyid' => $firstApproval->aprv_cpnyid,
-                    'deptname' => $firstApproval->aprv_departementid,
+                    'deptname' => $deptName ?? $firstApproval->aprv_departementid,
                     'date' => $firstApproval->aprv_datebefore,
                     'name' => $user->username,
                     'info' => 'Apply Candidate',
