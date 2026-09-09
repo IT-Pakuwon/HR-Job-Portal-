@@ -79,4 +79,19 @@ trait UploadsToGcs
             return null;
         }
     }
+
+    protected function gcsDownload(?string $objectPath): ?string
+    {
+        if (!$objectPath) {
+            return null;
+        }
+
+        try {
+            $config = config('filesystems.disks.gcs');
+
+            return $this->gcsClient()->bucket($config['bucket'])->object($objectPath)->downloadAsString();
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
 }
