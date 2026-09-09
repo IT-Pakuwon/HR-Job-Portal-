@@ -53,6 +53,9 @@ class VplReportController extends Controller
 
     private const USED_COLUMNS = ['Loyalty', 'Promotion', 'Entertainment', 'Internal Use'];
 
+    /** Per-request memoization for photoBase64() — the same product photo repeats across expiry batches. */
+    private array $photoBase64Cache = [];
+
     /*
     |--------------------------------------------------------------------------
     | INDEX (Main Page)
@@ -649,14 +652,14 @@ class VplReportController extends Controller
     {
         [$cpnyid, $year, $month] = $this->resolveStockVoucherParams($request);
 
-        $groups = $this->buildProductReport($cpnyid, $year, $month);
+        $groups = $this->buildProductReport($cpnyid, $year, $month, forExport: true);
 
         $filename = "product-report-{$cpnyid}-{$year}-".str_pad((string) $month, 2, '0', STR_PAD_LEFT).'.xlsx';
 
         return Excel::download(new VplProductReportExport($groups, $cpnyid, $year, $month), $filename);
     }
 
-    private function buildProductReport(string $cpnyid, int $year, int $month): array
+    private function buildProductReport(string $cpnyid, int $year, int $month, bool $forExport = false): array
     {
         $monthStart = Carbon::create($year, $month, 1)->startOfMonth();
         $monthEnd   = Carbon::create($year, $month, 1)->endOfMonth();
@@ -691,7 +694,9 @@ class VplReportController extends Controller
                 'product_id'     => $product->product_id,
                 'tenant'         => $product->product_name,
                 'perusahaan'     => $product->product_source_company ?: '-',
-                'photo_url'      => $this->photoSignedUrl($product->product_photo),
+                'photo_url'      => $forExport
+                    ? $this->photoBase64($product->product_photo)
+                    : $this->photoSignedUrl($product->product_photo),
                 'category_label' => $row['category_label'],
                 'expired_date'   => $this->expiredKey($bal->expired_date) === 'NULL' ? null : $bal->expired_date,
                 'nominal'        => $price,
@@ -920,6 +925,42 @@ class VplReportController extends Controller
             \Log::warning('VPL Product photo signed URL failed', ['path' => $path, 'error' => $e->getMessage()]);
 
             return null;
+        }
+    }
+
+    /**
+     * Embeds a GCS product photo as a base64 data URI instead of a signed URL — used for
+     * Excel export. PhpSpreadsheet's HTML-to-XLSX reader refuses to fetch remote http(s)
+     * image sources by default (Reader\BaseReader::$allowExternalImages = false, a
+     * built-in SSRF guard), so a signed URL like the web view uses silently renders no
+     * image at all. A data: URI bypasses that fetch entirely.
+     */
+    private function photoBase64(?string $path): ?string
+    {
+        if (empty($path)) {
+            return null;
+        }
+
+        if (array_key_exists($path, $this->photoBase64Cache)) {
+            return $this->photoBase64Cache[$path];
+        }
+
+        try {
+            $config  = config('filesystems.disks.gcs');
+            $storage = new StorageClient([
+                'projectId'   => $config['project_id'],
+                'keyFilePath' => $config['key_file'],
+            ]);
+
+            $bytes = $storage->bucket($config['bucket'])->object($path)->downloadAsString();
+            $ext   = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+            $mime  = $ext === 'png' ? 'image/png' : ($ext === 'gif' ? 'image/gif' : 'image/jpeg');
+
+            return $this->photoBase64Cache[$path] = 'data:'.$mime.';base64,'.base64_encode($bytes);
+        } catch (\Throwable $e) {
+            \Log::warning('VPL Product photo base64 export failed', ['path' => $path, 'error' => $e->getMessage()]);
+
+            return $this->photoBase64Cache[$path] = null;
         }
     }
 

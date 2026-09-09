@@ -85,6 +85,13 @@
                             Recruitment
                         </span>
 
+                        <span class="rounded-full border border-white/25 bg-black/20 px-3 py-1.5 text-xs font-medium backdrop-blur-xl">
+                            Operation
+                        </span>
+
+                        <span class="rounded-full border border-white/25 bg-black/20 px-3 py-1.5 text-xs font-medium backdrop-blur-xl">
+                            Event & Voucher
+                        </span>
                     </div>
 
                 </div>

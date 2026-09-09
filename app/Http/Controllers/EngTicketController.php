@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\EngTicketExport;
 use App\Http\Controllers\Traits\HasAutonbr;
+use App\Http\Controllers\Traits\UploadsToGcs;
 use App\Models\MsCategory;
 use App\Models\MsCompany;
 use App\Models\MsLocation;
@@ -32,6 +33,7 @@ use Yajra\DataTables\Facades\DataTables;
 class EngTicketController extends Controller
 {
     use HasAutonbr;
+    use UploadsToGcs;
 
     /*
     |--------------------------------------------------------------------------
@@ -3788,14 +3790,12 @@ class EngTicketController extends Controller
         $imageExts = ['jpg', 'jpeg', 'png'];
         foreach ($attachments as &$att) {
             $ext = strtolower($att['extention'] ?? '');
-            if (in_array($ext, $imageExts) && !empty($att['url'])) {
-                try {
-                    $path = parse_url($att['url'], PHP_URL_PATH);
-                    $bytes = \Storage::get($path);
-                    $mime  = $ext === 'png' ? 'image/png' : 'image/jpeg';
+            if (in_array($ext, $imageExts) && !empty($att['folder']) && !empty($att['filename'])) {
+                $objectPath = rtrim($att['folder'], '/').'/'.$att['filename'];
+                $bytes = $this->gcsDownload($objectPath);
+                if ($bytes !== null) {
+                    $mime = $ext === 'png' ? 'image/png' : 'image/jpeg';
                     $att['base64'] = 'data:'.$mime.';base64,'.base64_encode($bytes);
-                } catch (\Throwable $e) {
-                    $att['base64'] = null;
                 }
             }
         }
@@ -3809,16 +3809,22 @@ class EngTicketController extends Controller
                     function ($m) {
                         $src = $m[2];
                         if (str_starts_with($src, 'data:')) return $m[0];
-                        try {
-                            $path = parse_url($src, PHP_URL_PATH);
-                            $bytes = \Storage::get($path);
-                            $ext   = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-                            $mime  = $ext === 'png' ? 'image/png' : ($ext === 'gif' ? 'image/gif' : 'image/jpeg');
-                            $b64   = 'data:'.$mime.';base64,'.base64_encode($bytes);
-                            return '<img'.$m[1].'src="'.$b64.'"'.$m[3].'>';
-                        } catch (\Throwable $e) {
-                            return $m[0];
-                        }
+
+                        $path = parse_url($src, PHP_URL_PATH);
+                        if (!$path) return $m[0];
+
+                        $bucketPrefix = '/'.config('filesystems.disks.gcs.bucket').'/';
+                        $objectPath = str_starts_with($path, $bucketPrefix)
+                            ? substr($path, strlen($bucketPrefix))
+                            : ltrim($path, '/');
+
+                        $bytes = $this->gcsDownload($objectPath);
+                        if ($bytes === null) return $m[0];
+
+                        $ext  = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+                        $mime = $ext === 'png' ? 'image/png' : ($ext === 'gif' ? 'image/gif' : 'image/jpeg');
+                        $b64  = 'data:'.$mime.';base64,'.base64_encode($bytes);
+                        return '<img'.$m[1].'src="'.$b64.'"'.$m[3].'>';
                     },
                     $ticket->$field
                 );
