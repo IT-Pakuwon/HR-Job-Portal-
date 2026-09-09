@@ -515,7 +515,7 @@
                     </details>
 
                     {{-- FOOTER ACTIONS --}}
-                    <div class="sticky bottom-0 z-10 -mx-3 flex items-center justify-between gap-4 border-t border-gray-200 bg-white/95 px-3 py-3 backdrop-blur dark:border-gray-700 dark:bg-gray-800/95 lg:-mx-6 lg:rounded-b-xl lg:px-6">
+                    <div class="sticky bottom-2 z-10 flex items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white/95 p-4 shadow-sm backdrop-blur dark:border-gray-700 dark:bg-gray-800/95">
                         <button id="backBtn" type="button" onclick="history.back()"
                             class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">

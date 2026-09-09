@@ -68,6 +68,15 @@ class Applicant extends Model
 
     public function driverLicenses()
     {
+        // applicant_id collides across group_cpny_id (SBY/JKT sequences overlap), so this
+        // relation pins group_cpny_id from $this. That only works when called on an already
+        // resolved instance (lazy-load) — eager-loading (Applicant::with('driverLicenses'))
+        // calls this method on an empty model first, so $this->group_cpny_id would be null
+        // and silently return zero rows for every applicant. Fail loudly instead.
+        if (!$this->exists || $this->group_cpny_id === null) {
+            throw new \LogicException('Applicant::driverLicenses() requires a resolved Applicant instance with group_cpny_id set; do not eager-load this relation — query ApplicantDriverLicense directly with both applicant_id and group_cpny_id instead.');
+        }
+
         return $this->hasMany(ApplicantDriverLicense::class, 'applicant_id', 'applicant_id')
             ->where('group_cpny_id', $this->group_cpny_id);
     }

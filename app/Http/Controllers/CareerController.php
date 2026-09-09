@@ -1693,7 +1693,7 @@ class CareerController extends Controller
             ->where('group_cpny_id', $company->group_cpny_id ?? null)
             ->first();
         $datebirth = Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y');
-        $payrollconfirm = Payrollconfirm::where('applicant_id', $request->applicant_id)->first();
+        $payrollconfirm = Payrollconfirm::where('applicant_id', $request->applicant_id)->where('group_cpny_id', $company->group_cpny_id ?? null)->first();
 
         // $net_salary = $payrollconfirm->net_salary ?? 0;
         // $salary_words = terbilang($net_salary) . ' rupiah';
@@ -1952,7 +1952,11 @@ class CareerController extends Controller
     {
         $user = Auth::user();
 
-        $career = Career::where('docid', $request->jobapply_id)->first();
+        // docid is only unique WITHIN a group_cpny_id (SBY/JKT sequences can collide), so it
+        // must be paired with the acting user's own group or this can pull another company's
+        // career record entirely.
+        $groupCpnyId = strtoupper(trim((string) ($user->group_cpny_id ?? '')));
+        $career = Career::where('docid', $request->jobapply_id)->where('group_cpny_id', $groupCpnyId)->first();
 
         // Validasi jika career tidak ditemukan
         if (!$career) {
@@ -1962,10 +1966,13 @@ class CareerController extends Controller
             ], 404);
         }
 
-        // Cek apakah onboarding sudah ada
+        // Cek apakah onboarding sudah ada (harus disandingkan dengan group_cpny_id, sama seperti
+        // pengecekan payroll di bawah — tanpa ini bisa false-positive pada jobapply_id/applicant_id
+        // yang kebetulan sama di company/group lain)
         $existing = Tronboarding::where('jobapply_id', $career->docid)
             ->where('applicant_id', $career->applicant_id)
             ->where('jobid', $career->jobid)
+            ->where('group_cpny_id', $career->group_cpny_id)
             ->exists();
 
         if ($existing) {
@@ -2071,7 +2078,9 @@ class CareerController extends Controller
 
     public function editPayroll($id)
     {
-        $data = Payrollconfirm::find($id);
+        $user = Auth::user();
+        $data = Payrollconfirm::findOrFail($id);
+        $this->assertApplicantCompanyAccess($user, $data->group_cpny_id, $data->cpnyid);
 
         return response()->json($data);
     }
@@ -2079,8 +2088,13 @@ class CareerController extends Controller
     public function updatePayroll(Request $request)
     {
         $user = Auth::user();
+        // applicant_id is only unique WITHIN a group_cpny_id (SBY/JKT sequences can collide),
+        // so it must be paired with the acting user's own group or this can silently update
+        // another company's payroll record.
+        $groupCpnyId = strtoupper(trim((string) ($user->group_cpny_id ?? '')));
         $payroll = Payrollconfirm::where('applicant_id', $request->applicant_id)
-            ->first();
+            ->where('group_cpny_id', $groupCpnyId)
+            ->firstOrFail();
 
         $payroll->tax_liability = $request->tax_liability;
         $payroll->npwp_id = $request->npwp_id;
@@ -2176,6 +2190,7 @@ class CareerController extends Controller
             $existing = Tronboarding::where('jobapply_id', $career->docid)
                 ->where('applicant_id', $career->applicant_id)
                 ->where('jobid', $career->jobid)
+                ->where('group_cpny_id', $career->group_cpny_id)
                 ->exists();
 
             if ($existing) {
@@ -2247,12 +2262,17 @@ class CareerController extends Controller
 
     public function getChecklist($docid_onboarding)
     {
+        // docid is only unique WITHIN a group_cpny_id (SBY/JKT sequences can collide), so it
+        // must be paired with the acting user's own group or this can leak another company's
+        // onboarding checklist.
+        $groupCpnyId = strtoupper(trim((string) (Auth::user()->group_cpny_id ?? '')));
         $checklists = Tronboarding::leftJoin('hr_ms_onboarding_checklist', function ($join) {
             $join->on('hr_trx_onboarding_checklist.checklist_id', '=', 'hr_ms_onboarding_checklist.checklist_onboarding_id')
                 ->on('hr_trx_onboarding_checklist.group_cpny_id', '=', 'hr_ms_onboarding_checklist.group_cpny_id');
         })
             ->select('hr_trx_onboarding_checklist.*', 'hr_ms_onboarding_checklist.checklist_onboarding_descr')
             ->where('hr_trx_onboarding_checklist.docid', $docid_onboarding)
+            ->where('hr_trx_onboarding_checklist.group_cpny_id', $groupCpnyId)
             ->orderBy('hr_trx_onboarding_checklist.step_order', 'ASC')
             ->get();
 
@@ -2270,8 +2290,14 @@ class CareerController extends Controller
                 return response()->json(['error' => 'DocID kosong!'], 422);
             }
 
+            // docid is only unique WITHIN a group_cpny_id (SBY/JKT sequences can collide), so it
+            // must be paired with the acting user's own group or this can clobber another
+            // company's onboarding checklist.
+            $groupCpnyId = strtoupper(trim((string) ($user->group_cpny_id ?? '')));
+
             // Reset semua checklist ke 0 dan kosongkan updated_user
             Tronboarding::where('docid', $docid)
+                ->where('group_cpny_id', $groupCpnyId)
                 ->update([
                     'checklist_onboarding_receive' => 0,
                     'updated_user' => $user->username ?? 'system',
@@ -2280,6 +2306,8 @@ class CareerController extends Controller
             // Set checklist yang dipilih ke 1 dan update updated_user
             if (!empty($ids)) {
                 Tronboarding::whereIn('id', $ids)
+                    ->where('docid', $docid)
+                    ->where('group_cpny_id', $groupCpnyId)
                     ->update([
                         'checklist_onboarding_receive' => 1,
                         'updated_user' => $user->username ?? 'system',
@@ -2768,6 +2796,7 @@ class CareerController extends Controller
         }
 
         $payroll = Payrollconfirm::findOrFail($request->input('payroll_id'));
+        $this->assertApplicantCompanyAccess($user, $payroll->group_cpny_id, $payroll->cpnyid);
 
         return response()->json([
             'success' => true,
@@ -2783,6 +2812,7 @@ class CareerController extends Controller
         }
 
         $p = Payrollconfirm::findOrFail($id);
+        $this->assertApplicantCompanyAccess($user, $p->group_cpny_id, $p->cpnyid);
         $data = $p->toArray();
 
         // default: sembunyikan salary

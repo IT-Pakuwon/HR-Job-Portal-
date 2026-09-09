@@ -44,7 +44,7 @@ class ApplicantController extends Controller
 
     public function showApplicant($id)
     {
-        $applicant = Applicant::with('driverLicenses')->findOrFail($id);
+        $applicant = Applicant::findOrFail($id);
 
         // applicant_id is only unique WITHIN a group_cpny_id (SBY/JKT sequences can collide),
         // so every child lookup must also pin group_cpny_id or it can pull another applicant's data.
