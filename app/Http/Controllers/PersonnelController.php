@@ -1178,7 +1178,26 @@ class PersonnelController extends Controller
             ? 'pages.personnels.editpersonnels_sby'
             : 'pages.personnels.editpersonnels';
 
+        $currentApproval = null;
+        if ($personnel->status === 'P') {
+            $currentApproval = TrApproval::where('refnbr', $personnel->docid)
+                ->where('aprv_cpnyid', $personnel->cpnyid)
+                ->where('status', 'P')
+                ->orderBy('aprv_leveling')
+                ->first();
+        }
+
+        $rejectionMessage = null;
+        if (in_array($personnel->status, ['R', 'D'], true)) {
+            $rejectionMessage = TrMessage::where('doctype', 'PRF')
+                ->where('refnbr', $personnel->docid)
+                ->orderByDesc('message_date')
+                ->first();
+        }
+
         return view($view, [
+            'currentApproval' => $currentApproval,
+            'rejectionMessage' => $rejectionMessage,
             'companies' => $companies,
             'usercpny' => $usercpny,
             'usercpny2' => $usercpny2,
