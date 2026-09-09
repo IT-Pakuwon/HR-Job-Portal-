@@ -512,65 +512,11 @@ class VplMsProductController extends Controller
 
     public function viewproduct($hash)
     {
-        $id = Hashids::decode($hash)[0] ?? null;
-        abort_if(!$id, 404);
-
-        $msproduct = MsVplProduct::findOrFail($id);
-
-        if (!$this->isFullAccess() && !Auth::user()->hasFullDataScope() && !in_array($msproduct->cpnyid, $this->cpnyIds(), true)) {
-            abort(403);
-        }
-
-        $msproductdetail = MsVplProductDetail::where('product_id', $msproduct->product_id)
-            ->where('status', 'A')
-            ->orderBy('cpnyid')
-            ->orderBy('expired_date')
-            ->orderBy('whs_id')
-            ->get();
-
-        $mswhs = MsVplWarehouse::all();
-
-        // Load attachments from GCS
-        $rows = TrAttachment::where('refnbr', $msproduct->product_id)
-            ->where('doctype', 'VPLPROD')
-            ->where('status', 'A')
-            ->orderByDesc('created_at')
-            ->get();
-
-        $attachments = collect();
-        if ($rows->count()) {
-            $config      = config('filesystems.disks.gcs');
-            $keyFilePath = $config['key_file'];
-            if (!Str::startsWith($keyFilePath, ['/', 'C:\\', 'D:\\'])) {
-                $keyFilePath = base_path($keyFilePath);
-            }
-            $storage = new StorageClient(['projectId' => $config['project_id'], 'keyFilePath' => $keyFilePath]);
-            $bucket  = $storage->bucket($config['bucket']);
-
-            $attachments = $rows->map(function ($r) use ($bucket) {
-                $objectPath = rtrim($r->folder, '/') . '/' . $r->filename;
-                $signedUrl  = null;
-                try {
-                    $signedUrl = $bucket->object($objectPath)->signedUrl(
-                        new \DateTimeImmutable('+10 minutes'),
-                        ['version' => 'v4']
-                    );
-                } catch (\Throwable $e) {
-                    \Log::warning('VPL Product signed URL failed', ['path' => $objectPath, 'error' => $e->getMessage()]);
-                }
-                return (object) [
-                    'id'           => $r->id,
-                    'display_name' => $r->attachment_name,
-                    'created_by'   => $r->created_by,
-                    'created_at'   => $r->created_at,
-                    'url'          => $signedUrl,
-                    'extention'    => $r->extention,
-                    'size'         => $r->filesize,
-                ];
-            });
-        }
-
-        return view('vpl.msproduct.viewproduct', compact('msproduct', 'msproductdetail', 'mswhs', 'attachments', 'hash'));
+        // No standalone page for this anymore — the product detail is shown in a
+        // modal on the master list, which deep-links as /msproduct/{hash} (no
+        // "/view" suffix) and auto-opens via init.js. Redirect old-style
+        // "/view" links there instead of rendering a page that no longer exists.
+        return redirect()->route('vpl.msproduct.view_by_hash', $hash);
     }
 
     // -------------------------------------------------------
