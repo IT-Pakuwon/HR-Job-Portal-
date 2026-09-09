@@ -79,7 +79,7 @@
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 {{ !empty($isSby) ? 'lg:grid-cols-5' : 'lg:grid-cols-4' }}">
                                 {{-- Company --}}
                                 <div class="flex flex-col gap-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company <span class="text-red-500">*</span></label>
                                     <select
                                         class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         name="cpnyid" id="cpnyid" required>
@@ -94,7 +94,7 @@
 
                                 @if (!empty($isSby))
                                     <div class="flex flex-col gap-2">
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Budget Company</label>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Budget Company <span class="text-red-500">*</span></label>
                                         <select
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             name="budget_entity_id" id="budget_entity_id" required>
@@ -105,7 +105,7 @@
 
                                 {{-- Division --}}
                                 <div class="flex flex-col gap-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Division</label>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Division <span class="text-red-500">*</span></label>
                                     <select
                                         class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         name="division_id" id="division_id" required>
@@ -121,7 +121,7 @@
 
                                 {{-- Department (AJAX loaded like create) --}}
                                 <div class="flex flex-col gap-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Department <span class="text-red-500">*</span></label>
                                     <select
                                         class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         name="departementid" id="departementid" required>
@@ -139,7 +139,7 @@
 
                                 {{-- Site (AJAX loaded like create) --}}
                                 <div class="flex flex-col gap-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Placement Location</label>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Placement Location <span class="text-red-500">*</span></label>
                                     <select
                                         class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         name="siteid" id="siteid" required>
@@ -194,14 +194,14 @@
 
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div class="flex flex-col gap-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job Title</label>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job Title <span class="text-red-500">*</span></label>
                                     <input type="text" name="job_title" id="job_title"
                                         class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         value="{{ old('job_title', $personnel->job_title) }}" required>
                                 </div>
 
                                 <div class="flex flex-col gap-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job Level</label>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job Level <span class="text-red-500">*</span></label>
                                     <input type="hidden" name="group_grade" id="group_grade"
                                         value="{{ old('group_grade', $personnel->group_grade ?? '') }}">
                                     <select
@@ -239,7 +239,7 @@
                                 </div>
 
                                 <div class="flex flex-col gap-2 md:col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Reason for Vacancy</label>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Reason for Vacancy <span class="text-red-500">*</span></label>
                                     <textarea name="reason_vacancy" id="reason_vacancy"
                                         class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         required>{{ old('reason_vacancy', $personnel->reason_vacancy) }}</textarea>
@@ -284,7 +284,7 @@
                             <div class="flex items-center gap-3">
                                 <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-indigo-50 text-xs font-extrabold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">3</span>
                                 <div>
-                                    <div class="text-sm font-bold text-gray-800 dark:text-white">Job Responsibilities</div>
+                                    <div class="text-sm font-bold text-gray-800 dark:text-white">Job Responsibilities <span class="text-red-500">*</span></div>
                                     <div class="text-xs text-gray-400 dark:text-gray-500">List the key duties of this role</div>
                                 </div>
                             </div>
@@ -299,7 +299,7 @@
                                             <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="6" r="1.4"/><circle cx="16" cy="6" r="1.4"/><circle cx="8" cy="12" r="1.4"/><circle cx="16" cy="12" r="1.4"/><circle cx="8" cy="18" r="1.4"/><circle cx="16" cy="18" r="1.4"/></svg>
                                         </span>
                                         <span class="row-num flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white text-xs font-bold text-gray-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400">1</span>
-                                        <input type="text" name="responsibilities[]" placeholder="Type here..."
+                                        <input type="text" name="responsibilities[]" required placeholder="Type here..."
                                             class="flex-1 border-none bg-transparent p-1 text-sm text-gray-700 focus:outline-none focus:ring-0 dark:text-gray-200">
                                         <button type="button"
                                             class="removeResponsibilities hidden flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20">
@@ -313,7 +313,7 @@
                                                 <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="6" r="1.4"/><circle cx="16" cy="6" r="1.4"/><circle cx="8" cy="12" r="1.4"/><circle cx="16" cy="12" r="1.4"/><circle cx="8" cy="18" r="1.4"/><circle cx="16" cy="18" r="1.4"/></svg>
                                             </span>
                                             <span class="row-num flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white text-xs font-bold text-gray-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400">{{ $i + 1 }}</span>
-                                            <input type="text" name="responsibilities[]" placeholder="Type here..."
+                                            <input type="text" name="responsibilities[]" required placeholder="Type here..."
                                                 class="flex-1 border-none bg-transparent p-1 text-sm text-gray-700 focus:outline-none focus:ring-0 dark:text-gray-200"
                                                 value="{{ $resp->job_responsibilities_descr }}">
                                             <button type="button"
@@ -349,12 +349,12 @@
                         <div class="p-4 pt-3">
 
                             <div class="mb-2 flex items-center gap-2 text-xs font-bold text-gray-800 dark:text-gray-200">
-                                <span class="h-1.5 w-1.5 rounded-full bg-indigo-600"></span> Education &amp; Experience
+                                <span class="h-1.5 w-1.5 rounded-full bg-indigo-600"></span> Education &amp; Experience <span class="text-red-500">*</span>
                             </div>
                             <div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
                                 <div class="flex flex-col gap-2">
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Education</label>
-                                    <select name="education" id="education"
+                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Education <span class="text-red-500">*</span></label>
+                                    <select name="education" id="education" required
                                         class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
                                         <option value="" disabled
                                             {{ old('education', $personnel->education) ? '' : 'selected' }}>Select
@@ -366,16 +366,16 @@
                                     </select>
                                 </div>
                                 <div class="flex flex-col gap-2">
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Experience — Start</label>
-                                    <input type="number" name="experience_start" id="experience_start"
+                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Experience — Start <span class="text-red-500">*</span></label>
+                                    <input type="number" name="experience_start" id="experience_start" required
                                         min="0"
                                         value="{{ old('experience_start', $personnel->experience_start) }}"
                                         placeholder="0"
                                         class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
                                 </div>
                                 <div class="flex flex-col gap-2">
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Experience — End</label>
-                                    <input type="number" name="experience_end" id="experience_end"
+                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Experience — End <span class="text-red-500">*</span></label>
+                                    <input type="number" name="experience_end" id="experience_end" required
                                         min="0"
                                         value="{{ old('experience_end', $personnel->experience_end) }}"
                                         placeholder="0"
@@ -384,7 +384,7 @@
                             </div>
 
                             <div class="mb-2 flex items-center gap-2 text-xs font-bold text-gray-800 dark:text-gray-200">
-                                <span class="h-1.5 w-1.5 rounded-full bg-indigo-600"></span> Skills
+                                <span class="h-1.5 w-1.5 rounded-full bg-indigo-600"></span> Skills <span class="text-red-500">*</span>
                             </div>
                             <div id="qualificationTable" class="flex flex-col gap-2">
                                 @php $qua = collect($jobqua ?? []); @endphp
@@ -394,7 +394,7 @@
                                             <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="6" r="1.4"/><circle cx="16" cy="6" r="1.4"/><circle cx="8" cy="12" r="1.4"/><circle cx="16" cy="12" r="1.4"/><circle cx="8" cy="18" r="1.4"/><circle cx="16" cy="18" r="1.4"/></svg>
                                         </span>
                                         <span class="row-num flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white text-xs font-bold text-gray-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400">1</span>
-                                        <input type="text" name="qualification[]" placeholder="Type here..."
+                                        <input type="text" name="qualification[]" required placeholder="Type here..."
                                             class="flex-1 border-none bg-transparent p-1 text-sm text-gray-700 focus:outline-none focus:ring-0 dark:text-gray-200">
                                         <button type="button"
                                             class="removeQualification hidden flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20">
@@ -408,7 +408,7 @@
                                                 <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="6" r="1.4"/><circle cx="16" cy="6" r="1.4"/><circle cx="8" cy="12" r="1.4"/><circle cx="16" cy="12" r="1.4"/><circle cx="8" cy="18" r="1.4"/><circle cx="16" cy="18" r="1.4"/></svg>
                                             </span>
                                             <span class="row-num flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white text-xs font-bold text-gray-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400">{{ $i + 1 }}</span>
-                                            <input type="text" name="qualification[]" placeholder="Type here..."
+                                            <input type="text" name="qualification[]" required placeholder="Type here..."
                                                 class="flex-1 border-none bg-transparent p-1 text-sm text-gray-700 focus:outline-none focus:ring-0 dark:text-gray-200"
                                                 value="{{ $q->job_qualification_descr }}">
                                             <button type="button"
@@ -893,7 +893,7 @@
                             <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="6" r="1.4"/><circle cx="16" cy="6" r="1.4"/><circle cx="8" cy="12" r="1.4"/><circle cx="16" cy="12" r="1.4"/><circle cx="8" cy="18" r="1.4"/><circle cx="16" cy="18" r="1.4"/></svg>
                         </span>
                         <span class="row-num flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white text-xs font-bold text-gray-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400">${responsibilityCount}</span>
-                        <input type="text" name="responsibilities[]" placeholder="Type here..." class="flex-1 border-none bg-transparent p-1 text-sm text-gray-700 focus:outline-none focus:ring-0 dark:text-gray-200">
+                        <input type="text" name="responsibilities[]" required placeholder="Type here..." class="flex-1 border-none bg-transparent p-1 text-sm text-gray-700 focus:outline-none focus:ring-0 dark:text-gray-200">
                         <button type="button" class="removeResponsibilities hidden flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20">
                             <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0l1 12a1 1 0 001 1h6a1 1 0 001-1l1-12"/></svg>
                         </button>
@@ -932,7 +932,7 @@
                             <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="6" r="1.4"/><circle cx="16" cy="6" r="1.4"/><circle cx="8" cy="12" r="1.4"/><circle cx="16" cy="12" r="1.4"/><circle cx="8" cy="18" r="1.4"/><circle cx="16" cy="18" r="1.4"/></svg>
                         </span>
                         <span class="row-num flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white text-xs font-bold text-gray-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400">${qualificationCount}</span>
-                        <input type="text" name="qualification[]" placeholder="Type here..." class="flex-1 border-none bg-transparent p-1 text-sm text-gray-700 focus:outline-none focus:ring-0 dark:text-gray-200">
+                        <input type="text" name="qualification[]" required placeholder="Type here..." class="flex-1 border-none bg-transparent p-1 text-sm text-gray-700 focus:outline-none focus:ring-0 dark:text-gray-200">
                         <button type="button" class="removeQualification hidden flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20">
                             <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0l1 12a1 1 0 001 1h6a1 1 0 001-1l1-12"/></svg>
                         </button>

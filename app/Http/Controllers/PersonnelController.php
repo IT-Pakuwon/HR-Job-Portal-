@@ -501,6 +501,13 @@ class PersonnelController extends Controller
                 'actual' => 'required|integer',
                 'total_actual' => 'required|integer',
                 'budget_entity_id' => $groupCompanyId === 'SBY' ? 'required|string' : 'nullable|string',
+                'responsibilities' => 'required|array|min:1',
+                'responsibilities.*' => 'required|string',
+                'qualification' => 'required|array|min:1',
+                'qualification.*' => 'required|string',
+                'education' => 'required|string',
+                'experience_start' => 'required|integer|min:0',
+                'experience_end' => 'required|integer|min:0|gte:experience_start',
             ];
         }
 
@@ -1278,6 +1285,13 @@ class PersonnelController extends Controller
                 'actual' => 'required|integer|min:0',
                 'total_actual' => 'required|integer|min:0',
                 'budget_entity_id' => $groupCompanyId === 'SBY' ? 'required|string' : 'nullable|string',
+                'responsibilities' => 'required|array|min:1',
+                'responsibilities.*' => 'required|string',
+                'qualification' => 'required|array|min:1',
+                'qualification.*' => 'required|string',
+                'education' => 'required|string',
+                'experience_start' => 'required|integer|min:0',
+                'experience_end' => 'required|integer|min:0|gte:experience_start',
             ];
         }
 
