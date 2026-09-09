@@ -2,6 +2,7 @@
     'status',
     'isApprover' => false,
     'canEdit' => false,
+    'isCreator' => false,
     'hasBlockingIm' => false,
     'imBlockingId' => null,
     'imBlockingStatus' => null,
@@ -13,7 +14,7 @@
     <div class="flex gap-3">
         @if (
             $status === 'H'
-            || ($status === 'D' && (!$requireEditAccessOnRevise || $canEdit))
+            || ($status === 'D' && (!$requireEditAccessOnRevise || $canEdit || $isCreator))
             || ($status === 'P' && $canEdit)
         )
             {{-- Draft tetap dapat diedit; akses Revise dapat diwajibkan oleh halaman pemanggil. --}}

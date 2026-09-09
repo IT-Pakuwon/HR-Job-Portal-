@@ -1057,8 +1057,11 @@ class PersonnelController extends Controller
             ->where('group_access_id', 'EDIT')
             ->where('status', 'A')
             ->exists();
+        $isCreator = $personnel->created_user === $user->username;
 
-        abort_if(in_array($personnel->status, ['D', 'P'], true) && !$canEdit, 403);
+        $blockedForRevise = $personnel->status === 'D' && !$canEdit && !$isCreator;
+        $blockedForOnProgress = $personnel->status === 'P' && !$canEdit;
+        abort_if($blockedForRevise || $blockedForOnProgress, 403);
 
         $usercpny = Usercpny::where('username', $user->username)->get();
         $usercpny2 = Usercpny::where('username', $user->username)->first();
@@ -1244,8 +1247,11 @@ class PersonnelController extends Controller
             ->where('group_access_id', 'EDIT')
             ->where('status', 'A')
             ->exists();
+        $isCreator = $existingPersonnel->created_user === $user->username;
 
-        if (in_array($existingPersonnel->status, ['D', 'P'], true) && !$hasEditAccess) {
+        $blockedForRevise = $existingPersonnel->status === 'D' && !$hasEditAccess && !$isCreator;
+        $blockedForOnProgress = $existingPersonnel->status === 'P' && !$hasEditAccess;
+        if ($blockedForRevise || $blockedForOnProgress) {
             return response()->json(['message' => 'You are not authorized to edit this personnel requisition.'], 403);
         }
 
@@ -1788,6 +1794,7 @@ class PersonnelController extends Controller
             'attachment' => $attachments,
             'jobtag'     => $jobtag,
             'canEdit'    => $canEdit,
+            'isCreator'  => $personnel->created_user === $user->username,
             'isApprover' => $isApprover,
             'hash'       => $hash,
         ]);

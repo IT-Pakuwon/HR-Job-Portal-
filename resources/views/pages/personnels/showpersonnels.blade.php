@@ -9,6 +9,7 @@
                 :status="$personnel->status"
                 :is-approver="$isApprover"
                 :can-edit="$canEdit"
+                :is-creator="$isCreator"
                 :require-edit-access-on-revise="true"
                 :edit-url="url('/editpersonnels/' . $hash)"
             />
