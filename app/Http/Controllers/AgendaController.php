@@ -23,6 +23,7 @@ use App\Models\User;
 use App\Models\JobApplySch;
 use App\Models\JobApply;
 use App\Models\JobApplyStep;
+use App\Models\Career;
 use App\Models\Jobposting;
 use App\Models\Applicant;
 use App\Models\Meeting;
@@ -245,20 +246,49 @@ class AgendaController extends Controller
                 'IU' => [5, 6],
             ];
 
-            JobApplyStep::where('docid', $jobapply->docid)
+            $stepsToApprove = JobApplyStep::where('docid', $jobapply->docid)
                 ->where('jobid', $jobapply->jobid)
                 ->where('cpnyid', $request->cpnyid)
                 ->where('group_cpny_id', $groupCompanyId)
                 ->whereIn('step_order', $stepOrdersByInterviewType[$request->reftype])
                 ->where('status', 'P')
-                ->update([
-                    'status' => 'A',
-                    'aprvusername' => $user->username,
-                    'aprvuserdate' => $datestamp,
-                    'updated_user' => $user->username,
-                ]);
+                ->orderBy('step_order', 'ASC')
+                ->get();
 
-    
+            if ($stepsToApprove->isNotEmpty()) {
+                JobApplyStep::whereIn('id', $stepsToApprove->pluck('id'))
+                    ->update([
+                        'status' => 'A',
+                        'aprvusername' => $user->username,
+                        'aprvuserdate' => $datestamp,
+                        'updated_user' => $user->username,
+                    ]);
+
+                // Update apply_step & prev_apply_step di Career, sama seperti di approveCareer()
+                $career = Career::where('docid', $jobapply->docid)->first();
+
+                if ($career) {
+                    $lastApprovedStep = $stepsToApprove->last();
+
+                    $t_approval_next = JobApplyStep::where('docid', $jobapply->docid)
+                        ->where('jobid', $jobapply->jobid)
+                        ->where('group_cpny_id', $groupCompanyId)
+                        ->where('status', 'P')
+                        ->orderBy('step_order', 'ASC')
+                        ->first();
+
+                    if ($t_approval_next) {
+                        $career->apply_step = $t_approval_next->step_id;
+                    }
+
+                    $career->prev_apply_step = $lastApprovedStep->step_id;
+                    $career->updated_user = $user->username;
+                    $career->updated_at = $datestamp;
+                    $career->save();
+                }
+            }
+
+
             $docidagenda = $docid;
 
             if($roomId && $accId){
