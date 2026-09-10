@@ -1426,6 +1426,8 @@ class CareerController extends Controller
             ? 'https://careerdemo.pakuwon.com'
             : 'https://careerjakarta.pakuwon.com';
 
+        $fromEmail = $career->group_cpny_id === 'SBY' ? 'hrd@pakuwon.com' : 'recruitment@pakuwon.com';
+
         $applicant = Applicant::where('applicant_id', $career->applicant_id)->where('group_cpny_id', $career->group_cpny_id)->first();
 
         $jobapply = JobApply::where('docid', $career->docid)
@@ -1459,10 +1461,10 @@ class CareerController extends Controller
                 'division' => $division ?? '-',
                 'department' => $department ?? '-',
             ];
-            \Mail::send('emails.mailapplicant_remapped', $data, function ($message) use ($applicant) {
+            \Mail::send('emails.mailapplicant_remapped', $data, function ($message) use ($applicant, $fromEmail) {
                 $message->to($applicant->email_address)
                         ->subject('📩 Update Posisi Lamaran Anda di Pakuwon Career');
-                $message->from('recruitment@pakuwon.com', 'Pakuwon Career');
+                $message->from($fromEmail, 'Pakuwon Career');
             });
         } elseif ($is_remapped && $applicant->process_step != 2) {
             // Remapped + hasn't filled form — notify position change and send form link
@@ -1473,10 +1475,10 @@ class CareerController extends Controller
                 'job_title' => $jobposting->job_title ?? '-',
                 'url' => url("{$careerPortalBase}/checkform/{$encryptedDocId}"),
             ];
-            \Mail::send('emails.mailapplicant_remapped_form', $data, function ($message) use ($applicant) {
+            \Mail::send('emails.mailapplicant_remapped_form', $data, function ($message) use ($applicant, $fromEmail) {
                 $message->to($applicant->email_address)
                         ->subject('📩 Update Posisi Lamaran Anda di Pakuwon Career');
-                $message->from('recruitment@pakuwon.com', 'Pakuwon Career');
+                $message->from($fromEmail, 'Pakuwon Career');
             });
         } else {
             // Not remapped + hasn't filled form — send form link
@@ -1485,10 +1487,10 @@ class CareerController extends Controller
                 'name' => $applicant->full_name ?? 'Pelamar',
                 'url' => url("{$careerPortalBase}/checkform/{$encryptedDocId}"),
             ];
-            \Mail::send('emails.mailapplicant', $data, function ($message) use ($applicant) {
+            \Mail::send('emails.mailapplicant', $data, function ($message) use ($applicant, $fromEmail) {
                 $message->to($applicant->email_address)
                         ->subject('📩 Lengkapi Aplikasi Anda di Pakuwon Career');
-                $message->from('recruitment@pakuwon.com', 'Pakuwon Career');
+                $message->from($fromEmail, 'Pakuwon Career');
             });
         }
 
@@ -2457,16 +2459,22 @@ class CareerController extends Controller
             $eid = Hashids::encode($career->id);
 
             if ($firstApproval) {
+                $groupCpnyId = $career->group_cpny_id ?? $jobposting->group_cpny_id ?? null;
+
                 $deptName = DepartmentHR::where('department_id', $firstApproval->aprv_departementid)
-                    ->where('group_cpny_id', $career->group_cpny_id ?? $jobposting->group_cpny_id ?? null)
+                    ->where('group_cpny_id', $groupCpnyId)
                     ->value('department_name');
+
+                $cpnyName = MsCompany::where('cpny_id', $firstApproval->aprv_cpnyid)->value('cpny_name');
+
+                $fromEmail = $groupCpnyId === 'SBY' ? 'hrd@pakuwon.com' : 'recruitment@pakuwon.com';
 
                 $data = [
                     'docid' => $firstApproval->refnbr,
-                    'cpnyid' => $firstApproval->aprv_cpnyid,
+                    'cpnyid' => $cpnyName ?? $firstApproval->aprv_cpnyid,
                     'deptname' => $deptName ?? $firstApproval->aprv_departementid,
                     'date' => $firstApproval->aprv_datebefore,
-                    'name' => $user->username,
+                    'name' => $user->name ?? $user->username,
                     'info' => 'Apply Candidate',
                     'url' => url('/showcareers/'.$eid),
                 ];
@@ -2477,10 +2485,10 @@ class CareerController extends Controller
                     ->pluck('notification_email');
 
                 foreach ($emails as $email) {
-                    \Mail::send('emails.mailapprove', $data, function ($message) use ($email, $data) {
+                    \Mail::send('emails.mailapprove', $data, function ($message) use ($email, $data, $fromEmail) {
                         $message->to($email)
                             ->subject($data['docid'].' - Waiting Approval Apply Candidate')
-                            ->from('recruitment@pakuwon.com', 'Pakuwon System');
+                            ->from($fromEmail, 'Pakuwon System');
                     });
                 }
             }
@@ -2698,10 +2706,12 @@ class CareerController extends Controller
                 'work_start_date' => Carbon::parse($data['work_start_date'])->format('F j, Y'),
             ];
 
-            \Mail::send('emails.mailjoinapplicant', $emailData, function ($message) use ($recipients) {
+            $fromEmail = $payroll->group_cpny_id === 'SBY' ? 'hrd@pakuwon.com' : 'recruitment@pakuwon.com';
+
+            \Mail::send('emails.mailjoinapplicant', $emailData, function ($message) use ($recipients, $fromEmail) {
                 $message->to($recipients)
                     ->subject('Your Employment Start Schedule')
-                    ->from('recruitment@pakuwon.com', 'Pakuwon System');
+                    ->from($fromEmail, 'Pakuwon System');
             });
 
             DB::commit();
@@ -2758,11 +2768,13 @@ class CareerController extends Controller
             'company' => 'Pakuwon Group',
         ];
 
+        $fromEmail = $career->group_cpny_id === 'SBY' ? 'hrd@pakuwon.com' : 'recruitment@pakuwon.com';
+
         // Kirim email pakai blade "emails.mailapplicant_rejected"
-        \Mail::send('emails.mailapplicant_rejected', $data, function ($message) use ($applicant, $jobTitle) {
+        \Mail::send('emails.mailapplicant_rejected', $data, function ($message) use ($applicant, $jobTitle, $fromEmail) {
             $message->to($applicant->email_address)
                     ->subject("📩 Application Update – {$jobTitle}")
-                    ->from('recruitment@pakuwon.com', 'Pakuwon Career');
+                    ->from($fromEmail, 'Pakuwon Career');
         });
 
         // (Opsional) return info sukses (tidak perlu response JSON di sini)
