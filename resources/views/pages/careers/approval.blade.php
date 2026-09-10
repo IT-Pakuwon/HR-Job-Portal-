@@ -59,10 +59,15 @@
 
         {{-- ── Sub-tabs + progress ─────────────────────────────────────── --}}
         @php
-            $totalSteps   = $jobapplystep->count();
+            $totalSteps    = $jobapplystep->count();
             $approvedCount = $jobapplystep->where('status', 'A')->count();
             $rejectedCount = $jobapplystep->where('status', 'R')->count();
-            $progressPct  = $totalSteps > 0 ? round(($approvedCount / $totalSteps) * 100) : 0;
+            $skippedCount  = $jobapplystep->where('status', 'X')->count();
+            // Skipped steps (e.g. a single-track interview) aren't part of what's
+            // "left to approve", so exclude them from the denominator or the bar
+            // could never reach 100% for an applicant who skipped a track.
+            $applicableSteps = $totalSteps - $skippedCount;
+            $progressPct  = $applicableSteps > 0 ? round(($approvedCount / $applicableSteps) * 100) : 0;
         @endphp
         <div class="flex items-center gap-3 border-b border-gray-100 px-3 py-2.5 dark:border-gray-700/60">
 
@@ -159,8 +164,10 @@
                     $firstPendingShown = false;
                     $step3 = $jobapplystep->firstWhere('step_order', 3);
                     $step5 = $jobapplystep->firstWhere('step_order', 5);
-                    $step3Approved = $step3 ? $step3->status === 'A' : true;
-                    $step5Approved = $step5 ? $step5->status === 'A' : true;
+                    // 'X' = track skipped (e.g. recruiter chose a single-track interview
+                    // type in storeAgenda), which also satisfies the gate — not just 'A'.
+                    $step3Approved = $step3 ? in_array($step3->status, ['A', 'X'], true) : true;
+                    $step5Approved = $step5 ? in_array($step5->status, ['A', 'X'], true) : true;
                 @endphp
 
                 <div class="grid grid-cols-12">
@@ -191,6 +198,10 @@
                                     @elseif($step->status === 'R')
                                         <div class="flex h-7 w-7 items-center justify-center rounded-full bg-red-500">
                                             <svg class="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        </div>
+                                    @elseif($step->status === 'X')
+                                        <div class="flex h-7 w-7 items-center justify-center rounded-full bg-gray-300 dark:bg-gray-600">
+                                            <svg class="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"/></svg>
                                         </div>
                                     @elseif($isActive)
                                         <div class="flex h-7 w-7 items-center justify-center rounded-full border-2 border-gray-900 dark:border-white">
@@ -253,6 +264,8 @@
                                             </button>
                                         @elseif ($step->status === 'D')
                                             <span class="rounded-full bg-blue-100 px-2.5 py-1 text-[11px] font-semibold text-blue-600">Revised</span>
+                                        @elseif ($step->status === 'X')
+                                            <span class="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-semibold text-gray-400 dark:bg-gray-900">Skipped</span>
                                         @endif
                                     @endif
                                 </div>

@@ -14,6 +14,8 @@ class MultiDashboardController extends Controller
     {
         $user = Auth::user();
 
+        $homepage = strtoupper($user->homepage ?? 'DASHAPPROVAL');
+
         $akses_cc = $user
             ? SysUserRole::where('username', $user->username)
                 ->where('role_id', 'COSTCTRLACCESS')
@@ -38,8 +40,6 @@ class MultiDashboardController extends Controller
             ->groupBy('doctype', 'doctype_descr')
             ->orderBy('doctype')
             ->get();
-
-        $homepage = strtoupper($user->homepage ?? 'DASHAPPROVAL');
 
         $menu = SysMenu::where('screen_id', $homepage)
             ->where('status', 'A')
@@ -75,6 +75,7 @@ class MultiDashboardController extends Controller
             'DASHFIN' => 'dashboard-finance',
             'DASHTREAS' => 'dashboard-treasury',
             'DASHCORPTEK' => 'dashboard-corporate-teknik',
+            'RECRUITDASH' => 'dashboard-recruitment',
             default => 'dashboard-approval',
         };
     }

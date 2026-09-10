@@ -2398,6 +2398,15 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/approval-doctypes-json', 'approvalDocTypes')->name('approval-doctypes-json');
         });
 
+        Route::prefix('recruitment-dashboard')->controller(RecruitmentDashboardController::class)->name('recruitment-dashboard.')->group(function () {
+            Route::get('/summary-json', 'summaryJson')->name('summary-json');
+            Route::get('/waiting-approval-json', 'widgetWaitingApprovalJson')->name('waiting-approval-json');
+            Route::get('/approval-history-json', 'widgetApprovalHistoryJson')->name('approval-history-json');
+            Route::get('/applicant-json', 'widgetApplicantJson')->name('applicant-json');
+            Route::get('/self-register-json', 'widgetSelfRegisterJson')->name('self-register-json');
+            Route::get('/approval-doctypes-json', 'widgetApprovalDocTypes')->name('approval-doctypes-json');
+        });
+
         Route::prefix('purchasing-dashboard')->controller(PurchasingDashboardController::class)->name('purchasing.')->group(function () {
             Route::get('/summary-json', 'summaryJson')->name('summary');
             Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('approval');

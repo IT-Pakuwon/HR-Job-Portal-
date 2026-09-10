@@ -246,6 +246,16 @@ class AgendaController extends Controller
                 'IU' => [5, 6],
             ];
 
+            // When the recruiter picks a single-track interview type (IH or IU),
+            // that choice means the other track is not required for this applicant.
+            // Without this, the untouched track's gate step stays 'P' forever and
+            // blocks every step after it (see approval.blade.php gate check).
+            $stepOrdersToSkip = [
+                'IH' => [5, 6],
+                'IHU' => [],
+                'IU' => [3, 4],
+            ];
+
             $stepsToApprove = JobApplyStep::where('docid', $jobapply->docid)
                 ->where('jobid', $jobapply->jobid)
                 ->where('cpnyid', $request->cpnyid)
@@ -261,6 +271,17 @@ class AgendaController extends Controller
                         'status' => 'A',
                         'aprvusername' => $user->username,
                         'aprvuserdate' => $datestamp,
+                        'updated_user' => $user->username,
+                    ]);
+
+                JobApplyStep::where('docid', $jobapply->docid)
+                    ->where('jobid', $jobapply->jobid)
+                    ->where('cpnyid', $request->cpnyid)
+                    ->where('group_cpny_id', $groupCompanyId)
+                    ->whereIn('step_order', $stepOrdersToSkip[$request->reftype])
+                    ->where('status', 'P')
+                    ->update([
+                        'status' => 'X',
                         'updated_user' => $user->username,
                     ]);
 
