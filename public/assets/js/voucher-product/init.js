@@ -14,6 +14,7 @@ const VplMasterInit = {
         VplMasterDatalist.initActionMenu();
         VplMasterDatalist.initStatusFilter();
         VplMasterDatalist.initFilterBar();
+        VplMasterDatalist.initTotalStockTooltip();
 
         // 3. Form (save + edit delegate)
         VplMasterForm.init();

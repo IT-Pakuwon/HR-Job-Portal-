@@ -122,6 +122,19 @@ class User extends Authenticatable
     }
 
     /**
+     * True for VPL collateral/loyalty/promotion role holders — they may view every
+     * VPL transaction (Receive/Transfer/Usage/Settlement) across their own company
+     * regardless of department. Unlike hasFullDataScope(), this does NOT bypass
+     * company scoping — only department scoping, and only within the VPL module.
+     */
+    public function hasVplCompanyAccess(): bool
+    {
+        return $this->hasRole('VPCOLLACCESS')
+            || $this->hasRole('VPLOYALTYACCESS')
+            || $this->hasRole('VPPRMTNACCESS');
+    }
+
+    /**
      * Company ids this user's transaction lists should be scoped to — every company for
      * hasFullDataScope() roles, otherwise just the user's own comma-separated cpny_id.
      */

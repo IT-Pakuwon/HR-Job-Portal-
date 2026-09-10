@@ -22,6 +22,7 @@
         $url = $url ?? '#';
         $tenant = $tenant ?? null;
         $voucherLines = $voucher_lines ?? [];
+        $showNominal = !empty($voucherLines) && array_key_exists('nominal', $voucherLines[0]);
 
         $map = [
             'P' => [
@@ -130,19 +131,23 @@
                             @if(count($voucherLines))
                             <table cellspacing="0" cellpadding="6" style="width:100%; margin:0 0 20px; border-collapse:collapse;">
                                 <tr>
-                                    <td colspan="4" style="font-weight:bold; padding:0 0 8px; border:none;">Voucher Detail</td>
+                                    <td colspan="{{ $showNominal ? 4 : 3 }}" style="font-weight:bold; padding:0 0 8px; border:none;">Voucher Detail</td>
                                 </tr>
                                 <tr>
                                     <td style="background:#f3f4f6; font-weight:bold; border:1px solid #e5e7eb;">Voucher</td>
                                     <td style="background:#f3f4f6; font-weight:bold; border:1px solid #e5e7eb;">Qty</td>
+                                    @if($showNominal)
                                     <td style="background:#f3f4f6; font-weight:bold; border:1px solid #e5e7eb;">Total Nominal</td>
+                                    @endif
                                     <td style="background:#f3f4f6; font-weight:bold; border:1px solid #e5e7eb;">Exp Date</td>
                                 </tr>
                                 @foreach($voucherLines as $line)
                                 <tr>
                                     <td style="border:1px solid #e5e7eb;">{{ $line['name'] }}</td>
                                     <td style="border:1px solid #e5e7eb;">{{ $line['qty'] }}</td>
+                                    @if($showNominal)
                                     <td style="border:1px solid #e5e7eb;">Rp {{ $line['nominal'] }}</td>
+                                    @endif
                                     <td style="border:1px solid #e5e7eb;">{{ $line['exp'] }}</td>
                                 </tr>
                                 @endforeach

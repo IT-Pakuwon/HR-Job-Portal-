@@ -31,6 +31,7 @@
         var height     = cfg.height  || 300;
         var color      = cfg.color   || 'blue';
         var stacked    = cfg.stacked || false;
+        var showLegend = cfg.showLegend !== false;
         var dark       = isDark();
         var colors     = series.length > 1 ? PALETTE.multi : (PALETTE[color] || PALETTE.blue);
 
@@ -67,7 +68,7 @@
             grid: { borderColor: dark ? '#1E293B' : '#F1F5F9', strokeDashArray: 4, padding: { left: 4, right: 4 } },
             tooltip: { theme: dark ? 'dark' : 'light', y: { formatter: function(v) { return v.toLocaleString(); } } },
             legend: {
-                show: series.length > 1, position: 'top', horizontalAlign: 'right',
+                show: showLegend && series.length > 1, position: 'top', horizontalAlign: 'right',
                 fontSize: '12px', markers: { radius: 6 },
             },
         });

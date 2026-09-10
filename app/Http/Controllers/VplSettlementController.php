@@ -14,6 +14,7 @@ use App\Models\TrxVplSettlement;
 use App\Models\TrxVplSettlementDetail;
 use App\Models\TrxVplUsage;
 use App\Models\TrxVplUsageDetail;
+use App\Models\SysUserRole;
 use App\Models\User;
 use App\Models\Usercpny;
 use App\Models\Userdept;
@@ -53,12 +54,19 @@ class VplSettlementController extends Controller
         // distinct from the admin-only "Settlement All" tab, which stays admin-exclusive.
         $hasFullScope = $user->hasFullDataScope();
 
+        // "All Settlement" — VPCOLLACCESS/VPLOYALTYACCESS/VPPRMTNACCESS role holders see
+        // every transaction across their own company regardless of department.
+        $hasVplCompanyAccess = $user->hasVplCompanyAccess();
+
         if ($request->ajax()) {
             $status = $request->input('status', 'ALL');
             $adminAll = $isAdmin && $status === 'ADMINALL';
+            $companyAll = $hasVplCompanyAccess && $status === 'COMPANYALL';
 
             $base = TrxVplSettlement::query();
-            if (!$adminAll && !$hasFullScope) {
+            if ($companyAll) {
+                $base->whereIn('cpnyid', $multicpnyid);
+            } elseif (!$adminAll && !$hasFullScope) {
                 $base->whereIn('cpnyid', $multicpnyid)->whereIn('department', $multidept);
             }
 
@@ -69,7 +77,7 @@ class VplSettlementController extends Controller
                 if ($request->filled('filter_doc_status') && $request->filter_doc_status !== 'ALL') {
                     $base->where('status', $request->filter_doc_status);
                 }
-            } elseif ($status !== 'ALL') {
+            } elseif (!$companyAll && $status !== 'ALL') {
                 $base->where('status', $status);
             }
 
@@ -117,6 +125,11 @@ class VplSettlementController extends Controller
         // "Settlement All" card — system-wide total, admin-only.
         if ($isAdmin) {
             $counts['admin_all'] = TrxVplSettlement::count();
+        }
+
+        // "All Settlement" card — company-wide total (all departments), VPL role-only.
+        if ($hasVplCompanyAccess) {
+            $counts['company_all'] = TrxVplSettlement::whereIn('cpnyid', $multicpnyid)->count();
         }
 
         // "Job List" card — Completed Usage docs from non-CUSTOMERSERVICE departments
@@ -703,6 +716,8 @@ class VplSettlementController extends Controller
                     route('showsettlementvp', Hashids::encode($id)),
                     ['cpnyid' => $settlement->cpnyid, 'deptname' => $settlement->department]
                 );
+
+                $this->notifyRoleAccessUsers($settlement, route('showsettlementvp', Hashids::encode($id)));
             }
         );
 
@@ -711,6 +726,86 @@ class VplSettlementController extends Controller
         }
 
         return response()->json(['success' => 'Document approved.']);
+    }
+
+    // -------------------------------------------------------
+    // Notify VPCOLLACCESS / VPLOYALTYACCESS / VPPRMTNACCESS role
+    // holders in the settlement's company when it completes.
+    // VPLOYALTYACCESS / VPPRMTNACCESS additionally get the
+    // product/qty/exp date breakdown and remarks — VPCOLLACCESS gets
+    // the plain notification only, and is skipped entirely for
+    // Product-type settlements (Collateral only cares about vouchers,
+    // not physical product stock).
+    // -------------------------------------------------------
+    private function notifyRoleAccessUsers(TrxVplSettlement $settlement, string $urlToDoc): void
+    {
+        $detailRoleIds = ['VPLOYALTYACCESS', 'VPPRMTNACCESS'];
+        $isProduct = strtoupper($settlement->vp_type ?? '') === 'P';
+        $roleIds = $isProduct ? $detailRoleIds : array_merge(['VPCOLLACCESS'], $detailRoleIds);
+
+        $rolesByUsername = SysUserRole::whereIn('role_id', $roleIds)
+            ->where('status', 'A')
+            ->get()
+            ->groupBy('username')
+            ->map(fn ($rows) => $rows->pluck('role_id')->all());
+
+        $usernames = Usercpny::where('cpny_id', $settlement->cpnyid)
+            ->where('status', 'A')
+            ->whereIn('username', $rolesByUsername->keys())
+            ->pluck('username')
+            ->unique();
+
+        $voucherLines = $this->buildVoucherEmailLines($settlement);
+
+        foreach ($usernames as $username) {
+            $wantsDetail = !empty(array_intersect($rolesByUsername->get($username, []), $detailRoleIds));
+
+            $extra = [
+                'cpnyid'    => $settlement->cpnyid,
+                'deptname'  => $settlement->department,
+                'createdby' => $settlement->created_user,
+            ];
+
+            if ($wantsDetail) {
+                $extra['date'] = optional($settlement->settlement_date)->format('d F Y');
+                $extra['info'] = $settlement->settlement_remark;
+                $extra['voucher_lines'] = $voucherLines;
+            }
+
+            app(ApprovalController::class)->notifyRequesterOnStatus(
+                $settlement->settlement_id,
+                self::DOCTYPE_DSC,
+                'C',
+                $username,
+                $urlToDoc,
+                $extra
+            );
+        }
+    }
+
+    // -------------------------------------------------------
+    // Product name + qty + expired date per line, for the
+    // VPLOYALTYACCESS / VPPRMTNACCESS completion email
+    // -------------------------------------------------------
+    private function buildVoucherEmailLines(TrxVplSettlement $settlement): array
+    {
+        return TrxVplSettlementDetail::join('ms_vpl_product', 'tr_vpl_settlement_detail.product_id', '=', 'ms_vpl_product.product_id')
+            ->where('settlement_id', $settlement->settlement_id)
+            ->orderBy('linenbr')
+            ->select(
+                'ms_vpl_product.product_name',
+                'tr_vpl_settlement_detail.qty_settlement',
+                'tr_vpl_settlement_detail.expired_date'
+            )
+            ->get()
+            ->map(fn ($row) => [
+                'name' => $row->product_name,
+                'qty'  => number_format((float) $row->qty_settlement, 0, ',', '.'),
+                'exp'  => ($row->expired_date && $row->expired_date->format('Y-m-d') !== '1900-01-01')
+                    ? $row->expired_date->format('d F Y')
+                    : 'No Expiry',
+            ])
+            ->all();
     }
 
     // -------------------------------------------------------
@@ -977,6 +1072,13 @@ class VplSettlementController extends Controller
         }
 
         $hasCpny = Usercpny::where('username', $user->username)->where('status', 'A')->where('cpny_id', $cpnyid)->exists();
+
+        // VPCOLLACCESS/VPLOYALTYACCESS/VPPRMTNACCESS may open any doc in their own
+        // company regardless of department — same scope as the "All Settlement" list tab.
+        if ($user->hasVplCompanyAccess()) {
+            return $hasCpny;
+        }
+
         $hasDept = Userdept::where('username', $user->username)->where('department_id', $department)->exists();
 
         return $hasCpny && $hasDept;

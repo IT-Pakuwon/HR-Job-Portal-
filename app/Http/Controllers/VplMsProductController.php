@@ -204,13 +204,42 @@ class VplMsProductController extends Controller
                 $query->where('product_name', 'ilike', '%' . $request->filter_product_name . '%');
             }
 
-            return Datatables::of($query->get())
+            $rows = $query->get();
+
+            // Total stock across all warehouses, plus a per-warehouse/expiry
+            // breakdown for the hover tooltip — batched in one query rather
+            // than per-row to avoid an N+1 on the product list.
+            $stockByProduct = MsVplProductDetail::whereIn('product_id', $rows->pluck('product_id')->filter()->unique())
+                ->where('status', 'A')
+                ->where('qty_available', '>', 0)
+                ->get(['product_id', 'whs_id', 'expired_date', 'qty_available'])
+                ->groupBy('product_id');
+
+            return Datatables::of($rows)
                 ->addIndexColumn()
                 ->addColumn('product_id', function ($row) {
                     $hash = Hashids::encode($row->id);
                     return '<button class="view-product-btn inline-flex w-40 justify-center rounded bg-gray-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-700"
                         data-hash="' . $hash . '">'
                         . $row->product_id . '</button>';
+                })
+                ->addColumn('total_stock', function ($row) use ($stockByProduct) {
+                    $details = $stockByProduct->get($row->product_id, collect());
+
+                    $breakdown = $details
+                        ->groupBy(fn ($d) => $d->whs_id . '|' . ($d->expired_date?->format('Y-m-d') ?? ''))
+                        ->map(fn ($group) => [
+                            'whs_id' => $group->first()->whs_id,
+                            'exp'    => $group->first()->expired_date?->format('Y-m-d'),
+                            'qty'    => (float) $group->sum('qty_available'),
+                        ])
+                        ->sortBy('whs_id')
+                        ->values();
+
+                    return [
+                        'total'     => (float) $details->sum('qty_available'),
+                        'breakdown' => $breakdown,
+                    ];
                 })
                 ->addColumn('status', fn ($row) => $row->status === 'A'
                     ? '<span class="inline-block w-24 rounded bg-green-300/30 px-3 py-1.5 text-sm font-semibold text-green-600">Active</span>'

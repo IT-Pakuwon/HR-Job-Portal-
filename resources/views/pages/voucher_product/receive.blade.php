@@ -38,7 +38,13 @@
 {{-- ======================================================== --}}
 {{-- STATUS COUNT CARDS --}}
 {{-- ======================================================== --}}
-<div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 {{ $user->isPrimaryAdmin() ? 'xl:grid-cols-7' : 'xl:grid-cols-6' }}">
+@php
+    $vplCompanyAccess = $user->hasVplCompanyAccess();
+    $gridColsClass = $user->isPrimaryAdmin()
+        ? ($vplCompanyAccess ? 'xl:grid-cols-8' : 'xl:grid-cols-7')
+        : ($vplCompanyAccess ? 'xl:grid-cols-7' : 'xl:grid-cols-6');
+@endphp
+<div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 {{ $gridColsClass }}">
 
     {{-- All --}}
     <button type="button" class="text-left">
@@ -128,6 +134,21 @@
                     <p class="break-words text-sm font-medium">Receive All</p>
                 </div>
                 <p class="shrink-0 text-base font-bold">{{ $counts['admin_all'] ?? 0 }}</p>
+            </div>
+        </a>
+    </button>
+    @endif
+
+    {{-- All Receive — VPCOLLACCESS/VPLOYALTYACCESS/VPPRMTNACCESS only, company-wide view --}}
+    @if($vplCompanyAccess)
+    <button type="button" class="text-left">
+        <a href="#" class="status-filter group block h-full" data-status="COMPANYALL">
+            <div class="status-card flex h-full items-center gap-3 rounded-lg border border-teal-500 bg-teal-100/30 p-3 text-teal-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-teal-100 hover:shadow-md active:scale-95 dark:border-teal-500 dark:text-teal-400 dark:hover:bg-teal-500/20">
+                <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🏢</div>
+                <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                    <p class="break-words text-sm font-medium">All Receive</p>
+                </div>
+                <p class="shrink-0 text-base font-bold">{{ $counts['company_all'] ?? 0 }}</p>
             </div>
         </a>
     </button>
