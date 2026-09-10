@@ -51,14 +51,21 @@ class VplReceiveController extends Controller
         // distinct from the admin-only "Receive All" tab, which stays admin-exclusive.
         $hasFullScope = $user->hasFullDataScope();
 
+        // "All Receive" — VPCOLLACCESS/VPLOYALTYACCESS/VPPRMTNACCESS role holders see
+        // every transaction across their own company regardless of department.
+        $hasVplCompanyAccess = $user->hasVplCompanyAccess();
+
         if ($request->ajax()) {
             $status = $request->input('status', 'ALL');
             $adminAll = $isAdmin && $status === 'ADMINALL';
+            $companyAll = $hasVplCompanyAccess && $status === 'COMPANYALL';
 
             // TrxVplReceive (pgsql5) and TrApproval (pgsql2) are on different connections
             // so we cannot JOIN — fetch approver names separately
             $base = TrxVplReceive::query();
-            if (!$adminAll && !$hasFullScope) {
+            if ($companyAll) {
+                $base->whereIn('cpnyid', $multicpnyid);
+            } elseif (!$adminAll && !$hasFullScope) {
                 $base->whereIn('cpnyid', $multicpnyid)->whereIn('department', $multidept);
             }
 
@@ -69,7 +76,7 @@ class VplReceiveController extends Controller
                 if ($request->filled('filter_doc_status') && $request->filter_doc_status !== 'ALL') {
                     $base->where('status', $request->filter_doc_status);
                 }
-            } elseif ($status !== 'ALL') {
+            } elseif (!$companyAll && $status !== 'ALL') {
                 $base->where('status', $status);
             }
 
@@ -114,6 +121,11 @@ class VplReceiveController extends Controller
         // "Receive All" card — system-wide total, admin-only.
         if ($isAdmin) {
             $counts['admin_all'] = TrxVplReceive::count();
+        }
+
+        // "All Receive" card — company-wide total (all departments), VPL role-only.
+        if ($hasVplCompanyAccess) {
+            $counts['company_all'] = TrxVplReceive::whereIn('cpnyid', $multicpnyid)->count();
         }
 
         $usercpny = Usercpny::where('username', $user->username)->get();

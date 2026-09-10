@@ -51,12 +51,19 @@ class VplUsageController extends Controller
         // distinct from the admin-only "Usage All" tab, which stays admin-exclusive.
         $hasFullScope = $user->hasFullDataScope();
 
+        // "All Usage" — VPCOLLACCESS/VPLOYALTYACCESS/VPPRMTNACCESS role holders see
+        // every transaction across their own company regardless of department.
+        $hasVplCompanyAccess = $user->hasVplCompanyAccess();
+
         if ($request->ajax()) {
             $status = $request->input('status', 'ALL');
             $adminAll = $isAdmin && $status === 'ADMINALL';
+            $companyAll = $hasVplCompanyAccess && $status === 'COMPANYALL';
 
             $base = TrxVplUsage::query();
-            if (!$adminAll && !$hasFullScope) {
+            if ($companyAll) {
+                $base->whereIn('cpnyid', $multicpnyid);
+            } elseif (!$adminAll && !$hasFullScope) {
                 $base->whereIn('cpnyid', $multicpnyid)->whereIn('department', $multidept);
             }
 
@@ -70,7 +77,7 @@ class VplUsageController extends Controller
                 if ($request->filled('filter_doc_status') && $request->filter_doc_status !== 'ALL') {
                     $base->where('status', $request->filter_doc_status);
                 }
-            } elseif ($status !== 'ALL') {
+            } elseif (!$companyAll && $status !== 'ALL') {
                 $base->where('status', $status);
             }
 
@@ -124,6 +131,11 @@ class VplUsageController extends Controller
         // "Usage All" card — system-wide total, admin-only.
         if ($isAdmin) {
             $counts['admin_all'] = TrxVplUsage::count();
+        }
+
+        // "All Usage" card — company-wide total (all departments), VPL role-only.
+        if ($hasVplCompanyAccess) {
+            $counts['company_all'] = TrxVplUsage::whereIn('cpnyid', $multicpnyid)->count();
         }
 
         $usercpny = Usercpny::where('username', $user->username)->get();

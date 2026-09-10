@@ -53,12 +53,19 @@ class VplSettlementController extends Controller
         // distinct from the admin-only "Settlement All" tab, which stays admin-exclusive.
         $hasFullScope = $user->hasFullDataScope();
 
+        // "All Settlement" — VPCOLLACCESS/VPLOYALTYACCESS/VPPRMTNACCESS role holders see
+        // every transaction across their own company regardless of department.
+        $hasVplCompanyAccess = $user->hasVplCompanyAccess();
+
         if ($request->ajax()) {
             $status = $request->input('status', 'ALL');
             $adminAll = $isAdmin && $status === 'ADMINALL';
+            $companyAll = $hasVplCompanyAccess && $status === 'COMPANYALL';
 
             $base = TrxVplSettlement::query();
-            if (!$adminAll && !$hasFullScope) {
+            if ($companyAll) {
+                $base->whereIn('cpnyid', $multicpnyid);
+            } elseif (!$adminAll && !$hasFullScope) {
                 $base->whereIn('cpnyid', $multicpnyid)->whereIn('department', $multidept);
             }
 
@@ -69,7 +76,7 @@ class VplSettlementController extends Controller
                 if ($request->filled('filter_doc_status') && $request->filter_doc_status !== 'ALL') {
                     $base->where('status', $request->filter_doc_status);
                 }
-            } elseif ($status !== 'ALL') {
+            } elseif (!$companyAll && $status !== 'ALL') {
                 $base->where('status', $status);
             }
 
@@ -117,6 +124,11 @@ class VplSettlementController extends Controller
         // "Settlement All" card — system-wide total, admin-only.
         if ($isAdmin) {
             $counts['admin_all'] = TrxVplSettlement::count();
+        }
+
+        // "All Settlement" card — company-wide total (all departments), VPL role-only.
+        if ($hasVplCompanyAccess) {
+            $counts['company_all'] = TrxVplSettlement::whereIn('cpnyid', $multicpnyid)->count();
         }
 
         // "Job List" card — Completed Usage docs from non-CUSTOMERSERVICE departments
