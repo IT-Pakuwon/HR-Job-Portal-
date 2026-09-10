@@ -438,4 +438,4 @@
 
 @include('partials.private-note-widget', ['doctype' => 'CS', 'floatingButton' => false])
 
-<script src="{{ asset('assets/js/multidashboard/dashcost.js') }}?v={{ filemtime(public_path('assets/js/multidashboard/dashcost.js')) }}"></script>
+<script src="{{ asset('assets/js/multidashboard/dashcost.js') }}?v={{ file_exists(public_path('assets/js/multidashboard/dashcost.js')) ? filemtime(public_path('assets/js/multidashboard/dashcost.js')) : time() }}"></script>

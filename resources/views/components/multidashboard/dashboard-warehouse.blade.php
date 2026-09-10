@@ -325,4 +325,4 @@ window.warehouseRoutes = {
 };
 </script>
 
-<script src="{{ asset('assets/js/multidashboard/dashwarehouse.js') }}?v={{ filemtime(public_path('assets/js/multidashboard/dashwarehouse.js')) }}"></script>
+<script src="{{ asset('assets/js/multidashboard/dashwarehouse.js') }}?v={{ file_exists(public_path('assets/js/multidashboard/dashwarehouse.js')) ? filemtime(public_path('assets/js/multidashboard/dashwarehouse.js')) : time() }}"></script>

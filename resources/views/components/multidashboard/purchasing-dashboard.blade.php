@@ -369,4 +369,4 @@ window.purchasingRoutes = {
 };
 </script>
 
-<script src="{{ asset('assets/js/multidashboard/dashpurchasing.js') }}?v={{ filemtime(public_path('assets/js/multidashboard/dashpurchasing.js')) }}"></script>
+<script src="{{ asset('assets/js/multidashboard/dashpurchasing.js') }}?v={{ file_exists(public_path('assets/js/multidashboard/dashpurchasing.js')) ? filemtime(public_path('assets/js/multidashboard/dashpurchasing.js')) : time() }}"></script>

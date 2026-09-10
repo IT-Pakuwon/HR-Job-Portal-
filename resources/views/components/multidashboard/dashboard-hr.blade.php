@@ -394,4 +394,4 @@
     }
 </style>
 
-<script src="{{ asset('assets/js/multidashboard/dashhr.js') }}?v={{ filemtime(public_path('assets/js/multidashboard/dashhr.js')) }}"></script>
+<script src="{{ asset('assets/js/multidashboard/dashhr.js') }}?v={{ file_exists(public_path('assets/js/multidashboard/dashhr.js')) ? filemtime(public_path('assets/js/multidashboard/dashhr.js')) : time() }}"></script>
