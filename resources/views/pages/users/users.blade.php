@@ -83,6 +83,16 @@
                     </select>
                 </div>
 
+                <div class="min-w-[200px] flex-1">
+                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                        Filter Division
+                    </label>
+                    <select id="filterDivision"
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
+                        <option value="">All Division</option>
+                    </select>
+                </div>
+
                 @unless ($usersSby)
                     <div class="min-w-[200px] flex-1">
                         <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
@@ -1197,6 +1207,16 @@
                     .draw();
             });
 
+            // ===== Filter Division (kolom 5) =====
+            $('#filterDivision').on('change', function() {
+                const val = $(this).val();
+
+                table
+                    .column(5) // division_id
+                    .search(val || '', false, false)
+                    .draw();
+            });
+
             // ===== Filter Department (kolom 5) =====
             $('#filterDepartment').on('change', function() {
                 const val = $(this).val();
@@ -1231,11 +1251,13 @@
 
                 // reset select2 UI + value
                 $('#filterCompany').val(null).trigger('change');
+                $('#filterDivision').val(null).trigger('change');
                 $('#filterDepartment').val(null).trigger('change');
                 $('#filterBusinessUnit').val(null).trigger('change');
                 $('#filterJabatan').val(null).trigger('change');
 
                 // reset datatable filter untuk kolom yg benar
+                table.column(5).search(''); // division
                 table.column(6).search(''); // company
                 table.column(7).search(''); // department
                 table.column(8).search(''); // business unit
@@ -1512,6 +1534,19 @@
 
             $('#filterCompany').select2({
                 placeholder: 'All Company',
+                allowClear: true,
+                width: '100%'
+            });
+
+            // Filter Division options are scoped to this page's company group (SBY vs JKT)
+            divisionsData
+                .filter(d => d.group_cpny_id === (isSbyUser ? 'SBY' : 'JKT'))
+                .forEach(d => {
+                    $('#filterDivision').append(new Option(`${d.division_id} - ${d.division_name}`, d.division_id));
+                });
+
+            $('#filterDivision').select2({
+                placeholder: 'All Division',
                 allowClear: true,
                 width: '100%'
             });
