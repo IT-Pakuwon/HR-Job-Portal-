@@ -655,7 +655,9 @@ class VplReceiveController extends Controller
 
     // -------------------------------------------------------
     // Notify VPCOLLACCESS / VPLOYALTYACCESS / VPPRMTNACCESS role
-    // holders in the receive's company when it completes.
+    // holders in the receive's company when it completes — regardless
+    // of Voucher/Product type, unlike Transfer/Usage/Settlement, which
+    // skip VPCOLLACCESS for Product-type docs.
     // VPLOYALTYACCESS / VPPRMTNACCESS additionally get the tenant,
     // voucher/nominal/exp date breakdown, receive date and remarks —
     // VPCOLLACCESS gets the plain notification only.
@@ -1047,6 +1049,13 @@ class VplReceiveController extends Controller
         }
 
         $hasCpny = Usercpny::where('username', $user->username)->where('status', 'A')->where('cpny_id', $cpnyid)->exists();
+
+        // VPCOLLACCESS/VPLOYALTYACCESS/VPPRMTNACCESS may open any doc in their own
+        // company regardless of department — same scope as the "All Receive" list tab.
+        if ($user->hasVplCompanyAccess()) {
+            return $hasCpny;
+        }
+
         $hasDept = Userdept::where('username', $user->username)->where('department_id', $department)->exists();
 
         return $hasCpny && $hasDept;

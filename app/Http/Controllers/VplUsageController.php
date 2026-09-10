@@ -15,6 +15,7 @@ use App\Models\TrMessage;
 use App\Models\TrxVplSettlement;
 use App\Models\TrxVplUsage;
 use App\Models\TrxVplUsageDetail;
+use App\Models\SysUserRole;
 use App\Models\User;
 use App\Models\Usercpny;
 use App\Models\Userdept;
@@ -808,6 +809,8 @@ class VplUsageController extends Controller
                     route('showusagevp', Hashids::encode($id)),
                     ['cpnyid' => $usage->cpnyid, 'deptname' => $usage->department]
                 );
+
+                $this->notifyRoleAccessUsers($usage, route('showusagevp', Hashids::encode($id)));
             }
         );
 
@@ -816,6 +819,86 @@ class VplUsageController extends Controller
         }
 
         return response()->json(['success' => 'Document approved.']);
+    }
+
+    // -------------------------------------------------------
+    // Notify VPCOLLACCESS / VPLOYALTYACCESS / VPPRMTNACCESS role
+    // holders in the usage's company when it completes.
+    // VPLOYALTYACCESS / VPPRMTNACCESS additionally get the
+    // product/qty/exp date breakdown and remarks — VPCOLLACCESS gets
+    // the plain notification only, and is skipped entirely for
+    // Product-type usage (Collateral only cares about vouchers, not
+    // physical product stock).
+    // -------------------------------------------------------
+    private function notifyRoleAccessUsers(TrxVplUsage $usage, string $urlToDoc): void
+    {
+        $detailRoleIds = ['VPLOYALTYACCESS', 'VPPRMTNACCESS'];
+        $isProduct = strtoupper($usage->vp_type ?? '') === 'P';
+        $roleIds = $isProduct ? $detailRoleIds : array_merge(['VPCOLLACCESS'], $detailRoleIds);
+
+        $rolesByUsername = SysUserRole::whereIn('role_id', $roleIds)
+            ->where('status', 'A')
+            ->get()
+            ->groupBy('username')
+            ->map(fn ($rows) => $rows->pluck('role_id')->all());
+
+        $usernames = Usercpny::where('cpny_id', $usage->cpnyid)
+            ->where('status', 'A')
+            ->whereIn('username', $rolesByUsername->keys())
+            ->pluck('username')
+            ->unique();
+
+        $voucherLines = $this->buildVoucherEmailLines($usage);
+
+        foreach ($usernames as $username) {
+            $wantsDetail = !empty(array_intersect($rolesByUsername->get($username, []), $detailRoleIds));
+
+            $extra = [
+                'cpnyid'    => $usage->cpnyid,
+                'deptname'  => $usage->department,
+                'createdby' => $usage->created_user,
+            ];
+
+            if ($wantsDetail) {
+                $extra['date'] = optional($usage->usage_date)->format('d F Y');
+                $extra['info'] = $usage->usage_remark;
+                $extra['voucher_lines'] = $voucherLines;
+            }
+
+            app(ApprovalController::class)->notifyRequesterOnStatus(
+                $usage->usage_id,
+                self::DOCTYPE_DSC,
+                'C',
+                $username,
+                $urlToDoc,
+                $extra
+            );
+        }
+    }
+
+    // -------------------------------------------------------
+    // Product name + qty + expired date per line, for the
+    // VPLOYALTYACCESS / VPPRMTNACCESS completion email
+    // -------------------------------------------------------
+    private function buildVoucherEmailLines(TrxVplUsage $usage): array
+    {
+        return TrxVplUsageDetail::join('ms_vpl_product', 'tr_vpl_usage_detail.product_id', '=', 'ms_vpl_product.product_id')
+            ->where('usage_id', $usage->usage_id)
+            ->orderBy('linenbr')
+            ->select(
+                'ms_vpl_product.product_name',
+                'tr_vpl_usage_detail.qty_usage',
+                'tr_vpl_usage_detail.expired_date'
+            )
+            ->get()
+            ->map(fn ($row) => [
+                'name' => $row->product_name,
+                'qty'  => number_format((float) $row->qty_usage, 0, ',', '.'),
+                'exp'  => ($row->expired_date && $row->expired_date->format('Y-m-d') !== '1900-01-01')
+                    ? $row->expired_date->format('d F Y')
+                    : 'No Expiry',
+            ])
+            ->all();
     }
 
     // -------------------------------------------------------
@@ -1277,6 +1360,13 @@ class VplUsageController extends Controller
         }
 
         $hasCpny = Usercpny::where('username', $user->username)->where('status', 'A')->where('cpny_id', $cpnyid)->exists();
+
+        // VPCOLLACCESS/VPLOYALTYACCESS/VPPRMTNACCESS may open any doc in their own
+        // company regardless of department — same scope as the "All Usage" list tab.
+        if ($user->hasVplCompanyAccess()) {
+            return $hasCpny;
+        }
+
         $hasDept = Userdept::where('username', $user->username)->where('department_id', $department)->exists();
 
         return $hasCpny && $hasDept;

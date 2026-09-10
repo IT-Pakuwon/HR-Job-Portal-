@@ -18,6 +18,7 @@ use App\Models\TrApproval;
 use App\Models\TrMessage;
 use App\Models\Attachment;
 use App\Models\Company;
+use App\Models\SysUserRole;
 use App\Models\User;
 use App\Models\Usercpny;
 use App\Models\Userdept;
@@ -756,6 +757,8 @@ class VplTransferController extends Controller
                     route('showtransfervp', Hashids::encode($id)),
                     ['cpnyid' => $transfer->cpnyid, 'deptname' => $transfer->department]
                 );
+
+                $this->notifyRoleAccessUsers($transfer, route('showtransfervp', Hashids::encode($id)));
             }
         );
 
@@ -764,6 +767,86 @@ class VplTransferController extends Controller
         }
 
         return response()->json(['success' => 'Document approved.']);
+    }
+
+    // -------------------------------------------------------
+    // Notify VPCOLLACCESS / VPLOYALTYACCESS / VPPRMTNACCESS role
+    // holders in the transfer's company when it completes.
+    // VPLOYALTYACCESS / VPPRMTNACCESS additionally get the
+    // product/qty/exp date breakdown and remarks — VPCOLLACCESS gets
+    // the plain notification only, and is skipped entirely for
+    // Product-type transfers (Collateral only cares about vouchers,
+    // not physical product stock).
+    // -------------------------------------------------------
+    private function notifyRoleAccessUsers(TrxVplTransfer $transfer, string $urlToDoc): void
+    {
+        $detailRoleIds = ['VPLOYALTYACCESS', 'VPPRMTNACCESS'];
+        $isProduct = strtoupper($transfer->vp_type ?? '') === 'P';
+        $roleIds = $isProduct ? $detailRoleIds : array_merge(['VPCOLLACCESS'], $detailRoleIds);
+
+        $rolesByUsername = SysUserRole::whereIn('role_id', $roleIds)
+            ->where('status', 'A')
+            ->get()
+            ->groupBy('username')
+            ->map(fn ($rows) => $rows->pluck('role_id')->all());
+
+        $usernames = Usercpny::where('cpny_id', $transfer->cpnyid)
+            ->where('status', 'A')
+            ->whereIn('username', $rolesByUsername->keys())
+            ->pluck('username')
+            ->unique();
+
+        $voucherLines = $this->buildVoucherEmailLines($transfer);
+
+        foreach ($usernames as $username) {
+            $wantsDetail = !empty(array_intersect($rolesByUsername->get($username, []), $detailRoleIds));
+
+            $extra = [
+                'cpnyid'    => $transfer->cpnyid,
+                'deptname'  => $transfer->department,
+                'createdby' => $transfer->created_user,
+            ];
+
+            if ($wantsDetail) {
+                $extra['date'] = optional($transfer->transfer_date)->format('d F Y');
+                $extra['info'] = $transfer->transfer_remark;
+                $extra['voucher_lines'] = $voucherLines;
+            }
+
+            app(ApprovalController::class)->notifyRequesterOnStatus(
+                $transfer->transfer_id,
+                self::DOCTYPE_DSC,
+                'C',
+                $username,
+                $urlToDoc,
+                $extra
+            );
+        }
+    }
+
+    // -------------------------------------------------------
+    // Product name + qty + expired date per line, for the
+    // VPLOYALTYACCESS / VPPRMTNACCESS completion email
+    // -------------------------------------------------------
+    private function buildVoucherEmailLines(TrxVplTransfer $transfer): array
+    {
+        return TrxVplTransferDetail::join('ms_vpl_product', 'tr_vpl_transfer_detail.product_id', '=', 'ms_vpl_product.product_id')
+            ->where('transfer_id', $transfer->transfer_id)
+            ->orderBy('linenbr')
+            ->select(
+                'ms_vpl_product.product_name',
+                'tr_vpl_transfer_detail.qty_transfer',
+                'tr_vpl_transfer_detail.expired_date'
+            )
+            ->get()
+            ->map(fn ($row) => [
+                'name' => $row->product_name,
+                'qty'  => number_format((float) $row->qty_transfer, 0, ',', '.'),
+                'exp'  => ($row->expired_date && $row->expired_date->format('Y-m-d') !== '1900-01-01')
+                    ? $row->expired_date->format('d F Y')
+                    : 'No Expiry',
+            ])
+            ->all();
     }
 
     // -------------------------------------------------------
@@ -1299,6 +1382,13 @@ class VplTransferController extends Controller
         }
 
         $hasCpny = Usercpny::where('username', $user->username)->where('status', 'A')->where('cpny_id', $cpnyid)->exists();
+
+        // VPCOLLACCESS/VPLOYALTYACCESS/VPPRMTNACCESS may open any doc in their own
+        // company regardless of department — same scope as the "All Transfer" list tab.
+        if ($user->hasVplCompanyAccess()) {
+            return $hasCpny;
+        }
+
         $hasDept = Userdept::where('username', $user->username)->where('department_id', $department)->exists();
 
         return $hasCpny && $hasDept;
