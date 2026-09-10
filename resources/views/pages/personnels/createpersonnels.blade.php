@@ -75,35 +75,27 @@
                                     <div class="text-xs text-gray-400 dark:text-gray-500">Role, level and reporting line</div>
                                 </div>
                             </div>
-                            <div class="flex shrink-0 items-center gap-3">
-                                <div id="jobTypeSegmented" class="inline-flex rounded-lg bg-gray-100 p-1 dark:bg-gray-700">
-                                    <button type="button" data-value="New"
-                                        class="seg-btn rounded-md px-3 py-1.5 text-xs font-semibold text-gray-500 transition-colors dark:text-gray-300">New</button>
-                                    <button type="button" data-value="Replacement"
-                                        class="seg-btn rounded-md px-3 py-1.5 text-xs font-semibold text-gray-500 transition-colors dark:text-gray-300">Replacement</button>
-                                </div>
-                                <svg class="h-4 w-4 shrink-0 text-gray-400 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
-                            </div>
+                            <svg class="h-4 w-4 shrink-0 text-gray-400 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
                         </summary>
                         <div class="p-4 pt-3">
 
-                            <select name="job_type" id="job_type" class="hidden" required>
-                                <option value="" disabled>Select Job Type</option>
-                                <option value="New">New</option>
-                                <option value="Replacement">Replacement</option>
-                            </select>
-
-                            <div id="replacementField" class="hidden mb-5 w-full flex-col gap-2 rounded-lg border border-indigo-200 bg-indigo-50 p-4 dark:border-indigo-800 dark:bg-indigo-900/20">
-                                <label class="block text-sm font-semibold text-indigo-800 dark:text-indigo-200">
-                                    Replacement Name
-                                </label>
-                                <input type="text" name="immediate_replacement" id="immediate_replacement"
-                                    class="w-full rounded-lg border border-indigo-200 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-indigo-700 dark:bg-gray-800 dark:text-gray-200"
-                                    placeholder="Enter employee name to be replaced">
-                                <span class="flex items-center gap-1.5 text-xs text-indigo-700/80 dark:text-indigo-300/80">
-                                    <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 8h.01M11 12h1v5h1"/></svg>
-                                    Shown only when Job Type is set to Replacement.
-                                </span>
+                            <div id="jobTypeRow" class="mb-6 grid grid-cols-1 gap-6">
+                                <div class="flex flex-col gap-2">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job Type <span class="text-red-500">*</span></label>
+                                    <select name="job_type" id="job_type"
+                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        required>
+                                        <option value="" disabled>Select Job Type</option>
+                                        <option value="New">New</option>
+                                        <option value="Replacement" selected>Replacement</option>
+                                    </select>
+                                </div>
+                                <div id="replacementField" class="hidden flex-col gap-2">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Replacement Name</label>
+                                    <input type="text" name="immediate_replacement" id="immediate_replacement"
+                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        placeholder="Enter employee name to be replaced">
+                                </div>
                             </div>
 
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -866,6 +858,7 @@
                     $('#replacementField')
                         .removeClass('hidden')
                         .addClass('flex');
+                    $('#jobTypeRow').addClass('md:grid-cols-2');
 
                     $('#immediate_replacement').attr('required', true);
 
@@ -873,6 +866,7 @@
                     $('#replacementField')
                         .addClass('hidden')
                         .removeClass('flex');
+                    $('#jobTypeRow').removeClass('md:grid-cols-2');
 
                     $('#immediate_replacement').val('');
                     $('#immediate_replacement').removeAttr('required');
@@ -894,28 +888,6 @@
             }
         });
 
-    </script>
-
-    {{-- Job Type segmented toggle: mirrors clicks onto the real #job_type select --}}
-    <script>
-        $(document).ready(function() {
-            function syncJobTypeSegmented() {
-                let val = $('#job_type').val();
-                $('#jobTypeSegmented .seg-btn').each(function() {
-                    let active = $(this).data('value') === val;
-                    $(this)
-                        .toggleClass('bg-white shadow-sm text-indigo-700 dark:bg-gray-800 dark:text-indigo-300', active)
-                        .toggleClass('text-gray-500 dark:text-gray-300', !active);
-                });
-            }
-
-            $('#jobTypeSegmented .seg-btn').on('click', function() {
-                $('#job_type').val($(this).data('value')).trigger('change');
-            });
-
-            $('#job_type').on('change', syncJobTypeSegmented);
-            syncJobTypeSegmented();
-        });
     </script>
 
     <script>

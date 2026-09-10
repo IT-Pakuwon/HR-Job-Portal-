@@ -24,6 +24,7 @@ use App\Models\DepartmentHR;
 use App\Models\Division;
 use App\Models\GroupAccspecific;
 use App\Models\JobApply;
+use App\Models\JobApplySch;
 use App\Models\JobApplyStep;
 use App\Models\Jobposting;
 use App\Models\JobpostingQualification;
@@ -713,6 +714,10 @@ class CareerController extends Controller
         $t_approval->aprvusername = $user->username;
         $t_approval->save();
 
+        if ($t_approval->step_id === 'JOIN') {
+            $this->notifyPrfCreatorCandidateJoined($career, $jobposting);
+        }
+
         $t_approval_next = JobApplyStep::where('docid', $career->docid)
             ->where('jobid', $career->jobid)
             ->where('group_cpny_id', $career->group_cpny_id)
@@ -887,11 +892,6 @@ class CareerController extends Controller
             return response()->json(['success' => false, 'message' => "You can't rollback!"], 403);
         }
 
-        TrApproval::where('refnbr', $docid)   // mapping dari docid → refnbr
-            ->where('aprv_cpnyid', $career->cpnyid) // TrApproval has no group_cpny_id; cpnyid disambiguates the docid collision instead
-            ->where('status', 'P')
-            ->delete();
-
         /** Ambil step terakhir yang sudah Approved / Rejected */
         $targetStep = JobApplyStep::where('docid', $career->docid)
             ->where('jobid', $career->jobid)
@@ -912,11 +912,28 @@ class CareerController extends Controller
 
         DB::beginTransaction();
         try {
+            // Hapus approval level-1 yang masih pending — hanya dilakukan sekarang,
+            // setelah semua validasi di atas lolos, supaya tidak ada efek samping
+            // yang tersimpan permanen ketika rollback ditolak.
+            TrApproval::where('refnbr', $docid)   // mapping dari docid → refnbr
+                ->where('aprv_cpnyid', $career->cpnyid) // TrApproval has no group_cpny_id; cpnyid disambiguates the docid collision instead
+                ->where('status', 'P')
+                ->delete();
+
             /* Reset kembali ke pending */
             $targetStep->status = 'P';
             $targetStep->aprvusername = null;
             $targetStep->aprvuserdate = null;
             $targetStep->save();
+
+            /* Step-step setelahnya yang ikut ditutup (X) saat reject harus dibuka lagi
+               jadi Pending, supaya alur benar-benar lanjut lagi dari step yang di-rollback. */
+            JobApplyStep::where('docid', $career->docid)
+                ->where('jobid', $career->jobid)
+                ->where('group_cpny_id', $career->group_cpny_id)
+                ->where('status', 'X')
+                ->where('step_order', '>', $targetStep->step_order)
+                ->update(['status' => 'P']);
 
             /* Update status Career kembali Pending */
             $career->status = 'P';
@@ -1495,6 +1512,79 @@ class CareerController extends Controller
         }
 
         return response()->json(['success' => 'Email has been sent to applicant.']);
+    }
+
+    /**
+     * When the JOIN step is approved, let the person who created the PRF
+     * (Personnel::created_user, via Jobposting::refid) know the candidate joined.
+     */
+    private function notifyPrfCreatorCandidateJoined($career, $jobposting): void
+    {
+        if (!$jobposting || !$jobposting->refid) {
+            return;
+        }
+
+        $personnel = Personnel::where('docid', $jobposting->refid)
+            ->where('group_cpny_id', $jobposting->group_cpny_id)
+            ->first();
+
+        if (!$personnel || !$personnel->created_user) {
+            return;
+        }
+
+        $creator = User::where('username', $personnel->created_user)
+            ->where('group_cpny_id', $personnel->group_cpny_id)
+            ->where('status', 'A')
+            ->first();
+
+        $recipientEmail = $creator ? ($creator->notification_email ?: $creator->email) : null;
+
+        if (!$recipientEmail) {
+            return;
+        }
+
+        $applicant = Applicant::where('applicant_id', $career->applicant_id)
+            ->where('group_cpny_id', $career->group_cpny_id)
+            ->first();
+
+        $schedule = JobApplySch::where('jobid', $career->jobid)
+            ->where('applicant_id', $career->applicant_id)
+            ->where('step_id', 'JOIN')
+            ->orderByDesc('id')
+            ->first();
+
+        $companyName = MsCompany::where('cpny_id', $jobposting->cpnyid)
+            ->where('group_cpny_id', $jobposting->group_cpny_id)
+            ->value('cpny_name');
+
+        $divisionName = Division::where('division_id', $jobposting->division_id ?? '')
+            ->value('division_name');
+
+        $emailData = [
+            'name' => $creator->name ?: 'User',
+            'docid' => $personnel->docid,
+            'candidate_name' => $applicant->full_name ?? '-',
+            'schedule_start' => $schedule && $schedule->startdate
+                ? Carbon::parse($schedule->startdate)->translatedFormat('d F Y')
+                : '-',
+            'company' => $companyName ?: ($jobposting->cpnyid ?: '-'),
+            'division' => $divisionName ?: ($jobposting->division_id ?: '-'),
+            'job_title' => $jobposting->job_title ?: '-',
+            'url' => url('/showpersonnels/'.\Hashids::encode($personnel->id)),
+        ];
+
+        try {
+            \Mail::send('emails.prf-candidate-joined', $emailData, function ($message) use ($emailData, $recipientEmail) {
+                $message->to($recipientEmail)
+                    ->subject($emailData['docid'].' - Candidate Has Joined')
+                    ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+            });
+        } catch (\Throwable $e) {
+            Log::warning('Failed to send candidate-joined notification to PRF creator', [
+                'docid' => $personnel->docid,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     public function checkRejectPermission($docid)
