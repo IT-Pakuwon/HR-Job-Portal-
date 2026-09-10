@@ -162,6 +162,21 @@
 
                 @php
                     $firstPendingShown = false;
+                    // Fallback labels for steps whose step_id has no matching row in
+                    // hr_ms_job_step for this company's group (e.g. WIHC/IHC are missing
+                    // from group SBY's master config), so the name never renders blank.
+                    $stepLabels = [
+                        'JOAPHC' => 'Job Apply HC',
+                        'JOAPUS' => 'Job Apply User',
+                        'WIHC'   => 'Create Schedule Interview HC',
+                        'IHC'    => 'Interview HC',
+                        'WIU'    => 'Create Schedule Interview User',
+                        'IU'     => 'Interview User',
+                        'WPT'    => 'Waiting Psycho Test',
+                        'PT'     => 'Psycho Test',
+                        'OFF'    => 'Offering',
+                        'JOIN'   => 'Join',
+                    ];
                     $step3 = $jobapplystep->firstWhere('step_order', 3);
                     $step5 = $jobapplystep->firstWhere('step_order', 5);
                     // 'X' = track skipped (e.g. recruiter chose a single-track interview
@@ -217,7 +232,7 @@
                                 {{-- Step name + meta --}}
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm @if($isActive) font-semibold text-gray-900 dark:text-white @elseif($step->status === 'A') font-medium text-gray-600 dark:text-gray-300 @else font-normal text-gray-500 @endif">
-                                        {{ $step->step_descr }}
+                                        {{ $step->step_descr ?: ($stepLabels[$step->step_id] ?? $step->step_id) }}
                                     </p>
                                     @if($step->aprvusername || $step->aprvuserdate)
                                         <p class="mt-0.5 text-xs text-gray-400">

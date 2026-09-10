@@ -136,6 +136,43 @@ class AgendaController extends Controller
             'attachments.*' => 'file|max:2048' // Validasi file, max 2MB
         ]);
 
+        // Guard: if the track this reftype would approve is already fully resolved
+        // (approved earlier, or skipped because the other track was used instead),
+        // refuse up front instead of silently creating an agenda with no matching
+        // step change — see storeAgenda's step-skip logic further below.
+        $guardUser = request()->user();
+        $guardGroupCompanyId = strtoupper(trim((string) $guardUser->group_cpny_id));
+        $guardJobApply = JobApply::where('docid', $request->refid)
+            ->where('group_cpny_id', $guardGroupCompanyId)
+            ->first();
+
+        if ($guardJobApply) {
+            $stepOrdersByInterviewTypeGuard = [
+                'IH' => [3, 4],
+                'IHU' => [3, 4, 5, 6],
+                'IU' => [5, 6],
+            ];
+
+            $hasPendingStep = JobApplyStep::where('docid', $guardJobApply->docid)
+                ->where('jobid', $guardJobApply->jobid)
+                ->where('cpnyid', $request->cpnyid)
+                ->where('group_cpny_id', $guardGroupCompanyId)
+                ->whereIn('step_order', $stepOrdersByInterviewTypeGuard[$request->reftype])
+                ->where('status', 'P')
+                ->exists();
+
+            if (!$hasPendingStep) {
+                $trackLabel = [
+                    'IH' => 'Interview HC',
+                    'IHU' => 'Interview HC & User',
+                    'IU' => 'Interview User',
+                ][$request->reftype];
+
+                return response()->json([
+                    'error' => "{$trackLabel} track for this applicant is already resolved (approved or skipped) — undo that first if you really need to schedule it again.",
+                ], 422);
+            }
+        }
 
         DB::beginTransaction();
         try {

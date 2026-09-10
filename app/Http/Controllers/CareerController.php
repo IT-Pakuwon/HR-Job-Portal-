@@ -174,7 +174,6 @@ class CareerController extends Controller
             ->where('hr_trx_job_apply_step.docid', $career->docid)
             ->where('hr_trx_job_apply_step.jobid', $career->docidposting)
             ->when(!empty($career->group_cpny_id), fn ($q) => $q->where('hr_trx_job_apply_step.group_cpny_id', $career->group_cpny_id))
-            ->when($career->status !== 'T', fn ($q) => $q->where('hr_trx_job_apply_step.status', '<>', 'X'))
             ->orderBy('hr_trx_job_apply_step.step_order', 'ASC')
             ->get();
 
