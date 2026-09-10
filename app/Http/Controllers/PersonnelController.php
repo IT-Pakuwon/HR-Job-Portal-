@@ -359,6 +359,17 @@ class PersonnelController extends Controller
             ];
         });
 
+        // ✅ JOB POSTING STATUS FILTER (only meaningful for Completed PRFs, but harmless otherwise)
+        $jobPostingStatus = $request->query('jobposting_status');
+        if (!empty($jobPostingStatus) && strtolower($jobPostingStatus) !== 'all') {
+            $personnel = $personnel->filter(function ($p) use ($jobPostingStatus) {
+                if ($jobPostingStatus === 'NOTPOSTED') {
+                    return empty($p['jobposting_status']);
+                }
+                return $p['jobposting_status'] === $jobPostingStatus;
+            })->values();
+        }
+
         return response()->json(['data' => $personnel]);
     }
 

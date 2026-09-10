@@ -28,6 +28,50 @@
         .dark #applicantsTable tr.row-checked td { color: #ffffff; }
         .dark #applicantsTable tr.row-unchecked td { color: #22d3ee; }
         .dark #applicantsTable tr.row-reject td { color: #f87171; }
+
+        /* Filter panel — make select2 fields look like the bordered text inputs beside them */
+        select.app-filter-field + .select2-container .select2-selection--single {
+            height: 38px; display: flex; align-items: center;
+            border-radius: 0.5rem; border: 1px solid #e2e8f0 !important;
+            background-color: #fff; padding: 0 1.75rem 0 0.75rem;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+        }
+        select.app-filter-field + .select2-container--open .select2-selection--single {
+            border-color: #818cf8 !important;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+        }
+        select.app-filter-field + .select2-container .select2-selection__rendered {
+            padding: 0; line-height: 1; color: #334155; font-size: 0.875rem;
+        }
+        select.app-filter-field + .select2-container .select2-selection__arrow { height: 38px; right: 8px; }
+        select.app-filter-field + .select2-container .select2-selection__placeholder { color: #94a3b8; }
+
+        .dark select.app-filter-field + .select2-container .select2-selection--single {
+            background-color: #1e293b; border-color: #475569 !important;
+        }
+        .dark select.app-filter-field + .select2-container .select2-selection__rendered { color: #e2e8f0; }
+
+        .selfreg-select2-dropdown {
+            border-radius: 0.75rem !important; border: 1px solid #e2e8f0 !important;
+            overflow: hidden; margin-top: 4px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+        }
+        .selfreg-select2-dropdown .select2-search__field {
+            border-radius: 0.5rem; border: 1px solid #e2e8f0;
+            padding: 0.375rem 0.5rem; font-size: 0.8rem; outline: none;
+        }
+        .selfreg-select2-dropdown .select2-search__field:focus {
+            border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+        }
+        .selfreg-select2-dropdown .select2-results__option { font-size: 0.8rem; padding: 0.5rem 0.75rem; }
+        .selfreg-select2-dropdown .select2-results__option--highlighted[aria-selected] { background-color: #EEF2FF; color: #4338CA; }
+        .selfreg-select2-dropdown .select2-results__option[aria-selected="true"] { background-color: #E0E7FF; color: #3730A3; font-weight: 600; }
+
+        .dark .selfreg-select2-dropdown { background-color: #1e293b; border-color: #475569 !important; }
+        .dark .selfreg-select2-dropdown .select2-search__field { background-color: #334155; border-color: #475569; color: #e2e8f0; }
+        .dark .selfreg-select2-dropdown .select2-results__option { color: #e2e8f0; }
+        .dark .selfreg-select2-dropdown .select2-results__option--highlighted[aria-selected] { background-color: #4338CA; color: #fff; }
+        .dark .selfreg-select2-dropdown .select2-results__option[aria-selected="true"] { background-color: #3730A3; color: #fff; }
     </style>
     <div class="max-w-9xl mx-auto p-2">
 
@@ -116,32 +160,58 @@
 
         </div>
 
+        <div id="applicantFiltersCard"
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div class="flex items-center justify-between px-5 py-3">
+                <button type="button" id="btnToggleFilters" class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300">
+                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h18M6 9.75h12M9.75 15h4.5" />
+                    </svg>
+                    Filters
+                    <svg id="filtersChevron" class="h-3.5 w-3.5 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <button type="button" id="btnResetFilters"
+                    class="flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:bg-slate-200/70 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700/60 dark:hover:text-slate-200">
+                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" />
+                    </svg>
+                    Reset
+                </button>
+            </div>
+
+            <div id="applicantFiltersBody" class="border-t border-gray-100 px-5 pb-4 pt-4 dark:border-white/[0.06]">
+                {{-- Division / Department Filter --}}
+                <div class="mb-3 flex flex-col gap-3 sm:flex-row">
+                    <div class="flex-1">
+                        <label for="filterDivision" class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Division</label>
+                        <select id="filterDivision" class="app-filter-field w-full" style="width:100%">
+                            <option value="">Filter by Division</option>
+                            @foreach($divisions as $div)
+                                <option value="{{ $div->division_id }}">{{ $div->division_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="flex-1">
+                        <label for="filterDepartment" class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Department</label>
+                        <select id="filterDepartment" class="app-filter-field w-full" style="width:100%">
+                            <option value="">Filter by Department</option>
+                        </select>
+                    </div>
+                </div>
+
+                {{-- Column Search Filters --}}
+                <div id="applicantsFilters" class="flex flex-wrap lg:flex-nowrap items-start gap-3 overflow-x-auto pb-1"></div>
+            </div>
+        </div>
+
         <div
             class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
             <div
                 class="flex flex-col items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
                 <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Self Register
                     Applicant</h2>
-            </div>
-
-            {{-- Division / Department Filter --}}
-            <div class="flex gap-3 px-5 pt-4">
-                <select id="filterDivision" class="w-full" style="width:100%">
-                    <option value="">Filter by Division</option>
-                    @foreach($divisions as $div)
-                        <option value="{{ $div->division_id }}">{{ $div->division_name }}</option>
-                    @endforeach
-                </select>
-                <select id="filterDepartment" class="w-full" style="width:100%">
-                    <option value="">Filter by Department</option>
-                </select>
-            </div>
-
-            {{-- Column Search Filters --}}
-            <div id="applicantsFilters" class="grid grid-cols-1 gap-3 px-5 pt-4 sm:grid-cols-5 lg:grid-cols-9">
-                <button id="btnResetFilters" class="rounded-md border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-700">
-                    Reset
-                </button>
             </div>
 
             <div class="relative mt-4 overflow-hidden">
@@ -310,67 +380,115 @@
         $(document).ready(function() {
             let currentStatus = '';
 
+            // Filters card — collapsible, remembers the user's choice
+            (function() {
+                const STORAGE_KEY = 'selfregister-filters-collapsed';
+                const $body = $('#applicantFiltersBody');
+                const $chevron = $('#filtersChevron');
+
+                function setCollapsed(collapsed) {
+                    $body.toggleClass('hidden', collapsed);
+                    $chevron.toggleClass('-rotate-90', collapsed);
+                    try {
+                        localStorage.setItem(STORAGE_KEY, collapsed ? '1' : '0');
+                    } catch (e) {}
+                }
+
+                let startCollapsed = true;
+                try {
+                    const stored = localStorage.getItem(STORAGE_KEY);
+                    if (stored !== null) {
+                        startCollapsed = stored === '1';
+                    }
+                } catch (e) {}
+                setCollapsed(startCollapsed);
+
+                $('#btnToggleFilters').on('click', function() {
+                    setCollapsed(!$body.hasClass('hidden'));
+                });
+            })();
+
             // Filter input per kolom (index harus sesuai kolom DataTables)
             const columnFilters = [
                 {
                     index: 1,
                     type: 'text',
-                    placeholder: 'DocID'
+                    placeholder: 'DocID',
+                    span: 'w-32 shrink-0'
                 },
                 {
                     index: 2,
                     type: 'text',
-                    placeholder: 'Apply Date'
+                    placeholder: 'Apply Date',
+                    title: 'Type a single date, or a range like 2026-08-01 - 2026-08-31',
+                    hint: 'e.g. 2026-08-01 - 2026-08-31',
+                    span: 'w-40 shrink-0'
                 },
                 {
                     index: 3,
                     type: 'text',
-                    placeholder: 'Full Name'
+                    placeholder: 'Full Name',
+                    span: 'flex-1 min-w-[140px]'
                 },
                 {
                     index: 4,
                     type: 'text',
-                    placeholder: 'Division' // 🔥 NEW
+                    placeholder: 'Division', // 🔥 NEW
+                    span: 'w-40 shrink-0'
                 },
                 {
                     index: 5,
                     type: 'text',
-                    placeholder: 'Department' // 🔥 NEW
+                    placeholder: 'Department', // 🔥 NEW
+                    span: 'w-40 shrink-0'
                 },
                 {
                     index: 6,
                     type: 'text',
-                    placeholder: 'Education'
+                    placeholder: 'Education',
+                    span: 'flex-1 min-w-[140px]'
                 },
                 {
                     index: 7,
                     type: 'text',
-                    placeholder: 'Religion'
+                    placeholder: 'Religion',
+                    span: 'w-36 shrink-0'
                 },
                 {
                     index: 8,
                     type: 'text',
-                    placeholder: 'Height'
+                    placeholder: 'Height',
+                    title: 'Type a value, a range like 160-180, or >=170',
+                    hint: 'e.g. 160-180 or >=170',
+                    span: 'w-24 shrink-0'
                 },
                 {
                     index: 9,
                     type: 'text',
-                    placeholder: 'Weight'
+                    placeholder: 'Weight',
+                    title: 'Type a value, a range like 60-80, or >=70',
+                    hint: 'e.g. 60-80 or >=70',
+                    span: 'w-24 shrink-0'
                 },
                 {
                     index: 10,
                     type: 'text',
-                    placeholder: 'Company'
+                    placeholder: 'Company',
+                    span: 'flex-1 min-w-[140px]'
                 }
             ];
 
             const $filters = $('#applicantsFilters');
+            const filterFieldClass = 'app-filter-field w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200';
 
             columnFilters.forEach(col => {
+                const $wrap = $(`<div class="flex flex-col gap-1 ${col.span || 'flex-1 min-w-[140px]'}"></div>`);
+                $wrap.append(`<label class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">${col.placeholder}</label>`);
+
                 const $el = $(`
                     <input type="text"
-                        class="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-700"
-                        placeholder="Search ${col.placeholder}">
+                        class="${filterFieldClass}"
+                        placeholder="${col.placeholder}"${col.title ? ` title="${col.title}"` : ''}>
                 `);
 
                 let debounce;
@@ -382,7 +500,13 @@
                     }, 300);
                 });
 
-                $filters.append($el);
+                $wrap.append($el);
+
+                if (col.hint) {
+                    $wrap.append(`<p class="text-[10px] text-slate-400 dark:text-slate-500">${col.hint}</p>`);
+                }
+
+                $filters.append($wrap);
             });
 
             const applicantTable = $('#applicantsTable').DataTable({
@@ -722,6 +846,7 @@
                 allowClear: true,
                 width: '100%',
                 dropdownParent: $('body'),
+                dropdownCssClass: 'selfreg-select2-dropdown',
             });
 
             $('#filterDepartment').select2({
@@ -729,6 +854,7 @@
                 allowClear: true,
                 width: '100%',
                 dropdownParent: $('body'),
+                dropdownCssClass: 'selfreg-select2-dropdown',
             });
 
             $('#filterDivision').on('change', function () {
@@ -737,7 +863,7 @@
 
                 $dept.empty().append('<option value="">Filter by Department</option>');
                 if ($dept.hasClass('select2-hidden-accessible')) $dept.select2('destroy');
-                $dept.select2({ placeholder: 'Filter by Department', allowClear: true, width: '100%' });
+                $dept.select2({ placeholder: 'Filter by Department', allowClear: true, width: '100%', dropdownCssClass: 'selfreg-select2-dropdown' });
 
                 if (divId) {
                     $.get("{{ route('applicant.departments') }}", { division_id: divId }, function (data) {

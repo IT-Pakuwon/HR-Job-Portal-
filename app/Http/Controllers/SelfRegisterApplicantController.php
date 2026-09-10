@@ -73,6 +73,42 @@ class SelfRegisterApplicantController extends Controller
         ));
     }
 
+    // Accepts a plain value ("170"), an operator (">=170", "<180"), or a
+    // "min-max" range ("160-180") on a numeric column; falls back to the
+    // existing LIKE-on-string behavior for anything else.
+    private function applyNumericRangeSearch($query, string $val, string $dbcol, string $likeExpr): void
+    {
+        if (preg_match('/^\s*(>=|<=|>|<)\s*(\d+(?:\.\d+)?)\s*$/', $val, $m)) {
+            $query->where($dbcol, $m[1], (float) $m[2]);
+        } elseif (preg_match('/^\s*(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s*$/', $val, $m)) {
+            $a = (float) $m[1];
+            $b = (float) $m[2];
+            if ($a > $b) {
+                [$a, $b] = [$b, $a];
+            }
+            $query->whereBetween($dbcol, [$a, $b]);
+        } else {
+            $query->whereRaw("{$likeExpr} LIKE ?", ["%{$val}%"]);
+        }
+    }
+
+    // Accepts a "YYYY-MM-DD - YYYY-MM-DD" (or "... to ...") range on a date
+    // column; falls back to the existing LIKE-on-string behavior otherwise,
+    // so typing a single date (or a partial "2026-08") still works as before.
+    private function applyDateRangeSearch($query, string $val, string $dbcol): void
+    {
+        if (preg_match('/^\s*(\d{4}-\d{2}-\d{2})\s*(?:-|to)\s*(\d{4}-\d{2}-\d{2})\s*$/i', $val, $m)) {
+            [$from, $to] = [$m[1], $m[2]];
+            if ($from > $to) {
+                [$from, $to] = [$to, $from];
+            }
+            $query->where($dbcol, '>=', "{$from} 00:00:00")
+                ->where($dbcol, '<=', "{$to} 23:59:59");
+        } else {
+            $query->where($dbcol, 'like', "%{$val}%");
+        }
+    }
+
     public function json(Request $request)
     {
         $user = $request->user();
@@ -202,7 +238,13 @@ class SelfRegisterApplicantController extends Controller
                 continue;
             }
 
-            $query->where($dbcol, 'like', "%{$val}%");
+            if ($name === 'height' || $name === 'weight') {
+                $this->applyNumericRangeSearch($query, $val, $dbcol, "CAST(IFNULL({$dbcol},0) AS CHAR)");
+            } elseif ($name === 'apply_date') {
+                $this->applyDateRangeSearch($query, $val, $dbcol);
+            } else {
+                $query->where($dbcol, 'like', "%{$val}%");
+            }
         }
 
         $recordsFiltered = (clone $query)->distinct()->count('vc.id');

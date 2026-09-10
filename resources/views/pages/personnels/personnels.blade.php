@@ -175,38 +175,122 @@
 
             </div>
 
-            @if($hasAllDeptAccess ?? false)
-            <div class="flex flex-wrap items-end gap-3 border-b border-gray-100 px-5 py-3 dark:border-white/[0.06]">
-                <div class="min-w-[220px] flex-1">
-                    <label for="filterCompanyAllDept" class="mb-1 block text-xs font-medium text-gray-600">Company</label>
-                    <select id="filterCompanyAllDept" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
-                        <option value="">All Company</option>
-                        @foreach($filterCompanies as $company)
-                            <option value="{{ $company->cpny_id }}">{{ $company->cpny_name }}</option>
-                        @endforeach
-                    </select>
+            @php $hasAllDeptAccessFlag = $hasAllDeptAccess ?? false; @endphp
+            <div id="allDeptFilterWrap" class="pill-filter-bar {{ $hasAllDeptAccessFlag ? '' : 'hidden' }} border-b border-gray-100 px-5 py-3 dark:border-white/[0.06]">
+                <div class="flex flex-1 flex-col rounded-2xl border border-slate-200 bg-slate-50/60 shadow-sm sm:flex-row sm:items-stretch dark:border-slate-700/60 dark:bg-slate-800/40">
+                    <div class="flex flex-1 flex-wrap items-stretch divide-y divide-slate-200 sm:flex-nowrap sm:divide-x sm:divide-y-0 dark:divide-slate-700/60">
+                        @if($hasAllDeptAccessFlag)
+                        <div class="flex flex-1 min-w-[180px] items-center gap-2 px-3 py-2">
+                            <svg class="h-4 w-4 shrink-0 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+                            </svg>
+                            <select id="filterCompanyAllDept" class="w-full min-w-0 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-200">
+                                <option value="">All Company</option>
+                                @foreach($filterCompanies as $company)
+                                    <option value="{{ $company->cpny_id }}">{{ $company->cpny_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="flex flex-1 min-w-[180px] items-center gap-2 px-3 py-2">
+                            <svg class="h-4 w-4 shrink-0 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                            <select id="filterDivisionAllDept" class="w-full min-w-0 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-200">
+                                <option value="">All Division</option>
+                                @foreach($filterDivisions as $division)
+                                    <option value="{{ $division->division_id }}">{{ $division->division_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="flex flex-1 min-w-[180px] items-center gap-2 px-3 py-2">
+                            <svg class="h-4 w-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                            </svg>
+                            <select id="filterDepartmentAllDept" class="w-full min-w-0 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-200">
+                                <option value="">All Department</option>
+                                @foreach($filterDepartments as $department)
+                                    <option value="{{ $department->department_id }}" data-division="{{ $department->division_id }}">{{ $department->department_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @endif
+                        {{-- Job Posting Status — only relevant (and shown) while the Completed tab is active --}}
+                        <div id="jobPostingStatusSegment" class="hidden flex-1 min-w-[180px] items-center gap-2 px-3 py-2">
+                            <svg class="h-4 w-4 shrink-0 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <select id="filterJobPostingStatus" class="w-full min-w-0 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-200">
+                                <option value="">All Job Posting Status</option>
+                                <option value="P">Posted</option>
+                                <option value="C">Closed</option>
+                                <option value="U">Unposted</option>
+                                <option value="H">Hold</option>
+                                <option value="X">Cancelled</option>
+                                <option value="NOTPOSTED">Not Posted</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-end border-t border-slate-200 px-2 py-2 sm:border-l sm:border-t-0 dark:border-slate-700/60">
+                        <button type="button" id="resetAllDeptFilters"
+                            class="flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:bg-slate-200/70 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700/60 dark:hover:text-slate-200">
+                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" />
+                            </svg>
+                            Reset
+                        </button>
+                    </div>
                 </div>
-                <div class="min-w-[220px] flex-1">
-                    <label for="filterDivisionAllDept" class="mb-1 block text-xs font-medium text-gray-600">Division</label>
-                    <select id="filterDivisionAllDept" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
-                        <option value="">All Division</option>
-                        @foreach($filterDivisions as $division)
-                            <option value="{{ $division->division_id }}">{{ $division->division_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="min-w-[220px] flex-1">
-                    <label for="filterDepartmentAllDept" class="mb-1 block text-xs font-medium text-gray-600">Department</label>
-                    <select id="filterDepartmentAllDept" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
-                        <option value="">All Department</option>
-                        @foreach($filterDepartments as $department)
-                            <option value="{{ $department->department_id }}" data-division="{{ $department->division_id }}">{{ $department->department_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <button type="button" id="resetAllDeptFilters" class="rounded-md bg-gray-500 px-4 py-2 text-sm font-medium text-white hover:bg-gray-600">Reset</button>
             </div>
-            @endif
+
+            <style>
+                #jobPostingStatusSegment { display: flex; }
+                #jobPostingStatusSegment.hidden { display: none; }
+                .pill-filter-bar .select2-container { width: 100% !important; }
+                .pill-filter-bar .select2-selection--single {
+                    height: 28px; display: flex; align-items: center;
+                    border: none !important; background: transparent !important;
+                    padding: 0 1.25rem 0 0; font-size: 0.75rem;
+                }
+                .pill-filter-bar .select2-container--open .select2-selection--single { box-shadow: none; }
+                .pill-filter-bar .select2-selection__rendered {
+                    padding: 0; line-height: 28px; color: #334155; font-weight: 600;
+                    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+                }
+                .pill-filter-bar .select2-selection__arrow { height: 28px; right: 0; }
+                .pill-filter-bar .select2-selection__arrow b { border-color: #94a3b8 transparent transparent transparent; }
+                .pill-filter-bar .select2-selection--single .select2-selection__clear {
+                    position: absolute !important; right: 18px !important;
+                    top: 50% !important; transform: translateY(-50%) !important;
+                    margin: 0 !important; font-size: 15px !important;
+                    font-weight: 400 !important; color: #94a3b8 !important;
+                    z-index: 1;
+                }
+                .pill-filter-bar .select2-selection--single .select2-selection__clear:hover { color: #ef4444 !important; }
+                .pill-filter-bar .select2-dropdown {
+                    border-radius: 0.75rem; border: 1px solid #e2e8f0;
+                    overflow: hidden; margin-top: 4px;
+                    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.05);
+                }
+                .pill-filter-bar .select2-search__field {
+                    border-radius: 0.5rem; border: 1px solid #e2e8f0;
+                    padding: 0.375rem 0.5rem; font-size: 0.75rem; outline: none;
+                }
+                .pill-filter-bar .select2-search__field:focus {
+                    border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+                }
+                .pill-filter-bar .select2-results__option { font-size: 0.75rem; padding: 0.5rem 0.75rem; transition: background .1s; }
+                .pill-filter-bar .select2-results__option--highlighted[aria-selected] { background-color: #EEF2FF; color: #4338CA; }
+                .pill-filter-bar .select2-results__option[aria-selected="true"] { background-color: #E0E7FF; color: #3730A3; font-weight: 600; }
+
+                .dark .pill-filter-bar .select2-selection__rendered { color: #e2e8f0; }
+                .dark .pill-filter-bar .select2-selection__arrow b { border-color: #64748b transparent transparent transparent; }
+                .dark .pill-filter-bar .select2-dropdown { background-color: #1e293b; border-color: #475569; }
+                .dark .pill-filter-bar .select2-search__field { background-color: #334155; border-color: #475569; color: #e2e8f0; }
+                .dark .pill-filter-bar .select2-results__option { color: #e2e8f0; }
+                .dark .pill-filter-bar .select2-results__option--highlighted[aria-selected] { background-color: #4338CA; color: #fff; }
+                .dark .pill-filter-bar .select2-results__option[aria-selected="true"] { background-color: #3730A3; color: #fff; }
+                .dark .pill-filter-bar .select2-search__field:focus { border-color: #6366f1; }
+            </style>
 
             <div class="relative overflow-hidden">
                 <table id="personnelsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
@@ -261,38 +345,70 @@
             const hasAllDeptAccess = @json($hasAllDeptAccess ?? false);
 
             function appendAllDeptFilters(url) {
-                if (!hasAllDeptAccess) return url;
-                const separator = url.includes('?') ? '&' : '?';
-                return url + separator
-                    + 'company=' + encodeURIComponent($('#filterCompanyAllDept').val() || '')
-                    + '&division=' + encodeURIComponent($('#filterDivisionAllDept').val() || '')
-                    + '&department=' + encodeURIComponent($('#filterDepartmentAllDept').val() || '');
+                let finalUrl = url;
+                if (hasAllDeptAccess) {
+                    const separator = finalUrl.includes('?') ? '&' : '?';
+                    finalUrl += separator
+                        + 'company=' + encodeURIComponent($('#filterCompanyAllDept').val() || '')
+                        + '&division=' + encodeURIComponent($('#filterDivisionAllDept').val() || '')
+                        + '&department=' + encodeURIComponent($('#filterDepartmentAllDept').val() || '');
+                }
+                const jpSeparator = finalUrl.includes('?') ? '&' : '?';
+                finalUrl += jpSeparator + 'jobposting_status=' + encodeURIComponent($('#filterJobPostingStatus').val() || '');
+                return finalUrl;
             }
 
             function reloadAllDeptFilters() {
                 if (!personnelsTable) return;
                 const currentUrl = new URL(personnelsTable.ajax.url(), window.location.origin);
-                currentUrl.searchParams.set('company', $('#filterCompanyAllDept').val() || '');
-                currentUrl.searchParams.set('division', $('#filterDivisionAllDept').val() || '');
-                currentUrl.searchParams.set('department', $('#filterDepartmentAllDept').val() || '');
+                if (hasAllDeptAccess) {
+                    currentUrl.searchParams.set('company', $('#filterCompanyAllDept').val() || '');
+                    currentUrl.searchParams.set('division', $('#filterDivisionAllDept').val() || '');
+                    currentUrl.searchParams.set('department', $('#filterDepartmentAllDept').val() || '');
+                }
+                currentUrl.searchParams.set('jobposting_status', $('#filterJobPostingStatus').val() || '');
                 personnelsTable.ajax.url(currentUrl.pathname + currentUrl.search).load();
+            }
+
+            // Job Posting Status filter only makes sense on the Completed tab —
+            // shown/hidden by the status-tab click handler further below.
+            $('#filterJobPostingStatus').select2({
+                placeholder: 'All Job Posting Status',
+                width: '100%',
+                allowClear: true,
+                dropdownParent: $('#allDeptFilterWrap')
+            });
+            $('#filterJobPostingStatus').on('change', reloadAllDeptFilters);
+
+            function setJobPostingFilterVisible(status) {
+                const showJobPosting = status === 'C';
+                $('#jobPostingStatusSegment').toggleClass('hidden', !showJobPosting);
+                if (!showJobPosting) {
+                    $('#filterJobPostingStatus').val('').trigger('change.select2');
+                }
+                // The whole filter row only needs to be shown for non-AllDept users
+                // when the Job Posting Status filter itself is visible.
+                $('#allDeptFilterWrap').toggleClass('hidden', !(hasAllDeptAccess || showJobPosting));
             }
 
             if (hasAllDeptAccess) {
                 $('#filterCompanyAllDept').select2({
                     placeholder: 'All Company',
                     width: '100%',
-                    allowClear: true
+                    allowClear: true,
+                    dropdownParent: $('#allDeptFilterWrap')
                 });
                 $('#filterDivisionAllDept').select2({
                     placeholder: 'All Division',
                     width: '100%',
-                    allowClear: true
+                    allowClear: true,
+                    dropdownParent: $('#allDeptFilterWrap')
                 });
                 $('#filterDepartmentAllDept').select2({
                     placeholder: 'All Department',
                     width: '100%',
-                    allowClear: true
+                    allowClear: true,
+                    dropdownParent: $('#allDeptFilterWrap')
                 });
 
                 // cache the full, group-scoped department list once so the division
@@ -322,12 +438,16 @@
                 });
 
                 $('#filterCompanyAllDept, #filterDepartmentAllDept').on('change', reloadAllDeptFilters);
-                $('#resetAllDeptFilters').on('click', function() {
-                    rebuildDeptOptions('');
-                    $('#filterCompanyAllDept, #filterDivisionAllDept').val('').trigger('change');
-                    reloadAllDeptFilters();
-                });
             }
+
+            $('#resetAllDeptFilters').on('click', function() {
+                if (hasAllDeptAccess) {
+                    rebuildDeptOptions('');
+                    $('#filterCompanyAllDept, #filterDivisionAllDept').val('').trigger('change.select2');
+                }
+                $('#filterJobPostingStatus').val('').trigger('change.select2');
+                reloadAllDeptFilters();
+            });
             function toggleActionColumn(table, data) {
 
                 let hasToggle = data.some(r =>
@@ -880,6 +1000,8 @@
                     let status = $('#filterStatus').val();
                     let dept = $('#filterDept').val();
 
+                    setJobPostingFilterVisible(status);
+
                     newUrl += "?hcbp=1"
                         + "&status=" + encodeURIComponent(status ?? '')
                         + "&department=" + encodeURIComponent(dept ?? '');
@@ -887,6 +1009,8 @@
                 } else {
 
                     $('#hcbpFilters').hide();
+
+                    setJobPostingFilterVisible(selectedStatus);
 
                     newUrl += "?status=" + encodeURIComponent(selectedStatus ?? '');
                 }
@@ -899,6 +1023,8 @@
 
                 let status = $('#filterStatus').val();
                 let dept = $('#filterDept').val();
+
+                setJobPostingFilterVisible(status);
 
                 let newUrl = "{{ route('personnels.json') }}"
                     + "?hcbp=1"
@@ -914,6 +1040,8 @@
 
                 $('#filterStatus').val('');
                 $('#filterDept').val('');
+
+                setJobPostingFilterVisible('');
 
                 let newUrl = "{{ route('personnels.json') }}?hcbp=1";
 
