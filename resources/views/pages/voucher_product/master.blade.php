@@ -407,6 +407,7 @@
                             <th class="px-4 py-3 text-left font-medium">Company</th>
                             <th class="px-4 py-3 text-left font-medium">Type</th>
                             <th class="px-4 py-3 text-left font-medium">Product Name</th>
+                            <th class="px-4 py-3 text-right font-medium">Total Stock</th>
                             <th class="px-4 py-3 text-left font-medium">Category</th>
                             <th class="px-4 py-3 text-left font-medium">Source (PT)</th>
                             <th class="px-4 py-3 text-left font-medium">Tenant / Event</th>
@@ -612,6 +613,14 @@
             </div>
 
         </div>
+    </div>
+
+    {{-- Total Stock hover tooltip: per-warehouse / expiry breakdown (fixed-position avoids table overflow clipping) --}}
+    <div id="totalStockTooltip"
+        class="fixed z-[9999] hidden max-w-xs rounded-lg border border-slate-200 bg-white p-3 shadow-xl dark:border-white/10 dark:bg-[#0f172a]"
+        style="min-width:200px">
+        <div class="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">Stock by Warehouse</div>
+        <div id="totalStockTooltipBody" class="space-y-1 text-xs text-slate-700 dark:text-slate-200"></div>
     </div>
 
     {{-- Global floating action menu (fixed-position avoids table overflow clipping) --}}

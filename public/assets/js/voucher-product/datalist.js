@@ -65,6 +65,22 @@ const VplMasterDatalist = {
                     className: 'px-5 py-4 align-middle',
                 },
                 {
+                    data:       'total_stock',
+                    name:       'total_stock',
+                    className:  'px-5 py-4 text-right align-middle',
+                    orderable:  false,
+                    searchable: false,
+                    width:      '110px',
+                    render: (data, type) => {
+                        const total = data?.total ?? 0;
+                        if (type !== 'display') return total;
+                        if (!total) return '<span class="text-slate-400">0</span>';
+
+                        const breakdown = encodeURIComponent(JSON.stringify(data?.breakdown ?? []));
+                        return `<span class="vpl-total-stock inline-flex cursor-default items-center gap-1 font-semibold text-slate-900 dark:text-slate-100" data-breakdown="${breakdown}">${VplMasterHelper.formatDisplay(total)}</span>`;
+                    },
+                },
+                {
                     data:           'product_category',
                     name:           'product_category',
                     className:      'px-5 py-4 align-middle',
@@ -204,6 +220,45 @@ const VplMasterDatalist = {
                 VplMasterForm.activate(id);
             }
         });
+    },
+
+    // --------------------------------------------------------
+    // TOTAL STOCK — hover tooltip (per-warehouse / expiry breakdown)
+    // --------------------------------------------------------
+    initTotalStockTooltip() {
+        const $tip  = $('#totalStockTooltip');
+        const $body = $('#totalStockTooltipBody');
+        const TIP_W = 220;
+        const MARGIN = 8;
+
+        $(document).on('mouseenter', '.vpl-total-stock', function () {
+            let breakdown = [];
+            try {
+                breakdown = JSON.parse(decodeURIComponent($(this).attr('data-breakdown') || '[]'));
+            } catch (e) { breakdown = []; }
+
+            $body.html(breakdown.length
+                ? breakdown.map(b => {
+                    const exp = b.exp && b.exp !== '1900-01-01' ? b.exp : 'No Expired';
+                    return `<div class="flex items-center justify-between gap-4">
+                        <span>${b.whs_id ?? '-'} <span class="text-slate-400">(${exp})</span></span>
+                        <span class="font-semibold">${VplMasterHelper.formatDisplay(b.qty)}</span>
+                    </div>`;
+                }).join('')
+                : '<div class="text-slate-400">No stock detail</div>');
+
+            const rect = this.getBoundingClientRect();
+            let left = rect.right - TIP_W;
+            let top  = rect.bottom + 6;
+
+            left = Math.max(MARGIN, Math.min(left, window.innerWidth - TIP_W - MARGIN));
+            if (top + 40 > window.innerHeight - MARGIN) top = rect.top - MARGIN;
+
+            $tip.css({ top, left }).removeClass('hidden');
+        });
+
+        $(document).on('mouseleave', '.vpl-total-stock', () => $tip.addClass('hidden'));
+        $(window).on('scroll resize', () => $tip.addClass('hidden'));
     },
 
     // --------------------------------------------------------
