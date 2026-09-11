@@ -241,6 +241,9 @@ class VplMsProductController extends Controller
                         'breakdown' => $breakdown,
                     ];
                 })
+                ->addColumn('total_stock_sort', fn ($row) => (float) $stockByProduct
+                    ->get($row->product_id, collect())
+                    ->sum('qty_available'))
                 ->addColumn('status', fn ($row) => $row->status === 'A'
                     ? '<span class="inline-block w-24 rounded bg-green-300/30 px-3 py-1.5 text-sm font-semibold text-green-600">Active</span>'
                     : '<span class="inline-block w-24 rounded bg-red-300/30 px-3 py-1.5 text-sm font-semibold text-red-600">Inactive</span>')
