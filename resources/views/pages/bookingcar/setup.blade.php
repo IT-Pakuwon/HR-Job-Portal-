@@ -269,7 +269,7 @@
                                 License Plate
                             </label>
 
-                            <input type="text" name="nopol_kendaraan"
+                            <input type="text" name="no_polisi"
                                 class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm uppercase shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                 placeholder="B 1234 XYZ" required>
 
@@ -282,7 +282,7 @@
                                 Vehicle Description
                             </label>
 
-                            <input type="text" name="kendaraan_descr"
+                            <input type="text" name="namakendaraan"
                                 class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm uppercase shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                 placeholder="TOYOTA INNOVA" required>
 
@@ -527,7 +527,7 @@
                                 License Plate
                             </label>
 
-                            <input type="text" name="nopol_kendaraan" id="edit_nopol_kendaraan"
+                            <input type="text" name="no_polisi" id="edit_nopol_kendaraan"
                                 class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm uppercase shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                 required>
 
@@ -540,7 +540,7 @@
                                 Vehicle Description
                             </label>
 
-                            <input type="text" name="kendaraan_descr" id="edit_kendaraan_descr"
+                            <input type="text" name="namakendaraan" id="edit_kendaraan_descr"
                                 class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm uppercase shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                 required>
 
@@ -1272,8 +1272,8 @@
                     const data = response.data;
 
                     $('#edit_vehicle_id').val(data.id);
-                    $('#edit_nopol_kendaraan').val(data.nopol_kendaraan);
-                    $('#edit_kendaraan_descr').val(data.kendaraan_descr);
+                    $('#edit_nopol_kendaraan').val(data.no_polisi);
+                    $('#edit_kendaraan_descr').val(data.namakendaraan);
 
                     $('#editVehicleModal')
                         .removeClass('hidden')
