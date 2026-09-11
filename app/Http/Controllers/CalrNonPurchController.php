@@ -120,8 +120,13 @@ class CalrNonPurchController extends Controller
         | - tanpa created_by
         */
         $calrFinance = 0;
+        $calrAll = 0;
 
         if ($isFinanceAccess) {
+            $calrAll = TrCalrNonPurch::query()
+                ->whereIn('cpny_id', $cpnyList)
+                ->count();
+
             $calrFinance = TrCalrNonPurch::query()
                 ->whereIn('cpny_id', $cpnyList)
                 ->where('status', 'C')
@@ -136,6 +141,7 @@ class CalrNonPurchController extends Controller
             'rejected',
             'revise',
             'calrFinance',
+            'calrAll',
             'isFinanceAccess',
             'hasApFinAccess',
             'hasApTreAccess'
@@ -388,7 +394,7 @@ class CalrNonPurchController extends Controller
             | - filter department
             | - tanpa filter created_by
             */
-            if ($scope === 'calrfinance') {
+            if (in_array($scope, ['calrfinance', 'calrall'], true)) {
                 if (!$isFinanceAccess) {
                     return response()->json([
                         'draw' => $draw,
@@ -398,7 +404,14 @@ class CalrNonPurchController extends Controller
                     ]);
                 }
 
-                $base->where('status', 'C');
+                if ($scope === 'calrfinance') {
+                    $base->where('status', 'C');
+                } else {
+                    $status = strtoupper(trim((string) $req->input('status', '')));
+                    if ($status !== '') {
+                        $base->where('status', $status);
+                    }
+                }
             } else {
                 $base->whereIn('department_id', $deptList);
 

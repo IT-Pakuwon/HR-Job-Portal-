@@ -2195,6 +2195,13 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/api/event-status-strip', 'eventStatusStrip')->name('gm.event-status-strip');
                 Route::get('/api/event-status-by-company', 'eventStatusByCompany')->name('gm.event-status-by-company');
 
+                // Voucher & Product (VPL) API endpoints
+                Route::get('/api/vpl-company-overview', 'vplCompanyOverview')->name('gm.vpl-company-overview');
+                Route::get('/api/vpl-voucher-list', 'vplVoucherList')->name('gm.vpl-voucher-list');
+                Route::get('/api/vpl-top-out', 'vplTopOut')->name('gm.vpl-top-out');
+                Route::get('/api/vpl-by-category', 'vplByCategory')->name('gm.vpl-by-category');
+                Route::get('/api/vpl-usage-by-reason', 'vplUsageByReason')->name('gm.vpl-usage-by-reason');
+
                 // Export endpoints
                 Route::get('/export/pdf', 'exportPdf')->name('gm.export.pdf');
                 Route::get('/export/csv', 'exportCsv')->name('gm.export.csv');
@@ -2987,19 +2994,12 @@ Route::middleware(['auth'])->group(function () {
         */
 
         $currentMenu = null;
+        $targetSlug = $child ?? $parent ?? $root;
 
-        if ($child) {
-            $currentMenu = SysMenu::where('menu_slug', $child)
-                ->where('status', 'A')
-                ->first();
-        } elseif ($parent) {
-            $currentMenu = SysMenu::where('menu_slug', $parent)
-                ->where('status', 'A')
-                ->first();
-        } elseif ($root) {
-            $currentMenu = SysMenu::where('menu_slug', $root)
-                ->where('status', 'A')
-                ->first();
+        if ($targetSlug) {
+            $currentMenu = $allMenus->first(
+                fn ($menu) => \Illuminate\Support\Str::slug($menu->menu_slug ?? $menu->menu_name) === $targetSlug
+            );
         }
 
         if ($currentMenu && !in_array($currentMenu->menu_id, $allowedIds)) {

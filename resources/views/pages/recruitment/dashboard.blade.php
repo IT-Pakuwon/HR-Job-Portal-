@@ -186,7 +186,7 @@
         </div>
 
         {{-- ═════════════════════════════════════════════════════════════════════
-             SUGGESTED ADDITIONS — Application Volume Trend, Top Postings
+             SUGGESTED ADDITIONS — Application Volume Trend, Hiring Funnel
             ═════════════════════════════════════════════════════════════════════ --}}
         <div class="grid grid-cols-1 gap-3 lg:grid-cols-3" style="align-items:stretch">
 
@@ -197,12 +197,11 @@
                 :categories="$trendLabels"
                 :series="[['name' => 'Applications', 'data' => $trendSeries]]" />
 
-            <x-card-chart.bar-chart
+            <x-card-chart.funnel-chart
                 class="lg:col-span-1"
-                subtitle="Job Postings" title="Top Postings by Applicants"
+                subtitle="Pipeline" title="Hiring Funnel"
                 color="orange" height="280"
-                :categories="$topPostingLabels"
-                :series="[['name' => 'Applicants', 'data' => $topPostingSeries]]" />
+                :series="$funnelSeries" />
 
         </div>
         @endif
