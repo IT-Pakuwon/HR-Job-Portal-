@@ -986,6 +986,10 @@ class CareerController extends Controller
             return response()->json(['success' => false, 'message' => "You can't reject this step"], 403);
         }
 
+        if ($t_approval->step_order == 2) {
+            $this->reject_trx_approval($career, $user);
+        }
+
         // Reject step berjalan
         $t_approval->status = 'R';
         $t_approval->aprvuserdate = $datestamp;
@@ -1085,13 +1089,25 @@ class CareerController extends Controller
 
         DB::beginTransaction();
         try {
-            // Hapus approval level-1 yang masih pending — hanya dilakukan sekarang,
-            // setelah semua validasi di atas lolos, supaya tidak ada efek samping
-            // yang tersimpan permanen ketika rollback ditolak.
-            TrApproval::where('refnbr', $docid)   // mapping dari docid → refnbr
-                ->where('aprv_cpnyid', $career->cpnyid) // TrApproval has no group_cpny_id; cpnyid disambiguates the docid collision instead
-                ->where('status', 'P')
-                ->delete();
+            // Sinkronkan baris tr_approval (doctype JAP) dengan step yang di-rollback —
+            // hanya dilakukan sekarang, setelah semua validasi di atas lolos, supaya tidak
+            // ada efek samping yang tersimpan permanen ketika rollback ditolak.
+            if ($targetStep->step_order == 1) {
+                // HC di-rollback: task approval level-2 yang baru dibuat jadi tidak relevan lagi.
+                TrApproval::where('refnbr', $docid)   // mapping dari docid → refnbr
+                    ->where('aprv_cpnyid', $career->cpnyid) // TrApproval has no group_cpny_id; cpnyid disambiguates the docid collision instead
+                    ->where('aprv_doctype', 'JAP')
+                    ->where('status', 'P')
+                    ->delete();
+            } elseif ($targetStep->step_order == 2) {
+                // Approver level-2 di-rollback: kembalikan task approval-nya jadi pending lagi
+                // supaya muncul lagi di widget Waiting Approval, bukan tetap A/R.
+                TrApproval::where('refnbr', $docid)
+                    ->where('aprv_cpnyid', $career->cpnyid)
+                    ->where('aprv_doctype', 'JAP')
+                    ->whereIn('status', ['A', 'R'])
+                    ->update(['status' => 'P', 'aprv_dateafter' => null]);
+            }
 
             /* Reset kembali ke pending */
             $targetStep->status = 'P';
@@ -2731,33 +2747,41 @@ class CareerController extends Controller
             if ($firstApproval) {
                 $groupCpnyId = $career->group_cpny_id ?? $jobposting->group_cpny_id ?? null;
 
-                $deptName = DepartmentHR::where('department_id', $firstApproval->aprv_departementid)
+                // Company & Department harus mengikuti posisi yang dilamar (job posting),
+                // bukan company/department milik approver di TrApproval.
+                $deptName = DepartmentHR::where('department_id', $jobposting->departementid)
                     ->where('group_cpny_id', $groupCpnyId)
                     ->value('department_name');
 
-                $cpnyName = MsCompany::where('cpny_id', $firstApproval->aprv_cpnyid)->value('cpny_name');
+                $cpnyName = MsCompany::where('cpny_id', $jobposting->cpnyid)->value('cpny_name');
+
+                $applicant = Applicant::where('applicant_id', $career->applicant_id)
+                    ->where('group_cpny_id', $career->group_cpny_id)
+                    ->first();
 
                 $fromEmail = $groupCpnyId === 'SBY' ? 'hrd@pakuwon.com' : 'recruitment@pakuwon.com';
 
                 $data = [
                     'docid' => $firstApproval->refnbr,
-                    'cpnyid' => $cpnyName ?? $firstApproval->aprv_cpnyid,
-                    'deptname' => $deptName ?? $firstApproval->aprv_departementid,
+                    'cpnyid' => $cpnyName ?? $jobposting->cpnyid,
+                    'deptname' => $deptName ?? $jobposting->departementid,
                     'date' => $firstApproval->aprv_datebefore,
-                    'name' => $user->name ?? $user->username,
+                    'name' => $applicant->full_name ?? 'Candidate',
                     'info' => 'Apply Candidate',
                     'url' => url('/showcareers/'.$eid),
                 ];
 
                 $approvers = explode(',', $firstApproval->aprv_username);
-                $emails = User::whereIn('username', $approvers)
+                $approverUsers = User::whereIn('username', $approvers)
                     ->where('status', 'A')
-                    ->pluck('notification_email');
+                    ->get(['name', 'username', 'notification_email']);
 
-                foreach ($emails as $email) {
-                    \Mail::send('emails.mailapprove', $data, function ($message) use ($email, $data, $fromEmail) {
-                        $message->to($email)
-                            ->subject($data['docid'].' - Waiting Approval Apply Candidate')
+                foreach ($approverUsers as $approverUser) {
+                    $mailData = $data + ['to_name' => $approverUser->name ?? $approverUser->username];
+
+                    \Mail::send('emails.mailapprove', $mailData, function ($message) use ($approverUser, $mailData, $fromEmail) {
+                        $message->to($approverUser->notification_email)
+                            ->subject($mailData['docid'].' - Waiting Approval Apply Candidate')
                             ->from($fromEmail, 'Pakuwon System');
                     });
                 }
@@ -2788,6 +2812,37 @@ class CareerController extends Controller
 
             // Update approval level 1 menjadi Approved
             $approvals->status = 'A';
+            $approvals->aprv_dateafter = $datestamp;
+            $approvals->aprv_username = $user->username;
+            $approvals->aprv_name = $user->name;
+            $approvals->updated_by = $user->username ?? null;
+            $approvals->save();
+
+            DB::commit();
+
+            return true;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e; // lempar ke controller
+        }
+    }
+
+    public function reject_trx_approval($career, $user)
+    {
+        $datestamp = Carbon::now()->toDateTimeString();
+        DB::beginTransaction();
+        try {
+            // Ambil approval transaksi untuk career.docid level 1
+            $approvals = TrApproval::where('refnbr', $career->docid)
+                ->where('aprv_leveling', 1)
+                ->first();
+
+            if (!$approvals) {
+                throw new \Exception('Approval transaksi level 1 tidak ditemukan.');
+            }
+
+            // Update approval level 1 menjadi Rejected
+            $approvals->status = 'R';
             $approvals->aprv_dateafter = $datestamp;
             $approvals->aprv_username = $user->username;
             $approvals->aprv_name = $user->name;

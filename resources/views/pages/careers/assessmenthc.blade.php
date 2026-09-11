@@ -23,7 +23,7 @@
             </button>
             <button type="button" id="actionBtnHC" onclick="handleActionHC()"
                 class="inline-flex items-center rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900">
-                Fill
+                Start Assessment
             </button>
             <button type="button" id="toggleBtnHC" onclick="toggleSectionHC()" title="Collapse/expand"
                 class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-200">

@@ -7,8 +7,8 @@
 @section('subtitle', $info ?? 'Approval Request')
 
 @section('content')
-    <p style="margin:0 0 4px;">Hi,</p>
-    <p style="margin:0 0 4px;">A request is waiting for your approval.</p>
+    <p style="margin:0 0 4px;">Hi {{ $to_name ?? '' }},</p>
+    <p style="margin:0 0 4px;">A request is waiting for your approval for candidate with the details below.</p>
 
     @include('emails.partials.detail-table', ['rows' => [
         ['label' => 'Name', 'value' => $name],
