@@ -9,7 +9,7 @@
     @endphp
     <div class="max-w-9xl mx-auto w-full p-2">
         @if ($isFinanceAccess)
-            <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-7">
+            <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-8">
         @else
             <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
         @endif
@@ -97,6 +97,15 @@
                 </div>
             </button>
             @if ($isFinanceAccess)
+                <button type="button" class="scope-filter group block h-full" data-scope="calrall">
+                    <div class="scope-card flex h-full items-center gap-3 rounded-lg border border-teal-700 bg-teal-50 p-3 text-teal-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-teal-100 hover:shadow-md active:scale-95">
+                        <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base"><i class="fa-solid fa-list" aria-hidden="true"></i></div>
+                        <div class="flex min-w-0 flex-grow flex-col">
+                            <p class="break-words text-sm font-medium leading-tight">CALR All</p>
+                        </div>
+                        <p class="shrink-0 text-base font-bold">{{ $calrAll }}</p>
+                    </div>
+                </button>
                 {{-- CALR Finance --}}
                 <button type="button" class="scope-filter group block h-full" data-scope="calrfinance">
                     <div
@@ -117,8 +126,21 @@
         <div
             class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
             <div
-                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                class="flex flex-wrap items-center justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white">CALR Non Purchase</h1>
+                @if ($isFinanceAccess)
+                    <div id="calrAllStatusFilter" style="display: none;" class="items-center gap-2">
+                        <label for="calrAllStatus" class="text-sm text-gray-700 dark:text-gray-300">Status</label>
+                        <select id="calrAllStatus" class="rounded border border-gray-300 bg-white py-2 pl-3 pr-8 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                            <option value="">All Status</option>
+                            <option value="P">On Progress</option>
+                            <option value="R">Rejected</option>
+                            <option value="D">Revise</option>
+                            <option value="C">Completed</option>
+                            <option value="X">Cancel</option>
+                        </select>
+                    </div>
+                @endif
             </div>
 
             <div class="relative overflow-hidden">
@@ -254,6 +276,7 @@
                 rejected: 'CALR Non Purchase - Rejected',
                 revise: 'CALR Non Purchase - Revise',
                 all: 'CALR Non Purchase - All',
+                calrall: 'CALR Non Purchase - CALR All',
                 calrfinance: 'CALR Non Purchase - Finance',
             };
 
@@ -599,6 +622,7 @@
 
             function updateTitle(sc) {
                 $title.text(titleMap[sc] ?? 'CALR Non Purchase');
+                $('#calrAllStatusFilter').css('display', sc === 'calrall' ? 'flex' : 'none');
             }
 
             function resetThead(sc) {
@@ -681,6 +705,9 @@
                         type: "GET",
                         data: function(d) {
                             d.scope = sc;
+                            if (sc === 'calrall') {
+                                d.status = $('#calrAllStatus').val() || '';
+                            }
                         }
                     },
                     columns: columnsFor(sc),
@@ -846,6 +873,12 @@
             updateTitle(scope);
             rebuild(scope);
 
+            $('#calrAllStatus').on('change', function() {
+                if (scope === 'calrall') {
+                    table.ajax.reload();
+                }
+            });
+
             $('.scope-filter').on('click', function(e) {
                 e.preventDefault();
 
@@ -867,7 +900,10 @@
             //     scope = savedCalrScope;
             const allowedScopes = [
                 'calrjobs',
-                'calrfinance',
+                @if ($isFinanceAccess)
+                    'calrall',
+                    'calrfinance',
+                @endif
                 'onprogress',
                 'completed',
                 'rejected',
