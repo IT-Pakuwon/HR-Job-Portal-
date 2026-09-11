@@ -68,7 +68,7 @@ const VplMasterDatalist = {
                     data:       'total_stock',
                     name:       'total_stock',
                     className:  'px-5 py-4 text-right align-middle',
-                    orderable:  false,
+                    orderData:  [10],
                     searchable: false,
                     width:      '110px',
                     render: (data, type) => {
@@ -114,6 +114,12 @@ const VplMasterDatalist = {
                     orderable:  false,
                     searchable: false,
                     width:      '110px',
+                },
+                {
+                    data:       'total_stock_sort',
+                    name:       'total_stock_sort',
+                    visible:    false,
+                    searchable: false,
                 },
             ],
 
