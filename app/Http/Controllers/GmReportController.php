@@ -12,6 +12,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 
 class GmReportController extends Controller
@@ -55,6 +56,10 @@ class GmReportController extends Controller
         2 => 'Gandaria City',
         6 => 'Pakuwon Mall Bekasi',
     ];
+
+    // ── Voucher & Product (VPL) constants — cpnyid on pgsql5 matches HR
+    // company codes directly, no translation map needed like the sections above.
+    private const VPL_COMPANIES = ['AW', 'EP', 'PSA', 'GPS'];
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -142,6 +147,34 @@ class GmReportController extends Controller
         return array_values(array_filter(
             array_map(fn ($code) => $map[$code] ?? null, $allowed)
         ));
+    }
+
+    /**
+     * VPL stock is a snapshot, not a range metric — every stock-based widget
+     * resolves the GM date filter's "to" bound down to a single year/month
+     * point (clamped to today, since future periods have no postings yet)
+     * instead of filtering by the range itself.
+     *
+     * @return array{0: int, 1: int} [year, month]
+     */
+    private function vplAsOfPeriod(?string $dateTo): array
+    {
+        $asOf = $dateTo ? \Carbon\Carbon::parse($dateTo) : \Carbon\Carbon::now();
+        if ($asOf->greaterThan(\Carbon\Carbon::now())) {
+            $asOf = \Carbon\Carbon::now();
+        }
+
+        return [(int) $asOf->year, (int) $asOf->month];
+    }
+
+    /** SQL expression rolling ms_vpl_product_bal's begqty + period01..NN in/out forward through the given month — same convention as VplReportController::productStockBaseQuery(). */
+    private function vplStockExpr(int $month): string
+    {
+        $periods = collect(range(1, $month))->map(fn ($m) => str_pad((string) $m, 2, '0', STR_PAD_LEFT));
+        $inSum   = $periods->map(fn ($mm) => "COALESCE(b.period{$mm}in, 0)")->implode(' + ');
+        $outSum  = $periods->map(fn ($mm) => "COALESCE(b.period{$mm}out, 0)")->implode(' + ');
+
+        return "(COALESCE(b.begqty, 0) + ({$inSum}) - ({$outSum}))";
     }
 
     /**
@@ -1822,6 +1855,287 @@ class GmReportController extends Controller
         ]);
     }
 
+    // ── API: Voucher & Product (VPL) ──────────────────────────────────────────
+    // Data lives on the pgsql5 connection (ms_vpl_product / ms_vpl_product_bal /
+    // tr_vpl_ledger / tr_vpl_usage), scoped by cpnyid — the same HR company
+    // codes (AW/EP/PSA/GPS) as every other GM section, restricted the same way
+    // via allowedCompanies()/applyCompanyFilter(). Stock-based widgets read
+    // ms_vpl_product_bal (a snapshot, see vplAsOfPeriod()); movement-based
+    // widgets (Top Out / Usage by Reason) read tr_vpl_ledger, which only ever
+    // carries fully-posted quantities (unlike tr_vpl_usage_detail, whose
+    // status column stays 'P' regardless of the header's approval state).
+
+    public function vplCompanyOverview(Request $request)
+    {
+        ['dateTo' => $dateTo, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
+        $allowed = $this->allowedCompanies();
+        [$year, $month] = $this->vplAsOfPeriod($dateTo);
+        $stockExpr = $this->vplStockExpr($month);
+
+        $q = DB::connection('pgsql5')->table('ms_vpl_product_bal as b')
+            ->join('ms_vpl_product as p', 'p.product_id', '=', 'b.product_id')
+            ->where('b.year', $year);
+        $q = $this->applyCompanyFilter($q, $allowed, $cpnyId, 'b.cpnyid');
+
+        $rows = $q->selectRaw("
+                b.cpnyid,
+                p.product_type,
+                SUM({$stockExpr})                   AS stock,
+                SUM({$stockExpr} * p.product_value) AS value
+            ")
+            ->groupBy('b.cpnyid', 'p.product_type')
+            ->get();
+
+        $byCompany = [];
+        foreach ($rows as $r) {
+            $c = (string) $r->cpnyid;
+            if (!isset($byCompany[$c])) {
+                $byCompany[$c] = ['cpnyid' => $c, 'voucher_stock' => 0.0, 'product_stock' => 0.0, 'voucher_value' => 0.0, 'product_value' => 0.0];
+            }
+            $key = $r->product_type === 'V' ? 'voucher' : 'product';
+            $byCompany[$c][$key.'_stock'] += (float) $r->stock;
+            $byCompany[$c][$key.'_value'] += $this->bqFloat($r->value ?? 0);
+        }
+
+        $byCompany = array_values($byCompany);
+        usort($byCompany, fn ($a, $b) => $a['cpnyid'] <=> $b['cpnyid']);
+
+        $totals = ['voucher_stock' => 0.0, 'product_stock' => 0.0, 'voucher_value' => 0.0, 'product_value' => 0.0];
+        foreach ($byCompany as $c) {
+            foreach ($totals as $k => $v) {
+                $totals[$k] += $c[$k];
+            }
+        }
+
+        return response()->json([
+            'data' => [
+                'totals' => $totals,
+                'by_company' => $byCompany,
+                'as_of' => sprintf('%04d-%02d', $year, $month),
+            ],
+        ]);
+    }
+
+    public function vplVoucherList(Request $request)
+    {
+        ['dateTo' => $dateTo, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
+        $allowed = $this->allowedCompanies();
+        [$year, $month] = $this->vplAsOfPeriod($dateTo);
+        $stockExpr = $this->vplStockExpr($month);
+
+        $q = DB::connection('pgsql5')->table('ms_vpl_product_bal as b')
+            ->join('ms_vpl_product as p', 'p.product_id', '=', 'b.product_id')
+            ->where('b.year', $year)
+            ->where('p.product_type', 'V');
+        $q = $this->applyCompanyFilter($q, $allowed, $cpnyId, 'b.cpnyid');
+
+        $rows = $q->selectRaw("
+                p.product_id, p.product_name, p.product_category, p.product_value,
+                b.cpnyid,
+                SUM({$stockExpr}) AS stock
+            ")
+            ->groupBy('p.product_id', 'p.product_name', 'p.product_category', 'p.product_value', 'b.cpnyid')
+            ->get();
+
+        $byProduct = [];
+        foreach ($rows as $r) {
+            $id = $r->product_id;
+            if (!isset($byProduct[$id])) {
+                $byProduct[$id] = [
+                    'product_id' => $id,
+                    'product_name' => $r->product_name,
+                    'category' => $r->product_category ?: 'Uncategorized',
+                    'value' => (float) $r->product_value,
+                    'stock' => 0.0,
+                    'by_company' => [],
+                ];
+            }
+            $byProduct[$id]['stock'] += (float) $r->stock;
+            $byProduct[$id]['by_company'][$r->cpnyid] = (float) $r->stock;
+        }
+
+        foreach ($byProduct as &$row) {
+            $row['total_value'] = $row['value'] * $row['stock'];
+        }
+        unset($row);
+
+        $list = array_values($byProduct);
+        usort($list, fn ($a, $b) => $b['stock'] <=> $a['stock']);
+
+        return response()->json([
+            'data' => $list,
+            'stacked' => $cpnyId === null,
+            'all_sites' => $cpnyId === null ? (empty($allowed) ? self::VPL_COMPANIES : array_values($allowed)) : [],
+        ]);
+    }
+
+    public function vplTopOut(Request $request)
+    {
+        ['dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
+        $allowed = $this->allowedCompanies();
+        $cardType = strtoupper(trim((string) $request->input('card_type', '')));
+
+        $q = DB::connection('pgsql5')->table('tr_vpl_ledger as l')
+            ->join('ms_vpl_product as p', 'p.product_id', '=', 'l.product_id')
+            ->leftJoin('tr_vpl_usage as u', 'u.usage_id', '=', 'l.refnbr')
+            ->where('l.status', 'A')
+            ->where('l.transaction_source', 'Usage')
+            ->where(function ($q2) {
+                $q2->whereNull('u.usagetype')->orWhere('u.usagetype', '<>', 'Return');
+            })
+            ->whereBetween('l.postdate', [$dateFrom, $dateTo]);
+        $q = $this->applyCompanyFilter($q, $allowed, $cpnyId, 'l.cpnyid');
+
+        if (in_array($cardType, ['V', 'P'], true)) {
+            $q->where('p.product_type', $cardType);
+        }
+
+        $rows = $q->selectRaw('p.product_id, p.product_name, p.product_type, l.cpnyid, SUM(-l.qty) AS qty_out')
+            ->groupBy('p.product_id', 'p.product_name', 'p.product_type', 'l.cpnyid')
+            ->get();
+
+        $byProduct = [];
+        $sitesSeen = [];
+        foreach ($rows as $r) {
+            $id = $r->product_id;
+            if (!isset($byProduct[$id])) {
+                $byProduct[$id] = [
+                    'product_id' => $id,
+                    'label' => $r->product_name,
+                    'type' => $r->product_type,
+                    'total' => 0.0,
+                    'by_company' => [],
+                ];
+            }
+            $qty = (float) $r->qty_out;
+            $byProduct[$id]['total'] += $qty;
+            $byProduct[$id]['by_company'][$r->cpnyid] = ($byProduct[$id]['by_company'][$r->cpnyid] ?? 0) + $qty;
+            $sitesSeen[$r->cpnyid] = true;
+        }
+
+        $list = array_values($byProduct);
+        usort($list, fn ($a, $b) => $b['total'] <=> $a['total']);
+        $list = array_slice($list, 0, 10);
+
+        $stacked = $cpnyId === null;
+        $sites = array_keys($sitesSeen);
+        sort($sites);
+
+        return response()->json([
+            'data' => $list,
+            'stacked' => $stacked,
+            'all_sites' => $stacked ? $sites : [],
+        ]);
+    }
+
+    public function vplByCategory(Request $request)
+    {
+        ['dateTo' => $dateTo, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
+        $allowed = $this->allowedCompanies();
+        [$year, $month] = $this->vplAsOfPeriod($dateTo);
+        $stockExpr = $this->vplStockExpr($month);
+
+        $q = DB::connection('pgsql5')->table('ms_vpl_product_bal as b')
+            ->join('ms_vpl_product as p', 'p.product_id', '=', 'b.product_id')
+            ->where('b.year', $year);
+        $q = $this->applyCompanyFilter($q, $allowed, $cpnyId, 'b.cpnyid');
+
+        $rows = $q->selectRaw("
+                COALESCE(NULLIF(p.product_category, ''), 'Uncategorized') AS category,
+                p.product_type, b.cpnyid,
+                SUM({$stockExpr}) AS stock
+            ")
+            ->groupBy('category', 'p.product_type', 'b.cpnyid')
+            ->get();
+
+        $cats = [];
+        foreach ($rows as $r) {
+            $cat = $r->category;
+            if (!isset($cats[$cat])) {
+                $cats[$cat] = ['category' => $cat, 'voucher' => 0.0, 'product' => 0.0, 'by_company' => []];
+            }
+            $key = $r->product_type === 'V' ? 'voucher' : 'product';
+            $stock = (float) $r->stock;
+            $cats[$cat][$key] += $stock;
+
+            if (!isset($cats[$cat]['by_company'][$r->cpnyid])) {
+                $cats[$cat]['by_company'][$r->cpnyid] = ['voucher' => 0.0, 'product' => 0.0];
+            }
+            $cats[$cat]['by_company'][$r->cpnyid][$key] += $stock;
+        }
+
+        $list = array_values($cats);
+        usort($list, fn ($a, $b) => ($b['voucher'] + $b['product']) <=> ($a['voucher'] + $a['product']));
+
+        return response()->json(['data' => $list]);
+    }
+
+    public function vplUsageByReason(Request $request)
+    {
+        ['dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
+        $allowed = $this->allowedCompanies();
+
+        $q = DB::connection('pgsql5')->table('tr_vpl_ledger as l')
+            ->join('ms_vpl_product as p', 'p.product_id', '=', 'l.product_id')
+            ->leftJoin('tr_vpl_usage as u', 'u.usage_id', '=', 'l.refnbr')
+            ->where('l.status', 'A')
+            ->where('l.transaction_source', 'Usage')
+            ->where(function ($q2) {
+                $q2->whereNull('u.usagetype')->orWhere('u.usagetype', '<>', 'Return');
+            })
+            ->whereBetween('l.postdate', [$dateFrom, $dateTo]);
+        $q = $this->applyCompanyFilter($q, $allowed, $cpnyId, 'l.cpnyid');
+
+        $rows = $q->selectRaw("
+                COALESCE(NULLIF(l.purpose_id, ''), 'Unspecified') AS reason,
+                p.product_type, l.cpnyid,
+                SUM(-l.qty) AS qty_out
+            ")
+            ->groupBy('reason', 'p.product_type', 'l.cpnyid')
+            ->get();
+
+        $reasons = [];
+        foreach ($rows as $r) {
+            $reason = (string) $r->reason;
+            if (!isset($reasons[$reason])) {
+                $reasons[$reason] = ['reason' => $reason, 'voucher' => 0.0, 'product' => 0.0, 'by_company' => []];
+            }
+            $key = $r->product_type === 'V' ? 'voucher' : 'product';
+            $qty = (float) $r->qty_out;
+            $reasons[$reason][$key] += $qty;
+
+            if (!isset($reasons[$reason]['by_company'][$r->cpnyid])) {
+                $reasons[$reason]['by_company'][$r->cpnyid] = ['voucher' => 0.0, 'product' => 0.0];
+            }
+            $reasons[$reason]['by_company'][$r->cpnyid][$key] += $qty;
+        }
+
+        $list = array_values($reasons);
+        usort($list, fn ($a, $b) => ($b['voucher'] + $b['product']) <=> ($a['voucher'] + $a['product']));
+
+        // Cap to the top 9 reasons + an "Others" bucket so a long tail of
+        // one-off remarks doesn't turn the chart into an unreadable list.
+        if (count($list) > 10) {
+            $top = array_slice($list, 0, 9);
+            $rest = array_slice($list, 9);
+            $others = ['reason' => 'Others', 'voucher' => 0.0, 'product' => 0.0, 'by_company' => []];
+            foreach ($rest as $r) {
+                $others['voucher'] += $r['voucher'];
+                $others['product'] += $r['product'];
+                foreach ($r['by_company'] as $cpny => $vals) {
+                    if (!isset($others['by_company'][$cpny])) {
+                        $others['by_company'][$cpny] = ['voucher' => 0.0, 'product' => 0.0];
+                    }
+                    $others['by_company'][$cpny]['voucher'] += $vals['voucher'];
+                    $others['by_company'][$cpny]['product'] += $vals['product'];
+                }
+            }
+            $list = array_merge($top, [$others]);
+        }
+
+        return response()->json(['data' => $list]);
+    }
+
     // ── API: PG Card — Top 10 customers per mall ──────────────────────────────
 
     public function pgcardTopCustomers(Request $request)
@@ -2730,6 +3044,7 @@ class GmReportController extends Controller
                 'isort' => $this->bqDatasetLastModified($bq, self::ISORT_PROJECT, self::ISORT_DATASET),
                 'valet' => $this->bqDatasetLastModified($bq, self::VALET_PROJECT, self::VALET_DATASET),
                 'event' => MsEvent::query()->max('updated_at'),
+                'vpl' => DB::connection('pgsql5')->table('tr_vpl_ledger')->max('updated_at'),
             ];
         });
 

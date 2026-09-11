@@ -110,6 +110,7 @@
                 <button id="gmTab_isort" type="button" class="gm-section-tab">Operation - Isort</button>
                 <button id="gmTab_valet" type="button" class="gm-section-tab">Parking - Valet</button>
                 <button id="gmTab_event" type="button" class="gm-section-tab">Event</button>
+                <button id="gmTab_vpl" type="button" class="gm-section-tab">Voucher &amp; Product</button>
             </div>
 
         </div>{{-- /gmPageHeader --}}
@@ -881,6 +882,210 @@
 
         </div>{{-- /Event Section --}}
 
+        {{-- ── Voucher & Product (VPL) Section ─────────────────────────────────── --}}
+        <style>
+            .vpl-tab-active {
+                background: rgb(238 233 255/1);
+                color: #7c3aed;
+                font-weight: 700;
+            }
+
+            .dark .vpl-tab-active {
+                background: rgb(139 92 246/.15);
+                color: #a78bfa;
+            }
+
+            .vpl-tab-idle {
+                color: #94a3b8;
+            }
+
+            .vpl-tab-idle:hover {
+                background: rgb(241 245 249/1);
+                color: #475569;
+            }
+
+            .dark .vpl-tab-idle:hover {
+                background: rgb(51 65 85/.5);
+                color: #cbd5e1;
+            }
+        </style>
+
+        <div id="gmSectionVpl" class="mt-2 space-y-3">
+
+            <div class="flex items-center justify-between px-0.5">
+                <span
+                    class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Voucher
+                    &amp; Product Overview</span>
+                <span id="gmVplLastUpdated"
+                    class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Last Updated: <span id="gmVplLastUpdatedVal">—</span>
+                </span>
+            </div>
+
+            <x-card-chart.insight-panel listId="gmVplInsights" />
+
+            {{-- ── KPI Strip ─────────────────────────────────────────────────────── --}}
+            <div class="relative overflow-hidden rounded-2xl border border-slate-200 shadow-sm dark:border-slate-700/60">
+                <div class="absolute inset-x-0 top-0 z-10 h-0.75"
+                    style="background:linear-gradient(to right,#8B5CF6,#06B6D4,#F59E0B,#10B981)"></div>
+                <div class="grid grid-cols-2 gap-px bg-slate-100 dark:bg-slate-700/50 sm:grid-cols-3 xl:grid-cols-5">
+
+                    {{-- Total Voucher Stock --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-50 dark:bg-violet-500/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-violet-500">Total Voucher Stock</p>
+                            <p id="vplTotalVoucherStock" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-violet-600 dark:text-violet-400 sm:text-2xl">—</p>
+                        </div>
+                    </div>
+
+                    {{-- Total Product Stock --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-50 dark:bg-cyan-500/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-cyan-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-cyan-500">Total Product Stock</p>
+                            <p id="vplTotalProductStock" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-cyan-600 dark:text-cyan-400 sm:text-2xl">—</p>
+                        </div>
+                    </div>
+
+                    {{-- Total Value --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-500/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3v-6m-3 6v-9m-2 9h10a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Total Value</p>
+                            <p id="vplTotalValue" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white sm:text-2xl">—</p>
+                            <p class="text-[10px] text-slate-400 dark:text-slate-500">stock × unit value</p>
+                        </div>
+                    </div>
+
+                    {{-- Voucher Value --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-50 dark:bg-violet-500/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .672-3 1.5S10.343 11 12 11s3 .672 3 1.5-1.343 1.5-3 1.5m0-6V6m0 1.5V6m0 12v-1.5m0 1.5v-1.5m9-4.5a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-violet-500">Voucher Value</p>
+                            <p id="vplVoucherValue" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-violet-600 dark:text-violet-400 sm:text-2xl">—</p>
+                        </div>
+                    </div>
+
+                    {{-- Product Value --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-50 dark:bg-cyan-500/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-cyan-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .672-3 1.5S10.343 11 12 11s3 .672 3 1.5-1.343 1.5-3 1.5m0-6V6m0 1.5V6m0 12v-1.5m0 1.5v-1.5m9-4.5a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-cyan-500">Product Value</p>
+                            <p id="vplProductValue" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-cyan-600 dark:text-cyan-400 sm:text-2xl">—</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            {{-- ── By Company table — total stock voucher/product that exist per company;
+                 the row that matters most once "All Companies" is selected. ────────── --}}
+            <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700/60 dark:bg-slate-900">
+                <div class="absolute inset-x-0 top-0 h-0.75" style="background:linear-gradient(to right,#8B5CF6,#06B6D4)"></div>
+                <div class="flex items-center justify-between px-5 pb-3 pt-5">
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">By Company</p>
+                        <h3 class="mt-0.5 text-sm font-bold text-slate-800 dark:text-white">Stock &amp; Value per Company</h3>
+                    </div>
+                    <span id="vplAsOfBadge" class="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-400"></span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-140 text-left text-xs">
+                        <thead>
+                            <tr class="border-t border-slate-100 bg-slate-50 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:border-slate-700/60 dark:bg-slate-800/50 dark:text-slate-500">
+                                <th class="py-2.5 pl-5 pr-2">Company</th>
+                                <th class="py-2.5 pr-2 text-right">Voucher Stock</th>
+                                <th class="py-2.5 pr-2 text-right">Product Stock</th>
+                                <th class="py-2.5 pr-2 text-right">Voucher Value</th>
+                                <th class="py-2.5 pr-5 text-right">Product Value</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vplCompanyBody" class="divide-y divide-slate-100 dark:divide-slate-700/60">
+                            <tr><td colspan="5" class="px-5 py-8 text-center text-slate-400 dark:text-slate-500">Loading…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- ── Row: Voucher list (sorted by stock) | By Category ────────────────── --}}
+            <div class="grid grid-cols-1 gap-3 lg:grid-cols-2" style="align-items:stretch">
+
+                <x-card-chart.dynamic-table-card
+                    subtitle="Voucher & Product" title="Voucher List — Sorted by Stock"
+                    gradient="linear-gradient(to right,#8B5CF6,#7C3AED)" tableBodyId="vplVoucherTableBody"
+                    countBadgeId="vplVoucherCount" paginationPrefix="vplVoucher" :columns="[
+                        ['label' => 'Voucher', 'key' => 'product_name'],
+                        ['label' => 'Category', 'key' => 'category'],
+                        ['label' => 'Stock', 'key' => 'stock', 'numeric' => true],
+                        ['label' => 'Value', 'key' => 'value', 'numeric' => true],
+                        ['label' => 'Total Value', 'key' => 'total_value', 'numeric' => true],
+                    ]" />
+
+                <x-card-chart.card-shell subtitle="Voucher & Product" title="Total Stock by Category"
+                    gradient="linear-gradient(to right,#8B5CF6,#06B6D4)" class="h-full flex flex-col">
+                    <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
+                        <div id="vplCategoryChart" class="flex-1"></div>
+                    </div>
+                </x-card-chart.card-shell>
+
+            </div>
+
+            {{-- ── Row: Top 10 Out | Usage by Purpose ────────────────────────────────── --}}
+            <div class="grid grid-cols-1 gap-3 lg:grid-cols-2" style="align-items:stretch">
+
+                <x-card-chart.card-shell subtitle="Voucher & Product" title="Top 10 Most Out"
+                    gradient="linear-gradient(to right,#EF4444,#F59E0B)" class="h-full flex flex-col">
+                    <x-slot:headerEnd>
+                        <div class="flex items-center gap-1">
+                            <button id="vplTopOutType_all" type="button"
+                                class="vpl-tab-active rounded-lg px-2.5 py-1 text-[10px] font-semibold transition">All</button>
+                            <button id="vplTopOutType_v" type="button"
+                                class="vpl-tab-idle rounded-lg px-2.5 py-1 text-[10px] font-semibold transition">Voucher</button>
+                            <button id="vplTopOutType_p" type="button"
+                                class="vpl-tab-idle rounded-lg px-2.5 py-1 text-[10px] font-semibold transition">Product</button>
+                        </div>
+                    </x-slot:headerEnd>
+                    <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
+                        <div id="vplTopOutChart" class="flex-1"></div>
+                    </div>
+                </x-card-chart.card-shell>
+
+                <x-card-chart.card-shell subtitle="Voucher & Product" title="Usage by Purpose"
+                    gradient="linear-gradient(to right,#8B5CF6,#06B6D4)" class="h-full flex flex-col">
+                    <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
+                        <div id="vplReasonChart" class="flex-1"></div>
+                    </div>
+                </x-card-chart.card-shell>
+
+            </div>
+
+        </div>{{-- /Voucher & Product Section --}}
+
     </div>
 
 
@@ -918,6 +1123,11 @@
             eventByType: "{{ route('gm.event-by-type') }}",
             eventStatusStrip: "{{ route('gm.event-status-strip') }}",
             eventStatusByCompany: "{{ route('gm.event-status-by-company') }}",
+            vplCompanyOverview: "{{ route('gm.vpl-company-overview') }}",
+            vplVoucherList: "{{ route('gm.vpl-voucher-list') }}",
+            vplTopOut: "{{ route('gm.vpl-top-out') }}",
+            vplByCategory: "{{ route('gm.vpl-by-category') }}",
+            vplUsageByReason: "{{ route('gm.vpl-usage-by-reason') }}",
         };
     </script>
 
@@ -929,7 +1139,8 @@
                 pgcard: 'gmPgcardLastUpdatedVal',
                 isort: 'gmIsortLastUpdatedVal',
                 valet: 'gmValetLastUpdatedVal',
-                event: 'gmEventLastUpdatedVal'
+                event: 'gmEventLastUpdatedVal',
+                vpl: 'gmVplLastUpdatedVal'
             };
 
             fetch(window.gmRoutes.sectionLastUpdated)
@@ -963,6 +1174,7 @@
     <script src="{{ asset('assets/js/gm-report/gm-isort.js') }}?v={{ $gmAssetVer('assets/js/gm-report/gm-isort.js') }}"></script>
     <script src="{{ asset('assets/js/gm-report/gm-valet.js') }}?v={{ $gmAssetVer('assets/js/gm-report/gm-valet.js') }}"></script>
     <script src="{{ asset('assets/js/gm-report/gm-event.js') }}?v={{ $gmAssetVer('assets/js/gm-report/gm-event.js') }}"></script>
+    <script src="{{ asset('assets/js/gm-report/gm-vpl.js') }}?v={{ $gmAssetVer('assets/js/gm-report/gm-vpl.js') }}"></script>
 
     {{-- ── Export link updater ─────────────────────────────────────────────────
          Runs every time the filter changes so the download URL always carries
@@ -1037,16 +1249,18 @@
                 pgcard: 'gmSectionPgcard',
                 isort: 'gmSectionIsort',
                 valet: 'gmSectionValet',
-                event: 'gmSectionEvent'
+                event: 'gmSectionEvent',
+                vpl: 'gmSectionVpl'
             };
             var headers = {
                 budget: 'gmSectionBudgetHeader',
                 pgcard: 'gmSectionPgcardHeader',
                 isort: 'gmSectionIsortHeader',
                 valet: 'gmSectionValetHeader',
-                event: 'gmSectionEventHeader'
+                event: 'gmSectionEventHeader',
+                vpl: 'gmSectionVplHeader'
             };
-            var tabIds = ['gmTab_all', 'gmTab_budget', 'gmTab_pgcard', 'gmTab_isort', 'gmTab_valet', 'gmTab_event'];
+            var tabIds = ['gmTab_all', 'gmTab_budget', 'gmTab_pgcard', 'gmTab_isort', 'gmTab_valet', 'gmTab_event', 'gmTab_vpl'];
 
             function switchTab(key) {
                 tabIds.forEach(function(id) {

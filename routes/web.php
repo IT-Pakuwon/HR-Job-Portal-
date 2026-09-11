@@ -2191,6 +2191,13 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/api/event-status-strip', 'eventStatusStrip')->name('gm.event-status-strip');
                 Route::get('/api/event-status-by-company', 'eventStatusByCompany')->name('gm.event-status-by-company');
 
+                // Voucher & Product (VPL) API endpoints
+                Route::get('/api/vpl-company-overview', 'vplCompanyOverview')->name('gm.vpl-company-overview');
+                Route::get('/api/vpl-voucher-list', 'vplVoucherList')->name('gm.vpl-voucher-list');
+                Route::get('/api/vpl-top-out', 'vplTopOut')->name('gm.vpl-top-out');
+                Route::get('/api/vpl-by-category', 'vplByCategory')->name('gm.vpl-by-category');
+                Route::get('/api/vpl-usage-by-reason', 'vplUsageByReason')->name('gm.vpl-usage-by-reason');
+
                 // Export endpoints
                 Route::get('/export/pdf', 'exportPdf')->name('gm.export.pdf');
                 Route::get('/export/csv', 'exportCsv')->name('gm.export.csv');
