@@ -15,6 +15,20 @@ class RecruitmentDashboardController extends Controller
 {
     private const AGE_BUCKET_LABELS = ['<20', '20-25', '26-30', '31-35', '36-40', '41-45', '46-50', '50+'];
 
+    // hr_trx_job_apply_step.step_id -> funnel stage rank. Several granular
+    // steps (e.g. HC vs User interview) are folded into one funnel stage.
+    private const STEP_STAGE_RANK = [
+        'JOAPHC' => 1, 'JOAPUS' => 2,
+        'WIHC' => 3, 'IHC' => 3, 'WIU' => 3, 'IU' => 3,
+        'WPT' => 4, 'PT' => 4,
+        'OFF' => 5,
+        'JOIN' => 6, 'MCU' => 6,
+    ];
+    private const FUNNEL_STAGE_LABELS = [
+        1 => 'Applied', 2 => 'HC Review', 3 => 'Interview',
+        4 => 'Psycho Test', 5 => 'Offering', 6 => 'Hired',
+    ];
+
     private static function formatLabel(mixed $value): string
     {
         $value = trim((string) $value);
@@ -294,16 +308,50 @@ class RecruitmentDashboardController extends Controller
         $trendLabels = $monthKeys->map(fn ($ym) => Carbon::createFromFormat('Y-m', $ym)->format('M Y'));
         $trendSeries = $monthKeys->map(fn ($ym) => (int) $careerByMonth->get($ym, 0) + (int) $selfByMonth->get($ym, 0));
 
-        // ── Top postings ──────────────────────────────────────────────────────
-        $topPostings = (clone $careerBase)
-            ->whereNotNull('docidposting')
-            ->select('docidposting', DB::raw('MIN(job_title) as job_title'), DB::raw('COUNT(*) as total'))
-            ->groupBy('docidposting')
-            ->orderByDesc('total')
-            ->limit(10)
-            ->get()
-            ->sortBy('total')
-            ->values();
+        // ── Hiring funnel (stage-by-stage drop-off) ───────────────────────────
+        // Every applicant gets one hr_trx_job_apply_step row per master step,
+        // inserted upfront as 'P'. So "reached stage N" is derived per applicant
+        // as: the lowest still-pending stage (currently in progress there), or
+        // the highest resolved (A/R) stage if nothing is pending anymore.
+        $funnelDocids = (clone $careerBase)->pluck('docid');
+        $stepRows = $conn->table('hr_trx_job_apply_step')
+            ->whereIn('docid', $funnelDocids)
+            ->whereIn('step_id', array_keys(self::STEP_STAGE_RANK))
+            ->select('docid', 'step_id', 'status')
+            ->get();
+
+        $funnelReached = array_fill_keys(array_keys(self::FUNNEL_STAGE_LABELS), 0);
+        foreach ($stepRows->groupBy('docid') as $rows) {
+            $resolvedRanks = [];
+            $pendingRanks = [];
+            foreach ($rows as $row) {
+                $rank = self::STEP_STAGE_RANK[$row->step_id] ?? null;
+                if (!$rank) {
+                    continue;
+                }
+                if ($row->status === 'A' || $row->status === 'R') {
+                    $resolvedRanks[] = $rank;
+                } elseif ($row->status === 'P') {
+                    $pendingRanks[] = $rank;
+                }
+            }
+            $furthest = $pendingRanks ? min($pendingRanks) : ($resolvedRanks ? max($resolvedRanks) : 0);
+            $furthest = max($furthest, $resolvedRanks ? max($resolvedRanks) : 0);
+
+            foreach (self::FUNNEL_STAGE_LABELS as $rank => $label) {
+                if ($rank <= $furthest) {
+                    $funnelReached[$rank]++;
+                }
+            }
+        }
+
+        $funnelSeries = [[
+            'name' => 'Applicants',
+            'data' => collect(self::FUNNEL_STAGE_LABELS)
+                ->map(fn ($label, $rank) => ['x' => $label, 'y' => $funnelReached[$rank]])
+                ->values()
+                ->all(),
+        ]];
 
         // ── Job posting status ────────────────────────────────────────────────
         $jobpostingQuery = Jobposting::query()
@@ -440,8 +488,7 @@ class RecruitmentDashboardController extends Controller
             'prfToPostingSeries' => $prfToPostingSeries,
             'trendLabels' => $trendLabels->all(),
             'trendSeries' => $trendSeries->all(),
-            'topPostingLabels' => $topPostings->pluck('job_title')->all(),
-            'topPostingSeries' => $topPostings->pluck('total')->all(),
+            'funnelSeries' => $funnelSeries,
         ]);
     }
 }
