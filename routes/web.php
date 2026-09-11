@@ -2974,19 +2974,12 @@ Route::middleware(['auth'])->group(function () {
         */
 
         $currentMenu = null;
+        $targetSlug = $child ?? $parent ?? $root;
 
-        if ($child) {
-            $currentMenu = SysMenu::where('menu_slug', $child)
-                ->where('status', 'A')
-                ->first();
-        } elseif ($parent) {
-            $currentMenu = SysMenu::where('menu_slug', $parent)
-                ->where('status', 'A')
-                ->first();
-        } elseif ($root) {
-            $currentMenu = SysMenu::where('menu_slug', $root)
-                ->where('status', 'A')
-                ->first();
+        if ($targetSlug) {
+            $currentMenu = $allMenus->first(
+                fn ($menu) => \Illuminate\Support\Str::slug($menu->menu_slug ?? $menu->menu_name) === $targetSlug
+            );
         }
 
         if ($currentMenu && !in_array($currentMenu->menu_id, $allowedIds)) {
