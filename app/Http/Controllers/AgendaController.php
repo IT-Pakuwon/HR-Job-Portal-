@@ -36,6 +36,7 @@ use App\Models\Viewtrxmeeting;
 use Spatie\IcalendarGenerator\Components\Calendar;
 use Spatie\IcalendarGenerator\Components\Event;
 use App\Models\TrApproval;
+use App\Models\MJobApplyStep;
 use Vinkla\Hashids\Facades\Hashids;
 use App\Http\Controllers\Traits\HasAutonbr;
 
@@ -142,6 +143,27 @@ class AgendaController extends Controller
         // step change — see storeAgenda's step-skip logic further below.
         $guardUser = request()->user();
         $guardGroupCompanyId = strtoupper(trim((string) $guardUser->group_cpny_id));
+
+        // Some companies (e.g. SBY) don't run a standalone "Interview HC" track — their
+        // IHC step is inactive in hr_ms_job_step. Reject plain IH here with a clear
+        // message instead of falling through to the generic "already resolved" guard
+        // below, which would be misleading (the step was never active, not resolved).
+        // IHU is NOT blocked by this: for a company with no HC step, IHU still resolves
+        // to just the User track further below (the HC half of it is simply a no-op),
+        // so it's equivalent to picking IU — no reason to refuse it.
+        if ($request->reftype === 'IH') {
+            $hcTrackActive = MJobApplyStep::where('group_cpny_id', $guardGroupCompanyId)
+                ->where('step_id', 'IHC')
+                ->where('status', 'A')
+                ->exists();
+
+            if (!$hcTrackActive) {
+                return response()->json([
+                    'error' => 'This company does not run an Interview HC track — choose Interview User instead.',
+                ], 422);
+            }
+        }
+
         $guardJobApply = JobApply::where('docid', $request->refid)
             ->where('group_cpny_id', $guardGroupCompanyId)
             ->first();
@@ -277,10 +299,15 @@ class AgendaController extends Controller
                 ->where('group_cpny_id', $groupCompanyId)
                 ->firstOrFail();
 
+            // Only the "Create Schedule" checkpoint step is auto-approved by creating the
+            // schedule — it just means a schedule now exists. The actual interview outcome
+            // step (Interview HC / Interview User) is left pending on purpose, so HC/User
+            // still has to genuinely Approve or Reject it after the interview actually
+            // happens, instead of it being auto-approved the moment a schedule is created.
             $stepOrdersByInterviewType = [
-                'IH' => [3, 4],
-                'IHU' => [3, 4, 5, 6],
-                'IU' => [5, 6],
+                'IH' => [3],
+                'IHU' => [3, 5],
+                'IU' => [5],
             ];
 
             // When the recruiter picks a single-track interview type (IH or IU),
@@ -1089,6 +1116,14 @@ class AgendaController extends Controller
             return response()->json(['error' => 'Applicant email not found.'], 404);
         }
 
+        $pic = User::where('username', $agenda->created_user)->first();
+
+        $scheduleTypeLabel = [
+            'IH' => 'Interview HC',
+            'IHU' => 'Interview HC & User',
+            'IU' => 'Interview User',
+        ][$agenda->reftype] ?? 'User Interview & Psychotest';
+
         $data = [
             'name' => $applicant->full_name ?? 'Pelamar',
             'location' => $agenda->location ?? '',
@@ -1098,6 +1133,9 @@ class AgendaController extends Controller
             'starttime' => Carbon::parse($agenda->startdate)->format('H:i'), // e.g., 09:00
             'endtime'   => Carbon::parse($agenda->enddate)->format('H:i'),   // e.g., 10:00
             'jobtitle' => $jobposting->job_title ?? '',
+            'pic_recruitment' => $pic->name ?? $agenda->created_user,
+            'schedule_type' => $scheduleTypeLabel,
+            'group_cpny_id' => $agenda->group_cpny_id,
         ];
 
         Mail::send('emails.mailinterview', $data, function ($message) use ($applicant,$data) {

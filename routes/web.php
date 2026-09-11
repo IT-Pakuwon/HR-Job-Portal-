@@ -498,6 +498,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/checklist/upload', [CareerController::class, 'uploadDocument'])->name('checklist.upload');
     Route::post('/assessment/update', [CareerController::class, 'updateAssessment'])->name('assessment.update');
     Route::post('/assessmentuser/update', [CareerController::class, 'updateAssessmentuser'])->name('assessmentuser.update');
+    Route::post('/assessmentresult/update', [CareerController::class, 'updateAssessmentResult'])->name('assessmentresult.update');
     Route::get('/career/{docid}/check-reject-permission', [CareerController::class, 'checkRejectPermission']);
     Route::get('/career/{docid}/check-rollback-permission', [CareerController::class, 'checkRollbackPermission']);
     // Route::get('/payroll-confirmation', [CareerController::class, 'index'])->name('payroll.index');

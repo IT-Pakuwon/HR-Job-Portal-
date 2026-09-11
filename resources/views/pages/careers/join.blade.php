@@ -9,10 +9,10 @@
         <div class="mb-5 flex-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700/60 dark:bg-gray-800">
             <div class="flex items-center justify-between border-b border-gray-100 px-5 py-3 dark:border-gray-700/60">
                 <div class="flex items-center gap-2.5">
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Phase 1</span>
+                    <span class="text-sm font-bold uppercase tracking-widest text-gray-400">Phase 1</span>
                     <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">Integrity Documents</p>
                 </div>
-                <span class="rounded-full bg-indigo-50 px-2.5 py-0.5 text-[10.5px] font-semibold text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400">2 Documents</span>
+                <span class="rounded-full bg-indigo-50 px-2.5 py-0.5 text-sm font-semibold text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400">2 Documents</span>
             </div>
             <div class="divide-y divide-gray-100 dark:divide-gray-700/60">
                 <div class="flex items-center justify-between px-5 py-3">
@@ -25,7 +25,7 @@
                         <input type="hidden" name="departementid" value="{{ $career->departementid ?? '' }}">
                         <input type="hidden" name="job_level" value="{{ $career->job_level ?? '' }}">
                         <button type="submit"
-                            class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:border-gray-400 hover:text-gray-800 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400">
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-semibold text-gray-600 transition hover:border-gray-400 hover:text-gray-800 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400">
                             <i data-lucide="eye" class="h-3.5 w-3.5"></i>
                             Preview
                         </button>
@@ -41,7 +41,7 @@
                         <input type="hidden" name="departementid" value="{{ $career->departementid ?? '' }}">
                         <input type="hidden" name="job_level" value="{{ $career->job_level ?? '' }}">
                         <button type="submit"
-                            class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:border-gray-400 hover:text-gray-800 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400">
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-semibold text-gray-600 transition hover:border-gray-400 hover:text-gray-800 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400">
                             <i data-lucide="eye" class="h-3.5 w-3.5"></i>
                             Preview
                         </button>
@@ -60,11 +60,11 @@
         <div class="mb-5 flex-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700/60 dark:bg-gray-800">
             <div class="flex items-center justify-between border-b border-gray-100 px-5 py-3 dark:border-gray-700/60">
                 <div class="flex items-center gap-2.5">
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Phase 2</span>
+                    <span class="text-sm font-bold uppercase tracking-widest text-gray-400">Phase 2</span>
                     <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">Onboarding Checklist</p>
                 </div>
                 <span id="checklistCountPill"
-                    class="hidden rounded-full bg-indigo-50 px-2.5 py-0.5 text-[10.5px] font-semibold text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400"></span>
+                    class="hidden rounded-full bg-indigo-50 px-2.5 py-0.5 text-sm font-semibold text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400"></span>
             </div>
 
             <form id="checklistForm" class="px-5 py-4">
@@ -75,12 +75,12 @@
 
                 <div class="mt-5 flex justify-end gap-2">
                     <button type="button" id="btnUpdateChecklist"
-                        class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-600 transition hover:border-indigo-300 hover:text-indigo-600 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400 dark:hover:border-indigo-500 dark:hover:text-indigo-400">
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition hover:border-indigo-300 hover:text-indigo-600 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400 dark:hover:border-indigo-500 dark:hover:text-indigo-400">
                         <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
                         Update
                     </button>
                     <button type="submit" id="btnSaveChecklist" style="display:none;"
-                        class="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-gray-900">
+                        class="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-gray-900">
                         <svg class="checklist-spin hidden h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
@@ -102,11 +102,11 @@
             @php($isScheduled = !empty(optional($schedulePayroll)->work_start_date))
             <div class="flex items-center justify-between border-b border-gray-100 px-5 py-3 dark:border-gray-700/60">
                 <div class="flex items-center gap-2.5">
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Phase 3</span>
+                    <span class="text-sm font-bold uppercase tracking-widest text-gray-400">Phase 3</span>
                     <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">Onboarding Schedule</p>
                 </div>
                 <span id="scheduleStatusPill"
-                    class="rounded-full px-2.5 py-0.5 text-[10.5px] font-semibold {{ $isScheduled ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400' : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400' }}">
+                    class="rounded-full px-2.5 py-0.5 text-sm font-semibold {{ $isScheduled ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400' : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400' }}">
                     {{ $isScheduled ? 'Scheduled' : 'Pending' }}
                 </span>
             </div>
@@ -121,17 +121,17 @@
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div class="flex flex-col">
                         <label for="sch_work_start_date"
-                            class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Tanggal Mulai Kerja</label>
+                            class="mb-1 text-sm font-semibold text-gray-500 dark:text-gray-400">Tanggal Mulai Kerja</label>
                         <input type="date" id="sch_work_start_date" name="work_start_date" disabled
                             value="{{ $scheduleMinWorkStart }}"
                             @if ($scheduleMinWorkStart) min="{{ $scheduleMinWorkStart }}" @endif
                             class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:disabled:bg-gray-700/40"
                             required>
-                        <p class="mt-1 text-[11px] text-gray-400">Tidak boleh sebelum tanggal yang sudah dikonfirmasi di Payroll.</p>
+                        <p class="mt-1 text-sm text-gray-400">Tidak boleh sebelum tanggal yang sudah dikonfirmasi di Payroll.</p>
                     </div>
                     <div class="flex flex-col">
                         <label for="sch_availability_date"
-                            class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Tanggal Selesai Kerja</label>
+                            class="mb-1 text-sm font-semibold text-gray-500 dark:text-gray-400">Tanggal Selesai Kerja</label>
                         <input type="date" id="sch_availability_date" name="availability_date" disabled
                             value="{{ optional($schedulePayroll)->availability_date ? \Carbon\Carbon::parse($schedulePayroll->availability_date)->format('Y-m-d') : '' }}"
                             class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:disabled:bg-gray-700/40"
@@ -141,12 +141,12 @@
 
                 <div class="mt-6 flex justify-end gap-2">
                     <button type="button" id="btnUpdateSchedule"
-                        class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-600 transition hover:border-indigo-300 hover:text-indigo-600 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400 dark:hover:border-indigo-500 dark:hover:text-indigo-400">
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition hover:border-indigo-300 hover:text-indigo-600 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400 dark:hover:border-indigo-500 dark:hover:text-indigo-400">
                         <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
                         Update
                     </button>
                     <button type="submit" id="btnSaveSchedule" style="display:none;"
-                        class="inline-flex items-center rounded-lg bg-gray-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900">
+                        class="inline-flex items-center rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900">
                         <span class="sch-text">Save Schedule &amp; Send Email</span>
                         <svg class="sch-spin ml-2 hidden h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
@@ -297,7 +297,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 8h.01M11.25 11.5H12v4.75h.75"/>
                     </svg>
                     <p class="text-sm font-semibold text-gray-600 dark:text-gray-300">Checklist belum tersedia</p>
-                    <p class="max-w-sm text-xs leading-relaxed text-gray-400 dark:text-gray-500">
+                    <p class="max-w-sm text-sm leading-relaxed text-gray-400 dark:text-gray-500">
                         Checklist onboarding otomatis dibuat setelah data <span class="font-semibold text-gray-500 dark:text-gray-400">Payroll Confirmation</span>
                         disimpan di tab <span class="font-semibold text-gray-500 dark:text-gray-400">Payroll</span>.
                     </p>
@@ -316,7 +316,7 @@
                 <label class="flex items-center gap-2.5 rounded-lg border border-gray-200 px-3 py-2.5 dark:border-gray-600 ${item.checklist_onboarding_receive ? 'bg-emerald-50/40 dark:bg-emerald-900/10' : ''}">
                     <input type="checkbox" name="checklist[]" value="${item.id}" ${checked} disabled
                         class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-70 dark:border-gray-600 dark:bg-gray-700">
-                    <span class="text-xs font-medium text-gray-700 dark:text-gray-300">${item.checklist_onboarding_descr}</span>
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">${item.checklist_onboarding_descr}</span>
                 </label>
             `;
             });

@@ -3,36 +3,36 @@
     {{-- ── Document header grid ────────────────────────────────────── --}}
     <div class="grid grid-cols-2 gap-2 border-b border-gray-100 px-4 py-2.5 dark:border-gray-700/60 lg:grid-cols-4">
         <div class="rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-700/30">
-            <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Document</p>
+            <p class="text-sm font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Document</p>
             <div class="flex items-center gap-2">
                 <p class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ $career->docid ?? '-' }}</p>
                 @if($remapped_from || $remapped_to)
-                    <span class="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">
+                    <span class="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2 py-0.5 text-sm font-semibold text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">
                         🔄 Remapped
                     </span>
                 @endif
             </div>
-            <p class="text-[10px] text-gray-400">{{ $career->apply_date ?? '' }}</p>
+            <p class="text-sm text-gray-400">{{ $career->apply_date ?? '' }}</p>
             @if($remapped_from)
-                <p class="mt-0.5 text-[10px] text-violet-500">from {{ $remapped_from->jobid }}
+                <p class="mt-0.5 text-sm text-violet-500">from {{ $remapped_from->jobid }}
                     @if($remapped_from->job_title) — {{ $remapped_from->job_title }}@endif
                 </p>
             @elseif($remapped_to)
-                <p class="mt-0.5 text-[10px] text-violet-500">to {{ $remapped_to->jobid }}
+                <p class="mt-0.5 text-sm text-violet-500">to {{ $remapped_to->jobid }}
                     @if($remapped_to->job_title) — {{ $remapped_to->job_title }}@endif
                 </p>
             @endif
         </div>
         <div class="rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-700/30">
-            <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Company</p>
+            <p class="text-sm font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Company</p>
             <p class="text-sm font-semibold text-gray-700 dark:text-gray-200">{{ $companyName ?? $career->cpnyid ?? '-' }}</p>
         </div>
         <div class="rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-700/30">
-            <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Position</p>
+            <p class="text-sm font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Position</p>
             <p class="text-sm font-semibold text-indigo-600 dark:text-indigo-400">{{ $career->job_title ?? '-' }}</p>
         </div>
         <div class="rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-700/30">
-            <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Applicant</p>
+            <p class="text-sm font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Applicant</p>
             <p class="text-sm font-semibold text-gray-700 dark:text-gray-200">{{ $career->fullname ?? '-' }}</p>
         </div>
     </div>
@@ -41,7 +41,7 @@
     @if (!in_array($career->status ?? '', ['T', 'C', 'R', 'X']) && auth()->user()->hasRole('RECACCALLDEPT'))
     <div class="flex justify-end border-b border-gray-100 px-4 py-2 dark:border-gray-700/60">
         <button id="remapBtn"
-            class="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-700 transition hover:bg-violet-100 dark:border-violet-700/30 dark:bg-violet-900/20 dark:text-violet-300">
+            class="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-sm font-semibold text-violet-700 transition hover:bg-violet-100 dark:border-violet-700/30 dark:bg-violet-900/20 dark:text-violet-300">
             🔄 Remap Position
         </button>
     </div>
@@ -77,7 +77,7 @@
                     :class="subtab === 'step'
                         ? 'bg-white text-gray-900 shadow dark:bg-gray-700 dark:text-white'
                         : 'text-gray-500 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300'"
-                    class="flex-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150 focus:outline-none">
+                    class="flex-1 rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-150 focus:outline-none">
                     Workflow
                 </button>
                 @if ($canAccessSchedule)
@@ -85,7 +85,7 @@
                     :class="subtab === 'schedule'
                         ? 'bg-white text-gray-900 shadow dark:bg-gray-700 dark:text-white'
                         : 'text-gray-500 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300'"
-                    class="flex-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150 focus:outline-none">
+                    class="flex-1 rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-150 focus:outline-none">
                     Schedule
                 </button>
                 @endif
@@ -94,7 +94,7 @@
                     :class="subtab === 'checklist'
                         ? 'bg-white text-gray-900 shadow dark:bg-gray-700 dark:text-white'
                         : 'text-gray-500 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300'"
-                    class="flex-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150 focus:outline-none">
+                    class="flex-1 rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-150 focus:outline-none">
                     Checklist
                 </button>
                 @endif
@@ -103,7 +103,7 @@
                     :class="subtab === 'assessment'
                         ? 'bg-white text-gray-900 shadow dark:bg-gray-700 dark:text-white'
                         : 'text-gray-500 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300'"
-                    class="flex-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150 focus:outline-none">
+                    class="flex-1 rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-150 focus:outline-none">
                     Interview HC
                 </button>
                 @endif
@@ -112,7 +112,7 @@
                     :class="subtab === 'assessmentuser'
                         ? 'bg-white text-gray-900 shadow dark:bg-gray-700 dark:text-white'
                         : 'text-gray-500 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300'"
-                    class="flex-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150 focus:outline-none">
+                    class="flex-1 rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-150 focus:outline-none">
                     Interview User
                 </button>
                 @endif
@@ -121,7 +121,7 @@
                     :class="subtab === 'payroll'
                         ? 'bg-white text-gray-900 shadow dark:bg-gray-700 dark:text-white'
                         : 'text-gray-500 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300'"
-                    class="flex-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150 focus:outline-none">
+                    class="flex-1 rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-150 focus:outline-none">
                     Payroll
                 </button>
                 @endif
@@ -130,7 +130,7 @@
                     :class="subtab === 'join'
                         ? 'bg-white text-gray-900 shadow dark:bg-gray-700 dark:text-white'
                         : 'text-gray-500 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300'"
-                    class="flex-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150 focus:outline-none">
+                    class="flex-1 rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-150 focus:outline-none">
                     Join
                 </button>
                 @endif
@@ -138,7 +138,7 @@
 
             {{-- Progress summary --}}
             <div class="flex items-center gap-2.5">
-                <span class="text-[10px] font-semibold tabular-nums text-gray-400 dark:text-gray-500">
+                <span class="text-sm font-semibold tabular-nums text-gray-400 dark:text-gray-500">
                     {{ $approvedCount }}/{{ $totalSteps }}
                     @if($rejectedCount > 0)
                         <span class="text-red-400">&nbsp;&bull; {{ $rejectedCount }}R</span>
@@ -224,7 +224,7 @@
                                         </div>
                                     @else
                                         <div class="flex h-7 w-7 items-center justify-center rounded-full border-2 border-gray-200 dark:border-gray-600">
-                                            <span class="text-[10px] font-bold text-gray-400 dark:text-gray-500">{{ $order }}</span>
+                                            <span class="text-sm font-bold text-gray-400 dark:text-gray-500">{{ $order }}</span>
                                         </div>
                                     @endif
                                 </div>
@@ -235,7 +235,7 @@
                                         {{ $step->step_descr ?: ($stepLabels[$step->step_id] ?? $step->step_id) }}
                                     </p>
                                     @if($step->aprvusername || $step->aprvuserdate)
-                                        <p class="mt-0.5 text-xs text-gray-400">
+                                        <p class="mt-0.5 text-sm text-gray-400">
                                             {{ $step->aprvusername }}@if($step->aprvusername && $step->aprvuserdate) &nbsp;·&nbsp; @endif{{ $step->aprvuserdate }}
                                         </p>
                                     @endif
@@ -246,41 +246,41 @@
                                     @if ($career->status === 'T')
                                         {{-- Old apply (transferred) — read-only --}}
                                         @if ($step->status === 'A')
-                                            <span class="rounded-full bg-green-100 px-2.5 py-1 text-[11px] font-semibold text-green-600">Approved</span>
+                                            <span class="rounded-full bg-green-100 px-2.5 py-1 text-sm font-semibold text-green-600">Approved</span>
                                         @elseif ($step->status === 'R')
-                                            <span class="rounded-full bg-red-100 px-2.5 py-1 text-[11px] font-semibold text-red-500">Rejected</span>
+                                            <span class="rounded-full bg-red-100 px-2.5 py-1 text-sm font-semibold text-red-500">Rejected</span>
                                         @elseif ($step->status === 'X')
-                                            <span class="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-semibold text-gray-400 dark:bg-gray-900">Cancelled</span>
+                                            <span class="rounded-full bg-gray-100 px-2.5 py-1 text-sm font-semibold text-gray-400 dark:bg-gray-900">Cancelled</span>
                                         @endif
                                     @else
                                         @if ($step->status === 'P')
                                             @if (!$shouldHideBtn && !$firstPendingShown)
                                                 @php $firstPendingShown = true; @endphp
                                                 <button id="approveBtn"
-                                                    class="inline-flex items-center gap-1.5 rounded-lg bg-gray-900 px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100">
+                                                    class="inline-flex items-center gap-1.5 rounded-lg bg-gray-900 px-3.5 py-1.5 text-sm font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100">
                                                     <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                                     Approve
                                                 </button>
                                                 <button id="rejectBtn"
-                                                    class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3.5 py-1.5 text-xs font-semibold text-gray-500 transition hover:border-red-300 hover:text-red-500 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400">
+                                                    class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3.5 py-1.5 text-sm font-semibold text-gray-500 transition hover:border-red-300 hover:text-red-500 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400">
                                                     <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                                                     Reject
                                                 </button>
                                             @endif
                                         @elseif ($step->status === 'A')
-                                            <button class="rollbackBtn inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3.5 py-1.5 text-xs font-semibold text-gray-500 transition hover:border-amber-300 hover:text-amber-600 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400 dark:hover:border-amber-500 dark:hover:text-amber-400">
+                                            <button class="rollbackBtn inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3.5 py-1.5 text-sm font-semibold text-gray-500 transition hover:border-amber-300 hover:text-amber-600 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400 dark:hover:border-amber-500 dark:hover:text-amber-400">
                                                 <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
                                                 Rollback
                                             </button>
                                         @elseif ($step->status === 'R')
-                                            <button class="rollbackBtn inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3.5 py-1.5 text-xs font-semibold text-gray-500 transition hover:border-amber-300 hover:text-amber-600 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400 dark:hover:border-amber-500 dark:hover:text-amber-400">
+                                            <button class="rollbackBtn inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3.5 py-1.5 text-sm font-semibold text-gray-500 transition hover:border-amber-300 hover:text-amber-600 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400 dark:hover:border-amber-500 dark:hover:text-amber-400">
                                                 <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
                                                 Rollback
                                             </button>
                                         @elseif ($step->status === 'D')
-                                            <span class="rounded-full bg-blue-100 px-2.5 py-1 text-[11px] font-semibold text-blue-600">Revised</span>
+                                            <span class="rounded-full bg-blue-100 px-2.5 py-1 text-sm font-semibold text-blue-600">Revised</span>
                                         @elseif ($step->status === 'X')
-                                            <span class="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-semibold text-gray-400 dark:bg-gray-900">Skipped</span>
+                                            <span class="rounded-full bg-gray-100 px-2.5 py-1 text-sm font-semibold text-gray-400 dark:bg-gray-900">Skipped</span>
                                         @endif
                                     @endif
                                 </div>
@@ -292,19 +292,19 @@
                     <div class="col-span-12 lg:col-span-6 border-t border-gray-100 dark:border-gray-700/40 lg:col-span-3 lg:border-l lg:border-t-0">
                         <div x-data="{ isOpen: true }">
                             <button class="flex w-full items-center justify-between px-5 py-3.5" @click="isOpen = !isOpen">
-                                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">Comments</span>
+                                <span class="text-sm font-semibold text-gray-500 dark:text-gray-400">Comments</span>
                                 <svg x-show="isOpen" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
                                 <svg x-show="!isOpen" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5"/></svg>
                             </button>
                             <div x-show="isOpen" x-collapse.duration.200ms class="flex flex-col border-t border-gray-100 dark:border-gray-700/40">
                                 <div id="commentList" class="flex flex-col space-y-2 px-4 py-3 dark:bg-gray-800" style="max-height:420px;overflow-y:auto;">
-                                    <p class="animate-pulse text-center text-xs italic text-gray-400">Loading...</p>
+                                    <p class="animate-pulse text-center text-sm italic text-gray-400">Loading...</p>
                                 </div>
                                 <div class="flex gap-2 border-t border-gray-100 p-3 dark:border-gray-700/40">
                                     <input id="commentInput" type="text" placeholder="Write a comment..."
-                                        class="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs placeholder-gray-400 focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                                        class="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm placeholder-gray-400 focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white">
                                     <button id="postCommentBtn" type="button"
-                                        class="shrink-0 rounded-lg bg-gray-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-gray-700 active:scale-95 dark:bg-white dark:text-gray-900">
+                                        class="shrink-0 rounded-lg bg-gray-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-gray-700 active:scale-95 dark:bg-white dark:text-gray-900">
                                         Post
                                     </button>
                                 </div>
@@ -405,13 +405,13 @@
             <div class="mb-5 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 flex items-start gap-3">
                 <span class="mt-0.5 text-amber-500 text-base">📌</span>
                 <div class="flex-1">
-                    <p class="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">Current Job Applied</p>
+                    <p class="text-sm font-semibold text-amber-700 uppercase tracking-wide mb-2">Current Job Applied</p>
                     <div class="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
-                        <div><span class="text-xs text-gray-400">Job ID</span><p class="font-medium text-gray-800 dark:text-gray-200">{{ $career->docidposting ?? '—' }}</p></div>
-                        <div><span class="text-xs text-gray-400">Job Title</span><p class="font-medium text-gray-800 dark:text-gray-200">{{ $career->job_title ?? '—' }}</p></div>
-                        <div><span class="text-xs text-gray-400">Company</span><p class="text-gray-700 dark:text-gray-300">{{ $career->cpnyid ?? '—' }}</p></div>
-                        <div><span class="text-xs text-gray-400">Division</span><p class="text-gray-700 dark:text-gray-300">{{ $career->division_name ?? $career->division_id ?? '—' }}</p></div>
-                        <div class="col-span-2"><span class="text-xs text-gray-400">Department</span><p class="text-gray-700 dark:text-gray-300">{{ $career->departementid ?? '—' }}</p></div>
+                        <div><span class="text-sm text-gray-400">Job ID</span><p class="font-medium text-gray-800 dark:text-gray-200">{{ $career->docidposting ?? '—' }}</p></div>
+                        <div><span class="text-sm text-gray-400">Job Title</span><p class="font-medium text-gray-800 dark:text-gray-200">{{ $career->job_title ?? '—' }}</p></div>
+                        <div><span class="text-sm text-gray-400">Company</span><p class="text-gray-700 dark:text-gray-300">{{ $career->cpnyid ?? '—' }}</p></div>
+                        <div><span class="text-sm text-gray-400">Division</span><p class="text-gray-700 dark:text-gray-300">{{ $career->division_name ?? $career->division_id ?? '—' }}</p></div>
+                        <div class="col-span-2"><span class="text-sm text-gray-400">Department</span><p class="text-gray-700 dark:text-gray-300">{{ $career->departementid ?? '—' }}</p></div>
                     </div>
                 </div>
             </div>

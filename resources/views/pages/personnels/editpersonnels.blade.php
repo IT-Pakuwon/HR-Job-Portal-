@@ -655,6 +655,19 @@
                 width: '100%'
             });
 
+            // Kalau select2 cuma punya 1 pilihan (selain placeholder), langsung auto select
+            function autoSelectIfSingleOption($select) {
+                const options = $select.find('option').filter(function() {
+                    return $(this).val() !== '' && !$(this).prop('disabled');
+                });
+                if (options.length === 1) {
+                    $select.val(options.eq(0).val()).trigger('change');
+                }
+            }
+
+            autoSelectIfSingleOption($('#division_id'));
+            autoSelectIfSingleOption($('#departementid'));
+
             // ========= GROUP GRADE from SUBGRADE =========
             const subgradeSelect = document.getElementById("subgrade_id");
             const hiddenGroupInput = document.getElementById("group_grade");
@@ -690,6 +703,7 @@
                             });
 
                             $('#departementid').html(html).trigger('change.select2');
+                            autoSelectIfSingleOption($('#departementid'));
                         } else {
                             resetDept('No department found');
                         }
@@ -763,6 +777,8 @@
                     });
 
                     if (selectedValue) $site.val(String(selectedValue)).trigger('change');
+
+                    autoSelectIfSingleOption($site);
                 });
             }
 

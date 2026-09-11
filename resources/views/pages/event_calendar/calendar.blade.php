@@ -73,7 +73,7 @@
     </div>
 
     <style>
-        /* Event bar content: ID badge + title + creator avatar */
+        /* Event bar content: title + ID badge + creator avatar */
         #calendar .fc-event {
             border-radius: 6px !important;
             padding: 6px 10px !important;

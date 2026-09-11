@@ -44,6 +44,7 @@ use App\Models\TrApproval;
 use App\Models\TrAssessment;
 use App\Models\TrAttachment;
 use App\Models\TrAssessmentdetail;
+use App\Models\TrAssessmentResult;
 use App\Models\Trchecklist;
 use App\Models\TrMessage;
 use App\Models\Tronboarding;
@@ -221,6 +222,10 @@ class CareerController extends Controller
             ->where('type', 'hc')
             ->first();
 
+        if ($tr_assessment && $tr_assessment->user) {
+            $tr_assessment->user_name = optional(User::where('username', $tr_assessment->user)->first())->name ?: $tr_assessment->user;
+        }
+
         if ($tr_assessment) {
             $assessmentData = TrAssessmentdetail::leftjoin('hr_ms_interview_assessment', function ($join) {
                     $join->on('hr_trx_interview_assessment_detail.assessment_id', '=', 'hr_ms_interview_assessment.assessment_id')
@@ -260,6 +265,10 @@ class CareerController extends Controller
             ->where('type', 'user')
             ->first();
 
+        if ($tr_assessment_user && $tr_assessment_user->user) {
+            $tr_assessment_user->user_name = optional(User::where('username', $tr_assessment_user->user)->first())->name ?: $tr_assessment_user->user;
+        }
+
         if ($tr_assessment_user) {
             $assessmentData_user = TrAssessmentdetail::leftjoin('hr_ms_interview_assessment', function ($join) {
                     $join->on('hr_trx_interview_assessment_detail.assessment_id', '=', 'hr_ms_interview_assessment.assessment_id')
@@ -291,6 +300,35 @@ class CareerController extends Controller
                 ];
             }
         }
+
+        // ========== ASSESSMENT RESULT (strengths/weaknesses/comment/pass-fail) ==========
+        // Multiple interviewers can each leave their own final assessment result for the
+        // same candidate, and HC vs User results are kept fully separate (assessment_type),
+        // so an update made from the User tab never surfaces on the HC tab or vice versa.
+        $tr_assessment_results = TrAssessmentResult::where('jobapply_id', $career->docid)
+            ->where('group_cpny_id', $career->group_cpny_id)
+            ->orderBy('created_at')
+            ->get();
+
+        $assessmentResultUserNames = User::whereIn('username', $tr_assessment_results->pluck('created_user')->unique())
+            ->pluck('name', 'username');
+        $tr_assessment_results->each(function ($r) use ($assessmentResultUserNames) {
+            $r->created_user_name = $assessmentResultUserNames[$r->created_user] ?? $r->created_user;
+        });
+
+        $tr_assessment_result_hc = $tr_assessment_results->first(
+            fn ($r) => $r->assessment_type === 'hc' && $r->created_user === $user->username
+        );
+        $tr_assessment_results_other_hc = $tr_assessment_results->filter(
+            fn ($r) => $r->assessment_type === 'hc' && $r->created_user !== $user->username
+        )->values();
+
+        $tr_assessment_result_user = $tr_assessment_results->first(
+            fn ($r) => $r->assessment_type === 'user' && $r->created_user === $user->username
+        );
+        $tr_assessment_results_other_user = $tr_assessment_results->filter(
+            fn ($r) => $r->assessment_type === 'user' && $r->created_user !== $user->username
+        )->values();
 
         $year = now()->year;
         // $photo = 'http://127.0.0.1:7777/attachments/'.$year.'/'.$applicant->upload_photo;
@@ -345,7 +383,7 @@ class CareerController extends Controller
         //     ->where('hr_trx_job_apply_step.status','<>','X')
         //     ->orderBy('hr_trx_job_apply_step.step_order', 'ASC')
         //     ->get();
-        $typestep = MJobApplyStep::where('schedule', 1)->where('group_cpny_id', $career->group_cpny_id)->get();
+        $typestep = MJobApplyStep::where('schedule', 1)->where('group_cpny_id', $career->group_cpny_id)->where('status', 'A')->get();
         $payrolls = Payrollconfirm::where('jobapply_id', $career->docid)->where('group_cpny_id', $career->group_cpny_id)->get();
 
         $sign = SignPayroll::where('docid', $career->docid)->where('group_cpny_id', $career->group_cpny_id)->orderby('aprvid', 'ASC')->get();
@@ -405,6 +443,14 @@ class CareerController extends Controller
         $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
         $isSby = $groupCompanyId === 'SBY';
 
+        // Drives whether "Interview HC" / "Interview HC & User" show up in Create Schedule —
+        // based on the real hr_ms_job_step config for this group, not a hardcoded company
+        // check, so it stays correct automatically if a group's HC track gets turned on/off.
+        $hcTrackActive = MJobApplyStep::where('group_cpny_id', $career->group_cpny_id)
+            ->where('step_id', 'IHC')
+            ->where('status', 'A')
+            ->exists();
+
         $remapped_from = null;
         $remapped_to = null;
 
@@ -436,10 +482,13 @@ class CareerController extends Controller
             'hash', 'career', 'applicant', 'applicant_family', 'applicant_marital', 'applicant_education', 'applicant_working',
             'applicant_reference', 'applicant_language', 'applicant_course', 'applicant_sw', 'applicant_skill', 'jobapplystep',
             'jobres', 'jobqua', 'jobposting', 'companyName', 'departmentName', 'tr_checklist', 'prfPersonnel', 'prfHash', 'year', 'photo', 'cv', 'coverletter', 'transkip', 'ijazah', 'user', 'datenow',
-            'assessmentGroups', 'tr_assessment', 'tr_assessment_user', 'assessmentGroupsUser', 'agenda', 'userlist',
+            'assessmentGroups', 'tr_assessment', 'tr_assessment_user', 'assessmentGroupsUser',
+            'tr_assessment_result_hc', 'tr_assessment_results_other_hc',
+            'tr_assessment_result_user', 'tr_assessment_results_other_user',
+            'agenda', 'userlist',
             'typestep', 'payrolls', 'onboarding', 'sign', 'canAccessPayroll', 'canAccessAssessment', 'canAccessSchedule', 'companyaddress',
             'canAccessChecklist', 'canAccessInterviewUser', 'canAccessInterviewHC', 'canAccessPayroll', 'canAccessJoin',
-            'remapped_from', 'remapped_to', 'isSby', 'applicant_additional', 'applicant_organization'
+            'remapped_from', 'remapped_to', 'isSby', 'hcTrackActive', 'applicant_additional', 'applicant_organization'
         ));
     }
 
@@ -545,6 +594,107 @@ class CareerController extends Controller
         }
 
         return response()->json(['success' => true, 'message' => 'Assessment updated successfully']);
+    }
+
+    public function updateAssessmentResult(Request $request)
+    {
+        $user = Auth::user();
+        $now = now();
+
+        // jobapply_id is only unique WITHIN a group_cpny_id, so it must be paired with the
+        // logged-in user's own group — not a client-supplied value.
+        $groupCpnyId = strtoupper(trim((string) ($user->group_cpny_id ?? '')));
+
+        $career = Career::where('docid', $request->jobapply_id)->where('group_cpny_id', $groupCpnyId)->first();
+
+        if (!$career) {
+            return response()->json(['error' => true, 'message' => 'Data career tidak ditemukan.'], 404);
+        }
+
+        $assessmentType = in_array($request->assessment_type, ['hc', 'user'], true) ? $request->assessment_type : null;
+
+        if (!$assessmentType) {
+            return response()->json(['error' => true, 'message' => 'Invalid assessment type.'], 422);
+        }
+
+        // Each interviewer keeps their own assessment result row for the same candidate, kept
+        // fully separate between the HC and User tabs (assessment_type) — one user can have
+        // both an 'hc' row and a 'user' row, and neither is shared across the two tabs.
+        $result = TrAssessmentResult::where('jobapply_id', $career->docid)
+            ->where('group_cpny_id', $groupCpnyId)
+            ->where('created_user', $user->username)
+            ->where('assessment_type', $assessmentType)
+            ->first();
+
+        if ($result) {
+            $result->assessment_strengths = $request->assessment_strengths;
+            $result->assessment_weaknesses = $request->assessment_weaknesses;
+            $result->assessment_comment = $request->assessment_comment;
+            $result->assessment_result = $request->assessment_result;
+            $result->updated_user = $user->username;
+            $result->updated_at = $now;
+            $result->save();
+
+            return response()->json(['success' => true, 'message' => 'Assessment result updated successfully']);
+        }
+
+        DB::beginTransaction();
+        try {
+            $doctype = 'JAR';
+            $year = $now->year;
+            $month = str_pad($now->month, 2, '0', STR_PAD_LEFT);
+
+            $autonbr = Autonbr::lockForUpdate()
+                ->where('doctype', $doctype)
+                ->where('year', $year)
+                ->where('month', $month)
+                ->where('status', 'A')
+                ->first();
+
+            if (!$autonbr) {
+                $autonbr = Autonbr::create([
+                    'doctype' => $doctype,
+                    'year' => $year,
+                    'month' => $month,
+                    'status' => 'A',
+                    'number' => 1,
+                ]);
+                $urutan = 1;
+            } else {
+                $urutan = $autonbr->number + 1;
+                $autonbr->number = $urutan;
+                $autonbr->save();
+            }
+
+            $docid = $doctype.substr($year, 2).$month.sprintf('%05d', $urutan);
+
+            TrAssessmentResult::create([
+                'docid' => $docid,
+                'cpnyid' => $career->cpnyid,
+                'group_cpny_id' => $groupCpnyId,
+                'jobapply_id' => $career->docid,
+                'jobid' => $career->jobid,
+                'applicant_id' => $career->applicant_id,
+                'assessment_type' => $assessmentType,
+                'assessment_strengths' => $request->assessment_strengths,
+                'assessment_weaknesses' => $request->assessment_weaknesses,
+                'assessment_comment' => $request->assessment_comment,
+                'assessment_result' => $request->assessment_result,
+                'status' => 'A',
+                'created_user' => $user->username,
+                'updated_user' => $user->username,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+
+            DB::commit();
+
+            return response()->json(['success' => true, 'message' => 'Assessment result saved successfully']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json(['error' => true, 'message' => $e->getMessage()], 500);
+        }
     }
 
     // public function fetchComments($id)
@@ -688,25 +838,48 @@ class CareerController extends Controller
             return response()->json(['success' => false, 'message' => "You can't approve this step"], 403);
         }
 
+        // Join tidak boleh di-approve sebelum Onboarding Schedule (tanggal mulai kerja &
+        // tanggal ketersediaan) diisi lewat tab Join — datanya disimpan di Payroll Confirmation.
+        if ($t_approval->step_id === 'JOIN') {
+            $payrollSchedule = Payrollconfirm::where('jobapply_id', $career->docid)
+                ->where('applicant_id', $career->applicant_id)
+                ->where('jobid', $career->jobid)
+                ->where('group_cpny_id', $career->group_cpny_id)
+                ->first();
+
+            if (!$payrollSchedule || !$payrollSchedule->work_start_date || !$payrollSchedule->availability_date) {
+                return response()->json(['success' => false, 'message' => 'Please fill in the Onboarding Schedule (work start date & availability date) before approving Join.'], 422);
+            }
+        }
+
         if ($t_approval->step_order == 2) {
             $this->insert_checklist($career, $user);
             $this->insert_assessment($career, $user);
             // $this->insert_psychotest($career, $user);
             $this->update_trx_approval($career, $user);
             $this->sendemail_applicant($career, $user);
-
-            $hasJoinStep = MJobApplyStep::where('group_cpny_id', $career->group_cpny_id)
-                ->where('step_id', 'OFF')
-                ->exists();
-
-            if (!$hasJoinStep) {
-                $this->insert_payroll_confirmation($career, $user);
-                $this->insert_onboarding($career, $user);
-            }
         }
 
         if ($t_approval->step_order == 1) {
             $this->insert_trx_approval($career, $user);
+        }
+
+        // Generate the offer/payroll confirmation + onboarding checklist as soon as the
+        // step immediately before JOIN is approved — whatever that step happens to be for
+        // this group_cpny_id (OFF for JKT, MCU for SBY, etc.), instead of hardcoding a
+        // step_order or relying on an 'OFF' step existing. Both inserts are idempotent
+        // (no-op if already created), so this is safe even if storePayroll() already ran.
+        $nextPendingStep = JobApplyStep::where('docid', $career->docid)
+            ->where('jobid', $career->jobid)
+            ->where('group_cpny_id', $career->group_cpny_id)
+            ->where('status', 'P')
+            ->where('step_order', '>', $t_approval->step_order)
+            ->orderBy('step_order', 'ASC')
+            ->first();
+
+        if ($nextPendingStep && $nextPendingStep->step_id === 'JOIN') {
+            $this->insert_payroll_confirmation($career, $user);
+            $this->insert_onboarding($career, $user);
         }
 
         $t_approval->status = 'A';
@@ -2057,30 +2230,25 @@ class CareerController extends Controller
             ], 404);
         }
 
-        // Cek apakah onboarding sudah ada (harus disandingkan dengan group_cpny_id, sama seperti
-        // pengecekan payroll di bawah — tanpa ini bisa false-positive pada jobapply_id/applicant_id
-        // yang kebetulan sama di company/group lain)
-        $existing = Tronboarding::where('jobapply_id', $career->docid)
+        // Onboarding boleh sudah ada — misalnya kalau sudah otomatis dibuat saat step
+        // sebelum JOIN di-approve (lihat approveCareer()). Hanya insert kalau memang
+        // belum ada; jangan block submit form Payroll HR hanya karena skeleton-nya
+        // sudah pernah dibuat lebih dulu.
+        $onboardingExists = Tronboarding::where('jobapply_id', $career->docid)
             ->where('applicant_id', $career->applicant_id)
             ->where('jobid', $career->jobid)
             ->where('group_cpny_id', $career->group_cpny_id)
             ->exists();
 
-        if ($existing) {
-            return response()->json([
-                'error' => true,
-                'message' => 'Transaksi onboarding sudah ada.',
-            ], 409);
-        }
-
-        // Lanjut insert onboarding
-        try {
-            $this->insert_onboarding($career, $user);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => true,
-                'message' => $e->getMessage(),
-            ], 409);
+        if (!$onboardingExists) {
+            try {
+                $this->insert_onboarding($career, $user);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'error' => true,
+                    'message' => $e->getMessage(),
+                ], 409);
+            }
         }
 
         DB::beginTransaction();
@@ -2091,54 +2259,26 @@ class CareerController extends Controller
             $year = $now->year;
             $month = str_pad($now->month, 2, '0', STR_PAD_LEFT);
 
-            // Cek apakah payroll sudah ada
-            $payrollExists = Payrollconfirm::where('jobapply_id', $career->docid)
+            // Payroll confirmation-nya sendiri mungkin juga sudah ada sebagai skeleton
+            // (offer_date only, belum ada work_start_date) kalau dibuat otomatis oleh
+            // approveCareer(). Kalau work_start_date sudah terisi berarti form ini betul-betul
+            // sudah pernah disubmit HR sebelumnya — baru itu yang dianggap duplikat.
+            $payroll = Payrollconfirm::where('jobapply_id', $career->docid)
                 ->where('applicant_id', $career->applicant_id)
                 ->where('jobid', $career->jobid)
                 ->where('group_cpny_id', $career->group_cpny_id)
-                ->exists();
+                ->first();
 
-            if ($payrollExists) {
+            if ($payroll && $payroll->work_start_date) {
+                DB::rollBack();
+
                 return response()->json([
                     'error' => true,
                     'message' => 'Payroll untuk kandidat ini sudah ada.',
                 ], 409);
             }
 
-            // Ambil atau buat nomor urut dokumen
-            $autonbr = Autonbr::lockForUpdate()
-                ->where('doctype', $doctype)
-                ->where('year', $year)
-                ->where('month', $month)
-                ->where('status', 'A')
-                ->first();
-
-            if (!$autonbr) {
-                $autonbr = Autonbr::create([
-                    'doctype' => $doctype,
-                    'year' => $year,
-                    'month' => $month,
-                    'status' => 'A',
-                    'number' => 1,
-                ]);
-                $urutan = 1;
-            } else {
-                $urutan = $autonbr->number + 1;
-                $autonbr->update(['number' => $urutan]);
-            }
-
-            $tglbln = substr($year, 2).$month;
-            $docid = $doctype.$tglbln.sprintf('%05d', $urutan);
-
-            // Simpan payroll
-            Payrollconfirm::create([
-                'docid' => $docid,
-                'jobapply_id' => $career->docid,
-                'cpnyid' => $career->cpnyid,
-                'group_cpny_id' => $career->group_cpny_id,
-                'jobid' => $career->jobid,
-                'applicant_id' => $career->applicant_id,
-                'offer_date' => $datenow,
+            $payrollData = [
                 'tax_liability' => $request->tax_liability,
                 'npwp_id' => $request->npwp_id,
                 'bank_account' => $request->bank_account,
@@ -2150,9 +2290,49 @@ class CareerController extends Controller
                 'work_start_date' => $request->work_start_date,
                 'employment_status' => $request->employment_status,
                 'contract_term' => $request->employment_status === 'PKWT' ? $request->contract_term : null,
-                'status' => 'P',
-                'created_user' => $user->username,
-            ]);
+                'updated_user' => $user->username,
+            ];
+
+            if ($payroll) {
+                $payroll->update($payrollData);
+            } else {
+                // Ambil atau buat nomor urut dokumen
+                $autonbr = Autonbr::lockForUpdate()
+                    ->where('doctype', $doctype)
+                    ->where('year', $year)
+                    ->where('month', $month)
+                    ->where('status', 'A')
+                    ->first();
+
+                if (!$autonbr) {
+                    $autonbr = Autonbr::create([
+                        'doctype' => $doctype,
+                        'year' => $year,
+                        'month' => $month,
+                        'status' => 'A',
+                        'number' => 1,
+                    ]);
+                    $urutan = 1;
+                } else {
+                    $urutan = $autonbr->number + 1;
+                    $autonbr->update(['number' => $urutan]);
+                }
+
+                $tglbln = substr($year, 2).$month;
+                $docid = $doctype.$tglbln.sprintf('%05d', $urutan);
+
+                Payrollconfirm::create(array_merge($payrollData, [
+                    'docid' => $docid,
+                    'jobapply_id' => $career->docid,
+                    'cpnyid' => $career->cpnyid,
+                    'group_cpny_id' => $career->group_cpny_id,
+                    'jobid' => $career->jobid,
+                    'applicant_id' => $career->applicant_id,
+                    'offer_date' => $datenow,
+                    'status' => 'P',
+                    'created_user' => $user->username,
+                ]));
+            }
 
             DB::commit();
 

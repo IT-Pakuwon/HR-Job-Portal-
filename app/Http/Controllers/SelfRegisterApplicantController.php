@@ -543,6 +543,7 @@ class SelfRegisterApplicantController extends Controller
             $steps = DB::connection('mysql3')
                 ->table('hr_ms_job_step')
                 ->where('group_cpny_id', $groupCompanyId)
+                ->where('status', 'A')
                 ->orderBy('step_order', 'ASC')
                 ->get();
 

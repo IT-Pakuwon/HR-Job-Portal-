@@ -2509,6 +2509,10 @@ class PersonnelController extends Controller
 
         $sites = CompanyAddress::query()
             ->where('group_cpny_id', $groupCompanyId)
+            ->where(function ($query) use ($cpnyid) {
+                $query->where('cpnyid', $cpnyid)
+                    ->orWhere('cpnyid', 'ALL');
+            })
             ->pluck('sitelocation')
             ->map(fn ($site) => trim((string) $site))
             ->filter()

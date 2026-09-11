@@ -641,6 +641,17 @@
         });
     </script>
     <script>
+        // Kalau select2 cuma punya 1 pilihan (selain placeholder), langsung auto select
+        function autoSelectIfSingleOption($select) {
+            const options = $select.find('option').filter(function() {
+                return $(this).val() !== '' && !$(this).prop('disabled');
+            });
+            if (options.length === 1) {
+                $select.val(options.eq(0).val()).trigger('change');
+            }
+        }
+    </script>
+    <script>
         $(document).ready(function() {
             // Fungsi ketika Company berubah
             $('select[name="cpnyid"]').on('change', function() {
@@ -661,6 +672,8 @@
                                     `<option value="${value.site}">${value.site}</option>`
                                 );
                             });
+
+                            autoSelectIfSingleOption($siteSelect);
                         }
                     });
                 } else {
@@ -907,6 +920,9 @@
                 allowClear: true
             });
 
+            // Auto select division kalau cuma ada 1 pilihan
+            autoSelectIfSingleOption($division);
+
             function resetDept(message = 'Select Department') {
                 $dept.empty().append(`<option value="" disabled selected>${message}</option>`);
                 $dept.val(null).trigger('change'); // reset select2 value
@@ -933,6 +949,7 @@
                                     `<option value="${r.department_id}">${r.department_name}</option>`
                                 );
                             });
+                            autoSelectIfSingleOption($dept);
                         } else {
                             resetDept('No department found');
                         }

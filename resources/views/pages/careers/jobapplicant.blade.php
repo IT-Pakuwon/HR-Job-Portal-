@@ -85,7 +85,7 @@
                 class="applicant-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
                 🧬 Duplicate Applicant
                 <span id="dupCountBadge"
-                    class="ml-1 hidden rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white"></span>
+                    class="ml-1 hidden rounded-full bg-red-500 px-2 py-0.5 text-sm font-bold text-white"></span>
             </button>
             @endif
         </div>
@@ -188,7 +188,7 @@
         <div id="applicantFiltersCard"
             class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
             <div class="flex items-center justify-between px-5 py-3">
-                <button type="button" id="btnToggleFilters" class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300">
+                <button type="button" id="btnToggleFilters" class="flex items-center gap-1.5 text-sm font-bold uppercase tracking-wider text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300">
                     <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h18M6 9.75h12M9.75 15h4.5" />
                     </svg>
@@ -198,7 +198,7 @@
                     </svg>
                 </button>
                 <button type="button" id="btnResetFilters"
-                    class="flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:bg-slate-200/70 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700/60 dark:hover:text-slate-200">
+                    class="flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-500 transition hover:bg-slate-200/70 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700/60 dark:hover:text-slate-200">
                     <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" />
                     </svg>
@@ -209,7 +209,7 @@
             <div id="applicantFiltersBody" class="border-t border-gray-100 px-5 pb-4 pt-4 dark:border-white/[0.06]">
                 @if($canFilterJobTL)
                 <div class="mb-3">
-                    <label for="filterJobTL" class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                    <label for="filterJobTL" class="mb-1 block text-sm font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                         Job Title &amp; Level
                     </label>
                     <select id="filterJobTL"
@@ -227,7 +227,7 @@
             <div
                 class="flex flex-col items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
                 <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Applicant List</h2>
-                <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                     <span class="flex items-center gap-1.5">
                         <span class="legend-dot-checked h-2 w-2 rounded-full"></span>
                         Checked
@@ -248,7 +248,7 @@
                 <table id="applicantsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
                     <thead>
                         <tr
-                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            class="border-b border-gray-100 bg-gray-50/70 text-sm uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                             <th class="w-10 px-4 py-3"></th>
                             <th scope="col" class="w-32 px-4 py-3 text-center font-medium">
                                 DocID
@@ -314,7 +314,7 @@
                 <table class="w-full min-w-full border-separate border-spacing-0 text-sm">
                     <thead>
                         <tr
-                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            class="border-b border-gray-100 bg-gray-50/70 text-sm uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                             <th class="w-24 px-4 py-3 text-left font-medium">Action</th>
                             <th class="px-4 py-3 text-left font-medium">Matched By</th>
                             <th class="px-4 py-3 text-left font-medium">DocID</th>
@@ -347,7 +347,7 @@
                 <table id="dupApplicantsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
                     <thead>
                         <tr
-                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            class="border-b border-gray-100 bg-gray-50/70 text-sm uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                             <th class="w-10 px-4 py-3"></th>
                             <th class="w-28 px-4 py-3 text-left font-medium">Action</th>
                             <th class="px-4 py-3 text-left font-medium">Matched By</th>
@@ -385,26 +385,26 @@
             <div class="mb-5 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 flex items-start gap-3">
                 <span class="mt-0.5 text-amber-500 text-base">📌</span>
                 <div class="flex-1">
-                    <p class="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">Current Job Applied</p>
+                    <p class="text-sm font-semibold text-amber-700 uppercase tracking-wide mb-2">Current Job Applied</p>
                     <div class="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
                         <div>
-                            <span class="text-xs text-gray-400">Job ID</span>
+                            <span class="text-sm text-gray-400">Job ID</span>
                             <p class="font-medium text-gray-800 dark:text-gray-200" id="remapCurrentJobId">—</p>
                         </div>
                         <div>
-                            <span class="text-xs text-gray-400">Job Title</span>
+                            <span class="text-sm text-gray-400">Job Title</span>
                             <p class="font-medium text-gray-800 dark:text-gray-200" id="remapCurrentJobTitle">—</p>
                         </div>
                         <div>
-                            <span class="text-xs text-gray-400">Company</span>
+                            <span class="text-sm text-gray-400">Company</span>
                             <p class="text-gray-700 dark:text-gray-300" id="remapCurrentCompany">—</p>
                         </div>
                         <div>
-                            <span class="text-xs text-gray-400">Division</span>
+                            <span class="text-sm text-gray-400">Division</span>
                             <p class="text-gray-700 dark:text-gray-300" id="remapCurrentDivision">—</p>
                         </div>
                         <div class="col-span-2">
-                            <span class="text-xs text-gray-400">Department</span>
+                            <span class="text-sm text-gray-400">Department</span>
                             <p class="text-gray-700 dark:text-gray-300" id="remapCurrentDepartment">—</p>
                         </div>
                     </div>
@@ -740,7 +740,7 @@
             columnFilters.forEach(col => {
                 let $el;
                 const $wrap = $(`<div class="flex flex-col gap-1 ${col.span || 'flex-1 min-w-[140px]'}"></div>`);
-                const $label = $(`<label class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">${col.placeholder}</label>`);
+                const $label = $(`<label class="text-sm font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">${col.placeholder}</label>`);
                 $wrap.append($label);
 
                 if (col.type === 'select') {
@@ -818,7 +818,7 @@
                     $wrap.append($el);
 
                     if (col.hint) {
-                        $wrap.append(`<p class="text-[10px] text-slate-400 dark:text-slate-500">${col.hint}</p>`);
+                        $wrap.append(`<p class="text-sm text-slate-400 dark:text-slate-500">${col.hint}</p>`);
                     }
 
                     $filters.append($wrap);
@@ -1003,11 +1003,11 @@
                         searchable: false,
                         className: 'text-center',
                         render: function(data, type, row) {
-                            if (!canRemap) return `<span class="text-xs text-gray-400">—</span>`;
+                            if (!canRemap) return `<span class="text-sm text-gray-400">—</span>`;
                             if (row.status === 'R' || row.status === 'C') {
-                                return `<span class="text-xs text-gray-400">—</span>`;
+                                return `<span class="text-sm text-gray-400">—</span>`;
                             }
-                            return `<button class="remap-btn inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-200"
+                            return `<button class="remap-btn inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-md bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-200"
                                 data-id="${row.eid}" data-docid="${row.docid}"
                                 data-job-id="${row.docidposting}" data-job-title="${row.job_title || ''}"
                                 data-company="${row.posting_cpnyid || ''}" data-division="${row.division_name || ''}" data-department="${row.department_name || ''}">
@@ -1263,14 +1263,14 @@
                             const jobTL = [r.job_title, r.job_level].filter(Boolean).join(' — ') || '—';
                             const isThisRow = r.docid === rowData.docid;
                             const cls = statusBadgeClass[r.status_label] || 'bg-gray-300/30 text-gray-600';
-                            const matchedByBadge = `<span class="inline-block rounded bg-amber-200/60 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-300 dark:text-amber-900">${r.matched_by || 'KTP + DOB'}</span>`;
+                            const matchedByBadge = `<span class="inline-block rounded bg-amber-200/60 px-2 py-0.5 text-sm font-semibold text-amber-800 dark:bg-amber-300 dark:text-amber-900">${r.matched_by || 'KTP + DOB'}</span>`;
 
                             return `<tr class="${isThisRow ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}">
                                 <td class="px-4 py-3">
-                                    <a href="/showcareers/${r.eid}" class="inline-flex justify-center items-center px-3 py-1.5 text-xs font-semibold text-white rounded bg-gray-600 hover:bg-gray-700">View</a>
+                                    <a href="/showcareers/${r.eid}" class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-semibold text-white rounded bg-gray-600 hover:bg-gray-700">View</a>
                                 </td>
                                 <td class="px-4 py-3">${matchedByBadge}</td>
-                                <td class="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">${r.docid}${isThisRow ? ' <span class="ml-1 text-[10px] font-bold text-indigo-500">(this)</span>' : ''}</td>
+                                <td class="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">${r.docid}${isThisRow ? ' <span class="ml-1 text-sm font-bold text-indigo-500">(this)</span>' : ''}</td>
                                 <td class="px-4 py-3">${r.full_name || '—'}</td>
                                 <td class="px-4 py-3">${jobTL}</td>
                                 <td class="px-4 py-3">${r.company_name || '—'}</td>
@@ -1345,7 +1345,7 @@
                             orderable: false,
                             searchable: false,
                             render: function(data) {
-                                return `<a href="/showcareers/${data}" class="inline-flex justify-center items-center px-3 py-1.5 text-xs font-semibold text-white rounded bg-gray-600 hover:bg-gray-700">View</a>`;
+                                return `<a href="/showcareers/${data}" class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-semibold text-white rounded bg-gray-600 hover:bg-gray-700">View</a>`;
                             }
                         },
                         {
@@ -1353,7 +1353,7 @@
                             orderable: false,
                             searchable: false,
                             render: function(data) {
-                                return `<span class="mr-1 inline-block rounded bg-amber-200/60 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-300 dark:text-amber-900">${data || 'KTP + DOB'}</span>`;
+                                return `<span class="mr-1 inline-block rounded bg-amber-200/60 px-2 py-0.5 text-sm font-semibold text-amber-800 dark:bg-amber-300 dark:text-amber-900">${data || 'KTP + DOB'}</span>`;
                             }
                         },
                         {

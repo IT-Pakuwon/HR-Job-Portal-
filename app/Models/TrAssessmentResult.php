@@ -5,21 +5,22 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TrAssessment extends Model
-{    
+class TrAssessmentResult extends Model
+{
     protected $connection = 'mysql3';
-    protected $table = "hr_trx_interview_assessment";   
-    protected $fillable = [            
+    protected $table = "hr_trx_interview_assessment_result";
+    protected $fillable = [
         'docid',
-        'jobapply_id',
         'cpnyid',
         'group_cpny_id',
+        'jobapply_id',
         'jobid',
         'applicant_id',
-        'assessment_date',
-        'type',
-        'user',
-        'total_assessment_score_value',
+        'assessment_type',
+        'assessment_strengths',
+        'assessment_weaknesses',
+        'assessment_comment',
+        'assessment_result',
         'status',
         'created_user',
         'updated_user',
@@ -27,6 +28,6 @@ class TrAssessment extends Model
 
     ];
 
-   
+
 }
-    
+

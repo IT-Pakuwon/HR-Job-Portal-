@@ -11,7 +11,7 @@
         <div class="mb-5 flex-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700/60 dark:bg-gray-800">
             <div class="flex items-center justify-between border-b border-gray-100 px-5 py-3 dark:border-gray-700/60">
                 <div class="flex items-center gap-2.5">
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Phase 1</span>
+                    <span class="text-sm font-bold uppercase tracking-widest text-gray-400">Phase 1</span>
                     <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">Documents Generated</p>
                 </div>
                 <span class="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10.5px] font-semibold text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400">Completed</span>
@@ -32,7 +32,7 @@
                         <input type="hidden" name="refid" value="{{ $career->refid ?? '' }}">
                         <input type="hidden" name="jobapply_id" value="{{ $career->docid ?? '' }}">
                         <button type="submit"
-                            class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:border-gray-400 hover:text-gray-800 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400">
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-semibold text-gray-600 transition hover:border-gray-400 hover:text-gray-800 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400">
                             <i data-lucide="eye" class="h-3.5 w-3.5"></i>
                             Preview
                         </button>
@@ -51,7 +51,7 @@
                         <input type="hidden" name="departementid" value="{{ $career->departementid ?? '' }}">
                         <input type="hidden" name="job_level" value="{{ $career->job_level ?? '' }}">
                         <button type="submit"
-                            class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:border-gray-400 hover:text-gray-800 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400">
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-semibold text-gray-600 transition hover:border-gray-400 hover:text-gray-800 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400">
                             <i data-lucide="eye" class="h-3.5 w-3.5"></i>
                             Preview
                         </button>
@@ -71,12 +71,12 @@
 
         <div class="flex flex-wrap items-center justify-between gap-2.5 border-b border-gray-100 px-5 py-3 dark:border-gray-700/60">
             <div class="flex items-center gap-2.5">
-                <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Phase 2</span>
+                <span class="text-sm font-bold uppercase tracking-widest text-gray-400">Phase 2</span>
                 <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">Payroll Confirmation Data</p>
                 <span class="rounded-full bg-indigo-50 px-2.5 py-0.5 text-[10.5px] font-semibold text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400">{{ $payrolls->count() }} Record{{ $payrolls->count() === 1 ? '' : 's' }}</span>
             </div>
             <button id="addPayrollBtn"
-                class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-700 focus:outline-none active:scale-95">
+                class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-1.5 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none active:scale-95">
                 <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
                 </svg>
@@ -98,7 +98,7 @@
                     </div>
                     <div>
                         <h3 class="text-sm font-bold text-gray-800 dark:text-white">Payroll Confirmation</h3>
-                        <p class="mt-0.5 text-xs text-gray-400">Tax, bank and employment details for this applicant.</p>
+                        <p class="mt-0.5 text-sm text-gray-400">Tax, bank and employment details for this applicant.</p>
                     </div>
                 </div>
                 <form id="payrollForm" class="px-6 py-5">
@@ -108,10 +108,10 @@
                     <input type="hidden" name="applicant_id" value="{{ $applicant->applicant_id ?? '' }}">
                     <input type="hidden" name="id" id="payroll_id">
 
-                    <p class="mb-3 text-[10px] font-bold uppercase tracking-widest text-gray-400">Tax &amp; Bank Details</p>
+                    <p class="mb-3 text-sm font-bold uppercase tracking-widest text-gray-400">Tax &amp; Bank Details</p>
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div class="flex flex-col">
-                            <label for="tax_liability" class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Dependants</label>
+                            <label for="tax_liability" class="mb-1 text-sm font-semibold text-gray-500 dark:text-gray-400">Dependants</label>
                             <select name="tax_liability" id="tax_liability"
                                 class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                 required>
@@ -123,19 +123,19 @@
                             </select>
                         </div>
                         <div class="flex flex-col">
-                            <label for="npwp_id" class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">NPWP</label>
+                            <label for="npwp_id" class="mb-1 text-sm font-semibold text-gray-500 dark:text-gray-400">NPWP</label>
                             <input type="text" name="npwp_id" id="npwp_id"
                                 class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                 required>
                         </div>
                         <div class="flex flex-col">
-                            <label for="bank_account" class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Rekening</label>
+                            <label for="bank_account" class="mb-1 text-sm font-semibold text-gray-500 dark:text-gray-400">Rekening</label>
                             <input type="text" name="bank_account" id="bank_account"
                                 class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                 required>
                         </div>
                         <div class="flex flex-col">
-                            <label for="bank_name" class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Bank</label>
+                            <label for="bank_name" class="mb-1 text-sm font-semibold text-gray-500 dark:text-gray-400">Bank</label>
                             <select name="bank_name" id="bank_name"
                                 class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                 required>
@@ -146,10 +146,10 @@
                         </div>
                     </div>
 
-                    <p class="mb-3 mt-6 text-[10px] font-bold uppercase tracking-widest text-gray-400">Compensation &amp; Facilities</p>
+                    <p class="mb-3 mt-6 text-sm font-bold uppercase tracking-widest text-gray-400">Compensation &amp; Facilities</p>
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div class="flex flex-col">
-                            <label for="net_salary" class="mb-1 flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400">
+                            <label for="net_salary" class="mb-1 flex items-center gap-1.5 text-sm font-semibold text-gray-500 dark:text-gray-400">
                                 Salary
                                 <svg class="h-3 w-3 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
                             </label>
@@ -158,16 +158,16 @@
                                 placeholder="0" required>
                         </div>
                         <div class="flex flex-col">
-                            <label for="other_facility" class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Fasilitas</label>
+                            <label for="other_facility" class="mb-1 text-sm font-semibold text-gray-500 dark:text-gray-400">Fasilitas</label>
                             <input type="text" name="other_facility" id="other_facility"
                                 class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                 required>
                         </div>
                     </div>
 
-                    <p class="mb-3 mt-6 text-[10px] font-bold uppercase tracking-widest text-gray-400">Employment Period &amp; Status</p>
+                    <p class="mb-3 mt-6 text-sm font-bold uppercase tracking-widest text-gray-400">Employment Period &amp; Status</p>
                     <div class="flex flex-col">
-                        <label for="employment_status" class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Status Kepegawaian</label>
+                        <label for="employment_status" class="mb-1 text-sm font-semibold text-gray-500 dark:text-gray-400">Status Kepegawaian</label>
                         <select name="employment_status" id="employment_status"
                             class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                             required>
@@ -176,7 +176,7 @@
                             <option value="PKWTT">PKWTT</option>
                         </select>
                         <div id="contract_term_wrap" class="mt-3 hidden">
-                            <label for="contract_term" class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">Contract Term (PKWT)</label>
+                            <label for="contract_term" class="mb-1 block text-sm font-semibold text-gray-500 dark:text-gray-400">Contract Term (PKWT)</label>
                             <select name="contract_term" id="contract_term"
                                 class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
                                 <option value="">Select Contract Term</option>
@@ -190,13 +190,13 @@
 
                     <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div class="flex flex-col">
-                            <label for="work_start_date" class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Tgl Masuk Kerja</label>
+                            <label for="work_start_date" class="mb-1 text-sm font-semibold text-gray-500 dark:text-gray-400">Tgl Masuk Kerja</label>
                             <input type="date" name="work_start_date" id="work_start_date"
                                 class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                 required>
                         </div>
                         <div class="flex flex-col">
-                            <label for="availability_date" class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Tgl Selesai Kerja</label>
+                            <label for="availability_date" class="mb-1 text-sm font-semibold text-gray-500 dark:text-gray-400">Tgl Selesai Kerja</label>
                             <input type="date" name="availability_date" id="availability_date"
                                 class="w-full cursor-not-allowed rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-sm focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                 readonly>
@@ -205,11 +205,11 @@
 
                     <div class="mt-6 flex justify-end gap-2 border-t border-gray-100 pt-5 dark:border-gray-700/60">
                         <button type="button" id="closeModal"
-                            class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-50 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+                            class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
                             Batal
                         </button>
                         <button type="submit"
-                            class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700 focus:outline-none active:scale-95">
+                            class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none active:scale-95">
                             Simpan
                         </button>
                     </div>
@@ -260,26 +260,26 @@
             <table class="w-full" id="payrollTable">
                 <thead>
                     <tr class="border-b border-gray-100 dark:border-gray-700/60">
-                        <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400">Tanggungan</th>
-                        <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400">NPWP</th>
-                        <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400">Rekening</th>
-                        <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400">Bank</th>
-                        <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400">Gaji</th>
-                        <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400">Fasilitas</th>
-                        <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400">Tgl Masuk</th>
-                        <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400">Tgl Selesai</th>
-                        <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400">Status</th>
-                        <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400">Aksi</th>
+                        <th class="px-4 py-2.5 text-left text-sm font-bold uppercase tracking-widest text-gray-400">Tanggungan</th>
+                        <th class="px-4 py-2.5 text-left text-sm font-bold uppercase tracking-widest text-gray-400">NPWP</th>
+                        <th class="px-4 py-2.5 text-left text-sm font-bold uppercase tracking-widest text-gray-400">Rekening</th>
+                        <th class="px-4 py-2.5 text-left text-sm font-bold uppercase tracking-widest text-gray-400">Bank</th>
+                        <th class="px-4 py-2.5 text-left text-sm font-bold uppercase tracking-widest text-gray-400">Gaji</th>
+                        <th class="px-4 py-2.5 text-left text-sm font-bold uppercase tracking-widest text-gray-400">Fasilitas</th>
+                        <th class="px-4 py-2.5 text-left text-sm font-bold uppercase tracking-widest text-gray-400">Tgl Masuk</th>
+                        <th class="px-4 py-2.5 text-left text-sm font-bold uppercase tracking-widest text-gray-400">Tgl Selesai</th>
+                        <th class="px-4 py-2.5 text-left text-sm font-bold uppercase tracking-widest text-gray-400">Status</th>
+                        <th class="px-4 py-2.5 text-left text-sm font-bold uppercase tracking-widest text-gray-400">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 dark:divide-gray-700/40">
                     @forelse ($payrolls as $p)
                         <tr data-id="{{ $p->id }}" class="hover:bg-gray-50 dark:hover:bg-gray-700/20">
-                            <td class="whitespace-nowrap px-4 py-2.5 text-xs font-semibold text-gray-800 dark:text-gray-100">{{ $p->tax_liability }}</td>
-                            <td class="whitespace-nowrap px-4 py-2.5 text-xs text-gray-600 dark:text-gray-300">{{ $p->npwp_id }}</td>
-                            <td class="whitespace-nowrap px-4 py-2.5 text-xs text-gray-600 dark:text-gray-300">{{ $p->bank_account }}</td>
-                            <td class="whitespace-nowrap px-4 py-2.5 text-xs text-gray-600 dark:text-gray-300">{{ $p->bank_name }}</td>
-                            <td class="whitespace-nowrap px-4 py-2.5 text-xs text-gray-600 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-4 py-2.5 text-sm font-semibold text-gray-800 dark:text-gray-100">{{ $p->tax_liability }}</td>
+                            <td class="whitespace-nowrap px-4 py-2.5 text-sm text-gray-600 dark:text-gray-300">{{ $p->npwp_id }}</td>
+                            <td class="whitespace-nowrap px-4 py-2.5 text-sm text-gray-600 dark:text-gray-300">{{ $p->bank_account }}</td>
+                            <td class="whitespace-nowrap px-4 py-2.5 text-sm text-gray-600 dark:text-gray-300">{{ $p->bank_name }}</td>
+                            <td class="whitespace-nowrap px-4 py-2.5 text-sm text-gray-600 dark:text-gray-300">
                                 <div class="flex items-center gap-1.5">
                                     <span class="salary-mask tabular-nums" data-id="{{ $p->id }}">••••••</span>
                                     <button type="button"
@@ -289,21 +289,21 @@
                                     </button>
                                 </div>
                             </td>
-                            <td class="whitespace-nowrap px-4 py-2.5 text-xs text-gray-600 dark:text-gray-300">{{ $p->other_facility }}</td>
-                            <td class="whitespace-nowrap px-4 py-2.5 text-xs text-gray-600 dark:text-gray-300">{{ \Carbon\Carbon::parse($p->work_start_date)->translatedFormat('d F Y') }}</td>
-                            <td class="whitespace-nowrap px-4 py-2.5 text-xs text-gray-600 dark:text-gray-300">{{ \Carbon\Carbon::parse($p->availability_date)->translatedFormat('d F Y') }}</td>
-                            <td class="whitespace-nowrap px-4 py-2.5 text-xs">
+                            <td class="whitespace-nowrap px-4 py-2.5 text-sm text-gray-600 dark:text-gray-300">{{ $p->other_facility }}</td>
+                            <td class="whitespace-nowrap px-4 py-2.5 text-sm text-gray-600 dark:text-gray-300">{{ \Carbon\Carbon::parse($p->work_start_date)->translatedFormat('d F Y') }}</td>
+                            <td class="whitespace-nowrap px-4 py-2.5 text-sm text-gray-600 dark:text-gray-300">{{ \Carbon\Carbon::parse($p->availability_date)->translatedFormat('d F Y') }}</td>
+                            <td class="whitespace-nowrap px-4 py-2.5 text-sm">
                                 <span class="rounded-full bg-indigo-50 px-2.5 py-1 font-semibold text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400">{{ $p->employment_status }} - Contract {{ $p->contract_term }} bulan</span>
                             </td>
-                            <td class="whitespace-nowrap px-4 py-2.5 text-xs">
-                                <button class="editPayrollBtn inline-flex items-center rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:border-gray-400 hover:text-gray-800 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400">
+                            <td class="whitespace-nowrap px-4 py-2.5 text-sm">
+                                <button class="editPayrollBtn inline-flex items-center rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-semibold text-gray-600 transition hover:border-gray-400 hover:text-gray-800 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400">
                                     Edit
                                 </button>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10" class="py-6 text-center text-xs italic text-gray-400 dark:text-gray-500">No payroll data found.</td>
+                            <td colspan="10" class="py-6 text-center text-sm italic text-gray-400 dark:text-gray-500">No payroll data found.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -321,12 +321,12 @@
 
         <div class="flex items-center justify-between border-b border-gray-100 px-5 py-3 dark:border-gray-700/60">
             <div class="flex items-center gap-2.5">
-                <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Phase 3</span>
+                <span class="text-sm font-bold uppercase tracking-widest text-gray-400">Phase 3</span>
                 <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">Approval Chain</p>
                 <span class="rounded-full bg-indigo-50 px-2.5 py-0.5 text-[10.5px] font-semibold text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400">{{ $sign->count() }} Signer{{ $sign->count() === 1 ? '' : 's' }}</span>
             </div>
             <button id="addSignBtn"
-                class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-700 focus:outline-none active:scale-95">
+                class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-1.5 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none active:scale-95">
                 <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
                 </svg>
@@ -344,7 +344,7 @@
                     </div>
                     <div>
                         <h3 class="text-sm font-bold text-gray-800 dark:text-white">Add Signers</h3>
-                        <p class="mt-0.5 text-xs text-gray-400">Set the approval order for this payroll confirmation.</p>
+                        <p class="mt-0.5 text-sm text-gray-400">Set the approval order for this payroll confirmation.</p>
                     </div>
                 </div>
                 <form id="signForm" class="px-6 py-5">
@@ -358,7 +358,7 @@
 
                     <div class="mt-3">
                         <button type="button" id="addSignRow"
-                            class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-gray-300 px-3 py-2 text-xs font-semibold text-gray-500 transition hover:border-indigo-400 hover:text-indigo-600 focus:outline-none dark:border-gray-600 dark:text-gray-400 dark:hover:border-indigo-500 dark:hover:text-indigo-400">
+                            class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-gray-300 px-3 py-2 text-sm font-semibold text-gray-500 transition hover:border-indigo-400 hover:text-indigo-600 focus:outline-none dark:border-gray-600 dark:text-gray-400 dark:hover:border-indigo-500 dark:hover:text-indigo-400">
                             <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                             Add Signer
                         </button>
@@ -366,11 +366,11 @@
 
                     <div class="mt-6 flex justify-end gap-2 border-t border-gray-100 pt-5 dark:border-gray-700/60">
                         <button type="button" id="closeModalsign"
-                            class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-50 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+                            class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
                             Batal
                         </button>
                         <button type="submit"
-                            class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700 focus:outline-none active:scale-95">
+                            class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none active:scale-95">
                             Simpan
                         </button>
                     </div>
@@ -392,7 +392,7 @@
                         </button>
                         <div class="grid gap-3 pr-8" style="grid-template-columns: 88px minmax(0, 1.15fr) minmax(0, 0.85fr);">
                             <div class="flex flex-col">
-                                <label class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Urutan</label>
+                                <label class="mb-1 text-sm font-semibold text-gray-500 dark:text-gray-400">Urutan</label>
                                 <select name="aprvid[]"
                                     class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                     required>
@@ -403,7 +403,7 @@
                                 </select>
                             </div>
                             <div class="flex flex-col">
-                                <label class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Nama</label>
+                                <label class="mb-1 text-sm font-semibold text-gray-500 dark:text-gray-400">Nama</label>
                                 <select name="aprvusername[]"
                                     class="sign-employee-select w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                     required>
@@ -415,7 +415,7 @@
                                 <input type="hidden" name="aprvname[]" class="aprvname-input">
                             </div>
                             <div class="flex flex-col">
-                                <label class="mb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Jabatan</label>
+                                <label class="mb-1 text-sm font-semibold text-gray-500 dark:text-gray-400">Jabatan</label>
                                 <input type="text" name="jabatan[]"
                                     class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                     required>
@@ -438,18 +438,18 @@
                     </div>
                     <div class="flex flex-1 items-center justify-between {{ $loop->last ? '' : 'pb-4' }}">
                         <div class="flex items-center gap-2.5">
-                            <div class="flex h-6 w-6 items-center justify-center rounded-full bg-gray-800 text-[10px] font-bold text-white dark:bg-gray-600">{{ strtoupper(substr($p->name, 0, 1)) }}</div>
-                            <span class="text-xs font-semibold text-gray-800 dark:text-gray-100">{{ $p->name }}</span>
+                            <div class="flex h-6 w-6 items-center justify-center rounded-full bg-gray-800 text-sm font-bold text-white dark:bg-gray-600">{{ strtoupper(substr($p->name, 0, 1)) }}</div>
+                            <span class="text-sm font-semibold text-gray-800 dark:text-gray-100">{{ $p->name }}</span>
                             <span class="text-[11px] text-gray-400">{{ $p->jabatan }}</span>
                         </div>
                         <div class="flex items-center gap-1.5">
-                            <button class="editsignBtn inline-flex items-center rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:border-gray-400 hover:text-gray-800 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400">Edit</button>
-                            <button class="deletesignBtn inline-flex items-center rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-500 transition hover:bg-red-50 focus:outline-none active:scale-95 dark:border-red-800/40 dark:text-red-400">Delete</button>
+                            <button class="editsignBtn inline-flex items-center rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-semibold text-gray-600 transition hover:border-gray-400 hover:text-gray-800 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400">Edit</button>
+                            <button class="deletesignBtn inline-flex items-center rounded-lg border border-red-200 px-3 py-1.5 text-sm font-semibold text-red-500 transition hover:bg-red-50 focus:outline-none active:scale-95 dark:border-red-800/40 dark:text-red-400">Delete</button>
                         </div>
                     </div>
                 </div>
             @empty
-                <div class="py-6 text-center text-xs italic text-gray-400 dark:text-gray-500">No Sign data found.</div>
+                <div class="py-6 text-center text-sm italic text-gray-400 dark:text-gray-500">No Sign data found.</div>
             @endforelse
         </div>
 
@@ -461,18 +461,18 @@
                     @csrf
                     <input type="hidden" id="salary_payroll_id" name="payroll_id">
                     <div class="mb-4">
-                        <label class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">Password Anda</label>
+                        <label class="mb-1 block text-sm font-semibold text-gray-500 dark:text-gray-400">Password Anda</label>
                         <input type="password" id="salary_password" name="password" autocomplete="current-password"
                             class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                             required>
                     </div>
                     <div class="flex justify-end gap-2">
                         <button type="button" id="salaryModalCancel"
-                            class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-50 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+                            class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
                             Batal
                         </button>
                         <button type="submit"
-                            class="inline-flex items-center rounded-lg bg-gray-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900">
+                            class="inline-flex items-center rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900">
                             Verifikasi
                         </button>
                     </div>
@@ -869,7 +869,7 @@
 
                     if ($('#signList .sign-row-item').length === 0) {
                         $('#signList').html(
-                            '<div class="py-6 text-center text-xs italic text-gray-400 dark:text-gray-500">No Sign data found.</div>'
+                            '<div class="py-6 text-center text-sm italic text-gray-400 dark:text-gray-500">No Sign data found.</div>'
                         );
                     }
                 } else {
