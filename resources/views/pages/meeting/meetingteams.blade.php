@@ -790,22 +790,61 @@
 
                     const encodedText = btoa(unescape(encodeURIComponent(rawMeetingText)));
 
+                    const meetingTitle = document.getElementById('view_title').innerText;
+                    const meetingTime = document.getElementById('view_time').innerText;
+
+                    let detailsText = `${meetingTitle}\n${meetingTime}\n\n`;
+                    if (props.zoom_id) detailsText += `Meeting ID: ${props.zoom_id}\n`;
+                    if (props.zoom_password) detailsText += `Passcode: ${props.zoom_password}\n`;
+                    detailsText += `Join Zoom Meeting\n${extractedUrl}`;
+
+                    const encodedDetails = btoa(unescape(encodeURIComponent(detailsText)));
+
                     container.innerHTML = `
-                        <div class="space-y-3">
+                        <div class="space-y-4">
 
-                            <div class="flex items-center justify-between">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
 
-                                <a href="${extractedUrl}" target="_blank"
-                                    class="text-purple-600 font-medium hover:underline">
+                                <a href="${extractedUrl}" target="_blank" rel="noopener noreferrer"
+                                    class="inline-flex items-center gap-2 rounded-lg bg-purple-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-purple-700">
+                                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10l5-3v10l-5-3"/><rect x="3" y="6" width="12" height="12" rx="2"/></svg>
                                     Open Zoom
                                 </a>
 
-                                <button onclick="copyLink('${encodedText}', true)"
-                                    class="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300">
-                                    Copy
-                                </button>
+                                <div class="flex items-center gap-2">
+
+                                    <button onclick="copyLink('${encodedDetails}', true)"
+                                        class="inline-flex items-center gap-1.5 rounded-lg border border-purple-200 bg-purple-50 px-3 py-2 text-xs font-medium text-purple-700 transition hover:bg-purple-100 dark:border-purple-800 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50">
+                                        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                        Copy Details
+                                    </button>
+
+                                    <button onclick="copyLink('${encodedText}', true)"
+                                        class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-600 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800">
+                                        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 0 0 7.07 7.07l1.5-1.5"/></svg>
+                                        Copy Link
+                                    </button>
+
+                                </div>
 
                             </div>
+
+                            ${(props.zoom_id || props.zoom_password) ? `
+                                <div class="grid grid-cols-2 gap-3">
+                                    ${props.zoom_id ? `
+                                        <div class="rounded-lg border border-gray-200 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900">
+                                            <div class="text-[10px] font-medium uppercase tracking-wide text-gray-400">Meeting ID</div>
+                                            <div class="mt-0.5 font-mono text-sm font-semibold text-gray-800 dark:text-gray-100">${escapeHtml(String(props.zoom_id))}</div>
+                                        </div>
+                                    ` : ''}
+                                    ${props.zoom_password ? `
+                                        <div class="rounded-lg border border-gray-200 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900">
+                                            <div class="text-[10px] font-medium uppercase tracking-wide text-gray-400">Passcode</div>
+                                            <div class="mt-0.5 font-mono text-sm font-semibold text-gray-800 dark:text-gray-100">${escapeHtml(String(props.zoom_password))}</div>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            ` : ''}
 
                             ${isLongText ? `
                                 <pre class="whitespace-pre-wrap text-xs bg-white border rounded-lg p-3 overflow-auto max-h-64 dark:bg-gray-800">${safeMeetingText}</pre>
