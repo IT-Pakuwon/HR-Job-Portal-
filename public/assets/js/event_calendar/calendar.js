@@ -233,8 +233,14 @@ const EventCalendarApp = {
                 titleEl.classList.add('fc-event-title');
                 titleEl.textContent = arg.event.title;
 
-                wrapper.appendChild(idEl);
                 wrapper.appendChild(titleEl);
+                if (idEl.textContent) {
+                    const sepEl = document.createElement('span');
+                    sepEl.classList.add('fc-event-id-badge');
+                    sepEl.textContent = '-';
+                    wrapper.appendChild(sepEl);
+                }
+                wrapper.appendChild(idEl);
 
                 const creatorName = arg.event.extendedProps.created_by_name;
                 if (creatorName) {
