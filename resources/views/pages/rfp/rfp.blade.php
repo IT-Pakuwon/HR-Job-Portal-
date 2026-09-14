@@ -2,11 +2,15 @@
     @php
         $currentPage = Route::currentRouteName() == 'rfp' ? 'RFP' : '';
         $user = auth()->user();
-        $hasRfpAllAccess = $user->hasRole('FINACCESS');
+        $hasRfpFinanceAccess = $hasRfpFinanceAccess ?? $user->hasRole('FINACCESS');
+        $hasRfpAllAccess = $hasRfpAllAccess ?? ($hasRfpFinanceAccess || $user->hasRole('PURCHACCESS'));
 
         $xlCols = 5;
         if ($hasRfpAllAccess) {
-            $xlCols += 2;
+            $xlCols += 1;
+        }
+        if ($hasRfpFinanceAccess) {
+            $xlCols += 1;
         }
     @endphp
 
@@ -74,6 +78,9 @@
                     </div>
                 </a>
 
+            @endif
+
+            @if ($hasRfpFinanceAccess)
                 <a href="#" class="status-filter group block h-full" data-scope="rfp_finance">
                     <div class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
                         <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">💰</div>

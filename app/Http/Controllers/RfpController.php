@@ -54,7 +54,8 @@ class RfpController extends Controller
         $cpnyIds = $user->scopedCompanyIds();
         $deptIds = $user->scopedDepartmentIds();
 
-        $hasRfpAllAccess = $user->hasRole('FINACCESS');
+        $hasRfpFinanceAccess = $user->hasRole('FINACCESS');
+        $hasRfpAllAccess = $hasRfpFinanceAccess || $user->hasRole('PURCHACCESS');
         $hasApFinAccess = $user->hasRole('APFINACCESS');
         $hasApTreAccess = $user->hasRole('APTREACCESS');
 
@@ -75,7 +76,9 @@ class RfpController extends Controller
             $rfpAll = TrRfp::query()
                 ->whereIn('cpny_id', $cpnyIds)
                 ->count();
+        }
 
+        if ($hasRfpFinanceAccess) {
             $rfpFinance = TrRfp::query()
                 ->whereIn('cpny_id', $cpnyIds)
                 ->where('status', 'C')
@@ -108,6 +111,7 @@ class RfpController extends Controller
             'rfpFinance',
             'cpnyIds',
             'hasRfpAllAccess',
+            'hasRfpFinanceAccess',
             'hasApFinAccess',
             'hasApTreAccess',
             'financeReceived',
@@ -131,9 +135,14 @@ class RfpController extends Controller
         $financeCpny = trim((string) $request->query('finance_cpny', ''));
         $financeStatus = trim((string) $request->query('finance_status', ''));
         $typePo = strtoupper(trim((string) $request->query('type_po', '')));
-        $hasRfpAllAccess = $user->hasRole('FINACCESS');
+        $hasRfpFinanceAccess = $user->hasRole('FINACCESS');
+        $hasRfpAllAccess = $hasRfpFinanceAccess || $user->hasRole('PURCHACCESS');
 
-        if (in_array($scope, ['rfp_all', 'rfp_finance'], true) && !$hasRfpAllAccess) {
+        if ($scope === 'rfp_all' && !$hasRfpAllAccess) {
+            $scope = '';
+        }
+
+        if ($scope === 'rfp_finance' && !$hasRfpFinanceAccess) {
             $scope = '';
         }
 
