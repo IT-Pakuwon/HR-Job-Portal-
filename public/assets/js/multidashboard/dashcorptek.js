@@ -153,6 +153,9 @@
             PROCESS:
                 "bg-amber-100 text-amber-700 border-amber-200",
 
+            REVISED:
+                "bg-yellow-100 text-yellow-700 border-yellow-200",
+
             PENDING:
                 "bg-orange-100 text-orange-700 border-orange-200",
 
@@ -661,6 +664,7 @@
                 { value: "RESPONSE",  label: "Response" },
                 { value: "APPROVED",  label: "Approved" },
                 { value: "PROCESS",   label: "Process" },
+                { value: "REVISED",   label: "Revised" },
                 { value: "REJECTED",  label: "Rejected" },
                 { value: "PENDING",   label: "Pending" },
                 { value: "TRANSFER",  label: "Transfer" },
@@ -675,6 +679,7 @@
                 { value: "RESPONSE",  label: "Response" },
                 { value: "APPROVED",  label: "Approved" },
                 { value: "PROCESS",   label: "Process" },
+                { value: "REVISED",   label: "Revised" },
                 { value: "REJECTED",  label: "Rejected" },
                 { value: "PENDING",   label: "Pending" },
                 { value: "TRANSFER",  label: "Transfer" },

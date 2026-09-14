@@ -80,6 +80,7 @@ use App\Http\Controllers\IssueListController;
 use App\Http\Controllers\ItDashboardController;
 use App\Http\Controllers\ItemRequestController;
 use App\Http\Controllers\ItRecommendationController;
+use App\Http\Controllers\ItSupportReportController;
 use App\Http\Controllers\JobapplicantController;
 use App\Http\Controllers\JobpostingController;
 use App\Http\Controllers\KendaraanController;
@@ -2321,6 +2322,23 @@ Route::middleware(['auth'])->group(function () {
 
                 Route::get('/export/pdf', 'exportPdf')->name('corptek-report.export.pdf');
                 Route::get('/export/xlsx', 'exportXlsx')->name('corptek-report.export.xlsx');
+            });
+
+        Route::prefix('it-support-report')
+            ->controller(ItSupportReportController::class)
+            ->middleware('access:REPORTITSUPPORT,VIEW')
+            ->group(function () {
+                Route::get('/dashboard', 'dashboard')->name('it-support-report.dashboard');
+
+                Route::get('/api/companies', 'companies')->name('it-support-report.companies');
+                Route::get('/api/summary', 'summaryJson')->name('it-support-report.summary');
+                Route::get('/api/category-by-unit', 'categoryByUnitJson')->name('it-support-report.category-by-unit');
+                Route::get('/api/status-by-category', 'statusByCategoryJson')->name('it-support-report.status-by-category');
+                Route::get('/api/top-breakdown', 'topBreakdownJson')->name('it-support-report.top-breakdown');
+                Route::get('/api/table', 'tableJson')->name('it-support-report.table');
+
+                Route::get('/export/pdf', 'exportPdf')->name('it-support-report.export.pdf');
+                Route::get('/export/xlsx', 'exportXlsx')->name('it-support-report.export.xlsx');
             });
 
         Route::prefix('ga-dashboard')->controller(GADashboardController::class)->group(function () {
