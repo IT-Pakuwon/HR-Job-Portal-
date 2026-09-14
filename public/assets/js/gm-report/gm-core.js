@@ -40,7 +40,7 @@
                 .replace(/"/g, '&quot;');
         },
 
-        // Renders a section's "GM Insight" bullet list. insights: array of
+        // Renders a section's "Summary Insight" bullet list. insights: array of
         // { type: 'positive'|'warning'|'critical'|'info', text: <safe HTML string> }.
         // Callers are responsible for escHtml-ing any dynamic values (names,
         // labels) before interpolating them into `text` — numbers/percentages

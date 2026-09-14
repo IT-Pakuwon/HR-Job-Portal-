@@ -1855,9 +1855,7 @@ class EngTicketController extends Controller
      * status_pekerjaan='REJECTED') and neither the PIC nor anyone else can act
      * on it again — buildActions() excludes 'REJECTED' from every can_* check
      * (process/pending/complete/transfer/cancel/reopen). Both the PIC and the
-     * ticket's creator are notified, unlike reviseTicket() which only notifies
-     * the PIC (the ticket stays actionable so only the person who has to act
-     * needs the nudge).
+     * ticket's creator are notified, same as reviseTicket().
      */
     public function rejectTicket(Request $request, $hash)
     {
@@ -1962,6 +1960,8 @@ class EngTicketController extends Controller
      * freshly created ticket (see workflowTransitions['response'] and the
      * can_edit/can_response checks in buildActions()), but kept as its own
      * status so revised tickets stay distinguishable from newly created ones.
+     * Both the requester and the PIC are notified, since either of them may
+     * need to act next.
      */
     public function reviseTicket(Request $request, $hash)
     {
@@ -2007,7 +2007,23 @@ class EngTicketController extends Controller
                     'created_by' => auth()->user()->username,
                 ]);
 
-                if ($ticket->pic_ticket) {
+                app(ApprovalController::class)->notifyRequesterOnStatus(
+                    $ticket->ticketid,
+                    'Eng Ticket',
+                    'D',
+                    $ticket->created_by,
+                    $docUrl,
+                    [
+                        'cpnyid' => $ticket->cpny_id,
+                        'deptname' => $ticket->department_id,
+                        'info' => $request->response_descr,
+                    ]
+                );
+
+                // PIC also needs to know the completion they submitted was
+                // sent back — skip if they're the same person as the
+                // creator to avoid sending the same email twice.
+                if ($ticket->pic_ticket && $ticket->pic_ticket !== $ticket->created_by) {
                     app(ApprovalController::class)->notifyRequesterOnStatus(
                         $ticket->ticketid,
                         'Eng Ticket',

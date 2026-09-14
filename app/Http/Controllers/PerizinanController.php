@@ -54,7 +54,7 @@ class PerizinanController extends Controller
         $permitQuery = function () use ($companies, $access) {
             $query = TrPerizinan::query()->whereIn('cpny_id', $companies);
 
-            if (!$access['has_ga_access']) {
+            if (!$access['unrestricted']) {
                 $query->whereIn('department_fin_id', $access['department_fin_ids']);
             }
 
@@ -105,7 +105,7 @@ class PerizinanController extends Controller
             ->whereIn('cpny_id', $companies)
             ->orderBy('cpny_id')
             ->orderBy('site_name');
-        if (!$access['has_ga_access']) {
+        if (!$access['unrestricted']) {
             $sitesQuery->whereIn('siteid', $permitQuery()
                 ->whereNotNull('site_id')
                 ->select('site_id'));
@@ -166,7 +166,7 @@ class PerizinanController extends Controller
             ])
             ->whereIn('cpny_id', $companyIds);
 
-        if (!$access['has_ga_access']) {
+        if (!$access['unrestricted']) {
             $query->whereIn('department_fin_id', $access['department_fin_ids']);
         }
 
@@ -334,8 +334,10 @@ class PerizinanController extends Controller
 
     public function show(string $perizinanId)
     {
-        $companyIds = Usercpny::query()->where('username', Auth::user()->username)
-            ->where('status', 'A')->pluck('cpny_id');
+        $companyIds = Auth::user()->hasFullDataScope()
+            ? \App\Models\MsCompany::pluck('cpny_id')
+            : Usercpny::query()->where('username', Auth::user()->username)
+                ->where('status', 'A')->pluck('cpny_id');
         $permit = TrPerizinan::query()
             ->with([
                 'site',
@@ -395,9 +397,11 @@ class PerizinanController extends Controller
         $id = Hashids::decode($hash)[0] ?? null;
         abort_unless($id, 404);
 
-        $companyIds = Usercpny::query()->where('username', Auth::user()->username)
-            ->where('status', 'A')
-            ->pluck('cpny_id');
+        $companyIds = Auth::user()->hasFullDataScope()
+            ? \App\Models\MsCompany::pluck('cpny_id')
+            : Usercpny::query()->where('username', Auth::user()->username)
+                ->where('status', 'A')
+                ->pluck('cpny_id');
 
         $permit = TrPerizinan::query()
             ->whereKey($id)
@@ -851,6 +855,10 @@ class PerizinanController extends Controller
     /**
      * Resolve permit visibility from the login user's operational departments.
      * GAACCESS sees every department inside the already-authorized company scope.
+     * DIRECTORACCESS (hasFullDataScope()) sees every department too, same as it
+     * already sees every company elsewhere in this controller — but unlike GAACCESS
+     * it doesn't unlock the GA-only actions (Berita Acara, item edits), so callers
+     * must keep using 'has_ga_access' (not 'unrestricted') for those.
      */
     private function perizinanAccessScope(User $user): array
     {
@@ -860,9 +868,10 @@ class PerizinanController extends Controller
             ->where('status', 'A')
             ->exists();
 
-        if ($hasGaAccess) {
+        if ($hasGaAccess || $user->hasFullDataScope()) {
             return [
-                'has_ga_access' => true,
+                'has_ga_access' => $hasGaAccess,
+                'unrestricted' => true,
                 'department_fin_ids' => [],
             ];
         }
@@ -886,6 +895,7 @@ class PerizinanController extends Controller
 
         return [
             'has_ga_access' => false,
+            'unrestricted' => false,
             'department_fin_ids' => $departmentFinIds,
         ];
     }

@@ -11,7 +11,7 @@
     var xhrRedemption = null;
     var xhrPeakHours  = null;
 
-    // ── GM Insight — combines all 3 endpoints, so each caches its own slice
+    // ── Summary Insight — combines all 3 endpoints, so each caches its own slice
     //    and recomputes once whatever's arrived so far is enough to say
     //    something useful. ───────────────────────────────────────────────
     var lastValetKpi = null, lastValetRedemption = null, lastValetPeakHours = null;
