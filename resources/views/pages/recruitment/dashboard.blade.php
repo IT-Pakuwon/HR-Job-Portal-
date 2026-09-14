@@ -6,17 +6,17 @@
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
             <h1 class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
                 Career Portal Dashboard
-                @if($applicantType === 'self')
-                    <span class="ml-2 text-sm font-semibold text-cyan-600 dark:text-cyan-400">· Self Applicant View</span>
-                @elseif($applicantType === 'career')
-                    <span class="ml-2 text-sm font-semibold text-violet-600 dark:text-violet-400">· Job Applicant View</span>
-                @else
-                    <span class="ml-2 text-sm font-semibold text-slate-500 dark:text-slate-400">· All Sources</span>
-                @endif
             </h1>
+            <span class="mt-1 inline-flex items-center gap-1 self-start rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500 lg:mt-0 lg:self-auto dark:bg-slate-800 dark:text-slate-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Last Updated: {{ $lastUpdatedAt }}
+            </span>
         </div>
 
-        {{-- Filter Bar — pill-style segmented bar matching GM aesthetic --}}
+        {{-- Filter Bar — pill-style segmented bar matching GM aesthetic. Collapsible,
+             open by default. --}}
         <x-dashboard-filter.dashboard-filter
             :companyGroups="$companyGroups"
             :areas="$areas"
@@ -24,8 +24,14 @@
             :userGroupCpny="$userGroupCpny"
             :currentFilters="$filters"
             :departments="$departments"
+            :divisions="$divisions"
             :companies="$companies"
-            :locations="$locations" />
+            :locations="$locations"
+            collapsible="true" />
+
+        {{-- Full Insight — one consolidated read of the whole dashboard. Collapsible,
+             open by default. --}}
+        <x-card-chart.insight-panel :items="$fullInsights" collapsible="true" />
 
         {{-- ═════════════════════════════════════════════════════════════════════
              ROW 1 — Requisition & Applicant Pipeline (stacked), By Age Bracket,

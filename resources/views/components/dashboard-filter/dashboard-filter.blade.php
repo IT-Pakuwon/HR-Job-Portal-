@@ -10,6 +10,7 @@
     'locations' => [],
     'ticketTypes' => [],
     'showDepartment' => true,
+    'collapsible' => false,
 ])
 
 @php
@@ -20,9 +21,22 @@
     {{-- ========================================================================
          RECRUITMENT DASHBOARD FILTER — pill-style segmented bar matching GM aesthetic
         ======================================================================== --}}
-    <div id="recruitmentFilterWrap" class="w-full">
-    <form method="GET" action="{{ route('recruitment.dashboard') }}"
-          class="flex flex-1 flex-col rounded-2xl border border-slate-200 bg-white shadow-sm sm:flex-row dark:border-slate-700/60 dark:bg-slate-900">
+    <div id="recruitmentFilterWrap" class="w-full" @if($collapsible) x-data="{ filtersOpen: true }" @endif>
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700/60 dark:bg-slate-900">
+
+        @if($collapsible)
+            <button type="button" @click="filtersOpen = !filtersOpen"
+                class="flex w-full items-center gap-1.5 px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 transition-transform" :class="filtersOpen ? '' : '-rotate-90'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                </svg>
+                Filters
+            </button>
+        @endif
+
+        <div @if($collapsible) x-show="filtersOpen" x-collapse @endif>
+        <form method="GET" action="{{ route('recruitment.dashboard') }}"
+              class="flex flex-1 flex-col sm:flex-row {{ $collapsible ? 'border-t border-slate-200 dark:border-slate-700/60' : '' }}">
 
         {{-- Group 1: Filter items spread evenly across available width --}}
         <div class="flex flex-1 flex-wrap items-center divide-x divide-slate-200 border-b border-slate-200 sm:flex-nowrap sm:border-b-0 dark:divide-slate-700/60 dark:border-slate-700/60">
@@ -137,6 +151,8 @@
         </div>
 
     </form>
+    </div>
+    </div>
     </div>
 
     <style>

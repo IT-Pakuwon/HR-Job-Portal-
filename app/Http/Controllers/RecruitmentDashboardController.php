@@ -418,6 +418,8 @@ class RecruitmentDashboardController extends Controller
             ->sortByDesc('total')
             ->values();
 
+        $topJobRow = $jobApplyRows->first();
+
         // ── Applications over time ────────────────────────────────────────────
         $careerByMonth = (clone $careerBase)
             ->select(DB::raw("DATE_FORMAT(apply_date, '%Y-%m') as ym"), DB::raw('COUNT(*) as total'))
@@ -627,6 +629,65 @@ class RecruitmentDashboardController extends Controller
 
         $applicantType = $source ?: 'all';
 
+        // ── Full-dashboard summary insight (one consolidated read of everything
+        //    above, in the same {type, text} shape GM report's renderInsights()
+        //    expects — type drives which icon/color the panel shows). ─────────
+        $fullInsights = [];
+
+        $fullInsights[] = [
+            'type' => $unpostedCount > 0 ? 'warning' : 'info',
+            'text' => $postedSharePct . '% of requisitions are already live on the career site (<b>'
+                . number_format($postedCount) . '</b> of ' . number_format($totalJobPostings) . ')'
+                . ($unpostedCount > 0 ? ' — <b>' . number_format($unpostedCount) . '</b> approved but not yet posted' : '') . '.',
+        ];
+
+        $rejectedPct = $totalApplicantAll > 0 ? round($totalRejectedAll / $totalApplicantAll * 100, 1) : 0;
+        $hiredPct = $totalApplicantAll > 0 ? round($totalJoined / $totalApplicantAll * 100, 1) : 0;
+        $fullInsights[] = [
+            'type' => $rejectedPct >= 60 ? 'warning' : 'info',
+            'text' => number_format($totalApplicantAll) . ' candidates have applied so far — <b>' . $rejectedPct . '%</b> get rejected'
+                . ' and only <b>' . $hiredPct . '%</b> are ultimately hired'
+                . ($applicantType !== 'self' && $avgTimeToHire !== null ? ', averaging <b>' . $avgTimeToHire . ' days</b> from apply to join' : '') . '.',
+        ];
+
+        $fullInsights[] = [
+            'type' => 'info',
+            'text' => '<b>' . $topGenderPct . '% ' . $topGenderLabel . '</b>, mostly aged <b>' . $topAgeLabel . '</b> (' . $topAgePct . '%), and <b>'
+                . $topCityLabel . '</b> leads by location (' . number_format($topCityCount) . ' candidates).',
+        ];
+
+        $fullInsights[] = [
+            'type' => 'warning',
+            'text' => 'Education level is unrecorded for <b>' . $unknownEducationPct . '%</b> of applicants, and the hiring-source field for <b>'
+                . $unknownSourcePct . '%</b>'
+                . ($topSourceLabel ? ' — of those recorded, <b>' . $topSourceLabel . '</b> leads with ' . number_format($topSourceCount) . ' candidates' : '') . '.',
+        ];
+
+        if ($applicantType !== 'self' && $topDivisionRow) {
+            $fullInsights[] = [
+                'type' => $topDivisionShare >= 50 ? 'warning' : 'info',
+                'text' => '<b>' . $topDivisionRow['label'] . '</b> draws the most interest (<b>' . $topDivisionShare . '%</b> of applicants) — postings typically close '
+                    . ($avgPrfToPostingDays ?? '—') . ' days after their PRF is completed.',
+            ];
+        }
+
+        if ($applicantType !== 'self' && $topJobRow) {
+            $fullInsights[] = [
+                'type' => $topJobRow['status'] === 'Hold' ? 'critical' : 'info',
+                'text' => '<b>' . $topJobRow['job_title'] . '</b> alone draws <b>' . $topJobRow['pct'] . '%</b> of all job applications ('
+                    . number_format($topJobRow['total']) . ' candidates)'
+                    . ($topJobRow['status'] === 'Hold' ? ' — even though that posting is currently <b>on Hold</b>' : '') . '.',
+            ];
+        }
+
+        if ($applicantType !== 'self' && $bottleneckStage) {
+            $fullInsights[] = [
+                'type' => 'warning',
+                'text' => '<b>' . $bottleneckStage . '</b> is the biggest bottleneck in the hiring funnel, adding <b>' . $bottleneckDays . ' days</b> on average'
+                    . ($totalHireDays ? ' — the full apply-to-hire journey averages <b>' . $totalHireDays . ' days</b>' : '') . '.',
+            ];
+        }
+
         return view('pages.recruitment.dashboard', [
             'applicantType' => $applicantType,
             'filters' => [
@@ -711,6 +772,10 @@ class RecruitmentDashboardController extends Controller
             'bottleneckStage' => $bottleneckStage,
             'bottleneckDays' => $bottleneckDays,
             'totalHireDays' => $totalHireDays,
+
+            // Full-dashboard summary insight
+            'fullInsights' => $fullInsights,
+            'lastUpdatedAt' => now()->format('d M Y, H:i'),
         ]);
     }
 }
