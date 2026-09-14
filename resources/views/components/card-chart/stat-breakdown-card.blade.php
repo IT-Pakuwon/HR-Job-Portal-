@@ -62,7 +62,7 @@
     </div>
 
     @if(count($breakdown))
-        <div class="grid gap-2 px-5 pb-5" style="grid-template-columns: repeat({{ count($breakdown) }}, minmax(0,1fr));">
+        <div class="grid grid-cols-2 gap-2 px-5 pb-5">
             @foreach($breakdown as $item)
                 @php $dotColor = $dots[$item['color'] ?? $color] ?? $dots['violet']; @endphp
                 <div class="flex items-center gap-2 rounded-lg border border-slate-100 bg-slate-50 px-2.5 py-2 dark:border-slate-700/60 dark:bg-slate-800/50">

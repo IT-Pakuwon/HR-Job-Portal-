@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Vinkla\Hashids\Facades\Hashids;
+use App\Models\MailboxAccount;
+use App\Models\MailboxEmail;
 use App\Models\MsTicketCategoryDept;
 use App\Models\MsVplProduct;
 use App\Models\MsVplProductDetail;
@@ -794,6 +796,40 @@ class DocumentNotificationService
             }
         } catch (\Throwable $e) {
             Log::warning('DocumentNotificationService: VPL expiry reminder fetch failed', ['err' => $e->getMessage()]);
+        }
+
+        // ── 12. Mailbox: unread inbox emails — naturally drops off the list once the
+        //       email is opened (MailboxController::content() flips is_read to true),
+        //       no client-side read-cache needed like the comment/mention notifications.
+        try {
+            $hasMailbox = MailboxAccount::whereRaw("lower(trim(username)) = ?", [$username])
+                ->where('is_active', true)
+                ->exists();
+
+            if ($hasMailbox) {
+                $unreadEmails = MailboxEmail::whereRaw("lower(trim(username)) = ?", [$username])
+                    ->where('folder', MailboxService::DEFAULT_FOLDER)
+                    ->where('is_read', false)
+                    ->orderByDesc('email_date')
+                    ->limit(20)
+                    ->get(['id', 'subject', 'from_name', 'from_address', 'body_preview', 'email_date']);
+
+                $data = $data->concat($unreadEmails->map(fn($r) => [
+                    'key'        => 'MAIL_' . $r->id,
+                    'hid'        => $r->id,
+                    'docid'      => $r->subject ?: '(no subject)',
+                    'status'     => 'MAIL',
+                    'label'      => 'New Email',
+                    'message'    => \Illuminate\Support\Str::limit((string) ($r->body_preview ?: 'You have received a new email.'), 120),
+                    'cpnyid'     => null,
+                    'href'       => '/mailbox?folder=' . MailboxService::DEFAULT_FOLDER . '&open=' . $r->id,
+                    'url'        => '/mailbox',
+                    'by'         => $r->from_name ?: $r->from_address,
+                    'updated_at' => $r->email_date,
+                ]));
+            }
+        } catch (\Throwable $e) {
+            Log::warning('DocumentNotificationService: Mailbox unread fetch failed', ['err' => $e->getMessage()]);
         }
 
         return $data->sortByDesc(fn($r) => $r['updated_at'])->values()->all();

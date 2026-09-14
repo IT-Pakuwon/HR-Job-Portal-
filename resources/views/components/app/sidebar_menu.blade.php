@@ -33,6 +33,17 @@
                 $allowedIdsForSearch = collect($allowedMenuIds ?? [])->all();
 
                 foreach (($rootMenus ?? collect()) as $rootMenu) {
+                    // Standalone root menu (no children) — rendered as its own link in the sidebar,
+                    // so it needs to be searchable too instead of only ever appearing via its children.
+                    if ($rootMenu->children->isEmpty() && !empty($rootMenu->menu_route)) {
+                        $menuSearchIndex->push([
+                            'menu_name'   => $rootMenu->menu_name,
+                            'menu_icon'   => $rootMenu->menu_icon,
+                            'parent_name' => $rootMenu->menu_name,
+                            'url'         => Route::has($rootMenu->menu_route) ? route($rootMenu->menu_route) : '#',
+                        ]);
+                    }
+
                     foreach ($rootMenu->children as $lvl1) {
                         $lvl2 = $lvl1->children->whereIn('menu_id', $allowedIdsForSearch);
 
@@ -353,6 +364,31 @@
                         @endforeach
 
                             </ul>
+
+                        </li>
+
+                    {{-- ROOT MENU WITH NO CHILDREN: render as a single standalone link
+                         instead of an empty collapsible group (which would otherwise render nothing). --}}
+                    @elseif (!empty($rootMenu->menu_route))
+
+                        <li class="mt-4 {{ Route::is([$rootMenu->menu_route, $rootMenu->menu_route . '.*'])
+                            ? 'bg-indigo-500/10 text-indigo-600'
+                            : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} flex items-center justify-between rounded-lg">
+
+                            <a href="{{ route($rootMenu->menu_route) }}"
+                                class="flex min-h-9 min-w-0 flex-1 items-center gap-3 px-3 py-1.5 text-sm">
+
+                                <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="1.5"
+                                        d="{{ $rootMenu->menu_icon }}" />
+                                </svg>
+
+                                <span class="truncate">{{ $rootMenu->menu_name }}</span>
+                            </a>
+
+                            <x-app.favourite-star :screen-id="$rootMenu->screen_id" :application-id="$rootMenu->application_id" :favourite-keys="$favouriteKeys ?? []" />
 
                         </li>
 

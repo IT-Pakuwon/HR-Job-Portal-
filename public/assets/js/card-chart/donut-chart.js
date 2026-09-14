@@ -83,6 +83,12 @@
                     return seriesName + ':  ' + val.toLocaleString() + ' (' + pct + '%)';
                 },
             },
+            responsive: [{
+                breakpoint: 1024,
+                options: {
+                    legend: { position: 'bottom', horizontalAlign: 'center' },
+                },
+            }],
         });
         chart.render();
 
