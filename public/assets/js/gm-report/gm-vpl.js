@@ -52,7 +52,7 @@
         return Number(n || 0).toLocaleString('id-ID');
     }
 
-    // ── GM Insight ─────────────────────────────────────────────────────────────
+    // ── Summary Insight ─────────────────────────────────────────────────────────────
     function computeVplInsights() {
         if (!lastOverview) return;
         var insights = [];

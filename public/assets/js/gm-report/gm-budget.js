@@ -16,7 +16,7 @@
     var donutSelected  = null; // { label, val } when a segment is clicked, null = show total
     var lastBudgetSummary = null; // cached for computeBudgetInsights (needs summary + dept rows together)
 
-    // ── GM Insight ─────────────────────────────────────────────────────────────
+    // ── Summary Insight ─────────────────────────────────────────────────────────────
     function computeBudgetInsights() {
         var d = lastBudgetSummary;
         if (!d) return;
@@ -369,7 +369,7 @@
             .catch(function (e) { if (e.name !== 'AbortError') console.error('budget by dept:', e); });
     }
 
-    // Per-company breakdown — used only by the GM Insight panel (no table of
+    // Per-company breakdown — used only by the Summary Insight panel (no table of
     // its own), so it comes back empty once a specific company is filtered
     // the same way isortSummary's by_site does.
     var companyRows = [];

@@ -471,7 +471,7 @@ class GmReportController extends Controller
 
     // ── API: Budget by company ────────────────────────────────────────────────
     // Route was already registered (gm.budget-by-company) but had no matching
-    // method — the GM Insight panel needs a per-company breakdown alongside
+    // method — the Summary Insight panel needs a per-company breakdown alongside
     // the existing per-department one when "All Companies" is selected.
 
     public function budgetByCompany(Request $request)

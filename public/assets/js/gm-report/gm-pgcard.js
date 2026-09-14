@@ -786,7 +786,7 @@
             .catch(function (e) { if (e.name !== 'AbortError') console.error('pgcard kpi:', e); });
     }
 
-    // ── GM Insight — cross-mall comparison when unfiltered, top performer
+    // ── Summary Insight — cross-mall comparison when unfiltered, top performer
     //    call-outs when scoped to one mall (reuses the same insights payload
     //    the per-KPI-card mini insights above already use). ────────────────
     function computePgcardInsights(d, byMall, insights) {

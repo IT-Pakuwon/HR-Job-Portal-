@@ -470,7 +470,7 @@
         computeIsortInsights(bySite, totalCase, totalOverdue, avgHrs, closureRate);
     }
 
-    // ── GM Insight ─────────────────────────────────────────────────────────────
+    // ── Summary Insight ─────────────────────────────────────────────────────────────
     function computeIsortInsights(bySite, totalCase, totalOverdue, avgHrs, closureRate) {
         var gm = [];
 

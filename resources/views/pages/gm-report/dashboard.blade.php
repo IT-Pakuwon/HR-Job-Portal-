@@ -45,7 +45,7 @@
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                 <div>
                     <h1 class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                        GM DASBOARD
+                        Reports
                     </h1>
                 </div>
 

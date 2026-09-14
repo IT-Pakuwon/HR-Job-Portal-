@@ -54,7 +54,7 @@
             .catch(function (e) { if (e.name !== 'AbortError') console.error('event summary:', e); });
     }
 
-    // ── GM Insight — draws on summary, by-type, and the Paid events list
+    // ── Summary Insight — draws on summary, by-type, and the Paid events list
     //    (ganttEvents, populated by loadTimeline below) together. ─────────────
     var lastEventSummary = null, lastEventByType = null;
     function computeEventInsights() {
