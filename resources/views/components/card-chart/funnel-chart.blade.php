@@ -16,11 +16,14 @@
 <div {{ $attributes->merge(['class' => 'relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:shadow-lg dark:border-slate-700/60 dark:bg-slate-900']) }}>
     <div class="absolute inset-x-0 top-0 h-0.75" style="background:linear-gradient(to right,{{ $c[0] }},{{ $c[1] }})"></div>
 
-    <div class="flex items-start justify-between px-5 pt-5 pb-1">
+    <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-5 pt-5 pb-1">
         <div>
             @if($subtitle)<p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{{ $subtitle }}</p>@endif
             <h3 class="mt-0.5 text-base font-bold text-slate-800 dark:text-white">{{ $title }}</h3>
         </div>
+        @isset($headerEnd)
+            <div class="flex shrink-0 items-center">{{ $headerEnd }}</div>
+        @endisset
     </div>
 
     <div class="px-2 pb-3 pt-1">

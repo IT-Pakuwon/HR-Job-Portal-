@@ -136,6 +136,12 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                                     </svg>
                                 </template>
+                                {{-- New email: envelope (blue) --}}
+                                <template x-if="statusCfg(item.status).cat === 'mail'">
+                                    <svg :class="statusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                    </svg>
+                                </template>
                             </div>
                         </div>
 
@@ -267,6 +273,12 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                         </svg>
                     </template>
+                    {{-- New email: envelope (blue) --}}
+                    <template x-if="statusCfg(toast.item?.status).cat === 'mail'">
+                        <svg :class="statusCfg(toast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                    </template>
                 </div>
 
                 <div class="min-w-0 flex-1">
@@ -352,6 +364,8 @@ function docNotifications() {
                 // Comment mentions
                 'MENTION':    { iconBg: 'bg-violet-100 dark:bg-violet-900/30', iconText: 'text-violet-600 dark:text-violet-400', badge: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400', bar: 'bg-violet-500', cat: 'mention' },
                 'COMMENT':    { iconBg: 'bg-sky-100 dark:bg-sky-900/30',       iconText: 'text-sky-600 dark:text-sky-400',       badge: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',             bar: 'bg-sky-500',    cat: 'comment' },
+                // New unread inbox email
+                'MAIL':       { iconBg: 'bg-blue-100 dark:bg-blue-900/30',     iconText: 'text-blue-600 dark:text-blue-400',     badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',         bar: 'bg-blue-500',   cat: 'mail' },
                 // VPL stock expiry reminders (Voucher/Product batches nearing expired_date)
                 'VPL_EXPIRING': { iconBg: 'bg-amber-100 dark:bg-amber-900/30', iconText: 'text-amber-600 dark:text-amber-400', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', bar: 'bg-amber-500', cat: 'warn' },
             };
@@ -524,7 +538,9 @@ function docNotifications() {
                             ? 'You are mentioned in this document, please check.'
                             : first.status === 'COMMENT'
                                 ? 'There is a new comment in this document, please check.'
-                                : _proceedStatuses.has(first.status)
+                                : first.status === 'MAIL'
+                                    ? 'You still have an unread email waiting in your inbox.'
+                                    : _proceedStatuses.has(first.status)
                                 ? 'Please proceed your document.'
                                 : 'Please wait, your document is still in process.';
                     const toastMsg   = isReAlert ? reAlertMsg : first.message;

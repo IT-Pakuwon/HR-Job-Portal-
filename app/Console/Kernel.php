@@ -129,6 +129,12 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/training-notify-certificate-ready.log'));
 
+        // Pull new inbox mail into mailbox_emails
+        $schedule->command('mailbox:fetch')
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/mailbox-fetch.log'));
+
         // Refresh Dashboard PGTrek materialized views (point/time, personnel, alert point)
         $schedule->command('pgtrek:refresh-views')
             ->everyThirtyMinutes()

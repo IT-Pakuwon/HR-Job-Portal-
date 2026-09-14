@@ -44,6 +44,7 @@ use App\Http\Controllers\DepartmentsController;
 use App\Http\Controllers\GradingController;
 use App\Http\Controllers\PerformanceManagementController;
 use App\Http\Controllers\DocumentNotificationController;
+use App\Http\Controllers\MailboxController;
 use App\Http\Controllers\EngTicketController;
 use App\Http\Controllers\EventCalendarController;
 use App\Http\Controllers\EventLocationSetupController;
@@ -2251,6 +2252,22 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/my-document-notifications', [DocumentNotificationController::class, 'index'])->name('my.document.notifications');
         Route::post('/document-notifications/mark-read', [DocumentNotificationController::class, 'markRead'])->name('document.notifications.mark-read');
+
+        Route::prefix('mailbox')->controller(MailboxController::class)->name('mailbox.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/panel', 'panel')->name('panel');
+            Route::get('/unread-count', 'unreadCount')->name('unread-count');
+            Route::post('/sync', 'sync')->name('sync');
+            Route::post('/send', 'send')->name('send');
+            Route::post('/save-draft', 'saveDraft')->name('save-draft');
+            Route::get('/account-settings', 'accountSettings')->name('account-settings');
+            Route::post('/account-settings', 'saveAccountSettings')->name('account-settings.save');
+            Route::get('/{email}/content', 'content')->name('content');
+            Route::get('/{email}/attachments', 'attachments')->name('attachments');
+            Route::get('/{email}/attachments/{index}', 'downloadAttachment')->whereNumber('index')->name('attachments.download');
+            Route::post('/{email}/archive', 'archive')->name('archive');
+            Route::delete('/{email}', 'destroy')->name('destroy');
+        });
 
         Route::get('/global-search', [GlobalSearchController::class, 'search'])->name('global-search');
 
