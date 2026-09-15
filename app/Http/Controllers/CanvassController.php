@@ -8761,6 +8761,13 @@ class CanvassController extends Controller
                 // $noSk = $this->makeNoSk($cpny, $now);   // SK/024/AW/X/2025
                 $noSk = $this->makeNoSk($cpny, $now, $rows);
 
+                $businessUnitId = $rows
+                    ->pluck('budget_business_unit_id')
+                    ->filter(fn ($val) => !is_null($val) && trim((string) $val) !== '')
+                    ->map(fn ($val) => strtoupper(trim((string) $val)))
+                    ->unique()
+                    ->first();
+
 
                 // ===== KONTRAK HEADER =====
                 $k = new TrKontrak();
@@ -8769,6 +8776,7 @@ class CanvassController extends Controller
                 $k->kontrakid = $kontrakId;
                 $k->kontrakdate = $now->toDateString();
                 $k->cpny_id = $cpny;
+                $k->business_unit_id = $businessUnitId;
 
                 $k->csid = $cs->csid;
                 $k->sppbjktid = $cs->sppbjktid ?? null;

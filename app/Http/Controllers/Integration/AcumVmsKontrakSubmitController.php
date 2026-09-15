@@ -50,6 +50,7 @@ class AcumVmsKontrakSubmitController extends Controller
             $payload = [[
                 'kontrakid'       => $kontrak->kontrakid,
                 'cpny_id'         => $kontrak->cpny_id,
+                'business_unit_id' => $kontrak->business_unit_id,
                 'kontrakdate'     => $kontrak->kontrakdate,
                 'csid'            => $kontrak->csid,
                 'sppbjktid'       => $kontrak->sppbjktid,
@@ -75,6 +76,7 @@ class AcumVmsKontrakSubmitController extends Controller
                 $payload,
                 ['kontrakid', 'cpny_id'],
                 [
+                    'business_unit_id',
                     'kontrakdate',
                     'csid',
                     'sppbjktid',
