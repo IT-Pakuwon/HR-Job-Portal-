@@ -2266,6 +2266,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/save-draft', 'saveDraft')->name('save-draft');
             Route::get('/account-settings', 'accountSettings')->name('account-settings');
             Route::post('/account-settings', 'saveAccountSettings')->name('account-settings.save');
+            Route::post('/account-settings/disconnect', 'disconnectAccount')->name('account-settings.disconnect');
             Route::get('/{email}/content', 'content')->whereNumber('email')->name('content');
             Route::get('/{email}/attachments', 'attachments')->whereNumber('email')->name('attachments');
             Route::get('/{email}/attachments/{index}', 'downloadAttachment')->whereNumber('email')->whereNumber('index')->name('attachments.download');

@@ -77,15 +77,25 @@ class TrainingRegistrationController extends Controller
      * Same browse page, but with a specific one of the caller's own
      * registrations' view modal auto-opened — same hash-id/shareable-URL
      * convention as show() above, scoped to My Registrations instead.
+     *
+     * Also viewable by any USERACCESS holder regardless of status, so an
+     * approver can open a Pending registration to review/approve it (not
+     * only after it's already Approved).
      */
     public function showMy($eid)
     {
         $id = Hashids::decode($eid)[0] ?? null;
         abort_if(!$id, 404);
 
-        TrLndTrainingRegistration::where('id', $id)
-            ->where('user_registration', Auth::user()->username)
-            ->firstOrFail();
+        $user = Auth::user();
+
+        $query = TrLndTrainingRegistration::where('id', $id);
+
+        if (!$user->hasRole('USERACCESS')) {
+            $query->where('user_registration', $user->username);
+        }
+
+        $query->firstOrFail();
 
         return view('pages.training_list.index', ['initialEid' => null, 'initialMyEid' => $eid, 'initialAllRegsEid' => null]);
     }

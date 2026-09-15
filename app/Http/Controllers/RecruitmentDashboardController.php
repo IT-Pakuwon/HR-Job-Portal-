@@ -440,10 +440,9 @@ class RecruitmentDashboardController extends Controller
 
         // Straight top 10 real cities — no "Others" catch-all bar, so the
         // chart actually shows 10 cities instead of 9 + a leftover bucket.
-        // Take the top 10 by count (desc), then re-sort ascending so the
-        // horizontal bar chart renders smallest-to-largest top-to-bottom,
-        // matching the Division chart above it.
-        $cityCounts = $rawCityCounts->take(10)->sort();
+        // Selection stays by count (desc, from $rawCityCounts above); display
+        // order is alphabetical (A-Z by city name) for readability.
+        $cityCounts = $rawCityCounts->take(10);
 
         // ── Hiring source ("how did you hear about us") ───────────────────────
         // Mostly unfilled (a large "Unknown" share is expected) — the chart only
@@ -474,8 +473,8 @@ class RecruitmentDashboardController extends Controller
         $educationTotal = $educationCounts->sum();
         $unknownEducationPct = $educationTotal > 0 ? round($educationCounts->get('Unknown', 0) / $educationTotal * 100, 1) : 0;
 
-        $topCityLabel = $cityCounts->keys()->last();
-        $topCityCount = (int) ($cityCounts->last() ?? 0);
+        $topCityLabel = $cityCounts->keys()->first();
+        $topCityCount = (int) ($cityCounts->first() ?? 0);
 
         $totalRejected = (int) $careerCounts->get('R', 0);
         $totalJoined = (int) $careerCounts->get('C', 0);
@@ -532,14 +531,16 @@ class RecruitmentDashboardController extends Controller
             'total' => ($divisionCareerTotals[$id] ?? 0) + ($divisionSelfTotals[$id] ?? 0),
         ])
             ->sortByDesc('total')
-            ->take(10)
-            ->sortBy('total')
-            ->values();
+            ->take(10);
 
-        $topDivisionRow = $divisionRows->last();
+        // Selection above stays by total (desc); display order is
+        // alphabetical (A-Z by division name) for readability.
+        $topDivisionRow = $divisionRows->first();
         $topDivisionShare = $totalApplicantAll > 0 && $topDivisionRow
             ? round($topDivisionRow['total'] / $totalApplicantAll * 100, 1)
             : 0;
+
+        $divisionRows = $divisionRows->sortBy('label')->values();
 
         $divisionLabels = $divisionRows->pluck('label')->all();
         $divisionCareerSeries = $divisionRows->pluck('career')->all();
@@ -567,7 +568,7 @@ class RecruitmentDashboardController extends Controller
         $jobApplyRows = $jobApplyCounts->map(fn ($row) => [
             'job_title' => $row->job_title ?: '(Untitled)',
             'department' => self::formatLabel($departmentNames->get($row->departementid, '-')),
-            'status' => $jobStatusLabels[$jobPostingStatusMap->get($row->docidposting)] ?? '-',
+            'status' => $jobStatusLabels[$jobPostingMeta->get($row->docidposting)->status ?? null] ?? '-',
             'total' => (int) $row->total,
             'pct' => $totalJobApplied > 0 ? round($row->total / $totalJobApplied * 100, 1) : 0,
         ])
@@ -929,8 +930,8 @@ class RecruitmentDashboardController extends Controller
             'ageLabels' => array_keys($ageBuckets),
             'ageGenderSeries' => $ageGenderSeries,
             'ageEducationSeries' => $ageEducationSeries,
-            'cityLabels' => $cityCounts->keys()->values()->all(),
-            'citySeries' => $cityCounts->values()->all(),
+            'cityLabels' => $cityCounts->sortKeys()->keys()->values()->all(),
+            'citySeries' => $cityCounts->sortKeys()->values()->all(),
             'topGenderLabel' => $topGenderLabel,
             'topGenderPct' => $topGenderPct,
             'topAgeLabel' => $topAgeLabel,

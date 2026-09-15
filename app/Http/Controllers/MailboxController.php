@@ -188,6 +188,21 @@ class MailboxController extends Controller
     }
 
     /**
+     * Disconnect the current user's mailbox: drop the stored IMAP/SMTP
+     * credentials and the locally cached copy of their messages, so they
+     * start clean the next time they connect (like logging out).
+     */
+    public function disconnectAccount(Request $request)
+    {
+        $account = $this->requireAccount($request);
+
+        MailboxEmail::where('username', $account->username)->delete();
+        $account->delete();
+
+        return response()->json(['success' => true, 'message' => 'Mailbox disconnected.']);
+    }
+
+    /**
      * Email content for the read/edit-draft modal (AJAX). Marks the message
      * as read, unless it's a draft (drafts don't have a read state).
      */

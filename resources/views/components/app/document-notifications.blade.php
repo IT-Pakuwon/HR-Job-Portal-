@@ -144,6 +144,12 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                                     </svg>
                                 </template>
+                                {{-- New training published: graduation cap (emerald) --}}
+                                <template x-if="statusCfg(item.status).cat === 'training'">
+                                    <svg :class="statusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.42A12.083 12.083 0 0121 12.5c0 2.485-4.03 4.5-9 4.5s-9-2.015-9-4.5c0-.83.264-1.607.836-2.42L12 14z"/>
+                                    </svg>
+                                </template>
                             </div>
                         </div>
 
@@ -402,6 +408,12 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                         </svg>
                     </template>
+                    {{-- New training published: graduation cap (emerald) --}}
+                    <template x-if="statusCfg(toast.item?.status).cat === 'training'">
+                        <svg :class="statusCfg(toast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.42A12.083 12.083 0 0121 12.5c0 2.485-4.03 4.5-9 4.5s-9-2.015-9-4.5c0-.83.264-1.607.836-2.42L12 14z"/>
+                        </svg>
+                    </template>
                 </div>
 
                 <div class="min-w-0 flex-1">
@@ -501,6 +513,8 @@ function docNotifications() {
                 'MAIL':       { iconBg: 'bg-blue-100 dark:bg-blue-900/30',     iconText: 'text-blue-600 dark:text-blue-400',     badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',         bar: 'bg-blue-500',   cat: 'mail' },
                 // VPL stock expiry reminders (Voucher/Product batches nearing expired_date)
                 'VPL_EXPIRING': { iconBg: 'bg-amber-100 dark:bg-amber-900/30', iconText: 'text-amber-600 dark:text-amber-400', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', bar: 'bg-amber-500', cat: 'warn' },
+                // Newly published training schedule open for registration
+                'TRN_PUBLISHED': { iconBg: 'bg-emerald-100 dark:bg-emerald-900/30', iconText: 'text-emerald-600 dark:text-emerald-400', badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', bar: 'bg-emerald-500', cat: 'training' },
             };
             return map[status] || { iconBg: 'bg-gray-100 dark:bg-gray-700', iconText: 'text-gray-500 dark:text-gray-400', badge: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400', bar: 'bg-gray-500', cat: 'default' };
         },
