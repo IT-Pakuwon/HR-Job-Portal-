@@ -12,7 +12,7 @@
         <div class="flex items-start justify-between gap-2 border-b border-gray-100 px-4 py-4 dark:border-white/[0.06]">
             <div class="min-w-0">
                 <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">📧 Mailbox</h2>
-                <p class="mt-1 truncate text-xs text-gray-500 dark:text-gray-300">{{ $account->email }}</p>
+                <p class="mt-1 truncate text-sm text-gray-500 dark:text-gray-300">{{ $account->email }}</p>
             </div>
             <button type="button" @click="syncNow()" :disabled="syncing" title="Sync now"
                 class="shrink-0 rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50 dark:hover:bg-white/[0.06] dark:hover:text-gray-200">
@@ -92,7 +92,7 @@
                 </span>
                 <div>
                     <h3 class="text-sm font-semibold leading-tight text-gray-800 dark:text-gray-100">{{ $folderLabel($folder) }}</h3>
-                    <p class="text-xs text-gray-400 dark:text-gray-500">{{ $emails->total() }} {{ $emails->total() === 1 ? 'message' : 'messages' }}</p>
+                    <p class="text-sm text-gray-400 dark:text-gray-500">{{ $emails->total() }} {{ $emails->total() === 1 ? 'message' : 'messages' }}</p>
                 </div>
             </div>
 
@@ -146,7 +146,7 @@
                                 <div class="truncate {{ $email->is_read ? 'text-gray-600 dark:text-gray-300' : 'font-semibold text-gray-900 dark:text-gray-100' }}">
                                     {{ $email->subject ?: '(no subject)' }}
                                 </div>
-                                <div class="truncate text-xs text-gray-400 dark:text-gray-500">{{ $email->body_preview }}</div>
+                                <div class="truncate text-sm text-gray-400 dark:text-gray-500">{{ $email->body_preview }}</div>
                             </td>
                             <td class="px-4 py-3 text-gray-500 dark:text-gray-400">
                                 {{ optional($email->email_date)->format('d M Y H:i') }}
