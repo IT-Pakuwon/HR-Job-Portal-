@@ -1048,6 +1048,35 @@
             text-transform: uppercase;
             color: #6b7280;
         }
+        .viewModal-actionsRow {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+        }
+        .viewModal-actionsRow button {
+            flex: 1;
+            padding: 9px 0;
+            font-size: 12.5px;
+            font-weight: 600;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+        }
+        .modalApproveBtn {
+            background: #16a34a !important;
+            color: #fff !important;
+        }
+        .modalApproveBtn:hover {
+            background: #15803d !important;
+        }
+        .modalRejectBtn {
+            background: #fef2f2 !important;
+            color: #dc2626 !important;
+            border: 1px solid #fecaca !important;
+        }
+        .modalRejectBtn:hover {
+            background: #fee2e2 !important;
+        }
         .approvalStepList {
             display: flex;
             flex-direction: column;
@@ -1144,6 +1173,7 @@
         const myUrl = "{{ route('training-list.my') }}";
         const certificateUrl = "{{ route('training-list.certificate', ['id' => '__ID__']) }}";
         const myViewUrlTpl = "{{ route('training-list.my.show', ['eid' => '__EID__'], false) }}";
+        const approvalViewUrlTpl = "{{ route('training-list.my.show', ['eid' => '__EID__'], false) }}?tab=approvals";
         const trainingListPath = "{{ route('training-list', [], false) }}";
         const cancelUrlTpl = "{{ route('training-list.cancel', ['scheduleId' => '__ID__']) }}";
         const colleaguesUrl = "{{ route('training-list.colleagues') }}";
@@ -1160,6 +1190,7 @@
         const initialEid = @json($initialEid);
         const initialMyEid = @json($initialMyEid ?? null);
         const initialAllRegsEid = @json($initialAllRegsEid ?? null);
+        const initialApprovalEid = @json($initialApprovalEid ?? null);
 
         const statusLabels = {
             P: ['Waiting Approval', 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'],
@@ -2008,7 +2039,7 @@
 
         let myViewModalActive = false;
 
-        function openMyViewModal(r, { pushUrl = true, urlTpl = myViewUrlTpl } = {}) {
+        function openMyViewModal(r, { pushUrl = true, urlTpl = myViewUrlTpl, showApprovalActions = false } = {}) {
             if (pushUrl && r.eid) {
                 const targetPath = urlTpl.replace('__EID__', r.eid);
                 if (location.pathname !== targetPath) {
@@ -2049,6 +2080,12 @@
                     </div>
                     <div class="viewModal-body">
                         <div class="viewModal-card">${infoHtml}</div>
+                        ${showApprovalActions ? `
+                            <div class="viewModal-actionsRow">
+                                <button type="button" class="modalApproveBtn" data-id="${r.id}">✓ Approve</button>
+                                <button type="button" class="modalRejectBtn" data-id="${r.id}">✕ Reject</button>
+                            </div>
+                        ` : ''}
                         <h4 class="viewModal-sectionTitle">Approval Line</h4>
                         <div id="viewModalApprovalList" class="approvalStepList">
                             <p class="text-xs text-gray-400">Loading…</p>
@@ -2089,6 +2126,7 @@
 
         let pendingApprovalRows = [];
         let approvalsPage = 1;
+        let initialApprovalEidHandled = false;
 
         // Tab only appears once this actually finds something waiting on the
         // current user — called on initial page load (not just when the tab
@@ -2102,6 +2140,12 @@
                 $('#approvalsTabCount').text(pendingApprovalRows.length || '');
 
                 renderPendingApprovals();
+
+                if (!initialApprovalEidHandled && initialApprovalEid) {
+                    initialApprovalEidHandled = true;
+                    const match = pendingApprovalRows.find((row) => row.eid === initialApprovalEid);
+                    if (match) openMyViewModal(match, { pushUrl: false, showApprovalActions: true });
+                }
             });
         }
 
@@ -2127,6 +2171,7 @@
                         <td class="py-2 pr-4 whitespace-nowrap" data-label="Waiting Since">${fmtDate(r.waiting_since)}</td>
                         <td class="py-2 pr-4" data-label="Action">
                             <div class="flex items-center gap-1.5">
+                                <button class="viewApprovalBtn rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">View</button>
                                 <button class="approveRegBtn rounded-lg bg-green-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-green-700" data-id="${r.id}">Approve</button>
                                 <button class="rejectRegBtn rounded-lg border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${r.id}">Reject</button>
                             </div>
@@ -2141,9 +2186,16 @@
             });
         }
 
-        $(document).on('click', '.approveRegBtn, .rejectRegBtn', function () {
+        $(document).on('click', '.viewApprovalBtn', function () {
             const id = $(this).data('id');
-            const isApprove = $(this).hasClass('approveRegBtn');
+            const r = pendingApprovalRows.find((row) => String(row.id) === String(id));
+            if (!r) return;
+            openMyViewModal(r, { urlTpl: approvalViewUrlTpl, showApprovalActions: true });
+        });
+
+        // Shared by the Waiting Approval row buttons and the Approve/Reject
+        // buttons inside the view modal — same confirm dialog, same AJAX call.
+        function confirmApproveReject(id, isApprove) {
             const r = pendingApprovalRows.find((x) => String(x.id) === String(id));
 
             Swal.fire({
@@ -2188,6 +2240,17 @@
                     },
                 });
             });
+        }
+
+        $(document).on('click', '.approveRegBtn, .rejectRegBtn', function () {
+            confirmApproveReject($(this).data('id'), $(this).hasClass('approveRegBtn'));
+        });
+
+        $(document).on('click', '.modalApproveBtn, .modalRejectBtn', function () {
+            const id = $(this).data('id');
+            const isApprove = $(this).hasClass('modalApproveBtn');
+            Swal.close();
+            confirmApproveReject(id, isApprove);
         });
 
         function renderFeedbackQuestion(q, readOnly) {
@@ -2626,6 +2689,9 @@
         }
         if (initialAllRegsEid) {
             $('.tabBtn[data-tab="allregs"]').trigger('click');
+        }
+        if (initialApprovalEid) {
+            $('.tabBtn[data-tab="approvals"]').trigger('click');
         }
     </script>
 </x-app-layout>

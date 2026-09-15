@@ -231,9 +231,15 @@
         return badge(s.text, s.bg, s.color);
     }
 
+    // Some doctypes (e.g. TRN) need a query string appended after the hid
+    // to route to the right tab/state on the target page.
+    function rowHref(row) {
+        return `${row.url}/${row.hid}${row.query || ""}`;
+    }
+
     function renderCard(row, tab) {
 
-        const href = `${row.url}/${row.hid}`;
+        const href = rowHref(row);
         const subtitle = [row.cpnyid, row.departementid].filter(Boolean).join(" • ");
         const when = row.docdate;
 
@@ -385,7 +391,7 @@
         const showNoteCol = tab === "waiting" && rows.some(row => privateNoteButton(row) !== "");
 
         const rowsHtml = rows.map(row => {
-            const href = `${row.url}/${row.hid}`;
+            const href = rowHref(row);
             const noteHtml = showNoteCol ? privateNoteButton(row) : "";
 
             return `
@@ -660,7 +666,7 @@
                 if (row.url && row.hid) {
 
                     window.open(
-                        `${row.url}/${row.hid}`,
+                        rowHref(row),
                         "_blank"
                     );
                 }

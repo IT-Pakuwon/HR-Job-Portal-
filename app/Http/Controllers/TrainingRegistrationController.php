@@ -54,7 +54,7 @@ class TrainingRegistrationController extends Controller
 
     public function index()
     {
-        return view('pages.training_list.index', ['initialEid' => null, 'initialMyEid' => null, 'initialAllRegsEid' => null]);
+        return view('pages.training_list.index', ['initialEid' => null, 'initialMyEid' => null, 'initialAllRegsEid' => null, 'initialApprovalEid' => null]);
     }
 
     /**
@@ -70,7 +70,7 @@ class TrainingRegistrationController extends Controller
 
         MsTrainingEvent::findOrFail($id);
 
-        return view('pages.training_list.index', ['initialEid' => $eid, 'initialMyEid' => null, 'initialAllRegsEid' => null]);
+        return view('pages.training_list.index', ['initialEid' => $eid, 'initialMyEid' => null, 'initialAllRegsEid' => null, 'initialApprovalEid' => null]);
     }
 
     /**
@@ -81,8 +81,13 @@ class TrainingRegistrationController extends Controller
      * Also viewable by any USERACCESS holder regardless of status, so an
      * approver can open a Pending registration to review/approve it (not
      * only after it's already Approved).
+     *
+     * ?tab=approvals (used by the "Waiting Approval" widget/notification
+     * links, since an approver isn't the registrant and so wouldn't find
+     * this eid in their own My Registrations list) opens the Waiting
+     * Approval tab instead, where pendingApprovals() actually has this row.
      */
-    public function showMy($eid)
+    public function showMy($eid, Request $request)
     {
         $id = Hashids::decode($eid)[0] ?? null;
         abort_if(!$id, 404);
@@ -97,7 +102,14 @@ class TrainingRegistrationController extends Controller
 
         $query->firstOrFail();
 
-        return view('pages.training_list.index', ['initialEid' => null, 'initialMyEid' => $eid, 'initialAllRegsEid' => null]);
+        $isApprovalTab = $request->query('tab') === 'approvals';
+
+        return view('pages.training_list.index', [
+            'initialEid' => null,
+            'initialMyEid' => $isApprovalTab ? null : $eid,
+            'initialAllRegsEid' => null,
+            'initialApprovalEid' => $isApprovalTab ? $eid : null,
+        ]);
     }
 
     /**
@@ -117,7 +129,7 @@ class TrainingRegistrationController extends Controller
 
         TrLndTrainingRegistration::findOrFail($id);
 
-        return view('pages.training_list.index', ['initialEid' => null, 'initialMyEid' => null, 'initialAllRegsEid' => $eid]);
+        return view('pages.training_list.index', ['initialEid' => null, 'initialMyEid' => null, 'initialAllRegsEid' => $eid, 'initialApprovalEid' => null]);
     }
 
     /**
@@ -1107,8 +1119,17 @@ class TrainingRegistrationController extends Controller
         $deptIds = $registrations->pluck('department_id')->filter()->unique();
         $departmentNames = $deptIds->isEmpty() ? collect() : MsDepartment::whereIn('department_id', $deptIds)->pluck('department_name', 'department_id');
 
+        // Same place/level lookups as myRegistrations(), so a pending-approval
+        // row carries everything openMyViewModal() needs (eid, schedule/mode/
+        // speaker/level) — lets the Waiting Approval tab reuse that same
+        // read-only detail modal instead of only exposing Approve/Reject.
+        $placeIds = $registrations->pluck('schedule.places_id')->filter()->unique();
+        $placeNames = $placeIds->isEmpty() ? collect() : MsLndPlaces::whereIn('places_id', $placeIds)->pluck('places_name', 'places_id');
+
+        $levelLabels = StoGrading::labelsFor($registrations->pluck('schedule.schedule.job_level'));
+
         $data = $approvalRows
-            ->map(function ($apr) use ($registrations, $names, $companyNames, $departmentNames) {
+            ->map(function ($apr) use ($registrations, $names, $companyNames, $departmentNames, $placeNames, $levelLabels) {
                 $r = $registrations->get($apr->refnbr);
 
                 if (!$r) {
@@ -1117,6 +1138,7 @@ class TrainingRegistrationController extends Controller
 
                 return [
                     'id' => $r->id,
+                    'eid' => Hashids::encode($r->id),
                     'docid' => $r->training_regist_id,
                     'training_name' => $r->schedule?->schedule?->training?->training_name ?? null,
                     'username' => $r->user_registration,
@@ -1126,6 +1148,14 @@ class TrainingRegistrationController extends Controller
                     'department_id' => $r->department_id,
                     'department_name' => $departmentNames[$r->department_id] ?? $r->department_id,
                     'schedule_date' => ($r->schedule_date ?? $r->schedule?->schedule_date)?->format('Y-m-d'),
+                    'start_time' => $r->schedule?->schedule_start_time,
+                    'end_time' => $r->schedule?->schedule_end_time,
+                    'mode' => $r->schedule?->training_mode,
+                    'location' => $r->schedule?->places_id ? ($placeNames[$r->schedule->places_id] ?? $r->schedule->places_id) : null,
+                    'platform' => $r->schedule?->training_platform,
+                    'speaker_name' => $r->schedule?->training_speaker_name ?: $r->schedule?->training_ext_speaker_name,
+                    'grade_name' => $levelLabels[$r->schedule?->schedule?->job_level] ?? $r->schedule?->schedule?->job_level,
+                    'status' => $r->effective_status,
                     'waiting_since' => $apr->aprv_datebefore,
                 ];
             })

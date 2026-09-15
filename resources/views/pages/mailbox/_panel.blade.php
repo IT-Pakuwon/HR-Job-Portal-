@@ -120,11 +120,11 @@
         </div>
 
         <div class="min-h-0 flex-1 overflow-y-auto">
-            <table class="w-full min-w-full border-separate border-spacing-0 text-sm">
+            <table class="w-full min-w-full table-fixed border-separate border-spacing-0 text-sm">
                 <thead class="sticky top-0 z-10">
                     <tr class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 backdrop-blur dark:border-white/[0.06] dark:bg-[#0f172a]/95 dark:text-gray-400">
                         <th class="w-8 px-4 py-3"></th>
-                        <th class="px-4 py-3 text-left font-medium">From</th>
+                        <th class="w-48 px-4 py-3 text-left font-medium">From</th>
                         <th class="px-4 py-3 text-left font-medium">Subject</th>
                         <th class="w-44 px-4 py-3 text-left font-medium">Date</th>
                         <th class="w-24 px-4 py-3 text-left font-medium">Actions</th>
@@ -139,11 +139,11 @@
                                     <span class="inline-block h-2 w-2 rounded-full bg-blue-600" title="Unread"></span>
                                 @endunless
                             </td>
-                            <td class="px-4 py-3 {{ $email->is_read ? 'text-gray-600 dark:text-gray-300' : 'font-semibold text-gray-900 dark:text-gray-100' }}">
+                            <td class="truncate px-4 py-3 {{ $email->is_read ? 'text-gray-600 dark:text-gray-300' : 'font-semibold text-gray-900 dark:text-gray-100' }}">
                                 {{ $email->from_name ?: $email->from_address ?: '(unknown sender)' }}
                             </td>
                             <td class="px-4 py-3">
-                                <div class="{{ $email->is_read ? 'text-gray-600 dark:text-gray-300' : 'font-semibold text-gray-900 dark:text-gray-100' }}">
+                                <div class="truncate {{ $email->is_read ? 'text-gray-600 dark:text-gray-300' : 'font-semibold text-gray-900 dark:text-gray-100' }}">
                                     {{ $email->subject ?: '(no subject)' }}
                                 </div>
                                 <div class="truncate text-xs text-gray-400 dark:text-gray-500">{{ $email->body_preview }}</div>
