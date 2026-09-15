@@ -3,14 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Applicant;
-use App\Models\Company;
 use App\Models\Jobposting;
 use App\Models\MsCompany;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Vinkla\Hashids\Facades\Hashids;
 
 class RecruitmentDashboardController extends Controller
 {
@@ -78,6 +76,17 @@ class RecruitmentDashboardController extends Controller
      */
     private static function normalizeCityCounts(\Illuminate\Support\Collection $rawCities): \Illuminate\Support\Collection
     {
+        return self::normalizeCityLabels($rawCities)->countBy()->sortDesc();
+    }
+
+    /**
+     * Same folding as normalizeCityCounts(), but returns the per-row resolved
+     * label (keys preserved) instead of collapsing to aggregate counts — used
+     * where callers need to know which bucket a specific candidate landed in
+     * (e.g. exporting the "Others" rows).
+     */
+    private static function normalizeCityLabels(\Illuminate\Support\Collection $rawCities): \Illuminate\Support\Collection
+    {
         $titled = $rawCities->map(fn ($city) => self::formatLabel($city) ?: 'Unknown');
 
         $anchors = $titled->countBy()
@@ -98,9 +107,7 @@ class RecruitmentDashboardController extends Controller
             }
 
             return $label;
-        })
-            ->countBy()
-            ->sortDesc();
+        });
     }
 
     private static function ageBucket(int $age): string
@@ -200,7 +207,11 @@ class RecruitmentDashboardController extends Controller
             $postingCompanyQuery->whereIn('cpnyid', $filterCompanyIds);
         }
         $postingCompanyIds = $postingCompanyQuery->distinct()->pluck('cpnyid');
-        $companyNames = Company::whereIn('cpnyid', $postingCompanyIds)->pluck('cpnyname', 'cpnyid');
+        // MsCompany (pgsql2) is the current, complete company master — the legacy
+        // mysql2 `company` table (used here previously) is missing rows for some
+        // active cpnyids (e.g. O88, PRB), which made their names fall back to the
+        // raw ID in the filter dropdown.
+        $companyNames = MsCompany::whereIn('cpny_id', $postingCompanyIds)->pluck('cpny_name', 'cpny_id');
         $companies = $postingCompanyIds->map(fn ($id) => (object) ['cpnyid' => $id, 'cpnyname' => $companyNames->get($id, $id)])
             ->sortBy('cpnyname')
             ->values();
@@ -419,9 +430,11 @@ class RecruitmentDashboardController extends Controller
             ->groupBy('viewtrxcareer.docidposting', 'viewtrxcareer.job_title', 'viewtrxcareer.departementid')
             ->get();
 
-        $jobPostingStatusMap = $conn->table('hr_trx_jobposting')
+        $jobPostingMeta = $conn->table('hr_trx_jobposting')
             ->whereIn('docid', $jobApplyCounts->pluck('docidposting'))
-            ->pluck('status', 'docid');
+            ->select('docid', 'status', 'job_level', 'cpnyid')
+            ->get()
+            ->keyBy('docid');
 
         $departmentNames = $departments->pluck('department_name', 'department_id');
         $jobStatusLabels = ['P' => 'Posted', 'U' => 'Unposted', 'C' => 'Closed', 'H' => 'Hold'];
@@ -598,7 +611,7 @@ class RecruitmentDashboardController extends Controller
 
         $prfRows = DB::connection('pgsql3')->table('hr_trx_prf')
             ->whereIn('docid', $completedPrfIds)
-            ->select('docid', 'date as prf_date')
+            ->select('docid', 'date as prf_date', 'job_title', 'job_level', 'cpnyid')
             ->get();
 
         $postingStatuses = $conn->table('hr_trx_jobposting')
@@ -608,6 +621,9 @@ class RecruitmentDashboardController extends Controller
             ->get()
             ->keyBy('refid');
 
+        $prfCompanyNames = MsCompany::whereIn('cpny_id', $prfRows->pluck('cpnyid')->filter()->unique())
+            ->pluck('cpny_name', 'cpny_id');
+
         $prfWithPosting = $prfRows->map(function ($prf) use ($postingStatuses) {
             $posting = $postingStatuses->get($prf->docid);
 
@@ -615,19 +631,37 @@ class RecruitmentDashboardController extends Controller
                 'docid' => $prf->docid,
                 'prf_date' => $prf->prf_date,
                 'posting_date' => $posting->posting_date ?? null,
+                'job_title' => $prf->job_title,
+                'job_level' => $prf->job_level,
+                'cpnyid' => $prf->cpnyid,
             ];
         });
 
         // ── PRF Completed → Job Status turnaround ────────────────────────────
+        // NOTE: "posting_date" is when the resulting job posting was *created*
+        // (hr_trx_jobposting.date), not a true closure date — hr_trx_jobposting
+        // has a jobclosing_date column but it is unused/unpopulated across the
+        // app today, so PRF-completed-to-posted is the closest turnaround signal
+        // currently available.
         $prfToPostingDays = [];
+        $prfTurnaroundRows = [];
         foreach ($prfWithPosting as $r) {
             if ($r->posting_date && $r->prf_date) {
-                $prfToPostingDays[] = Carbon::parse($r->prf_date)->diffInDays(Carbon::parse($r->posting_date));
+                $days = Carbon::parse($r->prf_date)->diffInDays(Carbon::parse($r->posting_date));
+                $prfToPostingDays[] = $days;
+                $title = $r->job_title ?: '(Untitled)';
+                $prfTurnaroundRows[] = [
+                    'prf' => $r->docid,
+                    'job_title' => $r->job_level ? $title.' - '.$r->job_level : $title,
+                    'company' => $prfCompanyNames->get($r->cpnyid, $r->cpnyid),
+                    'total' => $days,
+                ];
             }
         }
         $avgPrfToPostingDays = count($prfToPostingDays) > 0
             ? round(array_sum($prfToPostingDays) / count($prfToPostingDays), 1)
             : null;
+        usort($prfTurnaroundRows, fn ($a, $b) => $b['total'] <=> $a['total']);
 
         $prfToPostingBuckets = ['<3 days' => 0, '3–7 days' => 0, '8–14 days' => 0, '15–30 days' => 0, '>30 days' => 0];
         foreach ($prfToPostingDays as $days) {
@@ -774,6 +808,7 @@ class RecruitmentDashboardController extends Controller
 
             // Total candidate applied per job
             'jobApplyRows' => $jobApplyRows->all(),
+            'prfTurnaroundRows' => $prfTurnaroundRows,
 
             // Suggested additions
             'avgTimeToHire' => $avgTimeToHire,
@@ -798,178 +833,5 @@ class RecruitmentDashboardController extends Controller
             'fullInsights' => $fullInsights,
             'lastUpdatedAt' => now()->format('d M Y, H:i'),
         ]);
-    }
-
-    public function summaryJson(Request $request)
-    {
-        abort_unless($request->ajax(), 404);
-
-        $waitingApproval = collect(
-            $this->approvalDashboard
-                ->waitingJson($request)
-                ->getData(true)['data'] ?? []
-        )->count();
-
-        $approvalHistory = collect(
-            $this->approvalDashboard
-                ->approveJson($request)
-                ->getData(true)['data'] ?? []
-        )->count();
-
-        $uncheckedApplicant = DB::connection('mysql3')
-            ->table('viewtrxcareer')
-            ->where('status', '!=', 'X')
-            ->where('is_read', 'N')
-            ->count();
-
-        $selfRegister = $this->uncheckedSelfRegisterQuery()->distinct()->count('vc.id');
-
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'waiting_approval' => $waitingApproval,
-                'approval_history' => $approvalHistory,
-                'unchecked_applicant' => $uncheckedApplicant,
-                'self_register' => $selfRegister,
-            ],
-        ]);
-    }
-
-    /**
-     * "New" self applicants = unread self-posting rows (sp.is_read).
-     */
-    protected function uncheckedSelfRegisterQuery()
-    {
-        return DB::connection('mysql3')
-            ->table('viewselfregister as vc')
-            ->leftJoin('hr_trx_selfposting as sp', function ($join) {
-                $join->on('vc.id', '=', 'sp.id')
-                    ->on('vc.group_cpny_id', '=', 'sp.group_cpny_id');
-            })
-            ->where(function ($q) {
-                $q->where('sp.is_read', 'N')->orWhereNull('sp.is_read');
-            })
-            ->whereNotIn('vc.status', ['R', 'X']);
-    }
-
-    public function widgetWaitingApprovalJson(Request $request)
-    {
-        abort_unless($request->ajax(), 404);
-
-        return $this->approvalDashboard->waitingJson($request);
-    }
-
-    public function widgetApprovalHistoryJson(Request $request)
-    {
-        abort_unless($request->ajax(), 404);
-
-        return $this->approvalDashboard->approveJson($request);
-    }
-
-    public function widgetApplicantJson(Request $request)
-    {
-        abort_unless($request->ajax(), 404);
-
-        $rows = DB::connection('mysql3')
-            ->table('viewtrxcareer')
-            ->select(['id', 'docid', 'fullname', 'apply_date', 'job_title', 'cpnyid', 'apply_step', 'status', 'is_read'])
-            ->where('status', '!=', 'X')
-            ->where('is_read', 'N')
-            ->orderByDesc('apply_date')
-            ->get();
-
-        $companyNames = MsCompany::whereIn('cpny_id', $rows->pluck('cpnyid')->filter()->unique())
-            ->pluck('cpny_name', 'cpny_id');
-
-        $stepNames = DB::connection('mysql3')
-            ->table('hr_ms_job_step')
-            ->whereIn('step_id', $rows->pluck('apply_step')->filter()->unique())
-            ->pluck('step_descr', 'step_id');
-
-        $rows = $rows
-            ->map(fn ($row) => [
-                'eid' => Hashids::encode($row->id),
-                'docid' => $row->docid,
-                'fullname' => $row->fullname,
-                'apply_date' => $row->apply_date,
-                'job_title' => $row->job_title,
-                'cpnyid' => $companyNames->get($row->cpnyid, $row->cpnyid),
-                'apply_step' => $stepNames->get($row->apply_step, $row->apply_step),
-                'status' => $row->status,
-                'url' => '/showcareers',
-            ])
-            ->values();
-
-        return response()->json(['success' => true, 'data' => $rows]);
-    }
-
-    public function widgetSelfRegisterJson(Request $request)
-    {
-        abort_unless($request->ajax(), 404);
-
-        $rows = $this->uncheckedSelfRegisterQuery()
-            ->leftJoin('hr_ms_division as div', 'vc.division_id', '=', 'div.division_id')
-            ->leftJoin('hr_ms_department as dept', 'vc.departementid', '=', 'dept.department_id')
-            ->select([
-                'vc.id', 'vc.docid', 'vc.fullname', 'vc.apply_date', 'vc.job_title', 'vc.group_cpny_id as cpnyid', 'vc.status',
-                'div.division_name', 'dept.department_name',
-            ])
-            ->distinct()
-            ->orderByDesc('vc.apply_date')
-            ->get()
-            ->map(fn ($row) => [
-                'eid' => Hashids::encode($row->id),
-                'docid' => $row->docid,
-                'fullname' => $row->fullname,
-                'apply_date' => $row->apply_date,
-                'job_title' => $row->job_title,
-                'cpnyid' => $row->cpnyid,
-                'division' => $row->division_name,
-                'department' => $row->department_name,
-                'status' => $row->status,
-                'url' => '/showselfregister',
-            ])
-            ->values();
-
-        return response()->json(['success' => true, 'data' => $rows]);
-    }
-
-    public function widgetApprovalDocTypes(Request $request)
-    {
-        abort_unless($request->ajax(), 404);
-
-        $waiting = collect(
-            $this->approvalDashboard
-                ->waitingJson($request)
-                ->getData(true)['data'] ?? []
-        );
-
-        $history = collect(
-            $this->approvalDashboard
-                ->approveJson($request)
-                ->getData(true)['data'] ?? []
-        );
-
-        $doctypes = $waiting
-            ->merge($history)
-            ->pluck('docid')
-            ->filter()
-            ->map(function ($docid) {
-                preg_match('/^[A-Z]+/', $docid, $match);
-
-                return $match[0] ?? null;
-            })
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
-
-        $rows = \App\Models\Autonbr::query()
-            ->select(['doctype', 'doctype_descr'])
-            ->whereIn('doctype', $doctypes)
-            ->orderBy('doctype')
-            ->get();
-
-        return response()->json(['success' => true, 'data' => $rows]);
     }
 }

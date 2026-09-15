@@ -1,4 +1,6 @@
-<div x-data="docNotifications()" x-init="init()" class="relative">
+<div x-data="docNotifications()" x-init="init()" class="flex items-center gap-1">
+
+  <div class="relative">
 
     {{-- Bell Button --}}
     <button
@@ -13,7 +15,7 @@
         </svg>
 
         {{-- Badge --}}
-        <span x-show="count > 0" x-text="count > 9 ? '9+' : count"
+        <span x-show="otherItems.length > 0" x-text="otherItems.length > 9 ? '9+' : otherItems.length"
             class="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white dark:ring-gray-800">
         </span>
     </button>
@@ -37,7 +39,7 @@
                     </svg>
                 </div>
                 <span class="text-sm font-semibold text-gray-800 dark:text-gray-100">Notifications</span>
-                <span x-show="count > 0" x-text="count"
+                <span x-show="otherItems.length > 0" x-text="otherItems.length"
                     class="rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-600 dark:bg-red-900/30 dark:text-red-400">
                 </span>
             </div>
@@ -51,7 +53,7 @@
         {{-- List --}}
         <ul class="max-h-[420px] overflow-y-auto divide-y divide-gray-50 dark:divide-gray-700/50">
 
-            <template x-if="items.length === 0">
+            <template x-if="otherItems.length === 0">
                 <li class="flex flex-col items-center gap-2 px-4 py-10 text-center">
                     <svg class="h-10 w-10 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -61,7 +63,7 @@
                 </li>
             </template>
 
-            <template x-for="item in items" :key="item.key">
+            <template x-for="item in otherItems" :key="item.key">
                 <li>
                     <a :href="item.href || `${item.url}/${item.hid}`"
                         @click="markRead(item); open = false"
@@ -191,13 +193,134 @@
         </ul>
 
         {{-- Footer --}}
-        <div x-show="items.length > 0" class="border-t border-gray-100 bg-gray-50 px-4 py-2.5 dark:border-gray-700 dark:bg-gray-800/50">
+        <div x-show="otherItems.length > 0" class="border-t border-gray-100 bg-gray-50 px-4 py-2.5 dark:border-gray-700 dark:bg-gray-800/50">
             <p class="text-center text-xs text-gray-400 dark:text-gray-500">
                 Refreshes automatically every 30 seconds
             </p>
         </div>
 
     </div>
+
+  </div>
+
+  <div class="relative">
+
+    {{-- Email Button --}}
+    <button
+        @click.prevent="mailOpen = !mailOpen; if (mailOpen) load()"
+        class="relative flex h-11 w-11 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
+        :class="{ 'bg-gray-100 dark:bg-gray-700': mailOpen }"
+        title="Email Notifications">
+
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+
+        {{-- Badge --}}
+        <span x-show="mailItems.length > 0" x-text="mailItems.length > 9 ? '9+' : mailItems.length"
+            class="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-500 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white dark:ring-gray-800">
+        </span>
+    </button>
+
+    {{-- Email Dropdown --}}
+    <div x-show="mailOpen" @click.outside="mailOpen = false" x-transition:enter="transition ease-out duration-150"
+        x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+        x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-100"
+        x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+        x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+        class="absolute right-0 z-50 mt-2 w-96 max-w-[calc(100vw-1rem)] origin-top-right overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800"
+        style="display: none;">
+
+        {{-- Header --}}
+        <div class="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-700">
+            <div class="flex items-center gap-2">
+                <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                    <svg class="h-4 w-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                <span class="text-sm font-semibold text-gray-800 dark:text-gray-100">Emails</span>
+                <span x-show="mailItems.length > 0" x-text="mailItems.length"
+                    class="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+                </span>
+            </div>
+            <button @click="mailOpen = false" class="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-200 transition-colors">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        {{-- List --}}
+        <ul class="max-h-[420px] overflow-y-auto divide-y divide-gray-50 dark:divide-gray-700/50">
+
+            <template x-if="mailItems.length === 0">
+                <li class="flex flex-col items-center gap-2 px-4 py-10 text-center">
+                    <svg class="h-10 w-10 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Inbox zero!</p>
+                    <p class="text-xs text-gray-400 dark:text-gray-500">No unread emails.</p>
+                </li>
+            </template>
+
+            <template x-for="item in mailItems" :key="item.key">
+                <li>
+                    <a :href="item.href || `${item.url}/${item.hid}`"
+                        @click="markRead(item); mailOpen = false"
+                        class="group flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors">
+
+                        {{-- Email icon --}}
+                        <div class="mt-0.5 shrink-0">
+                            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+                                <svg class="h-4 w-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                            </div>
+                        </div>
+
+                        {{-- Content --}}
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2">
+                                <span x-text="item.docid" class="truncate text-sm font-semibold text-gray-800 dark:text-gray-100"></span>
+                                <span x-text="item.label"
+                                    class="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                                </span>
+                            </div>
+                            <p x-text="item.message" class="mt-0.5 text-xs text-gray-500 dark:text-gray-400 leading-relaxed"></p>
+                            <div class="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[11px] text-gray-400 dark:text-gray-500">
+                                <template x-if="item.by">
+                                    <span>by <span x-text="item.by" class="font-medium text-gray-500 dark:text-gray-400"></span></span>
+                                </template>
+                                <template x-if="item.updated_at">
+                                    <span class="inline-flex items-center gap-1.5">
+                                        <span x-show="item.by" class="text-gray-300 dark:text-gray-600">·</span>
+                                        <span x-text="timeAgo(item.updated_at)"></span>
+                                    </span>
+                                </template>
+                            </div>
+                        </div>
+
+                        {{-- Arrow --}}
+                        <svg class="mt-1 h-4 w-4 shrink-0 text-gray-300 group-hover:text-gray-500 dark:text-gray-600 dark:group-hover:text-gray-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </li>
+            </template>
+        </ul>
+
+        {{-- Footer --}}
+        <div x-show="mailItems.length > 0" class="border-t border-gray-100 bg-gray-50 px-4 py-2.5 dark:border-gray-700 dark:bg-gray-800/50">
+            <p class="text-center text-xs text-gray-400 dark:text-gray-500">
+                Refreshes automatically every 30 seconds
+            </p>
+        </div>
+
+  </div>
+
+  </div>
 
     {{-- Toast Popup --}}
     <template x-teleport="body">
@@ -319,12 +442,22 @@
 function docNotifications() {
     return {
         open: false,
+        mailOpen: false,
         items: [],
         count: 0,
         toast: { show: false, item: null },
         _seenKey:      'doc_notif_seen_v1',
         _firstSeenKey: 'doc_notif_first_v1',
         _pendingKey:   'doc_notif_pending_dismiss_v1',
+
+        // Emails are grouped into their own section (see template) instead of being
+        // interleaved with document/ticket alerts, so they stay easy to scan at a glance.
+        get mailItems() {
+            return this.items.filter(i => i.status === 'MAIL');
+        },
+        get otherItems() {
+            return this.items.filter(i => i.status !== 'MAIL');
+        },
 
         // Returns styling config for each status type.
         // All class strings are full literals so Tailwind v4 includes them.

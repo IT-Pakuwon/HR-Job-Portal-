@@ -258,7 +258,7 @@
                                         </label>
                                         <select id="acc_id" name="acc_id[]"
                                             class="meeting-multi mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                                            multiple>
+                                            multiple required>
                                         </select>
                                     </div>
 
@@ -606,6 +606,20 @@
 
             $('#meetingForm').on('submit', function(e) {
                 e.preventDefault();
+
+                // Accessory pick is what findZoomAccessoryConflict() checks
+                // server-side — skip it and a Zoom account can get booked
+                // twice for the same slot without any warning.
+                const selectedAcc = accTom ? accTom.getValue() : $('#acc_id').val();
+
+                if (!selectedAcc || selectedAcc.length === 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Accessories required',
+                        text: 'Please select at least one accessory before creating the meeting.'
+                    });
+                    return;
+                }
 
                 const $form = $(this);
                 let formData = $form.serialize();

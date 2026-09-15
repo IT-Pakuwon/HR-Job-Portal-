@@ -6,9 +6,9 @@
         return $leaf === 'INBOX' ? 'Inbox' : $leaf;
     };
 @endphp
-<div class="flex flex-col gap-2 lg:flex-row">
+<div class="flex h-full flex-col gap-2 overflow-hidden lg:flex-row">
     <!-- FOLDER SIDEBAR -->
-    <div class="shrink-0 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] lg:w-56">
+    <div class="flex shrink-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] lg:w-56">
         <div class="flex items-start justify-between gap-2 border-b border-gray-100 px-4 py-4 dark:border-white/[0.06]">
             <div class="min-w-0">
                 <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">📧 Mailbox</h2>
@@ -30,7 +30,7 @@
             </button>
         </div>
 
-        <nav class="flex flex-row gap-1 overflow-x-auto p-2 pt-0 lg:flex-col lg:overflow-x-visible">
+        <nav class="flex flex-row gap-1 overflow-x-auto p-2 pt-0 lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-x-visible lg:overflow-y-auto">
             @foreach ($folders as $f)
                 @php
                     // Folders come back parent-then-children (see MailboxService::flattenFolders),
@@ -68,8 +68,8 @@
     </div>
 
     <!-- EMAIL LIST -->
-    <div class="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-        <div class="flex flex-col gap-4 border-b border-gray-100 bg-gray-50/60 px-5 py-4 dark:border-white/[0.06] dark:bg-white/[0.02] sm:flex-row sm:items-center sm:justify-between">
+    <div class="flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+        <div class="flex shrink-0 flex-col gap-4 border-b border-gray-100 bg-gray-50/60 px-5 py-4 dark:border-white/[0.06] dark:bg-white/[0.02] sm:flex-row sm:items-center sm:justify-between">
             <div class="flex items-center gap-2.5">
                 @php
                     $folderIcons = [
@@ -116,10 +116,10 @@
             </div>
         </div>
 
-        <div class="relative overflow-hidden">
+        <div class="min-h-0 flex-1 overflow-y-auto">
             <table class="w-full min-w-full border-separate border-spacing-0 text-sm">
-                <thead>
-                    <tr class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                <thead class="sticky top-0 z-10">
+                    <tr class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 backdrop-blur dark:border-white/[0.06] dark:bg-[#0f172a]/95 dark:text-gray-400">
                         <th class="w-8 px-4 py-3"></th>
                         <th class="px-4 py-3 text-left font-medium">From</th>
                         <th class="px-4 py-3 text-left font-medium">Subject</th>
@@ -180,7 +180,7 @@
             </table>
         </div>
 
-        <div class="px-5 py-4">
+        <div class="shrink-0 px-5 py-4">
             {{ $emails->links() }}
         </div>
     </div>

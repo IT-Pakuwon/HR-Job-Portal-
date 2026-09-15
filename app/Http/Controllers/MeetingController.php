@@ -871,8 +871,11 @@ class MeetingController extends Controller
                 'room_id' => ['required', 'string', 'max:50'],
                 'title' => ['required', 'string', 'max:255'],
                 'descr' => ['required', 'string'],
-                'acc_id' => ['nullable', 'array'],
-                'acc_id.*' => ['nullable', 'string'],
+                // Required: without an accessory, findZoomAccessoryConflict()
+                // below has nothing to check and Zoom double-booking slips
+                // through silently.
+                'acc_id' => ['required', 'array', 'min:1'],
+                'acc_id.*' => ['required', 'string'],
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
