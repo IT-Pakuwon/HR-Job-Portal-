@@ -75,7 +75,7 @@
                 position: legendPosition,
                 horizontalAlign: (legendPosition === 'top' || legendPosition === 'bottom') ? 'center' : 'left',
                 fontSize: '12px',
-                markers: { radius: 6 },
+                markers: { shape: 'circle', size: 6 },
                 itemMargin: { horizontal: 8, vertical: 4 },
                 formatter: function(seriesName, opts) {
                     var val = opts.w.globals.series[opts.seriesIndex];

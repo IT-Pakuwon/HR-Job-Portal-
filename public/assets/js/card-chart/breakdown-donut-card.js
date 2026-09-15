@@ -82,7 +82,7 @@
                 verticalAlign: 'middle',
                 fontSize: '12px',
                 fontWeight: 500,
-                markers: { radius: 10, width: 10, height: 10 },
+                markers: { shape: 'circle', size: 6 },
                 itemMargin: { horizontal: 4, vertical: 6 },
                 formatter: function(seriesName, opts) {
                     var v   = opts.w.globals.series[opts.seriesIndex];

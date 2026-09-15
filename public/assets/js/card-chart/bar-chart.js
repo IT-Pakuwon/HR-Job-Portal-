@@ -128,7 +128,7 @@
                 : { theme: dark ? 'dark' : 'light', y: { formatter: function(v) { return v.toLocaleString(); } } },
             legend: {
                 show: showLegend && series.length > 1, position: 'top', horizontalAlign: 'right',
-                fontSize: '12px', markers: { radius: 6 },
+                fontSize: '12px', markers: { shape: 'circle', size: 6 },
             },
         });
         chart.render();
