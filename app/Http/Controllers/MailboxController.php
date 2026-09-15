@@ -6,7 +6,6 @@ use App\Models\MailboxAccount;
 use App\Models\MailboxEmail;
 use App\Services\MailboxService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class MailboxController extends Controller
 {
@@ -87,7 +86,9 @@ class MailboxController extends Controller
 
         $folderCounts = MailboxEmail::query()
             ->where('username', $account->username)
-            ->select('folder', DB::raw('count(*) as total'), DB::raw('sum(case when is_read = false then 1 else 0 end) as unread'))
+            ->select('folder')
+            ->selectRaw('count(*) as total')
+            ->selectRaw('sum(case when is_read = ? then 1 else 0 end) as unread', [false])
             ->groupBy('folder')
             ->get()
             ->keyBy('folder');
