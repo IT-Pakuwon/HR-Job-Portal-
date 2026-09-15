@@ -1173,7 +1173,6 @@
         const myUrl = "{{ route('training-list.my') }}";
         const certificateUrl = "{{ route('training-list.certificate', ['id' => '__ID__']) }}";
         const myViewUrlTpl = "{{ route('training-list.my.show', ['eid' => '__EID__'], false) }}";
-        const approvalViewUrlTpl = "{{ route('training-list.my.show', ['eid' => '__EID__'], false) }}?tab=approvals";
         const trainingListPath = "{{ route('training-list', [], false) }}";
         const cancelUrlTpl = "{{ route('training-list.cancel', ['scheduleId' => '__ID__']) }}";
         const colleaguesUrl = "{{ route('training-list.colleagues') }}";
@@ -2144,7 +2143,18 @@
                 if (!initialApprovalEidHandled && initialApprovalEid) {
                     initialApprovalEidHandled = true;
                     const match = pendingApprovalRows.find((row) => row.eid === initialApprovalEid);
-                    if (match) openMyViewModal(match, { pushUrl: false, showApprovalActions: true });
+                    if (match) {
+                        openMyViewModal(match, { pushUrl: false, showApprovalActions: true });
+
+                        // ?tab=approvals only exists so the server knew which
+                        // tab to open on this initial load — once the modal's
+                        // up, drop it so the address bar matches the plain
+                        // /training-list/my/{eid} shape used everywhere else.
+                        const cleanPath = myViewUrlTpl.replace('__EID__', initialApprovalEid);
+                        if (location.pathname + location.search !== cleanPath) {
+                            history.replaceState({ trainingMyView: true }, '', cleanPath);
+                        }
+                    }
                 }
             });
         }
@@ -2190,7 +2200,7 @@
             const id = $(this).data('id');
             const r = pendingApprovalRows.find((row) => String(row.id) === String(id));
             if (!r) return;
-            openMyViewModal(r, { urlTpl: approvalViewUrlTpl, showApprovalActions: true });
+            openMyViewModal(r, { showApprovalActions: true });
         });
 
         // Shared by the Waiting Approval row buttons and the Approve/Reject
