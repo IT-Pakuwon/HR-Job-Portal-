@@ -221,6 +221,8 @@ class MailboxController extends Controller
             'from_name'    => $email->from_name,
             'from_address' => $email->from_address,
             'to_address'   => $email->to_address,
+            'cc_address'   => $email->cc_address,
+            'bcc_address'  => $email->bcc_address,
             'date'         => optional($email->email_date)->format('d M Y H:i'),
             'body_html'    => $email->body_html,
             'body_text'    => $email->body_text,
@@ -297,7 +299,9 @@ class MailboxController extends Controller
         $this->authorizeOwner($request, $email);
 
         try {
-            MailboxService::archiveMessage($account, $email);
+            if (!MailboxService::archiveMessage($account, $email)) {
+                return response()->json(['success' => false, 'message' => 'Archive failed: the message could not be found on the server.'], 422);
+            }
             return response()->json(['success' => true, 'message' => 'Email archived.']);
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => 'Archive failed: ' . $e->getMessage()], 422);
@@ -312,7 +316,9 @@ class MailboxController extends Controller
         $wasInTrash = strcasecmp($email->folder, MailboxService::TRASH_FOLDER) === 0;
 
         try {
-            MailboxService::deleteMessage($account, $email);
+            if (!MailboxService::deleteMessage($account, $email)) {
+                return response()->json(['success' => false, 'message' => 'Delete failed: the message could not be found on the server.'], 422);
+            }
             return response()->json([
                 'success' => true,
                 'message' => $wasInTrash ? 'Email permanently deleted.' : 'Email moved to Trash.',

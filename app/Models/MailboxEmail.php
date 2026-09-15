@@ -19,6 +19,8 @@ class MailboxEmail extends Model
         'from_address',
         'from_name',
         'to_address',
+        'cc_address',
+        'bcc_address',
         'email_date',
         'body_preview',
         'body_html',

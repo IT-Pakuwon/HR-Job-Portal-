@@ -220,20 +220,22 @@ class MailboxService
 
         // UID MOVE isn't supported by every mail server ("command not
         // permitted with UID" on this one), so move is copy-then-delete.
+        // copy() returns null (not an exception) on a handful of real
+        // failure paths (e.g. a rejected copy) — treat that as a failure
+        // rather than deleting the local record for a message that never
+        // actually moved, which would otherwise make it vanish from the
+        // app while still sitting untouched in its original server folder.
         $copied = $message->copy($targetFolder);
-        if ($copied) {
-            $message->delete();
+        if (!$copied) {
+            $client->disconnect();
+            return false;
         }
+
+        $message->delete();
         $client->disconnect();
 
         $email->delete();
-
-        if ($copied) {
-            static::upsertMessage($account, $targetFolder, $copied);
-        } else {
-            // Fallback: couldn't confirm the new UID directly, resync the whole folder.
-            static::fetchNew($account, $targetFolder);
-        }
+        static::upsertMessage($account, $targetFolder, $copied);
 
         return true;
     }
@@ -416,7 +418,10 @@ class MailboxService
         $from = $message->from?->first();
         $textBody = (string) $message->getTextBody();
         $htmlBody = (string) $message->getHTMLBody();
-        $preview = trim(mb_substr(strip_tags($textBody ?: $htmlBody), 0, 300));
+        if ($htmlBody !== '') {
+            $htmlBody = static::embedInlineImages($htmlBody, $message);
+        }
+        $preview = trim(mb_substr(static::textPreview($textBody, $htmlBody), 0, 300));
 
         MailboxEmail::updateOrCreate(
             [
@@ -431,6 +436,8 @@ class MailboxService
                 'from_address'    => $from->mail ?? null,
                 'from_name'       => $from->personal ?? null,
                 'to_address'      => (string) ($message->to ?? ''),
+                'cc_address'      => (string) ($message->cc ?? ''),
+                'bcc_address'     => (string) ($message->bcc ?? ''),
                 'email_date'      => $message->date?->toDate(),
                 'body_preview'    => $preview,
                 'body_html'       => $htmlBody ?: null,
@@ -440,6 +447,57 @@ class MailboxService
         );
 
         return true;
+    }
+
+    /**
+     * Plain-text snippet for the email list preview. Falls back to the HTML
+     * body when there's no text part (common for marketing/newsletter mail),
+     * but strip_tags() alone leaves <style>/<script> *content* behind (it
+     * only removes the tags), which used to surface as raw CSS/JS garbage in
+     * the preview for HTML-only emails — strip those blocks first.
+     */
+    protected static function textPreview(string $textBody, string $htmlBody): string
+    {
+        if ($textBody !== '') {
+            return strip_tags($textBody);
+        }
+
+        $cleaned = preg_replace('/<(script|style)\b[^>]*>.*?<\/\1>/is', ' ', $htmlBody);
+
+        return html_entity_decode(strip_tags($cleaned), ENT_QUOTES | ENT_HTML5);
+    }
+
+    /**
+     * Rewrite cid: references (inline/embedded images, e.g. a logo attached
+     * as a related part) to base64 data URIs using the message's own
+     * attachments, since a browser has no way to resolve "cid:" itself and
+     * would otherwise just show a broken image icon for every such image.
+     */
+    protected static function embedInlineImages(string $htmlBody, ImapMessage $message): string
+    {
+        if (!str_contains($htmlBody, 'cid:')) {
+            return $htmlBody;
+        }
+
+        $attachments = collect($message->getAttachments())->filter(fn ($att) => !empty($att->id));
+        if ($attachments->isEmpty()) {
+            return $htmlBody;
+        }
+
+        return preg_replace_callback(
+            '/cid:([^"\'\s)]+)/i',
+            function ($matches) use ($attachments) {
+                $contentId = trim($matches[1], '<>');
+                $attachment = $attachments->first(fn ($att) => $att->id === $contentId);
+                if (!$attachment) {
+                    return $matches[0];
+                }
+
+                $mime = $attachment->content_type ?: 'application/octet-stream';
+                return 'data:' . $mime . ';base64,' . base64_encode((string) $attachment->content);
+            },
+            $htmlBody
+        );
     }
 
     protected static function expungeRemoteMessage(ImapClient $client, string $folderPath, int $uid): void

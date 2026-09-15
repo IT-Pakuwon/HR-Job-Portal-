@@ -22,12 +22,20 @@
             const base = @js(parse_url(url('mailbox'), PHP_URL_PATH));
             const params = Object.fromEntries(url.searchParams.entries());
             const rest = url.pathname.slice(base.length).replace(/^\/+/, '');
-            if (rest) params.folder = rest.split('/').map(decodeURIComponent).join('/');
+            // A link to the default folder (INBOX) has no path segment at all
+            // (plain /mailbox), so `rest` is empty — folder must still resolve
+            // to 'INBOX' here, not be left unset, or currentFolder goes stale
+            // (e.g. still 'Drafts' from before) and openEmail() misreads any
+            // Inbox message as a draft.
+            params.folder = rest ? rest.split('/').map(decodeURIComponent).join('/') : 'INBOX';
             return params;
         },
         // Intercept clicks on plain <a> links inside the mailbox panel (folder
         // switches, pagination) so they load via AJAX instead of a full reload.
         onPanelClick(e) {
+            // Let modifier-clicks (open in new tab/window) and middle-click
+            // through untouched instead of hijacking them into an in-page AJAX load.
+            if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
             const a = e.target.closest('a[href]');
             if (!a) return;
             const url = new URL(a.getAttribute('href'), window.location.origin);
@@ -36,7 +44,11 @@
             e.preventDefault();
             this.loadPanel(this.paramsFromUrl(url));
         },
-        loadPanel(params = {}) {
+        // `pushState: false` is used when re-rendering for a browser
+        // Back/Forward navigation — the URL has already changed (that's what
+        // fired the popstate event), so pushing again here would corrupt the
+        // history stack instead of following it.
+        loadPanel(params = {}, { pushState = true } = {}) {
             // Drop empty/default values so the address bar stays clean
             // (e.g. plain /mailbox instead of /mailbox/INBOX?q=&per_page=25) —
             // the server already falls back to these same defaults when absent.
@@ -54,11 +66,13 @@
                 .then(r => r.text())
                 .then(html => {
                     document.getElementById('mailbox-panel').innerHTML = html;
-                    const { folder, ...rest } = clean;
-                    const folderPath = folder ? '/' + folder.split('/').map(encodeURIComponent).join('/') : '';
-                    const restQs = new URLSearchParams(rest).toString();
-                    const pageUrl = '{{ route('mailbox.index') }}' + folderPath + (restQs ? '?' + restQs : '');
-                    window.history.pushState({}, '', pageUrl);
+                    if (pushState) {
+                        const { folder, ...rest } = clean;
+                        const folderPath = folder ? '/' + folder.split('/').map(encodeURIComponent).join('/') : '';
+                        const restQs = new URLSearchParams(rest).toString();
+                        const pageUrl = '{{ route('mailbox.index') }}' + folderPath + (restQs ? '?' + restQs : '');
+                        window.history.pushState({}, '', pageUrl);
+                    }
                     if (params.folder) this.currentFolder = params.folder;
                 })
                 .catch(() => this.showToast('Failed to load mailbox.', false));
@@ -304,6 +318,10 @@
                 .then(r => r.json())
                 .then(data => {
                     this.composeToList = this.parseRecipients(data.to_address || '');
+                    this.composeCcList = this.parseRecipients(data.cc_address || '');
+                    this.showCc = this.composeCcList.length > 0;
+                    this.composeBccList = this.parseRecipients(data.bcc_address || '');
+                    this.showBcc = this.composeBccList.length > 0;
                     this.composeSubject = data.subject || '';
                     if (this.quill) {
                         this.quill.root.innerHTML = data.body_html || (data.body_text || '').replace(/\n/g, '<br>');
@@ -417,6 +435,12 @@
                 .then(data => {
                     this.settingsSaving = false;
                     if (data.success) {
+                        // The not-connected screen and the mailbox panel are two
+                        // different server-rendered branches (no #mailbox-panel div
+                        // exists yet to swap in), so a reload is unavoidable here —
+                        // but flag it so the reloaded page can auto-sync right away
+                        // instead of showing an empty inbox until a manual click.
+                        try { sessionStorage.setItem('mailbox_just_connected', '1'); } catch (e) {}
                         window.location.reload();
                     } else {
                         this.settingsError = data.message || 'Something went wrong.';
@@ -459,6 +483,15 @@
             u.searchParams.delete('open');
             window.history.replaceState({}, '', u);
         }
+        let justConnected = false;
+        try { justConnected = sessionStorage.getItem('mailbox_just_connected') === '1'; } catch (e) {}
+        if (justConnected) {
+            try { sessionStorage.removeItem('mailbox_just_connected'); } catch (e) {}
+            syncNow();
+        }
+        window.addEventListener('popstate', () => {
+            this.loadPanel(this.paramsFromUrl(new URL(window.location.href)), { pushState: false });
+        });
     ">
         @if (!$account)
             <!-- NOT CONNECTED YET -->
@@ -520,7 +553,7 @@
                     </template>
                     <template x-if="!loading && email && email.body_html">
                         <iframe class="h-[55vh] w-full rounded-lg border border-gray-200 bg-white dark:border-white/[0.06]"
-                            sandbox="" :srcdoc="email.body_html"></iframe>
+                            sandbox="allow-popups allow-popups-to-escape-sandbox" :srcdoc="email.body_html"></iframe>
                     </template>
                     <template x-if="!loading && email && !email.body_html">
                         <pre class="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-200" x-text="email.body_text"></pre>
