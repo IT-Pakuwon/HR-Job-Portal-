@@ -21,13 +21,13 @@ class MailboxAccount extends Model
         'smtp_host',
         'smtp_port',
         'smtp_encryption',
-        'is_active',
+        'status',
     ];
 
     protected $casts = [
         'imap_password' => 'encrypted',
         'imap_validate_cert' => 'boolean',
-        'is_active' => 'boolean',
+        'status' => 'boolean',
     ];
 
     protected $hidden = [

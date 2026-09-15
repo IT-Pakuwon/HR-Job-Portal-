@@ -168,7 +168,7 @@ class MailboxController extends Controller
             'smtp_host'       => $data['smtp_host'],
             'smtp_port'       => $data['smtp_port'],
             'smtp_encryption' => $data['smtp_encryption'],
-            'is_active'       => true,
+            'status'       => true,
         ];
         if (!empty($data['imap_password'])) {
             $payload['imap_password'] = $data['imap_password'];
@@ -333,7 +333,7 @@ class MailboxController extends Controller
             return null;
         }
 
-        return MailboxAccount::where('username', $username)->where('is_active', true)->first();
+        return MailboxAccount::where('username', $username)->where('status', true)->first();
     }
 
     protected function requireAccount(Request $request): MailboxAccount

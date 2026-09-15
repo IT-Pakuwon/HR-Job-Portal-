@@ -13,7 +13,7 @@ class FetchMailboxEmails extends Command
 
     public function handle(): void
     {
-        $accounts = MailboxAccount::where('is_active', true)->get();
+        $accounts = MailboxAccount::where('status', true)->get();
 
         foreach ($accounts as $account) {
             try {

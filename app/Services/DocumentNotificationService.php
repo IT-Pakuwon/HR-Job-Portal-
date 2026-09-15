@@ -803,7 +803,7 @@ class DocumentNotificationService
         //       no client-side read-cache needed like the comment/mention notifications.
         try {
             $hasMailbox = MailboxAccount::whereRaw("lower(trim(username)) = ?", [$username])
-                ->where('is_active', true)
+                ->where('status', true)
                 ->exists();
 
             if ($hasMailbox) {

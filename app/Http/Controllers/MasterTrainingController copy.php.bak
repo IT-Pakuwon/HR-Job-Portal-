@@ -20,7 +20,7 @@ class MasterTrainingController extends Controller
 
             $sessions = $training['sessions'] ?? [];
 
-            if (empty($sessions) || empty($training['is_active'])) {
+            if (empty($sessions) || empty($training['status'])) {
                 $training['status'] = 'DRAFT';
                 continue;
             }
