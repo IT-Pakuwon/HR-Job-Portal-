@@ -27,7 +27,7 @@
         </button>
         <div x-show="open" x-cloak x-transition.opacity.duration.150ms
             @if($align === 'right') style="right:0" @else style="left:0" @endif
-            class="absolute top-full z-30 mt-1.5 w-64 rounded-xl border border-slate-200 bg-white p-3 text-xs leading-relaxed text-slate-700 shadow-lg dark:border-slate-700/60 dark:bg-slate-800 dark:text-slate-200">
+            class="absolute top-full z-30 mt-1.5 w-56 max-w-[85vw] rounded-xl border border-slate-200 bg-white p-3 text-xs leading-relaxed text-slate-700 shadow-lg dark:border-slate-700/60 dark:bg-slate-800 dark:text-slate-200">
             {!! $text !!}
         </div>
     </div>

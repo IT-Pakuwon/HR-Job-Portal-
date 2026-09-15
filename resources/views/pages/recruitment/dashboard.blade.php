@@ -40,7 +40,7 @@
 
         {{-- ═════════════════════════════════════════════════════════════════════
              ROW 1 — Applicant Overview: Requisition & Applicant Pipeline totals,
-             Hiring Sources, and Age Demographics (tabbed)
+             Hiring Sources, and Age Demographics by Gender / Education
             ═════════════════════════════════════════════════════════════════════ --}}
         <div class="grid grid-cols-1 gap-3 lg:grid-cols-12" style="align-items:stretch">
 
@@ -76,76 +76,36 @@
 
             </div>
 
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:col-span-9" style="align-items:stretch">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 lg:col-span-9" style="align-items:stretch">
 
-                <div class="flex flex-col" style="display:flex">
-                    <x-card-chart.bar-chart
-                        class="flex-1"
-                        title="Top Hiring Sources ({{ $unknownSourcePct }}% unrecorded)"
-                        color="blue" height="300" :horizontal="false" :categories="$sourceLabels"
-                        :series="[['name' => 'Candidates', 'data' => $sourceSeries]]">
-                        <x-slot:headerEnd>
-                            <x-card-chart.insight-lamp :text="$insightSource['text']" :type="$insightSource['type']" />
-                        </x-slot:headerEnd>
-                    </x-card-chart.bar-chart>
-                </div>
+                <x-card-chart.bar-chart
+                    title="Top Hiring Sources ({{ $unknownSourcePct }}% unrecorded)"
+                    color="blue" height="320" :horizontal="false" :categories="$sourceLabels"
+                    :series="[['name' => 'Candidates', 'data' => $sourceSeries]]">
+                    <x-slot:headerEnd>
+                        <x-card-chart.insight-lamp :text="$insightSource['text']" :type="$insightSource['type']" />
+                    </x-slot:headerEnd>
+                </x-card-chart.bar-chart>
 
-                {{-- Age Distribution — Gender / Education tabbed into a single card
-                     instead of two, to keep the dashboard to two rows. --}}
-                <div class="flex flex-col" x-data="{ ageTab: 'gender' }">
+                <x-card-chart.bar-chart
+                    title="Age Distribution by Gender"
+                    color="pink" height="320" :stacked="true" :horizontal="false" legend-position="bottom"
+                    :categories="$ageLabels"
+                    :series="$ageGenderSeries">
+                    <x-slot:headerEnd>
+                        <x-card-chart.insight-lamp :text="$insightAgeGender['text']" :type="$insightAgeGender['type']" />
+                    </x-slot:headerEnd>
+                </x-card-chart.bar-chart>
 
-                    @php
-                        $ageTabButtons = <<<'BLADE'
-                            <div class="inline-flex rounded-full bg-slate-100 p-1 text-xs font-semibold dark:bg-slate-800">
-                                <button type="button" @click="ageTab = 'gender'"
-                                    class="rounded-full px-3 py-1 transition"
-                                    :class="ageTab === 'gender' ? 'bg-white text-pink-600 shadow-sm dark:bg-slate-900 dark:text-pink-400' : 'text-slate-500 dark:text-slate-400'">
-                                    Gender
-                                </button>
-                                <button type="button" @click="ageTab = 'education'; $nextTick(() => window.dispatchEvent(new Event('resize')))"
-                                    class="rounded-full px-3 py-1 transition"
-                                    :class="ageTab === 'education' ? 'bg-white text-pink-600 shadow-sm dark:bg-slate-900 dark:text-pink-400' : 'text-slate-500 dark:text-slate-400'">
-                                    Education
-                                </button>
-                            </div>
-                        BLADE;
-                    @endphp
-
-                    <div x-show="ageTab === 'gender'" class="flex flex-1 flex-col">
-                        <x-card-chart.bar-chart
-                            class="flex-1"
-                            title="Age Distribution by Gender"
-                            color="pink" height="300" :stacked="true" :horizontal="false"
-                            :categories="$ageLabels"
-                            :series="$ageGenderSeries">
-                            <x-slot:headerEnd>
-                                <div class="flex flex-wrap items-center justify-end gap-1">
-                                    {!! $ageTabButtons !!}
-                                    <x-card-chart.insight-lamp :text="$insightAgeGender['text']" :type="$insightAgeGender['type']" />
-                                    {!! $exportButton('gender', 'Unknown') !!}
-                                </div>
-                            </x-slot:headerEnd>
-                        </x-card-chart.bar-chart>
-                    </div>
-
-                    <div x-show="ageTab === 'education'" x-cloak class="flex flex-1 flex-col">
-                        <x-card-chart.bar-chart
-                            class="flex-1"
-                            title="Age Distribution by Education Level"
-                            color="green" height="300" :stacked="true" :horizontal="false"
-                            :categories="$ageLabels"
-                            :series="$ageEducationSeries">
-                            <x-slot:headerEnd>
-                                <div class="flex flex-wrap items-center justify-end gap-1">
-                                    {!! $ageTabButtons !!}
-                                    <x-card-chart.insight-lamp :text="$insightEducation['text']" :type="$insightEducation['type']" />
-                                    {!! $exportButton('education', 'Unknown') !!}
-                                </div>
-                            </x-slot:headerEnd>
-                        </x-card-chart.bar-chart>
-                    </div>
-
-                </div>
+                <x-card-chart.bar-chart
+                    title="Age Distribution by Education Level"
+                    color="green" height="320" :stacked="true" :horizontal="false" legend-position="bottom"
+                    :categories="$ageLabels"
+                    :series="$ageEducationSeries">
+                    <x-slot:headerEnd>
+                        <x-card-chart.insight-lamp :text="$insightEducation['text']" :type="$insightEducation['type']" />
+                    </x-slot:headerEnd>
+                </x-card-chart.bar-chart>
 
             </div>
 
@@ -153,134 +113,44 @@
 
         @if($applicantType !== 'self')
             {{-- ═════════════════════════════════════════════════════════════════
-                 ROW 2 — Candidate Distribution (Division / City, tabbed), Total
-                 Candidate per Job table, and Hiring Funnel (tabbed)
+                 ROW 2 — Candidate Distribution (Division, City) and Hiring Funnel
+                 (tabbed)
                 ═════════════════════════════════════════════════════════════════ --}}
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3" style="align-items:stretch">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" style="align-items:stretch">
 
-                <div class="flex flex-col" x-data="{ distTab: 'division' }">
+                <x-card-chart.bar-chart
+                    title="Top 10 Division by Candidate Applied"
+                    color="violet" height="360" :stacked="true" :show-legend="false"
+                    :categories="$divisionLabels"
+                    :series="[
+                        ['name' => 'Job Applicant', 'data' => $divisionCareerSeries],
+                        ['name' => 'Self Applicant', 'data' => $divisionSelfSeries],
+                    ]">
+                    <x-slot:headerEnd>
+                        <div class="flex flex-wrap items-center justify-end gap-2">
+                            @if($insightDivision)
+                                <x-card-chart.insight-lamp :text="$insightDivision['text']" :type="$insightDivision['type']" />
+                            @endif
+                            <span class="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                <span class="h-2.5 w-2.5 rounded-sm" style="background:#8B5CF6"></span> Job
+                            </span>
+                            <span class="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                <span class="h-2.5 w-2.5 rounded-sm" style="background:#3B82F6"></span> Self
+                            </span>
+                        </div>
+                    </x-slot:headerEnd>
+                </x-card-chart.bar-chart>
 
-                    @php
-                        $distTabButtons = <<<'BLADE'
-                            <div class="inline-flex rounded-full bg-slate-100 p-1 text-xs font-semibold dark:bg-slate-800">
-                                <button type="button" @click="distTab = 'division'"
-                                    class="rounded-full px-3 py-1 transition"
-                                    :class="distTab === 'division' ? 'bg-white text-violet-600 shadow-sm dark:bg-slate-900 dark:text-violet-400' : 'text-slate-500 dark:text-slate-400'">
-                                    Division
-                                </button>
-                                <button type="button" @click="distTab = 'city'; $nextTick(() => window.dispatchEvent(new Event('resize')))"
-                                    class="rounded-full px-3 py-1 transition"
-                                    :class="distTab === 'city' ? 'bg-white text-violet-600 shadow-sm dark:bg-slate-900 dark:text-violet-400' : 'text-slate-500 dark:text-slate-400'">
-                                    City
-                                </button>
-                            </div>
-                        BLADE;
-                    @endphp
-
-                    <div x-show="distTab === 'division'" class="flex flex-1 flex-col">
-                        <x-card-chart.bar-chart
-                            class="flex-1"
-                            title="Top 10 Division by Candidate Applied"
-                            color="violet" height="360" :stacked="true" :show-legend="false" :horizontal="false"
-                            :categories="$divisionLabels"
-                            :series="[
-                                ['name' => 'Job Applicant', 'data' => $divisionCareerSeries],
-                                ['name' => 'Self Applicant', 'data' => $divisionSelfSeries],
-                            ]">
-                            <x-slot:headerEnd>
-                                <div class="flex flex-wrap items-center justify-end gap-2">
-                                    {!! $distTabButtons !!}
-                                    @if($insightDivision)
-                                        <x-card-chart.insight-lamp :text="$insightDivision['text']" :type="$insightDivision['type']" />
-                                    @endif
-                                    <span class="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                                        <span class="h-2.5 w-2.5 rounded-sm" style="background:#8B5CF6"></span> Job
-                                    </span>
-                                    <span class="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                                        <span class="h-2.5 w-2.5 rounded-sm" style="background:#3B82F6"></span> Self
-                                    </span>
-                                </div>
-                            </x-slot:headerEnd>
-                        </x-card-chart.bar-chart>
-                    </div>
-
-                    <div x-show="distTab === 'city'" x-cloak class="flex flex-1 flex-col">
-                        <x-card-chart.bar-chart
-                            class="flex-1"
-                            title="Top 10 by Residential City"
-                            color="orange" height="360" :horizontal="false" :categories="$cityLabels"
-                            :series="[['name' => 'Candidates', 'data' => $citySeries]]">
-                            <x-slot:headerEnd>
-                                <div class="flex flex-wrap items-center justify-end gap-1">
-                                    {!! $distTabButtons !!}
-                                    <x-card-chart.insight-lamp :text="$insightCity['text']" :type="$insightCity['type']" />
-                                    {!! $exportButton('city', 'Not in Top 10') !!}
-                                </div>
-                            </x-slot:headerEnd>
-                        </x-card-chart.bar-chart>
-                    </div>
-
-                </div>
-
-                <div class="flex flex-col" x-data="{ jobTableTab: 'jobs' }">
-
-                    @php
-                        $jobTableTabButtons = <<<'BLADE'
-                            <div class="inline-flex rounded-full bg-slate-100 p-1 text-xs font-semibold dark:bg-slate-800">
-                                <button type="button" @click="jobTableTab = 'jobs'"
-                                    class="rounded-full px-3 py-1 transition"
-                                    :class="jobTableTab === 'jobs' ? 'bg-white text-cyan-600 shadow-sm dark:bg-slate-900 dark:text-cyan-400' : 'text-slate-500 dark:text-slate-400'">
-                                    Candidates per Job
-                                </button>
-                                <button type="button" @click="jobTableTab = 'prf'"
-                                    class="rounded-full px-3 py-1 transition"
-                                    :class="jobTableTab === 'prf' ? 'bg-white text-cyan-600 shadow-sm dark:bg-slate-900 dark:text-cyan-400' : 'text-slate-500 dark:text-slate-400'">
-                                    PRF → Job Closed
-                                </button>
-                            </div>
-                        BLADE;
-                    @endphp
-
-                    <div x-show="jobTableTab === 'jobs'" class="flex flex-1 flex-col">
-                        <x-card-chart.table-card
-                            class="flex-1"
-                            title="Total Candidate Applied per Job"
-                            color="cyan" :searchable="true" :sortable="true" search-placeholder="Search job..." max-height="360px"
-                            :columns="[
-                                ['label' => 'Job Title', 'key' => 'job_title'],
-                                ['label' => 'Company', 'key' => 'company'],
-                                ['label' => 'Total Applied', 'key' => 'total', 'numeric' => true],
-                                ['label' => 'Share of Applicants', 'key' => 'pct', 'numeric' => true, 'type' => 'bar'],
-                            ]"
-                            :rows="$jobApplyRows">
-                            <x-slot:headerEnd>
-                                <div class="flex items-center gap-2">
-                                    @if($insightTopJob)
-                                        <x-card-chart.insight-lamp :text="$insightTopJob['text']" :type="$insightTopJob['type']" />
-                                    @endif
-                                    {!! $jobTableTabButtons !!}
-                                </div>
-                            </x-slot:headerEnd>
-                        </x-card-chart.table-card>
-                    </div>
-
-                    <div x-show="jobTableTab === 'prf'" x-cloak class="flex flex-1 flex-col">
-                        <x-card-chart.table-card
-                            class="flex-1"
-                            title="PRF Completed → Job Closed (avg {{ $avgPrfToPostingDays ?? '—' }} days)"
-                            color="cyan" :searchable="true" :sortable="true" search-placeholder="Search PRF..." max-height="360px"
-                            :columns="[
-                                ['label' => 'PRF', 'key' => 'prf'],
-                                ['label' => 'Job Title', 'key' => 'job_title'],
-                                ['label' => 'Company', 'key' => 'company'],
-                                ['label' => 'Days (Completed → Posted)', 'key' => 'total', 'numeric' => true],
-                            ]"
-                            :rows="$prfTurnaroundRows">
-                            <x-slot:headerEnd>{!! $jobTableTabButtons !!}</x-slot:headerEnd>
-                        </x-card-chart.table-card>
-                    </div>
-
-                </div>
+                <x-card-chart.bar-chart
+                    title="Top 10 by Residential City"
+                    color="orange" height="360" :categories="$cityLabels"
+                    :series="[['name' => 'Candidates', 'data' => $citySeries]]">
+                    <x-slot:headerEnd>
+                        <div class="flex items-center gap-1">
+                            <x-card-chart.insight-lamp :text="$insightCity['text']" :type="$insightCity['type']" />
+                        </div>
+                    </x-slot:headerEnd>
+                </x-card-chart.bar-chart>
 
                 <div class="flex flex-col" x-data="{ funnelTab: 'funnel' }">
 
@@ -300,7 +170,7 @@
                                 <button type="button" @click="funnelTab = 'prf'; $nextTick(() => window.dispatchEvent(new Event('resize')))"
                                     class="rounded-full px-3 py-1 transition"
                                     :class="funnelTab === 'prf' ? 'bg-white text-orange-600 shadow-sm dark:bg-slate-900 dark:text-orange-400' : 'text-slate-500 dark:text-slate-400'">
-                                    PRF → Job Closed
+                                    PRF → Job Posted
                                 </button>
                             </div>
                         BLADE;
@@ -337,7 +207,7 @@
                     <div x-show="funnelTab === 'prf'" x-cloak class="flex flex-1 flex-col">
                         <x-card-chart.bar-chart
                             class="flex-1"
-                            title="PRF Completed → Job Closed (avg {{ $avgPrfToPostingDays ?? '—' }} days)"
+                            title="PRF Completion to Job Posting Time (avg {{ $avgPrfToPostingDays ?? '—' }} days)"
                             color="orange" height="360"
                             :categories="$prfToPostingLabels"
                             :series="[['name' => 'PRF', 'data' => $prfToPostingSeries]]">
@@ -345,6 +215,69 @@
                         </x-card-chart.bar-chart>
                     </div>
 
+                </div>
+
+            </div>
+
+            {{-- ═════════════════════════════════════════════════════════════════
+                 ROW 3 — Total Candidate Applied per Job table (own row, full width)
+                ═════════════════════════════════════════════════════════════════ --}}
+            <div class="flex flex-col" x-data="{ jobTableTab: 'jobs' }">
+
+                @php
+                    $jobTableTabButtons = <<<'BLADE'
+                        <div class="inline-flex rounded-full bg-slate-100 p-1 text-xs font-semibold dark:bg-slate-800">
+                            <button type="button" @click="jobTableTab = 'jobs'"
+                                class="rounded-full px-3 py-1 transition"
+                                :class="jobTableTab === 'jobs' ? 'bg-white text-cyan-600 shadow-sm dark:bg-slate-900 dark:text-cyan-400' : 'text-slate-500 dark:text-slate-400'">
+                                Candidates per Job
+                            </button>
+                            <button type="button" @click="jobTableTab = 'prf'"
+                                class="rounded-full px-3 py-1 transition"
+                                :class="jobTableTab === 'prf' ? 'bg-white text-cyan-600 shadow-sm dark:bg-slate-900 dark:text-cyan-400' : 'text-slate-500 dark:text-slate-400'">
+                                PRF → Job Posted
+                            </button>
+                        </div>
+                    BLADE;
+                @endphp
+
+                <div x-show="jobTableTab === 'jobs'" class="flex flex-1 flex-col">
+                    <x-card-chart.table-card
+                        class="flex-1"
+                        title="Total Candidate Applied per Job"
+                        color="cyan" :searchable="true" :sortable="true" search-placeholder="Search job..." max-height="360px"
+                        :columns="[
+                            ['label' => 'Job Title', 'key' => 'job_title', 'width' => '32%'],
+                            ['label' => 'Company', 'key' => 'company', 'width' => '26%'],
+                            ['label' => 'Total Applied', 'key' => 'total', 'numeric' => true, 'width' => '14%'],
+                            ['label' => 'Share of Applicants', 'key' => 'pct', 'numeric' => true, 'type' => 'bar', 'width' => '28%'],
+                        ]"
+                        :rows="$jobApplyRows">
+                        <x-slot:headerEnd>
+                            <div class="flex items-center gap-2">
+                                @if($insightTopJob)
+                                    <x-card-chart.insight-lamp :text="$insightTopJob['text']" :type="$insightTopJob['type']" />
+                                @endif
+                                {!! $jobTableTabButtons !!}
+                            </div>
+                        </x-slot:headerEnd>
+                    </x-card-chart.table-card>
+                </div>
+
+                <div x-show="jobTableTab === 'prf'" x-cloak class="flex flex-1 flex-col">
+                    <x-card-chart.table-card
+                        class="flex-1"
+                        title="PRF Completion to Job Posting Time (avg {{ $avgPrfToPostingDays ?? '—' }} days)"
+                        color="cyan" :searchable="true" :sortable="true" search-placeholder="Search PRF..." max-height="360px"
+                        :columns="[
+                            ['label' => 'PRF', 'key' => 'prf', 'width' => '18%'],
+                            ['label' => 'Job Title', 'key' => 'job_title', 'width' => '32%'],
+                            ['label' => 'Company', 'key' => 'company', 'width' => '28%'],
+                            ['label' => 'Days (Completed → Posted)', 'key' => 'total', 'numeric' => true, 'width' => '22%'],
+                        ]"
+                        :rows="$prfTurnaroundRows">
+                        <x-slot:headerEnd>{!! $jobTableTabButtons !!}</x-slot:headerEnd>
+                    </x-card-chart.table-card>
                 </div>
 
             </div>

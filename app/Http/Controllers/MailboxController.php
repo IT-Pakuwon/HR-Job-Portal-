@@ -48,7 +48,9 @@ class MailboxController extends Controller
         }
 
         $folders = MailboxService::listFolders($account);
-        $folder = $request->get('folder', MailboxService::DEFAULT_FOLDER);
+        // Path segment on the index route ("/mailbox/Drafts") takes priority;
+        // the panel endpoint (AJAX, no {folder} route param) still uses ?folder=.
+        $folder = $request->route('folder') ?? $request->get('folder', MailboxService::DEFAULT_FOLDER);
         if (!in_array($folder, $folders, true)) {
             $folder = $folders[0] ?? MailboxService::DEFAULT_FOLDER;
         }
@@ -81,8 +83,13 @@ class MailboxController extends Controller
             // incoming URL) onto every pagination link, and always point them at
             // /mailbox — this endpoint is also hit as /mailbox/panel for the AJAX
             // partial, whose own request URL must never leak into these links.
-            ->appends(array_filter(['folder' => $folder, 'per_page' => $perPage, 'q' => $search !== '' ? $search : null]))
-            ->withPath(route('mailbox.index'));
+            // Folder rides in the path itself (withPath); only q/per_page are
+            // appended as query string.
+            ->appends(array_filter([
+                'per_page' => $perPage !== self::DEFAULT_PER_PAGE ? $perPage : null,
+                'q'        => $search !== '' ? $search : null,
+            ]))
+            ->withPath(route('mailbox.index', $folder !== MailboxService::DEFAULT_FOLDER ? ['folder' => $folder] : []));
 
         $folderCounts = MailboxEmail::query()
             ->where('username', $account->username)

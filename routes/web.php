@@ -2255,7 +2255,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/document-notifications/mark-read', [DocumentNotificationController::class, 'markRead'])->name('document.notifications.mark-read');
 
         Route::prefix('mailbox')->controller(MailboxController::class)->name('mailbox.')->group(function () {
-            Route::get('/', 'index')->name('index');
             Route::get('/panel', 'panel')->name('panel');
             Route::get('/unread-count', 'unreadCount')->name('unread-count');
             Route::post('/sync', 'sync')->name('sync');
@@ -2263,11 +2262,17 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/save-draft', 'saveDraft')->name('save-draft');
             Route::get('/account-settings', 'accountSettings')->name('account-settings');
             Route::post('/account-settings', 'saveAccountSettings')->name('account-settings.save');
-            Route::get('/{email}/content', 'content')->name('content');
-            Route::get('/{email}/attachments', 'attachments')->name('attachments');
-            Route::get('/{email}/attachments/{index}', 'downloadAttachment')->whereNumber('index')->name('attachments.download');
-            Route::post('/{email}/archive', 'archive')->name('archive');
-            Route::delete('/{email}', 'destroy')->name('destroy');
+            Route::get('/{email}/content', 'content')->whereNumber('email')->name('content');
+            Route::get('/{email}/attachments', 'attachments')->whereNumber('email')->name('attachments');
+            Route::get('/{email}/attachments/{index}', 'downloadAttachment')->whereNumber('email')->whereNumber('index')->name('attachments.download');
+            Route::post('/{email}/archive', 'archive')->whereNumber('email')->name('archive');
+            Route::delete('/{email}', 'destroy')->whereNumber('email')->name('destroy');
+            // Folder as a path segment for a clean, bookmarkable URL
+            // (/mailbox/Drafts) instead of a query string (/mailbox?folder=Drafts).
+            // Must stay last: it's a catch-all and would otherwise swallow the
+            // literal routes above. Optional + `.*` so both the bare "/mailbox"
+            // (default INBOX) and nested subfolder paths ("INBOX/APP System") match.
+            Route::get('/{folder?}', 'index')->where('folder', '.*')->name('index');
         });
 
         Route::get('/global-search', [GlobalSearchController::class, 'search'])->name('global-search');

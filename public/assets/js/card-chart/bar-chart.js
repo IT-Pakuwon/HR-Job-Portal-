@@ -79,6 +79,7 @@
         var color      = cfg.color   || 'blue';
         var stacked    = cfg.stacked || false;
         var showLegend = cfg.showLegend !== false;
+        var legendPosition = cfg.legendPosition || 'top';
         var horizontal = cfg.horizontal !== false;
         var dark       = isDark();
         var colors     = series.length > 1 ? PALETTE.multi : (PALETTE[color] || PALETTE.blue);
@@ -127,7 +128,8 @@
                 }
                 : { theme: dark ? 'dark' : 'light', y: { formatter: function(v) { return v.toLocaleString(); } } },
             legend: {
-                show: showLegend && series.length > 1, position: 'top', horizontalAlign: 'right',
+                show: showLegend && series.length > 1, position: legendPosition,
+                horizontalAlign: legendPosition === 'bottom' ? 'center' : 'right',
                 fontSize: '12px', markers: { shape: 'circle', size: 6 },
             },
         });

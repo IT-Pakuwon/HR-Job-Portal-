@@ -15,30 +15,56 @@
             setTimeout(() => { this.toast = null }, 4000);
         },
 
+        // Folder now lives as a path segment (/mailbox/Drafts) rather than a
+        // query param, so both link-interception and refresh need to read it
+        // back out of the URL's path, not just its query string.
+        paramsFromUrl(url) {
+            const base = @js(parse_url(url('mailbox'), PHP_URL_PATH));
+            const params = Object.fromEntries(url.searchParams.entries());
+            const rest = url.pathname.slice(base.length).replace(/^\/+/, '');
+            if (rest) params.folder = rest.split('/').map(decodeURIComponent).join('/');
+            return params;
+        },
         // Intercept clicks on plain <a> links inside the mailbox panel (folder
         // switches, pagination) so they load via AJAX instead of a full reload.
         onPanelClick(e) {
             const a = e.target.closest('a[href]');
             if (!a) return;
             const url = new URL(a.getAttribute('href'), window.location.origin);
-            if (url.pathname !== @js(parse_url(url('mailbox'), PHP_URL_PATH))) return;
+            const base = @js(parse_url(url('mailbox'), PHP_URL_PATH));
+            if (url.pathname !== base && !url.pathname.startsWith(base + '/')) return;
             e.preventDefault();
-            this.loadPanel(Object.fromEntries(url.searchParams.entries()));
+            this.loadPanel(this.paramsFromUrl(url));
         },
         loadPanel(params = {}) {
-            const qs = new URLSearchParams(params).toString();
+            // Drop empty/default values so the address bar stays clean
+            // (e.g. plain /mailbox instead of /mailbox/INBOX?q=&per_page=25) —
+            // the server already falls back to these same defaults when absent.
+            const defaults = { folder: 'INBOX', per_page: '25', q: '' };
+            const clean = {};
+            Object.entries(params).forEach(([k, v]) => {
+                if (v === null || v === undefined || String(v) === (defaults[k] ?? '')) return;
+                clean[k] = v;
+            });
+            // The /panel XHR endpoint takes folder as a query param (it's never
+            // shown to the user); the visible address bar instead gets it as a
+            // clean path segment, e.g. /mailbox/Drafts instead of /mailbox?folder=Drafts.
+            const qs = new URLSearchParams(clean).toString();
             fetch('{{ route('mailbox.panel') }}' + (qs ? '?' + qs : ''), { headers: { 'Accept': 'text/html' } })
                 .then(r => r.text())
                 .then(html => {
                     document.getElementById('mailbox-panel').innerHTML = html;
-                    const pageUrl = '{{ route('mailbox.index') }}' + (qs ? '?' + qs : '');
+                    const { folder, ...rest } = clean;
+                    const folderPath = folder ? '/' + folder.split('/').map(encodeURIComponent).join('/') : '';
+                    const restQs = new URLSearchParams(rest).toString();
+                    const pageUrl = '{{ route('mailbox.index') }}' + folderPath + (restQs ? '?' + restQs : '');
                     window.history.pushState({}, '', pageUrl);
                     if (params.folder) this.currentFolder = params.folder;
                 })
                 .catch(() => this.showToast('Failed to load mailbox.', false));
         },
         refreshPanel() {
-            const params = Object.fromEntries(new URLSearchParams(window.location.search).entries());
+            const params = this.paramsFromUrl(new URL(window.location.href));
             const qs = new URLSearchParams(params).toString();
             fetch('{{ route('mailbox.panel') }}' + (qs ? '?' + qs : ''), { headers: { 'Accept': 'text/html' } })
                 .then(r => r.text())

@@ -367,11 +367,16 @@ class RecruitmentDashboardController extends Controller
         // Stacked series for the combined Age chart — one series per gender /
         // education value, ordered by overall size (largest slice first, so
         // the biggest segment anchors the bottom of each stacked bar).
+        // Some gender/education values only occur among candidates missing a
+        // date of birth, so they're absent from the age cross-tab entirely —
+        // drop those all-zero series instead of showing a legend entry for a
+        // bar that never appears.
         $ageGenderSeries = $genderCounts->sortDesc()->keys()
             ->map(fn ($g) => [
                 'name' => $g,
                 'data' => array_map(fn ($bucket) => $ageGenderMatrix[$bucket][$g] ?? 0, self::AGE_BUCKET_LABELS),
             ])
+            ->filter(fn ($series) => array_sum($series['data']) > 0)
             ->values()
             ->all();
 
@@ -399,7 +404,12 @@ class RecruitmentDashboardController extends Controller
             ]);
         }
 
-        $ageEducationSeries = $ageEducationSeries->values()->all();
+        // Drop all-zero series (a top-education value or "Others" catch-all
+        // that only occurs among candidates missing a date of birth).
+        $ageEducationSeries = $ageEducationSeries
+            ->filter(fn ($series) => array_sum($series['data']) > 0)
+            ->values()
+            ->all();
 
         // ── Residential city ─────────────────────────────────────────────────
         // domicile_city is free text — case varies ("jakarta selatan" vs "Jakarta
@@ -411,7 +421,10 @@ class RecruitmentDashboardController extends Controller
 
         // Straight top 10 real cities — no "Others" catch-all bar, so the
         // chart actually shows 10 cities instead of 9 + a leftover bucket.
-        $cityCounts = $rawCityCounts->take(10);
+        // Take the top 10 by count (desc), then re-sort ascending so the
+        // horizontal bar chart renders smallest-to-largest top-to-bottom,
+        // matching the Division chart above it.
+        $cityCounts = $rawCityCounts->take(10)->sort();
 
         // ── Hiring source ("how did you hear about us") ───────────────────────
         // Mostly unfilled (a large "Unknown" share is expected) — the chart only
@@ -442,8 +455,8 @@ class RecruitmentDashboardController extends Controller
         $educationTotal = $educationCounts->sum();
         $unknownEducationPct = $educationTotal > 0 ? round($educationCounts->get('Unknown', 0) / $educationTotal * 100, 1) : 0;
 
-        $topCityLabel = $cityCounts->keys()->first();
-        $topCityCount = (int) ($cityCounts->first() ?? 0);
+        $topCityLabel = $cityCounts->keys()->last();
+        $topCityCount = (int) ($cityCounts->last() ?? 0);
 
         $totalRejected = (int) ($careerCounts->get('R', 0));
         $totalJoined = (int) ($careerCounts->get('C', 0));
