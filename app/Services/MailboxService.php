@@ -20,6 +20,16 @@ class MailboxService
     public const DRAFTS_FOLDER = 'Drafts';
     public const ARCHIVE_FOLDER = 'Archive';
 
+    // Every mailbox on this domain sits behind the same mail servers, so these
+    // are pre-filled in the settings modal — only the user's own address,
+    // username, and password actually differ per account.
+    public const DEFAULT_IMAP_HOST = 'mail3.pakuwon.com';
+    public const DEFAULT_IMAP_PORT = 993;
+    public const DEFAULT_IMAP_ENCRYPTION = 'ssl';
+    public const DEFAULT_SMTP_HOST = 'mx5.pakuwon.com';
+    public const DEFAULT_SMTP_PORT = 465;
+    public const DEFAULT_SMTP_ENCRYPTION = 'ssl';
+
     /**
      * Try connecting with the given IMAP settings. Returns null on success,
      * or a human-readable error message on failure. Used to validate a

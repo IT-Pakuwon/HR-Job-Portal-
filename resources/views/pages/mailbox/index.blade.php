@@ -724,13 +724,13 @@
                     <div class="grid grid-cols-3 gap-2">
                         <div class="col-span-2">
                             <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Host</label>
-                            <input type="text" x-model="settings.imap_host" placeholder="mail3.pakuwon.com"
-                                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100" />
+                            <input type="text" x-model="settings.imap_host" disabled placeholder="mail3.pakuwon.com"
+                                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100 dark:disabled:bg-white/[0.03] dark:disabled:text-gray-500" />
                         </div>
                         <div>
                             <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Port</label>
-                            <input type="number" x-model="settings.imap_port"
-                                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100" />
+                            <input type="number" x-model="settings.imap_port" disabled
+                                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100 dark:disabled:bg-white/[0.03] dark:disabled:text-gray-500" />
                         </div>
                     </div>
                     <div class="grid grid-cols-3 gap-2">
@@ -741,8 +741,8 @@
                         </div>
                         <div>
                             <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Encryption</label>
-                            <select x-model="settings.imap_encryption"
-                                class="h-10 w-full rounded-lg border border-gray-300 px-2 text-sm dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100">
+                            <select x-model="settings.imap_encryption" disabled
+                                class="h-10 w-full rounded-lg border border-gray-300 px-2 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100 dark:disabled:bg-white/[0.03] dark:disabled:text-gray-500">
                                 <option value="ssl">SSL</option>
                                 <option value="tls">TLS</option>
                                 <option value="starttls">STARTTLS</option>
@@ -761,18 +761,18 @@
                     <div class="grid grid-cols-4 gap-2">
                         <div class="col-span-2">
                             <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Host</label>
-                            <input type="text" x-model="settings.smtp_host" placeholder="mx5.pakuwon.com"
-                                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100" />
+                            <input type="text" x-model="settings.smtp_host" disabled placeholder="mx5.pakuwon.com"
+                                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100 dark:disabled:bg-white/[0.03] dark:disabled:text-gray-500" />
                         </div>
                         <div>
                             <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Port</label>
-                            <input type="number" x-model="settings.smtp_port"
-                                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100" />
+                            <input type="number" x-model="settings.smtp_port" disabled
+                                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100 dark:disabled:bg-white/[0.03] dark:disabled:text-gray-500" />
                         </div>
                         <div>
                             <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Encryption</label>
-                            <select x-model="settings.smtp_encryption"
-                                class="h-10 w-full rounded-lg border border-gray-300 px-2 text-sm dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100">
+                            <select x-model="settings.smtp_encryption" disabled
+                                class="h-10 w-full rounded-lg border border-gray-300 px-2 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100 dark:disabled:bg-white/[0.03] dark:disabled:text-gray-500">
                                 <option value="ssl">SSL</option>
                                 <option value="tls">TLS</option>
                                 <option value="starttls">STARTTLS</option>

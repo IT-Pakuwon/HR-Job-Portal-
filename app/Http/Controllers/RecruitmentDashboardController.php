@@ -272,15 +272,24 @@ class RecruitmentDashboardController extends Controller
         $genderCounts = $genderCandidates->groupBy(fn ($row) => $row->gender ?: 'Unknown')
             ->map->count();
 
-        // ── Age ───────────────────────────────────────────────────────────────
+        // ── Age (and, in the same pass, age × gender / age × education
+        //    cross-tabs for the combined "By Age Bracket" stacked-bar view) ────
         $ageCandidates = $isSelfMode ? $selfCandidates : $careerCandidates;
         $ageBuckets = array_fill_keys(self::AGE_BUCKET_LABELS, 0);
+        $ageGenderMatrix = array_fill_keys(self::AGE_BUCKET_LABELS, []);
+        $ageEducationMatrix = array_fill_keys(self::AGE_BUCKET_LABELS, []);
         foreach ($ageCandidates as $row) {
             if (!$row->date_of_birth) {
                 continue;
             }
-            $age = Carbon::parse($row->date_of_birth)->age;
-            $ageBuckets[self::ageBucket($age)]++;
+            $bucket = self::ageBucket(Carbon::parse($row->date_of_birth)->age);
+            $ageBuckets[$bucket]++;
+
+            $genderKey = $row->gender ?: 'Unknown';
+            $ageGenderMatrix[$bucket][$genderKey] = ($ageGenderMatrix[$bucket][$genderKey] ?? 0) + 1;
+
+            $eduKey = $row->education_type ?: 'Unknown';
+            $ageEducationMatrix[$bucket][$eduKey] = ($ageEducationMatrix[$bucket][$eduKey] ?? 0) + 1;
         }
 
         // ── Education ─────────────────────────────────────────────────────────
@@ -288,6 +297,43 @@ class RecruitmentDashboardController extends Controller
         $educationCounts = $educationCandidates->groupBy(fn ($row) => $row->education_type ?: 'Unknown')
             ->map->count()
             ->sortDesc();
+
+        // Stacked series for the combined Age chart — one series per gender /
+        // education value, ordered by overall size (largest slice first, so
+        // the biggest segment anchors the bottom of each stacked bar).
+        $ageGenderSeries = $genderCounts->sortDesc()->keys()
+            ->map(fn ($g) => [
+                'name' => $g,
+                'data' => array_map(fn ($bucket) => $ageGenderMatrix[$bucket][$g] ?? 0, self::AGE_BUCKET_LABELS),
+            ])
+            ->values()
+            ->all();
+
+        // Education has far more distinct values than the chart's color palette
+        // can distinguish (and than 8 stacked data-labels can stay readable), so
+        // cap it at the top 5 + an "Others" catch-all — the same top-N + Others
+        // pattern already used for the residential-city chart.
+        $topEducationKeys = $educationCounts->keys()->take(5);
+        $otherEducationKeys = $educationCounts->keys()->slice(5)->values();
+
+        $ageEducationSeries = $topEducationKeys
+            ->map(fn ($e) => [
+                'name' => $e,
+                'data' => array_map(fn ($bucket) => $ageEducationMatrix[$bucket][$e] ?? 0, self::AGE_BUCKET_LABELS),
+            ])
+            ->values();
+
+        if ($otherEducationKeys->isNotEmpty()) {
+            $ageEducationSeries->push([
+                'name' => 'Others',
+                'data' => array_map(
+                    fn ($bucket) => $otherEducationKeys->sum(fn ($e) => $ageEducationMatrix[$bucket][$e] ?? 0),
+                    self::AGE_BUCKET_LABELS
+                ),
+            ]);
+        }
+
+        $ageEducationSeries = $ageEducationSeries->values()->all();
 
         // ── Residential city ─────────────────────────────────────────────────
         // domicile_city is free text — case varies ("jakarta selatan" vs "Jakarta
@@ -763,12 +809,9 @@ class RecruitmentDashboardController extends Controller
             'totalJoined' => $totalJoined,
 
             // Row 3 — Demographics
-            'genderLabels' => $genderCounts->keys()->values()->all(),
-            'genderSeries' => $genderCounts->values()->all(),
             'ageLabels' => array_keys($ageBuckets),
-            'ageSeries' => array_values($ageBuckets),
-            'educationLabels' => $educationCounts->keys()->values()->all(),
-            'educationSeries' => $educationCounts->values()->all(),
+            'ageGenderSeries' => $ageGenderSeries,
+            'ageEducationSeries' => $ageEducationSeries,
             'cityLabels' => $cityCounts->keys()->values()->all(),
             'citySeries' => $cityCounts->values()->all(),
             'topGenderLabel' => $topGenderLabel,
