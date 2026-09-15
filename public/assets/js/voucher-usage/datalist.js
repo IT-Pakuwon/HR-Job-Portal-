@@ -21,6 +21,7 @@ const VplUsageDatalist = {
             columns: [
                 { data: 'action',            name: 'action',            orderable: false, searchable: false },
                 { data: 'usage_date_fmt',    name: 'usage_date',        orderable: true },
+                { data: 'event_date_fmt',    name: 'event_date',        orderable: false, defaultContent: '-' },
                 { data: 'cpnyid',            name: 'cpnyid' },
                 { data: 'department',        name: 'department' },
                 { data: 'vp_type_label',     name: 'vp_type' },
