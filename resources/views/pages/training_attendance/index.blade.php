@@ -291,11 +291,20 @@
             $('#exportCsvBtn').attr('href', routeUrl('exportCsv', selectedEventId));
             $('#exportPdfBtn').attr('href', routeUrl('exportPdf', selectedEventId));
 
+            if (activeTab === 'checkin') focusScanInput();
+
             if (skipReload) return;
 
             if (activeTab === 'checkin') loadRoster();
             else if (activeTab === 'after') loadAfterEvent();
             else loadFeedback();
+        }
+
+        // select2 grabs focus back to its own control right after firing
+        // 'change', so focusing #scanInput synchronously gets stolen —
+        // deferring to the next tick lets that settle first.
+        function focusScanInput() {
+            setTimeout(() => $('#scanInput').trigger('focus'), 0);
         }
 
         $('#eventSelect').on('change', function () {
@@ -316,8 +325,10 @@
             if (tab !== 'checkin' && typeof closeQrScanner === 'function') closeQrScanner();
 
             if (!selectedEventId) return;
-            if (tab === 'checkin') loadRoster();
-            else if (tab === 'after') loadAfterEvent();
+            if (tab === 'checkin') {
+                loadRoster();
+                focusScanInput();
+            } else if (tab === 'after') loadAfterEvent();
             else loadFeedback();
         });
 

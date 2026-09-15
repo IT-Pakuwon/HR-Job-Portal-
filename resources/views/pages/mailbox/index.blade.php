@@ -369,6 +369,7 @@
         settingsOpen: false,
         settingsSaving: false,
         settingsError: null,
+        settingsConnected: false,
         settings: {
             email: '', imap_host: '', imap_port: 993, imap_encryption: 'ssl', imap_username: '',
             imap_password: '', smtp_host: '', smtp_port: 465, smtp_encryption: 'ssl',
@@ -378,6 +379,7 @@
             fetch('{{ route('mailbox.account-settings') }}', { headers: { 'Accept': 'application/json' } })
                 .then(r => r.json())
                 .then(data => {
+                    this.settingsConnected = data.connected;
                     this.settings.email = data.email;
                     this.settings.imap_host = data.imap_host;
                     this.settings.imap_port = data.imap_port;
@@ -405,6 +407,33 @@
                     'Accept': 'application/json',
                 },
                 body: JSON.stringify(this.settings),
+            })
+                .then(r => r.json())
+                .then(data => {
+                    this.settingsSaving = false;
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        this.settingsError = data.message || 'Something went wrong.';
+                    }
+                })
+                .catch(() => { this.settingsSaving = false; this.settingsError = 'Request failed.'; });
+        },
+        disconnectAccount() {
+            this.askConfirm({
+                title: 'Disconnect mailbox?',
+                message: 'Your saved IMAP/SMTP credentials and cached messages for this mailbox will be removed. You can reconnect any time from Settings.',
+                danger: true,
+                confirmLabel: 'Disconnect',
+                onConfirm: () => this.doDisconnectAccount(),
+            });
+        },
+        doDisconnectAccount() {
+            if (this.settingsSaving) return;
+            this.settingsSaving = true;
+            fetch('{{ route('mailbox.account-settings.disconnect') }}', {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
             })
                 .then(r => r.json())
                 .then(data => {
@@ -807,15 +836,21 @@
                     </div>
                 </div>
 
-                <div class="flex items-center justify-end gap-2 border-t border-gray-100 px-5 py-4 dark:border-white/[0.06]">
-                    <button type="button" @click="closeSettings()"
-                        class="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 px-5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-white/[0.08] dark:text-gray-200 dark:hover:bg-white/[0.04]">
-                        Close
+                <div class="flex items-center justify-between gap-2 border-t border-gray-100 px-5 py-4 dark:border-white/[0.06]">
+                    <button type="button" x-show="settingsConnected" @click="disconnectAccount()" :disabled="settingsSaving"
+                        class="inline-flex h-10 items-center justify-center rounded-lg border border-red-200 px-4 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 dark:border-red-400/30 dark:text-red-400 dark:hover:bg-red-500/10">
+                        Disconnect
                     </button>
-                    <button type="button" @click="saveSettings()" :disabled="settingsSaving"
-                        class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500 disabled:opacity-50">
-                        <span x-text="settingsSaving ? 'Testing connection…' : 'Save & Connect'"></span>
-                    </button>
+                    <div class="ml-auto flex items-center gap-2">
+                        <button type="button" @click="closeSettings()"
+                            class="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 px-5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-white/[0.08] dark:text-gray-200 dark:hover:bg-white/[0.04]">
+                            Close
+                        </button>
+                        <button type="button" @click="saveSettings()" :disabled="settingsSaving"
+                            class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500 disabled:opacity-50">
+                            <span x-text="settingsSaving ? 'Testing connection…' : 'Save & Connect'"></span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

@@ -8,10 +8,12 @@ use Illuminate\Support\Facades\Log;
 use Vinkla\Hashids\Facades\Hashids;
 use App\Models\MailboxAccount;
 use App\Models\MailboxEmail;
+use App\Models\MsLndTrainingSchedule;
 use App\Models\MsTicketCategoryDept;
 use App\Models\MsVplProduct;
 use App\Models\MsVplProductDetail;
 use App\Models\Personnel;
+use App\Models\StoSubGradingJobLevel;
 use App\Models\SysCalendar;
 use App\Models\SysUserRole;
 use App\Models\TrAccess;
@@ -40,6 +42,7 @@ use App\Models\Viewtrxall;
 use App\Models\ViewJobApply;
 use App\Models\ViewtrPurch;
 use App\Models\ViewDasAll;
+use App\Models\ViewUsersTalenta;
 
 class DocumentNotificationService
 {
@@ -798,7 +801,91 @@ class DocumentNotificationService
             Log::warning('DocumentNotificationService: VPL expiry reminder fetch failed', ['err' => $e->getMessage()]);
         }
 
-        // ── 12. Mailbox: unread inbox emails — naturally drops off the list once the
+        // ── 12. Training: newly published schedule this user is eligible for (own company
+        //       has quota, job level matches) and hasn't registered for yet — naturally drops
+        //       off once they register, the schedule closes/is cancelled, or the deadline passes.
+        //       No client-side read-cache needed, same as the other state-derived reminders above.
+        try {
+            $trainingUser = User::whereRaw('lower(trim(username)) = ?', [$username])->first();
+            $userCpnyIds  = collect(explode(',', (string) ($trainingUser->origin_cpny_id ?? '')))
+                ->map(fn($v) => trim($v))->filter()->values();
+
+            if ($trainingUser && $userCpnyIds->isNotEmpty()) {
+                $publishedSchedules = MsLndTrainingSchedule::where('status', 'P')
+                    ->where(fn($q) => $q->whereNull('registration_deadline')->orWhere('registration_deadline', '>=', now()))
+                    ->with([
+                        'schedule.training',
+                        'quota' => fn($q) => $q->whereIn('cpny_id', $userCpnyIds->all()),
+                    ])
+                    ->get()
+                    ->filter(fn($s) => $s->quota->isNotEmpty());
+
+                if ($publishedSchedules->isNotEmpty()) {
+                    $scheduleIds = $publishedSchedules->pluck('schedule_id');
+
+                    // Already registered/waitlisted/offered (and not rejected/cancelled) —
+                    // same "actively involved" definition TrainingRegistrationController::json() uses.
+                    $alreadyInvolved = TrLndTrainingRegistration::whereIn('schedule_id', $scheduleIds)
+                        ->where('user_registration', $username)
+                        ->where(fn($q) => $q->whereNull('status_registration')
+                            ->orWhere('status_registration', '!=', TrLndTrainingRegistration::REG_STATUS_CANCELLED))
+                        ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
+                        ->pluck('schedule_id')
+                        ->map(fn($id) => (string) $id);
+
+                    // Same group_job_level resolution as jobLevelGroupsFor() in
+                    // TrainingRegistrationController, inlined here for a single user.
+                    $myLevelGroup = null;
+                    if ($trainingUser->npk) {
+                        $title = ViewUsersTalenta::where('employee_id', $trainingUser->npk)->value('job_level');
+
+                        if ($title) {
+                            $stripSuffix = fn($t) => strtolower(trim(preg_replace('/\s*-\s*\d+$/', '', (string) $t)));
+                            $stripped    = $stripSuffix($title);
+
+                            $myLevelGroup = StoSubGradingJobLevel::where('status', 'A')
+                                ->whereRaw('upper(trim(group_cpny_id)) = ?', [strtoupper(trim((string) $trainingUser->group_cpny_id))])
+                                ->whereNotNull('job_level_id')
+                                ->get(['job_level_id', 'group_job_level'])
+                                ->first(fn($row) => $stripSuffix($row->job_level_id) === $stripped)
+                                ?->group_job_level;
+                        }
+                    }
+
+                    $eligible = $publishedSchedules->filter(function ($s) use ($alreadyInvolved, $myLevelGroup) {
+                        if ($alreadyInvolved->contains((string) $s->schedule_id)) return false;
+
+                        $jobLevel      = $s->schedule->job_level ?? null;
+                        $isLegacyLevel = $jobLevel !== null && ctype_digit((string) $jobLevel);
+
+                        return $isLegacyLevel || $myLevelGroup === null || $myLevelGroup === $jobLevel;
+                    });
+
+                    $data = $data->concat($eligible->map(function ($s) {
+                        $trainingName = $s->schedule->training->training_name ?? 'Training';
+                        $trainingPk   = $s->schedule->training->id ?? null;
+                        $deadline     = $s->registration_deadline ? \Carbon\Carbon::parse($s->registration_deadline)->format('d M Y') : null;
+
+                        return [
+                            'key'        => 'TRNPUB_' . $s->schedule_id,
+                            'hid'        => $trainingPk ? Hashids::encode($trainingPk) : null,
+                            'docid'      => $trainingName,
+                            'status'     => 'TRN_PUBLISHED',
+                            'label'      => 'New Training',
+                            'message'    => 'Now open for registration' . ($deadline ? " — register before {$deadline}" : '') . '.',
+                            'cpnyid'     => $s->quota->first()->cpny_id ?? null,
+                            'url'        => '/training-list',
+                            'by'         => null,
+                            'updated_at' => $s->updated_at ?? $s->created_at,
+                        ];
+                    })->filter(fn($item) => $item['hid'] !== null));
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning('DocumentNotificationService: Training published reminder fetch failed', ['err' => $e->getMessage()]);
+        }
+
+        // ── 13. Mailbox: unread inbox emails — naturally drops off the list once the
         //       email is opened (MailboxController::content() flips is_read to true),
         //       no client-side read-cache needed like the comment/mention notifications.
         try {

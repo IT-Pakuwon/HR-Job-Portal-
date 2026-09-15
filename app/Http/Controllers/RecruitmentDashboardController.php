@@ -40,6 +40,7 @@ class RecruitmentDashboardController extends Controller
     private static function formatLabel(mixed $value): string
     {
         $value = trim((string) $value);
+
         return $value !== '' ? mb_convert_case(mb_strtolower($value), MB_CASE_TITLE) : $value;
     }
 
@@ -153,6 +154,7 @@ class RecruitmentDashboardController extends Controller
                     return $anchor;
                 }
             }
+
             return $label;
         });
     }
@@ -328,7 +330,7 @@ class RecruitmentDashboardController extends Controller
             ->select('a.gender as gender', 'a.date_of_birth as date_of_birth', 'a.ktp_id as ktp_id', 'viewtrxcareer.education_type as education_type', 'viewtrxcareer.applicant_id as applicant_id', 'a.domicile_city as domicile_city', 'a.source_information as source_information')
             ->get()
             ->unique(fn ($row) => $row->ktp_id && $row->date_of_birth
-                ? $row->ktp_id . '|' . $row->date_of_birth
+                ? $row->ktp_id.'|'.$row->date_of_birth
                 : $row->applicant_id
             )
             ->values();
@@ -349,7 +351,7 @@ class RecruitmentDashboardController extends Controller
                 continue;
             }
             $bucket = self::ageBucket(Carbon::parse($row->date_of_birth)->age);
-            $ageBuckets[$bucket]++;
+            ++$ageBuckets[$bucket];
 
             $genderKey = $row->gender ?: 'Unknown';
             $ageGenderMatrix[$bucket][$genderKey] = ($ageGenderMatrix[$bucket][$genderKey] ?? 0) + 1;
@@ -421,10 +423,9 @@ class RecruitmentDashboardController extends Controller
 
         // Straight top 10 real cities — no "Others" catch-all bar, so the
         // chart actually shows 10 cities instead of 9 + a leftover bucket.
-        // Take the top 10 by count (desc), then re-sort ascending so the
-        // horizontal bar chart renders smallest-to-largest top-to-bottom,
-        // matching the Division chart above it.
-        $cityCounts = $rawCityCounts->take(10)->sort();
+        // Selection stays by count (desc, from $rawCityCounts above); display
+        // order is alphabetical (A-Z by city name) for readability.
+        $cityCounts = $rawCityCounts->take(10);
 
         // ── Hiring source ("how did you hear about us") ───────────────────────
         // Mostly unfilled (a large "Unknown" share is expected) — the chart only
@@ -455,11 +456,11 @@ class RecruitmentDashboardController extends Controller
         $educationTotal = $educationCounts->sum();
         $unknownEducationPct = $educationTotal > 0 ? round($educationCounts->get('Unknown', 0) / $educationTotal * 100, 1) : 0;
 
-        $topCityLabel = $cityCounts->keys()->last();
-        $topCityCount = (int) ($cityCounts->last() ?? 0);
+        $topCityLabel = $cityCounts->keys()->first();
+        $topCityCount = (int) ($cityCounts->first() ?? 0);
 
-        $totalRejected = (int) ($careerCounts->get('R', 0));
-        $totalJoined = (int) ($careerCounts->get('C', 0));
+        $totalRejected = (int) $careerCounts->get('R', 0);
+        $totalJoined = (int) $careerCounts->get('C', 0);
 
         // ── Self-applicant rejected ──────────────────────────────────────────
         $selfRejected = (int) (clone $selfBase)->where('viewselfregister.status', 'R')->count();
@@ -507,20 +508,22 @@ class RecruitmentDashboardController extends Controller
 
         $divisionIds = collect(array_keys($divisionCareerTotals))->merge(array_keys($divisionSelfTotals))->unique();
         $divisionRows = $divisionIds->map(fn ($id) => [
-                'label' => self::formatLabel($divisionNames->get($id, $id)),
-                'career' => $divisionCareerTotals[$id] ?? 0,
-                'self' => $divisionSelfTotals[$id] ?? 0,
-                'total' => ($divisionCareerTotals[$id] ?? 0) + ($divisionSelfTotals[$id] ?? 0),
-            ])
+            'label' => self::formatLabel($divisionNames->get($id, $id)),
+            'career' => $divisionCareerTotals[$id] ?? 0,
+            'self' => $divisionSelfTotals[$id] ?? 0,
+            'total' => ($divisionCareerTotals[$id] ?? 0) + ($divisionSelfTotals[$id] ?? 0),
+        ])
             ->sortByDesc('total')
-            ->take(10)
-            ->sortBy('total')
-            ->values();
+            ->take(10);
 
-        $topDivisionRow = $divisionRows->last();
+        // Selection above stays by total (desc); display order is
+        // alphabetical (A-Z by division name) for readability.
+        $topDivisionRow = $divisionRows->first();
         $topDivisionShare = $totalApplicantAll > 0 && $topDivisionRow
             ? round($topDivisionRow['total'] / $totalApplicantAll * 100, 1)
             : 0;
+
+        $divisionRows = $divisionRows->sortBy('label')->values();
 
         $divisionLabels = $divisionRows->pluck('label')->all();
         $divisionCareerSeries = $divisionRows->pluck('career')->all();
@@ -545,18 +548,13 @@ class RecruitmentDashboardController extends Controller
 
         $totalJobApplied = (int) $jobApplyCounts->sum('total');
 
-        $jobApplyRows = $jobApplyCounts->map(function ($row) use ($jobPostingMeta, $companyNames, $departmentNames, $jobStatusLabels, $totalJobApplied) {
-                $meta = $jobPostingMeta->get($row->docidposting);
-                $title = $row->job_title ?: '(Untitled)';
-                return [
-                    'job_title' => ($meta && $meta->job_level) ? $title . ' - ' . $meta->job_level : $title,
-                    'company' => $meta ? $companyNames->get($meta->cpnyid, $meta->cpnyid) : '-',
-                    'department' => self::formatLabel($departmentNames->get($row->departementid, '-')),
-                    'status' => $jobStatusLabels[$meta->status ?? null] ?? '-',
-                    'total' => (int) $row->total,
-                    'pct' => $totalJobApplied > 0 ? round($row->total / $totalJobApplied * 100, 1) : 0,
-                ];
-            })
+        $jobApplyRows = $jobApplyCounts->map(fn ($row) => [
+            'job_title' => $row->job_title ?: '(Untitled)',
+            'department' => self::formatLabel($departmentNames->get($row->departementid, '-')),
+            'status' => $jobStatusLabels[$jobPostingMeta->get($row->docidposting)->status ?? null] ?? '-',
+            'total' => (int) $row->total,
+            'pct' => $totalJobApplied > 0 ? round($row->total / $totalJobApplied * 100, 1) : 0,
+        ])
             ->sortByDesc('total')
             ->values();
 
@@ -610,7 +608,7 @@ class RecruitmentDashboardController extends Controller
 
             foreach (self::FUNNEL_STAGE_LABELS as $rank => $label) {
                 if ($rank <= $furthest) {
-                    $funnelReached[$rank]++;
+                    ++$funnelReached[$rank];
                 }
             }
         }
@@ -682,7 +680,7 @@ class RecruitmentDashboardController extends Controller
             $stageTimingCumulative[] = round($cumulative, 1);
             if (($avg ?? 0) > $bottleneckDays) {
                 $bottleneckDays = $avg;
-                $bottleneckStage = $prevLabelForBottleneck . ' → ' . $label;
+                $bottleneckStage = $prevLabelForBottleneck.' → '.$label;
             }
             $prevLabelForBottleneck = $label;
         }
@@ -699,10 +697,10 @@ class RecruitmentDashboardController extends Controller
             ->groupBy('status')
             ->pluck('total', 'status');
 
-        $postedCount = (int) ($jobpostingCounts->get('P', 0));
-        $unpostedCount = (int) ($jobpostingCounts->get('U', 0));
-        $closedCount = (int) ($jobpostingCounts->get('C', 0));
-        $holdCount = (int) ($jobpostingCounts->get('H', 0));
+        $postedCount = (int) $jobpostingCounts->get('P', 0);
+        $unpostedCount = (int) $jobpostingCounts->get('U', 0);
+        $closedCount = (int) $jobpostingCounts->get('C', 0);
+        $holdCount = (int) $jobpostingCounts->get('H', 0);
         $totalJobPostings = $postedCount + $unpostedCount + $closedCount + $holdCount;
         $postedSharePct = $totalJobPostings > 0 ? round($postedCount / $totalJobPostings * 100, 1) : 0;
 
@@ -722,10 +720,10 @@ class RecruitmentDashboardController extends Controller
             ->groupBy('status')
             ->pluck('total', 'status');
 
-        $prfOnProgressCount = (int) ($prfStatusCounts->get('P', 0));
-        $prfReviseCount = (int) ($prfStatusCounts->get('D', 0));
-        $prfRejectedCount = (int) ($prfStatusCounts->get('R', 0));
-        $prfCompletedCount = (int) ($prfStatusCounts->get('C', 0));
+        $prfOnProgressCount = (int) $prfStatusCounts->get('P', 0);
+        $prfReviseCount = (int) $prfStatusCounts->get('D', 0);
+        $prfRejectedCount = (int) $prfStatusCounts->get('R', 0);
+        $prfCompletedCount = (int) $prfStatusCounts->get('C', 0);
         $totalPrf = $prfOnProgressCount + $prfReviseCount + $prfRejectedCount + $prfCompletedCount;
 
         $completedPrfIds = (clone $prfQuery)->where('status', 'C')->pluck('docid');
@@ -747,6 +745,7 @@ class RecruitmentDashboardController extends Controller
 
         $prfWithPosting = $prfRows->map(function ($prf) use ($postingStatuses) {
             $posting = $postingStatuses->get($prf->docid);
+
             return (object) [
                 'docid' => $prf->docid,
                 'prf_date' => $prf->prf_date,
@@ -772,7 +771,7 @@ class RecruitmentDashboardController extends Controller
                 $title = $r->job_title ?: '(Untitled)';
                 $prfTurnaroundRows[] = [
                     'prf' => $r->docid,
-                    'job_title' => $r->job_level ? $title . ' - ' . $r->job_level : $title,
+                    'job_title' => $r->job_level ? $title.' - '.$r->job_level : $title,
                     'company' => $prfCompanyNames->get($r->cpnyid, $r->cpnyid),
                     'total' => $days,
                 ];
@@ -792,7 +791,7 @@ class RecruitmentDashboardController extends Controller
                 $days <= 30 => '15–30 days',
                 default => '>30 days',
             };
-            $prfToPostingBuckets[$bucket]++;
+            ++$prfToPostingBuckets[$bucket];
         }
         $prfToPostingLabels = array_keys($prfToPostingBuckets);
         $prfToPostingSeries = array_values($prfToPostingBuckets);
@@ -809,47 +808,47 @@ class RecruitmentDashboardController extends Controller
         //    driving the lamp's icon color. ────────────────────────────────────
         $insightPrf = [
             'type' => $unpostedCount > 0 ? 'warning' : 'info',
-            'text' => $postedSharePct . '% of requisitions are already live on the career site (<b>'
-                . number_format($postedCount) . '</b> of ' . number_format($totalJobPostings) . ')'
-                . ($unpostedCount > 0 ? ' — <b>' . number_format($unpostedCount) . '</b> approved but not yet posted' : '') . '.',
+            'text' => $postedSharePct.'% of requisitions are already live on the career site (<b>'
+                .number_format($postedCount).'</b> of '.number_format($totalJobPostings).')'
+                .($unpostedCount > 0 ? ' — <b>'.number_format($unpostedCount).'</b> approved but not yet posted' : '').'.',
         ];
 
         $rejectedPct = $totalApplicantAll > 0 ? round($totalRejectedAll / $totalApplicantAll * 100, 1) : 0;
         $hiredPct = $totalApplicantAll > 0 ? round($totalJoined / $totalApplicantAll * 100, 1) : 0;
         $insightApplicant = [
             'type' => $rejectedPct >= 60 ? 'warning' : 'info',
-            'text' => number_format($totalApplicantAll) . ' candidates have applied so far — <b>' . $rejectedPct . '%</b> get rejected'
-                . ' and only <b>' . $hiredPct . '%</b> are ultimately hired'
-                . ($applicantType !== 'self' && $avgTimeToHire !== null ? ', averaging <b>' . $avgTimeToHire . ' days</b> from apply to join' : '') . '.',
+            'text' => number_format($totalApplicantAll).' candidates have applied so far — <b>'.$rejectedPct.'%</b> get rejected'
+                .' and only <b>'.$hiredPct.'%</b> are ultimately hired'
+                .($applicantType !== 'self' && $avgTimeToHire !== null ? ', averaging <b>'.$avgTimeToHire.' days</b> from apply to join' : '').'.',
         ];
 
         $insightAgeGender = [
             'type' => 'info',
-            'text' => '<b>' . $topGenderPct . '% ' . $topGenderLabel . '</b>, mostly aged <b>' . $topAgeLabel . '</b> (' . $topAgePct . '%).',
+            'text' => '<b>'.$topGenderPct.'% '.$topGenderLabel.'</b>, mostly aged <b>'.$topAgeLabel.'</b> ('.$topAgePct.'%).',
         ];
 
         $insightCity = [
             'type' => 'info',
-            'text' => '<b>' . $topCityLabel . '</b> leads by location with <b>' . number_format($topCityCount) . '</b> candidates.',
+            'text' => '<b>'.$topCityLabel.'</b> leads by location with <b>'.number_format($topCityCount).'</b> candidates.',
         ];
 
         $insightEducation = [
             'type' => $unknownEducationPct >= 40 ? 'warning' : 'info',
-            'text' => 'Education level is unrecorded for <b>' . $unknownEducationPct . '%</b> of applicants.',
+            'text' => 'Education level is unrecorded for <b>'.$unknownEducationPct.'%</b> of applicants.',
         ];
 
         $insightSource = [
             'type' => $unknownSourcePct >= 40 ? 'warning' : 'info',
-            'text' => 'The hiring-source field is unrecorded for <b>' . $unknownSourcePct . '%</b> of applicants'
-                . ($topSourceLabel ? ' — of those recorded, <b>' . $topSourceLabel . '</b> leads with ' . number_format($topSourceCount) . ' candidates' : '') . '.',
+            'text' => 'The hiring-source field is unrecorded for <b>'.$unknownSourcePct.'%</b> of applicants'
+                .($topSourceLabel ? ' — of those recorded, <b>'.$topSourceLabel.'</b> leads with '.number_format($topSourceCount).' candidates' : '').'.',
         ];
 
         $insightDivision = null;
         if ($applicantType !== 'self' && $topDivisionRow) {
             $insightDivision = [
                 'type' => $topDivisionShare >= 50 ? 'warning' : 'info',
-                'text' => '<b>' . $topDivisionRow['label'] . '</b> draws the most interest (<b>' . $topDivisionShare . '%</b> of applicants) — postings typically close '
-                    . ($avgPrfToPostingDays ?? '—') . ' days after their PRF is completed.',
+                'text' => '<b>'.$topDivisionRow['label'].'</b> draws the most interest (<b>'.$topDivisionShare.'%</b> of applicants) — postings typically close '
+                    .($avgPrfToPostingDays ?? '—').' days after their PRF is completed.',
             ];
         }
 
@@ -857,9 +856,9 @@ class RecruitmentDashboardController extends Controller
         if ($applicantType !== 'self' && $topJobRow) {
             $insightTopJob = [
                 'type' => $topJobRow['status'] === 'Hold' ? 'critical' : 'info',
-                'text' => '<b>' . $topJobRow['job_title'] . '</b> alone draws <b>' . $topJobRow['pct'] . '%</b> of all job applications ('
-                    . number_format($topJobRow['total']) . ' candidates)'
-                    . ($topJobRow['status'] === 'Hold' ? ' — even though that posting is currently <b>on Hold</b>' : '') . '.',
+                'text' => '<b>'.$topJobRow['job_title'].'</b> alone draws <b>'.$topJobRow['pct'].'%</b> of all job applications ('
+                    .number_format($topJobRow['total']).' candidates)'
+                    .($topJobRow['status'] === 'Hold' ? ' — even though that posting is currently <b>on Hold</b>' : '').'.',
             ];
         }
 
@@ -867,8 +866,8 @@ class RecruitmentDashboardController extends Controller
         if ($applicantType !== 'self' && $bottleneckStage) {
             $insightBottleneck = [
                 'type' => 'warning',
-                'text' => '<b>' . $bottleneckStage . '</b> is the biggest bottleneck in the hiring funnel, adding <b>' . $bottleneckDays . ' days</b> on average'
-                    . ($totalHireDays ? ' — the full apply-to-hire journey averages <b>' . $totalHireDays . ' days</b>' : '') . '.',
+                'text' => '<b>'.$bottleneckStage.'</b> is the biggest bottleneck in the hiring funnel, adding <b>'.$bottleneckDays.' days</b> on average'
+                    .($totalHireDays ? ' — the full apply-to-hire journey averages <b>'.$totalHireDays.' days</b>' : '').'.',
             ];
         }
 
@@ -914,8 +913,8 @@ class RecruitmentDashboardController extends Controller
             'ageLabels' => array_keys($ageBuckets),
             'ageGenderSeries' => $ageGenderSeries,
             'ageEducationSeries' => $ageEducationSeries,
-            'cityLabels' => $cityCounts->keys()->values()->all(),
-            'citySeries' => $cityCounts->values()->all(),
+            'cityLabels' => $cityCounts->sortKeys()->keys()->values()->all(),
+            'citySeries' => $cityCounts->sortKeys()->values()->all(),
             'topGenderLabel' => $topGenderLabel,
             'topGenderPct' => $topGenderPct,
             'topAgeLabel' => $topAgeLabel,
@@ -1088,7 +1087,7 @@ class RecruitmentDashboardController extends Controller
                 )
                 ->get()
                 ->unique(fn ($row) => $row->ktp_id && $row->date_of_birth
-                    ? $row->ktp_id . '|' . $row->date_of_birth
+                    ? $row->ktp_id.'|'.$row->date_of_birth
                     : $row->applicant_id
                 )
                 ->values();
@@ -1100,11 +1099,12 @@ class RecruitmentDashboardController extends Controller
             'city' => (function () use ($candidates) {
                 $normalized = self::normalizeCityLabels($candidates->pluck('domicile_city'));
                 $top10 = $normalized->countBy()->sortDesc()->take(10)->keys()->all();
+
                 return $candidates->filter(fn ($r, $idx) => !in_array($normalized->get($idx), $top10, true))->values();
             })(),
         };
 
-        $filename = 'recruitment-' . $list . '-' . now()->format('Ymd_His') . '.csv';
+        $filename = 'recruitment-'.$list.'-'.now()->format('Ymd_His').'.csv';
 
         return response()->streamDownload(function () use ($rows, $departmentNames) {
             $fh = fopen('php://output', 'w');
