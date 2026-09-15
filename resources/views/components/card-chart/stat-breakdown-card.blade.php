@@ -6,6 +6,8 @@
     'color'       => 'violet',
     'icon'        => null,
     'breakdown'   => [], // [['label' => 'Job Applicant', 'value' => '2,296', 'color' => 'violet'], ...]
+    'insight'     => null, // hover tooltip text shown behind the lamp icon
+    'insightType' => 'info', // info|positive|warning|critical
 ])
 
 @php
@@ -29,6 +31,12 @@
 
     <div class="absolute inset-x-0 top-0 h-0.75"
          style="background: linear-gradient(to right, {{ $c[0] }}, {{ $c[1] }})"></div>
+
+    @if($insight)
+        <div class="absolute right-2 top-2 z-10">
+            <x-card-chart.insight-lamp :text="$insight" :type="$insightType" />
+        </div>
+    @endif
 
     <div class="p-5 pb-4">
         <div class="flex items-start justify-between gap-3">

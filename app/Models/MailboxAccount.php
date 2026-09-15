@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class MailboxAccount extends Model
 {
+    protected $connection = 'pgsql2';
     protected $table = 'mailbox_accounts';
 
     protected $fillable = [
@@ -24,9 +25,9 @@ class MailboxAccount extends Model
     ];
 
     protected $casts = [
-        'imap_password'       => 'encrypted',
-        'imap_validate_cert'  => 'boolean',
-        'is_active'           => 'boolean',
+        'imap_password' => 'encrypted',
+        'imap_validate_cert' => 'boolean',
+        'is_active' => 'boolean',
     ];
 
     protected $hidden = [

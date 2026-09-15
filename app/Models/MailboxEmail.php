@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class MailboxEmail extends Model
 {
+    protected $connection = 'pgsql2';
     protected $table = 'mailbox_emails';
 
     protected $fillable = [
@@ -27,8 +28,8 @@ class MailboxEmail extends Model
     ];
 
     protected $casts = [
-        'email_date'      => 'datetime',
+        'email_date' => 'datetime',
         'has_attachments' => 'boolean',
-        'is_read'         => 'boolean',
+        'is_read' => 'boolean',
     ];
 }
