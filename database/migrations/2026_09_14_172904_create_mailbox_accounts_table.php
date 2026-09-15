@@ -24,7 +24,7 @@ return new class extends Migration
             $table->unsignedInteger('smtp_port')->default(465);
             $table->string('smtp_encryption')->default('ssl');
 
-            $table->boolean('is_active')->default(true);
+            $table->boolean('status')->default(true);
             $table->timestamps();
         });
     }
