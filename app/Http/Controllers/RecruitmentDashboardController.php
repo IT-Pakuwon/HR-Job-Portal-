@@ -841,23 +841,23 @@ class RecruitmentDashboardController extends Controller
 
         $insightAgeGender = [
             'type' => 'info',
-            'text' => '<b>' . $topGenderPct . '% ' . $topGenderLabel . '</b>, mostly aged <b>' . $topAgeLabel . '</b> (' . $topAgePct . '%).',
+            'text' => '<b>'.$topGenderPct.'% '.$topGenderLabel.'</b>, mostly aged <b>'.$topAgeLabel.'</b> ('.$topAgePct.'%).',
         ];
 
         $insightCity = [
             'type' => 'info',
-            'text' => '<b>' . $topCityLabel . '</b> leads by location with <b>' . number_format($topCityCount) . '</b> candidates.',
+            'text' => '<b>'.$topCityLabel.'</b> leads by location with <b>'.number_format($topCityCount).'</b> candidates.',
         ];
 
         $insightEducation = [
             'type' => $unknownEducationPct >= 40 ? 'warning' : 'info',
-            'text' => 'Education level is unrecorded for <b>' . $unknownEducationPct . '%</b> of applicants.',
+            'text' => 'Education level is unrecorded for <b>'.$unknownEducationPct.'%</b> of applicants.',
         ];
 
         $insightSource = [
             'type' => $unknownSourcePct >= 40 ? 'warning' : 'info',
-            'text' => 'The hiring-source field is unrecorded for <b>' . $unknownSourcePct . '%</b> of applicants'
-                . ($topSourceLabel ? ' — of those recorded, <b>' . $topSourceLabel . '</b> leads with ' . number_format($topSourceCount) . ' candidates' : '') . '.',
+            'text' => 'The hiring-source field is unrecorded for <b>'.$unknownSourcePct.'%</b> of applicants'
+                .($topSourceLabel ? ' — of those recorded, <b>'.$topSourceLabel.'</b> leads with '.number_format($topSourceCount).' candidates' : '').'.',
         ];
 
         $insightDivision = null;
@@ -987,5 +987,159 @@ class RecruitmentDashboardController extends Controller
             'insightBottleneck' => $insightBottleneck,
             'lastUpdatedAt' => now()->format('d M Y, H:i'),
         ]);
+    }
+
+    /**
+     * CSV export of the underlying candidate rows behind the "Unknown" gender/
+     * education slices and the "Others" residential-city bucket on the By
+     * Gender / By Education Level / Top 10 by Residential City charts —
+     * honors the exact same query-string filters as dashboard() so the
+     * export always matches what's currently on screen.
+     */
+    public function exportBreakdown(Request $request)
+    {
+        $list = $request->query('list');
+        abort_unless(in_array($list, ['gender', 'education', 'city'], true), 404);
+
+        $user = Auth::user();
+        $applicantConn = (new Applicant())->getConnectionName();
+        $conn = DB::connection($applicantConn);
+
+        $from = $request->query('from');
+        $to = $request->query('to');
+        $department = $request->query('department');
+        $company = $request->query('company');
+        $location = $request->query('location');
+        $source = $request->query('source');
+        $groupCpnyFilter = $request->query('group_cpny');
+        $areaFilter = $request->query('area');
+        $division = $request->query('division');
+
+        $userGroupCpny = $user->group_cpny_id ?? null;
+        $isGroupLocked = !$user->isPrimaryAdmin() && !empty($userGroupCpny);
+        if (empty($groupCpnyFilter) && $isGroupLocked) {
+            $groupCpnyFilter = $userGroupCpny;
+        }
+
+        $filterCompanyIds = null;
+        if ($groupCpnyFilter || $areaFilter) {
+            $msQuery = MsCompany::where('status', 'A');
+            if ($groupCpnyFilter) {
+                $msQuery->where('group_cpny_id', $groupCpnyFilter);
+            }
+            if ($areaFilter) {
+                $msQuery->where('area_id', $areaFilter);
+            }
+            $filterCompanyIds = $msQuery->pluck('cpny_id')->toArray();
+            if (empty($filterCompanyIds)) {
+                $filterCompanyIds = [null];
+            }
+        }
+
+        $departmentToDivision = $conn->table('hr_ms_department')->pluck('division_id', 'department_id');
+        $departmentNames = $conn->table('hr_ms_department')->pluck('department_name', 'department_id');
+        $divisionDepartmentIds = $division
+            ? $departmentToDivision->filter(fn ($divId) => $divId === $division)->keys()->all()
+            : null;
+
+        $locationPostingIds = $location
+            ? $conn->table('hr_trx_jobposting')
+                ->when($filterCompanyIds, fn ($q) => $q->whereIn('cpnyid', $filterCompanyIds))
+                ->where('locationname', $location)
+                ->pluck('docid')
+            : null;
+
+        $isSelfMode = $source === 'self';
+
+        // Same default as the dashboard charts: gender/education/city breakdowns
+        // are career (job-applicant) sourced unless source=self is explicitly set.
+        if ($isSelfMode) {
+            $selfBase = $conn->table('viewselfregister')
+                ->when($from, fn ($q) => $q->whereDate('viewselfregister.apply_date', '>=', $from))
+                ->when($to, fn ($q) => $q->whereDate('viewselfregister.apply_date', '<=', $to))
+                ->when($department, fn ($q) => $q->where('viewselfregister.departementid', $department))
+                ->when($divisionDepartmentIds, fn ($q) => $q->whereIn('viewselfregister.departementid', $divisionDepartmentIds));
+
+            $candidates = (clone $selfBase)
+                ->leftJoin('hr_ms_applicant as a', 'viewselfregister.applicant_id', '=', 'a.applicant_id')
+                ->select(
+                    'viewselfregister.applicant_id as applicant_id',
+                    'a.full_name as fullname',
+                    'a.email_address as email_address',
+                    'a.mobile_phone as mobile_phone',
+                    'viewselfregister.apply_date as apply_date',
+                    'viewselfregister.departementid as departementid',
+                    'a.gender as gender',
+                    'viewselfregister.education_type as education_type',
+                    'a.domicile_city as domicile_city',
+                    DB::raw("COALESCE(NULLIF(TRIM(LOWER(a.email_address)), ''), NULLIF(TRIM(a.mobile_phone), ''), NULLIF(a.ktp_id, ''), a.applicant_id) as identity_key")
+                )
+                ->get()
+                ->unique('identity_key')
+                ->values();
+        } else {
+            $careerBase = $conn->table('viewtrxcareer')
+                ->when($from, fn ($q) => $q->whereDate('viewtrxcareer.apply_date', '>=', $from))
+                ->when($to, fn ($q) => $q->whereDate('viewtrxcareer.apply_date', '<=', $to))
+                ->when($department, fn ($q) => $q->where('viewtrxcareer.departementid', $department))
+                ->when($divisionDepartmentIds, fn ($q) => $q->whereIn('viewtrxcareer.departementid', $divisionDepartmentIds))
+                ->when($company, fn ($q) => $q->where('viewtrxcareer.cpnyid', $company))
+                ->when($filterCompanyIds, fn ($q) => $q->whereIn('viewtrxcareer.cpnyid', $filterCompanyIds))
+                ->when($location, fn ($q) => $q->whereIn('viewtrxcareer.docidposting', $locationPostingIds));
+
+            $candidates = (clone $careerBase)
+                ->leftJoin('hr_ms_applicant as a', 'viewtrxcareer.applicant_id', '=', 'a.applicant_id')
+                ->select(
+                    'viewtrxcareer.applicant_id as applicant_id',
+                    'viewtrxcareer.fullname as fullname',
+                    'a.email_address as email_address',
+                    'viewtrxcareer.mobile_phone as mobile_phone',
+                    'viewtrxcareer.apply_date as apply_date',
+                    'viewtrxcareer.departementid as departementid',
+                    'a.gender as gender',
+                    'a.date_of_birth as date_of_birth',
+                    'a.ktp_id as ktp_id',
+                    'viewtrxcareer.education_type as education_type',
+                    'a.domicile_city as domicile_city'
+                )
+                ->get()
+                ->unique(fn ($row) => $row->ktp_id && $row->date_of_birth
+                    ? $row->ktp_id.'|'.$row->date_of_birth
+                    : $row->applicant_id
+                )
+                ->values();
+        }
+
+        $rows = match ($list) {
+            'gender' => $candidates->filter(fn ($r) => !trim((string) $r->gender))->values(),
+            'education' => $candidates->filter(fn ($r) => !trim((string) $r->education_type))->values(),
+            'city' => (function () use ($candidates) {
+                $normalized = self::normalizeCityLabels($candidates->pluck('domicile_city'));
+                $top10 = $normalized->countBy()->sortDesc()->take(10)->keys()->all();
+
+                return $candidates->filter(fn ($r, $idx) => !in_array($normalized->get($idx), $top10, true))->values();
+            })(),
+        };
+
+        $filename = 'recruitment-'.$list.'-'.now()->format('Ymd_His').'.csv';
+
+        return response()->streamDownload(function () use ($rows, $departmentNames) {
+            $fh = fopen('php://output', 'w');
+            fputcsv($fh, ['Applicant ID', 'Full Name', 'Email', 'Mobile Phone', 'Apply Date', 'Department', 'Domicile City', 'Gender', 'Education Type']);
+            foreach ($rows as $r) {
+                fputcsv($fh, [
+                    $r->applicant_id,
+                    $r->fullname,
+                    $r->email_address,
+                    $r->mobile_phone,
+                    $r->apply_date,
+                    self::formatLabel($departmentNames->get($r->departementid, $r->departementid)),
+                    $r->domicile_city,
+                    $r->gender ?: '(blank)',
+                    $r->education_type ?: '(blank)',
+                ]);
+            }
+            fclose($fh);
+        }, $filename, ['Content-Type' => 'text/csv']);
     }
 }

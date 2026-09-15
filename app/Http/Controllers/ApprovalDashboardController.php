@@ -540,6 +540,13 @@ class ApprovalDashboardController extends Controller
                     ? '/showoprtekticket'
                     : $r->url;
 
+                // TRN's /training-list/my/{hid} route defaults to the "My
+                // Registrations" tab, which is scoped to the registrant's own
+                // rows and will never contain an approver's pending item —
+                // ?tab=approvals tells the page to open the Waiting Approval
+                // tab (where pendingApprovals() actually has this row) instead.
+                $query = str_starts_with($docidKey, 'TRN') ? '?tab=approvals' : null;
+
                 return [
                     'hid' => Hashids::encode($r->id),
                     'docid' => $r->docid,
@@ -548,6 +555,7 @@ class ApprovalDashboardController extends Controller
                     'departementid' => $r->departementid,
                     'infohd' => $r->infohd,
                     'url' => $url,
+                    'query' => $query,
                     'status' => $status,
                 ];
             })

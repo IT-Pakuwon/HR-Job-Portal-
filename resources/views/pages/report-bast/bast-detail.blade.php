@@ -127,6 +127,16 @@
             serverSide: true,
             responsive: true,
             searching: false,
+            dom: "<'flex items-center justify-between mb-3'<'text-sm'l>>" +
+                "rt" +
+                "<'flex items-center justify-between mt-3'<'text-sm'i><'text-sm'p>>",
+
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "All"]
+            ],
+
+            pageLength: 10,
 
             ajax: {
                 url: "{{ route('report.bast.json') }}",
