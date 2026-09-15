@@ -57,10 +57,10 @@
                     color="violet"
                     icon='<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>'
                     :breakdown="[
-                        ['label' => 'Posted', 'value' => number_format($postedCount), 'color' => 'blue'],
-                        ['label' => 'Unposted', 'value' => number_format($unpostedCount), 'color' => 'orange'],
-                        ['label' => 'Closed', 'value' => number_format($closedCount), 'color' => 'green'],
-                        ['label' => 'Hold', 'value' => number_format($holdCount), 'color' => 'red'],
+                        ['label' => 'On Progress', 'value' => number_format($prfOnProgressCount), 'color' => 'blue'],
+                        ['label' => 'Revise', 'value' => number_format($prfReviseCount), 'color' => 'orange'],
+                        ['label' => 'Completed', 'value' => number_format($prfCompletedCount), 'color' => 'green'],
+                        ['label' => 'Rejected', 'value' => number_format($prfRejectedCount), 'color' => 'red'],
                     ]" />
 
                 <x-card-chart.stat-breakdown-card

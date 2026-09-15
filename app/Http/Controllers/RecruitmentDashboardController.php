@@ -630,16 +630,28 @@ class RecruitmentDashboardController extends Controller
         $postedSharePct = $totalJobPostings > 0 ? round($postedCount / $totalJobPostings * 100, 1) : 0;
 
         // ── PRF ───────────────────────────────────────────────────────────────
-        $completedPrfIds = DB::connection('pgsql3')->table('hr_trx_prf')
-            ->where('status', 'C')
+        // Status codes on hr_trx_prf: P=on progress, D=revise, R=rejected,
+        // C=completed, X=cancelled. Cancelled PRFs are excluded from the
+        // dashboard entirely — they're voided requests, not part of the pipeline.
+        $prfQuery = DB::connection('pgsql3')->table('hr_trx_prf')
+            ->where('status', '<>', 'X')
             ->when($department, fn ($q) => $q->where('departementid', $department))
             ->when($divisionDepartmentIds, fn ($q) => $q->whereIn('departementid', $divisionDepartmentIds))
             ->when($company, fn ($q) => $q->where('cpnyid', $company))
             ->when($filterCompanyIds, fn ($q) => $q->whereIn('cpnyid', $filterCompanyIds))
-            ->when($location, fn ($q) => $q->where('locationname', $location))
-            ->pluck('docid');
+            ->when($location, fn ($q) => $q->where('locationname', $location));
 
-        $totalPrf = $completedPrfIds->count();
+        $prfStatusCounts = (clone $prfQuery)->select('status', DB::raw('COUNT(*) as total'))
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $prfOnProgressCount = (int) ($prfStatusCounts->get('P', 0));
+        $prfReviseCount = (int) ($prfStatusCounts->get('D', 0));
+        $prfRejectedCount = (int) ($prfStatusCounts->get('R', 0));
+        $prfCompletedCount = (int) ($prfStatusCounts->get('C', 0));
+        $totalPrf = $prfOnProgressCount + $prfReviseCount + $prfRejectedCount + $prfCompletedCount;
+
+        $completedPrfIds = (clone $prfQuery)->where('status', 'C')->pluck('docid');
 
         $prfRows = DB::connection('pgsql3')->table('hr_trx_prf')
             ->whereIn('docid', $completedPrfIds)
@@ -792,6 +804,10 @@ class RecruitmentDashboardController extends Controller
 
             // Row 1 — Requisition & Job Status
             'totalPrf' => $totalPrf,
+            'prfOnProgressCount' => $prfOnProgressCount,
+            'prfReviseCount' => $prfReviseCount,
+            'prfRejectedCount' => $prfRejectedCount,
+            'prfCompletedCount' => $prfCompletedCount,
             'postedCount' => $postedCount,
             'unpostedCount' => $unpostedCount,
             'closedCount' => $closedCount,
