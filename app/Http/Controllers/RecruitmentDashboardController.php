@@ -44,17 +44,83 @@ class RecruitmentDashboardController extends Controller
     }
 
     /**
-     * Groups a free-text "city" field into counts, folding case-only
-     * variants ("jakarta selatan" vs "Jakarta Selatan") and full-address
-     * entries that merely *mention* a real city ("Kebayoran Lama Jakarta
-     * Selatan") into that city instead of letting them fork into their own
-     * one-off noise buckets.
+     * Resolves administrative-prefix and translation variants that refer to
+     * the exact same real-world place, so they don't each earn their own
+     * anchor in normalizeCityLabels() below (which would otherwise happen —
+     * e.g. "Bekasi" and "Kota Bekasi" are each frequent enough on their own
+     * to become anchors, so neither ever folds into the other on substring
+     * matching alone).
      *
-     * Pass 1: title-case every value and count exact matches — this finds
-     * the clean, frequently-used city labels ("Jakarta Selatan" x56).
-     * Pass 2: treat those clean labels (2+ occurrences, plausible city-name
-     * length) as anchors, longest first, and fold any other value that
-     * *contains* an anchor into it. Values matching no anchor are kept as-is.
+     * - "Kota "/"Kota Adm. "/"Kota Administrasi " is just "City of" — the
+     *   same place as the bare name ("Kota Bekasi" == "Bekasi").
+     * - "Kab."/"Kab "/"Kabupaten " (regency) is canonicalized to "Kabupaten
+     *   X" but deliberately kept SEPARATE from "X" — a regency is a real,
+     *   different area from its same-named city (Kabupaten Bekasi is not
+     *   Kota Bekasi; Kabupaten Tangerang is not Kota Tangerang).
+     * - Trailing ", <province>" / bare " Banten" suffixes are dropped
+     *   ("Kota Bekasi, Jawa Barat", "Tangerang Banten").
+     * - English names and the province-level "DKI Jakarta" are mapped to
+     *   their specific Indonesian district ("South Jakarta" -> "Jakarta
+     *   Selatan"); "Dki Jakarta" collapses into bare "Jakarta" since it's
+     *   exactly as unspecific about *which* district as "Jakarta" alone.
+     * - "Bekasi Utara/Selatan/Timur/Barat" and "Bogor Barat" etc. are
+     *   kecamatan (sub-district) names, not separate cities, so they fold
+     *   into their city — unlike Jakarta's and Tangerang's compass
+     *   districts (Jakarta Selatan, Tangerang Selatan), which really are
+     *   distinct administrative cities and must stay separate.
+     */
+    private static function canonicalizeCityToken(string $label): string
+    {
+        if (str_contains($label, ',')) {
+            $segments = array_map('trim', explode(',', $label));
+            while (count($segments) > 1 && ctype_digit(end($segments))) {
+                array_pop($segments);
+            }
+            $provinces = ['Jawa Barat', 'Jawa Tengah', 'Jawa Timur', 'Dki Jakarta', 'Banten', 'Diy', 'Yogyakarta'];
+            if (count($segments) >= 2 && in_array(end($segments), $provinces, true)) {
+                array_pop($segments);
+                $label = implode(', ', $segments);
+            } elseif (count($segments) === 1) {
+                $label = $segments[0];
+            }
+        }
+
+        $label = preg_replace('/\s+Banten$/i', '', $label) ?? $label;
+        $label = preg_replace('/^Kota\s+(Adm\.?\s+|Administrasi\s+)?/i', '', $label) ?? $label;
+        $label = preg_replace('/\s+City$/i', '', $label) ?? $label;
+        $label = preg_replace('/^Kab\.?\s+/i', 'Kabupaten ', $label) ?? $label;
+
+        $aliases = [
+            'South Jakarta' => 'Jakarta Selatan',
+            'South Of Jakarta' => 'Jakarta Selatan',
+            'North Jakarta' => 'Jakarta Utara',
+            'West Jakarta' => 'Jakarta Barat',
+            'East Jakarta' => 'Jakarta Timur',
+            'Central Jakarta' => 'Jakarta Pusat',
+            'South Tangerang' => 'Tangerang Selatan',
+            'Dki Jakarta' => 'Jakarta',
+        ];
+        $label = $aliases[$label] ?? $label;
+
+        $label = preg_replace('/^(Bekasi|Bogor)\s+(Utara|Selatan|Timur|Barat|Tengah)$/i', '$1', $label) ?? $label;
+
+        return trim($label);
+    }
+
+    /**
+     * Groups a free-text "city" field into counts, folding case-only
+     * variants ("jakarta selatan" vs "Jakarta Selatan"), known administrative
+     * synonyms (see canonicalizeCityToken()), and full-address entries that
+     * merely *mention* a real city ("Kebayoran Lama Jakarta Selatan") into
+     * that city instead of letting them fork into their own one-off noise
+     * buckets.
+     *
+     * Pass 1: title-case + canonicalize every value and count exact matches
+     * — this finds the clean, frequently-used city labels ("Jakarta Selatan"
+     * x56). Pass 2: treat those clean labels (2+ occurrences, plausible
+     * city-name length) as anchors, longest first, and fold any other value
+     * that *contains* an anchor into it. Values matching no anchor are kept
+     * as-is.
      */
     private static function normalizeCityCounts(\Illuminate\Support\Collection $rawCities): \Illuminate\Support\Collection
     {
@@ -69,7 +135,7 @@ class RecruitmentDashboardController extends Controller
      */
     private static function normalizeCityLabels(\Illuminate\Support\Collection $rawCities): \Illuminate\Support\Collection
     {
-        $titled = $rawCities->map(fn ($city) => self::formatLabel($city) ?: 'Unknown');
+        $titled = $rawCities->map(fn ($city) => self::canonicalizeCityToken(self::formatLabel($city) ?: 'Unknown'));
 
         $anchors = $titled->countBy()
             ->filter(fn ($count, $label) => $label !== 'Unknown' && $count >= 2 && mb_strlen($label) >= 4 && mb_strlen($label) <= 24)
@@ -343,11 +409,9 @@ class RecruitmentDashboardController extends Controller
         $cityCandidates = $isSelfMode ? $selfCandidates : $careerCandidates;
         $rawCityCounts = self::normalizeCityCounts($cityCandidates->pluck('domicile_city'));
 
+        // Straight top 10 real cities — no "Others" catch-all bar, so the
+        // chart actually shows 10 cities instead of 9 + a leftover bucket.
         $cityCounts = $rawCityCounts->take(10);
-        $otherCityTotal = (int) $rawCityCounts->slice(10)->sum();
-        if ($otherCityTotal > 0) {
-            $cityCounts->put('Others', $otherCityTotal);
-        }
 
         // ── Hiring source ("how did you hear about us") ───────────────────────
         // Mostly unfilled (a large "Unknown" share is expected) — the chart only
@@ -727,12 +791,10 @@ class RecruitmentDashboardController extends Controller
 
         $applicantType = $source ?: 'all';
 
-        // ── Full-dashboard summary insight (one consolidated read of everything
-        //    above, in the same {type, text} shape GM report's renderInsights()
-        //    expects — type drives which icon/color the panel shows). ─────────
-        $fullInsights = [];
-
-        $fullInsights[] = [
+        // ── Per-card insights (shown behind the lamp icon on each card, instead
+        //    of one consolidated panel) — each is a {type, text} pair, type
+        //    driving the lamp's icon color. ────────────────────────────────────
+        $insightPrf = [
             'type' => $unpostedCount > 0 ? 'warning' : 'info',
             'text' => $postedSharePct . '% of requisitions are already live on the career site (<b>'
                 . number_format($postedCount) . '</b> of ' . number_format($totalJobPostings) . ')'
@@ -741,36 +803,46 @@ class RecruitmentDashboardController extends Controller
 
         $rejectedPct = $totalApplicantAll > 0 ? round($totalRejectedAll / $totalApplicantAll * 100, 1) : 0;
         $hiredPct = $totalApplicantAll > 0 ? round($totalJoined / $totalApplicantAll * 100, 1) : 0;
-        $fullInsights[] = [
+        $insightApplicant = [
             'type' => $rejectedPct >= 60 ? 'warning' : 'info',
             'text' => number_format($totalApplicantAll) . ' candidates have applied so far — <b>' . $rejectedPct . '%</b> get rejected'
                 . ' and only <b>' . $hiredPct . '%</b> are ultimately hired'
                 . ($applicantType !== 'self' && $avgTimeToHire !== null ? ', averaging <b>' . $avgTimeToHire . ' days</b> from apply to join' : '') . '.',
         ];
 
-        $fullInsights[] = [
+        $insightAgeGender = [
             'type' => 'info',
-            'text' => '<b>' . $topGenderPct . '% ' . $topGenderLabel . '</b>, mostly aged <b>' . $topAgeLabel . '</b> (' . $topAgePct . '%), and <b>'
-                . $topCityLabel . '</b> leads by location (' . number_format($topCityCount) . ' candidates).',
+            'text' => '<b>' . $topGenderPct . '% ' . $topGenderLabel . '</b>, mostly aged <b>' . $topAgeLabel . '</b> (' . $topAgePct . '%).',
         ];
 
-        $fullInsights[] = [
-            'type' => 'warning',
-            'text' => 'Education level is unrecorded for <b>' . $unknownEducationPct . '%</b> of applicants, and the hiring-source field for <b>'
-                . $unknownSourcePct . '%</b>'
+        $insightCity = [
+            'type' => 'info',
+            'text' => '<b>' . $topCityLabel . '</b> leads by location with <b>' . number_format($topCityCount) . '</b> candidates.',
+        ];
+
+        $insightEducation = [
+            'type' => $unknownEducationPct >= 40 ? 'warning' : 'info',
+            'text' => 'Education level is unrecorded for <b>' . $unknownEducationPct . '%</b> of applicants.',
+        ];
+
+        $insightSource = [
+            'type' => $unknownSourcePct >= 40 ? 'warning' : 'info',
+            'text' => 'The hiring-source field is unrecorded for <b>' . $unknownSourcePct . '%</b> of applicants'
                 . ($topSourceLabel ? ' — of those recorded, <b>' . $topSourceLabel . '</b> leads with ' . number_format($topSourceCount) . ' candidates' : '') . '.',
         ];
 
+        $insightDivision = null;
         if ($applicantType !== 'self' && $topDivisionRow) {
-            $fullInsights[] = [
+            $insightDivision = [
                 'type' => $topDivisionShare >= 50 ? 'warning' : 'info',
                 'text' => '<b>' . $topDivisionRow['label'] . '</b> draws the most interest (<b>' . $topDivisionShare . '%</b> of applicants) — postings typically close '
                     . ($avgPrfToPostingDays ?? '—') . ' days after their PRF is completed.',
             ];
         }
 
+        $insightTopJob = null;
         if ($applicantType !== 'self' && $topJobRow) {
-            $fullInsights[] = [
+            $insightTopJob = [
                 'type' => $topJobRow['status'] === 'Hold' ? 'critical' : 'info',
                 'text' => '<b>' . $topJobRow['job_title'] . '</b> alone draws <b>' . $topJobRow['pct'] . '%</b> of all job applications ('
                     . number_format($topJobRow['total']) . ' candidates)'
@@ -778,8 +850,9 @@ class RecruitmentDashboardController extends Controller
             ];
         }
 
+        $insightBottleneck = null;
         if ($applicantType !== 'self' && $bottleneckStage) {
-            $fullInsights[] = [
+            $insightBottleneck = [
                 'type' => 'warning',
                 'text' => '<b>' . $bottleneckStage . '</b> is the biggest bottleneck in the hiring funnel, adding <b>' . $bottleneckDays . ' days</b> on average'
                     . ($totalHireDays ? ' — the full apply-to-hire journey averages <b>' . $totalHireDays . ' days</b>' : '') . '.',
@@ -873,8 +946,16 @@ class RecruitmentDashboardController extends Controller
             'bottleneckDays' => $bottleneckDays,
             'totalHireDays' => $totalHireDays,
 
-            // Full-dashboard summary insight
-            'fullInsights' => $fullInsights,
+            // Per-card insights (lamp icon tooltip on each card)
+            'insightPrf' => $insightPrf,
+            'insightApplicant' => $insightApplicant,
+            'insightAgeGender' => $insightAgeGender,
+            'insightCity' => $insightCity,
+            'insightEducation' => $insightEducation,
+            'insightSource' => $insightSource,
+            'insightDivision' => $insightDivision,
+            'insightTopJob' => $insightTopJob,
+            'insightBottleneck' => $insightBottleneck,
             'lastUpdatedAt' => now()->format('d M Y, H:i'),
         ]);
     }

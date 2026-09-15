@@ -13,10 +13,10 @@
     ];
 @endphp
 
-<div {{ $attributes->merge(['class' => 'relative overflow-hidden rounded-2xl border border-indigo-200/70 bg-gradient-to-br from-indigo-50/80 via-white to-white p-4 shadow-sm dark:border-indigo-500/20 dark:from-indigo-500/[0.06] dark:via-slate-900 dark:to-slate-900']) }}
+<div {{ $attributes->merge(['class' => 'rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-700/60 dark:bg-slate-900']) }}
     @if($collapsible) x-data="{ open: true }" @endif>
 
-    <div class="mb-2 flex items-center justify-between {{ $collapsible ? 'cursor-pointer' : '' }}"
+    <div class="mb-1.5 flex items-center justify-between {{ $collapsible ? 'cursor-pointer' : '' }}"
         @if($collapsible) @click="open = !open" @endif>
         <div class="flex items-center gap-1.5">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -24,19 +24,26 @@
             </svg>
             <span class="text-[10px] font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">Summary Insight</span>
         </div>
-        @if($collapsible)
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-indigo-400 transition-transform" :class="open ? '' : '-rotate-90'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-            </svg>
-        @endif
+        <div class="flex items-center gap-2">
+            @if($listId)
+                <span id="{{ $listId }}-count" class="text-[10.5px] font-semibold tabular-nums text-slate-400 dark:text-slate-500"></span>
+            @elseif(count($items))
+                <span class="text-[10.5px] font-semibold tabular-nums text-slate-400 dark:text-slate-500">{{ count($items) }}</span>
+            @endif
+            @if($collapsible)
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-indigo-400 transition-transform" :class="open ? '' : '-rotate-90'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                </svg>
+            @endif
+        </div>
     </div>
 
     <ul @if($collapsible) x-show="open" x-collapse @endif
-        @if($listId) id="{{ $listId }}" @endif class="space-y-1.5">
+        @if($listId) id="{{ $listId }}" @endif class="grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2 xl:grid-cols-3">
         @if(count($items))
             @foreach($items as $item)
                 @php $ic = $icons[$item['type'] ?? 'info'] ?? $icons['info']; @endphp
-                <li class="flex items-start gap-2 text-xs leading-relaxed text-slate-700 dark:text-slate-200">
+                <li class="flex items-start gap-1.5 py-0.5 text-xs leading-relaxed text-slate-700 dark:text-slate-200">
                     <svg class="mt-0.5 h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="{{ $ic['color'] }}" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="{{ $ic['path'] }}"/>
                     </svg>
@@ -44,7 +51,7 @@
                 </li>
             @endforeach
         @else
-            <li class="text-xs text-slate-400 dark:text-slate-500">Loading insights…</li>
+            <li class="col-span-full text-xs text-slate-400 dark:text-slate-500">Loading insights…</li>
         @endif
     </ul>
 </div>

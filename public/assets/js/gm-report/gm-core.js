@@ -49,8 +49,11 @@
             var el = document.getElementById(listId);
             if (!el) return;
 
+            var countEl = document.getElementById(listId + '-count');
+
             if (!insights || !insights.length) {
-                el.innerHTML = '<li class="text-xs text-slate-400 dark:text-slate-500">Not enough data yet for insights in this period.</li>';
+                el.innerHTML = '<li class="col-span-full text-xs text-slate-400 dark:text-slate-500">Not enough data yet for insights in this period.</li>';
+                if (countEl) countEl.textContent = '';
                 return;
             }
 
@@ -63,13 +66,15 @@
 
             el.innerHTML = insights.map(function (ins) {
                 var ic = ICONS[ins.type] || ICONS.info;
-                return '<li class="flex items-start gap-2 text-xs leading-relaxed text-slate-700 dark:text-slate-200">'
+                return '<li class="flex items-start gap-1.5 py-0.5 text-xs leading-relaxed text-slate-700 dark:text-slate-200">'
                     + '<svg class="mt-0.5 h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="' + ic.color + '" stroke-width="2">'
                     +   '<path stroke-linecap="round" stroke-linejoin="round" d="' + ic.path + '"/>'
                     + '</svg>'
                     + '<span>' + ins.text + '</span>'
                     + '</li>';
             }).join('');
+
+            if (countEl) countEl.textContent = insights.length;
         },
 
         // Builds ?date_from=&date_to=&cpny_id=&departments[]= from current gmState
