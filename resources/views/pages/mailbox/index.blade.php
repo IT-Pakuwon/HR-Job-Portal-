@@ -104,6 +104,11 @@
                     this.email = data;
                     this.loading = false;
                     if (data.has_attachments) this.loadEmailAttachments(id);
+                    // content() marks the message read server-side; the modal
+                    // lives outside #mailbox-panel so this is safe to refresh
+                    // without disturbing it, and keeps the sidebar unread
+                    // badges/row styling in sync without a manual reload.
+                    this.refreshPanel();
                 })
                 .catch(() => { this.loading = false; });
         },
