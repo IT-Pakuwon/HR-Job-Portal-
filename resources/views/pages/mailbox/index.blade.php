@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto w-full p-2" x-data="{
+    <div class="mx-auto flex h-[calc(100dvh-72px)] w-full max-w-9xl flex-col overflow-hidden p-2" x-data="{
         currentFolder: @js($folder),
         modalOpen: false,
         loading: false,
@@ -416,7 +416,7 @@
                 </div>
             </div>
         @else
-            <div id="mailbox-panel" x-on:click="onPanelClick($event)">
+            <div id="mailbox-panel" class="min-h-0 flex-1" x-on:click="onPanelClick($event)">
                 @include('pages.mailbox._panel')
             </div>
         @endif

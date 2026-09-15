@@ -2221,6 +2221,7 @@ Route::middleware(['auth'])->group(function () {
             ->middleware('access:RECRUITDASH,VIEW')
             ->group(function () {
                 Route::get('/dashboard', 'dashboard')->name('recruitment.dashboard');
+                Route::get('/dashboard/export', 'exportBreakdown')->name('recruitment.dashboard.export');
             });
 
         Route::prefix('card-chart')

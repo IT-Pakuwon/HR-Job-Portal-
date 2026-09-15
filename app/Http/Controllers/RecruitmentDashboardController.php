@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Applicant;
-use App\Models\Company;
 use App\Models\Jobposting;
 use App\Models\MsCompany;
 use Carbon\Carbon;
@@ -59,6 +58,17 @@ class RecruitmentDashboardController extends Controller
      */
     private static function normalizeCityCounts(\Illuminate\Support\Collection $rawCities): \Illuminate\Support\Collection
     {
+        return self::normalizeCityLabels($rawCities)->countBy()->sortDesc();
+    }
+
+    /**
+     * Same folding as normalizeCityCounts(), but returns the per-row resolved
+     * label (keys preserved) instead of collapsing to aggregate counts — used
+     * where callers need to know which bucket a specific candidate landed in
+     * (e.g. exporting the "Others" rows).
+     */
+    private static function normalizeCityLabels(\Illuminate\Support\Collection $rawCities): \Illuminate\Support\Collection
+    {
         $titled = $rawCities->map(fn ($city) => self::formatLabel($city) ?: 'Unknown');
 
         $anchors = $titled->countBy()
@@ -68,19 +78,17 @@ class RecruitmentDashboardController extends Controller
             ->values();
 
         return $titled->map(function ($label) use ($anchors) {
-                if ($anchors->contains($label)) {
-                    return $label;
-                }
-                $haystack = mb_strtolower($label);
-                foreach ($anchors as $anchor) {
-                    if (str_contains($haystack, mb_strtolower($anchor))) {
-                        return $anchor;
-                    }
-                }
+            if ($anchors->contains($label)) {
                 return $label;
-            })
-            ->countBy()
-            ->sortDesc();
+            }
+            $haystack = mb_strtolower($label);
+            foreach ($anchors as $anchor) {
+                if (str_contains($haystack, mb_strtolower($anchor))) {
+                    return $anchor;
+                }
+            }
+            return $label;
+        });
     }
 
     private static function ageBucket(int $age): string
@@ -180,7 +188,11 @@ class RecruitmentDashboardController extends Controller
             $postingCompanyQuery->whereIn('cpnyid', $filterCompanyIds);
         }
         $postingCompanyIds = $postingCompanyQuery->distinct()->pluck('cpnyid');
-        $companyNames = Company::whereIn('cpnyid', $postingCompanyIds)->pluck('cpnyname', 'cpnyid');
+        // MsCompany (pgsql2) is the current, complete company master — the legacy
+        // mysql2 `company` table (used here previously) is missing rows for some
+        // active cpnyids (e.g. O88, PRB), which made their names fall back to the
+        // raw ID in the filter dropdown.
+        $companyNames = MsCompany::whereIn('cpny_id', $postingCompanyIds)->pluck('cpny_name', 'cpny_id');
         $companies = $postingCompanyIds->map(fn ($id) => (object) ['cpnyid' => $id, 'cpnyname' => $companyNames->get($id, $id)])
             ->sortBy('cpnyname')
             ->values();
@@ -399,22 +411,29 @@ class RecruitmentDashboardController extends Controller
             ->groupBy('viewtrxcareer.docidposting', 'viewtrxcareer.job_title', 'viewtrxcareer.departementid')
             ->get();
 
-        $jobPostingStatusMap = $conn->table('hr_trx_jobposting')
+        $jobPostingMeta = $conn->table('hr_trx_jobposting')
             ->whereIn('docid', $jobApplyCounts->pluck('docidposting'))
-            ->pluck('status', 'docid');
+            ->select('docid', 'status', 'job_level', 'cpnyid')
+            ->get()
+            ->keyBy('docid');
 
         $departmentNames = $departments->pluck('department_name', 'department_id');
         $jobStatusLabels = ['P' => 'Posted', 'U' => 'Unposted', 'C' => 'Closed', 'H' => 'Hold'];
 
         $totalJobApplied = (int) $jobApplyCounts->sum('total');
 
-        $jobApplyRows = $jobApplyCounts->map(fn ($row) => [
-                'job_title' => $row->job_title ?: '(Untitled)',
-                'department' => self::formatLabel($departmentNames->get($row->departementid, '-')),
-                'status' => $jobStatusLabels[$jobPostingStatusMap->get($row->docidposting)] ?? '-',
-                'total' => (int) $row->total,
-                'pct' => $totalJobApplied > 0 ? round($row->total / $totalJobApplied * 100, 1) : 0,
-            ])
+        $jobApplyRows = $jobApplyCounts->map(function ($row) use ($jobPostingMeta, $companyNames, $departmentNames, $jobStatusLabels, $totalJobApplied) {
+                $meta = $jobPostingMeta->get($row->docidposting);
+                $title = $row->job_title ?: '(Untitled)';
+                return [
+                    'job_title' => ($meta && $meta->job_level) ? $title . ' - ' . $meta->job_level : $title,
+                    'company' => $meta ? $companyNames->get($meta->cpnyid, $meta->cpnyid) : '-',
+                    'department' => self::formatLabel($departmentNames->get($row->departementid, '-')),
+                    'status' => $jobStatusLabels[$meta->status ?? null] ?? '-',
+                    'total' => (int) $row->total,
+                    'pct' => $totalJobApplied > 0 ? round($row->total / $totalJobApplied * 100, 1) : 0,
+                ];
+            })
             ->sortByDesc('total')
             ->values();
 
@@ -578,7 +597,7 @@ class RecruitmentDashboardController extends Controller
 
         $prfRows = DB::connection('pgsql3')->table('hr_trx_prf')
             ->whereIn('docid', $completedPrfIds)
-            ->select('docid', 'date as prf_date')
+            ->select('docid', 'date as prf_date', 'job_title', 'job_level', 'cpnyid')
             ->get();
 
         $postingStatuses = $conn->table('hr_trx_jobposting')
@@ -588,25 +607,46 @@ class RecruitmentDashboardController extends Controller
             ->get()
             ->keyBy('refid');
 
+        $prfCompanyNames = MsCompany::whereIn('cpny_id', $prfRows->pluck('cpnyid')->filter()->unique())
+            ->pluck('cpny_name', 'cpny_id');
+
         $prfWithPosting = $prfRows->map(function ($prf) use ($postingStatuses) {
             $posting = $postingStatuses->get($prf->docid);
             return (object) [
                 'docid' => $prf->docid,
                 'prf_date' => $prf->prf_date,
                 'posting_date' => $posting->posting_date ?? null,
+                'job_title' => $prf->job_title,
+                'job_level' => $prf->job_level,
+                'cpnyid' => $prf->cpnyid,
             ];
         });
 
         // ── PRF Completed → Job Status turnaround ────────────────────────────
+        // NOTE: "posting_date" is when the resulting job posting was *created*
+        // (hr_trx_jobposting.date), not a true closure date — hr_trx_jobposting
+        // has a jobclosing_date column but it is unused/unpopulated across the
+        // app today, so PRF-completed-to-posted is the closest turnaround signal
+        // currently available.
         $prfToPostingDays = [];
+        $prfTurnaroundRows = [];
         foreach ($prfWithPosting as $r) {
             if ($r->posting_date && $r->prf_date) {
-                $prfToPostingDays[] = Carbon::parse($r->prf_date)->diffInDays(Carbon::parse($r->posting_date));
+                $days = Carbon::parse($r->prf_date)->diffInDays(Carbon::parse($r->posting_date));
+                $prfToPostingDays[] = $days;
+                $title = $r->job_title ?: '(Untitled)';
+                $prfTurnaroundRows[] = [
+                    'prf' => $r->docid,
+                    'job_title' => $r->job_level ? $title . ' - ' . $r->job_level : $title,
+                    'company' => $prfCompanyNames->get($r->cpnyid, $r->cpnyid),
+                    'total' => $days,
+                ];
             }
         }
         $avgPrfToPostingDays = count($prfToPostingDays) > 0
             ? round(array_sum($prfToPostingDays) / count($prfToPostingDays), 1)
             : null;
+        usort($prfTurnaroundRows, fn ($a, $b) => $b['total'] <=> $a['total']);
 
         $prfToPostingBuckets = ['<3 days' => 0, '3–7 days' => 0, '8–14 days' => 0, '15–30 days' => 0, '>30 days' => 0];
         foreach ($prfToPostingDays as $days) {
@@ -753,6 +793,7 @@ class RecruitmentDashboardController extends Controller
 
             // Total candidate applied per job
             'jobApplyRows' => $jobApplyRows->all(),
+            'prfTurnaroundRows' => $prfTurnaroundRows,
 
             // Suggested additions
             'avgTimeToHire' => $avgTimeToHire,
@@ -777,5 +818,158 @@ class RecruitmentDashboardController extends Controller
             'fullInsights' => $fullInsights,
             'lastUpdatedAt' => now()->format('d M Y, H:i'),
         ]);
+    }
+
+    /**
+     * CSV export of the underlying candidate rows behind the "Unknown" gender/
+     * education slices and the "Others" residential-city bucket on the By
+     * Gender / By Education Level / Top 10 by Residential City charts —
+     * honors the exact same query-string filters as dashboard() so the
+     * export always matches what's currently on screen.
+     */
+    public function exportBreakdown(Request $request)
+    {
+        $list = $request->query('list');
+        abort_unless(in_array($list, ['gender', 'education', 'city'], true), 404);
+
+        $user = Auth::user();
+        $applicantConn = (new Applicant())->getConnectionName();
+        $conn = DB::connection($applicantConn);
+
+        $from = $request->query('from');
+        $to = $request->query('to');
+        $department = $request->query('department');
+        $company = $request->query('company');
+        $location = $request->query('location');
+        $source = $request->query('source');
+        $groupCpnyFilter = $request->query('group_cpny');
+        $areaFilter = $request->query('area');
+        $division = $request->query('division');
+
+        $userGroupCpny = $user->group_cpny_id ?? null;
+        $isGroupLocked = !$user->isPrimaryAdmin() && !empty($userGroupCpny);
+        if (empty($groupCpnyFilter) && $isGroupLocked) {
+            $groupCpnyFilter = $userGroupCpny;
+        }
+
+        $filterCompanyIds = null;
+        if ($groupCpnyFilter || $areaFilter) {
+            $msQuery = MsCompany::where('status', 'A');
+            if ($groupCpnyFilter) {
+                $msQuery->where('group_cpny_id', $groupCpnyFilter);
+            }
+            if ($areaFilter) {
+                $msQuery->where('area_id', $areaFilter);
+            }
+            $filterCompanyIds = $msQuery->pluck('cpny_id')->toArray();
+            if (empty($filterCompanyIds)) {
+                $filterCompanyIds = [null];
+            }
+        }
+
+        $departmentToDivision = $conn->table('hr_ms_department')->pluck('division_id', 'department_id');
+        $departmentNames = $conn->table('hr_ms_department')->pluck('department_name', 'department_id');
+        $divisionDepartmentIds = $division
+            ? $departmentToDivision->filter(fn ($divId) => $divId === $division)->keys()->all()
+            : null;
+
+        $locationPostingIds = $location
+            ? $conn->table('hr_trx_jobposting')
+                ->when($filterCompanyIds, fn ($q) => $q->whereIn('cpnyid', $filterCompanyIds))
+                ->where('locationname', $location)
+                ->pluck('docid')
+            : null;
+
+        $isSelfMode = $source === 'self';
+
+        // Same default as the dashboard charts: gender/education/city breakdowns
+        // are career (job-applicant) sourced unless source=self is explicitly set.
+        if ($isSelfMode) {
+            $selfBase = $conn->table('viewselfregister')
+                ->when($from, fn ($q) => $q->whereDate('viewselfregister.apply_date', '>=', $from))
+                ->when($to, fn ($q) => $q->whereDate('viewselfregister.apply_date', '<=', $to))
+                ->when($department, fn ($q) => $q->where('viewselfregister.departementid', $department))
+                ->when($divisionDepartmentIds, fn ($q) => $q->whereIn('viewselfregister.departementid', $divisionDepartmentIds));
+
+            $candidates = (clone $selfBase)
+                ->leftJoin('hr_ms_applicant as a', 'viewselfregister.applicant_id', '=', 'a.applicant_id')
+                ->select(
+                    'viewselfregister.applicant_id as applicant_id',
+                    'a.full_name as fullname',
+                    'a.email_address as email_address',
+                    'a.mobile_phone as mobile_phone',
+                    'viewselfregister.apply_date as apply_date',
+                    'viewselfregister.departementid as departementid',
+                    'a.gender as gender',
+                    'viewselfregister.education_type as education_type',
+                    'a.domicile_city as domicile_city',
+                    DB::raw("COALESCE(NULLIF(TRIM(LOWER(a.email_address)), ''), NULLIF(TRIM(a.mobile_phone), ''), NULLIF(a.ktp_id, ''), a.applicant_id) as identity_key")
+                )
+                ->get()
+                ->unique('identity_key')
+                ->values();
+        } else {
+            $careerBase = $conn->table('viewtrxcareer')
+                ->when($from, fn ($q) => $q->whereDate('viewtrxcareer.apply_date', '>=', $from))
+                ->when($to, fn ($q) => $q->whereDate('viewtrxcareer.apply_date', '<=', $to))
+                ->when($department, fn ($q) => $q->where('viewtrxcareer.departementid', $department))
+                ->when($divisionDepartmentIds, fn ($q) => $q->whereIn('viewtrxcareer.departementid', $divisionDepartmentIds))
+                ->when($company, fn ($q) => $q->where('viewtrxcareer.cpnyid', $company))
+                ->when($filterCompanyIds, fn ($q) => $q->whereIn('viewtrxcareer.cpnyid', $filterCompanyIds))
+                ->when($location, fn ($q) => $q->whereIn('viewtrxcareer.docidposting', $locationPostingIds));
+
+            $candidates = (clone $careerBase)
+                ->leftJoin('hr_ms_applicant as a', 'viewtrxcareer.applicant_id', '=', 'a.applicant_id')
+                ->select(
+                    'viewtrxcareer.applicant_id as applicant_id',
+                    'viewtrxcareer.fullname as fullname',
+                    'a.email_address as email_address',
+                    'viewtrxcareer.mobile_phone as mobile_phone',
+                    'viewtrxcareer.apply_date as apply_date',
+                    'viewtrxcareer.departementid as departementid',
+                    'a.gender as gender',
+                    'a.date_of_birth as date_of_birth',
+                    'a.ktp_id as ktp_id',
+                    'viewtrxcareer.education_type as education_type',
+                    'a.domicile_city as domicile_city'
+                )
+                ->get()
+                ->unique(fn ($row) => $row->ktp_id && $row->date_of_birth
+                    ? $row->ktp_id . '|' . $row->date_of_birth
+                    : $row->applicant_id
+                )
+                ->values();
+        }
+
+        $rows = match ($list) {
+            'gender' => $candidates->filter(fn ($r) => !trim((string) $r->gender))->values(),
+            'education' => $candidates->filter(fn ($r) => !trim((string) $r->education_type))->values(),
+            'city' => (function () use ($candidates) {
+                $normalized = self::normalizeCityLabels($candidates->pluck('domicile_city'));
+                $top10 = $normalized->countBy()->sortDesc()->take(10)->keys()->all();
+                return $candidates->filter(fn ($r, $idx) => !in_array($normalized->get($idx), $top10, true))->values();
+            })(),
+        };
+
+        $filename = 'recruitment-' . $list . '-' . now()->format('Ymd_His') . '.csv';
+
+        return response()->streamDownload(function () use ($rows, $departmentNames) {
+            $fh = fopen('php://output', 'w');
+            fputcsv($fh, ['Applicant ID', 'Full Name', 'Email', 'Mobile Phone', 'Apply Date', 'Department', 'Domicile City', 'Gender', 'Education Type']);
+            foreach ($rows as $r) {
+                fputcsv($fh, [
+                    $r->applicant_id,
+                    $r->fullname,
+                    $r->email_address,
+                    $r->mobile_phone,
+                    $r->apply_date,
+                    self::formatLabel($departmentNames->get($r->departementid, $r->departementid)),
+                    $r->domicile_city,
+                    $r->gender ?: '(blank)',
+                    $r->education_type ?: '(blank)',
+                ]);
+            }
+            fclose($fh);
+        }, $filename, ['Content-Type' => 'text/csv']);
     }
 }

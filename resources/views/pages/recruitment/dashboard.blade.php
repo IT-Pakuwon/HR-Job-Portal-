@@ -1,33 +1,42 @@
 <x-app-layout>
 
+    @php
+        // Builds a CSV export link for the given breakdown ("gender" | "education" | "city"),
+        // carrying over whatever filters are currently applied to the dashboard.
+        $exportUrl = fn (string $type) => route('recruitment.dashboard.export', array_filter(array_merge($filters, ['list' => $type])));
+        $exportButton = fn (string $type, string $label) => '<a href="' . e($exportUrl($type)) . '" class="inline-flex items-center gap-1 rounded-full border border-slate-200 px-2.5 py-1 text-[11px] font-semibold text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-200">'
+            . '<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>'
+            . e($label) . '</a>';
+    @endphp
+
     <div class="max-w-9xl mx-auto w-full space-y-3 p-2 overflow-x-hidden">
 
-        {{-- Page Header --}}
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-            <h1 class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                Career Portal Dashboard
-            </h1>
-            <span class="mt-1 inline-flex items-center gap-1 self-start rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500 lg:mt-0 lg:self-auto dark:bg-slate-800 dark:text-slate-400">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Last Updated: {{ $lastUpdatedAt }}
-            </span>
-        </div>
+        {{-- Page Header — title (left) + compact filter bar (right), matching the
+             Reports/GM dashboard layout. --}}
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
+            <div>
+                <h1 class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                    Career Portal Dashboard
+                </h1>
+                <span class="mt-1 inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Last Updated: {{ $lastUpdatedAt }}
+                </span>
+            </div>
 
-        {{-- Filter Bar — pill-style segmented bar matching GM aesthetic. Collapsible,
-             open by default. --}}
-        <x-dashboard-filter.dashboard-filter
-            :companyGroups="$companyGroups"
-            :areas="$areas"
-            :isGroupLocked="$isGroupLocked"
-            :userGroupCpny="$userGroupCpny"
-            :currentFilters="$filters"
-            :departments="$departments"
-            :divisions="$divisions"
-            :companies="$companies"
-            :locations="$locations"
-            collapsible="true" />
+            <x-dashboard-filter.dashboard-filter
+                :companyGroups="$companyGroups"
+                :areas="$areas"
+                :isGroupLocked="$isGroupLocked"
+                :userGroupCpny="$userGroupCpny"
+                :currentFilters="$filters"
+                :departments="$departments"
+                :divisions="$divisions"
+                :companies="$companies"
+                :locations="$locations" />
+        </div>
 
         {{-- Full Insight — one consolidated read of the whole dashboard. Collapsible,
              open by default. --}}
@@ -78,12 +87,16 @@
             <x-card-chart.donut-chart
                 class="lg:col-span-3"
                 title="By Gender" legend-position="bottom"
-                color="pink" height="380" :labels="$genderLabels" :series="$genderSeries" />
+                color="pink" height="380" :labels="$genderLabels" :series="$genderSeries">
+                <x-slot:headerEnd>{!! $exportButton('gender', 'Unknown') !!}</x-slot:headerEnd>
+            </x-card-chart.donut-chart>
 
             <x-card-chart.donut-chart
                 class="lg:col-span-3"
                 title="By Education Level" legend-position="bottom"
-                color="green" height="380" :labels="$educationLabels" :series="$educationSeries" />
+                color="green" height="380" :labels="$educationLabels" :series="$educationSeries">
+                <x-slot:headerEnd>{!! $exportButton('education', 'Unknown') !!}</x-slot:headerEnd>
+            </x-card-chart.donut-chart>
 
         </div>
 
@@ -121,7 +134,9 @@
                 <x-card-chart.bar-chart
                     title="Top 10 by Residential City"
                     color="orange" height="360" :categories="$cityLabels"
-                    :series="[['name' => 'Candidates', 'data' => $citySeries]]" />
+                    :series="[['name' => 'Candidates', 'data' => $citySeries]]">
+                    <x-slot:headerEnd>{!! $exportButton('city', 'Others') !!}</x-slot:headerEnd>
+                </x-card-chart.bar-chart>
             @endif
 
         </div>
@@ -156,8 +171,9 @@
                         BLADE;
                     @endphp
 
-                    <div x-show="funnelTab === 'funnel'">
+                    <div x-show="funnelTab === 'funnel'" class="flex min-h-[430px] flex-col">
                         <x-card-chart.funnel-chart
+                            class="flex-1"
                             title="Hiring Funnel"
                             color="orange" height="360"
                             :series="$funnelSeries">
@@ -165,8 +181,9 @@
                         </x-card-chart.funnel-chart>
                     </div>
 
-                    <div x-show="funnelTab === 'timing'" x-cloak>
+                    <div x-show="funnelTab === 'timing'" x-cloak class="flex min-h-[430px] flex-col">
                         <x-card-chart.area-chart
+                            class="flex-1"
                             title="Avg Time to Reach Stage (cumulative days since applied)"
                             color="orange" height="360"
                             :categories="$stageTimingLabels"
@@ -175,8 +192,9 @@
                         </x-card-chart.area-chart>
                     </div>
 
-                    <div x-show="funnelTab === 'prf'" x-cloak>
+                    <div x-show="funnelTab === 'prf'" x-cloak class="flex min-h-[430px] flex-col">
                         <x-card-chart.bar-chart
+                            class="flex-1"
                             title="PRF Completed → Job Closed (avg {{ $avgPrfToPostingDays ?? '—' }} days)"
                             color="orange" height="360"
                             :categories="$prfToPostingLabels"
@@ -187,16 +205,58 @@
 
                 </div>
 
-                <x-card-chart.table-card
-                    class="lg:col-span-6"
-                    title="Total Candidate Applied per Job"
-                    color="cyan" :searchable="true" :sortable="true" search-placeholder="Search job..." max-height="360px"
-                    :columns="[
-                        ['label' => 'Job Title', 'key' => 'job_title'],
-                        ['label' => 'Total Applied', 'key' => 'total', 'numeric' => true],
-                        ['label' => 'Share of Applicants', 'key' => 'pct', 'numeric' => true, 'type' => 'bar'],
-                    ]"
-                    :rows="$jobApplyRows" />
+                <div class="lg:col-span-6" x-data="{ jobTableTab: 'jobs' }">
+
+                    @php
+                        $jobTableTabButtons = <<<'BLADE'
+                            <div class="inline-flex rounded-full bg-slate-100 p-1 text-xs font-semibold dark:bg-slate-800">
+                                <button type="button" @click="jobTableTab = 'jobs'"
+                                    class="rounded-full px-3 py-1 transition"
+                                    :class="jobTableTab === 'jobs' ? 'bg-white text-cyan-600 shadow-sm dark:bg-slate-900 dark:text-cyan-400' : 'text-slate-500 dark:text-slate-400'">
+                                    Candidates per Job
+                                </button>
+                                <button type="button" @click="jobTableTab = 'prf'"
+                                    class="rounded-full px-3 py-1 transition"
+                                    :class="jobTableTab === 'prf' ? 'bg-white text-cyan-600 shadow-sm dark:bg-slate-900 dark:text-cyan-400' : 'text-slate-500 dark:text-slate-400'">
+                                    PRF → Job Closed
+                                </button>
+                            </div>
+                        BLADE;
+                    @endphp
+
+                    <div x-show="jobTableTab === 'jobs'" class="flex min-h-[430px] flex-col">
+                        <x-card-chart.table-card
+                            class="flex-1"
+                            title="Total Candidate Applied per Job"
+                            color="cyan" :searchable="true" :sortable="true" search-placeholder="Search job..." max-height="360px"
+                            :columns="[
+                                ['label' => 'Job Title', 'key' => 'job_title'],
+                                ['label' => 'Company', 'key' => 'company'],
+                                ['label' => 'Total Applied', 'key' => 'total', 'numeric' => true],
+                                ['label' => 'Share of Applicants', 'key' => 'pct', 'numeric' => true, 'type' => 'bar'],
+                            ]"
+                            :rows="$jobApplyRows">
+                            <x-slot:headerEnd>{!! $jobTableTabButtons !!}</x-slot:headerEnd>
+                        </x-card-chart.table-card>
+                    </div>
+
+                    <div x-show="jobTableTab === 'prf'" x-cloak class="flex min-h-[430px] flex-col">
+                        <x-card-chart.table-card
+                            class="flex-1"
+                            title="PRF Completed → Job Closed (avg {{ $avgPrfToPostingDays ?? '—' }} days)"
+                            color="cyan" :searchable="true" :sortable="true" search-placeholder="Search PRF..." max-height="360px"
+                            :columns="[
+                                ['label' => 'PRF', 'key' => 'prf'],
+                                ['label' => 'Job Title', 'key' => 'job_title'],
+                                ['label' => 'Company', 'key' => 'company'],
+                                ['label' => 'Days (Completed → Posted)', 'key' => 'total', 'numeric' => true],
+                            ]"
+                            :rows="$prfTurnaroundRows">
+                            <x-slot:headerEnd>{!! $jobTableTabButtons !!}</x-slot:headerEnd>
+                        </x-card-chart.table-card>
+                    </div>
+
+                </div>
 
             </div>
         @endif

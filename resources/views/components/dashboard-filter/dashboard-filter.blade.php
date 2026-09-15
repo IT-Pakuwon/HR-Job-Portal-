@@ -19,36 +19,34 @@
 
 @if($isRecruitment)
     {{-- ========================================================================
-         RECRUITMENT DASHBOARD FILTER — pill-style segmented bar matching GM aesthetic
+         RECRUITMENT DASHBOARD FILTER — compact pill-style bar matching the
+         Reports/GM dashboard aesthetic: button dropdowns + a date-range
+         popover with quick presets, sized to content instead of stretching
+         full-width. Submits the existing GET form (no AJAX plumbing needed).
         ======================================================================== --}}
-    <div id="recruitmentFilterWrap" class="w-full" @if($collapsible) x-data="{ filtersOpen: true }" @endif>
-    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700/60 dark:bg-slate-900">
+    @php
+        $hasActiveFilters = filled($currentFilters['from'] ?? null)
+            || filled($currentFilters['to'] ?? null)
+            || filled($currentFilters['department'] ?? null)
+            || filled($currentFilters['division'] ?? null)
+            || filled($currentFilters['company'] ?? null)
+            || filled($currentFilters['group_cpny'] ?? null);
+    @endphp
+    <div id="recruitmentFilterWrap" class="flex w-full sm:w-auto">
+    <div class="flex flex-1 flex-col rounded-2xl border border-slate-200 bg-white shadow-sm sm:flex-none sm:flex-row dark:border-slate-700/60 dark:bg-slate-900">
+    <form id="recruitmentFilterForm" method="GET" action="{{ route('recruitment.dashboard') }}" class="flex flex-1 flex-col sm:flex-row">
 
-        @if($collapsible)
-            <button type="button" @click="filtersOpen = !filtersOpen"
-                class="flex w-full items-center gap-1.5 px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 transition-transform" :class="filtersOpen ? '' : '-rotate-90'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-                </svg>
-                Filters
-            </button>
-        @endif
-
-        <div @if($collapsible) x-show="filtersOpen" x-collapse @endif>
-        <form method="GET" action="{{ route('recruitment.dashboard') }}"
-              class="flex flex-1 flex-col sm:flex-row {{ $collapsible ? 'border-t border-slate-200 dark:border-slate-700/60' : '' }}">
-
-        {{-- Group 1: Filter items spread evenly across available width --}}
-        <div class="flex flex-1 flex-wrap items-center divide-x divide-slate-200 border-b border-slate-200 sm:flex-nowrap sm:border-b-0 dark:divide-slate-700/60 dark:border-slate-700/60">
+        {{-- Group 1: Group / Company / Division --}}
+        <div class="flex items-center divide-x divide-slate-200 border-b border-slate-200 sm:border-b-0 dark:divide-slate-700/60 dark:border-slate-700/60">
 
             {{-- Company Group --}}
             @if(count($companyGroups) > 0)
-            <div class="flex flex-1 items-center justify-center gap-1.5 px-2 py-2">
+            <div class="flex cursor-pointer items-center gap-1.5 px-3 py-2 transition hover:bg-slate-50 dark:hover:bg-slate-800/50 {{ $isGroupLocked ? 'opacity-60' : '' }}">
                 <svg class="h-3.5 w-3.5 shrink-0 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                 </svg>
                 <select id="filterGroupCpny" name="group_cpny" onchange="this.form.submit()"
-                    class="w-full min-w-0 cursor-pointer appearance-none border-0 bg-transparent text-xs font-semibold text-slate-700 outline-none dark:text-slate-200 {{ $isGroupLocked ? 'opacity-60' : '' }}"
+                    class="cursor-pointer appearance-none border-0 bg-transparent text-xs font-semibold text-slate-700 outline-none dark:text-slate-200"
                     {{ $isGroupLocked ? 'disabled' : '' }}>
                     <option value="">All Groups</option>
                     @foreach($companyGroups as $g)
@@ -65,12 +63,12 @@
             @endif
 
             {{-- Company --}}
-            <div class="flex flex-1 items-center justify-center gap-1.5 px-2 py-2">
+            <div class="flex cursor-pointer items-center gap-1.5 px-3 py-2 transition hover:bg-slate-50 dark:hover:bg-slate-800/50">
                 <svg class="h-3.5 w-3.5 shrink-0 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/>
                 </svg>
                 <select id="filterCompany" name="company" onchange="this.form.submit()"
-                    class="w-full min-w-0 cursor-pointer appearance-none border-0 bg-transparent text-xs font-semibold text-slate-700 outline-none dark:text-slate-200">
+                    class="cursor-pointer appearance-none border-0 bg-transparent text-xs font-semibold text-slate-700 outline-none dark:text-slate-200">
                     <option value="">All Companies</option>
                     @foreach($companies as $cpny)
                         <option value="{{ $cpny->cpnyid }}" @selected(($currentFilters['company'] ?? '') === $cpny->cpnyid)>
@@ -84,12 +82,12 @@
             </div>
 
             {{-- Division --}}
-            <div class="flex flex-1 items-center justify-center gap-1.5 px-2 py-2">
+            <div class="flex cursor-pointer items-center gap-1.5 px-3 py-2 transition hover:bg-slate-50 dark:hover:bg-slate-800/50">
                 <svg class="h-3.5 w-3.5 shrink-0 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/>
                 </svg>
                 <select id="filterDivision" name="division" onchange="this.form.submit()"
-                    class="w-full min-w-0 cursor-pointer appearance-none border-0 bg-transparent text-xs font-semibold text-slate-700 outline-none dark:text-slate-200">
+                    class="cursor-pointer appearance-none border-0 bg-transparent text-xs font-semibold text-slate-700 outline-none dark:text-slate-200">
                     <option value="">All Divisions</option>
                     @foreach($divisions as $div)
                         <option value="{{ $div->division_id }}" @selected(($currentFilters['division'] ?? '') === $div->division_id)>
@@ -102,13 +100,18 @@
                 </svg>
             </div>
 
+        </div>
+
+        {{-- Group 2: Department / Date range / Reset+Refresh --}}
+        <div class="flex items-center divide-x divide-slate-200 sm:border-l sm:border-slate-200 dark:divide-slate-700/60 dark:sm:border-slate-700/60">
+
             {{-- Department --}}
-            <div class="flex flex-1 items-center justify-center gap-1.5 px-2 py-2">
+            <div class="flex cursor-pointer items-center gap-1.5 px-3 py-2 transition hover:bg-slate-50 dark:hover:bg-slate-800/50">
                 <svg class="h-3.5 w-3.5 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
                 </svg>
                 <select id="filterDepartment" name="department" onchange="this.form.submit()"
-                    class="w-full min-w-0 cursor-pointer appearance-none border-0 bg-transparent text-xs font-semibold text-slate-700 outline-none dark:text-slate-200">
+                    class="cursor-pointer appearance-none border-0 bg-transparent text-xs font-semibold text-slate-700 outline-none dark:text-slate-200">
                     <option value="">All Depts</option>
                     @foreach($departments as $dept)
                         <option value="{{ $dept->department_id }}" @selected(($currentFilters['department'] ?? '') === $dept->department_id)>
@@ -121,37 +124,150 @@
                 </svg>
             </div>
 
-            {{-- Date range --}}
-            <div class="flex flex-1 items-center justify-center gap-1 px-2 py-2">
-                <svg class="h-3.5 w-3.5 shrink-0 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                </svg>
-                <input type="date" name="from" value="{{ $currentFilters['from'] ?? '' }}" onchange="this.form.submit()"
-                    class="w-full min-w-0 border-0 bg-transparent text-xs font-semibold text-slate-700 outline-none dark:text-slate-200 [color-scheme:light] dark:[color-scheme:dark]"
-                    placeholder="From" />
-                <span class="shrink-0 text-xs text-slate-400">–</span>
-                <input type="date" name="to" value="{{ $currentFilters['to'] ?? '' }}" onchange="this.form.submit()"
-                    class="w-full min-w-0 border-0 bg-transparent text-xs font-semibold text-slate-700 outline-none dark:text-slate-200 [color-scheme:light] dark:[color-scheme:dark]"
-                    placeholder="To" />
+            {{-- Date range — button + popover with quick presets, like the GM filter --}}
+            <div class="relative"
+                x-data="{
+                    open: false,
+                    from: '{{ $currentFilters['from'] ?? '' }}',
+                    to: '{{ $currentFilters['to'] ?? '' }}',
+                    preset: '{{ ($currentFilters['from'] ?? '') || ($currentFilters['to'] ?? '') ? 'custom' : '' }}',
+                    fmtShort(iso) {
+                        if (!iso) return '';
+                        const p = iso.split('-'), months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                        return parseInt(p[2], 10) + ' ' + months[parseInt(p[1], 10) - 1] + ' ' + p[0];
+                    },
+                    label() {
+                        if (!this.from && !this.to) return 'All Time';
+                        if (this.preset && this.preset !== 'custom') {
+                            return this.preset.replace('-', ' ').replace(/\b\w/g, c => c.toUpperCase());
+                        }
+                        if (this.from === this.to) return this.fmtShort(this.from);
+                        return (this.from ? this.fmtShort(this.from) : '…') + ' – ' + (this.to ? this.fmtShort(this.to) : '…');
+                    },
+                    fmtDate(d) {
+                        return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+                    },
+                    applyPreset(p) {
+                        const now = new Date(), y = now.getFullYear(), m = now.getMonth(), dom = now.getDate();
+                        switch (p) {
+                            case 'today':
+                                this.from = this.to = this.fmtDate(now); break;
+                            case 'this-week': {
+                                const dow = (now.getDay() + 6) % 7;
+                                const monday = new Date(now); monday.setDate(dom - dow);
+                                const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+                                this.from = this.fmtDate(monday); this.to = this.fmtDate(sunday); break;
+                            }
+                            case 'this-month':
+                                this.from = this.fmtDate(new Date(y, m, 1)); this.to = this.fmtDate(new Date(y, m + 1, 0)); break;
+                            case 'last-month': {
+                                const lm = m === 0 ? 11 : m - 1, ly = m === 0 ? y - 1 : y;
+                                this.from = this.fmtDate(new Date(ly, lm, 1)); this.to = this.fmtDate(new Date(ly, lm + 1, 0)); break;
+                            }
+                            case 'this-year':
+                                this.from = y + '-01-01'; this.to = y + '-12-31'; break;
+                            case 'last-year':
+                                this.from = (y - 1) + '-01-01'; this.to = (y - 1) + '-12-31'; break;
+                        }
+                        this.preset = p;
+                        this.open = false;
+                        $nextTick(() => $el.closest('form').submit());
+                    },
+                    clearRange() {
+                        this.from = this.to = this.preset = '';
+                        this.open = false;
+                        $nextTick(() => $el.closest('form').submit());
+                    },
+                    applyCustom() {
+                        if (!this.from && !this.to) return;
+                        if (this.from && this.to && this.from > this.to) { const t = this.from; this.from = this.to; this.to = t; }
+                        this.preset = 'custom';
+                        this.open = false;
+                        $nextTick(() => $el.closest('form').submit());
+                    },
+                }">
+                <button type="button" @click="open = !open"
+                    class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800/50"
+                    style="white-space:nowrap">
+                    <svg class="h-3.5 w-3.5 shrink-0 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span x-text="label()"></span>
+                    <svg class="h-3 w-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+
+                <div x-show="open" x-cloak @click.outside="open = false"
+                    class="absolute right-0 top-full z-50 mt-1.5 w-72 max-w-[calc(100vw-1rem)] rounded-2xl border border-slate-200 bg-white p-4 shadow-xl dark:border-slate-700/60 dark:bg-slate-900">
+                    <p class="mb-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Quick Select</p>
+                    <div class="grid grid-cols-2 gap-1.5">
+                        <template x-for="opt in [
+                            ['today', 'Today'], ['this-week', 'This Week'], ['this-month', 'This Month'],
+                            ['last-month', 'Last Month'], ['this-year', 'This Year'], ['last-year', 'Last Year'],
+                        ]" :key="opt[0]">
+                            <button type="button" @click="applyPreset(opt[0])" x-text="opt[1]"
+                                :class="preset === opt[0]
+                                    ? 'border-violet-500 bg-violet-50 text-violet-700 dark:border-violet-500 dark:bg-violet-900/40 dark:text-violet-300'
+                                    : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-violet-400 hover:bg-violet-50 hover:text-violet-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'"
+                                class="rounded-xl border px-3 py-2 text-left text-xs font-semibold transition"></button>
+                        </template>
+                    </div>
+                    <div class="mt-3 border-t border-slate-100 pt-3 dark:border-slate-700/60">
+                        <p class="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Custom Range</p>
+                        <div class="flex flex-col gap-2">
+                            <div>
+                                <p class="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">From</p>
+                                <input type="date" x-model="from"
+                                    class="w-full rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 outline-none focus:border-violet-400 focus:ring-1 focus:ring-violet-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 [color-scheme:light] dark:[color-scheme:dark]">
+                            </div>
+                            <div>
+                                <p class="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">To</p>
+                                <input type="date" x-model="to"
+                                    class="w-full rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 outline-none focus:border-violet-400 focus:ring-1 focus:ring-violet-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 [color-scheme:light] dark:[color-scheme:dark]">
+                            </div>
+                        </div>
+                        <div class="mt-2 flex gap-2">
+                            <button type="button" @click="clearRange()"
+                                class="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600 transition hover:border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
+                                Clear
+                            </button>
+                            <button type="button" @click="applyCustom()"
+                                class="flex-1 rounded-xl bg-violet-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-violet-700">
+                                Apply
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <input type="hidden" name="from" :value="from">
+                <input type="hidden" name="to" :value="to">
             </div>
 
-        </div>
-
-        {{-- Group 2: Reset (filters auto-apply on change) --}}
-        <div class="flex items-center divide-x divide-slate-200 sm:border-l sm:border-slate-200 dark:divide-slate-700/60 dark:sm:border-slate-700/60">
-            @if(($currentFilters['from'] ?? '') || ($currentFilters['to'] ?? '') || ($currentFilters['department'] ?? '') || ($currentFilters['division'] ?? '') || ($currentFilters['company'] ?? '') || ($currentFilters['group_cpny'] ?? ''))
+            {{-- Reset (only when filters are active) --}}
+            @if($hasActiveFilters)
                 <a href="{{ route('recruitment.dashboard') }}"
-                    class="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-slate-500 transition hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800/50">
+                    class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-500 transition hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800/50">
                     <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182"/>
                     </svg>
                     Reset
                 </a>
             @endif
+
+            {{-- Refresh --}}
+            <button type="submit"
+                class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800/50">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Refresh
+            </button>
+
         </div>
 
     </form>
-    </div>
     </div>
     </div>
 

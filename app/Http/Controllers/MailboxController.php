@@ -71,6 +71,11 @@ class MailboxController extends Controller
                 });
             })
             ->orderByDesc('email_date')
+            // Only the columns the list view actually renders — body_html/body_text
+            // are long-text blobs (a full email's HTML) that were otherwise getting
+            // pulled for every row just to show a list, even though the list never
+            // displays them.
+            ->select(['id', 'subject', 'from_address', 'from_name', 'email_date', 'body_preview', 'is_read'])
             ->paginate($perPage)
             // Force the resolved state (not just whatever happened to be in the
             // incoming URL) onto every pagination link, and always point them at
