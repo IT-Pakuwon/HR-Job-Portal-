@@ -37,6 +37,15 @@ const VplUsageDetailModal = {
             refWrap.classList.add('hidden');
         }
 
+        // Event Date — not applicable to CUSTOMERSERVICE or Return docs
+        const eventDateWrap = document.getElementById('v_event_date_wrapper');
+        if (t.event_date) {
+            document.getElementById('v_event_date').textContent = t.event_date.substring(0, 10);
+            eventDateWrap.classList.remove('hidden');
+        } else {
+            eventDateWrap.classList.add('hidden');
+        }
+
         // Status banner
         const bannerMap = {
             P: { cls: 'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30',         icon: 'fa-circle-info',          text: 'Waiting for approval. Your request is under review.' },

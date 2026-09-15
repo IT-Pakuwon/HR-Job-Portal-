@@ -38,7 +38,7 @@
                     $fc = $folderCounts->get($f);
                     $fUnread = $fc->unread ?? 0;
                 @endphp
-                <a href="{{ route('mailbox.index', ['folder' => $f]) }}"
+                <a href="{{ route('mailbox.index', $f !== \App\Services\MailboxService::DEFAULT_FOLDER ? ['folder' => $f] : []) }}"
                     @if ($depth > 0) style="margin-left: {{ $depth * 16 }}px" @endif
                     class="flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 transition
                         {{ $depth > 0 ? 'text-[13px] text-gray-500 dark:text-gray-400' : 'text-sm font-medium text-gray-600 dark:text-gray-300' }}
@@ -175,7 +175,14 @@
                     @empty
                         <tr>
                             <td colspan="5" class="px-4 py-10 text-center text-gray-400 dark:text-gray-500">
-                                No emails in this folder yet. Click "Sync now" to fetch from the mailbox.
+                                <p>No emails in this folder yet.</p>
+                                <button type="button" @click="syncNow()" :disabled="syncing"
+                                    class="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-50 dark:border-white/[0.06] dark:text-gray-300 dark:hover:bg-white/[0.06]">
+                                    <svg class="h-4 w-4" :class="syncing ? 'animate-spin' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 12a9 9 0 0 1-15.5 6.5M3 12a9 9 0 0 1 15.5-6.5M21 3v6h-6M3 21v-6h6" />
+                                    </svg>
+                                    <span x-text="syncing ? 'Syncing…' : 'Sync now'"></span>
+                                </button>
                             </td>
                         </tr>
                     @endforelse

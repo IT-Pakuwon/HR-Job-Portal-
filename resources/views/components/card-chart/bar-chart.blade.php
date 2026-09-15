@@ -8,13 +8,14 @@
     'categories' => [],
     'stacked'    => false,
     'showLegend' => true,
+    'legendPosition' => 'top',
     'horizontal' => true,
 ])
 
 @php
     $hex = ['violet'=>['#8B5CF6','#7C3AED'],'blue'=>['#3B82F6','#06B6D4'],'green'=>['#10B981','#0D9488'],'orange'=>['#F59E0B','#D97706'],'red'=>['#EF4444','#F43F5E'],'pink'=>['#EC4899','#C026D3'],'cyan'=>['#06B6D4','#3B82F6']];
     $c = $hex[$color] ?? $hex['blue'];
-    $config = ['series' => is_string($series) ? json_decode($series,true) : $series, 'categories' => is_string($categories) ? json_decode($categories,true) : $categories, 'height' => (int)$height, 'color' => $color, 'stacked' => (bool)$stacked, 'showLegend' => (bool)$showLegend, 'horizontal' => (bool)$horizontal];
+    $config = ['series' => is_string($series) ? json_decode($series,true) : $series, 'categories' => is_string($categories) ? json_decode($categories,true) : $categories, 'height' => (int)$height, 'color' => $color, 'stacked' => (bool)$stacked, 'showLegend' => (bool)$showLegend, 'legendPosition' => $legendPosition, 'horizontal' => (bool)$horizontal];
 @endphp
 
 <div {{ $attributes->merge(['class' => 'relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:shadow-lg dark:border-slate-700/60 dark:bg-slate-900']) }}>

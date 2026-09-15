@@ -195,6 +195,7 @@
                 <tr class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                     <th class="px-4 py-3 text-left font-medium">Doc No</th>
                     <th class="px-4 py-3 text-left font-medium">Date</th>
+                    <th class="px-4 py-3 text-left font-medium">Event Date</th>
                     <th class="px-4 py-3 text-left font-medium">Company</th>
                     <th class="px-4 py-3 text-left font-medium">Dept</th>
                     <th class="px-4 py-3 text-left font-medium">V/P Type</th>
@@ -612,6 +613,7 @@
                     <div class="grid grid-cols-2 gap-4 p-4 md:grid-cols-3">
                         <div><div class="text-xs text-slate-500 dark:text-slate-400">Doc No</div><div id="v_doc_no" class="mt-1 text-sm font-semibold text-indigo-600 dark:text-indigo-400"></div></div>
                         <div><div class="text-xs text-slate-500 dark:text-slate-400">Date</div><div id="v_date" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
+                        <div id="v_event_date_wrapper" class="hidden"><div class="text-xs text-slate-500 dark:text-slate-400">Event Date</div><div id="v_event_date" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
                         <div><div class="text-xs text-slate-500 dark:text-slate-400">Company</div><div id="v_cpnyid" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
                         <div><div class="text-xs text-slate-500 dark:text-slate-400">Department</div><div id="v_dept" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
                         <div><div class="text-xs text-slate-500 dark:text-slate-400">V/P Type</div><div id="v_vp_type" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
