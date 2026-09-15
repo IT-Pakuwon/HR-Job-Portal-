@@ -57,7 +57,7 @@
             tooltip: { theme: dark ? 'dark' : 'light', y: { formatter: function(v) { return v.toLocaleString(); } } },
             legend: {
                 show: series.length > 1, position: 'top', horizontalAlign: 'right',
-                fontSize: '12px', markers: { radius: 6 }, itemMargin: { horizontal: 8 },
+                fontSize: '12px', markers: { shape: 'circle', size: 6 }, itemMargin: { horizontal: 8 },
             },
         });
         chart.render();

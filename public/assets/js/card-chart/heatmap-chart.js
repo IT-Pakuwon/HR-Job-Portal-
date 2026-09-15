@@ -68,7 +68,7 @@
             },
             grid: { borderColor: dark ? '#1E293B' : '#F1F5F9', padding: { left: 4, right: 4 } },
             tooltip: { theme: dark ? 'dark' : 'light' },
-            legend: { show: true, position: 'top', horizontalAlign: 'right', fontSize: '11px', markers: { radius: 4 } },
+            legend: { show: true, position: 'top', horizontalAlign: 'right', fontSize: '11px', markers: { shape: 'circle', size: 4 } },
             responsive: [
                 { breakpoint: 640, options: { chart: { height: Math.max(180, height - 60) }, xaxis: { labels: { rotate: -45, style: { fontSize: '9px' } } } } },
                 { breakpoint: 480, options: { chart: { height: Math.max(160, height - 80) }, legend: { show: false } } },

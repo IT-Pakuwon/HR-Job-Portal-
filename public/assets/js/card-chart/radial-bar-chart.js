@@ -75,7 +75,7 @@
                 position: legPos === 'bottom' ? 'bottom' : 'right',
                 horizontalAlign: 'center',
                 fontSize: '12px',
-                markers: { radius: 6 },
+                markers: { shape: 'circle', size: 6 },
                 itemMargin: { horizontal: 6, vertical: 4 },
             },
             tooltip: { theme: dark ? 'dark' : 'light', y: { formatter: function(v){ return v + '%'; } } },

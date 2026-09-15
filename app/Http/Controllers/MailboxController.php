@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 class MailboxController extends Controller
 {
     protected const PER_PAGE_OPTIONS = [10, 25, 50, 100];
+    protected const DEFAULT_PER_PAGE = 25;
 
     public function index(Request $request)
     {
@@ -43,7 +44,7 @@ class MailboxController extends Controller
                 'folder'       => MailboxService::DEFAULT_FOLDER,
                 'folderCounts' => collect(),
                 'search'       => '',
-                'perPage'      => 10,
+                'perPage'      => self::DEFAULT_PER_PAGE,
             ];
         }
 
@@ -55,9 +56,9 @@ class MailboxController extends Controller
 
         $search = trim((string) $request->get('q'));
 
-        $perPage = (int) $request->get('per_page', 10);
+        $perPage = (int) $request->get('per_page', self::DEFAULT_PER_PAGE);
         if (!in_array($perPage, self::PER_PAGE_OPTIONS, true)) {
-            $perPage = 10;
+            $perPage = self::DEFAULT_PER_PAGE;
         }
 
         $emails = MailboxEmail::query()
@@ -101,16 +102,20 @@ class MailboxController extends Controller
     {
         $account = $this->currentAccount($request);
 
+        // Every mailbox on this domain sits behind the same mail servers, so
+        // host/port/encryption are pre-filled with those defaults for a new
+        // (not-yet-connected) account — only email/username/password are
+        // actually specific to the person connecting.
         return response()->json([
             'connected' => (bool) $account,
             'email'          => $account->email ?? '',
-            'imap_host'      => $account->imap_host ?? '',
-            'imap_port'      => $account->imap_port ?? 993,
-            'imap_encryption' => $account->imap_encryption ?? 'ssl',
+            'imap_host'      => $account->imap_host ?? MailboxService::DEFAULT_IMAP_HOST,
+            'imap_port'      => $account->imap_port ?? MailboxService::DEFAULT_IMAP_PORT,
+            'imap_encryption' => $account->imap_encryption ?? MailboxService::DEFAULT_IMAP_ENCRYPTION,
             'imap_username'  => $account->imap_username ?? '',
-            'smtp_host'      => $account->smtp_host ?? '',
-            'smtp_port'      => $account->smtp_port ?? 465,
-            'smtp_encryption' => $account->smtp_encryption ?? 'ssl',
+            'smtp_host'      => $account->smtp_host ?? MailboxService::DEFAULT_SMTP_HOST,
+            'smtp_port'      => $account->smtp_port ?? MailboxService::DEFAULT_SMTP_PORT,
+            'smtp_encryption' => $account->smtp_encryption ?? MailboxService::DEFAULT_SMTP_ENCRYPTION,
         ]);
     }
 

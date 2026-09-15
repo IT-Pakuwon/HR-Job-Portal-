@@ -43,8 +43,8 @@
         <x-card-chart.insight-panel :items="$fullInsights" collapsible="true" />
 
         {{-- ═════════════════════════════════════════════════════════════════════
-             ROW 1 — Requisition & Applicant Pipeline (stacked), By Age Bracket,
-             By Gender, By Education Level
+             ROW 1 — Requisition & Applicant Pipeline (stacked), By Age Bracket
+             (stacked by Gender / Education, tabbed)
             ═════════════════════════════════════════════════════════════════════ --}}
         <div class="grid grid-cols-1 gap-3 lg:grid-cols-12" style="align-items:stretch">
 
@@ -57,10 +57,10 @@
                     color="violet"
                     icon='<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>'
                     :breakdown="[
-                        ['label' => 'Posted', 'value' => number_format($postedCount), 'color' => 'blue'],
-                        ['label' => 'Unposted', 'value' => number_format($unpostedCount), 'color' => 'orange'],
-                        ['label' => 'Closed', 'value' => number_format($closedCount), 'color' => 'green'],
-                        ['label' => 'Hold', 'value' => number_format($holdCount), 'color' => 'red'],
+                        ['label' => 'On Progress', 'value' => number_format($prfOnProgressCount), 'color' => 'blue'],
+                        ['label' => 'Revise', 'value' => number_format($prfReviseCount), 'color' => 'orange'],
+                        ['label' => 'Completed', 'value' => number_format($prfCompletedCount), 'color' => 'green'],
+                        ['label' => 'Rejected', 'value' => number_format($prfRejectedCount), 'color' => 'red'],
                     ]" />
 
                 <x-card-chart.stat-breakdown-card
@@ -78,25 +78,27 @@
 
             </div>
 
-            <x-card-chart.bar-chart
-                class="lg:col-span-3"
-                title="By Age Bracket"
-                color="cyan" height="380" :categories="$ageLabels"
-                :series="[['name' => 'Candidates', 'data' => $ageSeries]]" />
+            {{-- Age Distribution — stacked by Gender and by Education Level, as two
+                 standalone cards (no tab needed to see both at once). --}}
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:col-span-9" style="align-items:stretch">
 
-            <x-card-chart.donut-chart
-                class="lg:col-span-3"
-                title="By Gender" legend-position="bottom"
-                color="pink" height="380" :labels="$genderLabels" :series="$genderSeries">
-                <x-slot:headerEnd>{!! $exportButton('gender', 'Unknown') !!}</x-slot:headerEnd>
-            </x-card-chart.donut-chart>
+                <x-card-chart.bar-chart
+                    title="Age Distribution by Gender"
+                    color="pink" height="380" :stacked="true" :horizontal="false"
+                    :categories="$ageLabels"
+                    :series="$ageGenderSeries">
+                    <x-slot:headerEnd>{!! $exportButton('gender', 'Unknown') !!}</x-slot:headerEnd>
+                </x-card-chart.bar-chart>
 
-            <x-card-chart.donut-chart
-                class="lg:col-span-3"
-                title="By Education Level" legend-position="bottom"
-                color="green" height="380" :labels="$educationLabels" :series="$educationSeries">
-                <x-slot:headerEnd>{!! $exportButton('education', 'Unknown') !!}</x-slot:headerEnd>
-            </x-card-chart.donut-chart>
+                <x-card-chart.bar-chart
+                    title="Age Distribution by Education Level"
+                    color="green" height="380" :stacked="true" :horizontal="false"
+                    :categories="$ageLabels"
+                    :series="$ageEducationSeries">
+                    <x-slot:headerEnd>{!! $exportButton('education', 'Unknown') !!}</x-slot:headerEnd>
+                </x-card-chart.bar-chart>
+
+            </div>
 
         </div>
 
@@ -147,7 +149,7 @@
         @if($applicantType !== 'self')
             <div class="grid grid-cols-1 gap-3 lg:grid-cols-12" style="align-items:stretch">
 
-                <div class="lg:col-span-6" x-data="{ funnelTab: 'funnel' }">
+                <div class="flex flex-col lg:col-span-6" x-data="{ funnelTab: 'funnel' }">
 
                     @php
                         $funnelTabButtons = <<<'BLADE'
@@ -171,7 +173,7 @@
                         BLADE;
                     @endphp
 
-                    <div x-show="funnelTab === 'funnel'" class="flex min-h-[430px] flex-col">
+                    <div x-show="funnelTab === 'funnel'" class="flex flex-1 flex-col">
                         <x-card-chart.funnel-chart
                             class="flex-1"
                             title="Hiring Funnel"
@@ -181,7 +183,7 @@
                         </x-card-chart.funnel-chart>
                     </div>
 
-                    <div x-show="funnelTab === 'timing'" x-cloak class="flex min-h-[430px] flex-col">
+                    <div x-show="funnelTab === 'timing'" x-cloak class="flex flex-1 flex-col">
                         <x-card-chart.area-chart
                             class="flex-1"
                             title="Avg Time to Reach Stage (cumulative days since applied)"
@@ -192,7 +194,7 @@
                         </x-card-chart.area-chart>
                     </div>
 
-                    <div x-show="funnelTab === 'prf'" x-cloak class="flex min-h-[430px] flex-col">
+                    <div x-show="funnelTab === 'prf'" x-cloak class="flex flex-1 flex-col">
                         <x-card-chart.bar-chart
                             class="flex-1"
                             title="PRF Completed → Job Closed (avg {{ $avgPrfToPostingDays ?? '—' }} days)"
@@ -205,7 +207,7 @@
 
                 </div>
 
-                <div class="lg:col-span-6" x-data="{ jobTableTab: 'jobs' }">
+                <div class="flex flex-col lg:col-span-6" x-data="{ jobTableTab: 'jobs' }">
 
                     @php
                         $jobTableTabButtons = <<<'BLADE'
@@ -224,7 +226,7 @@
                         BLADE;
                     @endphp
 
-                    <div x-show="jobTableTab === 'jobs'" class="flex min-h-[430px] flex-col">
+                    <div x-show="jobTableTab === 'jobs'" class="flex flex-1 flex-col">
                         <x-card-chart.table-card
                             class="flex-1"
                             title="Total Candidate Applied per Job"
@@ -240,7 +242,7 @@
                         </x-card-chart.table-card>
                     </div>
 
-                    <div x-show="jobTableTab === 'prf'" x-cloak class="flex min-h-[430px] flex-col">
+                    <div x-show="jobTableTab === 'prf'" x-cloak class="flex flex-1 flex-col">
                         <x-card-chart.table-card
                             class="flex-1"
                             title="PRF Completed → Job Closed (avg {{ $avgPrfToPostingDays ?? '—' }} days)"

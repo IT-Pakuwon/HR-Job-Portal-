@@ -20,6 +20,7 @@ const VplSettlementDetailModal = {
         document.getElementById('v_doc_no').textContent   = t.settlement_id ?? '';
         document.getElementById('v_user').textContent     = t.created_user ?? '';
         document.getElementById('v_date').textContent     = (t.settlement_date ?? '').substring(0, 10);
+        document.getElementById('v_event_date').textContent = data.event_date ? data.event_date.substring(0, 10) : '-';
         document.getElementById('v_cpnyid').textContent   = t.cpnyid ?? '';
         document.getElementById('v_dept').textContent     = t.department ?? '';
         document.getElementById('v_vp_type').textContent  = data.vp_label ?? '';

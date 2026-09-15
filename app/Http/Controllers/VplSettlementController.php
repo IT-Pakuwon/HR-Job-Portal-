@@ -63,7 +63,11 @@ class VplSettlementController extends Controller
             $adminAll = $isAdmin && $status === 'ADMINALL';
             $companyAll = $hasVplCompanyAccess && $status === 'COMPANYALL';
 
-            $base = TrxVplSettlement::query();
+            $base = TrxVplSettlement::query()->addSelect([
+                'usage_event_date' => TrxVplUsage::select('event_date')
+                    ->whereColumn('usage_id', 'tr_vpl_settlement.usage_id')
+                    ->limit(1),
+            ]);
             if ($companyAll) {
                 $base->whereIn('cpnyid', $multicpnyid);
             } elseif (!$adminAll && !$hasFullScope) {
@@ -98,6 +102,7 @@ class VplSettlementController extends Controller
             return \DataTables::of($data)
                 ->addColumn('status_badge', fn ($r) => $this->statusBadge($r->status))
                 ->addColumn('settlement_date_fmt', fn ($r) => $r->settlement_date ? Carbon::parse($r->settlement_date)->format('Y-m-d') : '')
+                ->addColumn('event_date_fmt', fn ($r) => $r->usage_event_date ? Carbon::parse($r->usage_event_date)->format('Y-m-d') : '-')
                 ->addColumn('vp_type_label', fn ($r) => match (strtoupper($r->vp_type ?? '')) {
                     'V'     => 'Voucher',
                     'P'     => 'Product',
@@ -297,6 +302,7 @@ class VplSettlementController extends Controller
         return response()->json([
             'settlement' => $settlement,
             'hash' => Hashids::encode($settlement->id),
+            'event_date' => optional($settlement->usage)->event_date?->format('Y-m-d'),
             'status_label' => $statusLabel,
             'vp_label' => $vpLabel,
             'details' => $details,
@@ -378,6 +384,7 @@ class VplSettlementController extends Controller
             'details' => $details,
             'approvals' => $approvals,
             'companyName' => $company->cpnyname ?? $settlement->cpnyid,
+            'eventDate' => optional($settlement->usage)->event_date,
         ])->setPaper('a4', 'portrait');
 
         return $pdf->stream($settlement->settlement_id.'.pdf');

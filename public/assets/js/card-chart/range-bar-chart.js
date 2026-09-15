@@ -65,7 +65,7 @@
             grid: { borderColor: dark ? '#1E293B' : '#F1F5F9', strokeDashArray: 4, padding: { left: 4, right: 8 } },
             legend: {
                 show: series.length > 1, position: 'top', horizontalAlign: 'right',
-                fontSize: '11px', markers: { radius: 4 },
+                fontSize: '11px', markers: { shape: 'circle', size: 4 },
             },
             tooltip: {
                 theme: dark ? 'dark' : 'light',

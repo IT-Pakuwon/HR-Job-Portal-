@@ -29,7 +29,8 @@
             <td class="label">Reference Usage</td><td class="value">{{ $settlement->usage_id ?: '-' }}</td>
         </tr>
         <tr>
-            <td class="label">Remark</td><td class="value" colspan="3">{{ $settlement->settlement_remark ?: '-' }}</td>
+            <td class="label">Event Date</td><td class="value">{{ $eventDate ? \Illuminate\Support\Carbon::parse($eventDate)->format('d F Y') : '-' }}</td>
+            <td class="label">Remark</td><td class="value">{{ $settlement->settlement_remark ?: '-' }}</td>
         </tr>
     </table>
 
