@@ -1377,7 +1377,53 @@ class TrainingRegistrationController extends Controller
         // Draft schedule isn't open for registration yet, so it shouldn't
         // contribute quota, counts, or filterable values anywhere on screen.
         $liveSchedules = $scopedSchedules->where('status', '!=', self::SCHEDULE_DRAFT);
-        $scheduleIds = $liveSchedules->pluck('schedule_id');
+
+        // Level/Schedule Date options: not every ms_lnd_training_detail batch
+        // (a batch can have zero schedules under it) — only ones with a live
+        // schedule, matching what the Master Training page groups by. These
+        // list every value available for the selected training regardless of
+        // the current level/schedule_date pick below, so picking one doesn't
+        // prune the other's options out from under the user.
+        $detailIds = $liveSchedules->pluck('training_detail_id')->filter()->unique();
+        $detailJobLevels = $detailIds->isEmpty()
+            ? collect()
+            : MsLndTrainingDetail::whereIn('training_detail_id', $detailIds)->pluck('job_level', 'training_detail_id');
+        $detailLabels = StoGrading::labelsFor($detailJobLevels->values());
+
+        $levelOptions = $detailJobLevels->values()
+            ->map(fn ($jl) => $detailLabels[$jl] ?? $jl)
+            ->unique()
+            ->sort()
+            ->values();
+
+        $scheduleDateOptions = $liveSchedules->pluck('schedule_date')
+            ->filter()
+            ->map(fn ($d) => $d->format('Y-m-d'))
+            ->unique()
+            ->sort()
+            ->values();
+
+        // Cards (quota/reserved/status counts) narrow further to the
+        // specific level/schedule_date currently picked in the filter bar —
+        // otherwise picking one schedule date still totaled quota across
+        // every live schedule of the training, which read as "not filtered".
+        $level = $request->query('level');
+        $scheduleDate = $request->query('schedule_date');
+
+        $cardSchedules = $liveSchedules;
+
+        if ($scheduleDate) {
+            $cardSchedules = $cardSchedules->filter(fn ($s) => $s->schedule_date?->format('Y-m-d') === $scheduleDate);
+        }
+
+        if ($level) {
+            $matchingDetailIds = $detailJobLevels
+                ->filter(fn ($jl) => ($detailLabels[$jl] ?? $jl) === $level)
+                ->keys();
+            $cardSchedules = $cardSchedules->filter(fn ($s) => $matchingDetailIds->contains($s->training_detail_id));
+        }
+
+        $scheduleIds = $cardSchedules->pluck('schedule_id');
 
         $quotas = MsLndTrainingQuota::whereIn('schedule_id', $scheduleIds)->get();
         $companyNames = MsCompany::whereIn('cpny_id', $quotas->pluck('cpny_id')->unique())
@@ -1419,26 +1465,6 @@ class TrainingRegistrationController extends Controller
 
                 return $carry;
             }, []);
-
-        // Level/Schedule Date options: not every ms_lnd_training_detail batch
-        // (a batch can have zero schedules under it) — only ones with a live
-        // schedule, matching what the Master Training page groups by.
-        $detailIds = $liveSchedules->pluck('training_detail_id')->filter()->unique();
-        $jobLevels = $detailIds->isEmpty()
-            ? collect()
-            : MsLndTrainingDetail::whereIn('training_detail_id', $detailIds)->pluck('job_level');
-        $levelOptions = StoGrading::labelsFor($jobLevels)
-            ->values()
-            ->unique()
-            ->sort()
-            ->values();
-
-        $scheduleDateOptions = $liveSchedules->pluck('schedule_date')
-            ->filter()
-            ->map(fn ($d) => $d->format('Y-m-d'))
-            ->unique()
-            ->sort()
-            ->values();
 
         return response()->json([
             'trainings' => $trainingOptions->values(),
