@@ -2,6 +2,11 @@
     $mailboxConnected = auth()->check()
         ? \App\Models\MailboxAccount::where('username', auth()->user()->username)->where('status', true)->exists()
         : false;
+    // Site-wide kill switch: an admin can deactivate the MAILBOX sys_menu row
+    // (independent of any one user's MAILACCESS grant) to pull the feature
+    // entirely — the header icon should disappear right along with the
+    // sidebar link, not just stop linking anywhere useful.
+    $mailboxMenuActive = \App\Models\SysMenu::where('menu_id', 'MAILBOX')->where('status', 'A')->exists();
 @endphp
 <div x-data="docNotifications({{ \Illuminate\Support\Js::from($mailboxConnected) }})" x-init="init()" class="flex items-center gap-1">
 
@@ -214,6 +219,7 @@
 
   </div>
 
+  @if($mailboxMenuActive)
   <div class="relative">
 
     {{-- Email Button --}}
@@ -344,6 +350,7 @@
         </div>
 
   </div>
+  @endif
 
   </div>
 
