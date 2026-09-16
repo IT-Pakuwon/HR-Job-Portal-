@@ -733,31 +733,41 @@ class DocumentNotificationService
         }
 
         // ── 11. VPL Stock Expiry Reminders — Voucher batches (product_type=V) go to
-        //       VPCOLLACCESS holders, Product batches (product_type=P) go to VPPRMTNACCESS
-        //       holders. Fires only on the exact day a still-in-stock batch is H-90/60/30/
-        //       14/7/3 from its expired_date (re-derived live on every buildForUser() call,
-        //       so it naturally stops appearing once the day no longer matches).
+        //       VPCOLLACCESS/VPPRMTNACCESS/VPLOYALTYACCESS holders, Product batches
+        //       (product_type=P) go to VPPRMTNACCESS/VPLOYALTYACCESS holders, scoped to the
+        //       user's own company via User::scopedCompanyIds() (same scoping already used
+        //       for VPL transaction lists). Fires only on the exact day a still-in-stock
+        //       batch is H-90/60/30/14/7/3 from its expired_date (re-derived live on every
+        //       buildForUser() call, so it naturally stops appearing once the day no longer
+        //       matches).
         try {
-            $expiryRoleMap    = ['V' => 'VPCOLLACCESS', 'P' => 'VPPRMTNACCESS'];
+            $expiryRoleMap = [
+                'V' => ['VPCOLLACCESS', 'VPPRMTNACCESS', 'VPLOYALTYACCESS'],
+                'P' => ['VPPRMTNACCESS', 'VPLOYALTYACCESS'],
+            ];
             $expiryThresholds = [90, 60, 30, 14, 7, 3];
 
             $userRoleIds = SysUserRole::whereRaw('lower(trim(username)) = ?', [$username])
-                ->whereIn('role_id', array_values($expiryRoleMap))
+                ->whereIn('role_id', array_unique(array_merge(...array_values($expiryRoleMap))))
                 ->where('status', 'A')
                 ->pluck('role_id')
                 ->all();
 
             $userExpiryTypes = array_keys(array_filter(
                 $expiryRoleMap,
-                fn($roleId) => in_array($roleId, $userRoleIds, true)
+                fn($roles) => count(array_intersect($roles, $userRoleIds)) > 0
             ));
 
-            if (!empty($userExpiryTypes)) {
+            $expiryUser      = User::whereRaw('lower(trim(username)) = ?', [$username])->first();
+            $userExpiryCpnys = $expiryUser ? $expiryUser->scopedCompanyIds() : [];
+
+            if (!empty($userExpiryTypes) && !empty($userExpiryCpnys)) {
                 $placeholders = implode(',', array_fill(0, count($expiryThresholds), '?'));
 
                 $expiringBatches = MsVplProductDetail::query()
                     ->join('ms_vpl_product', 'ms_vpl_product.product_id', '=', 'ms_vpl_product_detail.product_id')
                     ->whereIn('ms_vpl_product.product_type', $userExpiryTypes)
+                    ->whereIn('ms_vpl_product_detail.cpnyid', $userExpiryCpnys)
                     ->whereNotNull('ms_vpl_product_detail.expired_date')
                     ->whereRaw('(ms_vpl_product_detail.qty_available - COALESCE(ms_vpl_product_detail.qty_reserved, 0)) > 0')
                     ->whereRaw(

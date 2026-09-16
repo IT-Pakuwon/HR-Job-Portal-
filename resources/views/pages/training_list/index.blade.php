@@ -102,10 +102,6 @@
             {{-- List Registration (HCDEVACCESS) --}}
             @if (Auth::user()->hasRole('HCDEVACCESS'))
                 <div id="tab-allregs" class="tab-panel hidden space-y-4">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                        Every training registration across all employees, with its current status.
-                    </p>
-
                     {{-- Filters — Training Event also rescopes the summary cards below --}}
                     <div class="rounded-2xl border border-gray-200 bg-linear-to-br from-gray-50 to-cyan-50/30 p-6 shadow-sm dark:border-gray-700 dark:from-gray-800/40 dark:to-cyan-900/10">
                         <div class="grid grid-cols-1 items-end gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
@@ -164,42 +160,54 @@
                         </div>
                     </div>
 
-                    {{-- Summary cards --}}
-                    <div class="grid grid-cols-2 gap-3 sm:grid-cols-5">
-                        <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
-                            <p class="text-sm font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400">Waiting Approval</p>
-                            <p id="statWaitingApproval" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
-                        </div>
-                        <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
-                            <p class="text-sm font-bold uppercase tracking-wide text-sky-600 dark:text-sky-400">Waiting List</p>
-                            <p id="statWaitingList" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
-                        </div>
-                        <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
-                            <p class="text-sm font-bold uppercase tracking-wide text-green-600 dark:text-green-400">Approved</p>
-                            <p id="statApproved" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
-                        </div>
-                        <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
-                            <p class="text-sm font-bold uppercase tracking-wide text-red-600 dark:text-red-400">Rejected</p>
-                            <p id="statRejected" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
-                        </div>
-                        <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
-                            <p class="text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">Cancelled</p>
-                            <p id="statCancelled" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
-                        </div>
-                    </div>
+                    {{-- Summary — stat cards + quota, collapsible; open by default --}}
+                    <div x-data="{ summaryOpen: true }" class="space-y-3">
+                        <button type="button" @click="summaryOpen = !summaryOpen"
+                            class="flex w-full items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-left text-sm font-semibold text-gray-700 transition hover:border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:border-gray-600">
+                            <span><i class="fa-solid fa-chart-simple mr-2 text-gray-400"></i>Summary</span>
+                            <svg class="h-4 w-4 shrink-0 text-gray-400 transition-transform" :class="{ 'rotate-180': summaryOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
 
-                    <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
-                        <div class="flex items-center justify-between gap-2">
-                            <p class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Reserved / Total Quota</p>
-                            <span id="quotaOverallValue" class="text-sm font-bold text-gray-800 dark:text-white">-</span>
-                        </div>
-                        <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
-                            <div id="quotaOverallBar" class="h-full rounded-full bg-gray-900 dark:bg-white" style="width:0%"></div>
-                        </div>
+                        <div x-show="summaryOpen" x-transition class="space-y-3">
+                            <div class="grid grid-cols-2 gap-3 sm:grid-cols-5">
+                                <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                                    <p class="text-sm font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400">Waiting Approval</p>
+                                    <p id="statWaitingApproval" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
+                                </div>
+                                <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                                    <p class="text-sm font-bold uppercase tracking-wide text-sky-600 dark:text-sky-400">Waiting List</p>
+                                    <p id="statWaitingList" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
+                                </div>
+                                <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                                    <p class="text-sm font-bold uppercase tracking-wide text-green-600 dark:text-green-400">Approved</p>
+                                    <p id="statApproved" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
+                                </div>
+                                <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                                    <p class="text-sm font-bold uppercase tracking-wide text-red-600 dark:text-red-400">Rejected</p>
+                                    <p id="statRejected" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
+                                </div>
+                                <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                                    <p class="text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">Cancelled</p>
+                                    <p id="statCancelled" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
+                                </div>
+                            </div>
 
-                        <p class="mb-2 mt-4 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Per Company</p>
-                        <div id="quotaByCompany" class="flex flex-nowrap gap-2 overflow-x-auto pb-1"></div>
-                        <p id="quotaByCompanyEmpty" class="hidden text-sm text-gray-400">No quota configured for this training.</p>
+                            <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
+                                <div class="flex items-center justify-between gap-2">
+                                    <p class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Reserved / Total Quota</p>
+                                    <span id="quotaOverallValue" class="text-sm font-bold text-gray-800 dark:text-white">-</span>
+                                </div>
+                                <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                                    <div id="quotaOverallBar" class="h-full rounded-full bg-gray-900 dark:bg-white" style="width:0%"></div>
+                                </div>
+
+                                <p class="mb-2 mt-4 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Per Company</p>
+                                <div id="quotaByCompany" class="flex flex-nowrap gap-2 overflow-x-auto pb-1"></div>
+                                <p id="quotaByCompanyEmpty" class="hidden text-sm text-gray-400">No quota configured for this training.</p>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
