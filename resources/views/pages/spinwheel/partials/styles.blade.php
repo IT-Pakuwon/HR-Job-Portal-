@@ -152,4 +152,72 @@
         background: rgba(255, 255, 255, .08) !important;
         color: #fff !important;
     }
+
+    /* Winner "Congratulations" popup (SweetAlert2) */
+    @keyframes congratsPopIn {
+        0% { transform: scale(.4); opacity: 0; }
+        60% { transform: scale(1.08); opacity: 1; }
+        100% { transform: scale(1); }
+    }
+
+    @keyframes congratsGlow {
+        0%, 100% { box-shadow: 0 25px 70px -20px rgba(168, 85, 247, .55), 0 0 0 1px rgba(255, 255, 255, .04); }
+        50% { box-shadow: 0 25px 70px -20px rgba(236, 72, 153, .65), 0 0 0 1px rgba(255, 255, 255, .04); }
+    }
+
+    .congrats-popup {
+        border-radius: 1.75rem !important;
+        border: 1px solid rgba(236, 72, 153, .3) !important;
+        padding: 2.25rem 1.75rem 2rem !important;
+        animation: congratsGlow 3s ease-in-out infinite;
+    }
+
+    .congrats-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 5.5rem;
+        height: 5.5rem;
+        margin: 0 auto .75rem;
+        border-radius: 9999px;
+        background: radial-gradient(circle, rgba(52, 211, 153, .18), rgba(52, 211, 153, 0));
+        box-shadow: 0 0 0 4px rgba(52, 211, 153, .18), 0 0 30px rgba(52, 211, 153, .35);
+        animation: congratsPopIn .5s cubic-bezier(.34, 1.56, .64, 1);
+    }
+
+    .congrats-title {
+        font-size: 1.75rem;
+        font-weight: 800;
+        background: linear-gradient(90deg, #f472b6, #a855f7, #818cf8);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        filter: drop-shadow(0 0 12px rgba(236, 72, 153, .35));
+    }
+
+    .congrats-winner-card {
+        background: linear-gradient(90deg, rgba(236, 72, 153, .1), rgba(255, 255, 255, .03));
+        transition: transform .15s ease, background .15s ease;
+    }
+
+    .congrats-winner-card:hover {
+        transform: translateX(2px);
+        background: linear-gradient(90deg, rgba(236, 72, 153, .16), rgba(255, 255, 255, .04));
+    }
+
+    .congrats-confirm-btn {
+        background: linear-gradient(90deg, #ec4899, #a855f7) !important;
+        color: #fff !important;
+        font-weight: 700 !important;
+        padding: .8rem 2.75rem !important;
+        border-radius: 9999px !important;
+        border: none !important;
+        box-shadow: 0 12px 28px -8px rgba(236, 72, 153, .65) !important;
+        transition: transform .15s ease, box-shadow .15s ease !important;
+    }
+
+    .congrats-confirm-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 34px -8px rgba(236, 72, 153, .8) !important;
+    }
 </style>

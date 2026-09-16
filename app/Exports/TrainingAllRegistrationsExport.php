@@ -73,6 +73,9 @@ class TrainingAllRegistrationsExport implements
         $registrations = TrLndTrainingRegistration::query()
             ->with('schedule.schedule.training')
             ->when($this->trainingId, fn ($q) => $q->where('training_id', $this->trainingId))
+            // Same "past Draft" scoping as allRegistrations() — 'D' matches
+            // TrainingRegistrationController::SCHEDULE_DRAFT.
+            ->whereHas('schedule', fn ($q) => $q->where('status', '!=', 'D'))
             ->orderByDesc('created_at')
             ->get();
 

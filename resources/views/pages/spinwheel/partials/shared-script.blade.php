@@ -92,7 +92,7 @@
 
     function showCongratsPopup(candidates, combo) {
 
-        const rows = candidates.map(candidate => {
+        const rows = candidates.map((candidate, index) => {
 
             const name = escapeHtml(candidate.customer_name);
             const detailLabel = combo === 'name_refnbr' ? 'Ref Nbr' : 'Company';
@@ -101,9 +101,14 @@
                 (escapeHtml(candidate.company_name) || '-');
 
             return `
-                <div class="mt-3 rounded-xl border border-fuchsia-400/20 border-l-4 border-l-fuchsia-400 bg-white/5 p-3 text-left">
-                    <div class="text-base font-bold text-white">${name}</div>
-                    <div class="mt-0.5 text-sm text-slate-400">${detailLabel}: <span class="font-semibold text-slate-200">${detailValue}</span></div>
+                <div class="congrats-winner-card mt-3 flex items-center gap-3 rounded-2xl border border-fuchsia-400/20 border-l-4 border-l-fuchsia-400 p-3.5 text-left">
+                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-500 to-purple-600 text-sm font-bold text-white shadow-md shadow-fuchsia-500/30">
+                        ${index + 1}
+                    </div>
+                    <div class="min-w-0">
+                        <div class="truncate text-base font-bold text-white">${name}</div>
+                        <div class="mt-0.5 text-sm text-slate-400">${detailLabel}: <span class="font-semibold text-slate-200">${detailValue}</span></div>
+                    </div>
                 </div>
             `;
 
@@ -112,12 +117,24 @@
         fireConfetti();
 
         Swal.fire({
-            icon: 'success',
-            title: '🎉 Congratulations!',
-            html: `<div class="text-left">${rows}</div>`,
+            html: `
+                <div class="congrats-icon">
+                    <svg class="h-9 w-9 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <div class="congrats-title">🎉 Congratulations!</div>
+                <div class="text-left">${rows}</div>
+            `,
+            showConfirmButton: true,
             confirmButtonText: 'Continue',
-            confirmButtonColor: '#ec4899',
-            ...swalDarkTheme
+            buttonsStyling: false,
+            customClass: {
+                popup: 'congrats-popup',
+                confirmButton: 'congrats-confirm-btn'
+            },
+            background: 'linear-gradient(160deg, #1e1b4b 0%, #171532 55%, #2a1240 100%)',
+            color: '#f1f5f9'
         });
 
     }

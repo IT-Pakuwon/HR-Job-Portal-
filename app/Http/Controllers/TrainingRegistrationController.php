@@ -11,6 +11,7 @@ use App\Models\MsCategory;
 use App\Models\MsCompany;
 use App\Models\MsDepartment;
 use App\Models\MsLndPlaces;
+use App\Models\MsLndTrainingDetail;
 use App\Models\MsLndTrainingQuota;
 use App\Models\MsLndTrainingSchedule;
 use App\Models\MsTrainingEvent;
@@ -1191,8 +1192,12 @@ class TrainingRegistrationController extends Controller
             abort(403, 'Anda tidak memiliki akses HCDEVACCESS');
         }
 
+        // Same "past Draft" scoping as registrationSummary()'s cards/filter
+        // options — a still-Draft schedule isn't open for registration, so
+        // no row here should ever be able to belong to one.
         $registrations = TrLndTrainingRegistration::query()
             ->with('schedule.schedule.training')
+            ->whereHas('schedule', fn ($q) => $q->where('status', '!=', self::SCHEDULE_DRAFT))
             ->orderByDesc('created_at')
             ->get();
 
@@ -1364,7 +1369,15 @@ class TrainingRegistrationController extends Controller
         if ($trainingId) {
             $scheduleQuery->where('training_id', $trainingId);
         }
-        $scheduleIds = $scheduleQuery->pluck('schedule_id');
+        $scopedSchedules = $scheduleQuery->get(['schedule_id', 'training_detail_id', 'schedule_date', 'status']);
+
+        // Everything below — quota/reserved/status cards, Level/Schedule
+        // Date filter options, and (in allRegistrations()) the table rows
+        // themselves — stays scoped to schedules that are past Draft: a
+        // Draft schedule isn't open for registration yet, so it shouldn't
+        // contribute quota, counts, or filterable values anywhere on screen.
+        $liveSchedules = $scopedSchedules->where('status', '!=', self::SCHEDULE_DRAFT);
+        $scheduleIds = $liveSchedules->pluck('schedule_id');
 
         $quotas = MsLndTrainingQuota::whereIn('schedule_id', $scheduleIds)->get();
         $companyNames = MsCompany::whereIn('cpny_id', $quotas->pluck('cpny_id')->unique())
@@ -1407,8 +1420,30 @@ class TrainingRegistrationController extends Controller
                 return $carry;
             }, []);
 
+        // Level/Schedule Date options: not every ms_lnd_training_detail batch
+        // (a batch can have zero schedules under it) — only ones with a live
+        // schedule, matching what the Master Training page groups by.
+        $detailIds = $liveSchedules->pluck('training_detail_id')->filter()->unique();
+        $jobLevels = $detailIds->isEmpty()
+            ? collect()
+            : MsLndTrainingDetail::whereIn('training_detail_id', $detailIds)->pluck('job_level');
+        $levelOptions = StoGrading::labelsFor($jobLevels)
+            ->values()
+            ->unique()
+            ->sort()
+            ->values();
+
+        $scheduleDateOptions = $liveSchedules->pluck('schedule_date')
+            ->filter()
+            ->map(fn ($d) => $d->format('Y-m-d'))
+            ->unique()
+            ->sort()
+            ->values();
+
         return response()->json([
             'trainings' => $trainingOptions->values(),
+            'levels' => $levelOptions,
+            'schedule_dates' => $scheduleDateOptions,
             'overall' => [
                 'reserved' => (int) $byCompany->sum('reserved'),
                 'total_quota' => (int) $byCompany->sum('total_quota'),
