@@ -20,6 +20,14 @@ class MailboxService
     public const DRAFTS_FOLDER = 'Drafts';
     public const ARCHIVE_FOLDER = 'Archive';
 
+    // Each IMAP fetch pulls this many full message bodies (text+HTML, with
+    // inline images base64-embedded) into memory at once before any of them
+    // are saved — the library has no per-message lazy fetch, so this is the
+    // one real lever on peak memory per sync/load-more request. Matches the
+    // default list page size so one sync (or one "Load older" click) tracks
+    // roughly one page of the UI instead of silently front-loading 200.
+    public const DEFAULT_FETCH_LIMIT = 25;
+
     // Every mailbox on this domain sits behind the same mail servers, so these
     // are pre-filled in the settings modal — only the user's own address,
     // username, and password actually differ per account.
@@ -90,7 +98,7 @@ class MailboxService
      * reconnecting per folder, which used to make this noticeably slower for
      * accounts with many folders.
      */
-    public static function fetchAll(MailboxAccount $account, int $lookbackDays = 14, int $limit = 200): int
+    public static function fetchAll(MailboxAccount $account, int $lookbackDays = 14, int $limit = self::DEFAULT_FETCH_LIMIT): int
     {
         $client = static::imapClient($account);
         $client->connect();
@@ -118,7 +126,7 @@ class MailboxService
      * messages seen. Pass an already-connected $client (as fetchAll() does)
      * to reuse it instead of opening a new connection just for this folder.
      */
-    public static function fetchNew(MailboxAccount $account, string $folderPath = self::DEFAULT_FOLDER, int $lookbackDays = 14, int $limit = 200, ?ImapClient $client = null): int
+    public static function fetchNew(MailboxAccount $account, string $folderPath = self::DEFAULT_FOLDER, int $lookbackDays = 14, int $limit = self::DEFAULT_FETCH_LIMIT, ?ImapClient $client = null): int
     {
         $ownsClient = $client === null;
         if ($ownsClient) {
@@ -169,7 +177,7 @@ class MailboxService
      * whether the server likely still has more beyond that (a full page
      * came back).
      */
-    public static function fetchOlder(MailboxAccount $account, string $folderPath, int $limit = 200): array
+    public static function fetchOlder(MailboxAccount $account, string $folderPath, int $limit = self::DEFAULT_FETCH_LIMIT): array
     {
         $client = static::imapClient($account);
         $client->connect();

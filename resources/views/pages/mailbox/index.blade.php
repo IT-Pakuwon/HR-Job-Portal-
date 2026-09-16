@@ -111,7 +111,12 @@
             this.syncing = true;
             fetch('{{ route('mailbox.sync') }}', {
                 method: 'POST',
-                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ folder: this.currentFolder }),
             })
                 .then(r => r.json())
                 .then(data => {
@@ -523,7 +528,15 @@
             email: '', imap_host: '', imap_port: 993, imap_encryption: 'ssl', imap_username: '',
             imap_password: '', smtp_host: '', smtp_port: 465, smtp_encryption: 'ssl',
         },
-        openSettings() {
+        // The settings modal is bound 1:1 to the /mailbox/settings URL: open it
+        // and the address bar moves there; close it and the URL drops back to
+        // wherever it should be. `push` is false when we're reacting to a
+        // browser navigation (popstate) that already put us on that URL, so we
+        // don't push a redundant duplicate history entry.
+        isSettingsUrl(url) {
+            return url.pathname === @js(parse_url(route('mailbox.settings'), PHP_URL_PATH));
+        },
+        openSettings(push = true) {
             this.settingsError = null;
             fetch('{{ route('mailbox.account-settings') }}', { headers: { 'Accept': 'application/json' } })
                 .then(r => r.json())
@@ -539,10 +552,28 @@
                     this.settings.smtp_port = data.smtp_port;
                     this.settings.smtp_encryption = data.smtp_encryption;
                     this.settingsOpen = true;
+                    if (push && !this.isSettingsUrl(window.location)) {
+                        window.history.pushState({ mailboxSettings: true }, '', '{{ route('mailbox.settings') }}');
+                    }
                 });
         },
         closeSettings() {
             this.settingsOpen = false;
+            if (!this.isSettingsUrl(window.location)) return;
+            // history.state carries the { mailboxSettings: true } marker only on
+            // an entry we pushed ourselves (the browser preserves it across
+            // back/forward), which tells apart opening from a Settings button
+            // while already in the app (a real back target exists) from
+            // landing here via a real navigation (a bookmark, or the header's
+            // link — nothing in-app to go back to).
+            if (window.history.state && window.history.state.mailboxSettings) {
+                window.history.back();
+            } else {
+                // Landed here via a real navigation (e.g. the header's Connect
+                // now link, or a bookmark) — there's no in-app history to go
+                // back to, so just swap the address bar.
+                window.history.replaceState({}, '', '{{ route('mailbox.index') }}');
+            }
         },
         saveSettings() {
             if (this.settingsSaving) return;
@@ -563,11 +594,14 @@
                     if (data.success) {
                         // The not-connected screen and the mailbox panel are two
                         // different server-rendered branches (no #mailbox-panel div
-                        // exists yet to swap in), so a reload is unavoidable here —
-                        // but flag it so the reloaded page can auto-sync right away
-                        // instead of showing an empty inbox until a manual click.
+                        // exists yet to swap in), so a full navigation is unavoidable
+                        // here — but flag it so the landing page can auto-sync right
+                        // away instead of showing an empty inbox until a manual click.
+                        // Always land on plain /mailbox (not wherever this modal was
+                        // opened from, e.g. /mailbox/settings) now that there's an
+                        // account to show.
                         try { sessionStorage.setItem('mailbox_just_connected', '1'); } catch (e) {}
-                        window.location.reload();
+                        window.location.href = '{{ route('mailbox.index') }}';
                     } else {
                         this.settingsError = data.message || 'Something went wrong.';
                     }
@@ -602,6 +636,12 @@
                 .catch(() => { this.settingsSaving = false; this.settingsError = 'Request failed.'; });
         },
     }" x-init="
+        @if($autoOpenSettings ?? false)
+            // We're already on /mailbox/settings (that's how this flag got set),
+            // so openSettings() knows not to push a duplicate history entry —
+            // closing the modal is what moves the URL, not opening it here.
+            openSettings();
+        @endif
         const openId = new URLSearchParams(window.location.search).get('open');
         if (openId) {
             openEmail(parseInt(openId));
@@ -616,7 +656,18 @@
             syncNow();
         }
         window.addEventListener('popstate', () => {
-            this.loadPanel(this.paramsFromUrl(new URL(window.location.href)), { pushState: false });
+            const url = new URL(window.location.href);
+            if (this.isSettingsUrl(url)) {
+                if (!this.settingsOpen) this.openSettings(false);
+                return;
+            }
+            if (this.settingsOpen) this.settingsOpen = false;
+            // #mailbox-panel only exists when an account is connected — a
+            // popstate landing back on the not-connected card has nothing to
+            // load a panel into.
+            if (document.getElementById('mailbox-panel')) {
+                this.loadPanel(this.paramsFromUrl(url), { pushState: false });
+            }
         });
         // The `mailbox:fetch` scheduler job already pulls new mail from the
         // IMAP server into mailbox_emails every 5 minutes server-side — the
