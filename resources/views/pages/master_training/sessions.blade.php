@@ -764,6 +764,7 @@
                     return `
                         <tr class="border-b border-gray-100 dark:border-gray-700">
                             <td class="px-3 py-2 text-sm font-mono text-xs">${s.schedule_id || '-'}</td>
+                            <td class="px-3 py-2 text-sm">${s.grade_name || '-'}</td>
                             <td class="px-3 py-2 text-sm">${s.schedule_date}<br><span class="text-xs text-gray-500 dark:text-gray-400">${s.start_time} - ${s.end_time}</span></td>
                             <td class="px-3 py-2 text-sm">${s.mode}<br><span class="text-xs text-gray-500 dark:text-gray-400">${locationText}</span></td>
                             <td class="px-3 py-2 text-sm">${speakerText}</td>
@@ -786,6 +787,7 @@
                                 <thead class="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-gray-900 dark:text-gray-400">
                                     <tr>
                                         <th class="px-3 py-2">Schedule ID</th>
+                                        <th class="px-3 py-2">Level</th>
                                         <th class="px-3 py-2">Date</th>
                                         <th class="px-3 py-2">Mode</th>
                                         <th class="px-3 py-2">Speaker</th>

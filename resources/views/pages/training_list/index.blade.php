@@ -475,6 +475,7 @@
         }
         .select2-filter .select2-selection--single {
             height: 38px !important;
+            padding: 0 !important;
             border-radius: 8px;
             border-color: #d1d5db;
             transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -2656,7 +2657,6 @@
             $.get(allRegistrationsUrl, function (res) {
                 allRegistrationRows = res.data || [];
                 allRegsPage = 1;
-                populateLevelAndScheduleOptions();
                 renderAllRegistrations();
 
                 if (!initialAllRegsEidHandled && initialAllRegsEid) {
@@ -2668,43 +2668,37 @@
             loadRegistrationSummary();
         }
 
-        // Level/Schedule Date options are scoped to whichever Training Event
-        // is currently selected (or every row when none is) — same training
-        // can run on several dates at several levels, so narrowing here is
-        // what actually lets HR pick one specific run apart from the rest.
-        function populateLevelAndScheduleOptions() {
-            const trainingFilter = $('#allRegsTrainingFilter').val();
-            const scoped = trainingFilter
-                ? allRegistrationRows.filter((r) => String(r.training_id) === trainingFilter)
-                : allRegistrationRows;
-
-            const levels = [...new Set(scoped.map((r) => r.grade_name).filter(Boolean))].sort();
-            const dates = [...new Set(scoped.map((r) => r.schedule_date).filter(Boolean))].sort();
-
+        // Level/Schedule Date options come from the training's own master
+        // config (ms_lnd_training_detail / ms_lnd_training_schedule) via the
+        // summary endpoint below, not from whatever registrations happen to
+        // exist — a level or date with zero registrations so far is still
+        // pickable this way.
+        function populateLevelAndScheduleOptions(levels, dates) {
             const $level = $('#allRegsLevelFilter');
             const currentLevel = $level.val();
             $level.find('option:not(:first)').remove();
-            levels.forEach((l) => $level.append(new Option(l, l)));
+            (levels || []).forEach((l) => $level.append(new Option(l, l)));
             if (currentLevel && levels.includes(currentLevel)) $level.val(currentLevel);
             $level.trigger('change.select2');
 
             const $sched = $('#allRegsScheduleFilter');
             const currentSched = $sched.val();
             $sched.find('option:not(:first)').remove();
-            dates.forEach((d) => $sched.append(new Option(fmtDate(d), d)));
+            (dates || []).forEach((d) => $sched.append(new Option(fmtDate(d), d)));
             if (currentSched && dates.includes(currentSched)) $sched.val(currentSched);
             $sched.trigger('change.select2');
         }
 
-        // Cards are scoped only by the Training Event filter (a dedicated
-        // backend fetch, since quota totals aren't derivable from the
-        // registration rows alone) — search/status stay table-only filters
-        // so the overview cards keep reading as a stable summary.
+        // Cards + Level/Schedule Date options are scoped only by the Training
+        // Event filter (a dedicated backend fetch against master data) —
+        // search/status stay table-only filters so this stays a stable
+        // overview of the selected training itself.
         function loadRegistrationSummary() {
             const trainingId = $('#allRegsTrainingFilter').val();
 
             $.get(registrationSummaryUrl, trainingId ? { training_id: trainingId } : {}, function (res) {
                 populateTrainingFilterOptions(res.trainings || []);
+                populateLevelAndScheduleOptions(res.levels || [], res.schedule_dates || []);
                 renderSummaryCards(res);
             });
         }
@@ -2999,7 +2993,6 @@
         });
         $('#allRegsTrainingFilter').on('change', function () {
             allRegsPage = 1;
-            populateLevelAndScheduleOptions();
             renderAllRegistrations();
             loadRegistrationSummary();
         });
@@ -3015,7 +3008,6 @@
             allRegsSortDir = 'asc';
             $('.allRegsSortTh').removeClass('sortActive').find('.sortArrow').remove();
             allRegsPage = 1;
-            populateLevelAndScheduleOptions();
             renderAllRegistrations();
             loadRegistrationSummary();
         });
