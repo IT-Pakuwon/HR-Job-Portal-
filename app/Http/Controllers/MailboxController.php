@@ -44,14 +44,31 @@ class MailboxController extends Controller
                 'folderCounts' => collect(),
                 'search'       => '',
                 'perPage'      => self::DEFAULT_PER_PAGE,
+                'imapError'    => null,
             ];
         }
 
-        $folders = MailboxService::listFolders($account);
+        // A flaky/unreachable mail server used to bubble up as an uncaught
+        // exception here, breaking not just the Sync button (which already
+        // guards itself) but every normal folder click, search, and
+        // pagination request too — falling back to an empty folder list
+        // still lets the rest of this method run against whatever's already
+        // cached locally in mailbox_emails.
+        $imapError = null;
+        try {
+            $folders = MailboxService::listFolders($account);
+        } catch (\Throwable $e) {
+            $folders = [];
+            $imapError = 'Could not reach your mail server right now — showing previously synced messages.';
+        }
+
         // Path segment on the index route ("/mailbox/Drafts") takes priority;
         // the panel endpoint (AJAX, no {folder} route param) still uses ?folder=.
         $folder = $request->route('folder') ?? $request->get('folder', MailboxService::DEFAULT_FOLDER);
-        if (!in_array($folder, $folders, true)) {
+        // Only enforce "must be a known folder" when the folder list actually
+        // loaded — with $imapError set, $folders is empty and this would
+        // otherwise always force every folder back to INBOX.
+        if ($imapError === null && !in_array($folder, $folders, true)) {
             $folder = $folders[0] ?? MailboxService::DEFAULT_FOLDER;
         }
 
@@ -100,7 +117,7 @@ class MailboxController extends Controller
             ->get()
             ->keyBy('folder');
 
-        return compact('account', 'emails', 'search', 'folders', 'folder', 'folderCounts', 'perPage');
+        return compact('account', 'emails', 'search', 'folders', 'folder', 'folderCounts', 'perPage', 'imapError');
     }
 
     /**
@@ -116,14 +133,14 @@ class MailboxController extends Controller
         // actually specific to the person connecting.
         return response()->json([
             'connected' => (bool) $account,
-            'email'          => $account->email ?? '',
-            'imap_host'      => $account->imap_host ?? MailboxService::DEFAULT_IMAP_HOST,
-            'imap_port'      => $account->imap_port ?? MailboxService::DEFAULT_IMAP_PORT,
-            'imap_encryption' => $account->imap_encryption ?? MailboxService::DEFAULT_IMAP_ENCRYPTION,
-            'imap_username'  => $account->imap_username ?? '',
-            'smtp_host'      => $account->smtp_host ?? MailboxService::DEFAULT_SMTP_HOST,
-            'smtp_port'      => $account->smtp_port ?? MailboxService::DEFAULT_SMTP_PORT,
-            'smtp_encryption' => $account->smtp_encryption ?? MailboxService::DEFAULT_SMTP_ENCRYPTION,
+            'email'          => $account?->email ?? '',
+            'imap_host'      => $account?->imap_host ?? MailboxService::DEFAULT_IMAP_HOST,
+            'imap_port'      => $account?->imap_port ?? MailboxService::DEFAULT_IMAP_PORT,
+            'imap_encryption' => $account?->imap_encryption ?? MailboxService::DEFAULT_IMAP_ENCRYPTION,
+            'imap_username'  => $account?->imap_username ?? '',
+            'smtp_host'      => $account?->smtp_host ?? MailboxService::DEFAULT_SMTP_HOST,
+            'smtp_port'      => $account?->smtp_port ?? MailboxService::DEFAULT_SMTP_PORT,
+            'smtp_encryption' => $account?->smtp_encryption ?? MailboxService::DEFAULT_SMTP_ENCRYPTION,
         ]);
     }
 
@@ -227,6 +244,7 @@ class MailboxController extends Controller
             'body_html'    => $email->body_html,
             'body_text'    => $email->body_text,
             'has_attachments' => $email->has_attachments,
+            'message_id'   => $email->message_id ?: null,
         ]);
     }
 
@@ -273,7 +291,7 @@ class MailboxController extends Controller
         $data = $this->validateCompose($request, requireTo: true, account: $account);
 
         try {
-            MailboxService::send($account, $data['subject'], $data['body'], $data['to'], $data['cc'], $data['bcc'], $data['existingDraft'], $data['attachments'], $data['keepFromDraftIndexes']);
+            MailboxService::send($account, $data['subject'], $data['body'], $data['to'], $data['cc'], $data['bcc'], $data['existingDraft'], $data['attachments'], $data['keepFromDraftIndexes'], $data['attachmentSource'], $data['inReplyTo']);
             return response()->json(['success' => true, 'message' => 'Email sent.']);
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => 'Send failed: ' . $e->getMessage()], 422);
@@ -286,7 +304,7 @@ class MailboxController extends Controller
         $data = $this->validateCompose($request, requireTo: false, account: $account);
 
         try {
-            MailboxService::saveDraft($account, $data['subject'], $data['body'], $data['to'], $data['cc'], $data['bcc'], $data['existingDraft'], $data['attachments'], $data['keepFromDraftIndexes']);
+            MailboxService::saveDraft($account, $data['subject'], $data['body'], $data['to'], $data['cc'], $data['bcc'], $data['existingDraft'], $data['attachments'], $data['keepFromDraftIndexes'], $data['attachmentSource']);
             return response()->json(['success' => true, 'message' => 'Draft saved.']);
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => 'Save draft failed: ' . $e->getMessage()], 422);
@@ -343,6 +361,35 @@ class MailboxController extends Controller
         }
     }
 
+    /**
+     * Pull the next page of older messages for one folder from the mail
+     * server (see MailboxService::fetchOlder docblock) — triggered by the
+     * "Load older messages" button rather than the regular Sync action.
+     */
+    public function loadMore(Request $request)
+    {
+        $account = $this->currentAccount($request);
+        if (!$account) {
+            return response()->json(['success' => false, 'message' => 'Connect a mailbox first.'], 422);
+        }
+
+        $folders = MailboxService::listFolders($account);
+        $folder = $request->get('folder', MailboxService::DEFAULT_FOLDER);
+        if (!in_array($folder, $folders, true)) {
+            return response()->json(['success' => false, 'message' => 'Unknown folder.'], 422);
+        }
+
+        try {
+            $result = MailboxService::fetchOlder($account, $folder);
+            $message = $result['fetched'] > 0
+                ? "Loaded {$result['fetched']} older message(s)."
+                : 'No older messages found.';
+            return response()->json(['success' => true, 'message' => $message] + $result);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Load failed: ' . $e->getMessage()], 422);
+        }
+    }
+
     public function unreadCount(Request $request)
     {
         $account = $this->currentAccount($request);
@@ -387,6 +434,11 @@ class MailboxController extends Controller
             'subject'                     => 'nullable|string|max:500',
             'body'                        => 'nullable|string|max:200000',
             'draft_id'                    => 'nullable|integer',
+            // The message whose attachments 'keep_attachment_indexes' refers to
+            // — the draft being re-saved, or the message being forwarded.
+            // Separate from draft_id because a forward has no draft to replace.
+            'source_id'                   => 'nullable|integer',
+            'in_reply_to'                 => 'nullable|string|max:998',
             'attachments'                 => 'nullable|array|max:10',
             'attachments.*'               => 'file|max:5120', // 5MB per file
             'keep_attachment_indexes'     => 'nullable|array',
@@ -419,6 +471,13 @@ class MailboxController extends Controller
                 ->first();
         }
 
+        $attachmentSource = null;
+        if ($request->filled('source_id')) {
+            $attachmentSource = MailboxEmail::where('id', $request->integer('source_id'))
+                ->where('username', $account->username)
+                ->first();
+        }
+
         $attachments = collect($request->file('attachments', []))
             ->filter()
             ->map(fn ($f) => [
@@ -436,6 +495,8 @@ class MailboxController extends Controller
             'subject'               => (string) $request->input('subject', ''),
             'body'                  => (string) $request->input('body', ''),
             'existingDraft'         => $existingDraft,
+            'attachmentSource'      => $attachmentSource,
+            'inReplyTo'             => $request->input('in_reply_to') ?: null,
             'attachments'           => $attachments,
             'keepFromDraftIndexes'  => array_map('intval', $request->input('keep_attachment_indexes', [])),
         ];

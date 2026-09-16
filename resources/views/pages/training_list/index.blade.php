@@ -3,7 +3,7 @@
         <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div>
                 <h1 class="text-base font-bold text-gray-800 dark:text-white">🎓 Training List</h1>
-                <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">Browse open trainings and manage your registrations.</p>
+                <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">Browse open trainings and manage your registrations.</p>
             </div>
 
             {{-- Tabs --}}
@@ -16,7 +16,7 @@
                 </button>
                 <button id="approvalsTabBtn" class="tabBtn hidden border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="approvals">
                     Waiting Approval
-                    <span id="approvalsTabCount" class="ml-1 inline-flex rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"></span>
+                    <span id="approvalsTabCount" class="ml-1 inline-flex rounded-full bg-amber-100 px-1.5 py-0.5 text-sm font-bold text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"></span>
                 </button>
                 @if (Auth::user()->hasRole('HCDEVACCESS'))
                     <button class="tabBtn border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="allregs">
@@ -28,18 +28,18 @@
             {{-- Available Trainings --}}
             <div id="tab-available" class="tab-panel space-y-3">
                 <div class="flex flex-wrap items-center gap-2">
-                    <select id="filterLevel" class="rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                    <select id="filterLevel" class="rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
                         <option value="">All Levels</option>
                     </select>
-                    <select id="filterCategory" class="rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                    <select id="filterCategory" class="rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
                         <option value="">All Categories</option>
                     </select>
-                    <select id="filterMandatory" class="rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                    <select id="filterMandatory" class="rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
                         <option value="">Mandatory: All</option>
                         <option value="1">Mandatory Only</option>
                         <option value="0">Non-Mandatory Only</option>
                     </select>
-                    <button id="filterResetBtn" class="text-xs font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white">Reset</button>
+                    <button id="filterResetBtn" class="text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white">Reset</button>
                 </div>
 
                 <div id="availableEmpty" class="hidden rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
@@ -56,7 +56,7 @@
                 <div class="overflow-x-auto">
                     <table class="responsive-table min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
                         <thead>
-                            <tr class="text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                            <tr class="text-left text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 <th class="py-2 pr-4">Doc ID</th>
                                 <th class="py-2 pr-4">Training</th>
                                 <th class="py-2 pr-4">Level</th>
@@ -74,13 +74,13 @@
 
             {{-- Waiting Approval (only shown once loadPendingApprovals() finds something) --}}
             <div id="tab-approvals" class="tab-panel hidden">
-                <p class="mb-2 text-xs text-gray-500 dark:text-gray-400">
+                <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">
                     Training registrations currently waiting on your approval.
                 </p>
                 <div class="overflow-x-auto">
                     <table class="responsive-table min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
                         <thead>
-                            <tr class="text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                            <tr class="text-left text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 <th class="py-2 pr-4">Doc ID</th>
                                 <th class="py-2 pr-4">Employee</th>
                                 <th class="py-2 pr-4">Company / Dept</th>
@@ -102,16 +102,16 @@
             {{-- List Registration (HCDEVACCESS) --}}
             @if (Auth::user()->hasRole('HCDEVACCESS'))
                 <div id="tab-allregs" class="tab-panel hidden space-y-4">
-                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
                         Every training registration across all employees, with its current status.
                     </p>
 
                     {{-- Filters — Training Event also rescopes the summary cards below --}}
                     <div class="rounded-2xl border border-gray-200 bg-linear-to-br from-gray-50 to-cyan-50/30 p-6 shadow-sm dark:border-gray-700 dark:from-gray-800/40 dark:to-cyan-900/10">
-                        <div class="grid grid-cols-1 items-end gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        <div class="grid grid-cols-1 items-end gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
 
                             <div class="space-y-1">
-                                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                <label class="text-sm font-medium text-gray-500 dark:text-gray-400">
                                     <i class="fa-solid fa-chalkboard-user mr-1 text-gray-400"></i> Training Event
                                 </label>
                                 <select id="allRegsTrainingFilter" class="w-full">
@@ -120,14 +120,25 @@
                             </div>
 
                             <div class="space-y-1">
-                                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                    <i class="fa-solid fa-magnifying-glass mr-1 text-gray-400"></i> Search
+                                <label class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                    <i class="fa-solid fa-layer-group mr-1 text-gray-400"></i> Level
                                 </label>
-                                <input id="allRegsSearch" type="text" placeholder="Employee or doc ID" class="form-input w-full">
+                                <select id="allRegsLevelFilter" class="w-full">
+                                    <option value="">All Levels</option>
+                                </select>
                             </div>
 
                             <div class="space-y-1">
-                                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                <label class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                    <i class="fa-solid fa-calendar-days mr-1 text-gray-400"></i> Schedule Date
+                                </label>
+                                <select id="allRegsScheduleFilter" class="w-full">
+                                    <option value="">All Dates</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-sm font-medium text-gray-500 dark:text-gray-400">
                                     <i class="fa-solid fa-list-check mr-1 text-gray-400"></i> Status
                                 </label>
                                 <select id="allRegsStatusFilter" class="w-full">
@@ -156,56 +167,78 @@
                     {{-- Summary cards --}}
                     <div class="grid grid-cols-2 gap-3 sm:grid-cols-5">
                         <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
-                            <p class="text-[10px] font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400">Waiting Approval</p>
+                            <p class="text-sm font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400">Waiting Approval</p>
                             <p id="statWaitingApproval" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
                         </div>
                         <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
-                            <p class="text-[10px] font-bold uppercase tracking-wide text-sky-600 dark:text-sky-400">Waiting List</p>
+                            <p class="text-sm font-bold uppercase tracking-wide text-sky-600 dark:text-sky-400">Waiting List</p>
                             <p id="statWaitingList" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
                         </div>
                         <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
-                            <p class="text-[10px] font-bold uppercase tracking-wide text-green-600 dark:text-green-400">Approved</p>
+                            <p class="text-sm font-bold uppercase tracking-wide text-green-600 dark:text-green-400">Approved</p>
                             <p id="statApproved" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
                         </div>
                         <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
-                            <p class="text-[10px] font-bold uppercase tracking-wide text-red-600 dark:text-red-400">Rejected</p>
+                            <p class="text-sm font-bold uppercase tracking-wide text-red-600 dark:text-red-400">Rejected</p>
                             <p id="statRejected" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
                         </div>
                         <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
-                            <p class="text-[10px] font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">Cancelled</p>
+                            <p class="text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">Cancelled</p>
                             <p id="statCancelled" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
                         </div>
                     </div>
 
                     <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
                         <div class="flex items-center justify-between gap-2">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Reserved / Total Quota</p>
+                            <p class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Reserved / Total Quota</p>
                             <span id="quotaOverallValue" class="text-sm font-bold text-gray-800 dark:text-white">-</span>
                         </div>
                         <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
                             <div id="quotaOverallBar" class="h-full rounded-full bg-gray-900 dark:bg-white" style="width:0%"></div>
                         </div>
 
-                        <p class="mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Per Company</p>
+                        <p class="mb-2 mt-4 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Per Company</p>
                         <div id="quotaByCompany" class="flex flex-nowrap gap-2 overflow-x-auto pb-1"></div>
-                        <p id="quotaByCompanyEmpty" class="hidden text-xs text-gray-400">No quota configured for this training.</p>
+                        <p id="quotaByCompanyEmpty" class="hidden text-sm text-gray-400">No quota configured for this training.</p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                        <div class="flex flex-1 flex-wrap items-center gap-4">
+                            <span id="allRegsCount" class="text-sm font-medium text-gray-500 dark:text-gray-400"></span>
+                            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                <label for="allRegsPageSize">Show</label>
+                                <select id="allRegsPageSize" class="rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-8 text-sm text-gray-700 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                                    <option value="10">10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                    <option value="all">All</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="relative w-full sm:w-72">
+                            <i class="fa-solid fa-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400"></i>
+                            <input id="allRegsSearch" type="text" placeholder="Search employee or doc ID..."
+                                class="w-full rounded-lg border border-gray-300 bg-white py-2 pl-8 pr-3 text-sm text-gray-700 placeholder:text-gray-400 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:placeholder:text-gray-500 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                        </div>
                     </div>
 
                     <div class="overflow-x-auto">
                         <table class="responsive-table min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
                             <thead>
-                                <tr class="text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    <th class="py-2 pr-4">Doc ID</th>
-                                    <th class="py-2 pr-4">Employee</th>
+                                <tr class="text-left text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                    <th class="allRegsSortTh py-2 pr-4" data-field="docid">Doc ID</th>
+                                    <th class="allRegsSortTh py-2 pr-4" data-field="name">Employee</th>
                                     <th class="py-2 pr-4">Company / Dept</th>
-                                    <th class="py-2 pr-4">Training</th>
-                                    <th class="py-2 pr-4">Level</th>
-                                    <th class="py-2 pr-4">Schedule Date</th>
-                                    <th class="py-2 pr-4">Training Status</th>
-                                    <th class="py-2 pr-4">Registered On</th>
-                                    <th class="py-2 pr-4">Status</th>
+                                    <th class="allRegsSortTh py-2 pr-4" data-field="training_name">Training</th>
+                                    <th class="allRegsSortTh py-2 pr-4" data-field="grade_name">Level</th>
+                                    <th class="allRegsSortTh py-2 pr-4" data-field="schedule_date">Schedule Date</th>
+                                    <th class="allRegsSortTh py-2 pr-4" data-field="schedule_status">Training Status</th>
+                                    <th class="allRegsSortTh py-2 pr-4" data-field="registered_at">Registered On</th>
+                                    <th class="allRegsSortTh py-2 pr-4" data-field="status">Status</th>
                                     <th class="py-2 pr-4">Approval</th>
-                                    <th class="py-2 pr-4">Queue #</th>
+                                    <th class="allRegsSortTh py-2 pr-4" data-field="queue_no">Queue #</th>
                                     <th class="py-2 pr-4">Action</th>
                                 </tr>
                             </thead>
@@ -230,7 +263,7 @@
                     </svg>
                 </button>
                 <button type="button" id="detailHeroFullPreviewBtn"
-                    class="absolute right-4 top-14 z-10 hidden items-center gap-1 rounded-lg bg-white/90 px-2.5 py-1.5 text-xs font-semibold text-gray-700 shadow transition hover:bg-white dark:bg-gray-900/80 dark:text-gray-200">
+                    class="absolute right-4 top-14 z-10 hidden items-center gap-1 rounded-lg bg-white/90 px-2.5 py-1.5 text-sm font-semibold text-gray-700 shadow transition hover:bg-white dark:bg-gray-900/80 dark:text-gray-200">
                     🖼️ Full Preview
                 </button>
 
@@ -241,7 +274,7 @@
                         <div class="absolute inset-x-0 bottom-0 p-5">
                             <div id="detailHeroBadges" class="mb-2 flex flex-wrap gap-1.5"></div>
                             <h2 id="detailHeroTitle" class="wrap-break-word text-xl font-bold text-white sm:text-2xl"></h2>
-                            <p id="detailHeroMeta" class="mt-1 text-xs text-gray-200"></p>
+                            <p id="detailHeroMeta" class="mt-1 text-sm text-gray-200"></p>
                         </div>
                     </div>
 
@@ -339,6 +372,26 @@
                 text-align: center;
             }
         }
+        .allRegsSortTh {
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+        .allRegsSortTh:hover {
+            color: #111827;
+        }
+        html.dark .allRegsSortTh:hover {
+            color: #f3f4f6;
+        }
+        .allRegsSortTh .sortArrow {
+            display: inline-block;
+            margin-left: 3px;
+            opacity: .3;
+            font-size: 10px;
+        }
+        .allRegsSortTh.sortActive .sortArrow {
+            opacity: 1;
+        }
         .select2-container--default .select2-selection--single {
             height: 38px;
             border: 1px solid #d1d5db;
@@ -375,7 +428,14 @@
             height: 36px !important;
         }
         .select2-filter .select2-selection--single .select2-selection__clear {
-            margin-right: 4px;
+            top: 0 !important;
+            bottom: 0 !important;
+            right: 32px !important;
+            height: 18px !important;
+            line-height: 18px !important;
+            margin: auto 0 !important;
+            display: flex !important;
+            align-items: center !important;
         }
         .select2-filter.select2-container--focus .select2-selection--single,
         .select2-filter.select2-container--open .select2-selection--single {
@@ -1202,7 +1262,7 @@
 
         function statusBadge(status) {
             const [label, cls] = statusLabels[status] || [status, 'bg-gray-100 text-gray-600'];
-            return `<span class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${cls}">${label}</span>`;
+            return `<span class="inline-flex rounded-full px-2 py-0.5 text-sm font-semibold ${cls}">${label}</span>`;
         }
 
         // Approved registrations read as plain text ("Registration Approved")
@@ -1211,7 +1271,7 @@
         // stand out (pending, rejected, waitlisted, offered).
         function myStatusChip(status) {
             if (status === 'C') {
-                return '<span class="text-xs text-gray-400">Registration Approved</span>';
+                return '<span class="text-sm text-gray-400">Registration Approved</span>';
             }
             return statusBadge(status);
         }
@@ -1227,7 +1287,7 @@
 
         function scheduleStatusBadge(status) {
             const [label, cls] = scheduleStatusLabels[status] || [status ?? '-', 'bg-gray-100 text-gray-600'];
-            return `<span class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${cls}">${label}</span>`;
+            return `<span class="inline-flex rounded-full px-2 py-0.5 text-sm font-semibold ${cls}">${label}</span>`;
         }
 
         function fmtDate(d) {
@@ -1249,15 +1309,18 @@
 
         // Slices a filtered row array down to one page, clamping the given
         // page number into range (e.g. after a filter shrinks the result set
-        // below the previously-viewed page).
-        function paginateRows(rows, page) {
-            const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+        // below the previously-viewed page). pageSize defaults to the shared
+        // PAGE_SIZE but the List Registration tab passes its own (10/25/50/
+        // 100/all, via its "Show" selector) without affecting other tabs.
+        function paginateRows(rows, page, pageSize = PAGE_SIZE) {
+            const size = pageSize === Infinity ? Math.max(1, rows.length) : pageSize;
+            const totalPages = Math.max(1, Math.ceil(rows.length / size));
             const clamped = Math.min(Math.max(1, page), totalPages);
-            const start = (clamped - 1) * PAGE_SIZE;
-            return { pageRows: rows.slice(start, start + PAGE_SIZE), page: clamped, totalPages };
+            const start = (clamped - 1) * size;
+            return { pageRows: rows.slice(start, start + size), page: clamped, totalPages };
         }
 
-        function renderPagination(containerId, totalItems, page, totalPages, onChange) {
+        function renderPagination(containerId, totalItems, page, totalPages, onChange, pageSize = PAGE_SIZE) {
             const $el = $('#' + containerId);
 
             if (totalPages <= 1) {
@@ -1265,11 +1328,12 @@
                 return;
             }
 
-            const start = totalItems === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-            const end = Math.min(page * PAGE_SIZE, totalItems);
+            const size = pageSize === Infinity ? Math.max(1, totalItems) : pageSize;
+            const start = totalItems === 0 ? 0 : (page - 1) * size + 1;
+            const end = Math.min(page * size, totalItems);
 
             $el.html(`
-                <div class="flex flex-wrap items-center justify-between gap-2 pt-3 text-xs text-gray-500 dark:text-gray-400">
+                <div class="flex flex-wrap items-center justify-between gap-2 pt-3 text-sm text-gray-500 dark:text-gray-400">
                     <span>Showing ${start}-${end} of ${totalItems}</span>
                     <div class="flex items-center gap-1">
                         <button type="button" class="paginationPrevBtn rounded-lg px-2.5 py-1 font-semibold text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:text-gray-300 dark:hover:bg-gray-800" ${page <= 1 ? 'disabled' : ''}>Prev</button>
@@ -1423,7 +1487,7 @@
                     }
                     if (r.speakers.length) metaParts.push(`🗣️ ${r.speakers.join(', ')}`);
                     const metaLine = metaParts.length
-                        ? `<p class="mt-0.5 wrap-break-word text-xs text-gray-500 dark:text-gray-400">${metaParts.join(' &nbsp;·&nbsp; ')}</p>`
+                        ? `<p class="mt-0.5 wrap-break-word text-sm text-gray-500 dark:text-gray-400">${metaParts.join(' &nbsp;·&nbsp; ')}</p>`
                         : '';
 
                     // Representative mode/location — schedules within one docid batch
@@ -1433,7 +1497,7 @@
                         ? `📍 ${firstSched.mode}${firstSched.location || firstSched.platform ? ' · ' + (firstSched.location || firstSched.platform) : ''}`
                         : null;
                     const locationLine = locationLabel
-                        ? `<p class="mt-0.5 wrap-break-word text-xs text-gray-500 dark:text-gray-400">${locationLabel}</p>`
+                        ? `<p class="mt-0.5 wrap-break-word text-sm text-gray-500 dark:text-gray-400">${locationLabel}</p>`
                         : '';
 
                     // "already registered" only hides the button if every open date is
@@ -1447,19 +1511,19 @@
                     let registerBtnHtml = '';
                     if (!r.eligible) {
                         const reasonText = r.level_eligible ? 'Not available for your company' : 'Your Level can\'t Register to This Training';
-                        registerBtnHtml = `<span class="flex items-center justify-center rounded-lg border border-dashed border-gray-200 px-2 py-1.5 text-center text-[11px] text-gray-400 dark:border-gray-700">${reasonText}</span>`;
+                        registerBtnHtml = `<span class="flex items-center justify-center rounded-lg border border-dashed border-gray-200 px-2 py-1.5 text-center text-sm text-gray-400 dark:border-gray-700">${reasonText}</span>`;
                     } else if (openSchedules.length > 0) {
                         const anyAvailable = openSchedules.some((s) => s.eligible_companies.some((c) => c.available > 0));
                         const btnCls = anyAvailable ? 'bg-gray-900 hover:bg-gray-700 dark:bg-white dark:text-gray-900' : 'bg-sky-600 hover:bg-sky-500 text-white';
                         const btnText = anyAvailable ? 'Register' : 'Join Waiting List';
-                        registerBtnHtml = `<button class="registerBtn rounded-lg px-3 py-1.5 text-xs font-semibold text-white ${btnCls}" data-docid="${r.docid}">${btnText}</button>`;
+                        registerBtnHtml = `<button class="registerBtn rounded-lg px-3 py-1.5 text-sm font-semibold text-white ${btnCls}" data-docid="${r.docid}">${btnText}</button>`;
                     }
 
                     // grid-cols-2 fits both actions side by side; when there's only one
                     // (no register action applies), it spans both columns instead of
                     // leaving an empty cell next to it.
                     const detailBtn = r.eid
-                        ? `<button class="viewDetailBtn${registerBtnHtml === '' ? ' col-span-2' : ''} rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-docid="${r.docid}">View Detail</button>`
+                        ? `<button class="viewDetailBtn${registerBtnHtml === '' ? ' col-span-2' : ''} rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-docid="${r.docid}">View Detail</button>`
                         : '';
 
                     const [tileBg, tileFg] = paletteFor(r.category_name || r.training_name);
@@ -1472,8 +1536,8 @@
                             <div class="min-w-0 flex-1">
                                 <h3 class="wrap-break-word text-sm font-semibold leading-snug text-gray-800 dark:text-white">${r.training_name ?? '-'}</h3>
                                 <div class="mt-1 flex flex-wrap items-center gap-1">
-                                    ${levelLabel ? `<span class="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">${levelLabel}</span>` : ''}
-                                    ${r.is_mandatory ? `<span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700 dark:bg-red-900/40 dark:text-red-300">Mandatory</span>` : ''}
+                                    ${levelLabel ? `<span class="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-sm font-semibold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">${levelLabel}</span>` : ''}
+                                    ${r.is_mandatory ? `<span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-sm font-semibold text-red-700 dark:bg-red-900/40 dark:text-red-300">Mandatory</span>` : ''}
                                 </div>
                             </div>
                         </div>
@@ -1496,7 +1560,7 @@
             const barColor = filled >= 100 ? '#dc2626' : '#111827';
             return `
                 <div class="border-t border-dashed border-gray-200 py-1.5 dark:border-gray-700">
-                    <div class="flex items-center justify-between gap-2 text-xs">
+                    <div class="flex items-center justify-between gap-2 text-sm">
                         <span class="text-gray-600 dark:text-gray-300">${c.cpny_name}</span>
                         <span class="font-medium text-gray-500 dark:text-gray-400">${c.available}/${c.quota_pax} avail &nbsp;·&nbsp; ${c.reserved} rsvp</span>
                     </div>
@@ -1521,13 +1585,13 @@
 
             const badges = [];
             if (training.category_name) {
-                badges.push(`<span class="inline-flex items-center rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">${training.category_name}</span>`);
+                badges.push(`<span class="inline-flex items-center rounded-full bg-white/20 px-2.5 py-1 text-sm font-semibold text-white backdrop-blur">${training.category_name}</span>`);
             }
             if (training.training_type) {
-                badges.push(`<span class="inline-flex items-center rounded-full bg-blue-500/80 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">${training.training_type}</span>`);
+                badges.push(`<span class="inline-flex items-center rounded-full bg-blue-500/80 px-2.5 py-1 text-sm font-semibold text-white backdrop-blur">${training.training_type}</span>`);
             }
             if (training.is_mandatory) {
-                badges.push('<span class="inline-flex items-center rounded-full bg-red-500/80 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">Mandatory</span>');
+                badges.push('<span class="inline-flex items-center rounded-full bg-red-500/80 px-2.5 py-1 text-sm font-semibold text-white backdrop-blur">Mandatory</span>');
             }
             $('#detailHeroBadges').html(badges.join(''));
 
@@ -1555,7 +1619,7 @@
                     <div class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
                         <div class="flex items-center justify-between gap-2 bg-gray-50 px-4 py-2 dark:bg-gray-900">
                             <h4 class="text-sm font-bold text-gray-800 dark:text-white">${scheds[0].grade_name ?? '-'}</h4>
-                            <span class="text-[11px] font-medium text-gray-400">${docid} &nbsp;·&nbsp; ${scheds.length} schedule(s)</span>
+                            <span class="text-sm font-medium text-gray-400">${docid} &nbsp;·&nbsp; ${scheds.length} schedule(s)</span>
                         </div>
                         <div class="divide-y divide-gray-100 dark:divide-gray-700"></div>
                     </div>
@@ -1569,35 +1633,35 @@
                     const year = d.getFullYear();
 
                     const quotaHtml = !s.level_match
-                        ? '<p class="text-xs text-gray-400">Your Level can\'t Register to This Training</p>'
+                        ? '<p class="text-sm text-gray-400">Your Level can\'t Register to This Training</p>'
                         : s.eligible_companies.length
                             ? s.eligible_companies.map((c) => capacityBar(c)).join('')
-                            : '<p class="text-xs text-gray-400">Not available for your company</p>';
+                            : '<p class="text-sm text-gray-400">Not available for your company</p>';
 
                     let actionHtml;
                     if (s.my_status) {
                         actionHtml = myStatusChip(s.my_status);
                     } else if (!s.is_open) {
-                        actionHtml = '<span class="text-xs text-gray-400">Registration closed</span>';
+                        actionHtml = '<span class="text-sm text-gray-400">Registration closed</span>';
                     } else if (!s.level_match || !s.eligible_companies.length) {
                         actionHtml = '';
                     } else {
                         const anyAvailable = s.eligible_companies.some((c) => c.available > 0);
                         const btnCls = anyAvailable ? 'bg-gray-900 hover:bg-gray-700 dark:bg-white dark:text-gray-900' : 'bg-sky-600 hover:bg-sky-500 text-white';
                         const btnText = anyAvailable ? 'Register' : 'Join Waiting List';
-                        actionHtml = `<button class="registerScheduleBtn rounded-lg px-4 py-2 text-xs font-semibold text-white ${btnCls}" data-id="${s.id}" data-docid="${training.docid}">${btnText}</button>`;
+                        actionHtml = `<button class="registerScheduleBtn rounded-lg px-4 py-2 text-sm font-semibold text-white ${btnCls}" data-id="${s.id}" data-docid="${training.docid}">${btnText}</button>`;
                     }
 
                     $rows.append(`
                         <div class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
                             <div class="flex shrink-0 flex-col items-center justify-center rounded-lg bg-gray-50 px-4 py-2 dark:bg-gray-900">
-                                <span class="text-[10px] font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">${month}</span>
+                                <span class="text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">${month}</span>
                                 <span class="text-2xl font-bold leading-tight text-gray-800 dark:text-white">${day}</span>
-                                <span class="text-[10px] text-gray-400">${year}</span>
+                                <span class="text-sm text-gray-400">${year}</span>
                             </div>
                             <div class="min-w-0 flex-1">
                                 <span class="text-sm font-semibold text-gray-800 dark:text-white">${s.start_time ?? ''}-${s.end_time ?? ''}</span>
-                                <div class="mt-1 flex items-center justify-between gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                <div class="mt-1 flex items-center justify-between gap-2 text-sm text-gray-500 dark:text-gray-400">
                                     <span>📍 ${s.mode ?? '-'}${s.location || s.platform ? ' · ' + (s.location || s.platform) : ''}</span>
                                     <span>🗣️ ${s.speaker_name ?? '-'}</span>
                                 </div>
@@ -1880,7 +1944,7 @@
                 return `<button type="button" class="fillFeedbackBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">👁 View Feedback</button>`;
             }
             if (r.has_attended) {
-                return `<span class="block px-3 py-2 text-xs text-gray-400">Feedback not open yet</span>`;
+                return `<span class="block px-3 py-2 text-sm text-gray-400">Feedback not open yet</span>`;
             }
             return '';
         }
@@ -1890,7 +1954,7 @@
                 return `<a href="${certificateUrl.replace('__ID__', r.id)}" target="_blank" class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-amber-700 transition hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-900/20">🎓 Certificate</a>`;
             }
             if (r.has_attended) {
-                return `<span class="block px-3 py-2 text-xs text-gray-400">Certificate not available yet</span>`;
+                return `<span class="block px-3 py-2 text-sm text-gray-400">Certificate not available yet</span>`;
             }
             return '';
         }
@@ -1930,7 +1994,7 @@
 
                 $body.append(`
                     <tr>
-                        <td class="py-2 pr-4" data-label="Doc ID"><button type="button" class="viewRegBtn inline-flex items-center gap-1 rounded-lg border border-gray-300 px-2.5 py-1 font-mono text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">${r.docid}</button></td>
+                        <td class="py-2 pr-4" data-label="Doc ID"><button type="button" class="viewRegBtn inline-flex items-center gap-1 rounded-lg border border-gray-300 px-2.5 py-1 font-mono text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">${r.docid}</button></td>
                         <td class="py-2 pr-4 wrap-break-word text-sm text-gray-800 dark:text-gray-100" data-label="Training">${r.training_name ?? '-'}</td>
                         <td class="py-2 pr-4 whitespace-nowrap" data-label="Level">${r.grade_name ?? '-'}</td>
                         <td class="py-2 pr-4 wrap-break-word" data-label="Speaker">${r.speaker_name ?? '-'}</td>
@@ -1944,7 +2008,7 @@
                                         left = b.right + window.scrollX - 192;
                                         open = !open;
                                     "
-                                    class="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                                    class="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-2.5 py-1 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
                                     Actions
                                     <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
                                 </button>
@@ -2012,7 +2076,7 @@
 
         function renderApprovalLineHtml(rows) {
             if (!rows.length) {
-                return `<p class="text-xs text-gray-400">No approval line configured for this document.</p>`;
+                return `<p class="text-sm text-gray-400">No approval line configured for this document.</p>`;
             }
             return rows.map((step) => {
                 const meta = approvalStatusMeta(step.status);
@@ -2087,7 +2151,7 @@
                         ` : ''}
                         <h4 class="viewModal-sectionTitle">Approval Line</h4>
                         <div id="viewModalApprovalList" class="approvalStepList">
-                            <p class="text-xs text-gray-400">Loading…</p>
+                            <p class="text-sm text-gray-400">Loading…</p>
                         </div>
                     </div>
                 `,
@@ -2100,7 +2164,7 @@
                             $('#viewModalApprovalList').html(renderApprovalLineHtml(res.data || []));
                         })
                         .fail(() => {
-                            $('#viewModalApprovalList').html('<p class="text-xs text-red-500">Failed to load approval line.</p>');
+                            $('#viewModalApprovalList').html('<p class="text-sm text-red-500">Failed to load approval line.</p>');
                         });
                 },
                 didClose: () => {
@@ -2170,10 +2234,10 @@
             pageRows.forEach(function (r) {
                 $body.append(`
                     <tr>
-                        <td class="py-2 pr-4 font-mono text-xs" data-label="Doc ID">${r.docid}</td>
+                        <td class="py-2 pr-4 font-mono text-sm" data-label="Doc ID">${r.docid}</td>
                         <td class="py-2 pr-4" data-label="Employee">
-                            <span class="block text-xs font-semibold text-gray-800 dark:text-gray-100">${r.name ?? r.username}</span>
-                            <span class="block text-[11px] text-gray-400">${r.username}</span>
+                            <span class="block text-sm font-semibold text-gray-800 dark:text-gray-100">${r.name ?? r.username}</span>
+                            <span class="block text-sm text-gray-400">${r.username}</span>
                         </td>
                         <td class="py-2 pr-4" data-label="Company / Dept">${r.cpny_name ?? r.cpny_id} / ${r.department_name ?? r.department_id}</td>
                         <td class="py-2 pr-4" data-label="Training">${r.training_name ?? '-'}</td>
@@ -2181,9 +2245,9 @@
                         <td class="py-2 pr-4 whitespace-nowrap" data-label="Waiting Since">${fmtDate(r.waiting_since)}</td>
                         <td class="py-2 pr-4" data-label="Action">
                             <div class="flex items-center gap-1.5">
-                                <button class="viewApprovalBtn rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">View</button>
-                                <button class="approveRegBtn rounded-lg bg-green-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-green-700" data-id="${r.id}">Approve</button>
-                                <button class="rejectRegBtn rounded-lg border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${r.id}">Reject</button>
+                                <button class="viewApprovalBtn rounded-lg border border-gray-300 px-2.5 py-1 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">View</button>
+                                <button class="approveRegBtn rounded-lg bg-green-600 px-2.5 py-1 text-sm font-semibold text-white hover:bg-green-700" data-id="${r.id}">Approve</button>
+                                <button class="rejectRegBtn rounded-lg border border-red-200 px-2.5 py-1 text-sm font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${r.id}">Reject</button>
                             </div>
                         </td>
                     </tr>
@@ -2389,15 +2453,33 @@
             minimumResultsForSearch: -1,
             width: '100%',
         });
+        $('#allRegsLevelFilter').select2({
+            containerCssClass: 'select2-filter',
+            dropdownCssClass: 'select2-filter',
+            placeholder: 'All Levels',
+            allowClear: true,
+            width: '100%',
+        });
+        $('#allRegsScheduleFilter').select2({
+            containerCssClass: 'select2-filter',
+            dropdownCssClass: 'select2-filter',
+            placeholder: 'All Dates',
+            allowClear: true,
+            width: '100%',
+        });
 
         let allRegistrationRows = [];
         let allRegsPage = 1;
+        let allRegsPageSize = 10;
+        let allRegsSortField = null;
+        let allRegsSortDir = 'asc';
         let initialAllRegsEidHandled = false;
 
         function loadAllRegistrations() {
             $.get(allRegistrationsUrl, function (res) {
                 allRegistrationRows = res.data || [];
                 allRegsPage = 1;
+                populateLevelAndScheduleOptions();
                 renderAllRegistrations();
 
                 if (!initialAllRegsEidHandled && initialAllRegsEid) {
@@ -2407,6 +2489,34 @@
                 }
             });
             loadRegistrationSummary();
+        }
+
+        // Level/Schedule Date options are scoped to whichever Training Event
+        // is currently selected (or every row when none is) — same training
+        // can run on several dates at several levels, so narrowing here is
+        // what actually lets HR pick one specific run apart from the rest.
+        function populateLevelAndScheduleOptions() {
+            const trainingFilter = $('#allRegsTrainingFilter').val();
+            const scoped = trainingFilter
+                ? allRegistrationRows.filter((r) => String(r.training_id) === trainingFilter)
+                : allRegistrationRows;
+
+            const levels = [...new Set(scoped.map((r) => r.grade_name).filter(Boolean))].sort();
+            const dates = [...new Set(scoped.map((r) => r.schedule_date).filter(Boolean))].sort();
+
+            const $level = $('#allRegsLevelFilter');
+            const currentLevel = $level.val();
+            $level.find('option:not(:first)').remove();
+            levels.forEach((l) => $level.append(new Option(l, l)));
+            if (currentLevel && levels.includes(currentLevel)) $level.val(currentLevel);
+            $level.trigger('change.select2');
+
+            const $sched = $('#allRegsScheduleFilter');
+            const currentSched = $sched.val();
+            $sched.find('option:not(:first)').remove();
+            dates.forEach((d) => $sched.append(new Option(fmtDate(d), d)));
+            if (currentSched && dates.includes(currentSched)) $sched.val(currentSched);
+            $sched.trigger('change.select2');
         }
 
         // Cards are scoped only by the Training Event filter (a dedicated
@@ -2462,7 +2572,7 @@
                 const barColor = pct >= 100 ? '#dc2626' : '#111827';
                 $grid.append(`
                     <div class="min-w-40 flex-1 rounded-lg border border-gray-100 p-2.5 dark:border-gray-700">
-                        <div class="flex items-center justify-between gap-2 text-xs">
+                        <div class="flex items-center justify-between gap-2 text-sm">
                             <span class="truncate font-semibold text-gray-700 dark:text-gray-200" title="${c.cpny_name}">${c.cpny_name}</span>
                             <span class="shrink-0 font-medium text-gray-500 dark:text-gray-400">${c.reserved}/${c.total_quota}</span>
                         </div>
@@ -2478,10 +2588,14 @@
             const search = ($('#allRegsSearch').val() || '').toLowerCase().trim();
             const statusFilter = $('#allRegsStatusFilter').val();
             const trainingFilter = $('#allRegsTrainingFilter').val();
+            const levelFilter = $('#allRegsLevelFilter').val();
+            const scheduleFilter = $('#allRegsScheduleFilter').val();
 
-            const rows = allRegistrationRows.filter((r) => {
+            let rows = allRegistrationRows.filter((r) => {
                 if (statusFilter && r.status !== statusFilter) return false;
                 if (trainingFilter && String(r.training_id) !== trainingFilter) return false;
+                if (levelFilter && r.grade_name !== levelFilter) return false;
+                if (scheduleFilter && r.schedule_date !== scheduleFilter) return false;
                 if (search) {
                     const haystack = `${r.docid} ${r.name} ${r.username} ${r.training_name ?? ''}`.toLowerCase();
                     if (!haystack.includes(search)) return false;
@@ -2489,10 +2603,25 @@
                 return true;
             });
 
+            if (allRegsSortField) {
+                const field = allRegsSortField;
+                const dir = allRegsSortDir === 'desc' ? -1 : 1;
+                rows = rows.slice().sort((a, b) => {
+                    let va = a[field];
+                    let vb = b[field];
+                    if (va == null && vb == null) return 0;
+                    if (va == null) return 1;
+                    if (vb == null) return -1;
+                    if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * dir;
+                    return String(va).localeCompare(String(vb), undefined, { numeric: true, sensitivity: 'base' }) * dir;
+                });
+            }
+
             $('#allRegsEmpty').toggleClass('hidden', rows.length > 0);
+            $('#allRegsCount').text(`${rows.length} registration${rows.length === 1 ? '' : 's'}`);
             const $body = $('#allRegsBody').empty();
 
-            const { pageRows, page, totalPages } = paginateRows(rows, allRegsPage);
+            const { pageRows, page, totalPages } = paginateRows(rows, allRegsPage, allRegsPageSize);
             allRegsPage = page;
 
             pageRows.forEach(function (r) {
@@ -2514,17 +2643,17 @@
                 // this is what decides whether Accept can show up at all for a
                 // waitlisted row (see can_accept in allRegistrations()).
                 const approvalHtml = r.approval_status === 'C'
-                    ? '<span class="text-xs font-semibold text-green-600 dark:text-green-400">Approved</span>'
+                    ? '<span class="text-sm font-semibold text-green-600 dark:text-green-400">Approved</span>'
                     : r.approval_status === 'R'
-                        ? '<span class="text-xs font-semibold text-red-600 dark:text-red-400">Rejected</span>'
-                        : '<span class="text-xs text-amber-600 dark:text-amber-400">Pending</span>';
+                        ? '<span class="text-sm font-semibold text-red-600 dark:text-red-400">Rejected</span>'
+                        : '<span class="text-sm text-amber-600 dark:text-amber-400">Pending</span>';
 
                 $body.append(`
                     <tr>
-                        <td class="py-2 pr-4 font-mono text-xs" data-label="Doc ID">${r.docid}</td>
+                        <td class="py-2 pr-4 font-mono text-sm" data-label="Doc ID">${r.docid}</td>
                         <td class="py-2 pr-4" data-label="Employee">
-                            <span class="block text-xs font-semibold text-gray-800 dark:text-gray-100">${r.name ?? r.username}</span>
-                            <span class="block text-[11px] text-gray-400">${r.username}</span>
+                            <span class="block text-sm font-semibold text-gray-800 dark:text-gray-100">${r.name ?? r.username}</span>
+                            <span class="block text-sm text-gray-400">${r.username}</span>
                         </td>
                         <td class="py-2 pr-4" data-label="Company / Dept">${r.cpny_name ?? r.cpny_id} / ${r.department_name ?? r.department_id}</td>
                         <td class="py-2 pr-4" data-label="Training">${r.training_name ?? '-'}</td>
@@ -2534,7 +2663,7 @@
                         <td class="py-2 pr-4 whitespace-nowrap" data-label="Registered On">${fmtDate(r.registered_at)}</td>
                         <td class="py-2 pr-4" data-label="Status">${statusBadge(r.status)}</td>
                         <td class="py-2 pr-4" data-label="Approval">${approvalHtml}</td>
-                        <td class="py-2 pr-4 text-center" data-label="Queue #">${r.queue_no ? `<span class="inline-flex items-center rounded-full bg-sky-100 px-2 py-0.5 text-xs font-semibold text-sky-700 dark:bg-sky-900/40 dark:text-sky-300">#${r.queue_no}</span>` : '-'}</td>
+                        <td class="py-2 pr-4 text-center" data-label="Queue #">${r.queue_no ? `<span class="inline-flex items-center rounded-full bg-sky-100 px-2 py-0.5 text-sm font-semibold text-sky-700 dark:bg-sky-900/40 dark:text-sky-300">#${r.queue_no}</span>` : '-'}</td>
                         <td class="py-2 pr-4" data-label="Action">
                             <div class="relative inline-block text-left" x-data="{ open: false, top: 0, left: 0 }" @click.outside="open = false">
                                 <button type="button" @click="
@@ -2543,7 +2672,7 @@
                                         left = b.right + window.scrollX - 192;
                                         open = !open;
                                     "
-                                    class="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                                    class="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-2.5 py-1 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
                                     Actions
                                     <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
                                 </button>
@@ -2565,8 +2694,31 @@
             renderPagination('allRegsPagination', rows.length, page, totalPages, (p) => {
                 allRegsPage = p;
                 renderAllRegistrations();
-            });
+            }, allRegsPageSize);
         }
+
+        $('.allRegsSortTh').on('click', function () {
+            const field = $(this).data('field');
+            if (allRegsSortField === field) {
+                allRegsSortDir = allRegsSortDir === 'asc' ? 'desc' : 'asc';
+            } else {
+                allRegsSortField = field;
+                allRegsSortDir = 'asc';
+            }
+
+            $('.allRegsSortTh').removeClass('sortActive').find('.sortArrow').remove();
+            $(this).addClass('sortActive').append(`<span class="sortArrow">${allRegsSortDir === 'asc' ? '▲' : '▼'}</span>`);
+
+            allRegsPage = 1;
+            renderAllRegistrations();
+        });
+
+        $('#allRegsPageSize').on('change', function () {
+            const val = $(this).val();
+            allRegsPageSize = val === 'all' ? Infinity : parseInt(val, 10);
+            allRegsPage = 1;
+            renderAllRegistrations();
+        });
 
         $(document).on('click', '.allRegsViewBtn', function () {
             const id = $(this).data('id');
@@ -2660,8 +2812,17 @@
             allRegsPage = 1;
             renderAllRegistrations();
         });
+        $('#allRegsLevelFilter').on('change', function () {
+            allRegsPage = 1;
+            renderAllRegistrations();
+        });
+        $('#allRegsScheduleFilter').on('change', function () {
+            allRegsPage = 1;
+            renderAllRegistrations();
+        });
         $('#allRegsTrainingFilter').on('change', function () {
             allRegsPage = 1;
+            populateLevelAndScheduleOptions();
             renderAllRegistrations();
             loadRegistrationSummary();
         });
@@ -2669,22 +2830,35 @@
             $('#allRegsSearch').val('');
             $('#allRegsStatusFilter').val('').trigger('change.select2');
             $('#allRegsTrainingFilter').val('').trigger('change.select2');
+            $('#allRegsLevelFilter').val('').trigger('change.select2');
+            $('#allRegsScheduleFilter').val('').trigger('change.select2');
+            $('#allRegsPageSize').val('10');
+            allRegsPageSize = 10;
+            allRegsSortField = null;
+            allRegsSortDir = 'asc';
+            $('.allRegsSortTh').removeClass('sortActive').find('.sortArrow').remove();
             allRegsPage = 1;
+            populateLevelAndScheduleOptions();
             renderAllRegistrations();
             loadRegistrationSummary();
         });
 
-        // Same training/status/search filters as the table — the download
-        // matches what's currently on screen, not just the current page.
+        // Same filters as the table — the download matches what's currently
+        // on screen, not just the current page (sorting/page size are
+        // display-only and don't affect what rows get exported).
         $('#allRegsExportBtn').on('click', function () {
             const params = new URLSearchParams();
             const trainingId = $('#allRegsTrainingFilter').val();
             const status = $('#allRegsStatusFilter').val();
             const search = ($('#allRegsSearch').val() || '').trim();
+            const level = $('#allRegsLevelFilter').val();
+            const scheduleDate = $('#allRegsScheduleFilter').val();
 
             if (trainingId) params.set('training_id', trainingId);
             if (status) params.set('status', status);
             if (search) params.set('search', search);
+            if (level) params.set('level', level);
+            if (scheduleDate) params.set('schedule_date', scheduleDate);
 
             const qs = params.toString();
             window.location.href = allRegistrationsExportUrl + (qs ? '?' + qs : '');

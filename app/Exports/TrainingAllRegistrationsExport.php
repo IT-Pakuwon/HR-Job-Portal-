@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use App\Models\MsCompany;
 use App\Models\MsDepartment;
+use App\Models\StoGrading;
 use App\Models\TrLndTrainingRegistration;
 use App\Models\User;
 use Carbon\Carbon;
@@ -13,8 +14,9 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 
 /**
  * Mirrors TrainingRegistrationController::allRegistrations() — same rows,
- * same optional training_id/status/search filters — so the download always
- * matches whatever the List Registration tab is currently showing.
+ * same optional training_id/level/schedule_date/status/search filters — so
+ * the download always matches whatever the List Registration tab is
+ * currently showing.
  */
 class TrainingAllRegistrationsExport implements
     FromCollection,
@@ -33,12 +35,21 @@ class TrainingAllRegistrationsExport implements
     protected ?string $trainingId;
     protected ?string $status;
     protected ?string $search;
+    protected ?string $level;
+    protected ?string $scheduleDate;
 
-    public function __construct(?string $trainingId = null, ?string $status = null, ?string $search = null)
-    {
+    public function __construct(
+        ?string $trainingId = null,
+        ?string $status = null,
+        ?string $search = null,
+        ?string $level = null,
+        ?string $scheduleDate = null
+    ) {
         $this->trainingId = $trainingId ?: null;
         $this->status = $status ?: null;
         $this->search = $search ?: null;
+        $this->level = $level ?: null;
+        $this->scheduleDate = $scheduleDate ?: null;
     }
 
     public function headings(): array
@@ -50,6 +61,7 @@ class TrainingAllRegistrationsExport implements
             'Company',
             'Department',
             'Training',
+            'Level',
             'Schedule Date',
             'Registered On',
             'Status',
@@ -73,11 +85,14 @@ class TrainingAllRegistrationsExport implements
         $deptIds = $registrations->pluck('department_id')->filter()->unique();
         $departmentNames = $deptIds->isEmpty() ? collect() : MsDepartment::whereIn('department_id', $deptIds)->pluck('department_name', 'department_id');
 
+        $levelLabels = StoGrading::labelsFor($registrations->pluck('schedule.schedule.job_level'));
+
         $search = $this->search ? mb_strtolower($this->search) : null;
 
         return $registrations
-            ->map(function ($r) use ($names, $companyNames, $departmentNames) {
+            ->map(function ($r) use ($names, $companyNames, $departmentNames, $levelLabels) {
                 $effectiveStatus = $r->effective_status;
+                $scheduleDate = $r->schedule_date ?? $r->schedule?->schedule_date;
 
                 return [
                     'docid' => $r->training_regist_id,
@@ -86,9 +101,9 @@ class TrainingAllRegistrationsExport implements
                     'company' => $companyNames[$r->cpny_id] ?? $r->cpny_id,
                     'department' => $departmentNames[$r->department_id] ?? $r->department_id,
                     'training_name' => $r->schedule?->schedule?->training?->training_name ?? '-',
-                    'schedule_date' => ($r->schedule_date ?? $r->schedule?->schedule_date)
-                        ? Carbon::parse($r->schedule_date ?? $r->schedule?->schedule_date)->format('d-M-Y')
-                        : '-',
+                    'grade_name' => $levelLabels[$r->schedule?->schedule?->job_level] ?? $r->schedule?->schedule?->job_level,
+                    'schedule_date_raw' => $scheduleDate ? Carbon::parse($scheduleDate)->format('Y-m-d') : null,
+                    'schedule_date' => $scheduleDate ? Carbon::parse($scheduleDate)->format('d-M-Y') : '-',
                     'registered_at' => $r->created_at ? Carbon::parse($r->created_at)->format('d-M-Y H:i') : '-',
                     'status' => self::STATUS_LABELS[$effectiveStatus] ?? $effectiveStatus,
                     '_effective_status' => $effectiveStatus,
@@ -96,6 +111,14 @@ class TrainingAllRegistrationsExport implements
             })
             ->filter(function ($row) use ($search) {
                 if ($this->status && $row['_effective_status'] !== $this->status) {
+                    return false;
+                }
+
+                if ($this->level && $row['grade_name'] !== $this->level) {
+                    return false;
+                }
+
+                if ($this->scheduleDate && $row['schedule_date_raw'] !== $this->scheduleDate) {
                     return false;
                 }
 
@@ -108,7 +131,7 @@ class TrainingAllRegistrationsExport implements
 
                 return true;
             })
-            ->map(fn ($row) => collect($row)->except('_effective_status')->all())
+            ->map(fn ($row) => collect($row)->except(['_effective_status', 'schedule_date_raw'])->all())
             ->values();
     }
 }

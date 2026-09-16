@@ -2258,6 +2258,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/panel', 'panel')->name('panel');
             Route::get('/unread-count', 'unreadCount')->name('unread-count');
             Route::post('/sync', 'sync')->name('sync');
+            Route::post('/load-more', 'loadMore')->name('load-more');
             Route::post('/send', 'send')->name('send');
             Route::post('/save-draft', 'saveDraft')->name('save-draft');
             Route::get('/account-settings', 'accountSettings')->name('account-settings');

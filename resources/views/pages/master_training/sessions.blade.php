@@ -296,6 +296,12 @@
         .dark #scheduleModal .toggle-pill:hover { background-color: #374151; }
         .dark #scheduleModal .toggle-pill.is-active { background-color: #ffffff; color: #111827; }
 
+        #scheduleModal.view-mode .step-panel { pointer-events: none; opacity: .7; }
+        #scheduleModal.view-mode #addDateBtn,
+        #scheduleModal.view-mode #addQuotaRowBtn,
+        #scheduleModal.view-mode .removeDateBlock,
+        #scheduleModal.view-mode .removeQuotaRow { display: none !important; }
+
         .status-badge-DRAFT { background: rgba(156,163,175,.3); color: #4b5563; }
         .status-badge-PUBLISHED { background: rgba(34,197,94,.2); color: #16a34a; }
         .status-badge-CLOSED { background: rgba(59,130,246,.2); color: #2563eb; }
@@ -348,6 +354,7 @@
 
         let dateIndex = 0;
         let isEditMode = false;
+        let isViewMode = false;
 
         function dateBlockHtml(idx) {
             const inputClass = 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm transition focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:focus:border-white dark:focus:ring-white';
@@ -500,6 +507,12 @@
             $(this).data('touched', true);
         });
 
+        function selectedQuotaCompanyIds($exclude) {
+            return $('#quotaRows .quota-company').not($exclude).map(function() {
+                return String($(this).val());
+            }).get().filter(Boolean);
+        }
+
         function initCompanySelect2($el) {
             $el.select2({
                 width: '100%',
@@ -510,11 +523,25 @@
                     dataType: 'json',
                     delay: 250,
                     data: params => ({ q: params.term }),
-                    processResults: data => ({ results: data.results }),
+                    processResults: data => {
+                        let taken = selectedQuotaCompanyIds($el);
+                        return { results: (data.results || []).filter(r => !taken.includes(String(r.id))) };
+                    },
                     cache: true
                 }
             });
         }
+
+        $(document).on('select2:select', '.quota-company', function(e) {
+            let $current = $(this);
+            let selectedId = String(e.params.data.id);
+
+            if (selectedQuotaCompanyIds($current).includes(selectedId)) {
+                Swal.fire({ icon: 'warning', title: 'Company already added', text: 'This company already has a quota row. Edit its qty instead of adding it again.' });
+                $current.val(null).trigger('change');
+                $current.find(`option[value="${selectedId}"]`).remove();
+            }
+        });
 
         function addQuotaRow(cpnyId, cpnyName, qty) {
             let rowId = 'quota_' + Date.now() + Math.floor(Math.random() * 1000);
@@ -583,6 +610,8 @@
             $('#datesContainer').empty();
             dateIndex = 0;
             isEditMode = false;
+            isViewMode = false;
+            $('#scheduleModal').removeClass('view-mode');
             addDateBlock();
             $('#addDateBtn').show();
 
@@ -611,7 +640,7 @@
             // actually disappeared on step 3.
             $('#stepBackBtn').toggle(step !== 1);
             $('#stepNextBtn').toggle(step !== totalSteps);
-            $('#stepSaveBtn').toggle(step === totalSteps);
+            $('#stepSaveBtn').toggle(step === totalSteps && !isViewMode);
         }
 
         function validateStep(step) {
@@ -702,11 +731,13 @@
                         menuItems += '<div class="my-1 border-t border-gray-100 dark:border-gray-700"></div>';
                         menuItems += actionItem('statusScheduleBtn', s.id, 'CANCELLED', iconCancel, 'Cancel', 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20');
                     } else if (s.status === 'PUBLISHED') {
+                        menuItems += actionItem('viewScheduleBtn', s.id, null, iconView, 'View');
                         menuItems += actionItem('rescheduleScheduleBtn', s.id, null, iconReschedule, 'Reschedule', 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20');
                         menuItems += actionItem('statusScheduleBtn', s.id, 'CLOSED', iconClose, 'Close', 'text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20');
                         menuItems += '<div class="my-1 border-t border-gray-100 dark:border-gray-700"></div>';
                         menuItems += actionItem('statusScheduleBtn', s.id, 'CANCELLED', iconCancel, 'Cancel', 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20');
                     } else if (s.status === 'CLOSED') {
+                        menuItems += actionItem('viewScheduleBtn', s.id, null, iconView, 'View');
                         menuItems += actionItem('rescheduleScheduleBtn', s.id, null, iconReschedule, 'Reschedule', 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20');
                     }
 
@@ -779,6 +810,7 @@
         const iconClose = '<svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-12V7a4 4 0 10-8 0v4h8z"/></svg>';
         const iconCancel = '<svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 9l6 6m0-6l-6 6M12 21a9 9 0 100-18 9 9 0 000 18z"/></svg>';
         const iconReschedule = '<svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3M4 11h16M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2zm4-6l2 2 4-4"/></svg>';
+        const iconView = '<svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>';
 
         function actionItem(btnClass, id, status, icon, label, colorClasses) {
             let statusAttr = status ? ` data-status="${status}"` : '';
@@ -842,13 +874,7 @@
                 $('#scheduleModal').addClass('hidden');
             });
 
-            $(document).on('click', '.editScheduleBtn', function() {
-                let id = $(this).data('id');
-                let s = allSchedules.find(row => row.id == id);
-                if (!s) return;
-
-                $('#scheduleModalTitle').text('Edit Schedule');
-                $('#scheduleModalSubtitle').text('Editing one date. Level/batch name/speaker-source changes apply to every date in this batch.');
+            function fillScheduleForm(s) {
                 $('#schedule_id').val(s.id);
 
                 let gradeOpt = new Option(s.grade_name, s.job_level, true, true);
@@ -865,7 +891,6 @@
 
                 $('#datesContainer').empty();
                 dateIndex = 0;
-                isEditMode = true;
                 addDateBlock();
                 $('#addDateBtn').hide();
 
@@ -900,6 +925,37 @@
                 } else {
                     addQuotaRow();
                 }
+            }
+
+            $(document).on('click', '.editScheduleBtn', function() {
+                let id = $(this).data('id');
+                let s = allSchedules.find(row => row.id == id);
+                if (!s) return;
+
+                $('#scheduleModalTitle').text('Edit Schedule');
+                $('#scheduleModalSubtitle').text('Editing one date. Level/batch name/speaker-source changes apply to every date in this batch.');
+                isEditMode = true;
+                isViewMode = false;
+                $('#scheduleModal').removeClass('view-mode');
+
+                fillScheduleForm(s);
+
+                goToStep(1);
+                $('#scheduleModal').removeClass('hidden');
+            });
+
+            $(document).on('click', '.viewScheduleBtn', function() {
+                let id = $(this).data('id');
+                let s = allSchedules.find(row => row.id == id);
+                if (!s) return;
+
+                $('#scheduleModalTitle').text('View Schedule');
+                $('#scheduleModalSubtitle').text(`Read-only — this schedule is already ${s.status}.`);
+                isEditMode = true;
+                isViewMode = true;
+                $('#scheduleModal').addClass('view-mode');
+
+                fillScheduleForm(s);
 
                 goToStep(1);
                 $('#scheduleModal').removeClass('hidden');
@@ -1009,15 +1065,26 @@
 
                 let quota = [];
                 let quotaIncomplete = false;
+                let seenCpnyIds = new Set();
+                let hasDuplicateCpny = false;
                 $('#quotaRows [data-row-id]').each(function() {
                     let cpnyId = $(this).find('.quota-company').val();
                     let qty = $(this).find('.quota-qty').val();
                     if (cpnyId && qty) {
+                        if (seenCpnyIds.has(cpnyId)) {
+                            hasDuplicateCpny = true;
+                        }
+                        seenCpnyIds.add(cpnyId);
                         quota.push({ cpny_id: cpnyId, quota_pax: qty });
                     } else if (cpnyId || qty) {
                         quotaIncomplete = true;
                     }
                 });
+
+                if (hasDuplicateCpny) {
+                    Swal.fire({ icon: 'warning', title: 'Duplicate company', text: 'The same company appears in more than one quota row. Combine them into a single row before saving.' });
+                    return;
+                }
 
                 if (quotaIncomplete || quota.length === 0) {
                     Swal.fire({ icon: 'warning', title: 'Incomplete quota', text: 'Choose a company and enter a qty for every quota row before saving.' });

@@ -1,6 +1,7 @@
 <x-app-layout>
     <div class="mx-auto flex h-[calc(100dvh-72px)] w-full max-w-9xl flex-col overflow-hidden p-2" x-data="{
         currentFolder: @js($folder),
+        accountEmail: @js($account?->email ?? ''),
         modalOpen: false,
         loading: false,
         email: null,
@@ -8,6 +9,7 @@
         toast: null,
         toastOk: true,
         syncing: false,
+        loadingOlder: false,
 
         showToast(message, ok = true) {
             this.toast = message;
@@ -48,6 +50,27 @@
         // Back/Forward navigation — the URL has already changed (that's what
         // fired the popstate event), so pushing again here would corrupt the
         // history stack instead of following it.
+        // Shared by loadPanel()/refreshPanel(). Two things used to go wrong
+        // here: (1) neither checked the response status, so a 422/500 error
+        // page (e.g. the mailbox account got disconnected, or the mail
+        // server was briefly unreachable) got its raw HTML dumped straight
+        // into #mailbox-panel instead of showing an error; and (2) sending
+        // 'Accept: text/html' meant an expired session made the auth
+        // middleware 302-redirect to the login page rather than return a
+        // JSON 401 — fetch() follows redirects transparently, so the LOGIN
+        // PAGE's own HTML came back as if it were the panel partial. Asking
+        // for JSON here doesn't change what a successful request gets back
+        // (the controller always renders the same Blade view either way),
+        // it only changes how auth failures are reported.
+        fetchPanelHtml(url) {
+            return fetch(url, { headers: { 'Accept': 'application/json' } }).then(async (r) => {
+                if (!r.ok) {
+                    const data = await r.json().catch(() => null);
+                    throw new Error(data?.message || 'Failed to load mailbox.');
+                }
+                return r.text();
+            });
+        },
         loadPanel(params = {}, { pushState = true } = {}) {
             // Drop empty/default values so the address bar stays clean
             // (e.g. plain /mailbox instead of /mailbox/INBOX?q=&per_page=25) —
@@ -62,8 +85,7 @@
             // shown to the user); the visible address bar instead gets it as a
             // clean path segment, e.g. /mailbox/Drafts instead of /mailbox?folder=Drafts.
             const qs = new URLSearchParams(clean).toString();
-            fetch('{{ route('mailbox.panel') }}' + (qs ? '?' + qs : ''), { headers: { 'Accept': 'text/html' } })
-                .then(r => r.text())
+            this.fetchPanelHtml('{{ route('mailbox.panel') }}' + (qs ? '?' + qs : ''))
                 .then(html => {
                     document.getElementById('mailbox-panel').innerHTML = html;
                     if (pushState) {
@@ -75,15 +97,14 @@
                     }
                     if (params.folder) this.currentFolder = params.folder;
                 })
-                .catch(() => this.showToast('Failed to load mailbox.', false));
+                .catch(err => this.showToast(err.message || 'Failed to load mailbox.', false));
         },
         refreshPanel() {
             const params = this.paramsFromUrl(new URL(window.location.href));
             const qs = new URLSearchParams(params).toString();
-            fetch('{{ route('mailbox.panel') }}' + (qs ? '?' + qs : ''), { headers: { 'Accept': 'text/html' } })
-                .then(r => r.text())
+            this.fetchPanelHtml('{{ route('mailbox.panel') }}' + (qs ? '?' + qs : ''))
                 .then(html => { document.getElementById('mailbox-panel').innerHTML = html; })
-                .catch(() => this.showToast('Failed to refresh mailbox.', false));
+                .catch(err => this.showToast(err.message || 'Failed to refresh mailbox.', false));
         },
         syncNow() {
             if (this.syncing) return;
@@ -99,6 +120,26 @@
                     if (data.success) this.refreshPanel();
                 })
                 .catch(() => { this.syncing = false; this.showToast('Sync failed.', false); });
+        },
+        loadOlder() {
+            if (this.loadingOlder) return;
+            this.loadingOlder = true;
+            fetch('{{ route('mailbox.load-more') }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ folder: this.currentFolder }),
+            })
+                .then(r => r.json())
+                .then(data => {
+                    this.loadingOlder = false;
+                    this.showToast(data.message || (data.success ? 'Loaded.' : 'Load failed.'), data.success !== false);
+                    if (data.success && data.fetched > 0) this.refreshPanel();
+                })
+                .catch(() => { this.loadingOlder = false; this.showToast('Load failed.', false); });
         },
 
         emailAttachments: [],
@@ -222,7 +263,14 @@
 
         composeOpen: false,
         composeSaving: false,
+        composeTitle: 'New Message',
         composeDraftId: null,
+        // Message whose attachments 'keep_attachment_indexes' carries over
+        // (the draft itself when editing, or the original when forwarding) —
+        // null for a reply, since replies don't carry the original's attachments.
+        composeSourceId: null,
+        // Original message's Message-ID header, for reply threading (In-Reply-To/References).
+        composeInReplyTo: null,
         composeToList: [],
         composeToDraft: '',
         composeCcList: [],
@@ -283,9 +331,12 @@
                 modules: { toolbar: [['bold', 'italic', 'underline'], [{ list: 'ordered' }, { list: 'bullet' }], ['link'], ['clean']] },
             });
         },
-        openComposeNew() {
-            this.initQuillIfNeeded();
+        // Shared reset for every compose entry point (new/draft/reply/forward)
+        // so none of them can leak state from whatever was open before.
+        resetComposeFields() {
             this.composeDraftId = null;
+            this.composeSourceId = null;
+            this.composeInReplyTo = null;
             this.composeToList = [];
             this.composeToDraft = '';
             this.composeCcList = [];
@@ -297,23 +348,20 @@
             this.composeSubject = '';
             this.composeAttachments = [];
             if (this.quill) this.quill.setText('');
+        },
+        openComposeNew() {
+            this.initQuillIfNeeded();
+            this.resetComposeFields();
+            this.composeTitle = 'New Message';
             this.composeOpen = true;
         },
         openComposeForDraft(id) {
             this.initQuillIfNeeded();
+            this.resetComposeFields();
             this.composeOpen = true;
+            this.composeTitle = 'Edit Draft';
             this.composeDraftId = id;
-            this.composeToList = [];
-            this.composeToDraft = '';
-            this.composeCcList = [];
-            this.composeCcDraft = '';
-            this.showCc = false;
-            this.composeBccList = [];
-            this.composeBccDraft = '';
-            this.showBcc = false;
-            this.composeSubject = '';
-            this.composeAttachments = [];
-            if (this.quill) this.quill.setText('');
+            this.composeSourceId = id;
             fetch(`{{ url('mailbox') }}/${id}/content`, { headers: { 'Accept': 'application/json' } })
                 .then(r => r.json())
                 .then(data => {
@@ -336,6 +384,82 @@
                             });
                     }
                 });
+        },
+        // `all` = false is Reply (sender only), true is Reply All (sender +
+        // the rest of the original To/Cc, minus the current account itself).
+        // Replies never carry the original's attachments (composeSourceId
+        // stays null), matching every other mail client's default.
+        openComposeReply(id, all) {
+            this.initQuillIfNeeded();
+            this.resetComposeFields();
+            this.composeOpen = true;
+            this.composeTitle = all ? 'Reply All' : 'Reply';
+            fetch(`{{ url('mailbox') }}/${id}/content`, { headers: { 'Accept': 'application/json' } })
+                .then(r => r.json())
+                .then(data => {
+                    const self = (this.accountEmail || '').toLowerCase();
+                    this.composeToList = data.from_address ? [data.from_address] : [];
+                    if (all) {
+                        const rest = this.parseRecipients(data.to_address || '').concat(this.parseRecipients(data.cc_address || ''));
+                        rest.forEach(addr => {
+                            const already = addr.toLowerCase() === self
+                                || this.composeToList.some(a => a.toLowerCase() === addr.toLowerCase());
+                            if (!already) this.composeCcList.push(addr);
+                        });
+                        this.showCc = this.composeCcList.length > 0;
+                    }
+                    this.composeSubject = /^re:/i.test(data.subject || '') ? data.subject : `Re: ${data.subject || ''}`;
+                    this.composeInReplyTo = data.message_id || null;
+                    if (this.quill) {
+                        this.quill.root.innerHTML = this.quotedMessageHtml(data);
+                    }
+                });
+        },
+        openComposeForward(id) {
+            this.initQuillIfNeeded();
+            this.resetComposeFields();
+            this.composeOpen = true;
+            this.composeTitle = 'Forward';
+            this.composeSourceId = id;
+            fetch(`{{ url('mailbox') }}/${id}/content`, { headers: { 'Accept': 'application/json' } })
+                .then(r => r.json())
+                .then(data => {
+                    this.composeSubject = /^fwd:/i.test(data.subject || '') ? data.subject : `Fwd: ${data.subject || ''}`;
+                    if (this.quill) {
+                        this.quill.root.innerHTML = this.forwardedMessageHtml(data);
+                    }
+                    if (data.has_attachments) {
+                        fetch(`{{ url('mailbox') }}/${id}/attachments`, { headers: { 'Accept': 'application/json' } })
+                            .then(r => r.json())
+                            .then(d => {
+                                (d.attachments || []).forEach(a => {
+                                    this.composeAttachments.push({ name: a.name, size: a.size, draftIndex: a.index });
+                                });
+                            });
+                    }
+                });
+        },
+        escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str || '';
+            return div.innerHTML;
+        },
+        quotedMessageHtml(data) {
+            const body = data.body_html || `<p>${this.escapeHtml(data.body_text).replace(/\n/g, '<br>')}</p>`;
+            const who = data.from_name
+                ? `${this.escapeHtml(data.from_name)} &lt;${this.escapeHtml(data.from_address)}&gt;`
+                : this.escapeHtml(data.from_address);
+            return `<p><br></p><p>On ${this.escapeHtml(data.date)}, ${who} wrote:</p>`
+                + `<blockquote style='border-left:2px solid #ccc;margin-left:0;padding-left:12px;color:#666;'>${body}</blockquote>`;
+        },
+        forwardedMessageHtml(data) {
+            const body = data.body_html || `<p>${this.escapeHtml(data.body_text).replace(/\n/g, '<br>')}</p>`;
+            const from = data.from_name ? `${data.from_name} <${data.from_address || ''}>` : (data.from_address || '');
+            return `<p><br></p><p>---------- Forwarded message ----------<br>`
+                + `From: ${this.escapeHtml(from)}<br>`
+                + `Date: ${this.escapeHtml(data.date)}<br>`
+                + `Subject: ${this.escapeHtml(data.subject)}<br>`
+                + `To: ${this.escapeHtml(data.to_address)}</p><p></p>${body}`;
         },
         closeCompose() {
             this.composeOpen = false;
@@ -365,6 +489,8 @@
             form.append('subject', this.composeSubject);
             form.append('body', this.quill ? this.quill.root.innerHTML : '');
             if (this.composeDraftId) form.append('draft_id', this.composeDraftId);
+            if (this.composeSourceId) form.append('source_id', this.composeSourceId);
+            if (this.composeInReplyTo) form.append('in_reply_to', this.composeInReplyTo);
             this.composeAttachments.forEach(a => {
                 if (a.file) form.append('attachments[]', a.file);
                 else if (a.draftIndex !== undefined) form.append('keep_attachment_indexes[]', a.draftIndex);
@@ -580,8 +706,26 @@
                     </template>
                 </div>
 
-                <div class="flex items-center justify-between border-t border-gray-100 px-5 py-4 dark:border-white/[0.06]">
-                    <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 px-5 py-4 dark:border-white/[0.06]">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <template x-if="email">
+                            <button type="button" @click="const id = email.id; closeModal(); openComposeReply(id, false)"
+                                class="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-white/[0.08] dark:text-gray-200 dark:hover:bg-white/[0.04]">
+                                Reply
+                            </button>
+                        </template>
+                        <template x-if="email">
+                            <button type="button" @click="const id = email.id; closeModal(); openComposeReply(id, true)"
+                                class="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-white/[0.08] dark:text-gray-200 dark:hover:bg-white/[0.04]">
+                                Reply All
+                            </button>
+                        </template>
+                        <template x-if="email">
+                            <button type="button" @click="const id = email.id; closeModal(); openComposeForward(id)"
+                                class="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-white/[0.08] dark:text-gray-200 dark:hover:bg-white/[0.04]">
+                                Forward
+                            </button>
+                        </template>
                         <template x-if="email && currentFolder !== 'Archive'">
                             <button type="button" @click="const id = email.id; closeModal(); archiveEmail(id)"
                                 class="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-white/[0.08] dark:text-gray-200 dark:hover:bg-white/[0.04]">
@@ -650,7 +794,7 @@
             <div x-show="composeOpen" x-transition
                 class="relative flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl bg-white shadow-xl dark:bg-[#0f172a]">
                 <div class="flex items-center justify-between gap-4 border-b border-gray-100 px-5 py-4 dark:border-white/[0.06]">
-                    <h3 class="text-base font-semibold text-gray-800 dark:text-gray-100" x-text="composeDraftId ? 'Edit Draft' : 'New Message'"></h3>
+                    <h3 class="text-base font-semibold text-gray-800 dark:text-gray-100" x-text="composeTitle"></h3>
                     <button type="button" @click="closeCompose()"
                         class="shrink-0 rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/[0.06] dark:hover:text-gray-200"
                         title="Close">
