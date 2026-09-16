@@ -1,4 +1,9 @@
-<div x-data="docNotifications()" x-init="init()" class="flex items-center gap-1">
+@php
+    $mailboxConnected = auth()->check()
+        ? \App\Models\MailboxAccount::where('username', auth()->user()->username)->where('status', true)->exists()
+        : false;
+@endphp
+<div x-data="docNotifications({{ \Illuminate\Support\Js::from($mailboxConnected) }})" x-init="init()" class="flex items-center gap-1">
 
   <div class="relative">
 
@@ -216,7 +221,7 @@
         @click.prevent="mailOpen = !mailOpen; if (mailOpen) load()"
         class="relative flex h-11 w-11 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
         :class="{ 'bg-gray-100 dark:bg-gray-700': mailOpen }"
-        title="Email Notifications">
+        :title="mailboxConnected ? 'Email Notifications' : 'Connect your Email'">
 
         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
@@ -261,7 +266,21 @@
         {{-- List --}}
         <ul class="max-h-[420px] overflow-y-auto divide-y divide-gray-50 dark:divide-gray-700/50">
 
-            <template x-if="mailItems.length === 0">
+            <template x-if="!mailboxConnected">
+                <li class="flex flex-col items-center gap-2 px-4 py-10 text-center">
+                    <svg class="h-10 w-10 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Connect your Email</p>
+                    <p class="text-xs text-gray-400 dark:text-gray-500">Link your inbox to read and send mail here.</p>
+                    <a href="{{ route('mailbox.settings') }}" @click="mailOpen = false"
+                        class="mt-2 inline-flex h-8 items-center justify-center rounded-lg bg-blue-600 px-4 text-xs font-semibold text-white transition hover:bg-blue-500">
+                        Connect now
+                    </a>
+                </li>
+            </template>
+
+            <template x-if="mailboxConnected && mailItems.length === 0">
                 <li class="flex flex-col items-center gap-2 px-4 py-10 text-center">
                     <svg class="h-10 w-10 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
@@ -451,10 +470,11 @@
 </div>
 
 <script>
-function docNotifications() {
+function docNotifications(mailboxConnected = false) {
     return {
         open: false,
         mailOpen: false,
+        mailboxConnected,
         items: [],
         count: 0,
         toast: { show: false, item: null },

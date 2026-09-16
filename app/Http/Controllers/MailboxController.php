@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\MailboxAccount;
 use App\Models\MailboxEmail;
+use App\Models\SysUserRole;
 use App\Services\MailboxService;
 use Illuminate\Http\Request;
 
@@ -14,7 +15,29 @@ class MailboxController extends Controller
 
     public function index(Request $request)
     {
-        return view('pages.mailbox.index', $this->buildViewData($request));
+        $data = $this->buildViewData($request);
+
+        // No account yet → the "connect" experience lives at /mailbox/settings
+        // now, not here, so this URL is only ever the actual inbox.
+        if (!$data['account']) {
+            return redirect()->route('mailbox.settings');
+        }
+
+        return view('pages.mailbox.index', $data);
+    }
+
+    /**
+     * Same page as index(), but auto-opens the connect/settings modal on load —
+     * the landing spot for the "Connect your Email" prompt in the header, so a
+     * user with no MailboxAccount yet (and therefore no MAILACCESS role, so no
+     * sidebar menu item) still has a direct link to get connected.
+     */
+    public function settings(Request $request)
+    {
+        $data = $this->buildViewData($request);
+        $data['autoOpenSettings'] = true;
+
+        return view('pages.mailbox.index', $data);
     }
 
     /**
@@ -201,6 +224,18 @@ class MailboxController extends Controller
 
         MailboxAccount::updateOrCreate(['username' => $username], $payload);
 
+        // The Mailbox sidebar menu is granted only to MAILACCESS — connecting
+        // here is what earns a user that role (see disconnectAccount() for the
+        // reverse). Reactivates a previously-revoked grant instead of
+        // duplicating the row if the user disconnected and is reconnecting.
+        $userRole = SysUserRole::firstOrNew(['username' => $username, 'role_id' => 'MAILACCESS']);
+        $userRole->status = 'A';
+        $userRole->updated_by = $username;
+        if (!$userRole->exists) {
+            $userRole->created_by = $username;
+        }
+        $userRole->save();
+
         return response()->json(['success' => true, 'message' => 'Mailbox connected.']);
     }
 
@@ -215,6 +250,12 @@ class MailboxController extends Controller
 
         MailboxEmail::where('username', $account->username)->delete();
         $account->delete();
+
+        // Revoke (not delete) so reconnecting later just flips this back to 'A'
+        // instead of re-creating the row.
+        SysUserRole::where('username', $account->username)
+            ->where('role_id', 'MAILACCESS')
+            ->update(['status' => 'I', 'updated_by' => $account->username]);
 
         return response()->json(['success' => true, 'message' => 'Mailbox disconnected.']);
     }
@@ -346,6 +387,17 @@ class MailboxController extends Controller
         }
     }
 
+    /**
+     * Scoped to the currently open folder (not fetchAll's every-folder walk)
+     * — a manual sync used to pull up to 200 messages per folder across every
+     * folder in one request, and with inline-image-embedded HTML bodies that
+     * can each run several MB, that was enough to exhaust PHP-FPM's memory
+     * limit on a single click. Combined with MailboxService::DEFAULT_FETCH_LIMIT
+     * (25, matching one list page) that same worst case is now roughly 8x
+     * smaller. The background mailbox:fetch scheduler still covers every
+     * folder every 5 minutes, running via CLI rather than a request-bound
+     * process.
+     */
     public function sync(Request $request)
     {
         $account = $this->currentAccount($request);
@@ -353,8 +405,14 @@ class MailboxController extends Controller
             return response()->json(['success' => false, 'message' => 'Connect a mailbox first.'], 422);
         }
 
+        $folders = MailboxService::listFolders($account);
+        $folder = $request->get('folder', MailboxService::DEFAULT_FOLDER);
+        if (!in_array($folder, $folders, true)) {
+            return response()->json(['success' => false, 'message' => 'Unknown folder.'], 422);
+        }
+
         try {
-            $count = MailboxService::fetchAll($account);
+            $count = MailboxService::fetchNew($account, $folder);
             return response()->json(['success' => true, 'message' => "Synced {$count} message(s)."]);
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => 'Sync failed: ' . $e->getMessage()], 422);

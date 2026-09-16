@@ -2264,6 +2264,10 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/account-settings', 'accountSettings')->name('account-settings');
             Route::post('/account-settings', 'saveAccountSettings')->name('account-settings.save');
             Route::post('/account-settings/disconnect', 'disconnectAccount')->name('account-settings.disconnect');
+            // Landing spot for the header "Connect your Email" prompt — same page as
+            // index() but auto-opens the settings modal. Must stay above the {folder?}
+            // catch-all below or "settings" would be swallowed as a folder name.
+            Route::get('/settings', 'settings')->name('settings');
             Route::get('/{email}/content', 'content')->whereNumber('email')->name('content');
             Route::get('/{email}/attachments', 'attachments')->whereNumber('email')->name('attachments');
             Route::get('/{email}/attachments/{index}', 'downloadAttachment')->whereNumber('email')->whereNumber('index')->name('attachments.download');
