@@ -98,8 +98,8 @@
                             🎲 SPIN THE WHEEL
                         </button>
 
-                        {{-- READ-ONLY CANDIDATE STATUS --}}
-                        <div id="candidatesArea" class="mt-6 space-y-3"></div>
+                        {{-- Candidate status is tracked for the congrats popup / winner sync, but not shown on the live display --}}
+                        <div id="candidatesArea" class="mt-6 hidden space-y-3"></div>
 
                     </div>
 

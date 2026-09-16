@@ -994,12 +994,25 @@
                             </select>
                         </div>
                     </div>
-                    <div>
+                    <div x-data="{ showPassword: false }">
                         <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
                             Mailbox password <span class="font-normal normal-case text-gray-400">(leave blank to keep the current one)</span>
                         </label>
-                        <input type="password" x-model="settings.imap_password" placeholder="••••••••"
-                            class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100" />
+                        <div class="relative">
+                            <input :type="showPassword ? 'text' : 'password'" x-model="settings.imap_password" placeholder="••••••••" autocomplete="new-password"
+                                class="h-10 w-full rounded-lg border border-gray-300 px-3 pr-10 text-sm dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100" />
+                            <button type="button" @click="showPassword = !showPassword" tabindex="-1"
+                                class="absolute right-0 top-0 flex h-10 w-10 items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                                <svg x-show="!showPassword" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                                <svg x-show="showPassword" x-cloak class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.62 21.62 0 0 1 5.06-6.44M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a21.6 21.6 0 0 1-2.61 3.94M14.12 14.12a3 3 0 1 1-4.24-4.24" />
+                                    <path d="M1 1l22 22" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
 
                     <p class="pt-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Outgoing (SMTP)</p>
