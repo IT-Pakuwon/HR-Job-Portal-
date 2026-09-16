@@ -2690,13 +2690,21 @@
         }
 
         // Cards + Level/Schedule Date options are scoped only by the Training
-        // Event filter (a dedicated backend fetch against master data) —
-        // search/status stay table-only filters so this stays a stable
-        // overview of the selected training itself.
+        // Event/Level/Schedule Date filters (a dedicated backend fetch
+        // against master data) — search/status stay table-only filters so
+        // this stays a stable overview of whatever training+level+date is
+        // currently picked, rather than the whole training's totals.
         function loadRegistrationSummary() {
             const trainingId = $('#allRegsTrainingFilter').val();
+            const level = $('#allRegsLevelFilter').val();
+            const scheduleDate = $('#allRegsScheduleFilter').val();
 
-            $.get(registrationSummaryUrl, trainingId ? { training_id: trainingId } : {}, function (res) {
+            const params = {};
+            if (trainingId) params.training_id = trainingId;
+            if (level) params.level = level;
+            if (scheduleDate) params.schedule_date = scheduleDate;
+
+            $.get(registrationSummaryUrl, params, function (res) {
                 populateTrainingFilterOptions(res.trainings || []);
                 populateLevelAndScheduleOptions(res.levels || [], res.schedule_dates || []);
                 renderSummaryCards(res);
@@ -2986,10 +2994,12 @@
         $('#allRegsLevelFilter').on('change', function () {
             allRegsPage = 1;
             renderAllRegistrations();
+            loadRegistrationSummary();
         });
         $('#allRegsScheduleFilter').on('change', function () {
             allRegsPage = 1;
             renderAllRegistrations();
+            loadRegistrationSummary();
         });
         $('#allRegsTrainingFilter').on('change', function () {
             allRegsPage = 1;
