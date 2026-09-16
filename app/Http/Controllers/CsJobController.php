@@ -681,16 +681,12 @@ class CsJobController extends Controller
 
             // ✅ kirim reason ke SendCommentController
             $request->merge([
-                'message' => $data['reason'],
-                'comment' => $data['reason'],
+                'doc_no' => $refnbr,
+                'reason' => $doc . ' Completed : ' . $data['reason'],
             ]);
 
-            try {
-                app(\App\Http\Controllers\SendCommentController::class)
-                    ->sendmsg($refnbr, $commentDocType, $request);
-            } catch (\Throwable $e) {
-                // optional log
-            }
+            app(\App\Http\Controllers\SendCommentController::class)
+                ->sendmsg($updated->id, $commentDocType, $request);
 
             // ✅ EMAIL ke CREATED_BY
             try {
