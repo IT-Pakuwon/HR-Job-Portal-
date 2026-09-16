@@ -50,11 +50,28 @@ class ReportCanvassSheetController extends Controller
             ->leftJoin('tr_sppk as k', 'k.sppkid', '=', 'h.sppbjktid')
             ->leftJoin('tr_sppt as t', 't.spptid', '=', 'h.sppbjktid')
 
+            ->leftJoin(DB::raw("
+                (
+                    select cpny_id, ponbr, csid, sppbjktid,
+                           string_agg(DISTINCT bastid, ', ') as bastid
+                    from tr_po_term
+                    where progress_pct = 100
+                      and terms_type not in ('Retensi', 'DP')
+                    group by cpny_id, ponbr, csid, sppbjktid
+                ) as bast
+            "), function ($j) {
+                $j->on('bast.cpny_id', '=', 'h.cpny_id')
+                    ->on('bast.csid', '=', 'h.csid')
+                    ->on('bast.sppbjktid', '=', 'h.sppbjktid')
+                    ->on('bast.ponbr', '=', 'd.ponbr');
+            })
+
             ->select([
                 DB::raw('h.id as cs_pk'),
                 'h.csid',
                 'h.csdate',
                 'h.sppbjktid',
+                DB::raw('bast.bastid as bast_number'),
 
                 DB::raw("
                     CASE
@@ -1010,6 +1027,8 @@ class ReportCanvassSheetController extends Controller
                 'PO' => $row->ponbr ?? '',
 
                 'SPPBJKT' => $row->sppbjktid,
+
+                'BAST No' => $row->bast_number ?? '',
 
                 'Purchasing' => $users[$row->cs_created_by] ?? $row->cs_created_by,
 

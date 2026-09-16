@@ -85,19 +85,29 @@ class MailboxService
 
     /**
      * Sync every known folder for this account. Returns the total number of
-     * messages seen.
+     * messages seen. Shares a single IMAP connection across every folder
+     * (each connect() is a fresh TCP+TLS+login round trip) instead of
+     * reconnecting per folder, which used to make this noticeably slower for
+     * accounts with many folders.
      */
     public static function fetchAll(MailboxAccount $account, int $lookbackDays = 14, int $limit = 200): int
     {
-        // Refresh the folder list on every manual sync so a newly created
-        // server-side folder (e.g. a new subfolder) shows up right away
-        // instead of waiting for the hourly cache to expire.
-        Cache::forget(static::folderCacheKey($account));
+        $client = static::imapClient($account);
+        $client->connect();
+
+        // Refresh the folder list on every manual sync (over this same
+        // connection) so a newly created server-side folder (e.g. a new
+        // subfolder) shows up right away instead of waiting for the hourly
+        // cache to expire.
+        $folders = static::flattenFolders($client->getFolders());
+        Cache::put(static::folderCacheKey($account), $folders, now()->addHour());
 
         $total = 0;
-        foreach (static::listFolders($account) as $folder) {
-            $total += static::fetchNew($account, $folder, $lookbackDays, $limit);
+        foreach ($folders as $folder) {
+            $total += static::fetchNew($account, $folder, $lookbackDays, $limit, $client);
         }
+
+        $client->disconnect();
 
         return $total;
     }
@@ -105,12 +115,16 @@ class MailboxService
     /**
      * Connect to the account's mailbox, pull recent messages from one
      * folder, and upsert them into mailbox_emails. Returns the number of
-     * messages seen.
+     * messages seen. Pass an already-connected $client (as fetchAll() does)
+     * to reuse it instead of opening a new connection just for this folder.
      */
-    public static function fetchNew(MailboxAccount $account, string $folderPath = self::DEFAULT_FOLDER, int $lookbackDays = 14, int $limit = 200): int
+    public static function fetchNew(MailboxAccount $account, string $folderPath = self::DEFAULT_FOLDER, int $lookbackDays = 14, int $limit = 200, ?ImapClient $client = null): int
     {
-        $client = static::imapClient($account);
-        $client->connect();
+        $ownsClient = $client === null;
+        if ($ownsClient) {
+            $client = static::imapClient($account);
+            $client->connect();
+        }
 
         $folder = $client->getFolder($folderPath);
 
@@ -138,9 +152,54 @@ class MailboxService
             }
         }
 
-        $client->disconnect();
+        if ($ownsClient) {
+            $client->disconnect();
+        }
 
         return $seen;
+    }
+
+    /**
+     * Fetch a further page of older messages for one folder, for the "Load
+     * older messages" button. fetchNew() only ever looks forward from the
+     * newest synced message (bounded by $limit), so a folder with more than
+     * $limit unsynced messages silently leaves the older ones behind
+     * forever — this fetches backward from whatever is currently the oldest
+     * synced message instead. Returns the number of messages seen and
+     * whether the server likely still has more beyond that (a full page
+     * came back).
+     */
+    public static function fetchOlder(MailboxAccount $account, string $folderPath, int $limit = 200): array
+    {
+        $client = static::imapClient($account);
+        $client->connect();
+
+        $folder = $client->getFolder($folderPath);
+
+        $oldestSeenDate = MailboxEmail::where('username', $account->username)
+            ->where('folder', $folderPath)
+            ->min('email_date');
+
+        $messages = $folder->messages()
+            // IMAP's BEFORE is date-only precision, so add a day to still
+            // catch messages earlier the same calendar day as the oldest one
+            // already stored; re-upserting those is harmless (keyed on uid).
+            ->when($oldestSeenDate, fn ($q) => $q->before(Carbon::parse($oldestSeenDate)->addDay()))
+            ->leaveUnread()
+            ->limit($limit)
+            ->fetchOrderDesc()
+            ->get();
+
+        $seen = 0;
+        foreach ($messages as $message) {
+            if (static::upsertMessage($account, $folderPath, $message)) {
+                $seen++;
+            }
+        }
+
+        $client->disconnect();
+
+        return ['fetched' => $seen, 'hasMore' => $messages->count() >= $limit];
     }
 
     /**
@@ -149,12 +208,15 @@ class MailboxService
      * client. If $existingDraft is given, that draft is removed afterward.
      * $attachments are ['path'=>tmp upload path,...] or ['content'=>raw
      * bytes,...] entries (each with 'name' and optional 'mime'); $keepFromDraftIndexes
-     * re-fetches those attachment indexes from $existingDraft to carry them over.
+     * re-fetches those attachment indexes from $attachmentSource (the
+     * message being edited/replied-to/forwarded — defaults to $existingDraft
+     * when not given separately) to carry them over. $inReplyTo is the
+     * original message's Message-ID header, for reply threading.
      */
-    public static function send(MailboxAccount $account, string $subject, string $bodyHtml, array $to, array $cc = [], array $bcc = [], ?MailboxEmail $existingDraft = null, array $attachments = [], array $keepFromDraftIndexes = []): void
+    public static function send(MailboxAccount $account, string $subject, string $bodyHtml, array $to, array $cc = [], array $bcc = [], ?MailboxEmail $existingDraft = null, array $attachments = [], array $keepFromDraftIndexes = [], ?MailboxEmail $attachmentSource = null, ?string $inReplyTo = null): void
     {
-        $attachments = static::mergeCarriedOverAttachments($account, $existingDraft, $keepFromDraftIndexes, $attachments);
-        $mime = static::buildMimeEmail($account, $subject, $bodyHtml, $to, $cc, $bcc, $attachments);
+        $attachments = static::mergeCarriedOverAttachments($account, $attachmentSource ?? $existingDraft, $keepFromDraftIndexes, $attachments);
+        $mime = static::buildMimeEmail($account, $subject, $bodyHtml, $to, $cc, $bcc, $attachments, $inReplyTo);
 
         static::mailer($account)->getSymfonyTransport()->send($mime);
 
@@ -174,16 +236,24 @@ class MailboxService
 
         $client->disconnect();
 
-        static::fetchNew($account, self::SENT_FOLDER);
+        // The send (and the Sent-folder append above) already succeeded —
+        // this is only refreshing our local cache of the Sent folder, so a
+        // hiccup here must not surface as a "send failed" error and risk the
+        // user re-sending a duplicate.
+        try {
+            static::fetchNew($account, self::SENT_FOLDER);
+        } catch (\Throwable $e) {
+            // Next sync (manual or scheduled) will pick it up.
+        }
     }
 
     /**
      * Save (or replace) a draft in the Drafts folder. IMAP has no in-place
      * edit, so updating a draft appends a new copy and removes the old one.
      */
-    public static function saveDraft(MailboxAccount $account, string $subject, string $bodyHtml, array $to, array $cc = [], array $bcc = [], ?MailboxEmail $existingDraft = null, array $attachments = [], array $keepFromDraftIndexes = []): void
+    public static function saveDraft(MailboxAccount $account, string $subject, string $bodyHtml, array $to, array $cc = [], array $bcc = [], ?MailboxEmail $existingDraft = null, array $attachments = [], array $keepFromDraftIndexes = [], ?MailboxEmail $attachmentSource = null): void
     {
-        $attachments = static::mergeCarriedOverAttachments($account, $existingDraft, $keepFromDraftIndexes, $attachments);
+        $attachments = static::mergeCarriedOverAttachments($account, $attachmentSource ?? $existingDraft, $keepFromDraftIndexes, $attachments);
         $mime = static::buildMimeEmail($account, $subject, $bodyHtml, $to, $cc, $bcc, $attachments);
 
         $client = static::imapClient($account);
@@ -198,7 +268,15 @@ class MailboxService
 
         $client->disconnect();
 
-        static::fetchNew($account, self::DRAFTS_FOLDER);
+        // The draft is already appended (and any previous copy already
+        // removed) — this is only refreshing our local cache of the Drafts
+        // folder, so a hiccup here must not surface as a "save failed" error
+        // and risk the user re-saving a duplicate draft.
+        try {
+            static::fetchNew($account, self::DRAFTS_FOLDER);
+        } catch (\Throwable $e) {
+            // Next sync (manual or scheduled) will pick it up.
+        }
     }
 
     /**
@@ -320,7 +398,7 @@ class MailboxService
      * either ['path' => tmp upload path, 'name', 'mime'] (fresh uploads) or
      * ['content' => raw bytes, 'name', 'mime'] (carried over from a draft).
      */
-    protected static function buildMimeEmail(MailboxAccount $account, string $subject, string $bodyHtml, array $to, array $cc = [], array $bcc = [], array $attachments = []): MimeEmail
+    protected static function buildMimeEmail(MailboxAccount $account, string $subject, string $bodyHtml, array $to, array $cc = [], array $bcc = [], array $attachments = [], ?string $inReplyTo = null): MimeEmail
     {
         $plainText = trim(html_entity_decode(strip_tags(preg_replace('/<(br|\/p|\/div|\/li)\s*\/?>/i', "\n", $bodyHtml))));
 
@@ -330,6 +408,14 @@ class MailboxService
             ->text($plainText)
             ->html($bodyHtml)
             ->date(new \DateTimeImmutable());
+
+        if ($inReplyTo) {
+            // addIdHeader wants the bare id (no surrounding <>), whereas the
+            // stored message_id already has them from the original header.
+            $bareId = trim($inReplyTo, '<> ');
+            $mime->getHeaders()->addIdHeader('In-Reply-To', $bareId);
+            $mime->getHeaders()->addIdHeader('References', $bareId);
+        }
 
         foreach ($to as $address) {
             $mime->addTo($address);
@@ -355,17 +441,19 @@ class MailboxService
     }
 
     /**
-     * Re-fetch specific attachments (by index) from an existing draft on the
-     * server and merge them alongside freshly uploaded ones, so re-saving or
-     * sending an edited draft doesn't silently drop its original attachments.
+     * Re-fetch specific attachments (by index) from another message on the
+     * server ($source — an existing draft being re-saved, or the original
+     * message being forwarded) and merge them alongside freshly uploaded
+     * ones, so re-saving a draft or forwarding a message doesn't silently
+     * drop attachments the user chose to keep.
      */
-    protected static function mergeCarriedOverAttachments(MailboxAccount $account, ?MailboxEmail $existingDraft, array $keepIndexes, array $newAttachments): array
+    protected static function mergeCarriedOverAttachments(MailboxAccount $account, ?MailboxEmail $source, array $keepIndexes, array $newAttachments): array
     {
-        if (!$existingDraft || empty($keepIndexes)) {
+        if (!$source || empty($keepIndexes)) {
             return $newAttachments;
         }
 
-        $carried = static::loadAttachments($account, $existingDraft->folder, $existingDraft->uid, $keepIndexes);
+        $carried = static::loadAttachments($account, $source->folder, $source->uid, $keepIndexes);
 
         foreach ($carried as $item) {
             $newAttachments[] = ['content' => $item['content'], 'name' => $item['name'], 'mime' => $item['mime']];

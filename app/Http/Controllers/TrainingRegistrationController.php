@@ -11,8 +11,8 @@ use App\Models\MsCategory;
 use App\Models\MsCompany;
 use App\Models\MsDepartment;
 use App\Models\MsLndPlaces;
-use App\Models\MsLndTrainingSchedule;
 use App\Models\MsLndTrainingQuota;
+use App\Models\MsLndTrainingSchedule;
 use App\Models\MsTrainingEvent;
 use App\Models\StoGrading;
 use App\Models\StoSubGradingJobLevel;
@@ -76,16 +76,16 @@ class TrainingRegistrationController extends Controller
     /**
      * Same browse page, but with a specific one of the caller's own
      * registrations' view modal auto-opened — same hash-id/shareable-URL
-     * convention as show() above, scoped to My Registrations instead.
+     * convention as show() above, scoped to the Registration List tab instead.
      *
      * Also viewable by any USERACCESS holder regardless of status, so an
      * approver can open a Pending registration to review/approve it (not
      * only after it's already Approved).
      *
-     * ?tab=approvals (used by the "Waiting Approval" widget/notification
-     * links, since an approver isn't the registrant and so wouldn't find
-     * this eid in their own My Registrations list) opens the Waiting
-     * Approval tab instead, where pendingApprovals() actually has this row.
+     * ?tab=approvals (used by approval widget/notification links, since an
+     * approver isn't the registrant and so wouldn't find this eid via the
+     * plain myRegistrations() call) tells the page's Registration List tab
+     * to also check pendingApprovals() to find and open this row.
      */
     public function showMy($eid, Request $request)
     {
@@ -200,7 +200,7 @@ class TrainingRegistrationController extends Controller
         $posterUrls = $details->pluck('schedule.training_poster')->filter()->unique()
             ->mapWithKeys(fn ($path) => [$path => $this->gcsSignedUrl($path)]);
 
-        $scheduleOptions = $details->map(function ($d) use ($myRegs, $usage, $companyNames, $myLevelGroup, $levelLabels, $speakerNames, $placeNames, $posterUrls) {
+        $scheduleOptions = $details->map(function ($d) use ($myRegs, $usage, $companyNames, $myLevelGroup, $levelLabels, $placeNames, $posterUrls) {
             $grouped = $usage->get($d->schedule_id, collect());
 
             $eligibleCompanies = $d->quota->map(function ($q) use ($grouped, $companyNames) {
@@ -485,7 +485,7 @@ class TrainingRegistrationController extends Controller
 
         $company = MsCompany::where('cpny_id', $registration->cpny_id)->first();
         $companyAddress = CompanyAddress::where('cpnyid', $registration->cpny_id)->first();
-        $certificateNo = $registration->attendance_code ?: ('CERT-' . $registration->id);
+        $certificateNo = $registration->attendance_code ?: ('CERT-'.$registration->id);
 
         $pdf = Pdf::loadView('pages.training_attendance.certificate-pdf', [
             'participantName' => $user->name ?? $user->username,
@@ -521,7 +521,7 @@ class TrainingRegistrationController extends Controller
         }
 
         if (!$registration->attendance_code) {
-            $registration->attendance_code = 'TRN-' . strtoupper(Str::random(10));
+            $registration->attendance_code = 'TRN-'.strtoupper(Str::random(10));
             $registration->updated_by = $user->username;
             $registration->save();
         }
@@ -538,7 +538,7 @@ class TrainingRegistrationController extends Controller
         if ($now->lessThan($window['from'])) {
             return response()->json([
                 'available' => false,
-                'message' => 'Barcode akan aktif pada ' . Carbon::parse($detail->schedule_date)->translatedFormat('d M Y'),
+                'message' => 'Barcode akan aktif pada '.Carbon::parse($detail->schedule_date)->translatedFormat('d M Y'),
             ]);
         }
 
@@ -669,7 +669,7 @@ class TrainingRegistrationController extends Controller
         if ($duplicates->isNotEmpty()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Sudah terdaftar pada jadwal ini: ' . $duplicates->implode(', '),
+                'message' => 'Sudah terdaftar pada jadwal ini: '.$duplicates->implode(', '),
             ], 422);
         }
 
@@ -694,7 +694,7 @@ class TrainingRegistrationController extends Controller
             if ($mandatoryDuplicates->isNotEmpty()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Training ini wajib (mandatory) — sudah terdaftar di jadwal lain: ' . $mandatoryDuplicates->implode(', '),
+                    'message' => 'Training ini wajib (mandatory) — sudah terdaftar di jadwal lain: '.$mandatoryDuplicates->implode(', '),
                 ], 422);
             }
         }
@@ -777,7 +777,7 @@ class TrainingRegistrationController extends Controller
                 'message' => $statusReg
                     ? 'Kuota penuh, seluruh peserta masuk waiting list — approval tetap berjalan'
                     : ($docIds->count() > 1
-                        ? 'Registrasi berhasil (' . $docIds->count() . ' dokumen: ' . $docIds->implode(', ') . '), menunggu approval'
+                        ? 'Registrasi berhasil ('.$docIds->count().' dokumen: '.$docIds->implode(', ').'), menunggu approval'
                         : 'Registrasi berhasil, menunggu approval'),
             ]);
         } catch (\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $e) {
@@ -969,7 +969,7 @@ class TrainingRegistrationController extends Controller
         $registration = TrLndTrainingRegistration::findOrFail($id);
         $user = Auth::user();
 
-        $docUrl = url('/training-list/my/' . Hashids::encode($registration->id));
+        $docUrl = url('/training-list/my/'.Hashids::encode($registration->id));
 
         $result = app(ApprovalController::class)->approveStep(
             $registration->training_regist_id,
@@ -1028,7 +1028,7 @@ class TrainingRegistrationController extends Controller
         $registration = TrLndTrainingRegistration::findOrFail($id);
         $user = Auth::user();
 
-        $docUrl = url('/training-list/my/' . Hashids::encode($registration->id));
+        $docUrl = url('/training-list/my/'.Hashids::encode($registration->id));
 
         $result = app(ApprovalController::class)->rejectStep(
             $registration->training_regist_id,
@@ -1076,12 +1076,15 @@ class TrainingRegistrationController extends Controller
     }
 
     /**
-     * TRN documents where the caller is the current (active) approver —
-     * same "active step" definition as ApprovalController::assertUserCanAct()
-     * (earliest P-status line for this refnbr with aprv_datebefore set, and
-     * the caller's username in that line's comma-separated aprv_username
-     * list), so this list matches exactly what approve()/reject() would
-     * actually let them act on right now.
+     * Every TRN document the caller is or was an approver on: rows still
+     * 'P' (the caller is the current/active approver — same "active step"
+     * definition as ApprovalController::assertUserCanAct(), so this matches
+     * exactly what approve()/reject() would let them act on right now, via
+     * the comma-separated aprv_username list), plus rows already 'A'/'R'
+     * where the caller was the one who made that decision — approveStep()/
+     * rejectStep() overwrite aprv_username with the actor's own username on
+     * decision, so an exact match (not the comma-list one) is correct there.
+     * Feeds the Approval sub-tab, which lets the caller filter by status.
      */
     public function pendingApprovals(Request $request)
     {
@@ -1090,14 +1093,21 @@ class TrainingRegistrationController extends Controller
 
         $approvalRows = TrApproval::query()
             ->where('aprv_doctype', self::DOCTYPE)
-            ->where('status', 'P')
             ->whereNotNull('aprv_datebefore')
-            ->whereRaw(
-                "(',' || lower(regexp_replace(coalesce(aprv_username,''), '\s+', '', 'g')) || ',') like ?",
-                ['%,' . $username . ',%']
-            )
-            ->orderBy('aprv_datebefore')
-            ->get(['refnbr', 'aprv_datebefore']);
+            ->where(function ($q) use ($username) {
+                $q->where(function ($q2) use ($username) {
+                    $q2->where('status', 'P')
+                        ->whereRaw(
+                            "(',' || lower(regexp_replace(coalesce(aprv_username,''), '\s+', '', 'g')) || ',') like ?",
+                            ['%,'.$username.',%']
+                        );
+                })->orWhere(function ($q2) use ($username) {
+                    $q2->whereIn('status', ['A', 'R'])
+                        ->whereRaw("lower(trim(coalesce(aprv_username, ''))) = ?", [$username]);
+                });
+            })
+            ->orderByDesc(DB::raw('coalesce(aprv_dateafter, aprv_datebefore)'))
+            ->get(['refnbr', 'aprv_datebefore', 'aprv_dateafter', 'status']);
 
         if ($approvalRows->isEmpty()) {
             return response()->json(['data' => []]);
@@ -1156,7 +1166,8 @@ class TrainingRegistrationController extends Controller
                     'speaker_name' => $r->schedule?->training_speaker_name ?: $r->schedule?->training_ext_speaker_name,
                     'grade_name' => $levelLabels[$r->schedule?->schedule?->job_level] ?? $r->schedule?->schedule?->job_level,
                     'status' => $r->effective_status,
-                    'waiting_since' => $apr->aprv_datebefore,
+                    'approval_status' => $apr->status,
+                    'action_date' => $apr->status === 'P' ? $apr->aprv_datebefore : $apr->aprv_dateafter,
                 ];
             })
             ->filter()
@@ -1296,9 +1307,9 @@ class TrainingRegistrationController extends Controller
 
     /**
      * HCDEVACCESS-only: Excel download of the List Registration tab, honoring
-     * the same training/status/search filters currently applied on screen
-     * (see TrainingAllRegistrationsExport, which mirrors allRegistrations()
-     * above row-for-row).
+     * the same training/level/schedule_date/status/search filters currently
+     * applied on screen (see TrainingAllRegistrationsExport, which mirrors
+     * allRegistrations() above row-for-row).
      */
     public function exportAllRegistrations(Request $request)
     {
@@ -1312,9 +1323,11 @@ class TrainingRegistrationController extends Controller
             new TrainingAllRegistrationsExport(
                 $request->query('training_id'),
                 $request->query('status'),
-                $request->query('search')
+                $request->query('search'),
+                $request->query('level'),
+                $request->query('schedule_date')
             ),
-            'training-registrations-' . now()->format('Ymd_His') . '.xlsx'
+            'training-registrations-'.now()->format('Ymd_His').'.xlsx'
         );
     }
 
@@ -1390,6 +1403,7 @@ class TrainingRegistrationController extends Controller
             ->reduce(function ($carry, $row) {
                 $effective = $row->status_registration ?: $row->status;
                 $carry[$effective] = ($carry[$effective] ?? 0) + (int) $row->cnt;
+
                 return $carry;
             }, []);
 
@@ -1483,7 +1497,7 @@ class TrainingRegistrationController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => $registration->user_registration . ' diterima (kuota ' . $companyName . ')',
+                'message' => $registration->user_registration.' diterima (kuota '.$companyName.')',
             ]);
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
@@ -1599,6 +1613,6 @@ class TrainingRegistrationController extends Controller
 
         $yy = substr((string) $year, 2, 2);
 
-        return self::DOCTYPE . $yy . $month . sprintf('%04d', $auto['next']);
+        return self::DOCTYPE.$yy.$month.sprintf('%04d', $auto['next']);
     }
 }
