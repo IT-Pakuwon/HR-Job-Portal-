@@ -540,11 +540,11 @@ class ApprovalDashboardController extends Controller
                     ? '/showoprtekticket'
                     : $r->url;
 
-                // TRN's /training-list/my/{hid} route defaults to the "My
-                // Registrations" tab, which is scoped to the registrant's own
-                // rows and will never contain an approver's pending item —
-                // ?tab=approvals tells the page to open the Waiting Approval
-                // tab (where pendingApprovals() actually has this row) instead.
+                // TRN's /training-list/my/{hid} route defaults to looking this
+                // eid up among the registrant's own rows, which won't contain
+                // an approver's pending item — ?tab=approvals tells the page
+                // it needs to also check pendingApprovals() (merged into the
+                // Registration List tab) to find and open this row instead.
                 $query = str_starts_with($docidKey, 'TRN') ? '?tab=approvals' : null;
 
                 return [

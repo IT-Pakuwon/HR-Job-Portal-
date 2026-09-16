@@ -12,11 +12,7 @@
                     Available Trainings
                 </button>
                 <button class="tabBtn border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="mine">
-                    My Registrations
-                </button>
-                <button id="approvalsTabBtn" class="tabBtn hidden border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="approvals">
-                    Waiting Approval
-                    <span id="approvalsTabCount" class="ml-1 inline-flex rounded-full bg-amber-100 px-1.5 py-0.5 text-sm font-bold text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"></span>
+                    Registration List
                 </button>
                 @if (Auth::user()->hasRole('HCDEVACCESS'))
                     <button class="tabBtn border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="allregs">
@@ -48,54 +44,109 @@
                 <div id="availableList" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"></div>
             </div>
 
-            {{-- My Registrations --}}
+            {{-- Registration List: sub-tabbed into the caller's own
+                 registrations and their approval activity (waiting +
+                 already decided) as an approver on other employees' rows. --}}
             <div id="tab-mine" class="tab-panel hidden">
-                <div id="mineEmpty" class="hidden rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
-                    You have no registrations yet.
+                <div class="mb-3 flex border-b border-gray-200 dark:border-gray-700">
+                    <button class="subTabBtn flex-1 border-b-2 border-gray-900 px-2.5 py-1.5 text-center text-sm font-semibold text-gray-900 dark:border-white dark:text-white" data-subtab="myreg">
+                        My Registration
+                    </button>
+                    <button class="subTabBtn flex-1 border-b-2 border-transparent px-2.5 py-1.5 text-center text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-subtab="approval">
+                        Approval
+                    </button>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="responsive-table min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
-                        <thead>
-                            <tr class="text-left text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                <th class="py-2 pr-4">Doc ID</th>
-                                <th class="py-2 pr-4">Training</th>
-                                <th class="py-2 pr-4">Level</th>
-                                <th class="py-2 pr-4">Speaker</th>
-                                <th class="py-2 pr-4">Date</th>
-                                <th class="py-2 pr-4">Status</th>
-                                <th class="py-2 pr-4">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="mineBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
-                    </table>
-                    <div id="minePagination"></div>
-                </div>
-            </div>
 
-            {{-- Waiting Approval (only shown once loadPendingApprovals() finds something) --}}
-            <div id="tab-approvals" class="tab-panel hidden">
-                <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                    Training registrations currently waiting on your approval.
-                </p>
-                <div class="overflow-x-auto">
-                    <table class="responsive-table min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
-                        <thead>
-                            <tr class="text-left text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                <th class="py-2 pr-4">Doc ID</th>
-                                <th class="py-2 pr-4">Employee</th>
-                                <th class="py-2 pr-4">Company / Dept</th>
-                                <th class="py-2 pr-4">Training</th>
-                                <th class="py-2 pr-4">Schedule Date</th>
-                                <th class="py-2 pr-4">Waiting Since</th>
-                                <th class="py-2 pr-4">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="approvalsBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
-                    </table>
-                    <div id="approvalsEmpty" class="hidden rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
-                        Nothing waiting on your approval right now.
+                {{-- My Registration --}}
+                <div id="subtab-myreg" class="sub-tab-panel">
+                    <div class="overflow-x-auto">
+                        <table class="responsive-table min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                            <thead>
+                                <tr class="text-left text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                    <th class="py-2 pr-4">Doc ID</th>
+                                    <th class="py-2 pr-4">Training</th>
+                                    <th class="py-2 pr-4">Level</th>
+                                    <th class="py-2 pr-4">Speaker</th>
+                                    <th class="py-2 pr-4">Date</th>
+                                    <th class="py-2 pr-4">Status</th>
+                                    <th class="py-2 pr-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mineBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
+                        </table>
+                        <div id="mineEmpty" class="hidden rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
+                            You have no registrations yet.
+                        </div>
+                        <div id="minePagination"></div>
                     </div>
-                    <div id="approvalsPagination"></div>
+                </div>
+
+                {{-- Approval: every registration the caller is/was an approver
+                     on — currently waiting on them, or already decided by them. --}}
+                <div id="subtab-approval" class="sub-tab-panel hidden space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                        <div class="flex flex-1 flex-wrap items-center gap-4">
+                            <span id="approvalCount" class="text-sm font-medium text-gray-500 dark:text-gray-400"></span>
+                            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                <label for="approvalStatusFilter">Status</label>
+                                <select id="approvalStatusFilter" class="rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-8 text-sm text-gray-700 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                                    <option value="">All</option>
+                                    <option value="P">Waiting Approval</option>
+                                    <option value="A">Approved</option>
+                                    <option value="R">Rejected</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                <label for="approvalTrainingFilter">Training</label>
+                                <select id="approvalTrainingFilter" class="rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-8 text-sm text-gray-700 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                                    <option value="">All Trainings</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                <label for="approvalCompanyFilter">Company</label>
+                                <select id="approvalCompanyFilter" class="rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-8 text-sm text-gray-700 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                                    <option value="">All Companies</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                <label for="approvalPageSize">Show</label>
+                                <select id="approvalPageSize" class="rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-8 text-sm text-gray-700 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                                    <option value="10">10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                    <option value="all">All</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="relative w-full sm:w-72">
+                            <i class="fa-solid fa-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400"></i>
+                            <input id="approvalSearch" type="text" placeholder="Search employee, doc ID, or training..."
+                                class="w-full rounded-lg border border-gray-300 bg-white py-2 pl-8 pr-3 text-sm text-gray-700 placeholder:text-gray-400 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:placeholder:text-gray-500 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="responsive-table min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                            <thead>
+                                <tr class="text-left text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                    <th class="approvalSortTh py-2 pr-4" data-field="docid">Doc ID</th>
+                                    <th class="approvalSortTh py-2 pr-4" data-field="name">Employee</th>
+                                    <th class="py-2 pr-4">Company / Dept</th>
+                                    <th class="approvalSortTh py-2 pr-4" data-field="training_name">Training</th>
+                                    <th class="approvalSortTh py-2 pr-4" data-field="schedule_date">Schedule Date</th>
+                                    <th class="approvalSortTh py-2 pr-4" data-field="approval_status">Status</th>
+                                    <th class="approvalSortTh py-2 pr-4" data-field="action_date">Date</th>
+                                    <th class="py-2 pr-4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="approvalBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
+                        </table>
+                        <div id="approvalEmpty" class="hidden rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
+                            Nothing to show for this status.
+                        </div>
+                        <div id="approvalPagination"></div>
+                    </div>
                 </div>
             </div>
 
@@ -348,15 +399,15 @@
             }
             /* Doc ID pairs with its table's date column on one row — pinned
                to explicit row/column so it holds regardless of where the
-               date cell actually falls in DOM/source order. */
-            #tab-mine .responsive-table td[data-label="Doc ID"],
-            #tab-approvals .responsive-table td[data-label="Doc ID"],
+               date cell actually falls in DOM/source order. The Approval
+               sub-tab has two date columns (Schedule Date + decision Date)
+               so it's left out here and just stacks normally. */
+            #subtab-myreg .responsive-table td[data-label="Doc ID"],
             #tab-allregs .responsive-table td[data-label="Doc ID"] {
                 grid-row: 1;
                 grid-column: 1;
             }
-            #tab-mine .responsive-table td[data-label="Date"],
-            #tab-approvals .responsive-table td[data-label="Schedule Date"],
+            #subtab-myreg .responsive-table td[data-label="Date"],
             #tab-allregs .responsive-table td[data-label="Schedule Date"] {
                 grid-row: 1;
                 grid-column: 2;
@@ -380,24 +431,29 @@
                 text-align: center;
             }
         }
-        .allRegsSortTh {
+        .allRegsSortTh,
+        .approvalSortTh {
             cursor: pointer;
             user-select: none;
             white-space: nowrap;
         }
-        .allRegsSortTh:hover {
+        .allRegsSortTh:hover,
+        .approvalSortTh:hover {
             color: #111827;
         }
-        html.dark .allRegsSortTh:hover {
+        html.dark .allRegsSortTh:hover,
+        html.dark .approvalSortTh:hover {
             color: #f3f4f6;
         }
-        .allRegsSortTh .sortArrow {
+        .allRegsSortTh .sortArrow,
+        .approvalSortTh .sortArrow {
             display: inline-block;
             margin-left: 3px;
             opacity: .3;
             font-size: 10px;
         }
-        .allRegsSortTh.sortActive .sortArrow {
+        .allRegsSortTh.sortActive .sortArrow,
+        .approvalSortTh.sortActive .sortArrow {
             opacity: 1;
         }
         .select2-container--default .select2-selection--single {
@@ -1402,7 +1458,6 @@
             $('#tab-' + tab).removeClass('hidden');
 
             if (tab === 'mine') loadMine();
-            if (tab === 'approvals') loadPendingApprovals();
             if (tab === 'allregs') loadAllRegistrations();
         });
 
@@ -2042,6 +2097,199 @@
             });
         }
 
+        $('.subTabBtn').on('click', function () {
+            const sub = $(this).data('subtab');
+            $('.subTabBtn').removeClass('border-gray-900 text-gray-900 dark:border-white dark:text-white')
+                .addClass('border-transparent text-gray-500 dark:text-gray-400');
+            $(this).removeClass('border-transparent text-gray-500 dark:text-gray-400')
+                .addClass('border-gray-900 text-gray-900 dark:border-white dark:text-white');
+            $('.sub-tab-panel').addClass('hidden');
+            $('#subtab-' + sub).removeClass('hidden');
+
+            if (sub === 'approval') loadApprovalHistory();
+        });
+
+        let approvalRows = [];
+        let approvalPage = 1;
+        let approvalPageSize = 10;
+        let approvalSortField = null;
+        let approvalSortDir = 'asc';
+        let initialApprovalEidHandled = false;
+
+        // Every TRN document the caller is/was an approver on — status 'P'
+        // (still waiting on them) as well as 'A'/'R' (already decided by
+        // them), so the Approval sub-tab doubles as a history view. The
+        // status filter select narrows what renderApprovalHistory() shows.
+        function loadApprovalHistory() {
+            $.get(pendingApprovalsUrl, function (res) {
+                approvalRows = res.data || [];
+                approvalPage = 1;
+                populateApprovalFilterOptions(approvalRows);
+                renderApprovalHistory();
+
+                if (!initialApprovalEidHandled && initialApprovalEid) {
+                    initialApprovalEidHandled = true;
+                    const match = approvalRows.find((row) => row.eid === initialApprovalEid);
+                    if (match) {
+                        openMyViewModal(match, { pushUrl: false, showApprovalActions: match.approval_status === 'P' });
+
+                        // ?tab=approvals only exists so the server knew which
+                        // tab to open on this initial load — once the modal's
+                        // up, drop it so the address bar matches the plain
+                        // /training-list/my/{eid} shape used everywhere else.
+                        const cleanPath = myViewUrlTpl.replace('__EID__', initialApprovalEid);
+                        if (location.pathname + location.search !== cleanPath) {
+                            history.replaceState({ trainingMyView: true }, '', cleanPath);
+                        }
+                    }
+                }
+            });
+        }
+
+        // Rebuilds the Training/Company filter option lists from whatever
+        // approvalRows actually contains, preserving the current selection
+        // when it's still valid (same pattern as populateFilterOptions()
+        // for the Available Trainings level/category filters).
+        function populateApprovalFilterOptions(rows) {
+            const $training = $('#approvalTrainingFilter');
+            const $company = $('#approvalCompanyFilter');
+            const selectedTraining = $training.val();
+            const selectedCompany = $company.val();
+
+            const trainings = [...new Set(rows.map((r) => r.training_name).filter(Boolean))].sort();
+            const companies = new Map();
+            rows.forEach((r) => {
+                if (r.cpny_id != null) companies.set(String(r.cpny_id), r.cpny_name ?? r.cpny_id);
+            });
+            const companyEntries = [...companies.entries()].sort((a, b) => String(a[1]).localeCompare(String(b[1])));
+
+            $training.find('option:not(:first)').remove();
+            trainings.forEach((t) => $training.append(new Option(t, t)));
+            $training.val(trainings.includes(selectedTraining) ? selectedTraining : '');
+
+            $company.find('option:not(:first)').remove();
+            companyEntries.forEach(([id, name]) => $company.append(new Option(name, id)));
+            $company.val(companies.has(selectedCompany) ? selectedCompany : '');
+        }
+
+        function approvalRowStatusBadge(status) {
+            const meta = approvalStatusMeta(status);
+            const clsMap = {
+                approved: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300',
+                rejected: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
+                pending: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
+                neutral: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
+            };
+            return `<span class="inline-flex rounded-full px-2 py-0.5 text-sm font-semibold ${clsMap[meta.cls] || clsMap.neutral}">${meta.label}</span>`;
+        }
+
+        function renderApprovalHistory() {
+            const statusFilterVal = $('#approvalStatusFilter').val();
+            const trainingFilterVal = $('#approvalTrainingFilter').val();
+            const companyFilterVal = $('#approvalCompanyFilter').val();
+            const search = ($('#approvalSearch').val() || '').toLowerCase().trim();
+
+            let rows = approvalRows.filter((r) => {
+                if (statusFilterVal && r.approval_status !== statusFilterVal) return false;
+                if (trainingFilterVal && r.training_name !== trainingFilterVal) return false;
+                if (companyFilterVal && String(r.cpny_id) !== companyFilterVal) return false;
+                if (search) {
+                    const haystack = `${r.docid} ${r.name ?? ''} ${r.username ?? ''} ${r.training_name ?? ''}`.toLowerCase();
+                    if (!haystack.includes(search)) return false;
+                }
+                return true;
+            });
+
+            if (approvalSortField) {
+                const field = approvalSortField;
+                const dir = approvalSortDir === 'desc' ? -1 : 1;
+                rows = rows.slice().sort((a, b) => {
+                    let va = a[field];
+                    let vb = b[field];
+                    if (va == null && vb == null) return 0;
+                    if (va == null) return 1;
+                    if (vb == null) return -1;
+                    if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * dir;
+                    return String(va).localeCompare(String(vb), undefined, { numeric: true, sensitivity: 'base' }) * dir;
+                });
+            }
+
+            $('#approvalEmpty').toggleClass('hidden', rows.length > 0);
+            $('#approvalCount').text(`${rows.length} item${rows.length === 1 ? '' : 's'}`);
+            const $body = $('#approvalBody').empty();
+
+            const { pageRows, page, totalPages } = paginateRows(rows, approvalPage, approvalPageSize);
+            approvalPage = page;
+
+            pageRows.forEach(function (r) {
+                const actionHtml = r.approval_status === 'P'
+                    ? `
+                        <button class="approveRegBtn rounded-lg bg-green-600 px-2.5 py-1 text-sm font-semibold text-white hover:bg-green-700" data-id="${r.id}">Approve</button>
+                        <button class="rejectRegBtn rounded-lg border border-red-200 px-2.5 py-1 text-sm font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${r.id}">Reject</button>
+                    `
+                    : '';
+
+                $body.append(`
+                    <tr>
+                        <td class="py-2 pr-4 font-mono text-sm" data-label="Doc ID">${r.docid}</td>
+                        <td class="py-2 pr-4" data-label="Employee">
+                            <span class="block text-sm font-semibold text-gray-800 dark:text-gray-100">${r.name ?? r.username}</span>
+                            <span class="block text-sm text-gray-400">${r.username}</span>
+                        </td>
+                        <td class="py-2 pr-4" data-label="Company / Dept">${r.cpny_name ?? r.cpny_id} / ${r.department_name ?? r.department_id}</td>
+                        <td class="py-2 pr-4" data-label="Training">${r.training_name ?? '-'}</td>
+                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Schedule Date">${fmtDate(r.schedule_date)}</td>
+                        <td class="py-2 pr-4" data-label="Status">${approvalRowStatusBadge(r.approval_status)}</td>
+                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Date">${fmtDate(r.action_date)}</td>
+                        <td class="py-2 pr-4" data-label="Action">
+                            <div class="flex items-center gap-1.5">
+                                <button class="viewRegBtn rounded-lg border border-gray-300 px-2.5 py-1 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">View</button>
+                                ${actionHtml}
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            });
+
+            renderPagination('approvalPagination', rows.length, page, totalPages, (p) => {
+                approvalPage = p;
+                renderApprovalHistory();
+            }, approvalPageSize);
+        }
+
+        $('#approvalStatusFilter, #approvalTrainingFilter, #approvalCompanyFilter').on('change', function () {
+            approvalPage = 1;
+            renderApprovalHistory();
+        });
+
+        $('#approvalPageSize').on('change', function () {
+            const val = $(this).val();
+            approvalPageSize = val === 'all' ? Infinity : parseInt(val, 10);
+            approvalPage = 1;
+            renderApprovalHistory();
+        });
+
+        $('#approvalSearch').on('input', function () {
+            approvalPage = 1;
+            renderApprovalHistory();
+        });
+
+        $('.approvalSortTh').on('click', function () {
+            const field = $(this).data('field');
+            if (approvalSortField === field) {
+                approvalSortDir = approvalSortDir === 'asc' ? 'desc' : 'asc';
+            } else {
+                approvalSortField = field;
+                approvalSortDir = 'asc';
+            }
+
+            $('.approvalSortTh').removeClass('sortActive').find('.sortArrow').remove();
+            $(this).addClass('sortActive').append(`<span class="sortArrow">${approvalSortDir === 'asc' ? '▲' : '▼'}</span>`);
+
+            approvalPage = 1;
+            renderApprovalHistory();
+        });
+
         $(document).on('click', '.cancelBtn', function () {
             const id = $(this).data('id');
 
@@ -2186,99 +2434,20 @@
 
         $(document).on('click', '.viewRegBtn', function () {
             const id = $(this).data('id');
-            const r = myRegistrationsRows.find((row) => row.id === id);
+            const r = myRegistrationsRows.find((row) => row.id === id)
+                || approvalRows.find((row) => String(row.id) === String(id));
             if (!r) return;
-            openMyViewModal(r);
+            openMyViewModal(r, { showApprovalActions: r.approval_status === 'P' });
         });
 
         window.addEventListener('popstate', function () {
             if (myViewModalActive) Swal.close();
         });
 
-        let pendingApprovalRows = [];
-        let approvalsPage = 1;
-        let initialApprovalEidHandled = false;
-
-        // Tab only appears once this actually finds something waiting on the
-        // current user — called on initial page load (not just when the tab
-        // is clicked) so the tab can decide its own visibility up front.
-        function loadPendingApprovals() {
-            $.get(pendingApprovalsUrl, function (res) {
-                pendingApprovalRows = res.data || [];
-                approvalsPage = 1;
-
-                $('#approvalsTabBtn').toggleClass('hidden', pendingApprovalRows.length === 0);
-                $('#approvalsTabCount').text(pendingApprovalRows.length || '');
-
-                renderPendingApprovals();
-
-                if (!initialApprovalEidHandled && initialApprovalEid) {
-                    initialApprovalEidHandled = true;
-                    const match = pendingApprovalRows.find((row) => row.eid === initialApprovalEid);
-                    if (match) {
-                        openMyViewModal(match, { pushUrl: false, showApprovalActions: true });
-
-                        // ?tab=approvals only exists so the server knew which
-                        // tab to open on this initial load — once the modal's
-                        // up, drop it so the address bar matches the plain
-                        // /training-list/my/{eid} shape used everywhere else.
-                        const cleanPath = myViewUrlTpl.replace('__EID__', initialApprovalEid);
-                        if (location.pathname + location.search !== cleanPath) {
-                            history.replaceState({ trainingMyView: true }, '', cleanPath);
-                        }
-                    }
-                }
-            });
-        }
-
-        function renderPendingApprovals() {
-            const rows = pendingApprovalRows;
-            $('#approvalsEmpty').toggleClass('hidden', rows.length > 0);
-            const $body = $('#approvalsBody').empty();
-
-            const { pageRows, page, totalPages } = paginateRows(rows, approvalsPage);
-            approvalsPage = page;
-
-            pageRows.forEach(function (r) {
-                $body.append(`
-                    <tr>
-                        <td class="py-2 pr-4 font-mono text-sm" data-label="Doc ID">${r.docid}</td>
-                        <td class="py-2 pr-4" data-label="Employee">
-                            <span class="block text-sm font-semibold text-gray-800 dark:text-gray-100">${r.name ?? r.username}</span>
-                            <span class="block text-sm text-gray-400">${r.username}</span>
-                        </td>
-                        <td class="py-2 pr-4" data-label="Company / Dept">${r.cpny_name ?? r.cpny_id} / ${r.department_name ?? r.department_id}</td>
-                        <td class="py-2 pr-4" data-label="Training">${r.training_name ?? '-'}</td>
-                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Schedule Date">${fmtDate(r.schedule_date)}</td>
-                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Waiting Since">${fmtDate(r.waiting_since)}</td>
-                        <td class="py-2 pr-4" data-label="Action">
-                            <div class="flex items-center gap-1.5">
-                                <button class="viewApprovalBtn rounded-lg border border-gray-300 px-2.5 py-1 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">View</button>
-                                <button class="approveRegBtn rounded-lg bg-green-600 px-2.5 py-1 text-sm font-semibold text-white hover:bg-green-700" data-id="${r.id}">Approve</button>
-                                <button class="rejectRegBtn rounded-lg border border-red-200 px-2.5 py-1 text-sm font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${r.id}">Reject</button>
-                            </div>
-                        </td>
-                    </tr>
-                `);
-            });
-
-            renderPagination('approvalsPagination', rows.length, page, totalPages, (p) => {
-                approvalsPage = p;
-                renderPendingApprovals();
-            });
-        }
-
-        $(document).on('click', '.viewApprovalBtn', function () {
-            const id = $(this).data('id');
-            const r = pendingApprovalRows.find((row) => String(row.id) === String(id));
-            if (!r) return;
-            openMyViewModal(r, { showApprovalActions: true });
-        });
-
-        // Shared by the Waiting Approval row buttons and the Approve/Reject
+        // Shared by the Approval sub-tab row buttons and the Approve/Reject
         // buttons inside the view modal — same confirm dialog, same AJAX call.
         function confirmApproveReject(id, isApprove) {
-            const r = pendingApprovalRows.find((x) => String(x.id) === String(id));
+            const r = approvalRows.find((x) => String(x.id) === String(id));
 
             Swal.fire({
                 html: `
@@ -2315,7 +2484,7 @@
                             ? (res.completed ? 'Registrasi disetujui sepenuhnya' : 'Disetujui, menunggu approver berikutnya')
                             : 'Registrasi ditolak';
                         toast('success', message);
-                        loadPendingApprovals();
+                        loadApprovalHistory();
                     },
                     error: function (xhr) {
                         toast('error', xhr.responseJSON?.message || 'Gagal memproses approval');
@@ -2874,16 +3043,15 @@
         @endif
 
         loadAvailable();
-        loadPendingApprovals();
 
-        if (initialMyEid) {
+        if (initialMyEid || initialApprovalEid) {
             $('.tabBtn[data-tab="mine"]').trigger('click');
+        }
+        if (initialApprovalEid) {
+            $('.subTabBtn[data-subtab="approval"]').trigger('click');
         }
         if (initialAllRegsEid) {
             $('.tabBtn[data-tab="allregs"]').trigger('click');
-        }
-        if (initialApprovalEid) {
-            $('.tabBtn[data-tab="approvals"]').trigger('click');
         }
     </script>
 </x-app-layout>

@@ -76,16 +76,16 @@ class TrainingRegistrationController extends Controller
     /**
      * Same browse page, but with a specific one of the caller's own
      * registrations' view modal auto-opened — same hash-id/shareable-URL
-     * convention as show() above, scoped to My Registrations instead.
+     * convention as show() above, scoped to the Registration List tab instead.
      *
      * Also viewable by any USERACCESS holder regardless of status, so an
      * approver can open a Pending registration to review/approve it (not
      * only after it's already Approved).
      *
-     * ?tab=approvals (used by the "Waiting Approval" widget/notification
-     * links, since an approver isn't the registrant and so wouldn't find
-     * this eid in their own My Registrations list) opens the Waiting
-     * Approval tab instead, where pendingApprovals() actually has this row.
+     * ?tab=approvals (used by approval widget/notification links, since an
+     * approver isn't the registrant and so wouldn't find this eid via the
+     * plain myRegistrations() call) tells the page's Registration List tab
+     * to also check pendingApprovals() to find and open this row.
      */
     public function showMy($eid, Request $request)
     {
@@ -1076,12 +1076,15 @@ class TrainingRegistrationController extends Controller
     }
 
     /**
-     * TRN documents where the caller is the current (active) approver —
-     * same "active step" definition as ApprovalController::assertUserCanAct()
-     * (earliest P-status line for this refnbr with aprv_datebefore set, and
-     * the caller's username in that line's comma-separated aprv_username
-     * list), so this list matches exactly what approve()/reject() would
-     * actually let them act on right now.
+     * Every TRN document the caller is or was an approver on: rows still
+     * 'P' (the caller is the current/active approver — same "active step"
+     * definition as ApprovalController::assertUserCanAct(), so this matches
+     * exactly what approve()/reject() would let them act on right now, via
+     * the comma-separated aprv_username list), plus rows already 'A'/'R'
+     * where the caller was the one who made that decision — approveStep()/
+     * rejectStep() overwrite aprv_username with the actor's own username on
+     * decision, so an exact match (not the comma-list one) is correct there.
+     * Feeds the Approval sub-tab, which lets the caller filter by status.
      */
     public function pendingApprovals(Request $request)
     {
@@ -1090,14 +1093,21 @@ class TrainingRegistrationController extends Controller
 
         $approvalRows = TrApproval::query()
             ->where('aprv_doctype', self::DOCTYPE)
-            ->where('status', 'P')
             ->whereNotNull('aprv_datebefore')
-            ->whereRaw(
-                "(',' || lower(regexp_replace(coalesce(aprv_username,''), '\s+', '', 'g')) || ',') like ?",
-                ['%,'.$username.',%']
-            )
-            ->orderBy('aprv_datebefore')
-            ->get(['refnbr', 'aprv_datebefore']);
+            ->where(function ($q) use ($username) {
+                $q->where(function ($q2) use ($username) {
+                    $q2->where('status', 'P')
+                        ->whereRaw(
+                            "(',' || lower(regexp_replace(coalesce(aprv_username,''), '\s+', '', 'g')) || ',') like ?",
+                            ['%,'.$username.',%']
+                        );
+                })->orWhere(function ($q2) use ($username) {
+                    $q2->whereIn('status', ['A', 'R'])
+                        ->whereRaw("lower(trim(coalesce(aprv_username, ''))) = ?", [$username]);
+                });
+            })
+            ->orderByDesc(DB::raw('coalesce(aprv_dateafter, aprv_datebefore)'))
+            ->get(['refnbr', 'aprv_datebefore', 'aprv_dateafter', 'status']);
 
         if ($approvalRows->isEmpty()) {
             return response()->json(['data' => []]);
@@ -1156,7 +1166,8 @@ class TrainingRegistrationController extends Controller
                     'speaker_name' => $r->schedule?->training_speaker_name ?: $r->schedule?->training_ext_speaker_name,
                     'grade_name' => $levelLabels[$r->schedule?->schedule?->job_level] ?? $r->schedule?->schedule?->job_level,
                     'status' => $r->effective_status,
-                    'waiting_since' => $apr->aprv_datebefore,
+                    'approval_status' => $apr->status,
+                    'action_date' => $apr->status === 'P' ? $apr->aprv_datebefore : $apr->aprv_dateafter,
                 ];
             })
             ->filter()

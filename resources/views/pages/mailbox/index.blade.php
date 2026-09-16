@@ -618,6 +618,14 @@
         window.addEventListener('popstate', () => {
             this.loadPanel(this.paramsFromUrl(new URL(window.location.href)), { pushState: false });
         });
+        // The `mailbox:fetch` scheduler job already pulls new mail from the
+        // IMAP server into mailbox_emails every 5 minutes server-side — the
+        // panel just needs to re-read that table periodically so new mail
+        // shows up without a manual click. Reusing syncNow() here instead
+        // would trigger a redundant live IMAP fetch per open tab.
+        setInterval(() => {
+            if (document.visibilityState !== 'hidden') this.refreshPanel();
+        }, 5 * 60 * 1000);
     ">
         @if (!$account)
             <!-- NOT CONNECTED YET -->

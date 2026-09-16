@@ -180,6 +180,7 @@
                         <th class="px-3 py-3 text-left">CS No</th>
                         <th class="px-3 py-3 text-left">SPPB/J/K/T</th>
                         <th class="px-3 py-3 text-left">PO / SPK</th>
+                        <th class="px-3 py-3 text-left">BAST No</th>
                         <th class="px-3 py-3 text-left">Department</th>
                         <th class="px-3 py-3 text-left">Requester</th>
                         <th class="px-3 py-3 text-left">Purchaser</th>
@@ -304,6 +305,10 @@
                 },
                 {
                     data: 'ponbr'
+                },
+                {
+                    data: 'bast_number',
+                    defaultContent: '-'
                 },
 
                 {
