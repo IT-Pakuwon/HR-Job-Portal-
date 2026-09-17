@@ -7,6 +7,7 @@ use App\Models\MailboxEmail;
 use App\Models\SysUserRole;
 use App\Services\MailboxService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class MailboxController extends Controller
 {
@@ -222,19 +223,24 @@ class MailboxController extends Controller
             $payload['imap_password'] = $data['imap_password'];
         }
 
-        MailboxAccount::updateOrCreate(['username' => $username], $payload);
+        // Both writes must land together — a role grant left uncommitted
+        // after the account itself saves would show the mailbox as
+        // "connected" while the MAILACCESS sidebar link never appears.
+        DB::connection('pgsql2')->transaction(function () use ($username, $payload) {
+            MailboxAccount::updateOrCreate(['username' => $username], $payload);
 
-        // The Mailbox sidebar menu is granted only to MAILACCESS — connecting
-        // here is what earns a user that role (see disconnectAccount() for the
-        // reverse). Reactivates a previously-revoked grant instead of
-        // duplicating the row if the user disconnected and is reconnecting.
-        $userRole = SysUserRole::firstOrNew(['username' => $username, 'role_id' => 'MAILACCESS']);
-        $userRole->status = 'A';
-        $userRole->updated_by = $username;
-        if (!$userRole->exists) {
-            $userRole->created_by = $username;
-        }
-        $userRole->save();
+            // The Mailbox sidebar menu is granted only to MAILACCESS — connecting
+            // here is what earns a user that role (see disconnectAccount() for the
+            // reverse). Reactivates a previously-revoked grant instead of
+            // duplicating the row if the user disconnected and is reconnecting.
+            $userRole = SysUserRole::firstOrNew(['username' => $username, 'role_id' => 'MAILACCESS']);
+            $userRole->status = 'A';
+            $userRole->updated_by = $username;
+            if (!$userRole->exists) {
+                $userRole->created_by = $username;
+            }
+            $userRole->save();
+        });
 
         return response()->json(['success' => true, 'message' => 'Mailbox connected.']);
     }
@@ -248,14 +254,20 @@ class MailboxController extends Controller
     {
         $account = $this->requireAccount($request);
 
-        MailboxEmail::where('username', $account->username)->delete();
-        $account->delete();
+        // All three writes must land together — a failure partway through
+        // used to risk leaving the account deleted but the role still
+        // granted (or vice versa), an inconsistent state that's confusing
+        // to unwind by hand.
+        DB::connection('pgsql2')->transaction(function () use ($account) {
+            MailboxEmail::where('username', $account->username)->delete();
+            $account->delete();
 
-        // Revoke (not delete) so reconnecting later just flips this back to 'A'
-        // instead of re-creating the row.
-        SysUserRole::where('username', $account->username)
-            ->where('role_id', 'MAILACCESS')
-            ->update(['status' => 'I', 'updated_by' => $account->username]);
+            // Revoke (not delete) so reconnecting later just flips this back to 'A'
+            // instead of re-creating the row.
+            SysUserRole::where('username', $account->username)
+                ->where('role_id', 'MAILACCESS')
+                ->update(['status' => 'I', 'updated_by' => $account->username]);
+        });
 
         return response()->json(['success' => true, 'message' => 'Mailbox disconnected.']);
     }

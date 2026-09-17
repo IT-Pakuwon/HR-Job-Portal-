@@ -225,22 +225,11 @@ const EventCalendarApp = {
                 const wrapper = document.createElement('div');
                 wrapper.classList.add('fc-event-main-frame');
 
-                const idEl = document.createElement('span');
-                idEl.classList.add('fc-event-id-badge');
-                idEl.textContent = arg.event.extendedProps.event_id || '';
-
                 const titleEl = document.createElement('span');
                 titleEl.classList.add('fc-event-title');
                 titleEl.textContent = arg.event.title;
 
                 wrapper.appendChild(titleEl);
-                if (idEl.textContent) {
-                    const sepEl = document.createElement('span');
-                    sepEl.classList.add('fc-event-id-badge');
-                    sepEl.textContent = '-';
-                    wrapper.appendChild(sepEl);
-                }
-                wrapper.appendChild(idEl);
 
                 const creatorName = arg.event.extendedProps.created_by_name;
                 if (creatorName) {
