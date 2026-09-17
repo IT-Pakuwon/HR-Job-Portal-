@@ -127,7 +127,12 @@
                 .then(r => r.json())
                 .then(data => {
                     this.syncing = false;
-                    this.showToast(data.message || (data.success ? 'Synced.' : 'Sync failed.'), data.success !== false);
+                    // data.success is only ever explicitly true/false when the
+                    // controller's own try/catch produced the response — a
+                    // fatal error (e.g. memory exhaustion) bypasses that and
+                    // comes back with no success key at all, so an absent
+                    // key must read as failure, not success.
+                    this.showToast(data.message || (data.success ? 'Synced.' : 'Sync failed.'), data.success === true);
                     if (data.success) this.refreshPanel();
                 })
                 .catch(() => { this.syncing = false; this.showToast('Sync failed.', false); });
@@ -148,7 +153,7 @@
                 .then(r => r.json())
                 .then(data => {
                     this.loadingOlder = false;
-                    this.showToast(data.message || (data.success ? 'Loaded.' : 'Load failed.'), data.success !== false);
+                    this.showToast(data.message || (data.success ? 'Loaded.' : 'Load failed.'), data.success === true);
                     if (data.success) {
                         if (!data.hasMore) this.noMoreOlder[folder] = true;
                         if (data.fetched > 0) this.refreshPanel();
