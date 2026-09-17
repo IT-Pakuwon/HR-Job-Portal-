@@ -497,7 +497,7 @@
                                 default => 'orange',
                             };
 
-                            $dateValue = $dt2->aprv_dateafter ?: $dt2->aprv_datebefore;
+                            $dateValue = $dt2->aprv_dateafter;
 
                             $dateStr = $dateValue
                                 ? \Carbon\Carbon::parse($dateValue)->format('d M Y H:i')
