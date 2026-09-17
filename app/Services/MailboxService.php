@@ -228,21 +228,34 @@ class MailboxService
 
         static::mailer($account)->getSymfonyTransport()->send($mime);
 
-        $client = static::imapClient($account);
-        $client->connect();
-
+        // The send above already succeeded — nothing from here on (appending
+        // a Sent-folder copy, cleaning up the draft it replaced) may surface
+        // as a "send failed" error, or the user could resend a duplicate
+        // over what's really just a flaky IMAP connection. connect() itself
+        // used to sit outside this guard, so a hiccup there alone was enough
+        // to misreport a fully-delivered email as failed.
         try {
-            $client->getFolder(self::SENT_FOLDER)->appendMessage($mime->toString(), ['\\Seen']);
+            $client = static::imapClient($account);
+            $client->connect();
+
+            try {
+                try {
+                    $client->getFolder(self::SENT_FOLDER)->appendMessage($mime->toString(), ['\\Seen']);
+                } catch (\Throwable $e) {
+                    // A missing Sent-folder copy isn't fatal.
+                }
+
+                if ($existingDraft && strcasecmp($existingDraft->folder, self::DRAFTS_FOLDER) === 0) {
+                    static::expungeRemoteMessage($client, $existingDraft->folder, $existingDraft->uid);
+                    $existingDraft->delete();
+                }
+            } finally {
+                $client->disconnect();
+            }
         } catch (\Throwable $e) {
-            // The send already succeeded; a missing Sent-folder copy isn't fatal.
+            // Next sync will pick up the Sent copy; the old draft (if any)
+            // gets cleaned up the next time it's resaved or sent.
         }
-
-        if ($existingDraft && strcasecmp($existingDraft->folder, self::DRAFTS_FOLDER) === 0) {
-            static::expungeRemoteMessage($client, $existingDraft->folder, $existingDraft->uid);
-            $existingDraft->delete();
-        }
-
-        $client->disconnect();
 
         // The send (and the Sent-folder append above) already succeeded —
         // this is only refreshing our local cache of the Sent folder, so a
@@ -269,9 +282,17 @@ class MailboxService
 
         $client->getFolder(self::DRAFTS_FOLDER)->appendMessage($mime->toString(), ['\\Draft']);
 
+        // The new draft copy above is already saved — cleaning up the old
+        // copy it replaces must not surface as a "save failed" error, or a
+        // retry after seeing that error would pile up further duplicate
+        // drafts on top of the one that already saved fine.
         if ($existingDraft && strcasecmp($existingDraft->folder, self::DRAFTS_FOLDER) === 0) {
-            static::expungeRemoteMessage($client, $existingDraft->folder, $existingDraft->uid);
-            $existingDraft->delete();
+            try {
+                static::expungeRemoteMessage($client, $existingDraft->folder, $existingDraft->uid);
+                $existingDraft->delete();
+            } catch (\Throwable $e) {
+                // Next save/send of this draft will retry the cleanup.
+            }
         }
 
         $client->disconnect();

@@ -10,6 +10,12 @@
         toastOk: true,
         syncing: false,
         loadingOlder: false,
+        // Keyed by folder path: true once a Load-older-messages click came
+        // back with no more history for that folder, so the button can stop
+        // inviting further clicks that would just repeat No older messages
+        // found. Lives on the outer component (not the panel partial) so it
+        // survives refreshPanel()'s innerHTML swap.
+        noMoreOlder: {},
 
         showToast(message, ok = true) {
             this.toast = message;
@@ -129,6 +135,7 @@
         loadOlder() {
             if (this.loadingOlder) return;
             this.loadingOlder = true;
+            const folder = this.currentFolder;
             fetch('{{ route('mailbox.load-more') }}', {
                 method: 'POST',
                 headers: {
@@ -136,19 +143,48 @@
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ folder: this.currentFolder }),
+                body: JSON.stringify({ folder }),
             })
                 .then(r => r.json())
                 .then(data => {
                     this.loadingOlder = false;
                     this.showToast(data.message || (data.success ? 'Loaded.' : 'Load failed.'), data.success !== false);
-                    if (data.success && data.fetched > 0) this.refreshPanel();
+                    if (data.success) {
+                        if (!data.hasMore) this.noMoreOlder[folder] = true;
+                        if (data.fetched > 0) this.refreshPanel();
+                    }
                 })
                 .catch(() => { this.loadingOlder = false; this.showToast('Load failed.', false); });
         },
 
         emailAttachments: [],
         emailAttachmentsLoading: false,
+        // Remote images in a message body load over plain HTTP(S) the
+        // moment the iframe renders them — a classic tracking-pixel /
+        // read-receipt vector (confirms the address is live, leaks
+        // IP/UA/open time). Blocked by default per message, same as most
+        // webmail clients; a banner lets the user opt in for that one.
+        // Quote characters below are written as \x27 and \x22 hex escapes
+        // rather than literal marks, since this whole object is itself the
+        // value of an x-data attribute quoted with one of those same marks
+        // — writing it literally here would close that attribute early and
+        // corrupt the page.
+        imagesBlocked: false,
+        hasRemoteImages(html) {
+            if (!html) return false;
+            return /<img\b[^>]*\bsrc\s*=\s*[\x27\x22]https?:\/\//i.test(html)
+                || /url\(\s*[\x27\x22]?https?:\/\//i.test(html);
+        },
+        blockedImagesHtml(html) {
+            if (!html) return html;
+            const blank = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBTAA7';
+            return html
+                .replace(/(<img\b[^>]*\bsrc\s*=\s*)([\x27\x22])https?:\/\/[^\x27\x22]*\2/gi, `$1$2${blank}$2`)
+                .replace(/url\(\s*([\x27\x22]?)https?:\/\/[^)\x27\x22]*\1\s*\)/gi, `url(${blank})`);
+        },
+        loadImages() {
+            this.imagesBlocked = false;
+        },
         openEmail(id) {
             if (this.currentFolder === 'Drafts') {
                 this.openComposeForDraft(id);
@@ -158,11 +194,13 @@
             this.loading = true;
             this.email = null;
             this.emailAttachments = [];
+            this.imagesBlocked = false;
             fetch(`{{ url('mailbox') }}/${id}/content`, { headers: { 'Accept': 'application/json' } })
                 .then(r => r.json())
                 .then(data => {
                     this.email = data;
                     this.loading = false;
+                    this.imagesBlocked = this.hasRemoteImages(data.body_html);
                     if (data.has_attachments) this.loadEmailAttachments(id);
                     // content() marks the message read server-side; the modal
                     // lives outside #mailbox-panel so this is safe to refresh
@@ -186,10 +224,46 @@
             while (bytes >= 1024 && i < units.length - 1) { bytes /= 1024; i++; }
             return bytes.toFixed(i === 0 ? 0 : 1) + ' ' + units[i];
         },
+        // Sender avatar shown in the read modal header: initials + a
+        // deterministic color so the same sender always gets the same badge.
+        initialsFor(str) {
+            const name = (str || '').includes('<') ? str.split('<')[0].trim() : (str || '');
+            const words = name.replace(/[^a-zA-Z0-9 ]/g, ' ').trim().split(/\s+/).filter(Boolean);
+            if (words.length === 0) return '?';
+            return words.length === 1 ? words[0].slice(0, 2).toUpperCase() : (words[0][0] + words[1][0]).toUpperCase();
+        },
+        avatarColor(str) {
+            const palette = ['bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-amber-500', 'bg-pink-500', 'bg-cyan-600', 'bg-indigo-500', 'bg-rose-500'];
+            let hash = 0;
+            for (let i = 0; i < (str || '').length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            return palette[Math.abs(hash) % palette.length];
+        },
+        // Colored extension badge for attachment cards (PDF, DOCX, ZIP, ...).
+        attachmentBadge(name) {
+            const ext = (name || '').split('.').pop().toUpperCase();
+            const map = {
+                PDF: 'bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-400',
+                DOC: 'bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400',
+                DOCX: 'bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400',
+                XLS: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400',
+                XLSX: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400',
+                PPT: 'bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400',
+                PPTX: 'bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400',
+                ZIP: 'bg-purple-100 text-purple-600 dark:bg-purple-500/15 dark:text-purple-400',
+                RAR: 'bg-purple-100 text-purple-600 dark:bg-purple-500/15 dark:text-purple-400',
+                '7Z': 'bg-purple-100 text-purple-600 dark:bg-purple-500/15 dark:text-purple-400',
+                PNG: 'bg-pink-100 text-pink-600 dark:bg-pink-500/15 dark:text-pink-400',
+                JPG: 'bg-pink-100 text-pink-600 dark:bg-pink-500/15 dark:text-pink-400',
+                JPEG: 'bg-pink-100 text-pink-600 dark:bg-pink-500/15 dark:text-pink-400',
+                GIF: 'bg-pink-100 text-pink-600 dark:bg-pink-500/15 dark:text-pink-400',
+            };
+            return { ext: ext.slice(0, 4), classes: map[ext] || 'bg-gray-100 text-gray-500 dark:bg-white/[0.06] dark:text-gray-400' };
+        },
         closeModal() {
             this.modalOpen = false;
             this.email = null;
             this.emailAttachments = [];
+            this.imagesBlocked = false;
         },
 
         archiveEmail(id) {
@@ -701,28 +775,38 @@
 
         <!-- READ MODAL: closes ONLY via the X or Close button (no backdrop / Escape close) -->
         <div x-show="modalOpen" x-cloak style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div class="absolute inset-0 bg-black/50"></div>
+            <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]"></div>
 
             <div x-show="modalOpen" x-transition
-                class="relative flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-white shadow-xl dark:bg-[#0f172a]">
-                <div class="flex items-start justify-between gap-4 border-b border-gray-100 px-5 py-4 dark:border-white/[0.06]">
-                    <div class="min-w-0">
-                        <template x-if="email">
-                            <div>
-                                <h3 class="truncate text-base font-semibold text-gray-800 dark:text-gray-100" x-text="email.subject"></h3>
-                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-300">
-                                    From: <span class="font-medium text-gray-700 dark:text-gray-200" x-text="email.from_name || email.from_address"></span>
-                                    <template x-if="email.from_name"><span x-text="'<' + email.from_address + '>'"></span></template>
+                class="relative flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 dark:bg-[#0f172a] dark:ring-white/10">
+                <!-- Header: sender avatar + subject/from/date -->
+                <div class="flex items-start justify-between gap-4 px-6 py-5">
+                    <template x-if="email">
+                        <div class="flex min-w-0 items-start gap-3.5">
+                            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
+                                :class="avatarColor(email.from_name || email.from_address)"
+                                x-text="initialsFor(email.from_name || email.from_address)"></span>
+                            <div class="min-w-0 pt-0.5">
+                                <h3 class="truncate text-base font-semibold leading-snug text-gray-900 dark:text-gray-100" x-text="email.subject || '(no subject)'"></h3>
+                                <p class="mt-1 truncate text-sm text-gray-600 dark:text-gray-300">
+                                    <span class="font-medium text-gray-800 dark:text-gray-100" x-text="email.from_name || email.from_address"></span>
+                                    <template x-if="email.from_name"><span class="text-gray-400" x-text="'<' + email.from_address + '>'"></span></template>
                                 </p>
-                                <p class="text-xs text-gray-400 dark:text-gray-500">
+                                <p class="mt-0.5 truncate text-xs text-gray-400 dark:text-gray-500">
                                     <span x-text="'To: ' + (email.to_address || '')"></span> &middot; <span x-text="email.date"></span>
                                 </p>
                             </div>
-                        </template>
-                        <template x-if="loading">
-                            <p class="text-sm text-gray-400">Loading...</p>
-                        </template>
-                    </div>
+                        </div>
+                    </template>
+                    <template x-if="loading">
+                        <div class="flex items-center gap-3.5">
+                            <span class="h-11 w-11 shrink-0 animate-pulse rounded-full bg-gray-200 dark:bg-white/10"></span>
+                            <div class="space-y-2">
+                                <span class="block h-3.5 w-48 animate-pulse rounded bg-gray-200 dark:bg-white/10"></span>
+                                <span class="block h-3 w-32 animate-pulse rounded bg-gray-200 dark:bg-white/10"></span>
+                            </div>
+                        </div>
+                    </template>
                     <button type="button" @click="closeModal()"
                         class="shrink-0 rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/[0.06] dark:hover:text-gray-200"
                         title="Close">
@@ -732,32 +816,100 @@
                     </button>
                 </div>
 
-                <div class="flex-1 overflow-y-auto px-5 py-5">
+                <!-- Quick action bar -->
+                <template x-if="email">
+                    <div class="flex flex-wrap items-center gap-1 border-y border-gray-100 bg-gray-50/70 px-4 py-2 dark:border-white/[0.06] dark:bg-white/[0.02]">
+                        <button type="button" @click="const id = email.id; closeModal(); openComposeReply(id, false)"
+                            class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-white hover:text-gray-900 hover:shadow-sm dark:text-gray-300 dark:hover:bg-white/[0.07] dark:hover:text-white">
+                            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 17 4 12 9 7" /><path d="M20 18v-2a4 4 0 0 0-4-4H4" />
+                            </svg>
+                            Reply
+                        </button>
+                        <button type="button" @click="const id = email.id; closeModal(); openComposeReply(id, true)"
+                            class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-white hover:text-gray-900 hover:shadow-sm dark:text-gray-300 dark:hover:bg-white/[0.07] dark:hover:text-white">
+                            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="7 17 2 12 7 7" /><polyline points="12 17 7 12 12 7" /><path d="M22 18v-2a4 4 0 0 0-4-4H2" />
+                            </svg>
+                            Reply All
+                        </button>
+                        <button type="button" @click="const id = email.id; closeModal(); openComposeForward(id)"
+                            class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-white hover:text-gray-900 hover:shadow-sm dark:text-gray-300 dark:hover:bg-white/[0.07] dark:hover:text-white">
+                            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="15 17 20 12 15 7" /><path d="M4 18v-2a4 4 0 0 1 4-4h12" />
+                            </svg>
+                            Forward
+                        </button>
+                        <span class="mx-1 h-4 w-px bg-gray-200 dark:bg-white/10"></span>
+                        <template x-if="currentFolder !== 'Archive'">
+                            <button type="button" @click="const id = email.id; closeModal(); archiveEmail(id)" title="Archive"
+                                class="inline-flex items-center justify-center rounded-full p-2 text-gray-500 transition hover:bg-white hover:text-gray-900 hover:shadow-sm dark:text-gray-400 dark:hover:bg-white/[0.07] dark:hover:text-white">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4" />
+                                </svg>
+                            </button>
+                        </template>
+                        <button type="button" @click="const id = email.id; const perm = currentFolder === 'Trash'; closeModal(); deleteEmail(id, perm)"
+                            :title="currentFolder === 'Trash' ? 'Delete permanently' : 'Move to Trash'"
+                            class="inline-flex items-center justify-center rounded-full p-2 text-gray-500 transition hover:bg-red-50 hover:text-red-600 dark:text-gray-400 dark:hover:bg-red-500/10 dark:hover:text-red-400">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z" />
+                            </svg>
+                        </button>
+                    </div>
+                </template>
+
+                <!-- Body -->
+                <div class="flex-1 overflow-y-auto px-6 py-5">
                     <template x-if="loading">
-                        <p class="text-sm text-gray-400">Loading email...</p>
+                        <div class="space-y-3">
+                            <span class="block h-3 w-full animate-pulse rounded bg-gray-100 dark:bg-white/[0.06]"></span>
+                            <span class="block h-3 w-11/12 animate-pulse rounded bg-gray-100 dark:bg-white/[0.06]"></span>
+                            <span class="block h-3 w-4/5 animate-pulse rounded bg-gray-100 dark:bg-white/[0.06]"></span>
+                            <span class="block h-40 w-full animate-pulse rounded-lg bg-gray-100 dark:bg-white/[0.06]"></span>
+                        </div>
                     </template>
                     <template x-if="!loading && email && email.body_html">
-                        <iframe class="h-[55vh] w-full rounded-lg border border-gray-200 bg-white dark:border-white/[0.06]"
-                            sandbox="allow-popups allow-popups-to-escape-sandbox" :srcdoc="email.body_html"></iframe>
+                        <div>
+                            <template x-if="imagesBlocked">
+                                <div class="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:border-amber-400/30 dark:bg-amber-500/10 dark:text-amber-300">
+                                    <span>Images in this message are hidden to protect your privacy.</span>
+                                    <button type="button" @click="loadImages()"
+                                        class="shrink-0 rounded-md bg-amber-600 px-2.5 py-1 font-semibold text-white hover:bg-amber-500">
+                                        Load images
+                                    </button>
+                                </div>
+                            </template>
+                            <iframe class="h-[52vh] w-full rounded-xl border border-gray-200 bg-white shadow-inner dark:border-white/[0.06]"
+                                sandbox="allow-popups allow-popups-to-escape-sandbox"
+                                :srcdoc="imagesBlocked ? blockedImagesHtml(email.body_html) : email.body_html"></iframe>
+                        </div>
                     </template>
                     <template x-if="!loading && email && !email.body_html">
-                        <pre class="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-200" x-text="email.body_text"></pre>
+                        <pre class="whitespace-pre-wrap text-sm leading-relaxed text-gray-700 dark:text-gray-200" x-text="email.body_text"></pre>
                     </template>
 
                     <template x-if="!loading && email && email.has_attachments">
-                        <div class="mt-4 border-t border-gray-100 pt-4 dark:border-white/[0.06]">
-                            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+                        <div class="mt-5 border-t border-gray-100 pt-4 dark:border-white/[0.06]">
+                            <p class="mb-2.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400">
+                                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21.44 11.05 12.25 20.24a5 5 0 0 1-7.07-7.07l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95L9.64 18.36a2 2 0 1 1-2.83-2.83l8.49-8.48" />
+                                </svg>
                                 <span x-text="emailAttachmentsLoading ? 'Loading attachments…' : (emailAttachments.length + ' attachment' + (emailAttachments.length === 1 ? '' : 's'))"></span>
                             </p>
-                            <div class="flex flex-wrap gap-2">
+                            <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                                 <template x-for="att in emailAttachments" :key="att.index">
                                     <a :href="`{{ url('mailbox') }}/${email.id}/attachments/${att.index}`"
-                                        class="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 dark:border-white/[0.08] dark:text-gray-200 dark:hover:bg-white/[0.04]">
-                                        <svg class="h-4 w-4 shrink-0 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M21.44 11.05 12.25 20.24a5 5 0 0 1-7.07-7.07l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95L9.64 18.36a2 2 0 1 1-2.83-2.83l8.49-8.48" />
+                                        class="group flex items-center gap-3 rounded-xl border border-gray-200 p-2.5 transition hover:border-blue-300 hover:bg-blue-50/40 dark:border-white/[0.08] dark:hover:border-blue-400/30 dark:hover:bg-blue-500/[0.06]">
+                                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[10px] font-bold"
+                                            :class="attachmentBadge(att.name).classes" x-text="attachmentBadge(att.name).ext"></span>
+                                        <div class="min-w-0 flex-1">
+                                            <p class="truncate text-sm font-medium text-gray-700 dark:text-gray-200" x-text="att.name"></p>
+                                            <p class="text-xs text-gray-400" x-text="formatFileSize(att.size)"></p>
+                                        </div>
+                                        <svg class="h-4 w-4 shrink-0 text-gray-300 transition group-hover:text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14" />
                                         </svg>
-                                        <span x-text="att.name"></span>
-                                        <span class="text-gray-400" x-text="formatFileSize(att.size)"></span>
                                     </a>
                                 </template>
                             </div>
@@ -765,41 +917,10 @@
                     </template>
                 </div>
 
-                <div class="flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 px-5 py-4 dark:border-white/[0.06]">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <template x-if="email">
-                            <button type="button" @click="const id = email.id; closeModal(); openComposeReply(id, false)"
-                                class="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-white/[0.08] dark:text-gray-200 dark:hover:bg-white/[0.04]">
-                                Reply
-                            </button>
-                        </template>
-                        <template x-if="email">
-                            <button type="button" @click="const id = email.id; closeModal(); openComposeReply(id, true)"
-                                class="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-white/[0.08] dark:text-gray-200 dark:hover:bg-white/[0.04]">
-                                Reply All
-                            </button>
-                        </template>
-                        <template x-if="email">
-                            <button type="button" @click="const id = email.id; closeModal(); openComposeForward(id)"
-                                class="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-white/[0.08] dark:text-gray-200 dark:hover:bg-white/[0.04]">
-                                Forward
-                            </button>
-                        </template>
-                        <template x-if="email && currentFolder !== 'Archive'">
-                            <button type="button" @click="const id = email.id; closeModal(); archiveEmail(id)"
-                                class="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-white/[0.08] dark:text-gray-200 dark:hover:bg-white/[0.04]">
-                                Archive
-                            </button>
-                        </template>
-                        <template x-if="email">
-                            <button type="button" @click="const id = email.id; const perm = currentFolder === 'Trash'; closeModal(); deleteEmail(id, perm)"
-                                class="inline-flex h-10 items-center justify-center rounded-lg border border-red-200 px-4 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-500/30 dark:hover:bg-red-500/10">
-                                <span x-text="currentFolder === 'Trash' ? 'Delete permanently' : 'Move to Trash'"></span>
-                            </button>
-                        </template>
-                    </div>
+                <!-- Footer -->
+                <div class="flex items-center justify-end border-t border-gray-100 px-6 py-3.5 dark:border-white/[0.06]">
                     <button type="button" @click="closeModal()"
-                        class="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 px-5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-white/[0.08] dark:text-gray-200 dark:hover:bg-white/[0.04]">
+                        class="inline-flex h-9 items-center justify-center rounded-lg px-4 text-sm font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/[0.06]">
                         Close
                     </button>
                 </div>

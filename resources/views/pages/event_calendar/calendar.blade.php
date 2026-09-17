@@ -73,7 +73,7 @@
     </div>
 
     <style>
-        /* Event bar content: title + ID badge + creator avatar */
+        /* Event bar content: title + creator avatar */
         #calendar .fc-event {
             border-radius: 6px !important;
             padding: 6px 10px !important;
@@ -87,13 +87,6 @@
             align-items: center;
             gap: 6px;
             overflow: hidden;
-        }
-
-        #calendar .fc-event-id-badge {
-            flex-shrink: 0;
-            font-size: 11px;
-            font-weight: 700;
-            opacity: 0.8;
         }
 
         #calendar .fc-event-main-frame .fc-event-title {

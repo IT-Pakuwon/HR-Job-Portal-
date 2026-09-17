@@ -201,7 +201,7 @@
         </div>
 
         @if ($emails->total() > 0)
-            <div class="shrink-0 border-t border-gray-100 px-5 py-3 text-center dark:border-white/[0.06]">
+            <div class="shrink-0 border-t border-gray-100 px-5 py-3 text-center dark:border-white/[0.06]" x-show="!noMoreOlder[currentFolder]">
                 <button type="button" @click="loadOlder()" :disabled="loadingOlder"
                     class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-50 dark:border-white/[0.06] dark:text-gray-300 dark:hover:bg-white/[0.06]">
                     <span x-text="loadingOlder ? 'Loading…' : 'Load older messages'"></span>
