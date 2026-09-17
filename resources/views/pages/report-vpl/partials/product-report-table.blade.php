@@ -87,15 +87,17 @@
                                         {{ $group['perusahaan'] }}
                                     </td>
                                     <td class="px-3 py-2.5 align-top" rowspan="{{ $group['tenant_rowspan'] }}">
-                                        @if($group['photo_url'])
-                                            <button type="button" class="js-prodrpt-photo block h-12 w-12 cursor-zoom-in rounded-md ring-1 ring-gray-200 transition hover:ring-2 hover:ring-sky-400 dark:ring-gray-600" data-photo="{{ $group['photo_url'] }}" data-caption="{{ $group['tenant'] }}">
-                                                <img src="{{ $group['photo_url'] }}" alt="{{ $group['tenant'] }}" class="h-12 w-12 rounded-md object-cover" onerror="this.closest('.js-prodrpt-photo').outerHTML='<span class=&quot;flex h-12 w-12 items-center justify-center rounded-md bg-gray-100 text-gray-300 ring-1 ring-gray-200 dark:bg-gray-700 dark:text-gray-500 dark:ring-gray-600&quot;><i class=&quot;fa-solid fa-image-slash&quot;></i></span>'">
-                                            </button>
-                                        @else
-                                            <span class="flex h-12 w-12 items-center justify-center rounded-md bg-gray-100 text-gray-300 ring-1 ring-gray-200 dark:bg-gray-700 dark:text-gray-500 dark:ring-gray-600">
-                                                <i class="fa-solid fa-image"></i>
-                                            </span>
-                                        @endif
+                                        @unless($forExport)
+                                            @if($group['photo_url'])
+                                                <button type="button" class="js-prodrpt-photo block h-12 w-12 cursor-zoom-in rounded-md ring-1 ring-gray-200 transition hover:ring-2 hover:ring-sky-400 dark:ring-gray-600" data-photo="{{ $group['photo_url'] }}" data-caption="{{ $group['tenant'] }}">
+                                                    <img src="{{ $group['photo_url'] }}" alt="{{ $group['tenant'] }}" class="h-12 w-12 rounded-md object-cover" onerror="this.closest('.js-prodrpt-photo').outerHTML='<span class=&quot;flex h-12 w-12 items-center justify-center rounded-md bg-gray-100 text-gray-300 ring-1 ring-gray-200 dark:bg-gray-700 dark:text-gray-500 dark:ring-gray-600&quot;><i class=&quot;fa-solid fa-image-slash&quot;></i></span>'">
+                                                </button>
+                                            @else
+                                                <span class="flex h-12 w-12 items-center justify-center rounded-md bg-gray-100 text-gray-300 ring-1 ring-gray-200 dark:bg-gray-700 dark:text-gray-500 dark:ring-gray-600">
+                                                    <i class="fa-solid fa-image"></i>
+                                                </span>
+                                            @endif
+                                        @endunless
                                     </td>
                                     <td class="px-3 py-2.5 align-top font-medium text-gray-900 dark:text-gray-100" rowspan="{{ $group['tenant_rowspan'] }}">
                                         {{ $group['tenant'] }}

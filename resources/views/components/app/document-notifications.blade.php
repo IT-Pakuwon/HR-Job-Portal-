@@ -81,82 +81,82 @@
 
                         {{-- Status Icon --}}
                         <div class="mt-0.5 shrink-0">
-                            <div :class="[statusCfg(item.status).iconBg, 'flex h-8 w-8 items-center justify-center rounded-full']">
+                            <div :class="[docNotifStatusCfg(item.status).iconBg, 'flex h-8 w-8 items-center justify-center rounded-full']">
                                 {{-- Revised (D / ITR_D) --}}
-                                <template x-if="statusCfg(item.status).cat === 'edit'">
-                                    <svg :class="statusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <template x-if="docNotifStatusCfg(item.status).cat === 'edit'">
+                                    <svg :class="docNotifStatusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                     </svg>
                                 </template>
                                 {{-- Rejected (R) --}}
                                 <template x-if="item.status === 'R'">
-                                    <svg :class="statusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg :class="docNotifStatusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                     </svg>
                                 </template>
                                 {{-- H: On Hold / TKT_PENDING --}}
-                                <template x-if="item.status === 'H' || statusCfg(item.status).cat === 'hold'">
-                                    <svg :class="statusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <template x-if="item.status === 'H' || docNotifStatusCfg(item.status).cat === 'hold'">
+                                    <svg :class="docNotifStatusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                     </svg>
                                 </template>
                                 {{-- Ticket RESPONSE / ITR In Progress: chat icon (blue) --}}
-                                <template x-if="statusCfg(item.status).cat === 'info'">
-                                    <svg :class="statusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <template x-if="docNotifStatusCfg(item.status).cat === 'info'">
+                                    <svg :class="docNotifStatusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                                     </svg>
                                 </template>
                                 {{-- Ticket PROCESS: cog icon (indigo) --}}
-                                <template x-if="statusCfg(item.status).cat === 'process'">
-                                    <svg :class="statusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <template x-if="docNotifStatusCfg(item.status).cat === 'process'">
+                                    <svg :class="docNotifStatusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                     </svg>
                                 </template>
                                 {{-- Completed / Finished: check-circle (green) --}}
-                                <template x-if="statusCfg(item.status).cat === 'success'">
-                                    <svg :class="statusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <template x-if="docNotifStatusCfg(item.status).cat === 'success'">
+                                    <svg :class="docNotifStatusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                     </svg>
                                 </template>
                                 {{-- REOPEN / ITR Waiting Approval / ACR Processing: refresh (amber) --}}
-                                <template x-if="statusCfg(item.status).cat === 'warn'">
-                                    <svg :class="statusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <template x-if="docNotifStatusCfg(item.status).cat === 'warn'">
+                                    <svg :class="docNotifStatusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                                     </svg>
                                 </template>
                                 {{-- CANCEL: X circle (red) --}}
-                                <template x-if="statusCfg(item.status).cat === 'cancel'">
-                                    <svg :class="statusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <template x-if="docNotifStatusCfg(item.status).cat === 'cancel'">
+                                    <svg :class="docNotifStatusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                     </svg>
                                 </template>
                                 {{-- BAST Approval Level 1: clipboard-check (teal) --}}
-                                <template x-if="statusCfg(item.status).cat === 'bast_approve'">
-                                    <svg :class="statusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <template x-if="docNotifStatusCfg(item.status).cat === 'bast_approve'">
+                                    <svg :class="docNotifStatusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                                     </svg>
                                 </template>
                                 {{-- Comment mention: at-sign (violet) --}}
-                                <template x-if="statusCfg(item.status).cat === 'mention'">
-                                    <svg :class="statusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <template x-if="docNotifStatusCfg(item.status).cat === 'mention'">
+                                    <svg :class="docNotifStatusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 11-8 0 4 4 0 018 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-4.5 7.79"/>
                                     </svg>
                                 </template>
                                 {{-- New comment: chat bubble (sky) --}}
-                                <template x-if="statusCfg(item.status).cat === 'comment'">
-                                    <svg :class="statusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <template x-if="docNotifStatusCfg(item.status).cat === 'comment'">
+                                    <svg :class="docNotifStatusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                                     </svg>
                                 </template>
                                 {{-- New email: envelope (blue) --}}
-                                <template x-if="statusCfg(item.status).cat === 'mail'">
-                                    <svg :class="statusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <template x-if="docNotifStatusCfg(item.status).cat === 'mail'">
+                                    <svg :class="docNotifStatusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                                     </svg>
                                 </template>
                                 {{-- New training published: graduation cap (emerald) --}}
-                                <template x-if="statusCfg(item.status).cat === 'training'">
-                                    <svg :class="statusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <template x-if="docNotifStatusCfg(item.status).cat === 'training'">
+                                    <svg :class="docNotifStatusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.42A12.083 12.083 0 0121 12.5c0 2.485-4.03 4.5-9 4.5s-9-2.015-9-4.5c0-.83.264-1.607.836-2.42L12 14z"/>
                                     </svg>
                                 </template>
@@ -168,7 +168,7 @@
                             <div class="flex items-center gap-2">
                                 <span x-text="item.docid" class="truncate text-sm font-semibold text-gray-800 dark:text-gray-100"></span>
                                 <span x-text="item.label"
-                                    :class="statusCfg(item.status).badge"
+                                    :class="docNotifStatusCfg(item.status).badge"
                                     class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide">
                                 </span>
                             </div>
@@ -356,7 +356,7 @@
 
     {{-- Toast Popup --}}
     <template x-teleport="body">
-        <div x-show="toast.show" x-transition:enter="transition ease-out duration-300"
+        <div x-show="$store.docNotifToast.show" x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 translate-y-4 scale-95"
             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
             x-transition:leave="transition ease-in duration-200"
@@ -366,77 +366,77 @@
             style="display: none;">
 
             {{-- Colored top bar --}}
-            <div :class="statusCfg(toast.item?.status).bar" class="h-1 w-full"></div>
+            <div :class="docNotifStatusCfg($store.docNotifToast.item?.status).bar" class="h-1 w-full"></div>
 
             <div class="flex items-start gap-3 p-4">
-                <div :class="[statusCfg(toast.item?.status).iconBg, 'flex h-9 w-9 shrink-0 items-center justify-center rounded-full']">
-                    <template x-if="toast.item?.status === 'D'">
-                        <svg :class="statusCfg(toast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div :class="[docNotifStatusCfg($store.docNotifToast.item?.status).iconBg, 'flex h-9 w-9 shrink-0 items-center justify-center rounded-full']">
+                    <template x-if="$store.docNotifToast.item?.status === 'D'">
+                        <svg :class="docNotifStatusCfg($store.docNotifToast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                         </svg>
                     </template>
-                    <template x-if="toast.item?.status === 'R'">
-                        <svg :class="statusCfg(toast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <template x-if="$store.docNotifToast.item?.status === 'R'">
+                        <svg :class="docNotifStatusCfg($store.docNotifToast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </template>
-                    <template x-if="toast.item?.status === 'H' || statusCfg(toast.item?.status).cat === 'hold'">
-                        <svg :class="statusCfg(toast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <template x-if="$store.docNotifToast.item?.status === 'H' || docNotifStatusCfg($store.docNotifToast.item?.status).cat === 'hold'">
+                        <svg :class="docNotifStatusCfg($store.docNotifToast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </template>
-                    <template x-if="statusCfg(toast.item?.status).cat === 'info'">
-                        <svg :class="statusCfg(toast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <template x-if="docNotifStatusCfg($store.docNotifToast.item?.status).cat === 'info'">
+                        <svg :class="docNotifStatusCfg($store.docNotifToast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                         </svg>
                     </template>
-                    <template x-if="statusCfg(toast.item?.status).cat === 'process'">
-                        <svg :class="statusCfg(toast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <template x-if="docNotifStatusCfg($store.docNotifToast.item?.status).cat === 'process'">
+                        <svg :class="docNotifStatusCfg($store.docNotifToast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                         </svg>
                     </template>
-                    <template x-if="statusCfg(toast.item?.status).cat === 'success'">
-                        <svg :class="statusCfg(toast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <template x-if="docNotifStatusCfg($store.docNotifToast.item?.status).cat === 'success'">
+                        <svg :class="docNotifStatusCfg($store.docNotifToast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </template>
-                    <template x-if="statusCfg(toast.item?.status).cat === 'warn'">
-                        <svg :class="statusCfg(toast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <template x-if="docNotifStatusCfg($store.docNotifToast.item?.status).cat === 'warn'">
+                        <svg :class="docNotifStatusCfg($store.docNotifToast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                         </svg>
                     </template>
-                    <template x-if="statusCfg(toast.item?.status).cat === 'cancel'">
-                        <svg :class="statusCfg(toast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <template x-if="docNotifStatusCfg($store.docNotifToast.item?.status).cat === 'cancel'">
+                        <svg :class="docNotifStatusCfg($store.docNotifToast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </template>
                     {{-- BAST Approval Level 1: clipboard-check (teal) --}}
-                    <template x-if="statusCfg(toast.item?.status).cat === 'bast_approve'">
-                        <svg :class="statusCfg(toast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <template x-if="docNotifStatusCfg($store.docNotifToast.item?.status).cat === 'bast_approve'">
+                        <svg :class="docNotifStatusCfg($store.docNotifToast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                         </svg>
                     </template>
                     {{-- Comment mention: at-sign (violet) --}}
-                    <template x-if="statusCfg(toast.item?.status).cat === 'mention'">
-                        <svg :class="statusCfg(toast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <template x-if="docNotifStatusCfg($store.docNotifToast.item?.status).cat === 'mention'">
+                        <svg :class="docNotifStatusCfg($store.docNotifToast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 11-8 0 4 4 0 018 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-4.5 7.79"/>
                         </svg>
                     </template>
                     {{-- New comment: chat bubble (sky) --}}
-                    <template x-if="statusCfg(toast.item?.status).cat === 'comment'">
-                        <svg :class="statusCfg(toast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <template x-if="docNotifStatusCfg($store.docNotifToast.item?.status).cat === 'comment'">
+                        <svg :class="docNotifStatusCfg($store.docNotifToast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                         </svg>
                     </template>
                     {{-- New email: envelope (blue) --}}
-                    <template x-if="statusCfg(toast.item?.status).cat === 'mail'">
-                        <svg :class="statusCfg(toast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <template x-if="docNotifStatusCfg($store.docNotifToast.item?.status).cat === 'mail'">
+                        <svg :class="docNotifStatusCfg($store.docNotifToast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                         </svg>
                     </template>
                     {{-- New training published: graduation cap (emerald) --}}
-                    <template x-if="statusCfg(toast.item?.status).cat === 'training'">
-                        <svg :class="statusCfg(toast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <template x-if="docNotifStatusCfg($store.docNotifToast.item?.status).cat === 'training'">
+                        <svg :class="docNotifStatusCfg($store.docNotifToast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.42A12.083 12.083 0 0121 12.5c0 2.485-4.03 4.5-9 4.5s-9-2.015-9-4.5c0-.83.264-1.607.836-2.42L12 14z"/>
                         </svg>
                     </template>
@@ -444,25 +444,25 @@
 
                 <div class="min-w-0 flex-1">
                     <div class="flex items-center justify-between">
-                        <span :class="statusCfg(toast.item?.status).iconText"
+                        <span :class="docNotifStatusCfg($store.docNotifToast.item?.status).iconText"
                             class="text-xs font-bold uppercase tracking-widest"
-                            x-text="(toast.item?.label ?? '') + ' — Notification'"></span>
-                        <button @click="toast.show = false" class="ml-2 shrink-0 rounded p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                            x-text="($store.docNotifToast.item?.label ?? '') + ' — Notification'"></span>
+                        <button @click="$store.docNotifToast.show = false" class="ml-2 shrink-0 rounded p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
                             <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
                         </button>
                     </div>
-                    <p x-text="toast.item?.docid" class="mt-0.5 text-sm font-semibold text-gray-800 dark:text-gray-100"></p>
-                    <template x-if="!toast.item?.comment">
-                        <p x-text="toast.item?.message" class="mt-0.5 text-xs text-gray-500 dark:text-gray-400 leading-relaxed"></p>
+                    <p x-text="$store.docNotifToast.item?.docid" class="mt-0.5 text-sm font-semibold text-gray-800 dark:text-gray-100"></p>
+                    <template x-if="!$store.docNotifToast.item?.comment">
+                        <p x-text="$store.docNotifToast.item?.message" class="mt-0.5 text-xs text-gray-500 dark:text-gray-400 leading-relaxed"></p>
                     </template>
-                    <template x-if="toast.item?.comment">
-                        <p x-text="'“' + toast.item.comment + '”'" class="mt-1 line-clamp-2 rounded-md bg-gray-50 px-2 py-1 text-[11px] italic text-gray-500 dark:bg-gray-700/40 dark:text-gray-400"></p>
+                    <template x-if="$store.docNotifToast.item?.comment">
+                        <p x-text="'“' + $store.docNotifToast.item.comment + '”'" class="mt-1 line-clamp-2 rounded-md bg-gray-50 px-2 py-1 text-[11px] italic text-gray-500 dark:bg-gray-700/40 dark:text-gray-400"></p>
                     </template>
-                    <a :href="toast.item ? (toast.item.href || `${toast.item.url}/${toast.item.hid}`) : '#'"
-                        @click="markRead(toast.item); toast.show = false"
-                        :class="statusCfg(toast.item?.status).iconText"
+                    <a :href="$store.docNotifToast.item ? ($store.docNotifToast.item.href || `${$store.docNotifToast.item.url}/${$store.docNotifToast.item.hid}`) : '#'"
+                        @click="markRead($store.docNotifToast.item); $store.docNotifToast.show = false"
+                        :class="docNotifStatusCfg($store.docNotifToast.item?.status).iconText"
                         class="mt-2 inline-flex items-center gap-1 text-xs font-semibold hover:underline">
                         View document
                         <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -477,6 +477,68 @@
 </div>
 
 <script>
+// Registered as an Alpine store (not a docNotifications() method) purely so the
+// teleported toast popup (<template x-teleport="body"> below) can reach it. Alpine
+// resolves plain identifiers in x-teleport'd markup through the *original* template
+// element's ancestor scope, and something about this page's bootstrap order was
+// intermittently leaving that ancestor scope unresolved — "toast/statusCfg is not
+// defined" — even though the same component's non-teleported bindings worked fine.
+// $store is a magic property Alpine exposes on every node regardless of DOM
+// position, so routing the toast's state (and this pure lookup function) through it
+// sidesteps the whole ancestor-scope question instead of chasing the bootstrap race.
+document.addEventListener('alpine:init', () => {
+    Alpine.store('docNotifToast', { show: false, item: null });
+});
+
+// Returns styling config for each status type. Pure function (no `this`), so it's a
+// plain global rather than a docNotifications() method — see the store comment above.
+// All class strings are full literals so Tailwind v4 includes them.
+function docNotifStatusCfg(status) {
+    const map = {
+        // Document statuses (existing)
+        'D': { iconBg: 'bg-amber-100 dark:bg-amber-900/30',   iconText: 'text-amber-600 dark:text-amber-400',   badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',   bar: 'bg-amber-500',  cat: 'edit'    },
+        'R': { iconBg: 'bg-red-100 dark:bg-red-900/30',       iconText: 'text-red-600 dark:text-red-400',       badge: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',           bar: 'bg-red-500',    cat: 'reject'  },
+        'H': { iconBg: 'bg-orange-100 dark:bg-orange-900/30', iconText: 'text-orange-600 dark:text-orange-400', badge: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400', bar: 'bg-orange-500', cat: 'hold'    },
+        // Ticket statuses
+        'TKT_CREATED':    { iconBg: 'bg-violet-100 dark:bg-violet-900/30', iconText: 'text-violet-600 dark:text-violet-400', badge: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400', bar: 'bg-violet-500', cat: 'info' },
+        'TKT_TRANSFER':   { iconBg: 'bg-amber-100 dark:bg-amber-900/30',   iconText: 'text-amber-600 dark:text-amber-400',   badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',     bar: 'bg-amber-500',   cat: 'warn'    },
+        'TKT_RESPONSE':   { iconBg: 'bg-blue-100 dark:bg-blue-900/30',     iconText: 'text-blue-600 dark:text-blue-400',     badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',         bar: 'bg-blue-500',    cat: 'info'    },
+        'TKT_PROCESS':    { iconBg: 'bg-indigo-100 dark:bg-indigo-900/30', iconText: 'text-indigo-600 dark:text-indigo-400', badge: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',  bar: 'bg-indigo-500',  cat: 'process' },
+        'TKT_PENDING':    { iconBg: 'bg-orange-100 dark:bg-orange-900/30', iconText: 'text-orange-600 dark:text-orange-400', badge: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',  bar: 'bg-orange-500',  cat: 'hold'    },
+        'TKT_ENVISION':   { iconBg: 'bg-indigo-100 dark:bg-indigo-900/30', iconText: 'text-indigo-600 dark:text-indigo-400', badge: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',  bar: 'bg-indigo-500',  cat: 'process' },
+        'TKT_ENV_SOLVED': { iconBg: 'bg-teal-100 dark:bg-teal-900/30',     iconText: 'text-teal-600 dark:text-teal-400',     badge: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',         bar: 'bg-teal-500',    cat: 'success' },
+        'TKT_COMPLETED':  { iconBg: 'bg-green-100 dark:bg-green-900/30',   iconText: 'text-green-600 dark:text-green-400',   badge: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',     bar: 'bg-green-500',   cat: 'success' },
+        'TKT_REOPEN':     { iconBg: 'bg-amber-100 dark:bg-amber-900/30',   iconText: 'text-amber-600 dark:text-amber-400',   badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',     bar: 'bg-amber-500',   cat: 'warn'    },
+        'TKT_CANCEL':     { iconBg: 'bg-red-100 dark:bg-red-900/30',       iconText: 'text-red-600 dark:text-red-400',       badge: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',             bar: 'bg-red-500',     cat: 'cancel'  },
+        // ITR statuses
+        'ITR_I':     { iconBg: 'bg-blue-100 dark:bg-blue-900/30',   iconText: 'text-blue-600 dark:text-blue-400',   badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',     bar: 'bg-blue-500',   cat: 'info'    },
+        'ITR_P':     { iconBg: 'bg-amber-100 dark:bg-amber-900/30', iconText: 'text-amber-600 dark:text-amber-400', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', bar: 'bg-amber-500',  cat: 'warn'    },
+        'ITR_D':     { iconBg: 'bg-amber-100 dark:bg-amber-900/30', iconText: 'text-amber-600 dark:text-amber-400', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', bar: 'bg-amber-500',  cat: 'edit'    },
+        'ITR_C':     { iconBg: 'bg-green-100 dark:bg-green-900/30', iconText: 'text-green-600 dark:text-green-400', badge: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', bar: 'bg-green-500',  cat: 'success' },
+        'ITR_R':     { iconBg: 'bg-red-100 dark:bg-red-900/30',     iconText: 'text-red-600 dark:text-red-400',     badge: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',         bar: 'bg-red-500',    cat: 'cancel'  },
+        'ITR_PIC_W': { iconBg: 'bg-amber-100 dark:bg-amber-900/30', iconText: 'text-amber-600 dark:text-amber-400', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', bar: 'bg-amber-500',  cat: 'warn'    },
+        'ITR_PIC_I': { iconBg: 'bg-red-100 dark:bg-red-900/30',     iconText: 'text-red-600 dark:text-red-400',     badge: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',         bar: 'bg-red-500',    cat: 'cancel'  },
+        // Access Request statuses
+        'ACC_R': { iconBg: 'bg-red-100 dark:bg-red-900/30',        iconText: 'text-red-600 dark:text-red-400',        badge: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',               bar: 'bg-red-500',     cat: 'cancel'  },
+        'ACC_P': { iconBg: 'bg-amber-100 dark:bg-amber-900/30',    iconText: 'text-amber-600 dark:text-amber-400',    badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',       bar: 'bg-amber-500',   cat: 'warn'    },
+        'ACC_C': { iconBg: 'bg-green-100 dark:bg-green-900/30',    iconText: 'text-green-600 dark:text-green-400',    badge: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',       bar: 'bg-green-500',   cat: 'success' },
+        'ACC_F': { iconBg: 'bg-emerald-100 dark:bg-emerald-900/30', iconText: 'text-emerald-600 dark:text-emerald-400', badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', bar: 'bg-emerald-500', cat: 'success' },
+        // BAST statuses
+        'BAST_JOB':   { iconBg: 'bg-orange-100 dark:bg-orange-900/30', iconText: 'text-orange-600 dark:text-orange-400', badge: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400', bar: 'bg-orange-500', cat: 'hold'    },
+        'BAST_APRV1': { iconBg: 'bg-teal-100 dark:bg-teal-900/30',    iconText: 'text-teal-600 dark:text-teal-400',    badge: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',         bar: 'bg-teal-500',   cat: 'bast_approve' },
+        // Comment mentions
+        'MENTION':    { iconBg: 'bg-violet-100 dark:bg-violet-900/30', iconText: 'text-violet-600 dark:text-violet-400', badge: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400', bar: 'bg-violet-500', cat: 'mention' },
+        'COMMENT':    { iconBg: 'bg-sky-100 dark:bg-sky-900/30',       iconText: 'text-sky-600 dark:text-sky-400',       badge: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',             bar: 'bg-sky-500',    cat: 'comment' },
+        // New unread inbox email
+        'MAIL':       { iconBg: 'bg-blue-100 dark:bg-blue-900/30',     iconText: 'text-blue-600 dark:text-blue-400',     badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',         bar: 'bg-blue-500',   cat: 'mail' },
+        // VPL stock expiry reminders (Voucher/Product batches nearing expired_date)
+        'VPL_EXPIRING': { iconBg: 'bg-amber-100 dark:bg-amber-900/30', iconText: 'text-amber-600 dark:text-amber-400', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', bar: 'bg-amber-500', cat: 'warn' },
+        // Newly published training schedule open for registration
+        'TRN_PUBLISHED': { iconBg: 'bg-emerald-100 dark:bg-emerald-900/30', iconText: 'text-emerald-600 dark:text-emerald-400', badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', bar: 'bg-emerald-500', cat: 'training' },
+    };
+    return map[status] || { iconBg: 'bg-gray-100 dark:bg-gray-700', iconText: 'text-gray-500 dark:text-gray-400', badge: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400', bar: 'bg-gray-500', cat: 'default' };
+}
+
 function docNotifications(mailboxConnected = false) {
     return {
         open: false,
@@ -484,7 +546,6 @@ function docNotifications(mailboxConnected = false) {
         mailboxConnected,
         items: [],
         count: 0,
-        toast: { show: false, item: null },
         _seenKey:      'doc_notif_seen_v1',
         _firstSeenKey: 'doc_notif_first_v1',
         _pendingKey:   'doc_notif_pending_dismiss_v1',
@@ -496,54 +557,6 @@ function docNotifications(mailboxConnected = false) {
         },
         get otherItems() {
             return this.items.filter(i => i.status !== 'MAIL');
-        },
-
-        // Returns styling config for each status type.
-        // All class strings are full literals so Tailwind v4 includes them.
-        statusCfg(status) {
-            const map = {
-                // Document statuses (existing)
-                'D': { iconBg: 'bg-amber-100 dark:bg-amber-900/30',   iconText: 'text-amber-600 dark:text-amber-400',   badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',   bar: 'bg-amber-500',  cat: 'edit'    },
-                'R': { iconBg: 'bg-red-100 dark:bg-red-900/30',       iconText: 'text-red-600 dark:text-red-400',       badge: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',           bar: 'bg-red-500',    cat: 'reject'  },
-                'H': { iconBg: 'bg-orange-100 dark:bg-orange-900/30', iconText: 'text-orange-600 dark:text-orange-400', badge: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400', bar: 'bg-orange-500', cat: 'hold'    },
-                // Ticket statuses
-                'TKT_CREATED':    { iconBg: 'bg-violet-100 dark:bg-violet-900/30', iconText: 'text-violet-600 dark:text-violet-400', badge: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400', bar: 'bg-violet-500', cat: 'info' },
-                'TKT_TRANSFER':   { iconBg: 'bg-amber-100 dark:bg-amber-900/30',   iconText: 'text-amber-600 dark:text-amber-400',   badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',     bar: 'bg-amber-500',   cat: 'warn'    },
-                'TKT_RESPONSE':   { iconBg: 'bg-blue-100 dark:bg-blue-900/30',     iconText: 'text-blue-600 dark:text-blue-400',     badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',         bar: 'bg-blue-500',    cat: 'info'    },
-                'TKT_PROCESS':    { iconBg: 'bg-indigo-100 dark:bg-indigo-900/30', iconText: 'text-indigo-600 dark:text-indigo-400', badge: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',  bar: 'bg-indigo-500',  cat: 'process' },
-                'TKT_PENDING':    { iconBg: 'bg-orange-100 dark:bg-orange-900/30', iconText: 'text-orange-600 dark:text-orange-400', badge: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',  bar: 'bg-orange-500',  cat: 'hold'    },
-                'TKT_ENVISION':   { iconBg: 'bg-indigo-100 dark:bg-indigo-900/30', iconText: 'text-indigo-600 dark:text-indigo-400', badge: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',  bar: 'bg-indigo-500',  cat: 'process' },
-                'TKT_ENV_SOLVED': { iconBg: 'bg-teal-100 dark:bg-teal-900/30',     iconText: 'text-teal-600 dark:text-teal-400',     badge: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',         bar: 'bg-teal-500',    cat: 'success' },
-                'TKT_COMPLETED':  { iconBg: 'bg-green-100 dark:bg-green-900/30',   iconText: 'text-green-600 dark:text-green-400',   badge: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',     bar: 'bg-green-500',   cat: 'success' },
-                'TKT_REOPEN':     { iconBg: 'bg-amber-100 dark:bg-amber-900/30',   iconText: 'text-amber-600 dark:text-amber-400',   badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',     bar: 'bg-amber-500',   cat: 'warn'    },
-                'TKT_CANCEL':     { iconBg: 'bg-red-100 dark:bg-red-900/30',       iconText: 'text-red-600 dark:text-red-400',       badge: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',             bar: 'bg-red-500',     cat: 'cancel'  },
-                // ITR statuses
-                'ITR_I':     { iconBg: 'bg-blue-100 dark:bg-blue-900/30',   iconText: 'text-blue-600 dark:text-blue-400',   badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',     bar: 'bg-blue-500',   cat: 'info'    },
-                'ITR_P':     { iconBg: 'bg-amber-100 dark:bg-amber-900/30', iconText: 'text-amber-600 dark:text-amber-400', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', bar: 'bg-amber-500',  cat: 'warn'    },
-                'ITR_D':     { iconBg: 'bg-amber-100 dark:bg-amber-900/30', iconText: 'text-amber-600 dark:text-amber-400', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', bar: 'bg-amber-500',  cat: 'edit'    },
-                'ITR_C':     { iconBg: 'bg-green-100 dark:bg-green-900/30', iconText: 'text-green-600 dark:text-green-400', badge: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', bar: 'bg-green-500',  cat: 'success' },
-                'ITR_R':     { iconBg: 'bg-red-100 dark:bg-red-900/30',     iconText: 'text-red-600 dark:text-red-400',     badge: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',         bar: 'bg-red-500',    cat: 'cancel'  },
-                'ITR_PIC_W': { iconBg: 'bg-amber-100 dark:bg-amber-900/30', iconText: 'text-amber-600 dark:text-amber-400', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', bar: 'bg-amber-500',  cat: 'warn'    },
-                'ITR_PIC_I': { iconBg: 'bg-red-100 dark:bg-red-900/30',     iconText: 'text-red-600 dark:text-red-400',     badge: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',         bar: 'bg-red-500',    cat: 'cancel'  },
-                // Access Request statuses
-                'ACC_R': { iconBg: 'bg-red-100 dark:bg-red-900/30',        iconText: 'text-red-600 dark:text-red-400',        badge: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',               bar: 'bg-red-500',     cat: 'cancel'  },
-                'ACC_P': { iconBg: 'bg-amber-100 dark:bg-amber-900/30',    iconText: 'text-amber-600 dark:text-amber-400',    badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',       bar: 'bg-amber-500',   cat: 'warn'    },
-                'ACC_C': { iconBg: 'bg-green-100 dark:bg-green-900/30',    iconText: 'text-green-600 dark:text-green-400',    badge: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',       bar: 'bg-green-500',   cat: 'success' },
-                'ACC_F': { iconBg: 'bg-emerald-100 dark:bg-emerald-900/30', iconText: 'text-emerald-600 dark:text-emerald-400', badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', bar: 'bg-emerald-500', cat: 'success' },
-                // BAST statuses
-                'BAST_JOB':   { iconBg: 'bg-orange-100 dark:bg-orange-900/30', iconText: 'text-orange-600 dark:text-orange-400', badge: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400', bar: 'bg-orange-500', cat: 'hold'    },
-                'BAST_APRV1': { iconBg: 'bg-teal-100 dark:bg-teal-900/30',    iconText: 'text-teal-600 dark:text-teal-400',    badge: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',         bar: 'bg-teal-500',   cat: 'bast_approve' },
-                // Comment mentions
-                'MENTION':    { iconBg: 'bg-violet-100 dark:bg-violet-900/30', iconText: 'text-violet-600 dark:text-violet-400', badge: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400', bar: 'bg-violet-500', cat: 'mention' },
-                'COMMENT':    { iconBg: 'bg-sky-100 dark:bg-sky-900/30',       iconText: 'text-sky-600 dark:text-sky-400',       badge: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',             bar: 'bg-sky-500',    cat: 'comment' },
-                // New unread inbox email
-                'MAIL':       { iconBg: 'bg-blue-100 dark:bg-blue-900/30',     iconText: 'text-blue-600 dark:text-blue-400',     badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',         bar: 'bg-blue-500',   cat: 'mail' },
-                // VPL stock expiry reminders (Voucher/Product batches nearing expired_date)
-                'VPL_EXPIRING': { iconBg: 'bg-amber-100 dark:bg-amber-900/30', iconText: 'text-amber-600 dark:text-amber-400', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', bar: 'bg-amber-500', cat: 'warn' },
-                // Newly published training schedule open for registration
-                'TRN_PUBLISHED': { iconBg: 'bg-emerald-100 dark:bg-emerald-900/30', iconText: 'text-emerald-600 dark:text-emerald-400', badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', bar: 'bg-emerald-500', cat: 'training' },
-            };
-            return map[status] || { iconBg: 'bg-gray-100 dark:bg-gray-700', iconText: 'text-gray-500 dark:text-gray-400', badge: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400', bar: 'bg-gray-500', cat: 'default' };
         },
 
         // Relative "when created" label (e.g. "5m ago", "3h ago", "2d ago").
@@ -725,8 +738,9 @@ function docNotifications(mailboxConnected = false) {
                         this._markFirstSeen(item.key); // no-op if already recorded
                     });
 
-                    this.toast = { show: true, item: { ...first, message: toastMsg } };
-                    setTimeout(() => { this.toast.show = false; }, 6000);
+                    this.$store.docNotifToast.item = { ...first, message: toastMsg };
+                    this.$store.docNotifToast.show = true;
+                    setTimeout(() => { this.$store.docNotifToast.show = false; }, 6000);
 
                     this._ping();
 

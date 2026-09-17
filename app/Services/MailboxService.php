@@ -128,6 +128,8 @@ class MailboxService
      */
     public static function fetchNew(MailboxAccount $account, string $folderPath = self::DEFAULT_FOLDER, int $lookbackDays = 14, int $limit = self::DEFAULT_FETCH_LIMIT, ?ImapClient $client = null): int
     {
+        static::raiseMemoryLimitForFetch();
+
         $ownsClient = $client === null;
         if ($ownsClient) {
             $client = static::imapClient($account);
@@ -179,6 +181,8 @@ class MailboxService
      */
     public static function fetchOlder(MailboxAccount $account, string $folderPath, int $limit = self::DEFAULT_FETCH_LIMIT): array
     {
+        static::raiseMemoryLimitForFetch();
+
         $client = static::imapClient($account);
         $client->connect();
 
@@ -375,6 +379,48 @@ class MailboxService
         static::ensureFolderExists($account, self::ARCHIVE_FOLDER);
 
         return static::moveMessage($account, $email, self::ARCHIVE_FOLDER);
+    }
+
+    /**
+     * fetchNew()/fetchOlder() pull up to DEFAULT_FETCH_LIMIT full message
+     * bodies (inline images base64-embedded) into memory at once — the
+     * web server's default memory_limit (commonly 128M) is tight enough
+     * that a handful of image-heavy messages can still exhaust it even at
+     * that page-sized batch, which used to surface as a raw PHP fatal
+     * error on the Sync / Load older buttons instead of a clean failure
+     * message. Only raises the limit, never lowers one already higher
+     * (e.g. the CLI scheduler's own php.ini setting).
+     */
+    protected static function raiseMemoryLimitForFetch(): void
+    {
+        $target = 512 * 1024 * 1024;
+        $current = static::iniBytes((string) ini_get('memory_limit'));
+
+        if ($current !== -1 && $current < $target) {
+            ini_set('memory_limit', '512M');
+        }
+    }
+
+    /**
+     * Parses a php.ini memory-size value ("128M", "1G", "-1" for unlimited)
+     * into bytes.
+     */
+    protected static function iniBytes(string $value): int
+    {
+        $value = trim($value);
+        if ($value === '' || $value === '-1') {
+            return -1;
+        }
+
+        $unit = strtolower(substr($value, -1));
+        $number = (int) $value;
+
+        return match ($unit) {
+            'g' => $number * 1024 * 1024 * 1024,
+            'm' => $number * 1024 * 1024,
+            'k' => $number * 1024,
+            default => $number,
+        };
     }
 
     protected static function manager(): ClientManager

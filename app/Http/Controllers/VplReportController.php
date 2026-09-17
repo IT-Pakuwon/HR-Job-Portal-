@@ -53,8 +53,8 @@ class VplReportController extends Controller
 
     private const USED_COLUMNS = ['Loyalty', 'Promotion', 'Entertainment', 'Internal Use'];
 
-    /** Per-request memoization for photoBase64() — the same product photo repeats across expiry batches. */
-    private array $photoBase64Cache = [];
+    /** Per-request memoization for photoBytes() — the same product photo repeats across expiry batches. */
+    private array $photoBytesCache = [];
 
     /*
     |--------------------------------------------------------------------------
@@ -694,9 +694,8 @@ class VplReportController extends Controller
                 'product_id'     => $product->product_id,
                 'tenant'         => $product->product_name,
                 'perusahaan'     => $product->product_source_company ?: '-',
-                'photo_url'      => $forExport
-                    ? $this->photoBase64($product->product_photo)
-                    : $this->photoSignedUrl($product->product_photo),
+                'photo_url'      => $forExport ? null : $this->photoSignedUrl($product->product_photo),
+                'photo'          => $forExport ? $this->photoBytes($product->product_photo) : null,
                 'category_label' => $row['category_label'],
                 'expired_date'   => $this->expiredKey($bal->expired_date) === 'NULL' ? null : $bal->expired_date,
                 'nominal'        => $price,
@@ -929,20 +928,27 @@ class VplReportController extends Controller
     }
 
     /**
-     * Embeds a GCS product photo as a base64 data URI instead of a signed URL — used for
-     * Excel export. PhpSpreadsheet's HTML-to-XLSX reader refuses to fetch remote http(s)
-     * image sources by default (Reader\BaseReader::$allowExternalImages = false, a
-     * built-in SSRF guard), so a signed URL like the web view uses silently renders no
-     * image at all. A data: URI bypasses that fetch entirely.
+     * Downloads a GCS product photo's raw bytes — used to embed a real image drawing
+     * into the Excel export via VplProductReportExport's AfterSheet event. A signed
+     * URL (like the web view uses) can't be used here: PhpSpreadsheet's HTML-to-XLSX
+     * reader refuses to fetch remote http(s) image sources by default
+     * (Reader\BaseReader::$allowExternalImages = false, a built-in SSRF guard). A
+     * data: URI <img> was tried instead, but the Xlsx writer's ContentTypes step
+     * can't resolve a MIME type for a data-URI drawing (it only handles real files
+     * and true URLs) and throws a Writer\Exception. Handing back raw bytes lets the
+     * export build a PhpSpreadsheet\Worksheet\MemoryDrawing directly, sidestepping
+     * both problems.
+     *
+     * @return array{bytes: string, extension: string}|null
      */
-    private function photoBase64(?string $path): ?string
+    private function photoBytes(?string $path): ?array
     {
         if (empty($path)) {
             return null;
         }
 
-        if (array_key_exists($path, $this->photoBase64Cache)) {
-            return $this->photoBase64Cache[$path];
+        if (array_key_exists($path, $this->photoBytesCache)) {
+            return $this->photoBytesCache[$path];
         }
 
         try {
@@ -953,14 +959,15 @@ class VplReportController extends Controller
             ]);
 
             $bytes = $storage->bucket($config['bucket'])->object($path)->downloadAsString();
-            $ext   = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-            $mime  = $ext === 'png' ? 'image/png' : ($ext === 'gif' ? 'image/gif' : 'image/jpeg');
 
-            return $this->photoBase64Cache[$path] = 'data:'.$mime.';base64,'.base64_encode($bytes);
+            return $this->photoBytesCache[$path] = [
+                'bytes'     => $bytes,
+                'extension' => strtolower(pathinfo($path, PATHINFO_EXTENSION)),
+            ];
         } catch (\Throwable $e) {
-            \Log::warning('VPL Product photo base64 export failed', ['path' => $path, 'error' => $e->getMessage()]);
+            \Log::warning('VPL Product photo download for export failed', ['path' => $path, 'error' => $e->getMessage()]);
 
-            return $this->photoBase64Cache[$path] = null;
+            return $this->photoBytesCache[$path] = null;
         }
     }
 
