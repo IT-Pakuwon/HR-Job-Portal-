@@ -17,6 +17,22 @@
         // survives refreshPanel()'s innerHTML swap.
         noMoreOlder: {},
 
+        // Folder sidebar collapse. Lives on the outer component (like
+        // noMoreOlder above) so it survives refreshPanel()'s innerHTML swap
+        // of #mailbox-panel. Persisted per-browser so a collapsed sidebar
+        // stays collapsed across visits, but defaults to open for anyone
+        // who hasn't touched it yet.
+        sidebarOpen: (() => {
+            try {
+                const saved = localStorage.getItem('mailbox_sidebar_open');
+                return saved === null ? true : saved === '1';
+            } catch (e) { return true; }
+        })(),
+        toggleSidebar() {
+            this.sidebarOpen = !this.sidebarOpen;
+            try { localStorage.setItem('mailbox_sidebar_open', this.sidebarOpen ? '1' : '0'); } catch (e) {}
+        },
+
         showToast(message, ok = true) {
             this.toast = message;
             this.toastOk = ok;

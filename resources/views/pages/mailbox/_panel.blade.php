@@ -14,18 +14,26 @@
     @endif
     <div class="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden lg:flex-row">
     <!-- FOLDER SIDEBAR -->
-    <div class="flex shrink-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] lg:w-56">
+    <div x-show="sidebarOpen" x-transition class="flex shrink-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] lg:w-56">
         <div class="flex items-start justify-between gap-2 border-b border-gray-100 px-4 py-4 dark:border-white/[0.06]">
             <div class="min-w-0">
                 <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">📧 Mailbox</h2>
                 <p class="mt-1 truncate text-sm text-gray-500 dark:text-gray-300">{{ $account->email }}</p>
             </div>
-            <button type="button" @click="syncNow()" :disabled="syncing" title="Sync now"
-                class="shrink-0 rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50 dark:hover:bg-white/[0.06] dark:hover:text-gray-200">
-                <svg class="h-4 w-4" :class="syncing ? 'animate-spin' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 12a9 9 0 0 1-15.5 6.5M3 12a9 9 0 0 1 15.5-6.5M21 3v6h-6M3 21v-6h6" />
-                </svg>
-            </button>
+            <div class="flex shrink-0 items-center gap-0.5">
+                <button type="button" @click="syncNow()" :disabled="syncing" title="Sync now"
+                    class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50 dark:hover:bg-white/[0.06] dark:hover:text-gray-200">
+                    <svg class="h-4 w-4" :class="syncing ? 'animate-spin' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12a9 9 0 0 1-15.5 6.5M3 12a9 9 0 0 1 15.5-6.5M21 3v6h-6M3 21v-6h6" />
+                    </svg>
+                </button>
+                <button type="button" @click="toggleSidebar()" title="Collapse sidebar"
+                    class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/[0.06] dark:hover:text-gray-200">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4 5 12l6 8M18 4l-6 8 6 8" />
+                    </svg>
+                </button>
+            </div>
         </div>
 
         <div class="p-2">
@@ -80,6 +88,12 @@
     <div class="flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
         <div class="flex shrink-0 flex-col gap-4 border-b border-gray-100 bg-gray-50/60 px-5 py-4 dark:border-white/[0.06] dark:bg-white/[0.02] sm:flex-row sm:items-center sm:justify-between">
             <div class="flex items-center gap-2.5">
+                <button type="button" x-show="!sidebarOpen" x-cloak @click="toggleSidebar()" title="Show folders"
+                    class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:border-white/[0.06] dark:hover:bg-white/[0.06] dark:hover:text-gray-200">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M13 4 19 12l-6 8M6 4l6 8-6 8" />
+                    </svg>
+                </button>
                 @php
                     $folderIcons = [
                         'INBOX'  => 'M22 12h-6l-2 3h-4l-2-3H2M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11Z',

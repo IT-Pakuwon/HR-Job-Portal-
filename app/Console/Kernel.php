@@ -111,6 +111,13 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/staging_vms_rfp.log'));
 
+        // Mirror IFCA's view_contract_agreement into staging_contract_agreement —
+        // the source view is too slow/fragile to query live from a web request.
+        $schedule->command('staging:contract-agreement')
+            ->dailyAt('02:30')
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/staging_contract_agreement.log'));
+
         // Expire training waitlist offers past their 24h window, cascade to next
         $schedule->command('training:expire-waitlist-offers')
             ->everyFiveMinutes()
