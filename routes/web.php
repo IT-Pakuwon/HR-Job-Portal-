@@ -157,6 +157,7 @@ use App\Http\Controllers\SysMenuController;
 use App\Http\Controllers\SysMenuFavouriteController;
 use App\Http\Controllers\SysRoleController;
 use App\Http\Controllers\SysRoleMenuController;
+use App\Http\Controllers\LegalAgreementController;
 use App\Http\Controllers\SysScreenController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TenantController;
@@ -1932,6 +1933,57 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/store-wa-setting', 'storeWaSetting')->name('ticketsetup.storeWaSetting');
             Route::put('/update-wa-setting/{id}', 'updateWaSetting')->name('ticketsetup.updateWaSetting');
             Route::delete('/destroy-wa-setting/{id}', 'destroyWaSetting')->name('ticketsetup.destroyWaSetting');
+        });
+
+        Route::prefix('legal-agreement')->controller(LegalAgreementController::class)->group(function () {
+            Route::middleware('access:LEGALAGREEMENT,VIEW')->group(function () {
+                Route::get('/', 'index')->name('legal-agreement');
+                Route::get('/export', 'export')->name('legal-agreement.export');
+                Route::get('/jobs/export', 'jobsExport')->name('legal-agreement.jobs.export');
+
+                Route::middleware('ajax')->group(function () {
+                    Route::get('/json', 'json')->name('legal-agreement.json');
+                    Route::get('/jobs/json', 'jobsJson')->name('legal-agreement.jobs.json');
+                    Route::get('/detail/{hash}', 'detail')->name('legal-agreement.detail');
+                    Route::get('/tracking/{hash}', 'tracking')->name('legal-agreement.tracking');
+                    Route::get('/comments/{hash}', 'comments')->name('legal-agreement.comments');
+                    Route::get('/mentionable-users/{hash}', 'mentionableUsers')->name('legal-agreement.mentionable-users');
+                    Route::get('/pic-search', 'picSearch')->name('legal-agreement.picSearch');
+                    Route::get('/counts', 'counts')->name('legal-agreement.counts');
+                    Route::get('/companies-search', 'companiesSearch')->name('legal-agreement.companiesSearch');
+                    Route::get('/create-dropdown', 'createDropdown')->name('legal-agreement.create-dropdown');
+                });
+
+                Route::get('/print/{hash}', 'printAgreement')->name('legal-agreement.print');
+            });
+
+            Route::middleware('access:LEGALAGREEMENT,CREATE')->group(function () {
+                Route::post('/store', 'store')->name('legal-agreement.store');
+            });
+
+            Route::middleware('access:LEGALAGREEMENT,EDIT')->group(function () {
+                Route::post('/update/{hash}', 'update')->name('legal-agreement.update');
+                Route::post('/hold/{hash}', 'holdAgreement')->name('legal-agreement.hold');
+                Route::post('/activate/{hash}', 'activateAgreement')->name('legal-agreement.activate');
+                Route::post('/escalate/{hash}', 'escalateAgreement')->name('legal-agreement.escalate');
+                Route::post('/complete/{hash}', 'completeAgreement')->name('legal-agreement.complete');
+                Route::post('/comment/{hash}', 'comment')->name('legal-agreement.comment');
+                Route::post('/jobs/update-status', 'jobsUpdateStatus')->name('legal-agreement.jobs.updateStatus');
+            });
+        });
+
+        Route::controller(LegalAgreementController::class)->group(function () {
+            Route::middleware('access:LEGALAGREEMENT,VIEW')->group(function () {
+                Route::get('/show-legal-agreement/{eid}', 'index');
+            });
+
+            Route::middleware('access:LEGALAGREEMENT,EDIT')->group(function () {
+                Route::get('/edit-legal-agreement/{eid}', 'index');
+                Route::get('/hold-legal-agreement/{eid}', 'index');
+                Route::get('/activate-legal-agreement/{eid}', 'index');
+                Route::get('/escalate-legal-agreement/{eid}', 'index');
+                Route::get('/complete-legal-agreement/{eid}', 'index');
+            });
         });
 
         Route::prefix('luckydraw-setup')->controller(LuckydrawSetupController::class)->group(function () {

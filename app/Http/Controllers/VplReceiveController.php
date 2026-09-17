@@ -293,10 +293,12 @@ class VplReceiveController extends Controller
         );
 
         $details = TrxVplReceiveDetail::join('ms_vpl_product', 'tr_vpl_receive_detail.product_id', '=', 'ms_vpl_product.product_id')
-            ->select('tr_vpl_receive_detail.*', 'ms_vpl_product.product_name', 'ms_vpl_product.product_uom')
+            ->select('tr_vpl_receive_detail.*', 'ms_vpl_product.product_name', 'ms_vpl_product.product_uom', 'ms_vpl_product.product_source_tenant')
             ->where('receive_id', $receive->receive_id)
             ->orderBy('linenbr')
             ->get();
+
+        $tenantNames = $details->pluck('product_source_tenant')->filter()->unique()->implode(', ');
 
         $approvals = TrApproval::where('refnbr', $receive->receive_id)
             ->where('aprv_doctype', self::DOCTYPE)
@@ -312,6 +314,7 @@ class VplReceiveController extends Controller
             'details' => $details,
             'approvals' => $approvals,
             'companyName' => $company->cpnyname ?? $receive->cpnyid,
+            'tenantNames' => $tenantNames,
         ])->setPaper('a4', 'landscape');
 
         return $pdf->stream($receive->receive_id.'.pdf');

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Mail;
 use Symfony\Component\Mime\Email as MimeEmail;
 use Webklex\PHPIMAP\Client as ImapClient;
 use Webklex\PHPIMAP\ClientManager;
+use Webklex\PHPIMAP\Exceptions\MessageHeaderFetchingException;
 use Webklex\PHPIMAP\Message as ImapMessage;
 
 class MailboxService
@@ -336,8 +337,23 @@ class MailboxService
         // rather than deleting the local record for a message that never
         // actually moved, which would otherwise make it vanish from the
         // app while still sitting untouched in its original server folder.
-        $copied = $message->copy($targetFolder);
-        if (!$copied) {
+        //
+        // copy() internally validates the IMAP COPY command *before* it
+        // immediately reads back the new message's headers to hand us a
+        // Message object — that read-back has no retry of its own (unlike
+        // getMessageByUidWithRetry() above), so on a server slow to index a
+        // just-copied message it throws "no headers found" even though the
+        // copy itself already succeeded. Treat that specific exception as a
+        // successful move with no object to cache locally — the next sync
+        // of $targetFolder will pick the copy up normally.
+        try {
+            $copied = $message->copy($targetFolder);
+            $copySucceeded = (bool) $copied;
+        } catch (MessageHeaderFetchingException $e) {
+            $copied = null;
+            $copySucceeded = true;
+        }
+        if (!$copySucceeded) {
             $client->disconnect();
             return false;
         }
@@ -346,7 +362,9 @@ class MailboxService
         $client->disconnect();
 
         $email->delete();
-        static::upsertMessage($account, $targetFolder, $copied);
+        if ($copied) {
+            static::upsertMessage($account, $targetFolder, $copied);
+        }
 
         return true;
     }
