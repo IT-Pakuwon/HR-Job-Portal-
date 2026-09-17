@@ -25,8 +25,8 @@
 
     <table class="info-box">
         <tr>
-            <td class="label">V/P Type</td><td class="value">{{ strtoupper($receive->vp_type) === 'V' ? 'Voucher' : 'Product' }}</td>
-            <td class="label">Tenant</td><td class="value">{{ $receive->receive_tenant ?: '-' }}</td>
+            <td class="label">V/P Type</td><td class="value">{{ ucfirst(strtolower($receive->vp_type ?? '')) ?: '-' }}</td>
+            <td class="label">Tenant</td><td class="value">{{ $tenantNames ?: ($receive->receive_tenant ?: '-') }}</td>
         </tr>
         <tr>
             <td class="label">Source of Receive</td><td class="value">{{ $receive->receive_type ?: '-' }}</td>
