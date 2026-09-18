@@ -13,10 +13,12 @@ use App\Models\MsTicketCategoryDept;
 use App\Models\MsVplProduct;
 use App\Models\MsVplProductDetail;
 use App\Models\Personnel;
+use App\Http\Controllers\LegalAgreementController;
 use App\Models\StoSubGradingJobLevel;
 use App\Models\SysCalendar;
 use App\Models\SysUserRole;
 use App\Models\TrAccess;
+use App\Models\TrAgreement;
 use App\Models\TrApproval;
 use App\Models\TrBast;
 use App\Models\TrCalr;
@@ -927,6 +929,75 @@ class DocumentNotificationService
             }
         } catch (\Throwable $e) {
             Log::warning('DocumentNotificationService: Mailbox unread fetch failed', ['err' => $e->getMessage()]);
+        }
+
+        // ── 14. Legal Agreement: Surat 1 / Surat 2 / auto-escalation already sent —
+        //       tells Created User + PIC Legal + PIC Leasing the letter already
+        //       went out (the escalation *email* itself only goes to PIC Leasing,
+        //       so this is how Legal/Creator learn about it too). Reuses the same
+        //       agreementCycleInfo() the list UI and the scheduler both use, so it
+        //       naturally disappears once the agreement moves to the next stage —
+        //       no explicit dismiss needed.
+        try {
+            $myAgreements = TrAgreement::where(function ($q) use ($username) {
+                    $q->where('created_user', $username)
+                        ->orWhere(function ($q2) use ($username) {
+                            $q2->wherePicLegalOrLeasing($username);
+                        });
+                })
+                ->whereIn('agreement_step_id', ['ACTIVE', 'ESCALATED'])
+                ->whereNull('deleted_at')
+                ->get();
+
+            if ($myAgreements->isNotEmpty()) {
+                $agreementController = app(LegalAgreementController::class);
+
+                $entries = collect();
+
+                foreach ($myAgreements as $agreement) {
+                    $info = $agreementController->agreementCycleInfo($agreement);
+
+                    $letter = match ($info['cycle']) {
+                        'REMINDER1' => [
+                            'suffix'  => 'SURAT1',
+                            'label'   => 'Surat 1 Sent',
+                            'message' => 'Surat 1 (first reminder) has already been sent to the tenant for this agreement.',
+                        ],
+                        'REMINDER2' => [
+                            'suffix'  => 'SURAT2',
+                            'label'   => 'Surat 2 Sent',
+                            'message' => 'Surat 2 (final reminder) has already been sent to the tenant for this agreement.',
+                        ],
+                        'ESCALATED' => [
+                            'suffix'  => 'ESCALATED',
+                            'label'   => 'Escalated',
+                            'message' => 'This agreement was automatically escalated to Marketing/Leasing after two reminders went unanswered.',
+                        ],
+                        default => null,
+                    };
+
+                    if (!$letter) {
+                        continue;
+                    }
+
+                    $entries->push([
+                        'key'        => strtoupper($agreement->agreement_id) . '_AGR_' . $letter['suffix'],
+                        'hid'        => Hashids::encode($agreement->id),
+                        'docid'      => $agreement->agreement_id,
+                        'status'     => 'AGR_' . $letter['suffix'],
+                        'label'      => $letter['label'],
+                        'message'    => $letter['message'],
+                        'cpnyid'     => $agreement->cpny_id,
+                        'url'        => '/legal-agreement',
+                        'by'         => null,
+                        'updated_at' => $agreement->agreement_step_created_at ?? $agreement->updated_at,
+                    ]);
+                }
+
+                $data = $data->concat($entries);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('DocumentNotificationService: Legal Agreement follow-up fetch failed', ['err' => $e->getMessage()]);
         }
 
         return $data->sortByDesc(fn($r) => $r['updated_at'])->values()->all();

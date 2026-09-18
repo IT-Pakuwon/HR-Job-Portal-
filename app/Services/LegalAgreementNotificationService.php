@@ -6,7 +6,10 @@ use App\Mail\AgreementActivatedMail;
 use App\Mail\AgreementCompletedMail;
 use App\Mail\AgreementCreatedMail;
 use App\Mail\AgreementEscalatedMail;
+use App\Mail\AgreementEscalationMail;
 use App\Mail\AgreementHoldMail;
+use App\Mail\AgreementSurat1Mail;
+use App\Mail\AgreementSurat2Mail;
 use App\Models\TrAgreement;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
@@ -24,21 +27,12 @@ class LegalAgreementNotificationService
             ?: $user->email;
     }
 
-    /**
-     * Creator + PIC Legal only — PIC Leasing is deliberately not notified
-     * on any of these agreement emails.
-     */
-    protected function recipientEmails(TrAgreement $agreement): \Illuminate\Support\Collection
+    protected function emailsForUsernames(\Illuminate\Support\Collection $usernames): \Illuminate\Support\Collection
     {
         $emails = collect();
 
-        $usernames = collect([$agreement->created_user])
-            ->merge($agreement->picLegalList())
-            ->filter()
-            ->unique();
-
         $users = User::query()
-            ->whereIn('username', $usernames)
+            ->whereIn('username', $usernames->filter()->unique()->values())
             ->where('status', 'A')
             ->get();
 
@@ -53,94 +47,214 @@ class LegalAgreementNotificationService
         return $emails->filter()->unique()->values();
     }
 
+    protected function emailForUsername(?string $username): ?string
+    {
+        if (!$username) {
+            return null;
+        }
+
+        return $this->emailsForUsernames(collect([$username]))->first();
+    }
+
+    protected function creatorEmail(TrAgreement $agreement): ?string
+    {
+        return $this->emailForUsername($agreement->created_user);
+    }
+
+    protected function picLegalEmails(TrAgreement $agreement): array
+    {
+        return $this->emailsForUsernames(collect($agreement->picLegalList()))->all();
+    }
+
+    protected function picLeasingEmails(TrAgreement $agreement): array
+    {
+        return $this->emailsForUsernames(collect($agreement->picLeasingList()))->all();
+    }
+
+    /**
+     * Sends one real email with proper To/Cc/Bcc headers — as opposed to
+     * looping over a flat recipient list and sending N separate copies
+     * (the old approach, where every recipient saw themselves as the sole
+     * "To" and couldn't see who else was notified).
+     */
+    protected function sendAgreementMail(
+        TrAgreement $agreement,
+        $mailable,
+        $to,
+        array $cc = [],
+        array $bcc = [],
+        string $logLabel = 'Agreement Mail'
+    ): void {
+        $to = is_array($to) ? array_values(array_filter($to)) : $to;
+
+        if (empty($to)) {
+            Log::warning("$logLabel: no primary (To) recipient resolved, mail not sent", [
+                'agreement_id' => $agreement->agreement_id,
+            ]);
+
+            return;
+        }
+
+        try {
+            $mail = Mail::to($to);
+
+            if (!empty($cc)) {
+                $mail->cc($cc);
+            }
+
+            if (!empty($bcc)) {
+                $mail->bcc($bcc);
+            }
+
+            $mail->send($mailable);
+        } catch (\Throwable $e) {
+            Log::error("$logLabel Failed", [
+                'agreement_id' => $agreement->agreement_id,
+                'to' => $to,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Creator + PIC Legal only — used just for comment notifications, which
+     * still get a flat recipient list (a comment reply doesn't have a
+     * single obvious "To"). Every other agreement email uses
+     * sendAgreementMail() with a real To/Cc/Bcc split instead.
+     */
+    protected function recipientEmails(TrAgreement $agreement): \Illuminate\Support\Collection
+    {
+        return $this->emailsForUsernames(
+            collect([$agreement->created_user])
+                ->merge($agreement->picLegalList())
+        );
+    }
+
     public function agreementCreated(
         TrAgreement $agreement
     ) {
-        foreach ($this->recipientEmails($agreement) as $email) {
-            try {
-                Mail::to($email)->send(
-                    new AgreementCreatedMail($agreement)
-                );
-            } catch (\Throwable $e) {
-                Log::error('Agreement Created Mail Failed', [
-                    'agreement_id' => $agreement->agreement_id,
-                    'email' => $email,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
+        $this->sendAgreementMail(
+            $agreement,
+            new AgreementCreatedMail($agreement),
+            $this->creatorEmail($agreement),
+            $this->picLeasingEmails($agreement),
+            $this->picLegalEmails($agreement),
+            'Agreement Created Mail'
+        );
     }
 
     public function agreementHeld(
         TrAgreement $agreement
     ) {
-        foreach ($this->recipientEmails($agreement) as $email) {
-            try {
-                Mail::to($email)->send(
-                    new AgreementHoldMail($agreement)
-                );
-            } catch (\Throwable $e) {
-                Log::error('Agreement Hold Mail Failed', [
-                    'agreement_id' => $agreement->agreement_id,
-                    'email' => $email,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
+        $this->sendAgreementMail(
+            $agreement,
+            new AgreementHoldMail($agreement),
+            $this->creatorEmail($agreement),
+            $this->picLeasingEmails($agreement),
+            $this->picLegalEmails($agreement),
+            'Agreement Hold Mail'
+        );
     }
 
     public function agreementActivated(
         TrAgreement $agreement
     ) {
-        foreach ($this->recipientEmails($agreement) as $email) {
-            try {
-                Mail::to($email)->send(
-                    new AgreementActivatedMail($agreement)
-                );
-            } catch (\Throwable $e) {
-                Log::error('Agreement Activated Mail Failed', [
-                    'agreement_id' => $agreement->agreement_id,
-                    'email' => $email,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
+        $this->sendAgreementMail(
+            $agreement,
+            new AgreementActivatedMail($agreement),
+            $this->creatorEmail($agreement),
+            $this->picLeasingEmails($agreement),
+            $this->picLegalEmails($agreement),
+            'Agreement Activated Mail'
+        );
+    }
+
+    /**
+     * Surat 1 / Surat 2 both go to the tenant PIC directly (an external
+     * recipient, unlike every other agreement email) in addition to
+     * Creator + PIC Legal + PIC Leasing, since they're reminder letters
+     * addressed to the tenant.
+     */
+    public function agreementSurat1(
+        TrAgreement $agreement
+    ) {
+        $this->sendAgreementMail(
+            $agreement,
+            new AgreementSurat1Mail($agreement),
+            $agreement->pic_email_penyewa,
+            array_merge($this->picLegalEmails($agreement), $this->picLeasingEmails($agreement)),
+            array_filter([$this->creatorEmail($agreement)]),
+            'Agreement Surat 1 Mail'
+        );
+    }
+
+    /**
+     * $surat1SentDate: when Surat 1 actually went out. Pass the real
+     * timestamp once it's tracked; until then callers should pass
+     * psm_or_addendum_delivery_date + 14 days (see AgreementSurat2Mail).
+     */
+    public function agreementSurat2(
+        TrAgreement $agreement,
+        $surat1SentDate
+    ) {
+        $this->sendAgreementMail(
+            $agreement,
+            new AgreementSurat2Mail($agreement, $surat1SentDate),
+            $agreement->pic_email_penyewa,
+            array_merge($this->picLegalEmails($agreement), $this->picLeasingEmails($agreement)),
+            array_filter([$this->creatorEmail($agreement)]),
+            'Agreement Surat 2 Mail'
+        );
     }
 
     public function agreementEscalated(
         TrAgreement $agreement
     ) {
-        foreach ($this->recipientEmails($agreement) as $email) {
-            try {
-                Mail::to($email)->send(
-                    new AgreementEscalatedMail($agreement)
-                );
-            } catch (\Throwable $e) {
-                Log::error('Agreement Escalated Mail Failed', [
-                    'agreement_id' => $agreement->agreement_id,
-                    'email' => $email,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
+        $this->sendAgreementMail(
+            $agreement,
+            new AgreementEscalatedMail($agreement),
+            $this->creatorEmail($agreement),
+            $this->picLeasingEmails($agreement),
+            $this->picLegalEmails($agreement),
+            'Agreement Escalated Mail'
+        );
+    }
+
+    /**
+     * The automatic H+7-after-Surat-2 escalation notice — distinct from
+     * agreementEscalated() above (the manual "Escalate" button's generic
+     * email). Goes to Marketing/Leasing only (PIC Leasing) — not Created
+     * User, not PIC Legal, and no tenant — since the point of escalating is
+     * to hand this to the Leasing team to chase, not to inform everyone
+     * who already knows (Legal sent Surat 1/2 themselves). Attaches a
+     * reconstructed copy of Surat 2 for reference.
+     */
+    public function agreementEscalationNotice(
+        TrAgreement $agreement,
+        $surat1SentDate,
+        $surat2SentDate
+    ) {
+        $this->sendAgreementMail(
+            $agreement,
+            new AgreementEscalationMail($agreement, $surat1SentDate, $surat2SentDate),
+            $this->picLeasingEmails($agreement),
+            [],
+            [],
+            'Agreement Escalation Notice Mail'
+        );
     }
 
     public function agreementCompleted(
         TrAgreement $agreement
     ) {
-        foreach ($this->recipientEmails($agreement) as $email) {
-            try {
-                Mail::to($email)->send(
-                    new AgreementCompletedMail($agreement)
-                );
-            } catch (\Throwable $e) {
-                Log::error('Agreement Completed Mail Failed', [
-                    'agreement_id' => $agreement->agreement_id,
-                    'email' => $email,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
+        $this->sendAgreementMail(
+            $agreement,
+            new AgreementCompletedMail($agreement),
+            $this->creatorEmail($agreement),
+            $this->picLeasingEmails($agreement),
+            $this->picLegalEmails($agreement),
+            'Agreement Completed Mail'
+        );
     }
 
     public function agreementCommented(

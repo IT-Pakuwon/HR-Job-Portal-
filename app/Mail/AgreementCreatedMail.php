@@ -25,8 +25,9 @@ class AgreementCreatedMail extends Mailable
         return $this
 
             ->subject(
-                '[LEGAL AGREEMENT][NEW] '
+                '[LEGAL AGREEMENT][SENT] '
                 . $this->agreement->agreement_id
+                . ' - PSM/Addendum Delivered to Tenant'
             )
 
             ->view(

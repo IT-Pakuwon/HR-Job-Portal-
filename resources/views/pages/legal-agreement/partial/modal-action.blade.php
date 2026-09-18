@@ -28,7 +28,8 @@
                     </div>
                 </div>
 
-                <div id="action_psm_fields" class="hidden space-y-5">
+                <div id="action_psm_fields" class="hidden space-y-2">
+                    <p id="action_psm_hint" class="hidden text-xs text-slate-400"></p>
                     <div>
                         <label class="agr-label">No. PSM / Addendum</label>
                         <input type="text" name="no_psm_or_addendum" class="agr-input" />
@@ -51,7 +52,7 @@
                 </div>
 
                 <div id="action_attachment_fields" class="hidden">
-                    <label class="agr-label">Attachments</label>
+                    <label id="action_attachment_label" class="agr-label">Attachments</label>
                     <input type="file" id="action_attachments" multiple class="agr-input pt-3" />
                     <div id="action_attachment_list" class="mt-3 space-y-2"></div>
                 </div>

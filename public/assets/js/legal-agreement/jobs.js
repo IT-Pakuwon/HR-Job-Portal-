@@ -67,16 +67,20 @@ function renderPropertyCdBadge(code) {
 }
 
 function renderJobStatusAction(row) {
+    // Only offer statuses other than the row's current one - changing a
+    // status to itself isn't a real action (e.g. Pending can't "change to" Pending).
     const options = Object.keys(JOB_STATUS_LABELS)
-        .map((key) => `<option value="${key}" ${row.status === key ? 'selected' : ''}>${JOB_STATUS_LABELS[key]}</option>`)
+        .filter((key) => key !== row.status)
+        .map((key) => `<option value="${key}">${JOB_STATUS_LABELS[key]}</option>`)
         .join('');
 
     return `
         <div class="relative inline-block">
-            <select class="job-status-select cursor-pointer rounded-full border pl-3 pr-7 py-1.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 dark:focus:ring-offset-slate-900 ${jobStatusSelectClass(row.status)}"
+            <select class="job-status-select cursor-pointer rounded-full border pl-3 pr-7 py-1.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 dark:focus:ring-offset-slate-900 ${jobStatusSelectClass('default')}"
                 style="-webkit-appearance:none;-moz-appearance:none;appearance:none;background-image:none;"
                 data-cpny_id="${row.cpny_id ?? ''}"
                 data-business_id="${row.business_id ?? ''}">
+                <option value="" selected disabled>Change Status</option>
                 ${options}
             </select>
             <i class="fa-solid fa-chevron-down pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[9px] opacity-60"></i>

@@ -10,6 +10,8 @@ class TrAgreementHist extends Model
     protected $connection = 'pgsql5';
     protected $table = 'tr_agreement_hist';
     protected $primaryKey = 'hist_agreement_id';
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $fillable = [
         'hist_agreement_id', 'hist_renewal_sequence', 'agreement_date', 'prev_agreement_id', 'cpny_id', 'site_id',

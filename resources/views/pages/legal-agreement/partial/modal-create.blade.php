@@ -165,8 +165,9 @@
                             <label class="agr-label">Proof of Delivery <span class="text-red-500">*</span></label>
                             <div class="agr-file">
                                 <i class="fa-solid fa-cloud-arrow-up"></i>
-                                <input type="file" name="bukti_pengiriman[]" id="create_bukti_pengiriman" multiple required />
+                                <input type="file" name="bukti_pengiriman[]" id="create_bukti_pengiriman" multiple required accept=".jpg,.jpeg,.png,.pdf" />
                             </div>
+                            <p class="mt-1.5 text-xs text-slate-400">Maximum 5 MB per file. Allowed formats: JPG, JPEG, PNG, PDF. You can select multiple files.</p>
                         </div>
 
                     </div>

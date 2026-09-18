@@ -61,6 +61,33 @@
 
     <tr>
         <td style="padding:11px 16px 11px 0;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
+            PSM/Addendum No.
+        </td>
+        <td style="padding:11px 0;font-size:13px;font-weight:700;color:#1e293b;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
+            {{ $agreement->no_psm_or_addendum ?: '-' }}
+        </td>
+    </tr>
+
+    <tr>
+        <td style="padding:11px 16px 11px 0;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
+            Document Date
+        </td>
+        <td style="padding:11px 0;font-size:13px;color:#334155;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
+            {{ $agreement->psm_or_addendum_date ? \Carbon\Carbon::parse($agreement->psm_or_addendum_date)->format('d M Y') : '-' }}
+        </td>
+    </tr>
+
+    <tr>
+        <td style="padding:11px 16px 11px 0;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
+            Sent On
+        </td>
+        <td style="padding:11px 0;font-size:13px;font-weight:700;color:#1e293b;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
+            {{ $agreement->psm_or_addendum_delivery_date ? \Carbon\Carbon::parse($agreement->psm_or_addendum_delivery_date)->format('d M Y') : '-' }}
+        </td>
+    </tr>
+
+    <tr>
+        <td style="padding:11px 16px 11px 0;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
             PIC Legal
         </td>
         <td style="padding:11px 0;font-size:13px;color:#334155;vertical-align:middle;border-bottom:1px solid #f1f5f9;">

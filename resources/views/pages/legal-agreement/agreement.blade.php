@@ -97,7 +97,8 @@
                             <th class="px-4 py-3 text-left">PIC Legal</th>
                             <th class="px-4 py-3 text-left">PIC Leasing</th>
                             <th class="px-4 py-3 text-left">Step</th>
-                            <th class="px-4 py-3 text-left">Status</th>
+                            <th class="px-4 py-3 text-left">Days</th>
+                            <th class="px-4 py-3 text-left">Cycle</th>
                             <th class="px-4 py-3 text-right">Actions</th>
                         </tr>
                     </thead>

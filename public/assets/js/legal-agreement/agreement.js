@@ -97,16 +97,51 @@ function stepBadgeClass(step) {
 }
 
 function renderStepBadge(step) {
-    return `<span class="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${stepBadgeClass(step)}">${step ?? '-'}</span>`;
+    const label = (step || '').toUpperCase() === 'COMPLETED' ? 'Done' : (step ?? '-');
+    return `<span class="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${stepBadgeClass(step)}">${label}</span>`;
 }
 
-function statusLabel(status) {
-    switch (status) {
-        case 'P': return 'Open';
-        case 'C': return 'Completed';
-        case 'X': return 'Cancelled';
-        default: return status ?? '-';
+const CYCLE_LABELS = {
+    AWAL: 'Awal',
+    REMINDER1: 'Reminder 1',
+    REMINDER2: 'Reminder 2',
+    ESCALATED: 'Escalated',
+};
+
+function cycleBadgeClass(cycle) {
+    switch (cycle) {
+        case 'AWAL': return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+        case 'REMINDER1': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
+        case 'REMINDER2': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300';
+        case 'ESCALATED': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300';
+        default: return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
     }
+}
+
+function renderCycleBadge(info) {
+    if (!info || !info.cycle) return '<span class="text-slate-400">-</span>';
+
+    const label = CYCLE_LABELS[info.cycle] || info.cycle;
+
+    return `<span class="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${cycleBadgeClass(info.cycle)}">${label}</span>`;
+}
+
+function renderDaysCell(info) {
+    if (!info || info.days_elapsed === null || info.days_elapsed === undefined) {
+        return '<span class="text-slate-400 text-xs">-</span>';
+    }
+
+    const { days_elapsed, days_threshold } = info;
+    const overdue = days_threshold != null && days_elapsed >= days_threshold;
+    const nearing = !overdue && days_threshold != null && days_elapsed >= days_threshold - 3;
+    const cls = overdue
+        ? 'text-red-600 dark:text-red-400'
+        : nearing
+            ? 'text-amber-600 dark:text-amber-400'
+            : 'text-slate-600 dark:text-slate-300';
+    const suffix = days_threshold != null ? ` of ${days_threshold}` : '';
+
+    return `<span class="text-xs font-semibold ${cls}">Day ${days_elapsed}${suffix}</span>`;
 }
 
 /* ----------------------------------------------------------------------
@@ -259,7 +294,8 @@ function initDataTable() {
             { data: 'pic_legal', name: 'pic_legal', render: (d) => d || '-' },
             { data: 'pic_leasing', name: 'pic_leasing', render: (d) => d || '-' },
             { data: 'agreement_step_id', name: 'agreement_step_id', render: (d) => renderStepBadge(d) },
-            { data: 'status', name: 'status', render: (d) => statusLabel(d) },
+            { data: 'cycle_info', orderable: false, searchable: false, render: (info) => renderDaysCell(info) },
+            { data: 'cycle_info', orderable: false, searchable: false, render: (info) => renderCycleBadge(info) },
             {
                 data: 'eid',
                 orderable: false,
@@ -484,9 +520,11 @@ function renderCreateReview() {
                 ${row('Trade Name', dash(val('trade_name')))}
                 ${row('Floor', dash(val('floor_id')))}
                 ${row('Unit', dash(val('unit_id')))}
-                ${row('Tenant PIC Name', dash(val('pic_penyewa')))}
-                ${row('Tenant Phone Number', dash(val('pic_phonenumber_penyewa')))}
-                ${row('Tenant Email', dash(val('pic_email_penyewa')))}
+                <div class="grid grid-cols-1 gap-4 sm:col-span-2 sm:grid-cols-3">
+                    ${row('Tenant PIC Name', dash(val('pic_penyewa')))}
+                    ${row('Tenant Phone Number', dash(val('pic_phonenumber_penyewa')))}
+                    ${row('Tenant Email', dash(val('pic_email_penyewa')))}
+                </div>
                 <div class="sm:col-span-2">
                     <p class="text-xs text-slate-400">Tenant Correspondence Address</p>
                     <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">${dash(val('business_address'))}</p>
@@ -497,9 +535,11 @@ function renderCreateReview() {
         <div class="rounded-xl border border-slate-200 p-4 dark:border-white/[0.06]">
             <p class="mb-3 text-xs font-bold uppercase tracking-wide text-slate-400">2. Document Information</p>
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                ${row('PSM / Addendum Number', dash(val('no_psm_or_addendum')))}
-                ${row('PSM / Addendum Date', dateOrDash(val('psm_or_addendum_date')))}
-                ${row('Hardcopy Delivery Date', dateOrDash(val('psm_or_addendum_delivery_date')))}
+                <div class="grid grid-cols-1 gap-4 sm:col-span-2 sm:grid-cols-3">
+                    ${row('PSM / Addendum Number', dash(val('no_psm_or_addendum')))}
+                    ${row('PSM / Addendum Date', dateOrDash(val('psm_or_addendum_date')))}
+                    ${row('Hardcopy Delivery Date', dateOrDash(val('psm_or_addendum_delivery_date')))}
+                </div>
                 <div class="sm:col-span-2">
                     <p class="text-xs text-slate-400">PIC Legal</p>
                     <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">${dash(picLegalText)}</p>
@@ -581,6 +621,7 @@ function populateAgreementDetail(a) {
     $('#detail_cpny_id').text(a.cpny_id || '-');
     $('#detail_agreement_date').text(formatDate(a.agreement_date));
     $('#detail_step').html(renderStepBadge(a.agreement_step_id));
+    $('#detail_cycle').html(`${renderCycleBadge(a.cycle_info)} ${renderDaysCell(a.cycle_info)}`);
     $('#detail_business_name').text(a.business_name || '-');
     $('#detail_trade_name').text(a.trade_name || '-');
     $('#detail_tenant_no').text(a.tenant_no || '-');
@@ -695,9 +736,16 @@ function renderActionButtons(actions, agreement) {
 
 const ACTION_CONFIG = {
     hold: { title: 'Put Agreement On Hold', url: Agreement.routes.hold, pic: false, descrRequired: true, attachments: false, psm: false },
-    activate: { title: 'Activate Agreement', url: Agreement.routes.activate, pic: true, descrRequired: false, attachments: false, psm: false },
+    activate: {
+        title: 'Activate Agreement', url: Agreement.routes.activate, pic: true, descrRequired: false,
+        attachments: true, psm: true,
+        attachmentField: 'bukti_pengiriman',
+        attachmentLabel: 'Proof of Delivery (revised hardcopy)',
+        attachmentAccept: '.jpg,.jpeg,.png,.pdf',
+        psmHint: 'Only needed if a revised hardcopy PSM/Addendum is being sent back to the tenant now — leave blank for a plain reactivation.',
+    },
     escalate: { title: 'Escalate Agreement', url: Agreement.routes.escalate, pic: false, descrRequired: true, attachments: false, psm: false },
-    complete: { title: 'Complete Agreement', url: Agreement.routes.complete, pic: false, descrRequired: true, attachments: true, psm: true },
+    complete: { title: 'Complete Agreement', url: Agreement.routes.complete, pic: false, descrRequired: true, attachments: true, psm: true, attachmentField: 'attachments' },
 };
 
 function initActionModal() {
@@ -740,7 +788,10 @@ function openActionModal(action, eid) {
 
     $('#action_pic_fields').toggleClass('hidden', !cfg.pic);
     $('#action_attachment_fields').toggleClass('hidden', !cfg.attachments);
+    $('#action_attachment_label').text(cfg.attachmentLabel || 'Attachments');
+    $('#action_attachments').attr('accept', cfg.attachmentAccept || '');
     $('#action_psm_fields').toggleClass('hidden', !cfg.psm);
+    $('#action_psm_hint').text(cfg.psmHint || '').toggleClass('hidden', !cfg.psmHint);
 
     $('#action_pic_legal, #action_pic_leasing').val(null).trigger('change');
 
@@ -809,7 +860,8 @@ function submitAction() {
     if (!cfg) return;
 
     const formData = new FormData($('#actionAgreementForm')[0]);
-    Agreement.state.actionAttachments.forEach((file) => formData.append('attachments[]', file));
+    const attachmentField = cfg.attachmentField || 'attachments';
+    Agreement.state.actionAttachments.forEach((file) => formData.append(`${attachmentField}[]`, file));
 
     $('#btnSubmitAction').prop('disabled', true);
 

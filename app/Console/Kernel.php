@@ -118,6 +118,14 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/staging_contract_agreement.log'));
 
+        // Legal Agreement follow-up cycle: Surat 1 (H+14 from delivery),
+        // Surat 2 (H+14 from Surat 1), auto-escalation (H+7 from Surat 2).
+        $schedule->command('agreement:process-followups')
+            ->dailyAt('07:30')
+            ->timezone('Asia/Jakarta')
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/agreement-process-followups.log'));
+
         // Expire training waitlist offers past their 24h window, cascade to next
         $schedule->command('training:expire-waitlist-offers')
             ->everyFiveMinutes()
