@@ -1306,10 +1306,10 @@ class IssueController extends Controller
             $spb->totalsppbqty     = (float) $agg->total_sppbqty;
             $spb->totalcompleteqty = (float) $agg->total_completeqty;
 
-            // status_issue berdasarkan fulfilled (totalcompleteqty)
-            if ($spb->totalcompleteqty <= 0) {
+            // Status issue mengikuti NET issue; SPPB/manual close bukan qty yang di-issue.
+            if ($spb->totalissueqty <= 0) {
                 $spb->status_issue = 'Open';
-            } elseif ($spb->totalspbqty > 0 && $spb->totalcompleteqty >= $spb->totalspbqty) {
+            } elseif ($spb->totalspbqty > 0 && $spb->totalissueqty >= $spb->totalspbqty) {
                 $spb->status_issue = 'Completed';
             } else {
                 $spb->status_issue = 'Partial';

@@ -3147,6 +3147,8 @@ class SpptController extends Controller
         $sppt = TrSPPT::with([
             'requestType:requesttypeid,requesttype_name',
             'creator:username,name',
+            'tenantname:id,store_name,floor_id,store_no',
+            'pic:username,name',
         ])
             ->findOrFail($id);
 
@@ -3219,7 +3221,7 @@ class SpptController extends Controller
             'spptdate' => \Carbon\Carbon::parse($sppt->spptdate)->format('d F Y'),
             // konten
             'bqid' => $sppt->bqid,
-            'nama_tenant' => optional($sppt->tenantname)->tenant,
+            'nama_tenant' => optional($sppt->tenantname)->store_name,
             'no_unit_tenant' => $sppt->tenant_unit_label ?: $sppt->no_unit_tenant,
             'pic_pengawas' => ucwords(strtolower(optional($sppt->pic)->name)),
             'condition_unit' => $sppt->condition_unit,
