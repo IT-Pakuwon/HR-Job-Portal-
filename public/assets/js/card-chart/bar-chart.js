@@ -154,4 +154,7 @@
     function boot() { document.querySelectorAll('[data-chart-type="bar"]').forEach(init); }
 
     if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', boot); } else { boot(); }
+
+    window.CardChart = window.CardChart || {};
+    window.CardChart.initBar = init;
 })();

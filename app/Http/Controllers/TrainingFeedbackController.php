@@ -80,6 +80,14 @@ class TrainingFeedbackController extends Controller
         $questions = MsLndTrainingFeedback::active()->get()->keyBy('question_order');
         $submitted = collect($request->input('answers'))->keyBy('question_order');
 
+        foreach ($questions as $order => $question) {
+            $value = $submitted->get($order)['value'] ?? null;
+
+            if ($value === null || trim((string) $value) === '') {
+                return response()->json(['success' => false, 'message' => 'Mohon jawab semua pertanyaan sebelum submit'], 422);
+            }
+        }
+
         DB::connection('pgsql5')->beginTransaction();
 
         try {

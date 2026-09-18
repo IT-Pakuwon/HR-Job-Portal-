@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\TrainingAttendanceExport;
+use App\Exports\TrainingFeedbackExport;
 use App\Http\Controllers\Traits\HasAttendanceWindow;
 use App\Models\MsCompany;
 use App\Models\MsDepartment;
@@ -429,5 +430,14 @@ class TrainingAttendanceController extends Controller
             'can_manage' => (bool) Auth::user()?->hasRole('HCDEVACCESS'),
             'questions' => $byQuestion,
         ]);
+    }
+
+    /**
+     * Raw feedback answers, one row per respondent and one column per
+     * active question — the tabular counterpart to the chart view.
+     */
+    public function exportFeedback($scheduleId)
+    {
+        return Excel::download(new TrainingFeedbackExport((string) $scheduleId), 'training-feedback.xlsx');
     }
 }

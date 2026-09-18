@@ -190,6 +190,10 @@
     </template>
 </div>
 
+<div id="pendingFeedbackReminders" class="col-span-full"></div>
+
+<script src="{{ asset('assets/js/multidashboard/pending-training-feedback.js') }}?v={{ filemtime(public_path('assets/js/multidashboard/pending-training-feedback.js')) }}"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script>
 function favouriteMenus(catalog) {

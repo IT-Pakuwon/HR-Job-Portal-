@@ -7,16 +7,16 @@
             </div>
 
             {{-- Tabs --}}
-            <div class="flex flex-wrap gap-2 border-b border-gray-200 dark:border-gray-700">
-                <button class="tabBtn border-b-2 border-gray-900 px-3 py-2 text-sm font-semibold text-gray-900 dark:border-white dark:text-white" data-tab="available">
-                    Available Trainings
+            <div class="flex w-full flex-wrap gap-1 rounded-xl bg-gray-100 p-1 dark:bg-gray-900/60">
+                <button class="tabBtn active flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-semibold transition" data-tab="available">
+                    <span>🎓</span> Available Trainings
                 </button>
-                <button class="tabBtn border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="mine">
-                    Registration List
+                <button class="tabBtn flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-semibold text-gray-500 transition hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="mine">
+                    <span>📝</span> Registration List
                 </button>
                 @if (Auth::user()->hasRole('HCDEVACCESS'))
-                    <button class="tabBtn border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="allregs">
-                        List Registration
+                    <button class="tabBtn flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-semibold text-gray-500 transition hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="allregs">
+                        <span>📋</span> List Registration
                     </button>
                 @endif
             </div>
@@ -351,6 +351,16 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
+        .tabBtn.active {
+            background: #ffffff;
+            color: #111827;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.06);
+        }
+        html.dark .tabBtn.active {
+            background: #374151;
+            color: #ffffff;
+        }
+
         /* Below 640px, data tables stack into label/value cards instead of
            squeezing every column into an unreadably narrow cell — the
            overflow-x-auto scroll wrapper alone still left headers/badges
@@ -1298,6 +1308,7 @@
         const myUrl = "{{ route('training-list.my') }}";
         const certificateUrl = "{{ route('training-list.certificate', ['id' => '__ID__']) }}";
         const myViewUrlTpl = "{{ route('training-list.my.show', ['eid' => '__EID__'], false) }}";
+        const feedbackUrlTpl = "{{ route('training-list.feedback.open', ['eid' => '__EID__'], false) }}";
         const trainingListPath = "{{ route('training-list', [], false) }}";
         const cancelUrlTpl = "{{ route('training-list.cancel', ['scheduleId' => '__ID__']) }}";
         const colleaguesUrl = "{{ route('training-list.colleagues') }}";
@@ -1315,6 +1326,7 @@
         const initialMyEid = @json($initialMyEid ?? null);
         const initialAllRegsEid = @json($initialAllRegsEid ?? null);
         const initialApprovalEid = @json($initialApprovalEid ?? null);
+        const initialFeedbackEid = @json($initialFeedbackEid ?? null);
 
         const statusLabels = {
             P: ['Waiting Approval', 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'],
@@ -1451,10 +1463,8 @@
 
         $('.tabBtn').on('click', function () {
             const tab = $(this).data('tab');
-            $('.tabBtn').removeClass('border-gray-900 text-gray-900 dark:border-white dark:text-white')
-                .addClass('border-transparent text-gray-500 dark:text-gray-400');
-            $(this).removeClass('border-transparent text-gray-500 dark:text-gray-400')
-                .addClass('border-gray-900 text-gray-900 dark:border-white dark:text-white');
+            $('.tabBtn').removeClass('active').addClass('text-gray-500 dark:text-gray-400');
+            $(this).addClass('active').removeClass('text-gray-500 dark:text-gray-400');
             $('.tab-panel').addClass('hidden');
             $('#tab-' + tab).removeClass('hidden');
 
@@ -2025,6 +2035,7 @@
 
         let minePage = 1;
         let initialMyEidHandled = false;
+        let initialFeedbackEidHandled = false;
 
         function loadMine() {
             $.get(myUrl, function (res) {
@@ -2036,6 +2047,12 @@
                     initialMyEidHandled = true;
                     const match = myRegistrationsRows.find((row) => row.eid === initialMyEid);
                     if (match) openMyViewModal(match, { pushUrl: false });
+                }
+
+                if (!initialFeedbackEidHandled && initialFeedbackEid) {
+                    initialFeedbackEidHandled = true;
+                    const match = myRegistrationsRows.find((row) => row.eid === initialFeedbackEid);
+                    if (match && (match.can_fill_feedback || match.feedback_submitted)) openFeedbackModal(match, { pushUrl: false });
                 }
             });
         }
@@ -2443,6 +2460,7 @@
 
         window.addEventListener('popstate', function () {
             if (myViewModalActive) Swal.close();
+            if (feedbackModalActive) Swal.close();
         });
 
         // Shared by the Approval sub-tab row buttons and the Approve/Reject
@@ -2538,14 +2556,24 @@
                 <div class="feedbackModal-question">
                     <div class="feedbackModal-qHead">
                         <span class="feedbackModal-qNum">${q.question_order}</span>
-                        <span class="feedbackModal-qText">${q.question_text}</span>
+                        <span class="feedbackModal-qText">${q.question_text}${readOnly ? '' : ' <span class="text-red-500">*</span>'}</span>
                     </div>
                     ${inputHtml}
                 </div>
             `;
         }
 
-        function openFeedbackModal(row) {
+        let feedbackModalActive = false;
+
+        function openFeedbackModal(row, { pushUrl = true } = {}) {
+            if (pushUrl && row.eid) {
+                const targetPath = feedbackUrlTpl.replace('__EID__', row.eid);
+                if (location.pathname !== targetPath) {
+                    history.pushState({ trainingFeedback: true }, '', targetPath);
+                }
+            }
+            feedbackModalActive = true;
+
             $.get(`/training-list/my/${row.id}/feedback`, function (res) {
                 const readOnly = !res.is_open;
                 const questions = res.questions || [];
@@ -2580,13 +2608,26 @@
                     preConfirm: () => {
                         if (readOnly) return true;
 
-                        return questions.map((q) => {
+                        const answers = questions.map((q) => {
                             const name = `feedback_q_${q.question_order}`;
                             const el = document.querySelector(`input[name="${name}"]:checked, textarea[name="${name}"]`);
                             return { question_order: q.question_order, value: el ? el.value : null };
                         });
+
+                        const unanswered = answers.some((a) => a.value === null || String(a.value).trim() === '');
+                        if (unanswered) {
+                            Swal.showValidationMessage('Mohon jawab semua pertanyaan sebelum submit');
+                            return false;
+                        }
+
+                        return answers;
                     },
                 }).then((result) => {
+                    feedbackModalActive = false;
+                    if (location.pathname !== trainingListPath) {
+                        history.pushState({ trainingList: true }, '', trainingListPath);
+                    }
+
                     if (readOnly || !result.isConfirmed) return;
 
                     $.ajax({
@@ -2604,6 +2645,10 @@
                     });
                 });
             }).fail(function (xhr) {
+                feedbackModalActive = false;
+                if (location.pathname !== trainingListPath) {
+                    history.pushState({ trainingList: true }, '', trainingListPath);
+                }
                 toast('error', xhr.responseJSON?.message || 'Gagal memuat feedback');
             });
         }

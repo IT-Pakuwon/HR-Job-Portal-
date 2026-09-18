@@ -234,33 +234,52 @@ function initJobStatusChange() {
     $(document).on('change', '.job-status-select', function () {
         const $select = $(this);
         const status = $select.val();
+        const label = JOB_STATUS_LABELS[status] || status;
 
-        // Optimistic recolor so the pill doesn't sit in its old color while
-        // the request round-trips.
-        $select
-            .removeClass(JOB_STATUS_SELECT_CLASS_LIST)
-            .addClass(jobStatusSelectClass(status));
+        Swal.fire({
+            title: 'Change status?',
+            text: `Change this job's status to "${label}"?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, change it',
+            cancelButtonText: 'Cancel',
+            reverseButtons: true,
+            confirmButtonColor: '#2563eb',
+        }).then((result) => {
+            if (!result.isConfirmed) {
+                // Nothing was actually changed yet — just drop the select back
+                // to its "Change Status" placeholder.
+                $select.val('');
+                return;
+            }
 
-        $.ajax({
-            url: Agreement.routes.jobsUpdateStatus,
-            type: 'POST',
-            data: {
-                cpny_id: $select.data('cpny_id'),
-                business_id: $select.data('business_id'),
-                status,
-            },
-            beforeSend: showLoading,
-            success(res) {
-                hideLoading();
-                showSuccess(res.message || 'Status updated.');
-                window.jobsTable.ajax.reload(null, false);
-                refreshCounts();
-            },
-            error(xhr) {
-                hideLoading();
-                handleAjaxError(xhr);
-                window.jobsTable.ajax.reload(null, false);
-            },
+            // Optimistic recolor so the pill doesn't sit in its old color while
+            // the request round-trips.
+            $select
+                .removeClass(JOB_STATUS_SELECT_CLASS_LIST)
+                .addClass(jobStatusSelectClass(status));
+
+            $.ajax({
+                url: Agreement.routes.jobsUpdateStatus,
+                type: 'POST',
+                data: {
+                    cpny_id: $select.data('cpny_id'),
+                    business_id: $select.data('business_id'),
+                    status,
+                },
+                beforeSend: showLoading,
+                success(res) {
+                    hideLoading();
+                    showSuccess(res.message || 'Status updated.');
+                    window.jobsTable.ajax.reload(null, false);
+                    refreshCounts();
+                },
+                error(xhr) {
+                    hideLoading();
+                    handleAjaxError(xhr);
+                    window.jobsTable.ajax.reload(null, false);
+                },
+            });
         });
     });
 }

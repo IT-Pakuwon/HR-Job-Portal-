@@ -148,12 +148,12 @@
 
                         <div>
                             <label class="agr-label">PSM / Addendum Date <span class="text-red-500">*</span></label>
-                            <input type="date" name="psm_or_addendum_date" class="agr-input" required />
+                            <input type="date" name="psm_or_addendum_date" class="agr-input" max="{{ now()->addDays(3)->format('Y-m-d') }}" required />
                         </div>
 
                         <div class="sm:col-span-2">
                             <label class="agr-label">Hardcopy Delivery Date (PSM / Addendum) <span class="text-red-500">*</span></label>
-                            <input type="date" name="psm_or_addendum_delivery_date" class="agr-input" required />
+                            <input type="date" name="psm_or_addendum_delivery_date" class="agr-input" max="{{ now()->addDays(3)->format('Y-m-d') }}" required />
                         </div>
 
                         <div class="sm:col-span-2">

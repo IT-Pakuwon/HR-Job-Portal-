@@ -114,6 +114,32 @@ class TrainingRegistrationController extends Controller
     }
 
     /**
+     * Same shareable-URL convention as showMy() above, but auto-opens the
+     * Fill Feedback modal instead of the view modal — used by the "please
+     * fill feedback" reminder link. Strictly the registrant's own eid, same
+     * ownership rule TrainingFeedbackController::show()/submit() enforce.
+     */
+    public function showFeedback($eid)
+    {
+        $id = Hashids::decode($eid)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = Auth::user();
+
+        TrLndTrainingRegistration::where('id', $id)
+            ->where('user_registration', $user->username)
+            ->firstOrFail();
+
+        return view('pages.training_list.index', [
+            'initialEid' => null,
+            'initialMyEid' => null,
+            'initialAllRegsEid' => null,
+            'initialApprovalEid' => null,
+            'initialFeedbackEid' => $eid,
+        ]);
+    }
+
+    /**
      * Same shareable-URL convention as showMy() above, but for the
      * HCDEVACCESS-only List Registration tab — any employee's registration,
      * not just the caller's own (showMy()'s ownership check would 404 an HR
@@ -452,6 +478,41 @@ class TrainingRegistrationController extends Controller
                 'created_at' => $r->created_at,
             ];
         });
+
+        return response()->json(['data' => $rows]);
+    }
+
+    /**
+     * Lean feed for the "please fill feedback" dashboard reminder — the
+     * caller's own attended registrations whose schedule has feedback open
+     * and that don't have an answer yet. Deliberately not gated by
+     * TRAININGLIST,VIEW (see route comment) so it works from any dashboard.
+     */
+    public function pendingFeedback()
+    {
+        $user = Auth::user();
+
+        $registrations = TrLndTrainingRegistration::where('user_registration', $user->username)
+            ->whereNotNull('completed_at')
+            ->with('schedule.schedule.training')
+            ->get();
+
+        if ($registrations->isEmpty()) {
+            return response()->json(['data' => []]);
+        }
+
+        $answeredDocIds = TrLndTrainingFeedbackAnswer::whereIn('training_regist_id', $registrations->pluck('training_regist_id'))
+            ->pluck('training_regist_id')
+            ->unique();
+
+        $rows = $registrations
+            ->filter(fn ($r) => (bool) $r->schedule?->is_feedback_open && !$answeredDocIds->contains($r->training_regist_id))
+            ->map(fn ($r) => [
+                'eid' => Hashids::encode($r->id),
+                'training_name' => $r->schedule?->schedule?->training?->training_name ?? null,
+                'speaker_name' => $r->schedule?->training_speaker_name ?: $r->schedule?->training_ext_speaker_name,
+            ])
+            ->values();
 
         return response()->json(['data' => $rows]);
     }
