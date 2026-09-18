@@ -1961,7 +1961,6 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/update/{hash}', 'update')->name('legal-agreement.update');
                 Route::post('/hold/{hash}', 'holdAgreement')->name('legal-agreement.hold');
                 Route::post('/activate/{hash}', 'activateAgreement')->name('legal-agreement.activate');
-                Route::post('/escalate/{hash}', 'escalateAgreement')->name('legal-agreement.escalate');
                 Route::post('/complete/{hash}', 'completeAgreement')->name('legal-agreement.complete');
                 Route::post('/comment/{hash}', 'comment')->name('legal-agreement.comment');
                 Route::post('/jobs/update-status', 'jobsUpdateStatus')->name('legal-agreement.jobs.updateStatus');
@@ -1977,7 +1976,6 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/edit-legal-agreement/{eid}', 'index');
                 Route::get('/hold-legal-agreement/{eid}', 'index');
                 Route::get('/activate-legal-agreement/{eid}', 'index');
-                Route::get('/escalate-legal-agreement/{eid}', 'index');
                 Route::get('/complete-legal-agreement/{eid}', 'index');
             });
         });

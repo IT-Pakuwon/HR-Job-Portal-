@@ -704,7 +704,6 @@ const ACTION_LABELS = {
     can_edit: { label: 'Edit', action: 'edit', color: 'slate' },
     can_hold: { label: 'Hold', action: 'hold', color: 'yellow' },
     can_activate: { label: 'Activate', action: 'activate', color: 'green' },
-    can_escalate: { label: 'Escalate', action: 'escalate', color: 'red' },
     can_complete: { label: 'Complete', action: 'complete', color: 'slate' },
 };
 
@@ -737,14 +736,13 @@ function renderActionButtons(actions, agreement) {
 const ACTION_CONFIG = {
     hold: { title: 'Put Agreement On Hold', url: Agreement.routes.hold, pic: false, descrRequired: true, attachments: false, psm: false },
     activate: {
-        title: 'Activate Agreement', url: Agreement.routes.activate, pic: true, descrRequired: false,
-        attachments: true, psm: true,
+        title: 'Activate Agreement (Revised Hardcopy Sent)', url: Agreement.routes.activate, pic: true, descrRequired: false,
+        attachments: true, psm: true, psmRequired: true,
         attachmentField: 'bukti_pengiriman',
-        attachmentLabel: 'Proof of Delivery (revised hardcopy)',
+        attachmentLabel: 'Proof of Delivery (revised hardcopy) *',
         attachmentAccept: '.jpg,.jpeg,.png,.pdf',
-        psmHint: 'Only needed if a revised hardcopy PSM/Addendum is being sent back to the tenant now — leave blank for a plain reactivation.',
+        psmHint: 'Reactivating always means the revised hardcopy was sent back to the tenant — Delivery Date and Proof of Delivery are required, and this restarts the follow-up cycle from this date.',
     },
-    escalate: { title: 'Escalate Agreement', url: Agreement.routes.escalate, pic: false, descrRequired: true, attachments: false, psm: false },
     complete: { title: 'Complete Agreement', url: Agreement.routes.complete, pic: false, descrRequired: true, attachments: true, psm: true, attachmentField: 'attachments' },
 };
 
@@ -792,6 +790,8 @@ function openActionModal(action, eid) {
     $('#action_attachments').attr('accept', cfg.attachmentAccept || '');
     $('#action_psm_fields').toggleClass('hidden', !cfg.psm);
     $('#action_psm_hint').text(cfg.psmHint || '').toggleClass('hidden', !cfg.psmHint);
+    $('#action_psm_delivery_input').prop('required', !!cfg.psmRequired);
+    $('#action_psm_delivery_label').text(cfg.psmRequired ? 'Delivery Date *' : 'Delivery Date');
 
     $('#action_pic_legal, #action_pic_leasing').val(null).trigger('change');
 
@@ -858,6 +858,11 @@ function submitAction() {
     const eid = $('#action_eid').val();
     const cfg = ACTION_CONFIG[action];
     if (!cfg) return;
+
+    if (cfg.psmRequired && Agreement.state.actionAttachments.length === 0) {
+        showError('Proof of Delivery is required when reactivating with a revised hardcopy.');
+        return;
+    }
 
     const formData = new FormData($('#actionAgreementForm')[0]);
     const attachmentField = cfg.attachmentField || 'attachments';

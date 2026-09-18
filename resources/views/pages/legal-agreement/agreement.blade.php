@@ -133,7 +133,6 @@
                 update: "{{ url('/legal-agreement/update') }}/:eid",
                 hold: "{{ url('/legal-agreement/hold') }}/:eid",
                 activate: "{{ url('/legal-agreement/activate') }}/:eid",
-                escalate: "{{ url('/legal-agreement/escalate') }}/:eid",
                 complete: "{{ url('/legal-agreement/complete') }}/:eid",
                 detail: "{{ url('/legal-agreement/detail') }}/:eid",
                 tracking: "{{ url('/legal-agreement/tracking') }}/:eid",

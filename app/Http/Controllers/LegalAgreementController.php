@@ -50,10 +50,6 @@ class LegalAgreementController extends Controller
             'ESCALATED',
         ],
 
-        'escalate' => [
-            'ACTIVE',
-        ],
-
         'complete' => [
             'ACTIVE',
             'ESCALATED',
@@ -192,7 +188,11 @@ class LegalAgreementController extends Controller
             );
         }
 
-        if ($request->filled('search')) {
+        // The JS always overwrites DataTables' native search with a plain
+        // string before this is hit, but guard it the same way jobsJson()
+        // does below in case a raw DataTables search[value] object ever
+        // reaches here.
+        if (is_string($request->search) && $request->filled('search')) {
             $search = $request->search;
 
             $query->where(function ($q) use ($search) {
@@ -725,22 +725,31 @@ class LegalAgreementController extends Controller
         ]);
     }
 
+    /**
+     * $username: pass explicitly when calling from outside an authenticated
+     * HTTP request (e.g. the follow-up scheduler) — auth()->user() is null
+     * in a console context, and auth()->user()->username used to fatal
+     * there. Falls back to 'system' if truly nothing is available.
+     */
     protected function transitionStep(
         TrAgreement $agreement,
         string $toStep,
         string $summary,
         ?string $descr,
-        string $newStatus = 'P'
+        string $newStatus = 'P',
+        ?string $username = null
     ) {
+        $username = $username ?? auth()->user()?->username ?? 'system';
+
         $agreement->update([
             'agreement_step_id' => $toStep,
             'agreement_step_order' => $agreement->agreement_step_order + 1,
-            'agreement_step_created_user' => auth()->user()->username,
+            'agreement_step_created_user' => $username,
             'agreement_step_created_at' => now(),
 
             'status' => $newStatus,
 
-            'updated_user' => auth()->user()->username,
+            'updated_user' => $username,
         ]);
 
         $this->createActivity([
@@ -761,7 +770,7 @@ class LegalAgreementController extends Controller
 
             'status' => 'A',
 
-            'created_by' => auth()->user()->username,
+            'created_by' => $username,
         ]);
     }
 
@@ -846,12 +855,17 @@ class LegalAgreementController extends Controller
             403
         );
 
-        // Reactivating with a revised hardcopy PSM/Addendum (sent back to the
-        // tenant after a HOLD) is distinguished from a plain reactivation by
-        // the presence of a new delivery date / proof of delivery.
-        $isRevision = $request->filled('psm_or_addendum_delivery_date')
-            || $request->hasFile('bukti_pengiriman');
-
+        // activate is only ever reachable from HOLD or ESCALATED (see
+        // $workflowTransitions above), and per the business rule every such
+        // reactivation means "the revised hardcopy PSM/Addendum was sent
+        // back to the tenant" — there's no "plain reactivate, nothing
+        // changed" case. So the revised delivery date + proof of delivery
+        // are required, not optional: making the cycle-reset (point 6)
+        // unconditional is what makes "HOLD duration isn't counted" (point
+        // 2) true by construction, instead of depending on whoever clicks
+        // Activate remembering to fill them in. Skipping this used to leave
+        // psm_or_addendum_delivery_date stale, which made the next
+        // scheduler run see a huge day count and fire Surat 1 immediately.
         $request->validate([
             'response_descr' => 'nullable',
 
@@ -863,9 +877,9 @@ class LegalAgreementController extends Controller
 
             'no_psm_or_addendum' => 'nullable|max:150',
             'psm_or_addendum_date' => 'nullable|date',
-            'psm_or_addendum_delivery_date' => $isRevision ? 'required|date' : 'nullable|date',
+            'psm_or_addendum_delivery_date' => 'required|date',
 
-            'bukti_pengiriman' => $isRevision ? 'required|array|min:1' : 'nullable|array',
+            'bukti_pengiriman' => 'required|array|min:1',
             'bukti_pengiriman.*' => [
                 'file',
                 'max:5120',
@@ -884,44 +898,40 @@ class LegalAgreementController extends Controller
                 $agreement->pic_leasing = TrAgreement::joinPicList((array) $request->pic_leasing);
             }
 
-            if ($isRevision) {
-                // Snapshot the pre-revision record (old PSM/Addendum info) into
-                // tr_agreement_hist before it gets overwritten below. Old proof
-                // of delivery files are left as-is in tr_agreement_attachment —
-                // they already stay there permanently, tagged with the
-                // renewal_sequence they were uploaded under, so bumping the
-                // sequence here is what makes them read as history.
-                $this->archiveAgreementRevision($agreement, $username);
+            // Snapshot the pre-revision record (old PSM/Addendum info) into
+            // tr_agreement_hist before it gets overwritten below. Old proof
+            // of delivery files are left as-is in tr_agreement_attachment —
+            // they already stay there permanently, tagged with the
+            // renewal_sequence they were uploaded under, so bumping the
+            // sequence here is what makes them read as history.
+            $this->archiveAgreementRevision($agreement, $username);
 
-                $agreement->renewal_sequence = $agreement->renewal_sequence + 1;
+            $agreement->renewal_sequence = $agreement->renewal_sequence + 1;
 
-                if ($request->filled('no_psm_or_addendum')) {
-                    $agreement->no_psm_or_addendum = $request->no_psm_or_addendum;
-                }
-
-                if ($request->filled('psm_or_addendum_date')) {
-                    $agreement->psm_or_addendum_date = $request->psm_or_addendum_date;
-                }
-
-                $agreement->psm_or_addendum_delivery_date = $request->psm_or_addendum_delivery_date;
+            if ($request->filled('no_psm_or_addendum')) {
+                $agreement->no_psm_or_addendum = $request->no_psm_or_addendum;
             }
+
+            if ($request->filled('psm_or_addendum_date')) {
+                $agreement->psm_or_addendum_date = $request->psm_or_addendum_date;
+            }
+
+            $agreement->psm_or_addendum_delivery_date = $request->psm_or_addendum_delivery_date;
 
             $this->transitionStep(
                 $agreement,
                 'ACTIVE',
-                $isRevision ? 'Revised PSM/Addendum Sent - Agreement Activated' : 'Agreement Activated',
+                'Revised PSM/Addendum Sent - Agreement Activated',
                 $request->response_descr
             );
 
-            if ($isRevision && $request->hasFile('bukti_pengiriman')) {
-                foreach ($request->file('bukti_pengiriman') as $file) {
-                    $this->uploadAgreementAttachment(
-                        $agreement,
-                        $file,
-                        $username,
-                        'Bukti Pengiriman PSM/Addendum (Revisi)'
-                    );
-                }
+            foreach ($request->file('bukti_pengiriman') as $file) {
+                $this->uploadAgreementAttachment(
+                    $agreement,
+                    $file,
+                    $username,
+                    'Bukti Pengiriman PSM/Addendum (Revisi)'
+                );
             }
 
             $agreement->refresh();
@@ -934,63 +944,6 @@ class LegalAgreementController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Agreement activated successfully.',
-            ]);
-        } catch (\Throwable $th) {
-            DB::connection('pgsql5')->rollBack();
-
-            return response()->json([
-                'success' => false,
-                'message' => $th->getMessage(),
-            ], 500);
-        }
-    }
-
-    public function escalateAgreement(Request $request, $hash)
-    {
-        $id = Hashids::decode($hash)[0] ?? null;
-
-        abort_if(!$id, 404);
-
-        $agreement = TrAgreement::findOrFail($id);
-
-        abort_unless(
-            $this->isManagerRole()
-                || $agreement->hasPic(auth()->user()->username),
-            403
-        );
-
-        abort_if(
-            !$this->canTransition(
-                $agreement->agreement_step_id,
-                'escalate'
-            ),
-            403
-        );
-
-        $request->validate([
-            'response_descr' => 'required',
-        ]);
-
-        DB::connection('pgsql5')->beginTransaction();
-
-        try {
-            $this->transitionStep(
-                $agreement,
-                'ESCALATED',
-                'Agreement Escalated',
-                $request->response_descr
-            );
-
-            $agreement->refresh();
-
-            DB::connection('pgsql5')->commit();
-
-            $this->notificationService
-                ->agreementEscalated($agreement);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Agreement escalated successfully.',
             ]);
         } catch (\Throwable $th) {
             DB::connection('pgsql5')->rollBack();
@@ -1084,7 +1037,9 @@ class LegalAgreementController extends Controller
                 $agreement,
                 'ESCALATED',
                 'Agreement Escalated (Otomatis)',
-                'Dokumen PSM/Addendum belum dikembalikan dalam 7 (tujuh) hari kalender sejak Surat 2 dikirim.'
+                'Dokumen PSM/Addendum belum dikembalikan dalam 7 (tujuh) hari kalender sejak Surat 2 dikirim.',
+                'P',
+                $username
             );
 
             $agreement->refresh();
@@ -1737,7 +1692,7 @@ class LegalAgreementController extends Controller
             'working_end_date' => $data['working_end_date'] ?? null,
             'status_pekerjaan' => $data['status_pekerjaan'] ?? null,
             'status' => $data['status'] ?? 'A',
-            'created_by' => $data['created_by'] ?? auth()->user()->username,
+            'created_by' => $data['created_by'] ?? auth()->user()?->username ?? 'system',
         ]);
     }
 
@@ -1994,9 +1949,6 @@ class LegalAgreementController extends Controller
 
             'can_activate' => $canAct
                 && $this->canTransition($agreement->agreement_step_id, 'activate'),
-
-            'can_escalate' => $canAct
-                && $this->canTransition($agreement->agreement_step_id, 'escalate'),
 
             'can_complete' => $canAct
                 && $this->canTransition($agreement->agreement_step_id, 'complete'),

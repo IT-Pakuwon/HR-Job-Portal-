@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Mail\AgreementActivatedMail;
 use App\Mail\AgreementCompletedMail;
 use App\Mail\AgreementCreatedMail;
-use App\Mail\AgreementEscalatedMail;
 use App\Mail\AgreementEscalationMail;
 use App\Mail\AgreementHoldMail;
 use App\Mail\AgreementSurat1Mail;
@@ -207,27 +206,12 @@ class LegalAgreementNotificationService
         );
     }
 
-    public function agreementEscalated(
-        TrAgreement $agreement
-    ) {
-        $this->sendAgreementMail(
-            $agreement,
-            new AgreementEscalatedMail($agreement),
-            $this->creatorEmail($agreement),
-            $this->picLeasingEmails($agreement),
-            $this->picLegalEmails($agreement),
-            'Agreement Escalated Mail'
-        );
-    }
-
     /**
-     * The automatic H+7-after-Surat-2 escalation notice — distinct from
-     * agreementEscalated() above (the manual "Escalate" button's generic
-     * email). Goes to Marketing/Leasing only (PIC Leasing) — not Created
-     * User, not PIC Legal, and no tenant — since the point of escalating is
-     * to hand this to the Leasing team to chase, not to inform everyone
-     * who already knows (Legal sent Surat 1/2 themselves). Attaches a
-     * reconstructed copy of Surat 2 for reference.
+     * The automatic H+7-after-Surat-2 escalation notice — the only path to
+     * ESCALATED now that manual escalation has been retired. To:
+     * Marketing/Leasing (PIC Leasing) — they're the ones who need to act.
+     * PIC Legal is Cc'd for visibility, Created User Bcc'd. No tenant on
+     * this one. Attaches a reconstructed copy of Surat 2 for reference.
      */
     public function agreementEscalationNotice(
         TrAgreement $agreement,
@@ -238,8 +222,8 @@ class LegalAgreementNotificationService
             $agreement,
             new AgreementEscalationMail($agreement, $surat1SentDate, $surat2SentDate),
             $this->picLeasingEmails($agreement),
-            [],
-            [],
+            $this->picLegalEmails($agreement),
+            array_filter([$this->creatorEmail($agreement)]),
             'Agreement Escalation Notice Mail'
         );
     }

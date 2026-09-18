@@ -40,8 +40,8 @@
                             <input type="date" name="psm_or_addendum_date" class="agr-input" />
                         </div>
                         <div>
-                            <label class="agr-label">Delivery Date</label>
-                            <input type="date" name="psm_or_addendum_delivery_date" class="agr-input" />
+                            <label id="action_psm_delivery_label" class="agr-label">Delivery Date</label>
+                            <input type="date" id="action_psm_delivery_input" name="psm_or_addendum_delivery_date" class="agr-input" />
                         </div>
                     </div>
                 </div>
