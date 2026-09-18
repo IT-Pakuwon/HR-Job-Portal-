@@ -11,6 +11,21 @@ Agreement.state = {
     currentCpny: '',
     currentSearch: '',
     createStep: 1,
+    actionSteps: [],
+    actionStepIndex: 1,
+};
+
+Agreement.pushUrl = function (eid) {
+    if (!eid || !Agreement.routes.show) return;
+    const url = Agreement.routes.show.replace(':eid', eid);
+    if (window.location.pathname === url) return;
+    history.pushState({ eid }, '', url);
+};
+
+Agreement.clearUrl = function () {
+    if (!Agreement.routes.index) return;
+    if (window.location.pathname === Agreement.routes.index) return;
+    history.pushState({}, '', Agreement.routes.index);
 };
 
 $.ajaxSetup({
@@ -102,7 +117,7 @@ function renderStepBadge(step) {
 }
 
 const CYCLE_LABELS = {
-    AWAL: 'Awal',
+    AWAL: 'Agreement Sent',
     REMINDER1: 'Reminder 1',
     REMINDER2: 'Reminder 2',
     ESCALATED: 'Escalated',
@@ -144,6 +159,83 @@ function renderDaysCell(info) {
     return `<span class="text-xs font-semibold ${cls}">Day ${days_elapsed}${suffix}</span>`;
 }
 
+const ROW_ACTION_LABELS = {
+    hold: { label: 'Hold Agreement', icon: 'fa-solid fa-pause', class: 'text-amber-600 dark:text-amber-400' },
+    activate: { label: 'Activate Agreement', icon: 'fa-solid fa-bolt', class: 'text-emerald-600 dark:text-emerald-400' },
+    complete: { label: 'Complete Agreement', icon: 'fa-solid fa-flag-checkered', class: 'text-slate-600 dark:text-slate-300' },
+};
+
+function renderAgreementRowActions(row) {
+    const can = row.actions || {};
+    const eid = row.eid;
+
+    const items = [{ action: 'view', label: 'View Detail', icon: 'fa-regular fa-eye', class: 'text-slate-700 dark:text-slate-200' }];
+
+    ['hold', 'activate', 'complete'].forEach((key) => {
+        if (can[`can_${key}`]) items.push({ action: key, ...ROW_ACTION_LABELS[key] });
+    });
+
+    const itemsHtml = items.map((item) => `
+        <button type="button" class="agr-row-action-item flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-all duration-200 hover:bg-slate-100 dark:hover:bg-white/[0.05] ${item.class}"
+            data-action="${item.action}" data-eid="${eid}">
+            <i class="${item.icon} w-4 text-center text-[13px]"></i>
+            <span>${item.label}</span>
+        </button>
+    `).join('');
+
+    return `
+        <div class="relative inline-block text-left">
+            <button type="button" class="agr-row-action-btn inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-all duration-200 hover:bg-slate-100 dark:border-white/[0.06] dark:bg-white/[0.04] dark:text-slate-300 dark:hover:bg-white/[0.08]">
+                <i class="fa-solid fa-ellipsis-vertical"></i>
+            </button>
+            <div class="agr-row-action-menu fixed z-[99999] hidden w-[220px] overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl dark:border-white/[0.08] dark:bg-slate-800">
+                ${itemsHtml}
+            </div>
+        </div>
+    `;
+}
+
+function initRowActionDropdown() {
+    $(document).on('click', '.agr-row-action-btn', function (e) {
+        e.stopPropagation();
+
+        const $btn = $(this);
+        const $menu = $btn.siblings('.agr-row-action-menu');
+        const isHidden = $menu.hasClass('hidden');
+
+        $('.agr-row-action-menu').addClass('hidden');
+
+        if (isHidden) {
+            const rect = this.getBoundingClientRect();
+            const menuWidth = 220;
+            const left = Math.max(8, rect.right - menuWidth);
+            const top = rect.bottom + 8;
+            $menu.css({ top: `${top}px`, left: `${left}px` }).removeClass('hidden');
+        }
+    });
+
+    $(document).on('click', function () {
+        $('.agr-row-action-menu').addClass('hidden');
+    });
+
+    $(document).on('click', '.agr-row-action-menu', function (e) {
+        e.stopPropagation();
+    });
+
+    $(document).on('click', '.agr-row-action-item', function () {
+        $('.agr-row-action-menu').addClass('hidden');
+
+        const action = $(this).data('action');
+        const eid = $(this).data('eid');
+
+        if (action === 'view') {
+            openAgreementDetailModal(eid);
+        } else {
+            openActionModal(action, eid);
+        }
+    });
+}
+
 /* ----------------------------------------------------------------------
  | Modal Open/Close
  * ---------------------------------------------------------------------- */
@@ -181,6 +273,7 @@ function closeModal(selector) {
         modal.removeClass('flex').addClass('hidden');
         if ($('.agr-modal.flex').length === 0) $('body').removeClass('overflow-hidden');
         modalAnimating = false;
+        if (selector === '#detailAgreementModal') Agreement.clearUrl();
     }, 220);
 }
 
@@ -284,7 +377,15 @@ function initDataTable() {
         },
         order: [],
         columns: [
-            { data: 'agreement_id', name: 'agreement_id' },
+            {
+                data: null,
+                name: 'agreement_id',
+                render: (row) => `
+                    <button type="button" class="btn-view-agreement inline-flex w-[150px] items-center justify-center rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white" data-eid="${row.eid}">
+                        ${row.agreement_id ?? '-'}
+                    </button>
+                `,
+            },
             { data: 'agreement_date', name: 'agreement_date', render: (d) => formatDate(d) },
             { data: 'cpny_id', name: 'cpny_id' },
             {
@@ -297,15 +398,11 @@ function initDataTable() {
             { data: 'cycle_info', orderable: false, searchable: false, render: (info) => renderDaysCell(info) },
             { data: 'cycle_info', orderable: false, searchable: false, render: (info) => renderCycleBadge(info) },
             {
-                data: 'eid',
+                data: null,
                 orderable: false,
                 searchable: false,
                 className: 'text-right',
-                render: (eid) => `
-                    <button type="button" class="btn-view-agreement rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:border-white/[0.08] dark:text-slate-300 dark:hover:bg-white/[0.06]" data-eid="${eid}">
-                        View
-                    </button>
-                `,
+                render: (row) => renderAgreementRowActions(row),
             },
         ],
     });
@@ -448,6 +545,50 @@ function markFieldError($el, hasError) {
     }
 }
 
+// A 422 from the server (e.g. a bad file type/size that client-side checks
+// don't catch) otherwise just shows a toast while the wizard sits wherever
+// the user happened to be (usually the Review step) — this jumps back to
+// the earliest step containing an invalid field and highlights it, the
+// same way the client-side "Next" validation already does.
+function showCreateValidationErrors(errors) {
+    const keys = Object.keys(errors || {});
+    if (!keys.length) return false;
+
+    let targetStep = null;
+    let $firstInvalid = null;
+
+    keys.forEach((key) => {
+        const base = key.split('.')[0];
+        let $el = $(`#createAgreementForm [name="${base}"]`);
+        if (!$el.length) $el = $(`#createAgreementForm [name="${base}[]"]`);
+        if (!$el.length) return;
+
+        markFieldError($el, true);
+
+        const step = parseInt($el.closest('.agr-step').data('step'), 10);
+        if (!targetStep || step < targetStep) {
+            targetStep = step;
+            $firstInvalid = $el;
+        }
+    });
+
+    if (!targetStep) return false;
+
+    setCreateStep(targetStep);
+
+    if ($firstInvalid) {
+        const $target = $firstInvalid.hasClass('agr-select2') ? $firstInvalid.next('.select2-container') : $firstInvalid;
+        const $panel = $('#createAgreementModal .modal-panel');
+        setTimeout(() => {
+            $panel.animate({
+                scrollTop: $panel.scrollTop() + $target.offset().top - $panel.offset().top - 100,
+            }, 250);
+        }, 50);
+    }
+
+    return true;
+}
+
 function validateCreateStep(step) {
     const $container = $(`#createAgreementForm .agr-step[data-step="${step}"]`);
     let valid = true;
@@ -572,7 +713,7 @@ function submitCreateAgreement() {
         data: formData,
         processData: false,
         contentType: false,
-        beforeSend: showLoading,
+        beforeSend: () => showLoading(),
         success(res) {
             hideLoading();
             $('#btnSubmitCreateAgreement').prop('disabled', false);
@@ -588,6 +729,11 @@ function submitCreateAgreement() {
         error(xhr) {
             hideLoading();
             $('#btnSubmitCreateAgreement').prop('disabled', false);
+
+            if (xhr.status === 422) {
+                showCreateValidationErrors(xhr.responseJSON?.errors);
+            }
+
             handleAjaxError(xhr);
         },
     });
@@ -600,8 +746,43 @@ function submitCreateAgreement() {
 function openAgreementDetailModal(eid) {
     if (!eid) return;
     $('#detail_agreement_eid').val(eid);
+    resetAgreementDetailTabs();
+    $('#agreementActionDropdown').addClass('hidden');
     openModal('#detailAgreementModal');
     loadAgreementDetail(eid);
+    Agreement.pushUrl(eid);
+}
+
+function resetAgreementDetailTabs() {
+    $('.agr-detail-tab').removeClass('active');
+    $('.agr-detail-tab[data-tab="tracking"]').addClass('active');
+    $('.agr-tab-content').addClass('hidden');
+    $('#agr_tracking_panel').removeClass('hidden');
+}
+
+function initDetailTabs() {
+    $(document).on('click', '.agr-detail-tab', function () {
+        const tab = $(this).data('tab');
+        $('.agr-detail-tab').removeClass('active');
+        $(this).addClass('active');
+        $('.agr-tab-content').addClass('hidden');
+        $(`#agr_${tab}_panel`).removeClass('hidden');
+    });
+}
+
+function initActionDropdown() {
+    $(document).on('click', '#agreementActionBtn', function (e) {
+        e.stopPropagation();
+        $('#agreementActionDropdown').toggleClass('hidden');
+    });
+
+    $(document).on('click', function () {
+        $('#agreementActionDropdown').addClass('hidden');
+    });
+
+    $(document).on('click', '#agreementActionDropdown', function (e) {
+        e.stopPropagation();
+    });
 }
 
 function loadAgreementDetail(eid) {
@@ -618,9 +799,10 @@ function loadAgreementDetail(eid) {
 
 function populateAgreementDetail(a) {
     $('#detail_agreement_id').text(a.agreement_id || '-');
+    $('#detail_status_badge').html(renderStepBadge(a.agreement_step_id));
+    $('#detail_subtitle').text([a.business_name, a.trade_name].filter(Boolean).join(' • ') || '-');
     $('#detail_cpny_id').text(a.cpny_id || '-');
     $('#detail_agreement_date').text(formatDate(a.agreement_date));
-    $('#detail_step').html(renderStepBadge(a.agreement_step_id));
     $('#detail_cycle').html(`${renderCycleBadge(a.cycle_info)} ${renderDaysCell(a.cycle_info)}`);
     $('#detail_business_name').text(a.business_name || '-');
     $('#detail_trade_name').text(a.trade_name || '-');
@@ -639,20 +821,84 @@ function renderAttachments(attachments) {
     container.empty();
 
     if (!attachments.length) {
-        container.html('<p class="text-slate-400">No attachments.</p>');
+        container.html(`
+            <div class="rounded-lg border border-dashed border-slate-300 px-4 py-5 text-center text-sm text-slate-400 dark:border-white/[0.08]">
+                No attachment available
+            </div>
+        `);
         return;
     }
 
     attachments.forEach((file) => {
         container.append(`
-            <div class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-white/[0.06] px-4 py-3">
-                <div class="min-w-0 flex-1 truncate font-medium text-slate-700 dark:text-slate-200">${file.display_name || file.name}</div>
-                <a href="${file.url}" target="_blank" class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/[0.06] dark:hover:text-white">
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                </a>
-            </div>
+            <a href="${file.url}" target="_blank" class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 transition-all duration-200 hover:bg-slate-50 dark:border-white/[0.06] dark:bg-slate-800 dark:hover:bg-white/[0.04]">
+                <div class="flex min-w-0 items-center gap-3">
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500 dark:bg-white/[0.06] dark:text-slate-300">
+                        <i class="fa-solid fa-file"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="truncate text-sm font-medium text-slate-700 dark:text-slate-200">${file.display_name || file.name}</div>
+                        <div class="mt-1 text-xs text-slate-400">${(file.extention || '-').toUpperCase()} &bull; ${formatFileSize(file.size || 0)}</div>
+                    </div>
+                </div>
+                <i class="fa-solid fa-arrow-up-right-from-square text-slate-400"></i>
+            </a>
         `);
     });
+}
+
+function trackingBadgeClass(status) {
+    switch ((status || '').toUpperCase()) {
+        case 'ACTIVE': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300';
+        case 'HOLD': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
+        case 'ESCALATED': return 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300';
+        case 'COMPLETED': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300';
+        case 'COMMENT': return 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-300';
+        case 'SURAT1_SENT':
+        case 'SURAT2_SENT': return 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300';
+        default: return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+    }
+}
+
+function trackingBadgeLabel(status) {
+    const labels = { SURAT1_SENT: 'Surat 1 Sent', SURAT2_SENT: 'Surat 2 Sent' };
+    return labels[(status || '').toUpperCase()] || status || 'ACTIVITY';
+}
+
+function renderTrackingBadge(status) {
+    return `<span class="inline-flex shrink-0 items-center rounded-lg px-2.5 py-1 text-[11px] font-semibold ${trackingBadgeClass(status)}">${trackingBadgeLabel(status)}</span>`;
+}
+
+function getAgreementTimelineIconStyle(item) {
+    const title = (item.title || '').toLowerCase();
+    const status = (item.status || '').toUpperCase();
+
+    if (item.type === 'comment' || status === 'COMMENT') {
+        return { icon: 'fa-solid fa-message', wrap: 'bg-fuchsia-500 text-white ring-fuchsia-100 dark:ring-fuchsia-500/10 shadow-fuchsia-500/20' };
+    }
+    if (title.includes('created')) {
+        return { icon: 'fa-solid fa-plus', wrap: 'bg-blue-500 text-white ring-blue-100 dark:ring-blue-500/10 shadow-blue-500/20' };
+    }
+    if (title.includes('hold') || status === 'HOLD') {
+        return { icon: 'fa-solid fa-pause', wrap: 'bg-amber-500 text-white ring-amber-100 dark:ring-amber-500/10 shadow-amber-500/20' };
+    }
+    if (title.includes('escalat') || status === 'ESCALATED') {
+        return { icon: 'fa-solid fa-triangle-exclamation', wrap: 'bg-rose-500 text-white ring-rose-100 dark:ring-rose-500/10 shadow-rose-500/20' };
+    }
+    if (title.includes('complet') || status === 'COMPLETED') {
+        return { icon: 'fa-solid fa-circle-check', wrap: 'bg-emerald-500 text-white ring-emerald-100 dark:ring-emerald-500/10 shadow-emerald-500/20' };
+    }
+    if (title.includes('sent')) {
+        return { icon: 'fa-solid fa-paper-plane', wrap: 'bg-teal-500 text-white ring-teal-100 dark:ring-teal-500/10 shadow-teal-500/20' };
+    }
+    if (title.includes('updat')) {
+        return { icon: 'fa-solid fa-pen', wrap: 'bg-indigo-500 text-white ring-indigo-100 dark:ring-indigo-500/10 shadow-indigo-500/20' };
+    }
+    if (title.includes('activat') || status === 'ACTIVE') {
+        return { icon: 'fa-solid fa-circle-play', wrap: 'bg-green-500 text-white ring-green-100 dark:ring-green-500/10 shadow-green-500/20' };
+    }
+
+    return { icon: 'fa-solid fa-bolt', wrap: 'bg-slate-500 text-white ring-slate-100 dark:ring-slate-500/10 shadow-slate-500/20' };
 }
 
 function renderTracking(tracking) {
@@ -660,19 +906,48 @@ function renderTracking(tracking) {
     container.empty();
 
     if (!tracking.length) {
-        container.html('<p class="text-slate-400">No activity yet.</p>');
+        container.html(`
+            <div class="rounded-lg border border-dashed border-slate-300 px-5 py-10 text-center text-sm text-slate-400 dark:border-white/[0.08]">
+                No tracking history
+            </div>
+        `);
         return;
     }
 
-    tracking.forEach((item) => {
+    tracking.forEach((item, index) => {
+        const submittedBy = item.submitted_by || item.pic || 'System';
+        const iconStyle = getAgreementTimelineIconStyle(item);
+        const description = item.description && item.description !== '-' ? item.description : '';
+
         container.append(`
-            <div class="border-l-2 border-slate-200 pl-4 dark:border-white/[0.08]">
-                <div class="flex items-center justify-between">
-                    <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">${item.title}</p>
-                    <p class="text-xs text-slate-400">${formatDateTime(item.datetime)}</p>
+            <div class="relative pl-10 pb-3">
+                ${index !== tracking.length - 1 ? `
+                    <div class="absolute left-[15px] top-10 bottom-0 w-px bg-slate-200 dark:bg-white/[0.06]"></div>
+                ` : ''}
+
+                <div class="absolute left-0 top-1 flex h-8 w-8 items-center justify-center rounded-2xl ring-[1px] shadow-md transition-all duration-300 hover:scale-105 ${iconStyle.wrap}">
+                    <i class="${iconStyle.icon} text-[11px]"></i>
                 </div>
-                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">${item.description || ''}</p>
-                <p class="mt-1 text-[11px] text-slate-400">by ${item.submitted_by || item.pic || 'System'}</p>
+
+                <div class="rounded-lg border border-slate-200/80 bg-slate-50/20 px-4 py-2.5 dark:border-white/[0.05] dark:bg-slate-900/60">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0 flex-1">
+                            <div class="truncate text-[13px] font-semibold text-slate-800 dark:text-white">${item.title || 'Activity'}</div>
+                            <div class="mt-0.5 flex flex-wrap items-center gap-1.5 text-[10px] text-slate-400 dark:text-slate-500">
+                                <span class="max-w-[130px] truncate">${submittedBy}</span>
+                                <span class="opacity-40">&bull;</span>
+                                <span>${formatDateTime(item.datetime)}</span>
+                            </div>
+                        </div>
+                        ${renderTrackingBadge(item.status)}
+                    </div>
+
+                    ${description ? `
+                        <div class="mt-2 rounded-lg border border-slate-100 bg-slate-50/70 px-2.5 py-2 text-[11px] leading-5 text-slate-600 dark:border-white/[0.04] dark:bg-white/[0.03] dark:text-slate-300">
+                            ${escapeHtml(description).replace(/\n/g, '<br>')}
+                        </div>
+                    ` : ''}
+                </div>
             </div>
         `);
     });
@@ -683,50 +958,79 @@ function renderComments(comments) {
     container.empty();
 
     if (!comments.length) {
-        container.html('<p class="text-slate-400">No comments yet.</p>');
+        container.html(`
+            <div class="flex h-full items-center justify-center">
+                <div class="rounded-lg border border-dashed border-slate-300 px-6 py-10 text-center dark:border-white/[0.08]">
+                    <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-slate-100 dark:bg-white/[0.06]">
+                        <i class="fa-regular fa-comments text-lg text-slate-400"></i>
+                    </div>
+                    <div class="mt-4 text-sm font-medium text-slate-700 dark:text-slate-200">No discussion yet</div>
+                    <div class="mt-1 text-xs text-slate-400">Start conversation here</div>
+                </div>
+            </div>
+        `);
         return;
     }
 
     comments.forEach((c) => {
+        const user = c.created_by || 'User';
+        const initials = user.substring(0, 1).toUpperCase();
+
         container.append(`
-            <div class="rounded-xl border border-slate-200 p-3 dark:border-white/[0.06]">
-                <div class="flex items-center justify-between">
-                    <p class="text-xs font-semibold text-slate-700 dark:text-slate-200">${c.created_by}</p>
-                    <p class="text-[11px] text-slate-400">${formatDateTime(c.created_at)}</p>
+            <div class="flex items-start gap-3">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-900 text-sm font-semibold text-white dark:bg-white dark:text-slate-900">
+                    ${initials}
                 </div>
-                <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">${c.message}</p>
+                <div class="min-w-0 flex-1">
+                    <div class="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-white/[0.06] dark:bg-slate-800">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div class="text-sm font-semibold text-slate-800 dark:text-white">${escapeHtml(user)}</div>
+                            <div class="text-[11px] text-slate-400">${formatDateTime(c.created_at)}</div>
+                        </div>
+                        <div class="whitespace-normal text-sm leading-7 text-slate-700 dark:text-slate-300">${escapeHtml(c.message).replace(/\n/g, '<br>')}</div>
+                    </div>
+                </div>
             </div>
         `);
     });
 }
 
 const ACTION_LABELS = {
-    can_edit: { label: 'Edit', action: 'edit', color: 'slate' },
-    can_hold: { label: 'Hold', action: 'hold', color: 'yellow' },
-    can_activate: { label: 'Activate', action: 'activate', color: 'green' },
-    can_complete: { label: 'Complete', action: 'complete', color: 'slate' },
+    can_hold: { label: 'Hold Agreement', action: 'hold', icon: 'fa-solid fa-pause', class: 'text-amber-600 dark:text-amber-400' },
+    can_activate: { label: 'Activate Agreement', action: 'activate', icon: 'fa-solid fa-bolt', class: 'text-emerald-600 dark:text-emerald-400' },
+    can_complete: { label: 'Complete Agreement', action: 'complete', icon: 'fa-solid fa-flag-checkered', class: 'text-slate-600 dark:text-slate-300' },
 };
 
 function renderActionButtons(actions, agreement) {
     const container = $('#detail_action_buttons');
     container.empty();
 
-    Object.keys(ACTION_LABELS).forEach((key) => {
-        if (!actions[key]) return;
-        if (key === 'can_edit') return; // edit uses the create-style form; skipped in this lean UI
+    const eid = $('#detail_agreement_eid').val();
+    const keys = Object.keys(ACTION_LABELS).filter((key) => actions[key]);
 
+    if (!keys.length) {
+        $('#agreementActionBtn').addClass('hidden');
+        container.html('<div class="px-4 py-8 text-center text-sm font-medium text-slate-500 dark:text-slate-400">No action available</div>');
+        return;
+    }
+
+    $('#agreementActionBtn').removeClass('hidden');
+
+    keys.forEach((key) => {
         const cfg = ACTION_LABELS[key];
         container.append(`
-            <button type="button" class="btn-agreement-action rounded-lg border border-${cfg.color}-200 bg-${cfg.color}-50 px-4 py-2.5 text-sm font-semibold text-${cfg.color}-700 hover:bg-${cfg.color}-100 dark:border-${cfg.color}-500/20 dark:bg-${cfg.color}-500/10 dark:text-${cfg.color}-300"
-                data-action="${cfg.action}" data-eid="${$('#detail_agreement_eid').val()}">
-                ${cfg.label}
+            <button type="button" class="btn-agreement-action group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-all duration-200 hover:bg-slate-100 dark:hover:bg-white/[0.05]"
+                data-action="${cfg.action}" data-eid="${eid}">
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-100 transition-all duration-200 group-hover:scale-105 dark:bg-white/[0.05] ${cfg.class}">
+                    <i class="${cfg.icon} text-[15px]"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="truncate text-[13px] font-medium ${cfg.class}">${cfg.label}</div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-[12px] text-slate-300 dark:text-slate-600"></i>
             </button>
         `);
     });
-
-    if (!container.children().length) {
-        container.html('<p class="text-sm text-slate-400">No actions available.</p>');
-    }
 }
 
 /* ----------------------------------------------------------------------
@@ -734,7 +1038,12 @@ function renderActionButtons(actions, agreement) {
  * ---------------------------------------------------------------------- */
 
 const ACTION_CONFIG = {
-    hold: { title: 'Put Agreement On Hold', url: Agreement.routes.hold, pic: false, descrRequired: true, attachments: false, psm: false },
+    hold: {
+        title: 'Put Agreement On Hold', url: Agreement.routes.hold, pic: false, descrRequired: true, attachments: false, psm: false,
+        subtitle: 'Pause the follow-up cycle until this agreement is reactivated.',
+        icon: 'fa-solid fa-pause', iconClass: 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400',
+        submitLabel: 'Put On Hold', submitIcon: 'fa-solid fa-pause',
+    },
     activate: {
         title: 'Activate Agreement (Revised Hardcopy Sent)', url: Agreement.routes.activate, pic: true, descrRequired: false,
         attachments: true, psm: true, psmRequired: true,
@@ -742,14 +1051,23 @@ const ACTION_CONFIG = {
         attachmentLabel: 'Proof of Delivery (revised hardcopy) *',
         attachmentAccept: '.jpg,.jpeg,.png,.pdf',
         psmHint: 'Reactivating always means the revised hardcopy was sent back to the tenant — Delivery Date and Proof of Delivery are required, and this restarts the follow-up cycle from this date.',
+        subtitle: 'Confirm the revised hardcopy has been sent back to the tenant.',
+        icon: 'fa-solid fa-bolt', iconClass: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
+        submitLabel: 'Activate Agreement', submitIcon: 'fa-solid fa-bolt',
     },
-    complete: { title: 'Complete Agreement', url: Agreement.routes.complete, pic: false, descrRequired: true, attachments: true, psm: true, attachmentField: 'attachments' },
+    complete: {
+        title: 'Complete Agreement', url: Agreement.routes.complete, pic: false, descrRequired: true, attachments: true, psm: true, attachmentField: 'attachments',
+        subtitle: 'Mark this agreement as fully completed and close out the workflow.',
+        icon: 'fa-solid fa-flag-checkered', iconClass: 'bg-slate-100 text-slate-600 dark:bg-white/[0.06] dark:text-slate-300',
+        submitLabel: 'Complete Agreement', submitIcon: 'fa-solid fa-flag-checkered',
+    },
 };
 
 function initActionModal() {
     $(document).on('click', '.btn-agreement-action', function () {
         const action = $(this).data('action');
         const eid = $(this).data('eid');
+        $('#agreementActionDropdown').addClass('hidden');
         openActionModal(action, eid);
     });
 
@@ -766,6 +1084,15 @@ function initActionModal() {
 
     $('#actionAgreementForm').on('submit', function (e) {
         e.preventDefault();
+
+        const steps = Agreement.state.actionSteps;
+        for (let i = 1; i <= steps.length; i++) {
+            if (!validateActionStep(i)) {
+                setActionStep(i);
+                return;
+            }
+        }
+
         submitAction();
     });
 }
@@ -781,42 +1108,283 @@ function openActionModal(action, eid) {
     $('#action_eid').val(eid);
     $('#action_type').val(action);
     $('#action_modal_title').text(cfg.title);
+    $('#action_modal_subtitle').text(cfg.subtitle || '');
+    $('#action_modal_icon').attr('class', `flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg ${cfg.iconClass}`)
+        .html(`<i class="${cfg.icon}"></i>`);
+    $('#btnSubmitAction').html(`<i class="${cfg.submitIcon}"></i> ${cfg.submitLabel}`);
     $('#action_descr_label').text(cfg.descrRequired ? 'Notes (required)' : 'Notes');
     $('#action_response_descr').prop('required', cfg.descrRequired);
 
-    $('#action_pic_fields').toggleClass('hidden', !cfg.pic);
-    $('#action_attachment_fields').toggleClass('hidden', !cfg.attachments);
     $('#action_attachment_label').text(cfg.attachmentLabel || 'Attachments');
     $('#action_attachments').attr('accept', cfg.attachmentAccept || '');
-    $('#action_psm_fields').toggleClass('hidden', !cfg.psm);
     $('#action_psm_hint').text(cfg.psmHint || '').toggleClass('hidden', !cfg.psmHint);
     $('#action_psm_delivery_input').prop('required', !!cfg.psmRequired);
     $('#action_psm_delivery_label').text(cfg.psmRequired ? 'Delivery Date *' : 'Delivery Date');
 
+    $('#action_no_psm_or_addendum').val('');
     $('#action_pic_legal, #action_pic_leasing').val(null).trigger('change');
+    resetActionEditToggles();
 
-    if (cfg.pic) {
-        loadPicOptions('#action_pic_legal', { role_id: 'LEGALACCESS' });
-        // Not scoped to company here (unlike the create form's PIC Leasing) —
-        // this modal only gets an agreement id, not its company, so it can't
-        // filter by cpny_id without an extra fetch.
-        loadPicOptions('#action_pic_leasing', { role_id: 'LEASINGACCESS' });
-    }
+    Agreement.state.actionSteps = computeActionSteps(cfg);
+    setActionStep(1);
 
     openModal('#actionAgreementModal');
+
+    // Pre-fill No. PSM/Addendum + current PIC assignment from the agreement
+    // itself — both start locked (read-only) since this action isn't meant
+    // to silently change them; Edit unlocks a field, Save locks it back.
+    if (cfg.pic || cfg.psm) {
+        $.get(Agreement.routes.detail.replace(':eid', eid), function (res) {
+            // The modal may have been reopened for a different agreement
+            // (or a different action) by the time this resolves.
+            if ($('#action_eid').val() !== eid) return;
+
+            const a = (res.data || {}).agreement || {};
+
+            if (cfg.psm) {
+                $('#action_no_psm_or_addendum').val(a.no_psm_or_addendum || '');
+                // Unlike No. PSM/Addendum, this one isn't lock-toggled — just
+                // pre-filled and left freely editable from the start.
+                $('#action_psm_date').val(a.psm_or_addendum_date || '');
+            }
+
+            if (cfg.pic) {
+                const picLegal = a.pic_legal_list || [];
+                const picLeasing = a.pic_leasing_list || [];
+
+                $.when(
+                    loadPicOptions('#action_pic_legal', { role_id: 'LEGALACCESS' }),
+                    // Not scoped to company here (unlike the create form's PIC
+                    // Leasing) — this modal only gets an agreement id, not its
+                    // company, so it can't filter by cpny_id without an extra fetch.
+                    loadPicOptions('#action_pic_leasing', { role_id: 'LEASINGACCESS' })
+                ).always(function () {
+                    fillPicSelectValue('#action_pic_legal', picLegal);
+                    fillPicSelectValue('#action_pic_leasing', picLeasing);
+                });
+            }
+        }).fail(handleAjaxError);
+    }
+}
+
+// Appends the agreement's current PIC usernames as select2 options if the
+// pic-search results didn't already include them (e.g. someone no longer
+// holding the role), then selects them — done last so it can't create a
+// duplicate option for a username pic-search also returned.
+function fillPicSelectValue(selector, usernames) {
+    const $select = $(selector);
+
+    usernames.forEach((username) => {
+        if (!$select.find(`option[value="${username}"]`).length) {
+            $select.append(new Option(username, username));
+        }
+    });
+
+    $select.val(usernames).trigger('change');
+}
+
+function resetActionEditToggles() {
+    $('.agr-edit-toggle').each(function () {
+        setActionEditToggle($(this), false);
+    });
+}
+
+function setActionEditToggle($btn, editing) {
+    $btn.data('editing', editing);
+
+    if (editing) {
+        $btn.html('<i class="fa-solid fa-check text-[10px]"></i> Save')
+            .removeClass('text-blue-600 dark:text-blue-400')
+            .addClass('text-emerald-600 dark:text-emerald-400');
+    } else {
+        $btn.html('<i class="fa-solid fa-pen text-[10px]"></i> Edit')
+            .removeClass('text-emerald-600 dark:text-emerald-400')
+            .addClass('text-blue-600 dark:text-blue-400');
+    }
+
+    const target = $btn.data('target');
+
+    if (target === '#action_no_psm_or_addendum') {
+        $(target).prop('readonly', !editing).toggleClass('agr-locked', !editing);
+        if (editing) $(target).trigger('focus');
+    }
+
+    if (target === '#action_pic_fields') {
+        ['#action_pic_legal', '#action_pic_leasing'].forEach((sel) => {
+            $(sel).data('locked', !editing);
+            $(sel).next('.select2-container').toggleClass('agr-locked', !editing);
+        });
+    }
+}
+
+function initActionEditToggle() {
+    $(document).on('click', '.agr-edit-toggle', function (e) {
+        e.stopPropagation();
+        const $btn = $(this);
+        setActionEditToggle($btn, !$btn.data('editing'));
+    });
+}
+
+/* ----------------------------------------------------------------------
+ | Action Modal — Step Wizard
+ *
+ | Which steps apply depends on the action (Hold is Notes-only; Activate
+ | walks through all four; Complete skips PIC) — so, unlike the fixed
+ | 4-step create-agreement wizard, the step list here is rebuilt per
+ | action instead of living as static HTML.
+ * ---------------------------------------------------------------------- */
+
+const ACTION_STEP_META = {
+    pic: { key: 'pic', label: 'PIC', panel: '#action_pic_step' },
+    psm: { key: 'psm', label: 'Document', panel: '#action_psm_step' },
+    notes: { key: 'notes', label: 'Notes', panel: '#action_notes_step' },
+    attachments: { key: 'attachments', label: 'Attachments', panel: '#action_attachment_step' },
+};
+
+function computeActionSteps(cfg) {
+    return ['pic', 'psm', 'notes', 'attachments'].filter((key) => {
+        if (key === 'notes') return true;
+        if (key === 'attachments') return !!cfg.attachments;
+        return !!cfg[key];
+    });
+}
+
+function renderActionStepIndicator() {
+    const steps = Agreement.state.actionSteps;
+    const current = Agreement.state.actionStepIndex;
+
+    $('#action_steps_indicator_wrap').toggleClass('hidden', steps.length <= 1);
+
+    let html = '';
+    steps.forEach((key, i) => {
+        const num = i + 1;
+        const cls = num === current ? 'is-active' : (num < current ? 'is-done' : '');
+        html += `
+            <div class="agr-step-item ${cls}">
+                <span class="agr-step-circle"><span class="agr-step-num">${num}</span><i class="fa-solid fa-check"></i></span>
+                <span class="agr-step-label">${ACTION_STEP_META[key].label}</span>
+            </div>
+        `;
+        if (i < steps.length - 1) html += '<span class="agr-step-line"></span>';
+    });
+
+    $('#action_steps_indicator').html(html);
+}
+
+function setActionStep(index) {
+    const steps = Agreement.state.actionSteps;
+    Agreement.state.actionStepIndex = index;
+
+    steps.forEach((key, i) => {
+        $(ACTION_STEP_META[key].panel).toggleClass('hidden', i + 1 !== index);
+    });
+
+    renderActionStepIndicator();
+
+    $('#btnActionStepBack, #btnActionStepNext, #btnSubmitAction').addClass('hidden');
+    if (index > 1) $('#btnActionStepBack').removeClass('hidden');
+    if (index < steps.length) $('#btnActionStepNext').removeClass('hidden');
+    if (index === steps.length) $('#btnSubmitAction').removeClass('hidden');
+
+    $('#actionAgreementModal .modal-panel').scrollTop(0);
+}
+
+function validateActionStep(index) {
+    const key = Agreement.state.actionSteps[index - 1];
+    const $panel = $(ACTION_STEP_META[key].panel);
+    let valid = true;
+    let $firstInvalid = null;
+
+    // A field left unlocked (still showing "Save") hasn't been confirmed
+    // yet — block moving on until it's locked back in, same as any other
+    // unfinished required input.
+    const $unsaved = $panel.find('.agr-edit-toggle').filter(function () {
+        return !!$(this).data('editing');
+    });
+
+    if ($unsaved.length) {
+        valid = false;
+        showError('Please save your changes before continuing.');
+        $unsaved.first().get(0)?.scrollIntoView({ block: 'nearest' });
+        return false;
+    }
+
+    $panel.find('[required]').each(function () {
+        const $el = $(this);
+        const filled = $.trim($el.val() || '').length > 0
+            && (typeof this.checkValidity !== 'function' || this.checkValidity());
+
+        markFieldError($el, !filled);
+
+        if (!filled) {
+            valid = false;
+            if (!$firstInvalid) $firstInvalid = $el;
+        }
+    });
+
+    if (key === 'attachments' && ACTION_CONFIG[$('#action_type').val()]?.psmRequired && Agreement.state.actionAttachments.length === 0) {
+        valid = false;
+        showError('Proof of Delivery is required when reactivating with a revised hardcopy.');
+    } else if (!valid) {
+        showError('Please fill in all required fields before continuing.');
+    }
+
+    if (!valid && $firstInvalid) {
+        $panel.get(0)?.scrollIntoView({ block: 'nearest' });
+    }
+
+    return valid;
+}
+
+// A 422 from the server otherwise just shows a toast while the wizard sits
+// on whatever step the user happened to submit from — this jumps back to
+// the earliest step containing the invalid field instead.
+function jumpToActionFieldError(errors) {
+    const keys = Object.keys(errors || {});
+    if (!keys.length) return;
+
+    let targetIndex = null;
+
+    keys.forEach((key) => {
+        const base = key.split('.')[0];
+        const $el = $(`#actionAgreementForm [name="${base}"]`);
+        if (!$el.length) return;
+
+        markFieldError($el, true);
+
+        const stepKey = $el.closest('.agr-step').data('step-key');
+        const index = Agreement.state.actionSteps.indexOf(stepKey) + 1;
+        if (index > 0 && (!targetIndex || index < targetIndex)) targetIndex = index;
+    });
+
+    if (targetIndex) setActionStep(targetIndex);
+}
+
+function initActionSteps() {
+    $('#btnActionStepNext').on('click', function () {
+        const index = Agreement.state.actionStepIndex;
+        if (!validateActionStep(index)) return;
+        setActionStep(Math.min(index + 1, Agreement.state.actionSteps.length));
+    });
+
+    $('#btnActionStepBack').on('click', function () {
+        setActionStep(Math.max(Agreement.state.actionStepIndex - 1, 1));
+    });
 }
 
 function loadPicOptions(selector, params = {}, force = false) {
     const select = $(selector);
-    if (!force && select.find('option').length) return;
+    if (!force && select.find('option').length) return $.Deferred().resolve().promise();
 
     select.empty();
     if (!select.prop('multiple')) {
         select.append(new Option('-', ''));
     }
 
-    $.get(Agreement.routes.picSearch, params, function (res) {
+    return $.get(Agreement.routes.picSearch, params, function (res) {
         (res.results || []).forEach((item) => select.append(new Option(item.text, item.id)));
+    }).fail(function (xhr) {
+        handleAjaxError(xhr);
     });
 }
 
@@ -853,44 +1421,59 @@ function removeActionAttachment(index) {
     renderActionAttachments();
 }
 
+const ACTION_CONFIRM_TEXT = {
+    hold: 'Put this agreement on hold? Follow-up timers pause until it\'s reactivated.',
+    activate: 'Activate this agreement? This restarts the follow-up cycle from the delivery date entered above.',
+    complete: 'Mark this agreement as complete? This stops all further follow-up and email reminders.',
+};
+
 function submitAction() {
     const action = $('#action_type').val();
     const eid = $('#action_eid').val();
     const cfg = ACTION_CONFIG[action];
     if (!cfg) return;
 
-    if (cfg.psmRequired && Agreement.state.actionAttachments.length === 0) {
-        showError('Proof of Delivery is required when reactivating with a revised hardcopy.');
-        return;
-    }
+    Swal.fire({
+        title: 'Are you sure?',
+        text: ACTION_CONFIRM_TEXT[action] || 'Proceed with this action?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, proceed',
+        cancelButtonText: 'Cancel',
+        reverseButtons: true,
+        confirmButtonColor: '#2563eb',
+    }).then((result) => {
+        if (!result.isConfirmed) return;
 
-    const formData = new FormData($('#actionAgreementForm')[0]);
-    const attachmentField = cfg.attachmentField || 'attachments';
-    Agreement.state.actionAttachments.forEach((file) => formData.append(`${attachmentField}[]`, file));
+        const formData = new FormData($('#actionAgreementForm')[0]);
+        const attachmentField = cfg.attachmentField || 'attachments';
+        Agreement.state.actionAttachments.forEach((file) => formData.append(`${attachmentField}[]`, file));
 
-    $('#btnSubmitAction').prop('disabled', true);
+        $('#btnSubmitAction').prop('disabled', true);
 
-    $.ajax({
-        url: cfg.url.replace(':eid', eid),
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        beforeSend: showLoading,
-        success(res) {
-            hideLoading();
-            $('#btnSubmitAction').prop('disabled', false);
-            closeModal('#actionAgreementModal');
-            showSuccess(res.message || 'Action completed successfully.');
-            loadAgreementDetail(eid);
-            reloadTable();
-            refreshCounts();
-        },
-        error(xhr) {
-            hideLoading();
-            $('#btnSubmitAction').prop('disabled', false);
-            handleAjaxError(xhr);
-        },
+        $.ajax({
+            url: cfg.url.replace(':eid', eid),
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            beforeSend: () => showLoading(),
+            success(res) {
+                hideLoading();
+                $('#btnSubmitAction').prop('disabled', false);
+                closeModal('#actionAgreementModal');
+                showSuccess(res.message || 'Action completed successfully.');
+                loadAgreementDetail(eid);
+                reloadTable();
+                refreshCounts();
+            },
+            error(xhr) {
+                hideLoading();
+                $('#btnSubmitAction').prop('disabled', false);
+                if (xhr.status === 422) jumpToActionFieldError(xhr.responseJSON?.errors);
+                handleAjaxError(xhr);
+            },
+        });
     });
 }
 
@@ -910,11 +1493,17 @@ function initComment() {
             url: Agreement.routes.comment.replace(':eid', eid),
             type: 'POST',
             data: { message },
+            beforeSend: () => showLoading(),
             success() {
+                hideLoading();
                 $('#comment_message').val('');
+                showSuccess('Comment posted.');
                 loadAgreementDetail(eid);
             },
-            error: handleAjaxError,
+            error(xhr) {
+                hideLoading();
+                handleAjaxError(xhr);
+            },
         });
     });
 }
@@ -941,6 +1530,11 @@ $(function () {
     initActionModal();
     initComment();
     initTableRowClick();
+    initDetailTabs();
+    initActionDropdown();
+    initRowActionDropdown();
+    initActionEditToggle();
+    initActionSteps();
 
     if ($.fn.select2) {
         $('#agr_cpny_filter').select2({ width: '100%' });
@@ -964,6 +1558,10 @@ $(function () {
         $('#action_pic_legal, #action_pic_leasing').select2({
             width: '100%',
             placeholder: 'Select user(s)...',
+        });
+
+        $('#action_pic_legal, #action_pic_leasing').on('select2:opening', function (e) {
+            if ($(this).data('locked')) e.preventDefault();
         });
     }
 });

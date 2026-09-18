@@ -1,53 +1,58 @@
 <x-app-layout>
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div>
-                <h1 class="text-base font-bold text-gray-800 dark:text-white">🎟️ Training Attendance</h1>
-                <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">Check attendees in on the event day, then review who showed up.</p>
+        <div class="flex flex-col gap-5 rounded-2xl bg-white p-5 shadow-sm dark:bg-gray-800">
+            <div class="flex items-center gap-3">
+                <div class="flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-linear-to-br from-rose-500 to-orange-400 text-xl shadow-sm">
+                    🎟️
+                </div>
+                <div>
+                    <h1 class="text-base font-bold text-gray-800 dark:text-white">Training Attendance</h1>
+                    <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">Check attendees in on the event day, then review who showed up.</p>
+                </div>
             </div>
 
             {{-- Tabs --}}
-            <div class="flex flex-wrap gap-2 border-b border-gray-200 dark:border-gray-700">
-                <button class="tabBtn border-b-2 border-gray-900 px-3 py-2 text-sm font-semibold text-gray-900 dark:border-white dark:text-white" data-tab="checkin">
-                    Attendance List
+            <div class="flex w-full flex-wrap gap-1 rounded-xl bg-gray-100 p-1 dark:bg-gray-900/60">
+                <button class="tabBtn active flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-semibold transition" data-tab="checkin">
+                    <span>📋</span> Attendance List
                 </button>
-                <button class="tabBtn border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="after">
-                    After Event
+                <button class="tabBtn flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-semibold text-gray-500 transition hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="after">
+                    <span>🎉</span> After Event
                 </button>
-                <button class="tabBtn border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="feedback">
-                    Feedback
+                <button class="tabBtn flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-semibold text-gray-500 transition hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="feedback">
+                    <span>💬</span> Feedback
                 </button>
             </div>
 
             {{-- Shared event picker --}}
-            <div class="flex flex-wrap items-end gap-2">
-                <div class="min-w-70 flex-1">
-                    <label class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">Event</label>
-                    <select id="eventSelect" class="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
-                        <option value="">Select an event…</option>
-                    </select>
-                </div>
+            <div class="rounded-2xl border border-gray-200 bg-linear-to-br from-gray-50 to-rose-50/30 p-4 dark:border-gray-700 dark:from-gray-800/40 dark:to-rose-900/10">
+                <label class="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">🗓️ Event</label>
+                <select id="eventSelect" class="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                    <option value="">Select an event…</option>
+                </select>
+                <div id="eventMeta" class="mt-3 hidden flex-wrap gap-2"></div>
             </div>
 
-            <div id="noEventState" class="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
+            <div id="noEventState" class="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-gray-300 p-10 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
+                <span class="text-3xl">🔍</span>
                 Select an event above to get started.
             </div>
 
             {{-- Attendance List --}}
             <div id="tab-checkin" class="tab-panel space-y-3">
                 <div id="checkinArea" class="hidden space-y-3">
-                    <div class="rounded-xl border-2 border-dashed border-gray-300 p-4 text-center dark:border-gray-600">
+                    <div class="rounded-2xl border-2 border-dashed border-rose-200 bg-rose-50/40 p-4 text-center dark:border-gray-600 dark:bg-gray-900/30">
                         <label class="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">📷 Scan Barcode</label>
                         <div class="flex gap-2">
                             <textarea id="scanInput" rows="1" autocomplete="off"
                                 placeholder="Click here, then scan — or type the code and click Check In"
-                                class="w-full resize-none overflow-hidden rounded-lg border border-gray-300 px-3 py-2 text-center text-sm text-gray-800 focus:border-gray-900 focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-white"></textarea>
+                                class="w-full resize-none overflow-hidden rounded-lg border border-gray-300 bg-white px-3 py-2 text-center text-sm text-gray-800 shadow-sm focus:border-gray-900 focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-white"></textarea>
                             <button type="button" id="scanSubmitBtn"
-                                class="flex-none rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200">
+                                class="flex-none rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-black hover:shadow active:scale-[0.98] dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200">
                                 Check In
                             </button>
                             <button type="button" id="openQrScannerBtn" title="Scan with camera"
-                                class="flex-none rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                                class="flex-none rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 active:scale-[0.98] dark:border-gray-600 dark:bg-transparent dark:text-gray-200 dark:hover:bg-gray-700">
                                 📷
                             </button>
                         </div>
@@ -74,22 +79,25 @@
                     </div>
 
                     <input type="text" id="searchName" placeholder="🔎 Search by name…"
-                        class="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                        class="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
 
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
-                            <thead>
-                                <tr class="text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    <th class="py-2 pr-4">Doc ID</th>
-                                    <th class="py-2 pr-4">Name</th>
-                                    <th class="py-2 pr-4">Company</th>
-                                    <th class="py-2 pr-4">Department</th>
-                                    <th class="py-2 pr-4">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="rosterBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
-                        </table>
-                        <div id="rosterEmpty" class="hidden rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
+                    <div class="overflow-hidden rounded-2xl border border-gray-200 shadow-sm dark:border-gray-700">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-gray-900/50">
+                                    <tr class="text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                        <th class="py-2.5 px-4">Doc ID</th>
+                                        <th class="py-2.5 px-4">Name</th>
+                                        <th class="py-2.5 px-4">Company</th>
+                                        <th class="py-2.5 px-4">Department</th>
+                                        <th class="py-2.5 px-4">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rosterBody" class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
+                            </table>
+                        </div>
+                        <div id="rosterEmpty" class="hidden flex flex-col items-center gap-1 p-10 text-center text-sm text-gray-500 dark:text-gray-400">
+                            <span class="text-2xl">🗂️</span>
                             No registrants match.
                         </div>
                     </div>
@@ -99,27 +107,32 @@
             {{-- After Event --}}
             <div id="tab-after" class="tab-panel hidden space-y-3">
                 <div id="afterEventArea" class="hidden space-y-3">
+                    <div id="afterEventStats" class="grid grid-cols-1 gap-3 sm:grid-cols-3"></div>
+
                     <div class="flex flex-wrap items-center justify-end gap-2">
-                        <a id="exportExcelBtn" href="#" class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">⬇ Excel</a>
-                        <a id="exportCsvBtn" href="#" class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">⬇ CSV</a>
-                        <a id="exportPdfBtn" href="#" class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">⬇ PDF</a>
+                        <a id="exportExcelBtn" href="#" class="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm transition hover:bg-emerald-50 active:scale-[0.98] dark:border-gray-600 dark:bg-transparent dark:text-emerald-400 dark:hover:bg-emerald-900/20">⬇ Excel</a>
+                        <a id="exportCsvBtn" href="#" class="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-sky-700 shadow-sm transition hover:bg-sky-50 active:scale-[0.98] dark:border-gray-600 dark:bg-transparent dark:text-sky-400 dark:hover:bg-sky-900/20">⬇ CSV</a>
+                        <a id="exportPdfBtn" href="#" class="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-rose-700 shadow-sm transition hover:bg-rose-50 active:scale-[0.98] dark:border-gray-600 dark:bg-transparent dark:text-rose-400 dark:hover:bg-rose-900/20">⬇ PDF</a>
                     </div>
 
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
-                            <thead>
-                                <tr class="text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    <th class="py-2 pr-4">Doc ID</th>
-                                    <th class="py-2 pr-4">Name</th>
-                                    <th class="py-2 pr-4">Company</th>
-                                    <th class="py-2 pr-4">Department</th>
-                                    <th class="py-2 pr-4">Attended At</th>
-                                    <th class="py-2 pr-4">Attendance</th>
-                                </tr>
-                            </thead>
-                            <tbody id="afterEventBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
-                        </table>
-                        <div id="afterEventEmpty" class="hidden rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
+                    <div class="overflow-hidden rounded-2xl border border-gray-200 shadow-sm dark:border-gray-700">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-gray-900/50">
+                                    <tr class="text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                        <th class="py-2.5 px-4">Doc ID</th>
+                                        <th class="py-2.5 px-4">Name</th>
+                                        <th class="py-2.5 px-4">Company</th>
+                                        <th class="py-2.5 px-4">Department</th>
+                                        <th class="py-2.5 px-4">Attended At</th>
+                                        <th class="py-2.5 px-4">Attendance</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="afterEventBody" class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
+                            </table>
+                        </div>
+                        <div id="afterEventEmpty" class="hidden flex flex-col items-center gap-1 p-10 text-center text-sm text-gray-500 dark:text-gray-400">
+                            <span class="text-2xl">🕒</span>
                             No one attended this event yet.
                         </div>
                     </div>
@@ -129,16 +142,21 @@
             {{-- Feedback --}}
             <div id="tab-feedback" class="tab-panel hidden space-y-3">
                 <div id="feedbackArea" class="hidden space-y-3">
-                    <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-gray-200 p-3 dark:border-gray-700 dark:bg-gray-900">
-                        <div id="feedbackStatusText" class="text-xs text-gray-600 dark:text-gray-300"></div>
+                    <div id="feedbackStatusBanner" class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4">
+                        <div class="flex items-center gap-2.5">
+                            <span id="feedbackStatusIcon" class="flex h-8 w-8 flex-none items-center justify-center rounded-full text-sm"></span>
+                            <div id="feedbackStatusText" class="text-xs font-medium text-gray-600 dark:text-gray-300"></div>
+                        </div>
                         <div class="flex gap-2">
-                            <button id="openFeedbackBtn" class="hidden rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700">Open Feedback</button>
-                            <button id="closeFeedbackBtn" class="hidden rounded-lg border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20">Close Feedback</button>
+                            <a id="exportFeedbackBtn" href="#" class="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm transition hover:bg-emerald-50 active:scale-[0.98] dark:border-gray-600 dark:bg-transparent dark:text-emerald-400 dark:hover:bg-emerald-900/20">⬇ Excel</a>
+                            <button id="openFeedbackBtn" class="hidden rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700 active:scale-[0.98]">Open Feedback</button>
+                            <button id="closeFeedbackBtn" class="hidden rounded-lg border border-red-300 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 shadow-sm transition hover:bg-red-50 active:scale-[0.98] dark:border-red-800 dark:bg-transparent dark:text-red-400 dark:hover:bg-red-900/20">Close Feedback</button>
                         </div>
                     </div>
 
-                    <div id="feedbackQuestions" class="space-y-3"></div>
-                    <div id="feedbackEmpty" class="hidden rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
+                    <div id="feedbackQuestions" class="grid grid-cols-1 gap-3 lg:grid-cols-2"></div>
+                    <div id="feedbackEmpty" class="hidden flex flex-col items-center gap-1 rounded-2xl border border-dashed border-gray-300 p-10 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
+                        <span class="text-2xl">💬</span>
                         No feedback submitted yet.
                     </div>
                 </div>
@@ -150,6 +168,8 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="{{ asset('assets/js/card-chart/bar-chart.js') }}?v={{ filemtime(public_path('assets/js/card-chart/bar-chart.js')) }}"></script>
+    <script src="{{ asset('assets/js/card-chart/donut-chart.js') }}?v={{ filemtime(public_path('assets/js/card-chart/donut-chart.js')) }}"></script>
     <style>
         .select2-container--default .select2-selection--single {
             height: 34px;
@@ -171,16 +191,83 @@
         .attendedBadge {
             display: inline-flex;
             align-items: center;
+            gap: 4px;
             border-radius: 9999px;
             background: #dcfce7;
             color: #15803d;
-            padding: 2px 8px;
+            padding: 3px 9px;
             font-size: 11px;
             font-weight: 600;
         }
+        .dark .attendedBadge {
+            background: rgba(21, 128, 61, 0.2);
+            color: #4ade80;
+        }
         .notAttendedText {
-            font-size: 11px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            border-radius: 9999px;
+            background: #f3f4f6;
             color: #9ca3af;
+            padding: 3px 9px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .dark .notAttendedText {
+            background: rgba(255, 255, 255, 0.06);
+            color: #9ca3af;
+        }
+        .tabBtn.active {
+            background: #ffffff;
+            color: #111827;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.06);
+        }
+        .dark .tabBtn.active {
+            background: #374151;
+            color: #ffffff;
+        }
+        .metaBadge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            border-radius: 9999px;
+            border: 1px solid #e5e7eb;
+            background: #ffffff;
+            color: #374151;
+            padding: 3px 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .dark .metaBadge {
+            border-color: #4b5563;
+            background: rgba(17, 24, 39, 0.6);
+            color: #d1d5db;
+        }
+        .statCard {
+            border-radius: 1rem;
+            border: 1px solid #e5e7eb;
+            padding: 12px 16px;
+            background: #ffffff;
+        }
+        .dark .statCard {
+            border-color: #374151;
+            background: rgba(17, 24, 39, 0.4);
+        }
+        .statCard .statValue {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111827;
+        }
+        .dark .statCard .statValue {
+            color: #ffffff;
+        }
+        .statCard .statLabel {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: #6b7280;
         }
     </style>
 
@@ -200,6 +287,7 @@
             feedbackResults: "{{ route('training-attendance.feedback.results', ['scheduleId' => '__ID__']) }}",
             feedbackOpen: "{{ route('training-attendance.feedback.open', ['scheduleId' => '__ID__']) }}",
             feedbackClose: "{{ route('training-attendance.feedback.close', ['scheduleId' => '__ID__']) }}",
+            feedbackExport: "{{ route('training-attendance.feedback.export', ['scheduleId' => '__ID__']) }}",
         };
 
         function routeUrl(key, id) {
@@ -275,10 +363,32 @@
             }
         }
 
+        function renderEventMeta(event) {
+            const $meta = $('#eventMeta');
+            if (!event) {
+                $meta.addClass('hidden').empty();
+                return;
+            }
+
+            const time = `${event.start_time ?? ''}-${event.end_time ?? ''}`;
+            const count = event.approved_count === 1 ? '1 registrant' : `${event.approved_count} registrants`;
+            const regStatus = event.status === 'C'
+                ? { icon: '🔒', text: 'Registration closed' }
+                : { icon: '🟡', text: 'Registration still open' };
+
+            $meta.removeClass('hidden').html(`
+                <span class="metaBadge">📅 ${fmtDate(event.schedule_date)}</span>
+                <span class="metaBadge">⏰ ${time}</span>
+                <span class="metaBadge">👥 ${count}</span>
+                <span class="metaBadge">${regStatus.icon} ${regStatus.text}</span>
+            `);
+        }
+
         function onEventChange(id, skipReload) {
             selectedEventId = id || null;
             const event = events.find((e) => String(e.id) === String(selectedEventId));
             checkEventReadiness(event);
+            renderEventMeta(event);
 
             $('#noEventState').toggleClass('hidden', !!selectedEventId);
             $('#checkinArea').toggleClass('hidden', !selectedEventId);
@@ -315,10 +425,8 @@
             const tab = $(this).data('tab');
             activeTab = tab;
 
-            $('.tabBtn').removeClass('border-gray-900 text-gray-900 dark:border-white dark:text-white')
-                .addClass('border-transparent text-gray-500 dark:text-gray-400');
-            $(this).removeClass('border-transparent text-gray-500 dark:text-gray-400')
-                .addClass('border-gray-900 text-gray-900 dark:border-white dark:text-white');
+            $('.tabBtn').removeClass('active').addClass('text-gray-500 dark:text-gray-400');
+            $(this).addClass('active').removeClass('text-gray-500 dark:text-gray-400');
             $('.tab-panel').addClass('hidden');
             $('#tab-' + tab).removeClass('hidden');
 
@@ -344,15 +452,15 @@
             filtered.forEach((r) => {
                 const statusHtml = r.attended_at
                     ? `<span class="attendedBadge">✅ Attended</span>`
-                    : `<span class="notAttendedText">Not yet</span>`;
+                    : `<span class="notAttendedText">⏳ Not yet</span>`;
 
                 $body.append(`
-                    <tr class="rosterRow cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/40" data-id="${r.id}">
-                        <td class="py-2 pr-4 font-mono text-xs">${r.docid}</td>
-                        <td class="py-2 pr-4">${r.name}</td>
-                        <td class="py-2 pr-4">${r.cpny_name ?? '-'}</td>
-                        <td class="py-2 pr-4">${r.department_name ?? '-'}</td>
-                        <td class="py-2 pr-4">${statusHtml}</td>
+                    <tr class="rosterRow cursor-pointer transition hover:bg-gray-50 dark:hover:bg-gray-700/40" data-id="${r.id}">
+                        <td class="py-2.5 px-4 font-mono text-xs text-gray-500 dark:text-gray-400">${r.docid}</td>
+                        <td class="py-2.5 px-4 font-medium text-gray-800 dark:text-gray-100">${r.name}</td>
+                        <td class="py-2.5 px-4 text-gray-600 dark:text-gray-300">${r.cpny_name ?? '-'}</td>
+                        <td class="py-2.5 px-4 text-gray-600 dark:text-gray-300">${r.department_name ?? '-'}</td>
+                        <td class="py-2.5 px-4">${statusHtml}</td>
                     </tr>
                 `);
             });
@@ -630,12 +738,34 @@
         let afterEventCanUndo = false;
 
         function attendanceCellHtml(row, canUndo) {
-            const historyBtn = `<button class="historyBtn rounded-lg border border-gray-300 px-2 py-1 text-[11px] font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${row.id}">History</button>`;
+            const historyBtn = `<button class="historyBtn rounded-lg border border-gray-300 bg-white px-2 py-1 text-[11px] font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 active:scale-[0.98] dark:border-gray-600 dark:bg-transparent dark:text-gray-200 dark:hover:bg-gray-700" data-id="${row.id}">🕓 History</button>`;
             const undoBtn = canUndo
-                ? `<button class="undoAttendBtn ml-2 rounded-lg border border-red-300 px-2 py-1 text-[11px] font-semibold text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${row.id}">Undo</button>`
+                ? `<button class="undoAttendBtn ml-2 rounded-lg border border-red-300 bg-white px-2 py-1 text-[11px] font-semibold text-red-600 shadow-sm transition hover:bg-red-50 active:scale-[0.98] dark:border-red-800 dark:bg-transparent dark:text-red-400 dark:hover:bg-red-900/20" data-id="${row.id}">↺ Undo</button>`
                 : '';
 
             return `<div class="flex items-center">${historyBtn}${undoBtn}</div>`;
+        }
+
+        function renderAfterEventStats() {
+            const event = events.find((e) => String(e.id) === String(selectedEventId));
+            const total = event?.approved_count ?? 0;
+            const attended = afterEventRows.length;
+            const rate = total ? Math.round((attended / total) * 100) : 0;
+
+            $('#afterEventStats').html(`
+                <div class="statCard">
+                    <p class="statLabel">Total Registrants</p>
+                    <p class="statValue">${total}</p>
+                </div>
+                <div class="statCard">
+                    <p class="statLabel">✅ Attended</p>
+                    <p class="statValue text-emerald-600 dark:text-emerald-400">${attended}</p>
+                </div>
+                <div class="statCard">
+                    <p class="statLabel">📈 Attendance Rate</p>
+                    <p class="statValue">${rate}%</p>
+                </div>
+            `);
         }
 
         function loadAfterEvent() {
@@ -645,18 +775,20 @@
                 afterEventRows = res.data || [];
                 afterEventCanUndo = !!res.can_undo;
 
+                renderAfterEventStats();
+
                 const $body = $('#afterEventBody').empty();
                 $('#afterEventEmpty').toggleClass('hidden', afterEventRows.length > 0);
 
                 afterEventRows.forEach((r) => {
                     $body.append(`
-                        <tr>
-                            <td class="py-2 pr-4 font-mono text-xs">${r.docid}</td>
-                            <td class="py-2 pr-4">${r.name}</td>
-                            <td class="py-2 pr-4">${r.cpny_name ?? '-'}</td>
-                            <td class="py-2 pr-4">${r.department_name ?? '-'}</td>
-                            <td class="py-2 pr-4">${fmtDateTime(r.attended_at)}</td>
-                            <td class="py-2 pr-4">${attendanceCellHtml(r, afterEventCanUndo)}</td>
+                        <tr class="transition hover:bg-gray-50 dark:hover:bg-gray-700/40">
+                            <td class="py-2.5 px-4 font-mono text-xs text-gray-500 dark:text-gray-400">${r.docid}</td>
+                            <td class="py-2.5 px-4 font-medium text-gray-800 dark:text-gray-100">${r.name}</td>
+                            <td class="py-2.5 px-4 text-gray-600 dark:text-gray-300">${r.cpny_name ?? '-'}</td>
+                            <td class="py-2.5 px-4 text-gray-600 dark:text-gray-300">${r.department_name ?? '-'}</td>
+                            <td class="py-2.5 px-4 text-gray-600 dark:text-gray-300">${fmtDateTime(r.attended_at)}</td>
+                            <td class="py-2.5 px-4">${attendanceCellHtml(r, afterEventCanUndo)}</td>
                         </tr>
                     `);
                 });
@@ -720,46 +852,103 @@
             });
         });
 
-        function feedbackDistributionHtml(dist, total, color) {
-            return Object.keys(dist).sort().map((key) => {
-                const count = dist[key];
-                const pct = total ? Math.round((count / total) * 100) : 0;
+        function escAttr(s) {
+            return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
 
-                return `
-                    <div style="display:flex;align-items:center;gap:6px;font-size:12px;margin-top:3px;">
-                        <span style="width:70px;flex-shrink:0;">${key}</span>
-                        <div style="flex:1;background:#e5e7eb;border-radius:4px;height:8px;overflow:hidden;">
-                            <div style="background:${color};height:8px;width:${pct}%;"></div>
-                        </div>
-                        <span style="width:24px;text-align:right;flex-shrink:0;">${count}</span>
+        function feedbackChartCardHtml(q, chartType, config, gradient) {
+            return `
+                <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:shadow-lg dark:border-slate-700/60 dark:bg-slate-900">
+                    <div class="absolute inset-x-0 top-0 h-0.75" style="background:linear-gradient(to right,${gradient[0]},${gradient[1]})"></div>
+                    <div class="px-5 pt-5 pb-1">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Question ${q.question_order}</p>
+                        <h3 class="mt-0.5 text-base font-bold text-slate-800 dark:text-white">${escAttr(q.question_text)}</h3>
+                        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">${q.question_type === 'Rating' ? `Average: <strong>${q.average ?? '-'}</strong> · ` : ''}${q.response_count} response${q.response_count === 1 ? '' : 's'}</p>
                     </div>
-                `;
-            }).join('');
+                    <div class="px-2 pb-3 pt-1">
+                        <div data-chart-type="${chartType}" data-config="${escAttr(JSON.stringify(config))}"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function feedbackNoResponseCardHtml(q, gradient) {
+            return `
+                <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700/60 dark:bg-slate-900">
+                    <div class="absolute inset-x-0 top-0 h-0.75" style="background:linear-gradient(to right,${gradient[0]},${gradient[1]})"></div>
+                    <div class="px-5 py-5">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Question ${q.question_order}</p>
+                        <h3 class="mt-0.5 text-base font-bold text-slate-800 dark:text-white">${escAttr(q.question_text)}</h3>
+                        <p class="mt-3 text-xs text-slate-400 dark:text-slate-500">No responses yet.</p>
+                    </div>
+                </div>
+            `;
         }
 
         function feedbackQuestionCardHtml(q) {
-            let body = '';
-
             if (q.question_type === 'Rating') {
-                body = `
-                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Average: <strong>${q.average ?? '-'}</strong> · ${q.response_count} response${q.response_count === 1 ? '' : 's'}</p>
-                    <div class="mt-2">${feedbackDistributionHtml(q.distribution || {}, q.response_count, '#6366f1')}</div>
-                `;
-            } else if (q.question_type === 'Single Choice') {
-                body = `
-                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">${q.response_count} response${q.response_count === 1 ? '' : 's'}</p>
-                    <div class="mt-2">${feedbackDistributionHtml(q.distribution || {}, q.response_count, '#10b981')}</div>
-                `;
-            } else {
-                const answers = q.answers || [];
-                const items = answers.map((a) => `<li style="margin-top:4px;"><strong>${a.name}:</strong> ${a.text}</li>`).join('');
-                body = `<ul style="font-size:12px;color:#374151;list-style:disc;padding-left:16px;margin-top:6px;" class="dark:text-gray-300">${items || '<li style="color:#9ca3af;">No responses yet.</li>'}</ul>`;
+                const dist = q.distribution || {};
+                const keys = Object.keys(dist).sort((a, b) => Number(a) - Number(b));
+                if (!keys.length) return feedbackNoResponseCardHtml(q, ['#8B5CF6', '#7C3AED']);
+
+                return feedbackChartCardHtml(q, 'bar', {
+                    series: [{ name: 'Responses', data: keys.map((k) => dist[k]) }],
+                    categories: keys,
+                    height: 180,
+                    color: 'violet',
+                    showLegend: false,
+                }, ['#8B5CF6', '#7C3AED']);
             }
 
+            if (q.question_type === 'Single Choice') {
+                const dist = q.distribution || {};
+                const keys = Object.keys(dist).sort();
+                if (!keys.length) return feedbackNoResponseCardHtml(q, ['#10B981', '#0D9488']);
+
+                return feedbackChartCardHtml(q, 'donut', {
+                    series: keys.map((k) => dist[k]),
+                    labels: keys,
+                    height: 220,
+                    color: 'green',
+                    legendPosition: 'bottom',
+                }, ['#10B981', '#0D9488']);
+            }
+
+            const answers = q.answers || [];
+            const alpineData = `{
+                answers: ${JSON.stringify(answers)},
+                page: 1,
+                perPage: 10,
+                get totalPages() { return Math.max(1, Math.ceil(this.answers.length / this.perPage)); },
+                get pageItems() { return this.answers.slice((this.page - 1) * this.perPage, this.page * this.perPage); },
+            }`;
+
             return `
-                <div class="rounded-xl border border-gray-200 p-3 dark:border-gray-700 dark:bg-gray-900">
-                    <p class="text-sm font-semibold text-gray-800 dark:text-white">${q.question_order}. ${q.question_text}</p>
-                    ${body}
+                <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700/60 dark:bg-slate-900" x-data="${escAttr(alpineData)}">
+                    <div class="absolute inset-x-0 top-0 h-0.75" style="background:linear-gradient(to right,#F59E0B,#D97706)"></div>
+                    <div class="px-5 pt-5 pb-1">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Question ${q.question_order}</p>
+                        <h3 class="mt-0.5 text-base font-bold text-slate-800 dark:text-white">${escAttr(q.question_text)}</h3>
+                        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">${q.response_count} response${q.response_count === 1 ? '' : 's'}</p>
+                    </div>
+                    <div class="px-5 pb-2 pt-1">
+                        <table class="w-full border-collapse">
+                            <tbody>
+                                <template x-for="a in pageItems" :key="a.name + a.text">
+                                    <tr class="border-t border-slate-100 dark:border-slate-800">
+                                        <td class="py-2 pr-3 align-top text-xs font-semibold text-slate-600 dark:text-slate-300" x-text="a.name"></td>
+                                        <td class="py-2 text-xs text-slate-700 dark:text-slate-200" x-text="a.text"></td>
+                                    </tr>
+                                </template>
+                                <tr x-show="!answers.length"><td class="py-2 text-xs text-slate-400 dark:text-slate-500" colspan="2">No responses yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="flex items-center justify-between gap-2 border-t border-slate-100 px-5 py-2.5 dark:border-slate-800" x-show="totalPages > 1">
+                        <button type="button" class="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800" @click="page = Math.max(1, page - 1)" :disabled="page === 1">‹ Prev</button>
+                        <span class="text-xs text-slate-500 dark:text-slate-400" x-text="\`Page \${page} of \${totalPages}\`"></span>
+                        <button type="button" class="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800" @click="page = Math.min(totalPages, page + 1)" :disabled="page === totalPages">Next ›</button>
+                    </div>
                 </div>
             `;
         }
@@ -775,16 +964,34 @@
                 $('#closeFeedbackBtn').toggleClass('hidden', !canManage || !isOpen);
 
                 let statusText = 'Feedback has never been opened for this event.';
+                let icon = '⚪';
+                let bannerClasses = 'border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/40';
+                let iconClasses = 'bg-gray-200 dark:bg-gray-700';
+
                 if (res.opened_at && isOpen) {
-                    statusText = `🟢 Feedback is OPEN (opened ${fmtDateTime(res.opened_at)} by ${res.opened_by ?? '-'}) · ${res.respondent_count}/${res.attended_count} attendees responded`;
+                    statusText = `Feedback is OPEN (opened ${fmtDateTime(res.opened_at)} by ${res.opened_by ?? '-'}) · ${res.respondent_count}/${res.attended_count} attendees responded`;
+                    icon = '🟢';
+                    bannerClasses = 'border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-900/20';
+                    iconClasses = 'bg-emerald-100 dark:bg-emerald-800/40';
                 } else if (res.opened_at && !isOpen) {
-                    statusText = `🔴 Feedback is CLOSED (closed ${fmtDateTime(res.closed_at)}) · ${res.respondent_count}/${res.attended_count} attendees responded`;
+                    statusText = `Feedback is CLOSED (closed ${fmtDateTime(res.closed_at)}) · ${res.respondent_count}/${res.attended_count} attendees responded`;
+                    icon = '🔴';
+                    bannerClasses = 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20';
+                    iconClasses = 'bg-red-100 dark:bg-red-800/40';
                 }
+
+                $('#feedbackStatusBanner').attr('class', `flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4 ${bannerClasses}`);
+                $('#feedbackStatusIcon').attr('class', `flex h-8 w-8 flex-none items-center justify-center rounded-full text-sm ${iconClasses}`).text(icon);
                 $('#feedbackStatusText').text(statusText);
+
+                $('#exportFeedbackBtn').attr('href', routeUrl('feedbackExport', selectedEventId));
 
                 const questions = res.questions || [];
                 $('#feedbackEmpty').toggleClass('hidden', questions.length > 0);
                 $('#feedbackQuestions').html(questions.map(feedbackQuestionCardHtml).join(''));
+
+                document.querySelectorAll('#feedbackQuestions [data-chart-type="bar"]').forEach(window.CardChart.initBar);
+                document.querySelectorAll('#feedbackQuestions [data-chart-type="donut"]').forEach(window.CardChart.initDonut);
             });
         }
 

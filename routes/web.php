@@ -423,6 +423,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/registration-summary', [TrainingRegistrationController::class, 'registrationSummary'])->name('training-list.registration-summary');
             Route::get('/my/{id}/feedback', [TrainingFeedbackController::class, 'show'])->name('training-list.feedback.show')->where('id', '[0-9]+');
             Route::get('/my/{id}/certificate', [TrainingRegistrationController::class, 'myCertificate'])->name('training-list.certificate')->where('id', '[0-9]+');
+            Route::get('/feedback/{eid}', [TrainingRegistrationController::class, 'showFeedback'])->name('training-list.feedback.open')->where('eid', '[A-Za-z0-9]+');
             Route::get('/{eid}', [TrainingRegistrationController::class, 'show'])->name('training-list.show')->where('eid', '[A-Za-z0-9]+');
         });
 
@@ -439,6 +440,11 @@ Route::middleware(['auth'])->group(function () {
         // itself (assertUserCanAct), same convention as ManpowerController/AgendaController etc.
         Route::post('/{id}/approve', [TrainingRegistrationController::class, 'approve'])->name('training-list.approve');
         Route::post('/{id}/reject', [TrainingRegistrationController::class, 'reject'])->name('training-list.reject');
+
+        // Not gated by TRAININGLIST,VIEW — powers the "please fill feedback"
+        // reminder on every department dashboard, scoped to the caller's own
+        // registrations regardless of whether they hold that module permission.
+        Route::get('/pending-feedback', [TrainingRegistrationController::class, 'pendingFeedback'])->name('training-list.pending-feedback');
     });
 
     Route::prefix('training-attendance')->group(function () {
@@ -451,6 +457,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{scheduleId}/export/csv', [TrainingAttendanceController::class, 'exportCsv'])->name('training-attendance.export.csv')->where('scheduleId', '[A-Za-z0-9_-]+');
             Route::get('/{scheduleId}/export/pdf', [TrainingAttendanceController::class, 'exportPdf'])->name('training-attendance.export.pdf')->where('scheduleId', '[A-Za-z0-9_-]+');
             Route::get('/{scheduleId}/feedback/results', [TrainingAttendanceController::class, 'feedbackResults'])->name('training-attendance.feedback.results')->where('scheduleId', '[A-Za-z0-9_-]+');
+            Route::get('/{scheduleId}/feedback/export', [TrainingAttendanceController::class, 'exportFeedback'])->name('training-attendance.feedback.export')->where('scheduleId', '[A-Za-z0-9_-]+');
         });
 
         Route::middleware('access:TRAININGATTENDANCE,CREATE')->group(function () {

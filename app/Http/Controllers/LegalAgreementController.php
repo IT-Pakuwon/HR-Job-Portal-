@@ -66,6 +66,16 @@ class LegalAgreementController extends Controller
         );
     }
 
+    /**
+     * PSM/Addendum dates (document date + delivery date) can't be scheduled
+     * further out than H+3 from today — applies wherever those two fields
+     * are accepted (create, edit-while-active, activate, complete).
+     */
+    protected function maxPsmDate(): string
+    {
+        return now()->addDays(3)->toDateString();
+    }
+
     public function index(Request $request, $eid = null)
     {
         $user = auth()->user();
@@ -243,6 +253,10 @@ class LegalAgreementController extends Controller
                 return $this->agreementCycleInfo($row);
             })
 
+            ->addColumn('actions', function ($row) use ($isManager) {
+                return $this->buildActions($row, $isManager);
+            })
+
             ->make(true);
     }
 
@@ -302,8 +316,8 @@ class LegalAgreementController extends Controller
             'pic_leasing.*' => 'string',
 
             'no_psm_or_addendum' => 'required|max:150',
-            'psm_or_addendum_date' => 'required|date',
-            'psm_or_addendum_delivery_date' => 'required|date',
+            'psm_or_addendum_date' => 'required|date|before_or_equal:'.$this->maxPsmDate(),
+            'psm_or_addendum_delivery_date' => 'required|date|before_or_equal:'.$this->maxPsmDate(),
 
             'bukti_pengiriman' => 'required|array|min:1',
             'bukti_pengiriman.*' => [
@@ -487,8 +501,8 @@ class LegalAgreementController extends Controller
             'pic_leasing.*' => 'string',
 
             'no_psm_or_addendum' => 'nullable|max:150',
-            'psm_or_addendum_date' => 'nullable|date',
-            'psm_or_addendum_delivery_date' => 'nullable|date',
+            'psm_or_addendum_date' => 'nullable|date|before_or_equal:'.$this->maxPsmDate(),
+            'psm_or_addendum_delivery_date' => 'nullable|date|before_or_equal:'.$this->maxPsmDate(),
         ]);
 
         DB::connection('pgsql5')->beginTransaction();
@@ -782,9 +796,11 @@ class LegalAgreementController extends Controller
 
         $agreement = TrAgreement::findOrFail($id);
 
+        $username = auth()->user()->username;
+
         abort_unless(
             $this->isManagerRole()
-                || $agreement->hasPic(auth()->user()->username),
+                || $agreement->hasPic($username),
             403
         );
 
@@ -803,6 +819,14 @@ class LegalAgreementController extends Controller
         DB::connection('pgsql5')->beginTransaction();
 
         try {
+            // A Hold is the signal that the tenant sent a revision — snapshot
+            // the still-current (pre-revision) record into tr_agreement_hist
+            // now, while it's still accurate. activateAgreement() also calls
+            // this (idempotently) as a safety net for the ESCALATED->activate
+            // path, which can reach Activate without ever passing through
+            // Hold.
+            $this->archiveAgreementRevision($agreement, $username);
+
             $this->transitionStep(
                 $agreement,
                 'HOLD',
@@ -876,8 +900,8 @@ class LegalAgreementController extends Controller
             'pic_leasing.*' => 'string',
 
             'no_psm_or_addendum' => 'nullable|max:150',
-            'psm_or_addendum_date' => 'nullable|date',
-            'psm_or_addendum_delivery_date' => 'required|date',
+            'psm_or_addendum_date' => 'nullable|date|before_or_equal:'.$this->maxPsmDate(),
+            'psm_or_addendum_delivery_date' => 'required|date|before_or_equal:'.$this->maxPsmDate(),
 
             'bukti_pengiriman' => 'required|array|min:1',
             'bukti_pengiriman.*' => [
@@ -898,9 +922,13 @@ class LegalAgreementController extends Controller
                 $agreement->pic_leasing = TrAgreement::joinPicList((array) $request->pic_leasing);
             }
 
-            // Snapshot the pre-revision record (old PSM/Addendum info) into
-            // tr_agreement_hist before it gets overwritten below. Old proof
-            // of delivery files are left as-is in tr_agreement_attachment —
+            // Normally already archived by holdAgreement() when the revision
+            // was flagged — this call is a no-op then (firstOrCreate) and
+            // only actually snapshots here for the ESCALATED->activate path,
+            // which can reach this point without ever having been on Hold.
+            // Either way it must run before renewal_sequence bumps and the
+            // PSM/Addendum fields below get overwritten. Old proof of
+            // delivery files are left as-is in tr_agreement_attachment —
             // they already stay there permanently, tagged with the
             // renewal_sequence they were uploaded under, so bumping the
             // sequence here is what makes them read as history.
@@ -1163,9 +1191,9 @@ class LegalAgreementController extends Controller
         $request->validate([
             'no_psm_or_addendum' => 'nullable|max:150',
 
-            'psm_or_addendum_date' => 'nullable|date',
+            'psm_or_addendum_date' => 'nullable|date|before_or_equal:'.$this->maxPsmDate(),
 
-            'psm_or_addendum_delivery_date' => 'nullable|date',
+            'psm_or_addendum_delivery_date' => 'nullable|date|before_or_equal:'.$this->maxPsmDate(),
 
             'response_descr' => 'required',
 
@@ -1701,46 +1729,56 @@ class LegalAgreementController extends Controller
      * before a revision overwrites it, so the old document number/dates aren't
      * lost. Tagged with the renewal_sequence it was current under, matching how
      * tr_agreement_attachment already tags proof-of-delivery files by revision.
+     *
+     * Called from holdAgreement() — a Hold is the signal a revision came in,
+     * so that's the authoritative snapshot point — and again from
+     * activateAgreement() as a fallback for the ESCALATED->activate path,
+     * which can reach Activate without ever passing through Hold. firstOrCreate
+     * keyed on hist_agreement_id makes the second call a no-op in the normal
+     * Hold->Activate flow instead of erroring on the duplicate key or
+     * clobbering the Hold-time snapshot.
      */
     protected function archiveAgreementRevision(TrAgreement $agreement, string $username): TrAgreementHist
     {
-        return TrAgreementHist::create([
-            'hist_agreement_id' => $agreement->agreement_id.'R'.$agreement->renewal_sequence,
-            'hist_renewal_sequence' => $agreement->renewal_sequence,
-            'agreement_date' => $agreement->agreement_date,
-            'prev_agreement_id' => $agreement->prev_agreement_id,
-            'cpny_id' => $agreement->cpny_id,
-            'site_id' => $agreement->site_id,
+        return TrAgreementHist::firstOrCreate(
+            ['hist_agreement_id' => $agreement->agreement_id.'R'.$agreement->renewal_sequence],
+            [
+                'hist_renewal_sequence' => $agreement->renewal_sequence,
+                'agreement_date' => $agreement->agreement_date,
+                'prev_agreement_id' => $agreement->prev_agreement_id,
+                'cpny_id' => $agreement->cpny_id,
+                'site_id' => $agreement->site_id,
 
-            'business_id' => $agreement->business_id,
-            'business_name' => $agreement->business_name,
-            'tenant_no' => $agreement->tenant_no,
-            'trade_name' => $agreement->trade_name,
-            'floor_id' => $agreement->floor_id,
-            'unit_id' => $agreement->unit_id,
-            'business_address' => $agreement->business_address,
+                'business_id' => $agreement->business_id,
+                'business_name' => $agreement->business_name,
+                'tenant_no' => $agreement->tenant_no,
+                'trade_name' => $agreement->trade_name,
+                'floor_id' => $agreement->floor_id,
+                'unit_id' => $agreement->unit_id,
+                'business_address' => $agreement->business_address,
 
-            'pic_penyewa' => $agreement->pic_penyewa,
-            'pic_phonenumber_penyewa' => $agreement->pic_phonenumber_penyewa,
-            'pic_email_penyewa' => $agreement->pic_email_penyewa,
-            'pic_legal' => $agreement->pic_legal,
-            'pic_leasing' => $agreement->pic_leasing,
+                'pic_penyewa' => $agreement->pic_penyewa,
+                'pic_phonenumber_penyewa' => $agreement->pic_phonenumber_penyewa,
+                'pic_email_penyewa' => $agreement->pic_email_penyewa,
+                'pic_legal' => $agreement->pic_legal,
+                'pic_leasing' => $agreement->pic_leasing,
 
-            'no_psm_or_addendum' => $agreement->no_psm_or_addendum,
-            'psm_or_addendum_date' => $agreement->psm_or_addendum_date,
-            'psm_or_addendum_delivery_date' => $agreement->psm_or_addendum_delivery_date,
+                'no_psm_or_addendum' => $agreement->no_psm_or_addendum,
+                'psm_or_addendum_date' => $agreement->psm_or_addendum_date,
+                'psm_or_addendum_delivery_date' => $agreement->psm_or_addendum_delivery_date,
 
-            'agreement_step_id' => $agreement->agreement_step_id,
-            'agreement_step_order' => $agreement->agreement_step_order,
-            'agreement_step_created_user' => $agreement->agreement_step_created_user,
-            'agreement_step_created_at' => $agreement->agreement_step_created_at,
+                'agreement_step_id' => $agreement->agreement_step_id,
+                'agreement_step_order' => $agreement->agreement_step_order,
+                'agreement_step_created_user' => $agreement->agreement_step_created_user,
+                'agreement_step_created_at' => $agreement->agreement_step_created_at,
 
-            'status' => $agreement->status,
+                'status' => $agreement->status,
 
-            'created_user' => $agreement->created_user,
-            'created_at' => $agreement->created_at,
-            'updated_user' => $username,
-        ]);
+                'created_user' => $agreement->created_user,
+                'created_at' => $agreement->created_at,
+                'updated_user' => $username,
+            ]
+        );
     }
 
     /**

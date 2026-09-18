@@ -121,6 +121,8 @@
             window.currentUser = @json(auth()->user()->username);
 
             window.agrRoutes = {
+                index: "{{ route('legal-agreement') }}",
+                show: "{{ url('/show-legal-agreement') }}/:eid",
                 counts: "{{ route('legal-agreement.counts') }}",
                 json: "{{ route('legal-agreement.json') }}",
                 jobsJson: "{{ route('legal-agreement.jobs.json') }}",

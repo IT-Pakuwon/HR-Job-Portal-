@@ -114,4 +114,7 @@
     function boot() { document.querySelectorAll('[data-chart-type="donut"]').forEach(init); }
 
     if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', boot); } else { boot(); }
+
+    window.CardChart = window.CardChart || {};
+    window.CardChart.initDonut = init;
 })();
