@@ -28,7 +28,8 @@
                     </div>
                 </div>
 
-                <div id="action_psm_fields" class="hidden space-y-5">
+                <div id="action_psm_fields" class="hidden space-y-2">
+                    <p id="action_psm_hint" class="hidden text-xs text-slate-400"></p>
                     <div>
                         <label class="agr-label">No. PSM / Addendum</label>
                         <input type="text" name="no_psm_or_addendum" class="agr-input" />
@@ -39,8 +40,8 @@
                             <input type="date" name="psm_or_addendum_date" class="agr-input" />
                         </div>
                         <div>
-                            <label class="agr-label">Delivery Date</label>
-                            <input type="date" name="psm_or_addendum_delivery_date" class="agr-input" />
+                            <label id="action_psm_delivery_label" class="agr-label">Delivery Date</label>
+                            <input type="date" id="action_psm_delivery_input" name="psm_or_addendum_delivery_date" class="agr-input" />
                         </div>
                     </div>
                 </div>
@@ -51,7 +52,7 @@
                 </div>
 
                 <div id="action_attachment_fields" class="hidden">
-                    <label class="agr-label">Attachments</label>
+                    <label id="action_attachment_label" class="agr-label">Attachments</label>
                     <input type="file" id="action_attachments" multiple class="agr-input pt-3" />
                     <div id="action_attachment_list" class="mt-3 space-y-2"></div>
                 </div>

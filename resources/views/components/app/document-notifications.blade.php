@@ -535,6 +535,10 @@ function docNotifStatusCfg(status) {
         'VPL_EXPIRING': { iconBg: 'bg-amber-100 dark:bg-amber-900/30', iconText: 'text-amber-600 dark:text-amber-400', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', bar: 'bg-amber-500', cat: 'warn' },
         // Newly published training schedule open for registration
         'TRN_PUBLISHED': { iconBg: 'bg-emerald-100 dark:bg-emerald-900/30', iconText: 'text-emerald-600 dark:text-emerald-400', badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', bar: 'bg-emerald-500', cat: 'training' },
+        // Legal Agreement: Surat 1 / Surat 2 / auto-escalation already sent
+        'AGR_SURAT1':    { iconBg: 'bg-amber-100 dark:bg-amber-900/30',  iconText: 'text-amber-600 dark:text-amber-400',  badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',  bar: 'bg-amber-500',  cat: 'warn' },
+        'AGR_SURAT2':    { iconBg: 'bg-orange-100 dark:bg-orange-900/30', iconText: 'text-orange-600 dark:text-orange-400', badge: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400', bar: 'bg-orange-500', cat: 'warn' },
+        'AGR_ESCALATED': { iconBg: 'bg-red-100 dark:bg-red-900/30',      iconText: 'text-red-600 dark:text-red-400',      badge: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',          bar: 'bg-red-500',    cat: 'cancel' },
     };
     return map[status] || { iconBg: 'bg-gray-100 dark:bg-gray-700', iconText: 'text-gray-500 dark:text-gray-400', badge: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400', bar: 'bg-gray-500', cat: 'default' };
 }

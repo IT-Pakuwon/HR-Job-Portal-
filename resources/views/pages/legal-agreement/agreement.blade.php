@@ -97,7 +97,8 @@
                             <th class="px-4 py-3 text-left">PIC Legal</th>
                             <th class="px-4 py-3 text-left">PIC Leasing</th>
                             <th class="px-4 py-3 text-left">Step</th>
-                            <th class="px-4 py-3 text-left">Status</th>
+                            <th class="px-4 py-3 text-left">Days</th>
+                            <th class="px-4 py-3 text-left">Cycle</th>
                             <th class="px-4 py-3 text-right">Actions</th>
                         </tr>
                     </thead>
@@ -132,7 +133,6 @@
                 update: "{{ url('/legal-agreement/update') }}/:eid",
                 hold: "{{ url('/legal-agreement/hold') }}/:eid",
                 activate: "{{ url('/legal-agreement/activate') }}/:eid",
-                escalate: "{{ url('/legal-agreement/escalate') }}/:eid",
                 complete: "{{ url('/legal-agreement/complete') }}/:eid",
                 detail: "{{ url('/legal-agreement/detail') }}/:eid",
                 tracking: "{{ url('/legal-agreement/tracking') }}/:eid",

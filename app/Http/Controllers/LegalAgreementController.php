@@ -11,6 +11,7 @@ use App\Models\SysUserRole;
 use App\Models\TrAgreement;
 use App\Models\TrAgreementActivity;
 use App\Models\TrAgreementAttachment;
+use App\Models\TrAgreementHist;
 use App\Models\TrMessage;
 use App\Models\User;
 use App\Services\LegalAgreementNotificationService;
@@ -38,7 +39,6 @@ class LegalAgreementController extends Controller
     }
 
     protected array $workflowTransitions = [
-
         'hold' => [
             'ACTIVE',
             'ESCALATED',
@@ -47,10 +47,6 @@ class LegalAgreementController extends Controller
         'activate' => [
             'HOLD',
             'ESCALATED',
-        ],
-
-        'escalate' => [
-            'ACTIVE',
         ],
 
         'complete' => [
@@ -101,6 +97,7 @@ class LegalAgreementController extends Controller
                        });
                 });
             }
+
             return $q;
         };
 
@@ -191,18 +188,22 @@ class LegalAgreementController extends Controller
             );
         }
 
-        if ($request->filled('search')) {
+        // The JS always overwrites DataTables' native search with a plain
+        // string before this is hit, but guard it the same way jobsJson()
+        // does below in case a raw DataTables search[value] object ever
+        // reaches here.
+        if (is_string($request->search) && $request->filled('search')) {
             $search = $request->search;
 
             $query->where(function ($q) use ($search) {
-                $q->where('agreement_id',   'ilike', "%{$search}%")
+                $q->where('agreement_id', 'ilike', "%{$search}%")
                   ->orWhere('business_name', 'ilike', "%{$search}%")
-                  ->orWhere('trade_name',    'ilike', "%{$search}%")
-                  ->orWhere('tenant_no',     'ilike', "%{$search}%")
-                  ->orWhere('pic_legal',     'ilike', "%{$search}%")
-                  ->orWhere('pic_leasing',   'ilike', "%{$search}%")
-                  ->orWhere('created_user',  'ilike', "%{$search}%")
-                  ->orWhere('cpny_id',       'ilike', "%{$search}%")
+                  ->orWhere('trade_name', 'ilike', "%{$search}%")
+                  ->orWhere('tenant_no', 'ilike', "%{$search}%")
+                  ->orWhere('pic_legal', 'ilike', "%{$search}%")
+                  ->orWhere('pic_leasing', 'ilike', "%{$search}%")
+                  ->orWhere('created_user', 'ilike', "%{$search}%")
+                  ->orWhere('cpny_id', 'ilike', "%{$search}%")
                   ->orWhere('agreement_step_id', 'ilike', "%{$search}%");
             });
         }
@@ -238,6 +239,10 @@ class LegalAgreementController extends Controller
                 );
             })
 
+            ->addColumn('cycle_info', function ($row) {
+                return $this->agreementCycleInfo($row);
+            })
+
             ->make(true);
     }
 
@@ -262,7 +267,7 @@ class LegalAgreementController extends Controller
 
     public function store(Request $request)
     {
-        $doctype = 'AGR';
+        $doctype = 'AFU';
 
         $user = $request->user();
 
@@ -304,7 +309,7 @@ class LegalAgreementController extends Controller
             'bukti_pengiriman.*' => [
                 'file',
                 'max:5120',
-                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx',
+                'mimes:jpg,jpeg,png,pdf',
             ],
         ]);
 
@@ -316,7 +321,7 @@ class LegalAgreementController extends Controller
                 $year,
                 $month,
                 $username,
-                'AGR'
+                'AFU'
             );
 
             $urutan = (int) $auto['next'];
@@ -615,9 +620,9 @@ class LegalAgreementController extends Controller
 
                     'renewal_sequence' => $agreement->renewal_sequence,
 
-                    'agreement_date' => optional(
-                        $agreement->agreement_date
-                    )->format('Y-m-d H:i:s'),
+                    'agreement_date' => $agreement->agreement_date
+                        ? Carbon::parse($agreement->agreement_date)->format('Y-m-d H:i:s')
+                        : null,
 
                     'cpny_id' => $agreement->cpny_id,
 
@@ -655,13 +660,13 @@ class LegalAgreementController extends Controller
 
                     'no_psm_or_addendum' => $agreement->no_psm_or_addendum,
 
-                    'psm_or_addendum_date' => optional(
-                        $agreement->psm_or_addendum_date
-                    )->format('Y-m-d'),
+                    'psm_or_addendum_date' => $agreement->psm_or_addendum_date
+                        ? Carbon::parse($agreement->psm_or_addendum_date)->format('Y-m-d')
+                        : null,
 
-                    'psm_or_addendum_delivery_date' => optional(
-                        $agreement->psm_or_addendum_delivery_date
-                    )->format('Y-m-d'),
+                    'psm_or_addendum_delivery_date' => $agreement->psm_or_addendum_delivery_date
+                        ? Carbon::parse($agreement->psm_or_addendum_delivery_date)->format('Y-m-d')
+                        : null,
 
                     'agreement_step_id' => $agreement->agreement_step_id,
 
@@ -674,6 +679,8 @@ class LegalAgreementController extends Controller
                     'created_at' => optional(
                         $agreement->created_at
                     )->format('Y-m-d H:i:s'),
+
+                    'cycle_info' => $this->agreementCycleInfo($agreement),
                 ],
 
                 'attachments' => $attachments,
@@ -718,22 +725,31 @@ class LegalAgreementController extends Controller
         ]);
     }
 
+    /**
+     * $username: pass explicitly when calling from outside an authenticated
+     * HTTP request (e.g. the follow-up scheduler) — auth()->user() is null
+     * in a console context, and auth()->user()->username used to fatal
+     * there. Falls back to 'system' if truly nothing is available.
+     */
     protected function transitionStep(
         TrAgreement $agreement,
         string $toStep,
         string $summary,
         ?string $descr,
-        string $newStatus = 'P'
+        string $newStatus = 'P',
+        ?string $username = null
     ) {
+        $username = $username ?? auth()->user()?->username ?? 'system';
+
         $agreement->update([
             'agreement_step_id' => $toStep,
             'agreement_step_order' => $agreement->agreement_step_order + 1,
-            'agreement_step_created_user' => auth()->user()->username,
+            'agreement_step_created_user' => $username,
             'agreement_step_created_at' => now(),
 
             'status' => $newStatus,
 
-            'updated_user' => auth()->user()->username,
+            'updated_user' => $username,
         ]);
 
         $this->createActivity([
@@ -754,7 +770,7 @@ class LegalAgreementController extends Controller
 
             'status' => 'A',
 
-            'created_by' => auth()->user()->username,
+            'created_by' => $username,
         ]);
     }
 
@@ -823,9 +839,11 @@ class LegalAgreementController extends Controller
 
         $agreement = TrAgreement::findOrFail($id);
 
+        $username = auth()->user()->username;
+
         abort_unless(
             $this->isManagerRole()
-                || $agreement->hasPic(auth()->user()->username),
+                || $agreement->hasPic($username),
             403
         );
 
@@ -837,6 +855,17 @@ class LegalAgreementController extends Controller
             403
         );
 
+        // activate is only ever reachable from HOLD or ESCALATED (see
+        // $workflowTransitions above), and per the business rule every such
+        // reactivation means "the revised hardcopy PSM/Addendum was sent
+        // back to the tenant" — there's no "plain reactivate, nothing
+        // changed" case. So the revised delivery date + proof of delivery
+        // are required, not optional: making the cycle-reset (point 6)
+        // unconditional is what makes "HOLD duration isn't counted" (point
+        // 2) true by construction, instead of depending on whoever clicks
+        // Activate remembering to fill them in. Skipping this used to leave
+        // psm_or_addendum_delivery_date stale, which made the next
+        // scheduler run see a huge day count and fire Surat 1 immediately.
         $request->validate([
             'response_descr' => 'nullable',
 
@@ -845,6 +874,17 @@ class LegalAgreementController extends Controller
 
             'pic_leasing' => 'nullable|array',
             'pic_leasing.*' => 'string',
+
+            'no_psm_or_addendum' => 'nullable|max:150',
+            'psm_or_addendum_date' => 'nullable|date',
+            'psm_or_addendum_delivery_date' => 'required|date',
+
+            'bukti_pengiriman' => 'required|array|min:1',
+            'bukti_pengiriman.*' => [
+                'file',
+                'max:5120',
+                'mimes:jpg,jpeg,png,pdf',
+            ],
         ]);
 
         DB::connection('pgsql5')->beginTransaction();
@@ -858,12 +898,41 @@ class LegalAgreementController extends Controller
                 $agreement->pic_leasing = TrAgreement::joinPicList((array) $request->pic_leasing);
             }
 
+            // Snapshot the pre-revision record (old PSM/Addendum info) into
+            // tr_agreement_hist before it gets overwritten below. Old proof
+            // of delivery files are left as-is in tr_agreement_attachment —
+            // they already stay there permanently, tagged with the
+            // renewal_sequence they were uploaded under, so bumping the
+            // sequence here is what makes them read as history.
+            $this->archiveAgreementRevision($agreement, $username);
+
+            $agreement->renewal_sequence = $agreement->renewal_sequence + 1;
+
+            if ($request->filled('no_psm_or_addendum')) {
+                $agreement->no_psm_or_addendum = $request->no_psm_or_addendum;
+            }
+
+            if ($request->filled('psm_or_addendum_date')) {
+                $agreement->psm_or_addendum_date = $request->psm_or_addendum_date;
+            }
+
+            $agreement->psm_or_addendum_delivery_date = $request->psm_or_addendum_delivery_date;
+
             $this->transitionStep(
                 $agreement,
                 'ACTIVE',
-                'Agreement Activated',
+                'Revised PSM/Addendum Sent - Agreement Activated',
                 $request->response_descr
             );
+
+            foreach ($request->file('bukti_pengiriman') as $file) {
+                $this->uploadAgreementAttachment(
+                    $agreement,
+                    $file,
+                    $username,
+                    'Bukti Pengiriman PSM/Addendum (Revisi)'
+                );
+            }
 
             $agreement->refresh();
 
@@ -886,31 +955,80 @@ class LegalAgreementController extends Controller
         }
     }
 
-    public function escalateAgreement(Request $request, $hash)
+    /**
+     * Sends Surat 1 and logs it to tr_agreement_activity so the send
+     * timestamp is recorded somewhere — sendSurat2() below reads it back to
+     * know when its own H+14 countdown should start. Scoped to
+     * agreement_step_order so a later revision (which bumps that order on
+     * reactivation) doesn't pick up a stale Surat 1 from a prior cycle.
+     *
+     * Not wired to any automatic trigger yet — call this manually or from a
+     * future scheduled job once the day-counting engine exists.
+     */
+    public function sendSurat1(TrAgreement $agreement, string $username = 'system'): void
     {
-        $id = Hashids::decode($hash)[0] ?? null;
+        $this->notificationService->agreementSurat1($agreement);
 
-        abort_if(!$id, 404);
-
-        $agreement = TrAgreement::findOrFail($id);
-
-        abort_unless(
-            $this->isManagerRole()
-                || $agreement->hasPic(auth()->user()->username),
-            403
-        );
-
-        abort_if(
-            !$this->canTransition(
-                $agreement->agreement_step_id,
-                'escalate'
-            ),
-            403
-        );
-
-        $request->validate([
-            'response_descr' => 'required',
+        $this->createActivity([
+            'agreement_id' => $agreement->agreement_id,
+            'cpny_id' => $agreement->cpny_id,
+            'response_date' => now(),
+            'response_summary' => 'Surat 1 Terkirim',
+            'response_descr' => 'Pengingat pertama pengembalian dokumen PSM/Addendum dikirim kepada Penyewa.',
+            'agreement_step_id' => $agreement->agreement_step_id,
+            'agreement_step_order' => $agreement->agreement_step_order,
+            'status_pekerjaan' => 'SURAT1_SENT',
+            'status' => 'A',
+            'created_by' => $username,
         ]);
+    }
+
+    /**
+     * Sends Surat 2, using tr_agreement_activity to look up when Surat 1
+     * actually went out for the agreement's current cycle. Falls back to
+     * delivery date + 14 days only if that activity is somehow missing
+     * (e.g. Surat 1 was never logged for this cycle).
+     */
+    public function sendSurat2(TrAgreement $agreement, string $username = 'system'): void
+    {
+        $surat1SentDate = $this->surat1SentAt($agreement)
+            ?? Carbon::parse($agreement->psm_or_addendum_delivery_date)->addDays(14);
+
+        $this->notificationService->agreementSurat2($agreement, $surat1SentDate);
+
+        $this->createActivity([
+            'agreement_id' => $agreement->agreement_id,
+            'cpny_id' => $agreement->cpny_id,
+            'response_date' => now(),
+            'response_summary' => 'Surat 2 Terkirim',
+            'response_descr' => 'Pengingat kedua (terakhir) pengembalian dokumen PSM/Addendum dikirim kepada Penyewa.',
+            'agreement_step_id' => $agreement->agreement_step_id,
+            'agreement_step_order' => $agreement->agreement_step_order,
+            'status_pekerjaan' => 'SURAT2_SENT',
+            'status' => 'A',
+            'created_by' => $username,
+        ]);
+    }
+
+    /**
+     * Sends the automatic H+7-after-Surat-2 escalation notice, then moves
+     * the agreement to ESCALATED via the existing transitionStep(). Distinct
+     * from escalateAgreement() below, which is the human-triggered "Escalate"
+     * button — this one is meant to be called by the follow-up scheduler.
+     */
+    public function sendEscalationEmail(TrAgreement $agreement, string $username = 'system'): void
+    {
+        $surat1SentDate = $this->surat1SentAt($agreement)
+            ?? Carbon::parse($agreement->psm_or_addendum_delivery_date)->addDays(14);
+
+        $surat2SentDate = $this->surat2SentAt($agreement)
+            ?? $surat1SentDate->copy()->addDays(14);
+
+        // Status only becomes ESCALATED once the escalation email has been
+        // sent — not before. If sending throws, the transition below never
+        // runs, and the agreement stays ACTIVE so the scheduler retries it
+        // on its next run instead of silently escalating with no email out.
+        $this->notificationService->agreementEscalationNotice($agreement, $surat1SentDate, $surat2SentDate);
 
         DB::connection('pgsql5')->beginTransaction();
 
@@ -918,29 +1036,106 @@ class LegalAgreementController extends Controller
             $this->transitionStep(
                 $agreement,
                 'ESCALATED',
-                'Agreement Escalated',
-                $request->response_descr
+                'Agreement Escalated (Otomatis)',
+                'Dokumen PSM/Addendum belum dikembalikan dalam 7 (tujuh) hari kalender sejak Surat 2 dikirim.',
+                'P',
+                $username
             );
 
             $agreement->refresh();
 
             DB::connection('pgsql5')->commit();
-
-            $this->notificationService
-                ->agreementEscalated($agreement);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Agreement escalated successfully.',
-            ]);
         } catch (\Throwable $th) {
             DB::connection('pgsql5')->rollBack();
 
-            return response()->json([
-                'success' => false,
-                'message' => $th->getMessage(),
-            ], 500);
+            throw $th;
         }
+    }
+
+    /**
+     * The Surat 1 send timestamp for the agreement's current cycle (i.e.
+     * logged at the current agreement_step_order — a revision reactivation
+     * bumps that order, so an older Surat 1 from before a HOLD/revision
+     * won't be mistaken for the current cycle's).
+     */
+    public function surat1SentAt(TrAgreement $agreement): ?Carbon
+    {
+        return $this->agreementActivityDate($agreement, 'SURAT1_SENT');
+    }
+
+    /**
+     * Same idea as surat1SentAt(), for Surat 2.
+     */
+    public function surat2SentAt(TrAgreement $agreement): ?Carbon
+    {
+        return $this->agreementActivityDate($agreement, 'SURAT2_SENT');
+    }
+
+    /**
+     * Where an ACTIVE agreement currently sits in the Surat 1 / Surat 2 /
+     * Escalation follow-up cycle, and how many calendar days it's been
+     * sitting there — the same thresholds ProcessAgreementFollowups uses to
+     * decide when to fire the next letter, surfaced here for the list/detail
+     * UI so users can see the cycle without waiting for the next letter.
+     *
+     * 'cycle' is one of AWAL, REMINDER1, REMINDER2, ESCALATED, or null when
+     * there's nothing to count (HOLD/COMPLETED, or no delivery date yet).
+     */
+    public function agreementCycleInfo(TrAgreement $agreement): array
+    {
+        if ($agreement->agreement_step_id === 'ESCALATED') {
+            return ['cycle' => 'ESCALATED', 'days_elapsed' => null, 'days_threshold' => null];
+        }
+
+        if ($agreement->agreement_step_id !== 'ACTIVE' || !$agreement->psm_or_addendum_delivery_date) {
+            return ['cycle' => null, 'days_elapsed' => null, 'days_threshold' => null];
+        }
+
+        $now = Carbon::now();
+
+        $surat1SentAt = $this->surat1SentAt($agreement);
+
+        if (!$surat1SentAt) {
+            $start = Carbon::parse($agreement->psm_or_addendum_delivery_date)->startOfDay();
+
+            return [
+                'cycle' => 'AWAL',
+                'days_elapsed' => (int) $start->diffInDays($now),
+                'days_threshold' => 14,
+            ];
+        }
+
+        $surat2SentAt = $this->surat2SentAt($agreement);
+
+        if (!$surat2SentAt) {
+            $start = $surat1SentAt->copy()->startOfDay();
+
+            return [
+                'cycle' => 'REMINDER1',
+                'days_elapsed' => (int) $start->diffInDays($now),
+                'days_threshold' => 14,
+            ];
+        }
+
+        $start = $surat2SentAt->copy()->startOfDay();
+
+        return [
+            'cycle' => 'REMINDER2',
+            'days_elapsed' => (int) $start->diffInDays($now),
+            'days_threshold' => 7,
+        ];
+    }
+
+    protected function agreementActivityDate(TrAgreement $agreement, string $statusPekerjaan): ?Carbon
+    {
+        $activity = TrAgreementActivity::query()
+            ->where('agreement_id', $agreement->agreement_id)
+            ->where('agreement_step_order', $agreement->agreement_step_order)
+            ->where('status_pekerjaan', $statusPekerjaan)
+            ->orderByDesc('id')
+            ->first();
+
+        return $activity ? Carbon::parse($activity->response_date) : null;
     }
 
     public function completeAgreement(Request $request, $hash)
@@ -1265,10 +1460,10 @@ class LegalAgreementController extends Controller
 
     public function counts()
     {
-        $user      = auth()->user();
+        $user = auth()->user();
         $isManager = $this->isManagerRole();
 
-        $userCompanies = collect(explode(',', $user->cpny_id))->filter()->map(fn($v) => trim($v))->toArray();
+        $userCompanies = collect(explode(',', $user->cpny_id))->filter()->map(fn ($v) => trim($v))->toArray();
 
         $base = function () use ($isManager, $userCompanies, $user) {
             $q = TrAgreement::query();
@@ -1281,6 +1476,7 @@ class LegalAgreementController extends Controller
                        });
                 });
             }
+
             return $q;
         };
 
@@ -1476,8 +1672,8 @@ class LegalAgreementController extends Controller
             ->get(['cpny_id', 'cpny_name']);
 
         return response()->json([
-            'results' => $companies->map(fn($c) => [
-                'id'   => $c->cpny_id,
+            'results' => $companies->map(fn ($c) => [
+                'id' => $c->cpny_id,
                 'text' => $c->cpny_name,
             ])->values(),
         ]);
@@ -1497,7 +1693,54 @@ class LegalAgreementController extends Controller
             'working_end_date' => $data['working_end_date'] ?? null,
             'status_pekerjaan' => $data['status_pekerjaan'] ?? null,
             'status' => $data['status'] ?? 'A',
-            'created_by' => $data['created_by'] ?? auth()->user()->username,
+            'created_by' => $data['created_by'] ?? auth()->user()?->username ?? 'system',
+        ]);
+    }
+
+    /**
+     * Snapshots the agreement's current PSM/Addendum info into tr_agreement_hist
+     * before a revision overwrites it, so the old document number/dates aren't
+     * lost. Tagged with the renewal_sequence it was current under, matching how
+     * tr_agreement_attachment already tags proof-of-delivery files by revision.
+     */
+    protected function archiveAgreementRevision(TrAgreement $agreement, string $username): TrAgreementHist
+    {
+        return TrAgreementHist::create([
+            'hist_agreement_id' => $agreement->agreement_id.'R'.$agreement->renewal_sequence,
+            'hist_renewal_sequence' => $agreement->renewal_sequence,
+            'agreement_date' => $agreement->agreement_date,
+            'prev_agreement_id' => $agreement->prev_agreement_id,
+            'cpny_id' => $agreement->cpny_id,
+            'site_id' => $agreement->site_id,
+
+            'business_id' => $agreement->business_id,
+            'business_name' => $agreement->business_name,
+            'tenant_no' => $agreement->tenant_no,
+            'trade_name' => $agreement->trade_name,
+            'floor_id' => $agreement->floor_id,
+            'unit_id' => $agreement->unit_id,
+            'business_address' => $agreement->business_address,
+
+            'pic_penyewa' => $agreement->pic_penyewa,
+            'pic_phonenumber_penyewa' => $agreement->pic_phonenumber_penyewa,
+            'pic_email_penyewa' => $agreement->pic_email_penyewa,
+            'pic_legal' => $agreement->pic_legal,
+            'pic_leasing' => $agreement->pic_leasing,
+
+            'no_psm_or_addendum' => $agreement->no_psm_or_addendum,
+            'psm_or_addendum_date' => $agreement->psm_or_addendum_date,
+            'psm_or_addendum_delivery_date' => $agreement->psm_or_addendum_delivery_date,
+
+            'agreement_step_id' => $agreement->agreement_step_id,
+            'agreement_step_order' => $agreement->agreement_step_order,
+            'agreement_step_created_user' => $agreement->agreement_step_created_user,
+            'agreement_step_created_at' => $agreement->agreement_step_created_at,
+
+            'status' => $agreement->status,
+
+            'created_user' => $agreement->created_user,
+            'created_at' => $agreement->created_at,
+            'updated_user' => $username,
         ]);
     }
 
@@ -1707,9 +1950,6 @@ class LegalAgreementController extends Controller
 
             'can_activate' => $canAct
                 && $this->canTransition($agreement->agreement_step_id, 'activate'),
-
-            'can_escalate' => $canAct
-                && $this->canTransition($agreement->agreement_step_id, 'escalate'),
 
             'can_complete' => $canAct
                 && $this->canTransition($agreement->agreement_step_id, 'complete'),

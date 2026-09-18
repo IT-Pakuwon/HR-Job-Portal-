@@ -1091,6 +1091,7 @@ class RfpController extends Controller
                     ->on('a.cpny_id', '=', 'kb.budget_cpny_id');
             })
             ->where('kb.kontrakid', $kontrakId)
+            ->where('kb.cpny_id', $rfp->cpny_id)
             ->where(function ($q) {
                 $q->whereNull('kb.status')
                     ->orWhere('kb.status', '<>', 'X');

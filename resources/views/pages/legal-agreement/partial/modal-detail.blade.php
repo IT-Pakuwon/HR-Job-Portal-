@@ -30,6 +30,7 @@
                         <div><p class="text-xs text-slate-400">Company</p><p id="detail_cpny_id" class="font-semibold">-</p></div>
                         <div><p class="text-xs text-slate-400">Agreement Date</p><p id="detail_agreement_date" class="font-semibold">-</p></div>
                         <div><p class="text-xs text-slate-400">Step</p><p id="detail_step" class="font-semibold">-</p></div>
+                        <div><p class="text-xs text-slate-400">Follow-up Cycle</p><p id="detail_cycle" class="font-semibold">-</p></div>
                         <div><p class="text-xs text-slate-400">Business Name</p><p id="detail_business_name" class="font-semibold">-</p></div>
                         <div><p class="text-xs text-slate-400">Trade Name</p><p id="detail_trade_name" class="font-semibold">-</p></div>
                         <div><p class="text-xs text-slate-400">Tenant No</p><p id="detail_tenant_no" class="font-semibold">-</p></div>
