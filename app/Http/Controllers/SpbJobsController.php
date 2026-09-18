@@ -820,9 +820,9 @@ class SpbJobsController extends Controller
             $basis = 0;
         }
 
-        // status_issue harus didasarkan pada qty yang benar-benar fulfilled,
-        // yaitu issue + sppb + manual close (spb_completeqty).
-        $fulfilledQty = min($spbqty, $issueQty + $sppbQty + $completeQty);
+        // totalcompleteqty sudah merupakan SUM(LEAST(qty, issue + sppb + manual close)).
+        // Jangan tambahkan issue/sppb lagi karena akan menghitung fulfillment dua kali.
+        $fulfilledQty = $completeQty;
 
         if ($fulfilledQty <= 0) {
             $statusIssue = 'Open';
