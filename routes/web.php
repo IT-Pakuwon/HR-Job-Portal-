@@ -83,7 +83,6 @@ use App\Http\Controllers\JobpostingController;
 use App\Http\Controllers\KendaraanController;
 use App\Http\Controllers\KontrakController;
 use App\Http\Controllers\LastOrderController;
-use App\Http\Controllers\LegalAgreementController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\LuckydrawSetupController;
 use App\Http\Controllers\MailboxController;
