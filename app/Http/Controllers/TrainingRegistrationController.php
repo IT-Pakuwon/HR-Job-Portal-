@@ -785,24 +785,23 @@ class TrainingRegistrationController extends Controller
 
             $quotaPax = $quotas->sum('quota_pax');
             $seatCount = $this->activeSeatCount($scheduleId, $originCpnyId);
-            $available = $quotaPax - $seatCount;
-            $batchCount = $participants->count();
+            $seatsRemaining = max(0, $quotaPax - $seatCount);
 
             // Approval always starts at registration time, whether or not
             // there's a seat free. status_registration is the SEATING flag on
             // top of it: waitlisted people are still pending/approved in the
-            // approval pipeline while they wait. Seat availability is still
-            // evaluated once for the whole submitted set (all-or-nothing: a
-            // colleague batch is either fully seated or fully waitlisted
-            // together), even though each participant now gets their own
-            // independent document/approval chain below.
+            // approval pipeline while they wait. Seats are handed out to the
+            // submitted set in order (first-come within the batch) rather than
+            // all-or-nothing, so a batch can land partly seated / partly
+            // waitlisted when fewer seats remain than participants — each
+            // participant still gets their own independent document/approval
+            // chain below.
             $status = TrLndTrainingRegistration::STATUS_PENDING;
-            $statusReg = $available >= $batchCount
-                ? null
-                : TrLndTrainingRegistration::REG_STATUS_WAITLISTED;
 
             $now = now();
             $docIds = collect();
+            $seatedCount = 0;
+            $waitlistedCount = 0;
 
             // Each participant gets their OWN training_regist_id and their own
             // independent approval chain — a colleague batch is no longer one
@@ -814,6 +813,15 @@ class TrainingRegistrationController extends Controller
             foreach ($participants as $participant) {
                 $docId = $this->generateRegistrationCode($user->username);
                 $docIds->push($docId);
+
+                if ($seatsRemaining > 0) {
+                    $statusReg = null;
+                    $seatsRemaining--;
+                    $seatedCount++;
+                } else {
+                    $statusReg = TrLndTrainingRegistration::REG_STATUS_WAITLISTED;
+                    $waitlistedCount++;
+                }
 
                 TrLndTrainingRegistration::create([
                     'training_regist_id' => $docId,
@@ -839,16 +847,25 @@ class TrainingRegistrationController extends Controller
 
             DB::connection('pgsql5')->commit();
 
+            $message = 'Registrasi berhasil, menunggu approval';
+            if ($waitlistedCount > 0 && $seatedCount > 0) {
+                $message = "Kuota tersisa {$seatedCount}, {$seatedCount} peserta terdaftar dan {$waitlistedCount} masuk waiting list — approval tetap berjalan";
+            } elseif ($waitlistedCount > 0) {
+                $message = 'Kuota penuh, seluruh peserta masuk waiting list — approval tetap berjalan';
+            } elseif ($docIds->count() > 1) {
+                $message = 'Registrasi berhasil ('.$docIds->count().' dokumen: '.$docIds->implode(', ').'), menunggu approval';
+            }
+
             return response()->json([
                 'success' => true,
                 'training_regist_id' => $docIds->first(),
                 'training_regist_ids' => $docIds->values(),
-                'status' => $statusReg ?: $status,
-                'message' => $statusReg
-                    ? 'Kuota penuh, seluruh peserta masuk waiting list — approval tetap berjalan'
-                    : ($docIds->count() > 1
-                        ? 'Registrasi berhasil ('.$docIds->count().' dokumen: '.$docIds->implode(', ').'), menunggu approval'
-                        : 'Registrasi berhasil, menunggu approval'),
+                'status' => $waitlistedCount > 0
+                    ? TrLndTrainingRegistration::REG_STATUS_WAITLISTED
+                    : $status,
+                'seated_count' => $seatedCount,
+                'waitlisted_count' => $waitlistedCount,
+                'message' => $message,
             ]);
         } catch (\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $e) {
             // abort()/abort_if() calls further down the stack (e.g. ApprovalController::loadLines()

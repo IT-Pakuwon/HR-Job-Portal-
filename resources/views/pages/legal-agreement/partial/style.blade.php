@@ -298,6 +298,38 @@
         overflow: visible !important;
     }
 
+    .dataTables_wrapper .dataTables_filter label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        font-size: 13px;
+        color: var(--agr-muted-2);
+    }
+
+    .dataTables_wrapper .dataTables_filter input {
+        height: 36px;
+        padding: 0 12px;
+        border: 1px solid var(--agr-border);
+        background: var(--agr-card);
+        border-radius: 8px;
+        font-size: 13px;
+        color: var(--agr-text);
+        outline: none;
+    }
+
+    .dataTables_wrapper .dataTables_filter input:focus {
+        border-color: var(--agr-primary);
+        box-shadow: 0 0 0 4px var(--agr-primary-soft);
+    }
+
+    .dataTables_wrapper .dataTables_length select {
+        border: 1px solid var(--agr-border);
+        background: var(--agr-card);
+        border-radius: 8px;
+        color: var(--agr-text);
+    }
+
     #agreementTable tbody tr,
     #agreementTable tbody td {
         overflow: visible !important;

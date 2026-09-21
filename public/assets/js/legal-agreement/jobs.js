@@ -60,7 +60,7 @@ function initJobsTable() {
     window.jobsTable = $('#jobsTable').DataTable({
         processing: true,
         serverSide: true,
-        dom: '<"flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 dark:border-white/[0.06]"l>rt<"flex flex-wrap items-center justify-between gap-3 px-4 py-3"ip>',
+        dom: '<"flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 dark:border-white/[0.06]"lf>rt<"flex flex-wrap items-center justify-between gap-3 px-4 py-3"ip>',
         ajax: {
             url: Agreement.routes.jobsJson,
             data: function (d) {
