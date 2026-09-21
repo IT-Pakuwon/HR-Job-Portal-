@@ -9,7 +9,7 @@
         </div>
 
         <div class="p-5">
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                     <label class="agr-label" for="jobs_cpny_filter">Company</label>
                     <select id="jobs_cpny_filter" class="agr-input agr-select2">
@@ -18,16 +18,6 @@
                             <option value="{{ $c->cpny_id }}">{{ $c->cpny_name }}</option>
                         @endforeach
                     </select>
-                </div>
-
-                <div>
-                    <label class="agr-label" for="jobs_tenant_no">Tenant No</label>
-                    <input type="text" id="jobs_tenant_no" placeholder="e.g. A0000012345" class="agr-input" />
-                </div>
-
-                <div>
-                    <label class="agr-label" for="jobs_trade_name">Trade Name</label>
-                    <input type="text" id="jobs_trade_name" placeholder="e.g. STEAK 21" class="agr-input" />
                 </div>
 
                 @php
@@ -71,7 +61,6 @@
                     <th class="px-4 py-3 text-left">Trade Name</th>
                     <th class="px-4 py-3 text-left">Property Type</th>
                     <th class="px-4 py-3 text-left">Status</th>
-                    <th class="px-4 py-3 text-left" style="width:140px;">Action</th>
                 </tr>
             </thead>
             <tbody></tbody>

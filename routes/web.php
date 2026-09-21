@@ -1970,7 +1970,6 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/activate/{hash}', 'activateAgreement')->name('legal-agreement.activate');
                 Route::post('/complete/{hash}', 'completeAgreement')->name('legal-agreement.complete');
                 Route::post('/comment/{hash}', 'comment')->name('legal-agreement.comment');
-                Route::post('/jobs/update-status', 'jobsUpdateStatus')->name('legal-agreement.jobs.updateStatus');
             });
         });
 
