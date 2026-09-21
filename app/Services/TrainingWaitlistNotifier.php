@@ -127,6 +127,7 @@ class TrainingWaitlistNotifier
     {
         $trainingName = $registration->schedule?->schedule?->training?->training_name ?? 'Training';
         $scheduleDate = $registration->schedule_date ?? $registration->schedule?->schedule_date;
+        $scheduleDateLabel = $scheduleDate?->format('d M Y');
         $participant = User::where('username', $registration->user_registration)->first();
         $participantName = $participant->name ?? $registration->user_registration;
 
@@ -142,7 +143,7 @@ class TrainingWaitlistNotifier
             'department_id' => $registration->department_id,
             'username' => 'system',
             'name' => 'System',
-            'message' => "{$participantName} diterima dari waiting list untuk {$trainingName}" . ($scheduleDate ? " ({$scheduleDate})" : '') . " oleh {$actorName}.",
+            'message' => "{$participantName} diterima dari waiting list untuk {$trainingName}" . ($scheduleDateLabel ? " ({$scheduleDateLabel})" : '') . " oleh {$actorName}.",
             'status' => 'A',
             'created_by' => 'system',
         ]);
@@ -233,6 +234,7 @@ class TrainingWaitlistNotifier
     {
         $trainingName = $registration->schedule?->schedule?->training?->training_name ?? 'Training';
         $scheduleDate = $registration->schedule_date ?? $registration->schedule?->schedule_date;
+        $scheduleDateLabel = $scheduleDate?->format('d M Y');
 
         $eid = Hashids::encode($registration->id);
         $url = url('/training-list/my/' . $eid);
@@ -246,7 +248,7 @@ class TrainingWaitlistNotifier
             'department_id' => $registration->department_id,
             'username' => 'system',
             'name' => 'System',
-            'message' => "Sertifikat untuk {$trainingName}" . ($scheduleDate ? " ({$scheduleDate})" : '') . ' sudah tersedia untuk diunduh.',
+            'message' => "Sertifikat untuk {$trainingName}" . ($scheduleDateLabel ? " ({$scheduleDateLabel})" : '') . ' sudah tersedia untuk diunduh.',
             'status' => 'A',
             'created_by' => 'system',
         ]);
