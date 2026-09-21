@@ -63,9 +63,6 @@
             <div class="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 dark:border-white/[0.06] dark:bg-white/[0.02] sm:flex-row sm:items-center sm:justify-between">
 
                 <div class="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
-                    <input type="text" id="agr_search" placeholder="Search agreement, business, tenant..."
-                        class="agr-input sm:max-w-xs" />
-
                     <select id="agr_cpny_filter" class="agr-input agr-select2 sm:max-w-[200px]">
                         <option value="">All Companies</option>
                         @foreach ($allCompanies as $c)
@@ -78,9 +75,6 @@
                     <a href="{{ route('legal-agreement.export') }}" class="inline-flex h-11 items-center gap-2 rounded-lg border border-slate-200 px-4 text-sm font-semibold text-slate-600 hover:bg-slate-50 dark:border-white/[0.08] dark:text-slate-300 dark:hover:bg-white/[0.06]">
                         <i class="fa-solid fa-file-excel"></i> Export
                     </a>
-                    <button type="button" id="btnOpenCreateAgreement" class="inline-flex h-11 items-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700">
-                        <i class="fa-solid fa-plus"></i> New Agreement
-                    </button>
                 </div>
 
             </div>

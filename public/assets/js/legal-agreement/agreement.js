@@ -9,7 +9,6 @@ Agreement.state = {
     actionAttachments: [],
     currentStatus: '',
     currentCpny: '',
-    currentSearch: '',
     createStep: 1,
     actionSteps: [],
     actionStepIndex: 1,
@@ -367,16 +366,12 @@ function initDataTable() {
     $('#agreementTable').DataTable({
         processing: true,
         serverSide: true,
-        // No 'f' — the dedicated #agr_search input above the table already
-        // covers search; DataTables' own default search box would just
-        // duplicate it.
-        dom: 'lrtip',
+        dom: '<"flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 dark:border-white/[0.06]"lf>rt<"flex flex-wrap items-center justify-between gap-3 px-4 py-3"ip>',
         ajax: {
             url: Agreement.routes.json,
             data: function (d) {
                 d.status = Agreement.state.currentStatus;
                 d.cpny_id = Agreement.state.currentCpny;
-                d.search = Agreement.state.currentSearch;
             },
         },
         order: [],
@@ -411,11 +406,6 @@ function initDataTable() {
         ],
     });
 
-    $('#agr_search').on('keyup', debounce(function () {
-        Agreement.state.currentSearch = $(this).val();
-        reloadTable();
-    }, 350));
-
     $('#agr_cpny_filter').on('change', function () {
         Agreement.state.currentCpny = $(this).val();
         reloadTable();
@@ -443,13 +433,6 @@ function reloadTable() {
 const CREATE_STEP_COUNT = 4;
 
 function initCreateAgreement() {
-    $('#btnOpenCreateAgreement').on('click', function () {
-        resetCreateForm();
-        loadPicOptions('#create_pic_legal', { role_id: 'LEGALACCESS' });
-        reloadCreatePicLeasingOptions();
-        openModal('#createAgreementModal');
-    });
-
     $(document).on('change', '#create_property_cd', function () {
         toggleCreateTradeName($(this).val());
     });
