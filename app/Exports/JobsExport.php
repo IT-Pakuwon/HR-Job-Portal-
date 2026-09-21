@@ -64,7 +64,7 @@ class JobsExport implements FromCollection, WithHeadings
                     'property_cd' => $row->property_cd,
                     'status' => match ($row->status) {
                         'A' => 'Pending',
-                        'C' => 'Completed',
+                        'C' => 'On Progress',
                         'X' => 'Cancelled',
                         default => $row->status,
                     },

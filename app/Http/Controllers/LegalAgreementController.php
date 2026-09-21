@@ -597,6 +597,29 @@ class LegalAgreementController extends Controller
 
         /*
         |--------------------------------------------------------------------------
+        | Display names — company name and PIC/requester full names, resolved
+        | from their ids/usernames the same way the print view does.
+        |--------------------------------------------------------------------------
+        */
+
+        $companyName = MsCompany::query()
+            ->where('cpny_id', $agreement->cpny_id)
+            ->value('cpny_name');
+
+        $userNames = User::query()->pluck('name', 'username');
+
+        $picNames = function (array $usernames) use ($userNames) {
+            return collect($usernames)
+                ->map(fn ($username) => $userNames->get($username, $username))
+                ->implode(', ');
+        };
+
+        $picLegalNames = $picNames($agreement->picLegalList());
+        $picLeasingNames = $picNames($agreement->picLeasingList());
+        $createdByName = $userNames->get($agreement->created_user, $agreement->created_user);
+
+        /*
+        |--------------------------------------------------------------------------
         | Attachments
         |--------------------------------------------------------------------------
         */
@@ -664,6 +687,8 @@ class LegalAgreementController extends Controller
 
                     'cpny_id' => $agreement->cpny_id,
 
+                    'cpny_name' => $companyName,
+
                     'site_id' => $agreement->site_id,
 
                     'business_id' => $agreement->business_id,
@@ -692,9 +717,13 @@ class LegalAgreementController extends Controller
 
                     'pic_legal_list' => $agreement->picLegalList(),
 
+                    'pic_legal_names' => $picLegalNames,
+
                     'pic_leasing' => $agreement->pic_leasing,
 
                     'pic_leasing_list' => $agreement->picLeasingList(),
+
+                    'pic_leasing_names' => $picLeasingNames,
 
                     'no_psm_or_addendum' => $agreement->no_psm_or_addendum,
 
@@ -713,6 +742,8 @@ class LegalAgreementController extends Controller
                     'status' => $agreement->status,
 
                     'created_user' => $agreement->created_user,
+
+                    'created_user_name' => $createdByName,
 
                     'created_at' => optional(
                         $agreement->created_at

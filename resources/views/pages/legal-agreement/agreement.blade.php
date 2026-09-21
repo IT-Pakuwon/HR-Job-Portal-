@@ -144,8 +144,8 @@
             };
         </script>
 
-        <script src="{{ asset('assets/js/legal-agreement/agreement.js') }}"></script>
-        <script src="{{ asset('assets/js/legal-agreement/jobs.js') }}"></script>
+        <script src="{{ asset('assets/js/legal-agreement/agreement.js') }}?v={{ filemtime(public_path('assets/js/legal-agreement/agreement.js')) }}"></script>
+        <script src="{{ asset('assets/js/legal-agreement/jobs.js') }}?v={{ filemtime(public_path('assets/js/legal-agreement/jobs.js')) }}"></script>
 
         @if ($eid)
             <script>
