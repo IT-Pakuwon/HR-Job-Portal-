@@ -515,6 +515,7 @@ class TrainingRegistrationController extends Controller
         $rows = $registrations
             ->filter(fn ($r) => (bool) $r->schedule?->is_feedback_open && !$answeredDocIds->contains($r->training_regist_id))
             ->map(fn ($r) => [
+                'id' => $r->id,
                 'eid' => Hashids::encode($r->id),
                 'training_name' => $r->schedule?->schedule?->training?->training_name ?? null,
                 'speaker_name' => $r->schedule?->training_speaker_name ?: $r->schedule?->training_ext_speaker_name,
