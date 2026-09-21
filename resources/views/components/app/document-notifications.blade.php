@@ -535,6 +535,15 @@ function docNotifStatusCfg(status) {
         'VPL_EXPIRING': { iconBg: 'bg-amber-100 dark:bg-amber-900/30', iconText: 'text-amber-600 dark:text-amber-400', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', bar: 'bg-amber-500', cat: 'warn' },
         // Newly published training schedule open for registration
         'TRN_PUBLISHED': { iconBg: 'bg-emerald-100 dark:bg-emerald-900/30', iconText: 'text-emerald-600 dark:text-emerald-400', badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', bar: 'bg-emerald-500', cat: 'training' },
+        // Training registration lifecycle notices (system-generated, TRN doctype)
+        'TRN_PENDING_APPROVAL': { iconBg: 'bg-amber-100 dark:bg-amber-900/30',   iconText: 'text-amber-600 dark:text-amber-400',   badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',   bar: 'bg-amber-500',   cat: 'training' },
+        'TRN_APPROVED':         { iconBg: 'bg-green-100 dark:bg-green-900/30',   iconText: 'text-green-600 dark:text-green-400',   badge: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',   bar: 'bg-green-500',   cat: 'training' },
+        'TRN_REJECTED':         { iconBg: 'bg-red-100 dark:bg-red-900/30',       iconText: 'text-red-600 dark:text-red-400',       badge: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',           bar: 'bg-red-500',     cat: 'training' },
+        'TRN_OFFER':            { iconBg: 'bg-violet-100 dark:bg-violet-900/30', iconText: 'text-violet-600 dark:text-violet-400', badge: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400', bar: 'bg-violet-500', cat: 'training' },
+        'TRN_OFFER_RESPONSE':   { iconBg: 'bg-blue-100 dark:bg-blue-900/30',     iconText: 'text-blue-600 dark:text-blue-400',     badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',       bar: 'bg-blue-500',    cat: 'training' },
+        'TRN_MANUAL_ACCEPT':    { iconBg: 'bg-green-100 dark:bg-green-900/30',   iconText: 'text-green-600 dark:text-green-400',   badge: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',   bar: 'bg-green-500',   cat: 'training' },
+        'TRN_RESCHEDULE':       { iconBg: 'bg-orange-100 dark:bg-orange-900/30', iconText: 'text-orange-600 dark:text-orange-400', badge: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400', bar: 'bg-orange-500', cat: 'training' },
+        'TRN_CERT_READY':       { iconBg: 'bg-teal-100 dark:bg-teal-900/30',     iconText: 'text-teal-600 dark:text-teal-400',     badge: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',       bar: 'bg-teal-500',    cat: 'training' },
         // Legal Agreement: Surat 1 / Surat 2 / auto-escalation already sent
         'AGR_SURAT1':    { iconBg: 'bg-amber-100 dark:bg-amber-900/30',  iconText: 'text-amber-600 dark:text-amber-400',  badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',  bar: 'bg-amber-500',  cat: 'warn' },
         'AGR_SURAT2':    { iconBg: 'bg-orange-100 dark:bg-orange-900/30', iconText: 'text-orange-600 dark:text-orange-400', badge: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400', bar: 'bg-orange-500', cat: 'warn' },
@@ -805,10 +814,11 @@ function docNotifications(mailboxConnected = false) {
             } catch (e) { /* best effort */ }
         },
 
-        // Comment/mention notifications disappear for good once opened — tell the server
-        // so it's excluded on the next poll, instead of relying on client-side seen state.
+        // Comment/mention/system-lifecycle notifications (anything keyed 'CMT_...', backed by
+        // the server-side doc_notif_read_ cache) disappear for good once opened — tell the
+        // server so it's excluded on the next poll, instead of relying on client-side seen state.
         markRead(item) {
-            if (!item || (item.status !== 'MENTION' && item.status !== 'COMMENT')) return;
+            if (!item || !item.key || !item.key.startsWith('CMT_')) return;
 
             this.items = this.items.filter(i => i.key !== item.key);
             this.count = this.items.length;

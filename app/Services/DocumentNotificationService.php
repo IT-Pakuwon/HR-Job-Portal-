@@ -550,7 +550,13 @@ class DocumentNotificationService
                     ->where('message_date', '>=', now()->subDays(21))
                     ->whereRaw("lower(trim(coalesce(username,''))) != ?", [$username])
                     ->get()
-                    ->filter(fn($row) => !self::isCommentExpired($row->message_date, $commentHolidays))
+                    // TRN's own system-generated lifecycle notices (message_type 'S_<code>') are
+                    // time-sensitive operational notices, not a discussion thread — they clear
+                    // themselves out H+1 (24h after posting) regardless of read state, unlike a
+                    // genuine comment/mention which uses the 5-business-day isCommentExpired() window.
+                    ->filter(fn($row) => str_starts_with((string) $row->message_type, 'S_')
+                        ? \Carbon\Carbon::parse($row->message_date)->addDay()->isFuture()
+                        : !self::isCommentExpired($row->message_date, $commentHolidays))
                     ->reject(fn($row) => $readKeys->contains('CMT_' . $commentDoctype . '_' . $row->id));
 
                 if ($rows->isEmpty()) {
@@ -588,6 +594,49 @@ class DocumentNotificationService
                     }
 
                     $hid = self::commentDocHid($commentDoctype, $doc);
+
+                    // System-generated lifecycle notices (offer/approve/reject/etc., written by
+                    // notifyDocSystem()/TrainingWaitlistNotifier with message_type 'S_<code>' — the
+                    // 'S_' prefix is kept short because tr_message.message_type is varchar(10))
+                    // reuse this same comment pipeline for delivery/read-tracking, but get their
+                    // own label/icon instead of the generic "New Comment" — see trnSystemEventMeta().
+                    if (str_starts_with((string) $row->message_type, 'S_')) {
+                        $eventCode = substr($row->message_type, 2);
+
+                        // An OFFER notice is a call to action, not a historical record like the
+                        // others (approved/rejected/rescheduled) — once the participant accepts,
+                        // declines, or the 24h window lapses (ExpireWaitlistOffers flips it away
+                        // from 'O'), it's stale and should vanish immediately rather than linger
+                        // for the rest of its H+1 window.
+                        if ($commentDoctype === 'TRN' && $eventCode === 'OFFER'
+                            && $doc->status_registration !== TrLndTrainingRegistration::REG_STATUS_OFFERED) {
+                            continue;
+                        }
+
+                        $recipients = $commentDoctype === 'TRN'
+                            ? self::trnSystemEventRecipients($eventCode, $doc)
+                            : self::resolveCommentRecipients($commentDoctype, $doc);
+                        if (!$recipients->contains($username)) {
+                            continue;
+                        }
+
+                        [$status, $label] = self::trnSystemEventMeta($eventCode);
+
+                        $data->push([
+                            'key'        => $key,
+                            'hid'        => $hid,
+                            'docid'      => $row->refnbr,
+                            'status'     => $status,
+                            'label'      => $label,
+                            'message'    => \Illuminate\Support\Str::limit((string) $row->message, 500),
+                            'comment'    => null,
+                            'cpnyid'     => $row->cpny_id,
+                            'url'        => $cfg['url'],
+                            'by'         => $row->name,
+                            'updated_at' => $row->message_date,
+                        ]);
+                        continue;
+                    }
 
                     preg_match_all('/@([\w.]+)/', (string) $row->message, $m);
                     $tokens = collect($m[1] ?? [])->map(fn($t) => strtolower($t))->unique();
@@ -1095,7 +1144,65 @@ class DocumentNotificationService
         return Hashids::encode($doc->id);
     }
 
-    // Creator + approval-line-equivalent audience for a plain (non-mention) comment.
+    // Maps a 'S_<code>' TrMessage event code (the short form stored in the
+    // varchar(10) message_type column — see notifyDocSystem()/TrainingWaitlistNotifier)
+    // to the bell's [status, label]. status also selects the icon/color in
+    // document-notifications.blade.php's docNotifStatusCfg(). Falls back to the
+    // generic comment styling for any code not listed here, so an unmapped
+    // future event still renders instead of silently breaking. No 'PENDING'
+    // entry by design — "awaiting your approval" duplicates the Approval
+    // Dashboard's own Waiting Approval list, so notifyDocSystem() no longer
+    // writes that event at all (see TrainingRegistrationController).
+    private static function trnSystemEventMeta(string $eventCode): array
+    {
+        $map = [
+            'APPROVE' => ['TRN_APPROVED', 'Registration Approved'],
+            'REJECT'  => ['TRN_REJECTED', 'Registration Rejected'],
+            'OFFER'   => ['TRN_OFFER', 'Waitlist Offer'],
+            'OFFRESP' => ['TRN_OFFER_RESPONSE', 'Waitlist Response'],
+            'MANACC'  => ['TRN_MANUAL_ACCEPT', 'Seat Confirmed'],
+            'RESCHED' => ['TRN_RESCHEDULE', 'Schedule Changed'],
+            'CERTRDY' => ['TRN_CERT_READY', 'Certificate Ready'],
+        ];
+
+        return $map[$eventCode] ?? ['COMMENT', 'New Comment'];
+    }
+
+    // Each TRN lifecycle event has its own intended audience — unlike a plain
+    // comment (creator + full approval line + HCDEV), most of these are meant
+    // for exactly one side of the transaction. Mixing them into the generic
+    // resolveCommentRecipients() is what caused the participant to see
+    // "awaiting your approval" notices meant only for the approver.
+    private static function trnSystemEventRecipients(string $eventCode, $doc): \Illuminate\Support\Collection
+    {
+        $participant = collect([$doc->user_registration ?? null]);
+        $creator     = collect([$doc->created_by ?? null]);
+
+        $approvalLine = self::splitApproverUsernames(
+            TrApproval::where('refnbr', $doc->training_regist_id)
+                ->where('aprv_doctype', 'TRN')
+                ->pluck('aprv_username')
+        );
+
+        $hcdev = self::resolveRoleUsernamesForCompany(['HCDEVACCESS'], $doc->cpny_id ?? null);
+
+        $recipients = match ($eventCode) {
+            // The requester's outcome — both whoever submitted it and the participant care.
+            'APPROVE', 'REJECT' => $participant->merge($creator),
+            // The participant is the only one with a 24h window to act on their own offer.
+            'OFFER' => $participant,
+            // HCDEV asked to be kept posted on how participants respond to offers.
+            'OFFRESP' => $hcdev,
+            // notifyCreatorManualAccept() targets the batch submitter by design.
+            'MANACC' => $creator,
+            // The seat holder needs to know their schedule moved.
+            'RESCHED', 'CERTRDY' => $participant,
+            default => $participant->merge($creator)->merge($approvalLine)->merge($hcdev),
+        };
+
+        return $recipients->filter()->map(fn($u) => strtolower(trim($u)))->unique();
+    }
+
     private static function resolveCommentRecipients(string $doctype, $doc): \Illuminate\Support\Collection
     {
         if ($doctype === 'TIC') {
@@ -1208,7 +1315,14 @@ class DocumentNotificationService
 
             // Training registration: seat-lifecycle events (offer, accept, decline, manual
             // accept) keep firing after approval reaches 'C', so this is never terminal —
-            // see the loop above that builds $commentDocTypes.
+            // see the loop above that builds $commentDocTypes. Recipients for the system-generated
+            // lifecycle events (message_type 'S_<code>') are resolved per-event by
+            // trnSystemEventRecipients() instead of this generic creatorFields list — 'created_by'
+            // and 'user_registration' diverge whenever someone registers on another employee's
+            // behalf (e.g. HR bulk-registering staff), and each event has a different intended
+            // audience (e.g. "awaiting your approval" must reach only the approver, never the
+            // participant). This creatorFields list still governs genuine user comments/mentions
+            // on a TRN document, which is a separate, simpler case.
             'TRN' => ['model' => TrLndTrainingRegistration::class, 'idCol' => 'training_regist_id', 'url' => '/training-list/my', 'creatorFields' => ['created_by'], 'approvalDoctype' => 'TRN', 'roleIds' => ['HCDEVACCESS'], 'terminalStatuses' => []],
         ];
     }

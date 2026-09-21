@@ -15,6 +15,7 @@ class TrainingWaitlistNotifier
     {
         $trainingName = $registration->schedule?->schedule?->training?->training_name ?? 'Training';
         $scheduleDate = $registration->schedule_date ?? $registration->schedule?->schedule_date;
+        $scheduleDateLabel = $scheduleDate?->format('d M Y');
 
         $eid = Hashids::encode($registration->id);
         $url = url('/training-list/my/' . $eid);
@@ -23,12 +24,12 @@ class TrainingWaitlistNotifier
             'refnbr' => $registration->training_regist_id,
             'doctype' => 'TRN',
             'message_date' => now(),
-            'message_type' => 'SYSTEM',
+            'message_type' => 'S_OFFER',
             'cpny_id' => $registration->cpny_id,
             'department_id' => $registration->department_id,
             'username' => 'system',
             'name' => 'System',
-            'message' => "Slot tersedia untuk {$trainingName}" . ($scheduleDate ? " ({$scheduleDate})" : '') . '. Anda punya waktu 24 jam untuk konfirmasi sebelum slot ini ditawarkan ke orang berikutnya.',
+            'message' => "Slot tersedia untuk {$trainingName}" . ($scheduleDateLabel ? " ({$scheduleDateLabel})" : '') . '. Anda punya waktu 24 jam untuk konfirmasi sebelum slot ini ditawarkan ke orang berikutnya.',
             'status' => 'A',
             'created_by' => 'system',
         ]);
@@ -64,6 +65,7 @@ class TrainingWaitlistNotifier
     {
         $trainingName = $registration->schedule?->schedule?->training?->training_name ?? 'Training';
         $scheduleDate = $registration->schedule_date ?? $registration->schedule?->schedule_date;
+        $scheduleDateLabel = $scheduleDate?->format('d M Y');
         $participant = User::where('username', $registration->user_registration)->first();
         $participantName = $participant->name ?? $registration->user_registration;
 
@@ -75,12 +77,12 @@ class TrainingWaitlistNotifier
             'refnbr' => $registration->training_regist_id,
             'doctype' => 'TRN',
             'message_date' => now(),
-            'message_type' => 'SYSTEM',
+            'message_type' => 'S_OFFRESP',
             'cpny_id' => $registration->cpny_id,
             'department_id' => $registration->department_id,
             'username' => 'system',
             'name' => 'System',
-            'message' => "{$participantName} telah {$verb} slot waiting list untuk {$trainingName}" . ($scheduleDate ? " ({$scheduleDate})" : '') . '.',
+            'message' => "{$participantName} telah {$verb} slot waiting list untuk {$trainingName}" . ($scheduleDateLabel ? " ({$scheduleDateLabel})" : '') . '.',
             'status' => 'A',
             'created_by' => 'system',
         ]);
@@ -135,7 +137,7 @@ class TrainingWaitlistNotifier
             'refnbr' => $registration->training_regist_id,
             'doctype' => 'TRN',
             'message_date' => now(),
-            'message_type' => 'SYSTEM',
+            'message_type' => 'S_MANACC',
             'cpny_id' => $registration->cpny_id,
             'department_id' => $registration->department_id,
             'username' => 'system',
@@ -188,7 +190,7 @@ class TrainingWaitlistNotifier
             'refnbr' => $registration->training_regist_id,
             'doctype' => 'TRN',
             'message_date' => now(),
-            'message_type' => 'SYSTEM',
+            'message_type' => 'S_RESCHED',
             'cpny_id' => $registration->cpny_id,
             'department_id' => $registration->department_id,
             'username' => 'system',
@@ -239,7 +241,7 @@ class TrainingWaitlistNotifier
             'refnbr' => $registration->training_regist_id,
             'doctype' => 'TRN',
             'message_date' => now(),
-            'message_type' => 'SYSTEM',
+            'message_type' => 'S_CERTRDY',
             'cpny_id' => $registration->cpny_id,
             'department_id' => $registration->department_id,
             'username' => 'system',

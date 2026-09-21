@@ -1138,7 +1138,8 @@
             font-size: 11px;
             color: #6b7280;
             margin: 3px 0 0;
-            font-family: monospace;
+            text-align: left;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
         }
         .viewModal-body {
             padding: 20px 24px 24px;
@@ -1264,23 +1265,33 @@
         .viewModal-actionsRow {
             display: flex;
             gap: 8px;
-            margin-top: 14px;
+            margin: 14px 0 6px;
+        }
+        .viewModal-actionsRow:last-child {
+            margin-bottom: 16px;
         }
         .viewModal-actionsRow button {
             flex: 1;
-            padding: 9px 0;
-            font-size: 12.5px;
+            padding: 11px 0;
+            font-size: 13.5px;
             font-weight: 600;
             border-radius: 8px;
             border: none;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
         }
         .modalApproveBtn {
-            background: #16a34a !important;
+            background: linear-gradient(135deg, #22c55e, #16a34a) !important;
             color: #fff !important;
+            box-shadow: 0 2px 8px rgba(22,163,74,.3) !important;
         }
         .modalApproveBtn:hover {
-            background: #15803d !important;
+            transform: translateY(-1px);
+            box-shadow: 0 5px 14px rgba(22,163,74,.38) !important;
         }
         .modalRejectBtn {
             background: #fef2f2 !important;
@@ -1289,6 +1300,42 @@
         }
         .modalRejectBtn:hover {
             background: #fee2e2 !important;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(220,38,38,.15) !important;
+        }
+        .viewModal-offerBanner {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            border: 1px solid #fde68a;
+            margin: 14px 0;
+        }
+        .viewModal-offerIcon {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(217,119,6,.35);
+        }
+        .viewModal-offerText {
+            margin: 0;
+            font-size: 12px;
+            font-weight: 600;
+            color: #92400e;
+            text-align: left;
+            line-height: 1.45;
+        }
+        .viewModal-offerText strong {
+            color: #78350f;
         }
         .approvalStepList {
             display: flex;
@@ -2148,7 +2195,7 @@
                 if (!initialMyEidHandled && initialMyEid) {
                     initialMyEidHandled = true;
                     const match = myRegistrationsRows.find((row) => row.eid === initialMyEid);
-                    if (match) openMyViewModal(match, { pushUrl: false });
+                    if (match) openMyViewModal(match, { pushUrl: false, showOfferActions: match.status === 'O' });
                 }
 
                 if (!initialFeedbackEidHandled && initialFeedbackEid) {
@@ -2174,6 +2221,10 @@
                 const feedbackHtml = feedbackMenuItem(r);
                 const certificateHtml = certificateMenuItem(r);
                 const viewHtml = `<button type="button" class="viewRegBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">👁 View</button>`;
+                const offerActionsHtml = r.status === 'O' ? `
+                    <button type="button" class="mineAcceptOfferBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-green-600 transition hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20" data-id="${r.id}">✅ Accept Slot</button>
+                    <button type="button" class="mineDeclineOfferBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${r.id}">✕ Decline Slot</button>
+                ` : '';
 
                 $body.append(`
                     <tr>
@@ -2200,6 +2251,7 @@
                                         :style="'position:absolute; top:' + top + 'px; left:' + left + 'px;'"
                                         class="z-50 w-48 origin-top-right overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
                                         ${viewHtml}
+                                        ${offerActionsHtml}
                                         ${feedbackHtml}
                                         ${certificateHtml}
                                         ${cancelHtml}
@@ -2483,7 +2535,7 @@
 
         let myViewModalActive = false;
 
-        function openMyViewModal(r, { pushUrl = true, urlTpl = myViewUrlTpl, showApprovalActions = false } = {}) {
+        function openMyViewModal(r, { pushUrl = true, urlTpl = myViewUrlTpl, showApprovalActions = false, showOfferActions = false } = {}) {
             if (pushUrl && r.eid) {
                 const targetPath = urlTpl.replace('__EID__', r.eid);
                 if (location.pathname !== targetPath) {
@@ -2548,16 +2600,37 @@
                                 <button type="button" class="modalRejectBtn" data-id="${r.id}">✕ Reject</button>
                             </div>
                         ` : ''}
-                        <h4 class="viewModal-sectionTitle">Approval Line</h4>
-                        <div id="viewModalApprovalList" class="approvalStepList">
-                            <p class="text-sm text-gray-400">Loading…</p>
-                        </div>
+                        ${showOfferActions ? `
+                            ${r.offer_expires_at ? `
+                                <div class="viewModal-offerBanner">
+                                    <div class="viewModal-offerIcon">⏳</div>
+                                    <p class="viewModal-offerText">A seat opened up for you.<br>Confirm by <strong>${fmtDateTime(r.offer_expires_at)}</strong> or it goes to the next person on the waiting list.</p>
+                                </div>
+                            ` : ''}
+                            <div class="viewModal-actionsRow">
+                                <button type="button" class="modalApproveBtn modalAcceptOfferBtn" data-id="${r.id}">✓ Accept Slot</button>
+                                <button type="button" class="modalRejectBtn modalDeclineOfferBtn" data-id="${r.id}">✕ Decline</button>
+                            </div>
+                        ` : ''}
+                        ${!showOfferActions ? `
+                            <h4 class="viewModal-sectionTitle">Approval Line</h4>
+                            <div id="viewModalApprovalList" class="approvalStepList">
+                                <p class="text-sm text-gray-400">Loading…</p>
+                            </div>
+                        ` : ''}
                     </div>
                 `,
                 confirmButtonText: 'Close',
                 showCancelButton: false,
                 customClass: { popup: 'viewModalPopup', confirmButton: 'ticketConfirmBtn' },
                 didOpen: () => {
+                    // A slot offer is only ever made after approval is already fully
+                    // complete (see offerIfSlotAlreadyFree()/nextWaitlisted() in
+                    // TrainingRegistrationService), so the approval line would always
+                    // render as "all approved" here — skip both the section and the
+                    // fetch, it's not decision-relevant for accept/decline.
+                    if (showOfferActions) return;
+
                     $.get(approvalUrlTpl.replace('__REF__', r.docid))
                         .done((res) => {
                             $('#viewModalApprovalList').html(renderApprovalLineHtml(res.data || []));
@@ -2577,10 +2650,15 @@
 
         $(document).on('click', '.viewRegBtn', function () {
             const id = $(this).data('id');
-            const r = myRegistrationsRows.find((row) => row.id === id)
-                || approvalRows.find((row) => String(row.id) === String(id));
+            const mine = myRegistrationsRows.find((row) => row.id === id);
+            const r = mine || approvalRows.find((row) => String(row.id) === String(id));
             if (!r) return;
-            openMyViewModal(r, { showApprovalActions: r.approval_status === 'P' });
+            openMyViewModal(r, {
+                showApprovalActions: r.approval_status === 'P',
+                // Only offer actions on the participant's own row (myRegistrationsRows) —
+                // never when an approver is viewing someone else's registration.
+                showOfferActions: !!mine && r.status === 'O',
+            });
         });
 
         window.addEventListener('popstate', function () {
@@ -2642,10 +2720,71 @@
         });
 
         $(document).on('click', '.modalApproveBtn, .modalRejectBtn', function () {
+            // .modalAcceptOfferBtn/.modalDeclineOfferBtn also carry .modalApproveBtn/.modalRejectBtn
+            // for shared styling — this delegate must not double-fire confirmApproveReject for them.
+            if ($(this).is('.modalAcceptOfferBtn, .modalDeclineOfferBtn')) return;
+
             const id = $(this).data('id');
             const isApprove = $(this).hasClass('modalApproveBtn');
             Swal.close();
             confirmApproveReject(id, isApprove);
+        });
+
+        // Shared by the "My Registrations" row Actions menu and the Accept/Decline
+        // buttons inside the view modal — same confirm dialog, same AJAX call.
+        function confirmOfferAction(id, accept) {
+            const r = myRegistrationsRows.find((x) => String(x.id) === String(id));
+
+            Swal.fire({
+                html: `
+                    <div class="approveModal-header">
+                        <div class="approveModal-icon ${accept ? 'approve' : 'reject'}">${accept ? '✓' : '✕'}</div>
+                        <h3 class="approveModal-title">${accept ? 'Accept this slot?' : 'Decline this slot?'}</h3>
+                    </div>
+                    ${r ? `
+                        <div class="approveModal-card">
+                            <div class="approveModal-row"><span class="approveModal-key">Doc ID</span><span class="approveModal-value">${r.docid}</span></div>
+                            <div class="approveModal-row"><span class="approveModal-key">Training</span><span class="approveModal-value">${r.training_name ?? '-'}</span></div>
+                            <div class="approveModal-row"><span class="approveModal-key">Date</span><span class="approveModal-value">${fmtDate(r.schedule_date)}</span></div>
+                        </div>
+                        ${!accept ? `<p style="font-size:12px;color:#6b7280;margin-top:8px;">This frees the slot for the next person on the waiting list.</p>` : ''}
+                    ` : ''}
+                `,
+                showCancelButton: true,
+                buttonsStyling: false,
+                confirmButtonText: accept ? 'Yes, accept' : 'Yes, decline',
+                cancelButtonText: 'Cancel',
+                customClass: {
+                    popup: 'approveModalPopup',
+                    confirmButton: accept ? 'approveConfirmBtn' : 'rejectConfirmBtn',
+                    cancelButton: 'ticketCancelBtn',
+                },
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                $.ajax({
+                    url: `/training-list/${id}/offer/${accept ? 'accept' : 'decline'}`,
+                    method: 'POST',
+                    headers: csrfHeaders,
+                    success: function (res) {
+                        toast(res.success ? 'success' : 'error', res.message);
+                        if (res.success) {
+                            if (myViewModalActive) Swal.close();
+                            loadMine();
+                        }
+                    },
+                    error: function (xhr) {
+                        toast('error', xhr.responseJSON?.message || 'Gagal memproses slot ini');
+                    },
+                });
+            });
+        }
+
+        $(document).on('click', '.mineAcceptOfferBtn, .mineDeclineOfferBtn, .modalAcceptOfferBtn, .modalDeclineOfferBtn', function () {
+            const id = $(this).data('id');
+            const accept = !$(this).hasClass('mineDeclineOfferBtn') && !$(this).hasClass('modalDeclineOfferBtn');
+            if ($(this).is('.modalAcceptOfferBtn, .modalDeclineOfferBtn')) Swal.close();
+            confirmOfferAction(id, accept);
         });
 
         function renderFeedbackQuestion(q, readOnly) {
