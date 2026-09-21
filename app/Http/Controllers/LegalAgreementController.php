@@ -1630,6 +1630,7 @@ class LegalAgreementController extends Controller
     {
         $query = StagingContractAgreement::query()
             ->whereNull('deleted_at')
+            ->where('status', 'A')
             ->withoutContractNo()
             ->select([
                 'id', 'cpny_id', 'business_id', 'contract_no',
