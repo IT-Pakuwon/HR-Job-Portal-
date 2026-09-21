@@ -155,7 +155,7 @@ class TrainingRegistrationController extends Controller
     public function showAllRegs($eid)
     {
         if (!Auth::user()->hasRole('HCDEVACCESS')) {
-            abort(403, 'Anda tidak memiliki akses HCDEVACCESS');
+            abort(403, 'You do not have HCDEVACCESS access');
         }
 
         $id = Hashids::decode($eid)[0] ?? null;
@@ -541,15 +541,15 @@ class TrainingRegistrationController extends Controller
             ->with('schedule.schedule.training')
             ->findOrFail($id);
 
-        abort_unless($registration->status === TrLndTrainingRegistration::STATUS_APPROVED, 422, 'Registrasi ini belum disetujui');
-        abort_unless((bool) $registration->completed_at, 422, 'Anda belum tercatat hadir pada training ini');
+        abort_unless($registration->status === TrLndTrainingRegistration::STATUS_APPROVED, 422, 'This registration has not been approved yet');
+        abort_unless((bool) $registration->completed_at, 422, 'You have not been recorded as attending this training');
 
         $schedule = $registration->schedule;
-        abort_unless($schedule && $schedule->is_certificate_ready, 422, 'Sertifikat untuk training ini belum tersedia');
+        abort_unless($schedule && $schedule->is_certificate_ready, 422, 'The certificate for this training is not available yet');
 
         $trainingDetail = $schedule->schedule;
         $training = $trainingDetail?->training;
-        abort_unless($trainingDetail && $training, 422, 'Data training tidak lengkap');
+        abort_unless($trainingDetail && $training, 422, 'Training data is incomplete');
 
         $gradeName = StoGrading::labelsFor([$trainingDetail->job_level])->get($trainingDetail->job_level);
 
@@ -583,11 +583,11 @@ class TrainingRegistrationController extends Controller
         abort_unless(strcasecmp((string) $registration->user_registration, (string) $user->username) === 0, 403);
 
         if ($registration->status !== TrLndTrainingRegistration::STATUS_APPROVED) {
-            return response()->json(['available' => false, 'message' => 'Registrasi belum disetujui']);
+            return response()->json(['available' => false, 'message' => 'Registration has not been approved yet']);
         }
 
         if ($registration->status_registration) {
-            return response()->json(['available' => false, 'message' => 'Anda belum memiliki slot pada event ini']);
+            return response()->json(['available' => false, 'message' => 'You do not have a slot for this event yet']);
         }
 
         if (!$registration->attendance_code) {
@@ -599,7 +599,7 @@ class TrainingRegistrationController extends Controller
         $detail = MsLndTrainingSchedule::where('schedule_id', $registration->schedule_id)->first();
 
         if (!$detail) {
-            return response()->json(['available' => false, 'message' => 'Schedule tidak ditemukan']);
+            return response()->json(['available' => false, 'message' => 'Schedule not found']);
         }
 
         $window = $this->attendanceWindow($detail);
@@ -608,12 +608,12 @@ class TrainingRegistrationController extends Controller
         if ($now->lessThan($window['from'])) {
             return response()->json([
                 'available' => false,
-                'message' => 'Barcode akan aktif pada '.Carbon::parse($detail->schedule_date)->translatedFormat('d M Y'),
+                'message' => 'Barcode will be active on '.Carbon::parse($detail->schedule_date)->translatedFormat('d M Y'),
             ]);
         }
 
         if ($now->greaterThan($window['until'])) {
-            return response()->json(['available' => false, 'message' => 'Barcode sudah kedaluwarsa']);
+            return response()->json(['available' => false, 'message' => 'Barcode has expired']);
         }
 
         return response()->json([
@@ -657,11 +657,11 @@ class TrainingRegistrationController extends Controller
         $user = Auth::user();
 
         if ($detail->status !== self::SCHEDULE_PUBLISHED) {
-            return response()->json(['success' => false, 'message' => 'Registrasi untuk jadwal ini sudah ditutup'], 422);
+            return response()->json(['success' => false, 'message' => 'Registration for this schedule is already closed'], 422);
         }
 
         if ($detail->registration_deadline && Carbon::parse($detail->registration_deadline)->isPast()) {
-            return response()->json(['success' => false, 'message' => 'Batas waktu registrasi sudah lewat'], 422);
+            return response()->json(['success' => false, 'message' => 'The registration deadline has passed'], 422);
         }
 
         $originCpnyId = trim((string) $user->origin_cpny_id);
@@ -683,7 +683,7 @@ class TrainingRegistrationController extends Controller
             $participant = User::where('username', $username)->where('status', 'A')->first();
 
             if (!$participant) {
-                return response()->json(['success' => false, 'message' => "Peserta {$username} tidak ditemukan"], 422);
+                return response()->json(['success' => false, 'message' => "Participant {$username} not found"], 422);
             }
 
             // Colleagues must belong to the exact same origin org as the submitter.
@@ -694,7 +694,7 @@ class TrainingRegistrationController extends Controller
                 if ($pCpny !== $originCpnyId || $pDept !== $originDeptId) {
                     return response()->json([
                         'success' => false,
-                        'message' => "Peserta {$username} bukan rekan sekantor Anda",
+                        'message' => "Participant {$username} is not a colleague from your office",
                     ], 422);
                 }
             }
@@ -719,7 +719,7 @@ class TrainingRegistrationController extends Controller
                 if ($participantLevel !== null && $participantLevel !== $scheduleLevelGroup) {
                     return response()->json([
                         'success' => false,
-                        'message' => "Peserta {$participant->username} tidak berada pada level yang sesuai untuk training ini",
+                        'message' => "Participant {$participant->username} is not at the appropriate level for this training",
                     ], 422);
                 }
             }
@@ -739,7 +739,7 @@ class TrainingRegistrationController extends Controller
         if ($duplicates->isNotEmpty()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Sudah terdaftar pada jadwal ini: '.$duplicates->implode(', '),
+                'message' => 'Already registered for this schedule: '.$duplicates->implode(', '),
             ], 422);
         }
 
@@ -764,7 +764,7 @@ class TrainingRegistrationController extends Controller
             if ($mandatoryDuplicates->isNotEmpty()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Training ini wajib (mandatory) — sudah terdaftar di jadwal lain: '.$mandatoryDuplicates->implode(', '),
+                    'message' => 'This training is mandatory — already registered on another schedule: '.$mandatoryDuplicates->implode(', '),
                 ], 422);
             }
         }
@@ -780,7 +780,7 @@ class TrainingRegistrationController extends Controller
             if ($quotas->isEmpty()) {
                 DB::connection('pgsql5')->rollBack();
 
-                return response()->json(['success' => false, 'message' => 'Training ini tidak tersedia untuk perusahaan Anda'], 422);
+                return response()->json(['success' => false, 'message' => 'This training is not available for your company'], 422);
             }
 
             $quotaPax = $quotas->sum('quota_pax');
@@ -847,13 +847,13 @@ class TrainingRegistrationController extends Controller
 
             DB::connection('pgsql5')->commit();
 
-            $message = 'Registrasi berhasil, menunggu approval';
+            $message = 'Registration successful, awaiting approval';
             if ($waitlistedCount > 0 && $seatedCount > 0) {
-                $message = "Kuota tersisa {$seatedCount}, {$seatedCount} peserta terdaftar dan {$waitlistedCount} masuk waiting list — approval tetap berjalan";
+                $message = "{$seatedCount} seats remaining, {$seatedCount} participants registered and {$waitlistedCount} placed on the waiting list — approval still proceeds";
             } elseif ($waitlistedCount > 0) {
-                $message = 'Kuota penuh, seluruh peserta masuk waiting list — approval tetap berjalan';
+                $message = 'Quota full, all participants placed on the waiting list — approval still proceeds';
             } elseif ($docIds->count() > 1) {
-                $message = 'Registrasi berhasil ('.$docIds->count().' dokumen: '.$docIds->implode(', ').'), menunggu approval';
+                $message = 'Registration successful ('.$docIds->count().' documents: '.$docIds->implode(', ').'), awaiting approval';
             }
 
             return response()->json([
@@ -875,7 +875,7 @@ class TrainingRegistrationController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage() ?: 'Gagal melakukan registrasi',
+                'message' => $e->getMessage() ?: 'Failed to complete registration',
             ], $e->getStatusCode());
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
@@ -889,7 +889,7 @@ class TrainingRegistrationController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal melakukan registrasi',
+                'message' => 'Failed to complete registration',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -913,12 +913,12 @@ class TrainingRegistrationController extends Controller
 
         if ($registration->status === TrLndTrainingRegistration::STATUS_REJECTED
             || $registration->status_registration === TrLndTrainingRegistration::REG_STATUS_CANCELLED) {
-            return response()->json(['success' => false, 'message' => 'Registrasi ini sudah tidak aktif'], 422);
+            return response()->json(['success' => false, 'message' => 'This registration is no longer active'], 422);
         }
 
         $scheduleDate = $registration->schedule_date ?? $registration->schedule?->schedule_date;
         if ($scheduleDate && $scheduleDate->lt(Carbon::today())) {
-            return response()->json(['success' => false, 'message' => 'Registrasi ini tidak dapat dibatalkan karena jadwal trainingnya sudah lewat'], 422);
+            return response()->json(['success' => false, 'message' => 'This registration cannot be cancelled because its training schedule has already passed'], 422);
         }
 
         DB::connection('pgsql5')->beginTransaction();
@@ -942,13 +942,13 @@ class TrainingRegistrationController extends Controller
 
             DB::connection('pgsql5')->commit();
 
-            return response()->json(['success' => true, 'message' => 'Registrasi berhasil dibatalkan']);
+            return response()->json(['success' => true, 'message' => 'Registration cancelled successfully']);
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal membatalkan registrasi',
+                'message' => 'Failed to cancel registration',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -964,7 +964,7 @@ class TrainingRegistrationController extends Controller
         }
 
         if (!$this->offerStillValid($registration)) {
-            return response()->json(['success' => false, 'message' => 'Offer ini sudah tidak berlaku'], 422);
+            return response()->json(['success' => false, 'message' => 'This offer is no longer valid'], 422);
         }
 
         DB::connection('pgsql5')->beginTransaction();
@@ -991,15 +991,15 @@ class TrainingRegistrationController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => $approvalPending
-                    ? 'Slot diterima, menunggu approval selesai'
-                    : 'Slot diterima',
+                    ? 'Slot accepted, awaiting approval to finish'
+                    : 'Slot accepted',
             ]);
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menerima offer',
+                'message' => 'Failed to accept offer',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -1015,7 +1015,7 @@ class TrainingRegistrationController extends Controller
         }
 
         if ($registration->status_registration !== TrLndTrainingRegistration::REG_STATUS_OFFERED) {
-            return response()->json(['success' => false, 'message' => 'Offer ini sudah tidak berlaku'], 422);
+            return response()->json(['success' => false, 'message' => 'This offer is no longer valid'], 422);
         }
 
         DB::connection('pgsql5')->beginTransaction();
@@ -1034,13 +1034,13 @@ class TrainingRegistrationController extends Controller
 
             DB::connection('pgsql5')->commit();
 
-            return response()->json(['success' => true, 'message' => 'Offer ditolak']);
+            return response()->json(['success' => true, 'message' => 'Offer declined']);
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menolak offer',
+                'message' => 'Failed to decline offer',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -1081,7 +1081,7 @@ class TrainingRegistrationController extends Controller
                     $refnbr,
                     $registration->cpny_id,
                     $registration->department_id,
-                    'Registrasi training Anda telah disetujui sepenuhnya.',
+                    'Your training registration has been fully approved.',
                     'APPROVE'
                 );
             },
@@ -1154,7 +1154,7 @@ class TrainingRegistrationController extends Controller
                     $refnbr,
                     $registration->cpny_id,
                     $registration->department_id,
-                    'Registrasi training Anda ditolak.',
+                    'Your training registration has been rejected.',
                     'REJECT'
                 );
             }
@@ -1276,7 +1276,7 @@ class TrainingRegistrationController extends Controller
         $user = Auth::user();
 
         if (!$user->hasRole('HCDEVACCESS')) {
-            abort(403, 'Anda tidak memiliki akses HCDEVACCESS');
+            abort(403, 'You do not have HCDEVACCESS access');
         }
 
         // Same "past Draft" scoping as registrationSummary()'s cards/filter
@@ -1408,7 +1408,7 @@ class TrainingRegistrationController extends Controller
         $user = Auth::user();
 
         if (!$user->hasRole('HCDEVACCESS')) {
-            abort(403, 'Anda tidak memiliki akses HCDEVACCESS');
+            abort(403, 'You do not have HCDEVACCESS access');
         }
 
         return Excel::download(
@@ -1437,7 +1437,7 @@ class TrainingRegistrationController extends Controller
         $user = Auth::user();
 
         if (!$user->hasRole('HCDEVACCESS')) {
-            abort(403, 'Anda tidak memiliki akses HCDEVACCESS');
+            abort(403, 'You do not have HCDEVACCESS access');
         }
 
         $trainingId = $request->query('training_id');
@@ -1585,23 +1585,23 @@ class TrainingRegistrationController extends Controller
         $user = Auth::user();
 
         if (!$user->hasRole('HCDEVACCESS')) {
-            abort(403, 'Anda tidak memiliki akses HCDEVACCESS');
+            abort(403, 'You do not have HCDEVACCESS access');
         }
 
         $registration = TrLndTrainingRegistration::findOrFail($id);
 
         if ($registration->status_registration !== TrLndTrainingRegistration::REG_STATUS_WAITLISTED) {
-            return response()->json(['success' => false, 'message' => 'Registrasi ini bukan waiting list'], 422);
+            return response()->json(['success' => false, 'message' => 'This registration is not on the waiting list'], 422);
         }
 
         if ($registration->status !== TrLndTrainingRegistration::STATUS_APPROVED) {
-            return response()->json(['success' => false, 'message' => 'Approval untuk peserta ini belum selesai — tunggu hingga approval selesai'], 422);
+            return response()->json(['success' => false, 'message' => 'Approval for this participant is not finished yet — wait until approval completes'], 422);
         }
 
         $detail = MsLndTrainingSchedule::where('schedule_id', $registration->schedule_id)->first();
 
         if (!$detail || $detail->status !== self::SCHEDULE_CLOSED) {
-            return response()->json(['success' => false, 'message' => 'Penerimaan manual hanya untuk jadwal yang sudah closed'], 422);
+            return response()->json(['success' => false, 'message' => 'Manual acceptance is only for schedules that are already closed'], 422);
         }
 
         $cpnyId = trim((string) ($request->input('cpny_id') ?: $registration->cpny_id));
@@ -1617,7 +1617,7 @@ class TrainingRegistrationController extends Controller
             if (!$quota) {
                 DB::connection('pgsql5')->rollBack();
 
-                return response()->json(['success' => false, 'message' => 'Kuota untuk perusahaan terpilih tidak ditemukan pada jadwal ini'], 422);
+                return response()->json(['success' => false, 'message' => 'Quota for the selected company was not found on this schedule'], 422);
             }
 
             $seatCount = $this->activeSeatCount($registration->schedule_id, $cpnyId);
@@ -1625,7 +1625,7 @@ class TrainingRegistrationController extends Controller
             if ($seatCount >= $quota->quota_pax) {
                 DB::connection('pgsql5')->rollBack();
 
-                return response()->json(['success' => false, 'message' => 'Kuota sudah penuh, tidak ada slot yang tersedia untuk perusahaan ini'], 422);
+                return response()->json(['success' => false, 'message' => 'Quota is already full, no slots available for this company'], 422);
             }
 
             $companyName = MsCompany::where('cpny_id', $cpnyId)->value('cpny_name') ?? $cpnyId;
@@ -1645,14 +1645,14 @@ class TrainingRegistrationController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => $registration->user_registration.' diterima (kuota '.$companyName.')',
+                'message' => $registration->user_registration.' accepted (quota '.$companyName.')',
             ]);
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menerima peserta',
+                'message' => 'Failed to accept participant',
                 'error' => $e->getMessage(),
             ], 500);
         }

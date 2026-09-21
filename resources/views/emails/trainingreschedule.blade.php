@@ -1,13 +1,13 @@
 @extends('emails.layouts.master')
 
-@section('title', 'Jadwal Training Diubah')
+@section('title', 'Training Schedule Changed')
 
 @section('icon', '🔄')
 
-@section('header', 'Jadwal Training Diubah')
+@section('header', 'Training Schedule Changed')
 
 @section('subtitle')
-Seat/waiting list Anda tetap dipertahankan pada tanggal baru.
+Your seat/waiting list slot is kept for the new date.
 @endsection
 
 @section('content')
@@ -23,7 +23,7 @@ Seat/waiting list Anda tetap dipertahankan pada tanggal baru.
 </table>
 
 <p style="margin:0 0 24px;font-size:14px;color:#334155;line-height:1.6;">
-    Halo <strong>{{ $name }}</strong>, jadwal training <strong>{{ $training_name }}</strong> yang Anda ikuti telah diubah.
+    Hello <strong>{{ $name }}</strong>, the schedule for the training <strong>{{ $training_name }}</strong> you are enrolled in has changed.
 </p>
 
 {{-- Detail rows --}}
@@ -41,7 +41,7 @@ Seat/waiting list Anda tetap dipertahankan pada tanggal baru.
     @if ($old_date)
     <tr>
         <td style="padding:11px 16px 11px 0;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
-            Tanggal Lama
+            Old Date
         </td>
         <td style="padding:11px 0;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
             <span style="display:inline-block;padding:3px 14px;border-radius:999px;background:#fee2e2;border:1.5px solid #fca5a5;color:#991b1b;font-size:12px;font-weight:700;letter-spacing:0.02em;text-decoration:line-through;">
@@ -53,7 +53,7 @@ Seat/waiting list Anda tetap dipertahankan pada tanggal baru.
 
     <tr>
         <td style="padding:11px 16px 11px 0;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
-            Tanggal Baru
+            New Date
         </td>
         <td style="padding:11px 0;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
             <span style="display:inline-block;padding:3px 14px;border-radius:999px;background:#dcfce7;border:1.5px solid #86efac;color:#166534;font-size:12px;font-weight:800;letter-spacing:0.02em;">
@@ -64,7 +64,7 @@ Seat/waiting list Anda tetap dipertahankan pada tanggal baru.
 
     <tr>
         <td style="padding:13px 16px 13px 0;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;vertical-align:top;">
-            Alasan
+            Reason
         </td>
         <td style="padding:13px 0;font-size:13px;color:#475569;line-height:1.6;vertical-align:top;">
             {{ $reason }}
@@ -78,7 +78,7 @@ Seat/waiting list Anda tetap dipertahankan pada tanggal baru.
     <tr>
         <td style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:14px 18px;">
             <p style="margin:0;font-size:12.5px;color:#92400e;line-height:1.6;">
-                Jika Anda tidak dapat hadir pada tanggal baru, silakan batalkan registrasi Anda melalui tombol di bawah agar seat dapat dialokasikan ke peserta lain.
+                If you are unable to attend on the new date, please cancel your registration using the button below so the seat can be allocated to another participant.
             </p>
         </td>
     </tr>
@@ -90,7 +90,7 @@ Seat/waiting list Anda tetap dipertahankan pada tanggal baru.
         <td align="center">
             <a href="{{ $url }}" target="_blank"
                 style="display:inline-block;background:#1d4ed8;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:13px;font-weight:700;letter-spacing:0.02em;">
-                Lihat Registrasi Saya &rarr;
+                View My Registration &rarr;
             </a>
         </td>
     </tr>
