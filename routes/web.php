@@ -31,8 +31,6 @@ use App\Http\Controllers\CarExpenseController;
 use App\Http\Controllers\ChangeStoController;
 use App\Http\Controllers\CompanyAddressController;
 use App\Http\Controllers\CompanyController;
-use App\Http\Controllers\HrCompanyBudgetController;
-use App\Http\Controllers\MsEntityController;
 use App\Http\Controllers\CorporateTeknikDashboardController;
 use App\Http\Controllers\CorporateTeknikReportController;
 use App\Http\Controllers\CostControlDashboardController;
@@ -41,22 +39,20 @@ use App\Http\Controllers\CsListController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataFeedController;
 use App\Http\Controllers\DepartmentsController;
-use App\Http\Controllers\GradingController;
-use App\Http\Controllers\PerformanceManagementController;
 use App\Http\Controllers\DocumentNotificationController;
-use App\Http\Controllers\MailboxController;
 use App\Http\Controllers\EngTicketController;
 use App\Http\Controllers\EventCalendarController;
 use App\Http\Controllers\EventLocationSetupController;
-use App\Http\Controllers\FindingController;
-use App\Http\Controllers\WeeklyMeetingController;
 use App\Http\Controllers\FinanceDashboardController;
+use App\Http\Controllers\FindingController;
 use App\Http\Controllers\GADashboardController;
 use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\GmReportController;
 use App\Http\Controllers\GoogleCalendarApiController;
 use App\Http\Controllers\GoogleCalendarController;
+use App\Http\Controllers\GradingController;
 use App\Http\Controllers\GroupAccspecificController;
+use App\Http\Controllers\HrCompanyBudgetController;
 use App\Http\Controllers\HrDashboardController;
 use App\Http\Controllers\IMBudgetController;
 use App\Http\Controllers\IMBudgetNonPurchController;
@@ -87,24 +83,22 @@ use App\Http\Controllers\JobpostingController;
 use App\Http\Controllers\KendaraanController;
 use App\Http\Controllers\KontrakController;
 use App\Http\Controllers\LastOrderController;
+use App\Http\Controllers\LegalAgreementController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\LuckydrawSetupController;
+use App\Http\Controllers\MailboxController;
 use App\Http\Controllers\ManageApprovalController;
 use App\Http\Controllers\ManpowerController;
-use App\Http\Controllers\MasterTrainingController;
-use App\Http\Controllers\TrainingSessionController;
-use App\Http\Controllers\TrainingRegistrationController;
-use App\Http\Controllers\TrainingAttendanceController;
-use App\Http\Controllers\TrainingFeedbackController;
-use App\Http\Controllers\TrainingSetupController;
 use App\Http\Controllers\MappingIssueERPController;
 use App\Http\Controllers\MappingPoERPController;
 use App\Http\Controllers\MasterController;
+use App\Http\Controllers\MasterTrainingController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\MeetingRoomSetupController;
 use App\Http\Controllers\MsApprovalController;
 use App\Http\Controllers\MsApprovalGroupBiayaController;
 use App\Http\Controllers\MsCategoryController;
+use App\Http\Controllers\MsEntityController;
 use App\Http\Controllers\MsGroupbiayaNonPurchController;
 use App\Http\Controllers\MsSiteController;
 use App\Http\Controllers\MultiDashboardController;
@@ -113,15 +107,16 @@ use App\Http\Controllers\NonstockJobsController;
 use App\Http\Controllers\OperationalDashboardController;
 use App\Http\Controllers\OrgChartController;
 use App\Http\Controllers\ParkingRegistrationController;
+use App\Http\Controllers\PerformanceManagementController;
 use App\Http\Controllers\PerizinanController;
 use App\Http\Controllers\PersonnelController;
 use App\Http\Controllers\PgTrekDashboardController;
-use App\Http\Controllers\PoController;
-use App\Http\Controllers\PoListController;
 use App\Http\Controllers\PmGroupController;
 use App\Http\Controllers\PmProjectController;
 use App\Http\Controllers\PmTaskController;
 use App\Http\Controllers\PmTaskDetailController;
+use App\Http\Controllers\PoController;
+use App\Http\Controllers\PoListController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectTaskController;
 use App\Http\Controllers\PurchasingDashboardController;
@@ -148,12 +143,12 @@ use App\Http\Controllers\SppjController;
 use App\Http\Controllers\SppkController;
 use App\Http\Controllers\SpptController;
 use App\Http\Controllers\StockJobsController;
-// INTEGRATION
 use App\Http\Controllers\StrukturOrgController;
 use App\Http\Controllers\SysAccessRightController;
 use App\Http\Controllers\SysApplicationController;
 use App\Http\Controllers\SysCalendarController;
 use App\Http\Controllers\SysMenuController;
+// INTEGRATION
 use App\Http\Controllers\SysMenuFavouriteController;
 use App\Http\Controllers\SysRoleController;
 use App\Http\Controllers\SysRoleMenuController;
@@ -164,6 +159,11 @@ use App\Http\Controllers\TestEmailController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TicketSetupController;
 use App\Http\Controllers\TopController;
+use App\Http\Controllers\TrainingAttendanceController;
+use App\Http\Controllers\TrainingFeedbackController;
+use App\Http\Controllers\TrainingRegistrationController;
+use App\Http\Controllers\TrainingSessionController;
+use App\Http\Controllers\TrainingSetupController;
 use App\Http\Controllers\TrAttachmentController;
 use App\Http\Controllers\TreasuryDashboardController;
 use App\Http\Controllers\UpdateNotificationController;
@@ -173,17 +173,18 @@ use App\Http\Controllers\UserSyncController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\VoucherTaxiController;
 use App\Http\Controllers\VoucherTaxiSetupController;
+use App\Http\Controllers\VpCollectionDashboardController;
 use App\Http\Controllers\VplMsProductController;
+use App\Http\Controllers\VpLoyaltyDashboardController;
 use App\Http\Controllers\VplReceiveController;
 use App\Http\Controllers\VplReportController;
-use App\Http\Controllers\VplTransferController;
 use App\Http\Controllers\VplSettlementController;
+use App\Http\Controllers\VplTransferController;
 use App\Http\Controllers\VplUsageController;
 use App\Http\Controllers\VplWarehouseSetupController;
-use App\Http\Controllers\VpCollectionDashboardController;
-use App\Http\Controllers\VpLoyaltyDashboardController;
 use App\Http\Controllers\VpPromotionDashboardController;
 use App\Http\Controllers\WarehouseDashboardController;
+use App\Http\Controllers\WeeklyMeetingController;
 use App\Http\Controllers\WoController;
 use App\Http\Controllers\WorkInstructionController;
 use App\Http\Controllers\WorksCategoryController;
@@ -268,6 +269,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/personnels', [PersonnelController::class, 'index'])->name('personnels');
         Route::get('/personnels/json', [PersonnelController::class, 'json'])->name('personnels.json');
         Route::get('/showpersonnels/{hash}', [PersonnelController::class, 'showPersonnel']);
+        Route::get('/pdf_prf/{hash}', [PersonnelController::class, 'printPdfPersonnel'])->name('personnel.print.pdf');
         Route::get('/personnel/{id}/comments', [PersonnelController::class, 'fetchComments']);
         Route::get('/personnel/{id}/check-approval/{action}', [PersonnelController::class, 'checkApproval']);
         Route::get('/api/sites/{cpnyid}', [PersonnelController::class, 'getSitesByCompany']);
@@ -499,6 +501,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/checklist/upload', [CareerController::class, 'uploadDocument'])->name('checklist.upload');
     Route::post('/assessment/update', [CareerController::class, 'updateAssessment'])->name('assessment.update');
     Route::post('/assessmentuser/update', [CareerController::class, 'updateAssessmentuser'])->name('assessmentuser.update');
+    Route::post('/assessmentresult/update', [CareerController::class, 'updateAssessmentResult'])->name('assessmentresult.update');
     Route::get('/career/{docid}/check-reject-permission', [CareerController::class, 'checkRejectPermission']);
     Route::get('/career/{docid}/check-rollback-permission', [CareerController::class, 'checkRollbackPermission']);
     // Route::get('/payroll-confirmation', [CareerController::class, 'index'])->name('payroll.index');
@@ -526,6 +529,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/payrollconfirm/reveal', [CareerController::class, 'revealSalary'])->name('payrollconfirm.reveal');
     Route::get('/payrollconfirm/{id}', [CareerController::class, 'getPayroll'])->name('payrollconfirm.get');
     Route::get('/checklist/{id}/view', [CareerController::class, 'viewDocument'])->name('checklist.view');
+    Route::get('/checklist/prf-attachment/{id}/view', [CareerController::class, 'viewPrfAttachment'])->name('checklist.prf-attachment.view');
+    Route::get('/checklist/prf-pdf/{docid}', [CareerController::class, 'printPrfPdf'])->name('checklist.prf-pdf');
 
     Route::get('/jobpostings', [JobpostingController::class, 'index'])->name('jobpostings');
     Route::get('/jobpostings/json', [JobpostingController::class, 'json'])->name('jobpostings.json');
@@ -1270,7 +1275,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/perizinan/sites', [PerizinanController::class, 'sites'])->name('perizinan.sites');
         Route::post('/perizinan/generate-berita-acara', [PerizinanController::class, 'generateBeritaAcara'])->name('perizinan.generate-berita-acara');
         Route::put('/perizinan/{perizinanId}/details', [PerizinanController::class, 'updateDetails'])->name('perizinan.details.update');
-        Route::get('/perizinan/{perizinanId}', [PerizinanController::class, 'show'])->name('perizinan.show');     
+        Route::get('/perizinan/{perizinanId}', [PerizinanController::class, 'show'])->name('perizinan.show');
     });
 
     Route::middleware('access:PERIZINAN,CREATE')->group(function () {
@@ -1302,11 +1307,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/weekly-meeting', [WeeklyMeetingController::class, 'index'])->name('weekly-meeting');
         Route::get('/weekly-meeting/json', [WeeklyMeetingController::class, 'json'])->name('weekly-meeting.json');
         Route::get('/weekly-meeting/{weeklyMeetingId}/findings', [WeeklyMeetingController::class, 'findings'])->name('weekly-meeting.findings');
-        Route::get('/weekly-meeting/{weeklyMeetingId}/mom', [WeeklyMeetingController::class, 'mom'])->name('weekly-meeting.mom');      
+        Route::get('/weekly-meeting/{weeklyMeetingId}/mom', [WeeklyMeetingController::class, 'mom'])->name('weekly-meeting.mom');
         Route::post('/weekly-meeting/{weeklyMeetingId}/approve', [WeeklyMeetingController::class, 'approveWeeklyMeeting'])->name('weekly-meeting.approve');
         Route::get('/weekly-meeting/{weeklyMeetingId}', [WeeklyMeetingController::class, 'show'])->name('weekly-meeting.show');
-    });  
-
+    });
 
     Route::middleware('access:STOCKJOBS,EDIT')->group(function () {
         Route::post('/invstock', [StockJobsController::class, 'store'])->name('invstock.store');
@@ -1930,6 +1934,55 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/destroy-wa-setting/{id}', 'destroyWaSetting')->name('ticketsetup.destroyWaSetting');
         });
 
+        Route::prefix('legal-agreement')->controller(LegalAgreementController::class)->group(function () {
+            Route::middleware('access:LEGALAGREEMENT,VIEW')->group(function () {
+                Route::get('/', 'index')->name('legal-agreement');
+                Route::get('/export', 'export')->name('legal-agreement.export');
+                Route::get('/jobs/export', 'jobsExport')->name('legal-agreement.jobs.export');
+
+                Route::middleware('ajax')->group(function () {
+                    Route::get('/json', 'json')->name('legal-agreement.json');
+                    Route::get('/jobs/json', 'jobsJson')->name('legal-agreement.jobs.json');
+                    Route::get('/detail/{hash}', 'detail')->name('legal-agreement.detail');
+                    Route::get('/tracking/{hash}', 'tracking')->name('legal-agreement.tracking');
+                    Route::get('/comments/{hash}', 'comments')->name('legal-agreement.comments');
+                    Route::get('/mentionable-users/{hash}', 'mentionableUsers')->name('legal-agreement.mentionable-users');
+                    Route::get('/pic-search', 'picSearch')->name('legal-agreement.picSearch');
+                    Route::get('/counts', 'counts')->name('legal-agreement.counts');
+                    Route::get('/companies-search', 'companiesSearch')->name('legal-agreement.companiesSearch');
+                    Route::get('/create-dropdown', 'createDropdown')->name('legal-agreement.create-dropdown');
+                });
+
+                Route::get('/print/{hash}', 'printAgreement')->name('legal-agreement.print');
+            });
+
+            Route::middleware('access:LEGALAGREEMENT,CREATE')->group(function () {
+                Route::post('/store', 'store')->name('legal-agreement.store');
+            });
+
+            Route::middleware('access:LEGALAGREEMENT,EDIT')->group(function () {
+                Route::post('/update/{hash}', 'update')->name('legal-agreement.update');
+                Route::post('/hold/{hash}', 'holdAgreement')->name('legal-agreement.hold');
+                Route::post('/activate/{hash}', 'activateAgreement')->name('legal-agreement.activate');
+                Route::post('/complete/{hash}', 'completeAgreement')->name('legal-agreement.complete');
+                Route::post('/comment/{hash}', 'comment')->name('legal-agreement.comment');
+                Route::post('/jobs/update-status', 'jobsUpdateStatus')->name('legal-agreement.jobs.updateStatus');
+            });
+        });
+
+        Route::controller(LegalAgreementController::class)->group(function () {
+            Route::middleware('access:LEGALAGREEMENT,VIEW')->group(function () {
+                Route::get('/show-legal-agreement/{eid}', 'index');
+            });
+
+            Route::middleware('access:LEGALAGREEMENT,EDIT')->group(function () {
+                Route::get('/edit-legal-agreement/{eid}', 'index');
+                Route::get('/hold-legal-agreement/{eid}', 'index');
+                Route::get('/activate-legal-agreement/{eid}', 'index');
+                Route::get('/complete-legal-agreement/{eid}', 'index');
+            });
+        });
+
         Route::prefix('luckydraw-setup')->controller(LuckydrawSetupController::class)->group(function () {
             Route::middleware('access:EVENTSETUP,VIEW')->group(function () {
                 Route::get('/', 'index')->name('luckydrawsetup');
@@ -2255,20 +2308,33 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/document-notifications/mark-read', [DocumentNotificationController::class, 'markRead'])->name('document.notifications.mark-read');
 
         Route::prefix('mailbox')->controller(MailboxController::class)->name('mailbox.')->group(function () {
-            Route::get('/', 'index')->name('index');
             Route::get('/panel', 'panel')->name('panel');
             Route::get('/unread-count', 'unreadCount')->name('unread-count');
             Route::post('/sync', 'sync')->name('sync');
+            Route::post('/load-more', 'loadMore')->name('load-more');
             Route::post('/send', 'send')->name('send');
             Route::post('/save-draft', 'saveDraft')->name('save-draft');
             Route::get('/account-settings', 'accountSettings')->name('account-settings');
             Route::post('/account-settings', 'saveAccountSettings')->name('account-settings.save');
-            Route::get('/{email}/content', 'content')->name('content');
-            Route::get('/{email}/attachments', 'attachments')->name('attachments');
-            Route::get('/{email}/attachments/{index}', 'downloadAttachment')->whereNumber('index')->name('attachments.download');
-            Route::post('/{email}/archive', 'archive')->name('archive');
-            Route::delete('/{email}', 'destroy')->name('destroy');
+            Route::post('/account-settings/disconnect', 'disconnectAccount')->name('account-settings.disconnect');
+            // Landing spot for the header "Connect your Email" prompt — same page as
+            // index() but auto-opens the settings modal. Must stay above the {folder?}
+            // catch-all below or "settings" would be swallowed as a folder name.
+            Route::get('/settings', 'settings')->name('settings');
+            Route::get('/{email}/content', 'content')->whereNumber('email')->name('content');
+            Route::get('/{email}/attachments', 'attachments')->whereNumber('email')->name('attachments');
+            Route::get('/{email}/attachments/{index}', 'downloadAttachment')->whereNumber('email')->whereNumber('index')->name('attachments.download');
+            Route::post('/{email}/archive', 'archive')->whereNumber('email')->name('archive');
+            Route::delete('/{email}', 'destroy')->whereNumber('email')->name('destroy');
+            // Folder as a path segment for a clean, bookmarkable URL
+            // (/mailbox/Drafts) instead of a query string (/mailbox?folder=Drafts).
+            // Must stay last: it's a catch-all and would otherwise swallow the
+            // literal routes above. Optional + `.*` so both the bare "/mailbox"
+            // (default INBOX) and nested subfolder paths ("INBOX/APP System") match.
+            Route::get('/{folder?}', 'index')->where('folder', '.*')->name('index');
         });
+
+        Route::view('/data-hub', 'pages.data_hub.index')->name('datahub.index');
 
         Route::get('/global-search', [GlobalSearchController::class, 'search'])->name('global-search');
 
@@ -2436,6 +2502,15 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/applicant-json', 'applicantJson')->name('applicant-json');
             Route::get('/self-register-json', 'selfRegisterJson')->name('self-register-json');
             Route::get('/approval-doctypes-json', 'approvalDocTypes')->name('approval-doctypes-json');
+        });
+
+        Route::prefix('recruitment-dashboard')->controller(RecruitmentDashboardController::class)->name('recruitment-dashboard.')->group(function () {
+            Route::get('/summary-json', 'summaryJson')->name('summary-json');
+            Route::get('/waiting-approval-json', 'widgetWaitingApprovalJson')->name('waiting-approval-json');
+            Route::get('/approval-history-json', 'widgetApprovalHistoryJson')->name('approval-history-json');
+            Route::get('/applicant-json', 'widgetApplicantJson')->name('applicant-json');
+            Route::get('/self-register-json', 'widgetSelfRegisterJson')->name('self-register-json');
+            Route::get('/approval-doctypes-json', 'widgetApprovalDocTypes')->name('approval-doctypes-json');
         });
 
         Route::prefix('purchasing-dashboard')->controller(PurchasingDashboardController::class)->name('purchasing.')->group(function () {
@@ -3021,7 +3096,7 @@ Route::middleware(['auth'])->group(function () {
 
         if ($targetSlug) {
             $currentMenu = $allMenus->first(
-                fn ($menu) => \Illuminate\Support\Str::slug($menu->menu_slug ?? $menu->menu_name) === $targetSlug
+                fn ($menu) => Illuminate\Support\Str::slug($menu->menu_slug ?? $menu->menu_name) === $targetSlug
             );
         }
 
