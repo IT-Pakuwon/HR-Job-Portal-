@@ -29,6 +29,12 @@ class MailboxService
     // roughly one page of the UI instead of silently front-loading 200.
     public const DEFAULT_FETCH_LIMIT = 25;
 
+    // Every mailbox this app can connect to is a @pakuwon.com address on the
+    // same mail servers — the settings modal only asks for the local part of
+    // the email and appends this domain, rather than letting a user type an
+    // address the mail server would never accept anyway.
+    public const DEFAULT_EMAIL_DOMAIN = 'pakuwon.com';
+
     // Every mailbox on this domain sits behind the same mail servers, so these
     // are pre-filled in the settings modal — only the user's own address,
     // username, and password actually differ per account.
@@ -400,6 +406,40 @@ class MailboxService
     }
 
     /**
+     * Create a new folder (optionally nested, e.g. "INBOX/Clients") on the
+     * server, and drop the cached folder list so it shows up right away.
+     */
+    public static function createFolder(MailboxAccount $account, string $folderPath): void
+    {
+        $client = static::imapClient($account);
+        $client->connect();
+        $client->createFolder($folderPath);
+        $client->disconnect();
+
+        Cache::forget(static::folderCacheKey($account));
+    }
+
+    /**
+     * Delete a folder on the server. Callers are expected to have already
+     * confirmed it has no subfolders (see MailboxController::deleteFolder) —
+     * most IMAP servers reject deleting a folder that still has children.
+     * Any locally cached messages under that folder are removed too, since
+     * they'd otherwise linger in mailbox_emails pointing at a folder that no
+     * longer exists.
+     */
+    public static function deleteFolder(MailboxAccount $account, string $folderPath): void
+    {
+        $client = static::imapClient($account);
+        $client->connect();
+        $client->deleteFolder($folderPath);
+        $client->disconnect();
+
+        Cache::forget(static::folderCacheKey($account));
+
+        MailboxEmail::where('username', $account->username)->where('folder', $folderPath)->delete();
+    }
+
+    /**
      * fetchNew()/fetchOlder() pull up to DEFAULT_FETCH_LIMIT full message
      * bodies (inline images base64-embedded) into memory at once — the
      * web server's default memory_limit (commonly 128M) is tight enough
@@ -714,11 +754,6 @@ class MailboxService
             return;
         }
 
-        $client = static::imapClient($account);
-        $client->connect();
-        $client->createFolder($folderPath);
-        $client->disconnect();
-
-        Cache::forget(static::folderCacheKey($account));
+        static::createFolder($account, $folderPath);
     }
 }

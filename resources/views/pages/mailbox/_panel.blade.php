@@ -5,8 +5,20 @@
         $leaf = str_contains($path, '/') ? substr($path, strrpos($path, '/') + 1) : $path;
         return $leaf === 'INBOX' ? 'Inbox' : $leaf;
     };
+    // Folders the app itself depends on by name (send/save-draft, the
+    // default folder, archive/trash) — offering "Delete" on these would just
+    // bounce off MailboxController::deleteFolder()'s own guard, so hide it
+    // here instead. Kept in sync with MailboxController::PROTECTED_FOLDERS.
+    $protectedFolders = [
+        \App\Services\MailboxService::DEFAULT_FOLDER,
+        \App\Services\MailboxService::SENT_FOLDER,
+        \App\Services\MailboxService::DRAFTS_FOLDER,
+        \App\Services\MailboxService::TRASH_FOLDER,
+        \App\Services\MailboxService::ARCHIVE_FOLDER,
+    ];
+    $isProtectedFolder = fn (string $f) => collect($protectedFolders)->contains(fn ($p) => strcasecmp($p, $f) === 0);
 @endphp
-<div class="flex h-full flex-col gap-2 overflow-hidden">
+<div class="flex h-full flex-col gap-2 overflow-hidden" x-init="folderList = @js($folders)">
     @if (!empty($imapError))
         <div class="shrink-0 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-700 dark:border-amber-400/30 dark:bg-amber-500/10 dark:text-amber-300">
             ⚠️ {{ $imapError }}
@@ -52,24 +64,57 @@
                     $fc = $folderCounts->get($f);
                     $fUnread = $fc->unread ?? 0;
                 @endphp
-                <a href="{{ route('mailbox.index', $f !== \App\Services\MailboxService::DEFAULT_FOLDER ? ['folder' => $f] : []) }}"
-                    @if ($depth > 0) style="margin-left: {{ $depth * 16 }}px" @endif
-                    class="flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 transition
-                        {{ $depth > 0 ? 'text-[13px] text-gray-500 dark:text-gray-400' : 'text-sm font-medium text-gray-600 dark:text-gray-300' }}
-                        {{ $f === $folder ? '!text-white bg-blue-600' : 'hover:bg-gray-100 dark:hover:bg-white/[0.06]' }}">
-                    @if ($depth > 0)
-                        <svg class="h-3.5 w-3.5 shrink-0 text-gray-300 dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M6 3v10a2 2 0 0 0 2 2h9m-4-4 4 4-4 4" />
-                        </svg>
-                    @endif
-                    <span class="min-w-0 flex-1 truncate">{{ $folderLabel($f) }}</span>
-                    @if ($fUnread > 0)
-                        <span class="inline-flex shrink-0 items-center rounded-full {{ $f === $folder ? 'bg-white/20' : 'bg-red-500 text-white' }} px-1.5 py-0.5 text-[11px] font-semibold">
-                            {{ $fUnread }}
-                        </span>
-                    @endif
-                </a>
+                <div class="group relative flex shrink-0 items-center" @if ($depth > 0) style="margin-left: {{ $depth * 16 }}px" @endif>
+                    <a href="{{ route('mailbox.index', $f !== \App\Services\MailboxService::DEFAULT_FOLDER ? ['folder' => $f] : []) }}"
+                        class="flex min-w-0 flex-1 items-center gap-1.5 rounded-lg px-3 py-2 transition
+                            {{ $depth > 0 ? 'text-[13px] text-gray-500 dark:text-gray-400' : 'text-sm font-medium text-gray-600 dark:text-gray-300' }}
+                            {{ $f === $folder ? '!text-white bg-blue-600' : 'hover:bg-gray-100 dark:hover:bg-white/[0.06]' }}">
+                        @if ($depth > 0)
+                            <svg class="h-3.5 w-3.5 shrink-0 text-gray-300 dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 3v10a2 2 0 0 0 2 2h9m-4-4 4 4-4 4" />
+                            </svg>
+                        @endif
+                        <span class="min-w-0 flex-1 truncate">{{ $folderLabel($f) }}</span>
+                        @if ($fUnread > 0)
+                            <span class="inline-flex shrink-0 items-center rounded-full {{ $f === $folder ? 'bg-white/20' : 'bg-red-500 text-white' }} px-1.5 py-0.5 text-[11px] font-semibold">
+                                {{ $fUnread }}
+                            </span>
+                        @endif
+                    </a>
+
+                    <div class="relative shrink-0" @click.outside="folderMenuOpenId = null">
+                        <button type="button" @click.stop="toggleFolderMenu(@js($f))"
+                            :class="folderMenuOpenId === @js($f) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'"
+                            class="rounded-lg p-1 transition {{ $f === $folder ? 'text-white/70 hover:text-white' : 'text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300' }}"
+                            title="Folder options">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                                <circle cx="5" cy="12" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="19" cy="12" r="1.6" />
+                            </svg>
+                        </button>
+                        <div x-show="folderMenuOpenId === @js($f)" x-cloak @click.stop
+                            class="absolute right-0 z-20 mt-1 w-44 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 text-sm shadow-lg dark:border-white/[0.08] dark:bg-[#111c33]">
+                            <button type="button" @click="openNewFolder(@js($f))"
+                                class="block w-full px-3 py-1.5 text-left text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/[0.06]">
+                                New subfolder
+                            </button>
+                            @unless ($isProtectedFolder($f))
+                                <button type="button" @click="deleteFolder(@js($f))"
+                                    class="block w-full px-3 py-1.5 text-left text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10">
+                                    Delete
+                                </button>
+                            @endunless
+                        </div>
+                    </div>
+                </div>
             @endforeach
+
+            <button type="button" @click="openNewFolder(null)"
+                class="mt-1 flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-blue-600 transition hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-500/10">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 5v14M5 12h14" />
+                </svg>
+                New Folder
+            </button>
         </nav>
 
         <div class="border-t border-gray-100 p-2 dark:border-white/[0.06]">
@@ -147,7 +192,7 @@
                         <th class="w-48 px-4 py-3 text-left font-medium">From</th>
                         <th class="px-4 py-3 text-left font-medium">Subject</th>
                         <th class="w-44 px-4 py-3 text-left font-medium">Date</th>
-                        <th class="w-24 px-4 py-3 text-left font-medium">Actions</th>
+                        <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -173,6 +218,27 @@
                             </td>
                             <td class="px-4 py-3" @click.stop>
                                 <div class="flex items-center gap-1">
+                                    <div class="relative" @click.outside="moveMenuOpenId = null">
+                                        <button type="button" @click="toggleMoveMenu({{ $email->id }})" :disabled="busyId === {{ $email->id }}"
+                                            class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-40 dark:hover:bg-white/[0.06] dark:hover:text-gray-200"
+                                            title="Move to folder">
+                                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z" />
+                                                <path d="M12 11v5m-2.5-2.5L12 11l2.5 2.5" />
+                                            </svg>
+                                        </button>
+                                        <div x-show="moveMenuOpenId === {{ $email->id }}" x-cloak @click.stop
+                                            class="absolute right-0 z-20 mt-1 max-h-64 w-48 overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 text-sm shadow-lg dark:border-white/[0.08] dark:bg-[#111c33]">
+                                            <p class="px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Move to</p>
+                                            @foreach ($folders as $f)
+                                                @continue($f === $folder)
+                                                <button type="button" @click="moveEmail({{ $email->id }}, @js($f))"
+                                                    class="block w-full truncate px-3 py-1.5 text-left text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/[0.06]">
+                                                    {{ $folderLabel($f) }}
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    </div>
                                     @if ($folder !== 'Archive')
                                         <button type="button" @click="archiveEmail({{ $email->id }})" :disabled="busyId === {{ $email->id }}"
                                             class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-40 dark:hover:bg-white/[0.06] dark:hover:text-gray-200"

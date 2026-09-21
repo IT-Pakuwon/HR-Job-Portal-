@@ -15,13 +15,12 @@
     let pendingTab = null;
 
     const urls = {
-        summary: "/hr-dashboard/summary-json",
-        approval: "/hr-dashboard/waiting-approval-json",
-        approvalHistory: "/hr-dashboard/approval-history-json",
-        prf: "/hr-dashboard/prf-json",
-        applicant: "/hr-dashboard/applicant-json",
-        selfRegister: "/hr-dashboard/self-register-json",
-        doctypes: "/hr-dashboard/approval-doctypes-json",
+        summary: "/recruitment-dashboard/summary-json",
+        approval: "/recruitment-dashboard/waiting-approval-json",
+        approvalHistory: "/recruitment-dashboard/approval-history-json",
+        applicant: "/recruitment-dashboard/applicant-json",
+        selfRegister: "/recruitment-dashboard/self-register-json",
+        doctypes: "/recruitment-dashboard/approval-doctypes-json",
     };
 
     function startCountdown(seconds) {
@@ -88,7 +87,7 @@
 
         const stats = {
             waitingApproval: { count: data.waiting_approval || 0 },
-            prf:             { count: data.waiting_prf || 0 },
+            approvalHistory: { count: data.approval_history || 0 },
             applicant:       { count: data.unchecked_applicant || 0 },
             selfRegister:    { count: data.self_register || 0 },
         };
@@ -147,9 +146,6 @@
                     select.append(`<option value="${row.doctype}">${row.doctype} - ${row.doctype_descr ?? ""}</option>`);
                 });
 
-                // Namespaced: refresh Select2's label only, not the app's
-                // "change" reload handler (redundant here — activateTab()
-                // already calls loadTab() directly).
                 select.val(current).trigger("change.select2");
             });
     }
@@ -228,26 +224,10 @@
             ],
             searchFields: row => [row.docid, row.cpnyid, row.departementid, row.infohd],
         },
-        prf: {
-            icon: "📄", badgeBg: "bg-orange-100 dark:bg-orange-900/30",
-            title: row => row.docid,
-            link: row => `${row.url}/${row.eid}`,
-            status: row => statusBadge(row.status || "-"),
-            fields: row => [
-                { label: "Date", value: row.date },
-                { label: "Company", value: row.cpnyid },
-                { label: "Dept", value: row.departementid },
-                { label: "Position", value: row.job_title },
-                { label: "Required", value: row.required },
-                { label: "Actual", value: row.actual },
-            ],
-            searchFields: row => [row.docid, row.cpnyid, row.departementid, row.job_title],
-        },
         applicant: {
             icon: "👤", badgeBg: "bg-violet-100 dark:bg-violet-900/30",
             title: row => row.fullname || row.docid,
             link: row => `${row.url}/${row.eid}`,
-            status: row => statusBadge(row.status || "-"),
             fields: row => [
                 { label: "Doc", value: row.docid },
                 { label: "Position", value: row.job_title },
@@ -261,14 +241,15 @@
             icon: "👥", badgeBg: "bg-cyan-100 dark:bg-cyan-900/30",
             title: row => row.fullname || row.docid,
             link: row => `${row.url}/${row.eid}`,
-            status: row => statusBadge(row.status || "-"),
             fields: row => [
                 { label: "Doc", value: row.docid },
                 { label: "Position", value: row.job_title },
                 { label: "Company", value: row.cpnyid },
+                { label: "Division", value: row.division },
+                { label: "Department", value: row.department },
                 { label: "Apply Date", value: row.apply_date },
             ],
-            searchFields: row => [row.docid, row.fullname, row.job_title, row.cpnyid],
+            searchFields: row => [row.docid, row.fullname, row.job_title, row.cpnyid, row.division, row.department],
         },
     };
 
@@ -473,10 +454,6 @@
                 url = urls.approvalHistory;
                 break;
 
-            case "prf":
-                url = urls.prf;
-                break;
-
             case "applicant":
                 url = urls.applicant;
                 break;
@@ -531,7 +508,7 @@
             });
     }
 
-    const allTabs = ["approval", "approval-history", "prf", "applicant", "self-register"];
+    const allTabs = ["approval", "approval-history", "applicant", "self-register"];
 
     function activateTab(tab) {
         activeTab = tab;
@@ -564,7 +541,6 @@
     function bindEvents() {
         $("#tab-approval").on("click", () => activateTab("approval"));
         $("#tab-approval-history").on("click", () => activateTab("approval-history"));
-        $("#tab-prf").on("click", () => activateTab("prf"));
         $("#tab-applicant").on("click", () => activateTab("applicant"));
         $("#tab-self-register").on("click", () => activateTab("self-register"));
 

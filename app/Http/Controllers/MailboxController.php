@@ -379,6 +379,35 @@ class MailboxController extends Controller
         }
     }
 
+    /**
+     * Move a message to another folder (the "Move to..." menu on each row).
+     * Archive/Delete are just this same operation with a fixed target
+     * folder — see MailboxService::archiveMessage()/deleteMessage().
+     */
+    public function move(Request $request, MailboxEmail $email)
+    {
+        $account = $this->requireAccount($request);
+        $this->authorizeOwner($request, $email);
+
+        $data = $request->validate(['folder' => 'required|string|max:500']);
+
+        // Guard against moving into a folder that doesn't actually exist on
+        // the server (e.g. a stale value from a client that hasn't reloaded
+        // the folder list) rather than letting the IMAP error surface raw.
+        if (!in_array($data['folder'], MailboxService::listFolders($account), true)) {
+            return response()->json(['success' => false, 'message' => 'Unknown folder.'], 422);
+        }
+
+        try {
+            if (!MailboxService::moveMessage($account, $email, $data['folder'])) {
+                return response()->json(['success' => false, 'message' => 'Move failed: the message could not be found on the server.'], 422);
+            }
+            return response()->json(['success' => true, 'message' => 'Email moved.']);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Move failed: ' . $e->getMessage()], 422);
+        }
+    }
+
     public function destroy(Request $request, MailboxEmail $email)
     {
         $account = $this->requireAccount($request);
@@ -457,6 +486,82 @@ class MailboxController extends Controller
             return response()->json(['success' => true, 'message' => $message] + $result);
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => 'Load failed: ' . $e->getMessage()], 422);
+        }
+    }
+
+    /**
+     * Folder paths whose behavior the app itself depends on (send/save-draft
+     * append into Sent/Drafts by name, delete falls back to Trash, archive
+     * to Archive, the {folder?} route defaults to INBOX) — never deletable
+     * from here, regardless of nesting depth.
+     */
+    protected const PROTECTED_FOLDERS = [
+        MailboxService::DEFAULT_FOLDER,
+        MailboxService::SENT_FOLDER,
+        MailboxService::DRAFTS_FOLDER,
+        MailboxService::TRASH_FOLDER,
+        MailboxService::ARCHIVE_FOLDER,
+    ];
+
+    /**
+     * Create a folder, optionally nested under an existing one (the sidebar's
+     * "+ New Folder" action, offered both at the top level and per-folder).
+     */
+    public function createFolder(Request $request)
+    {
+        $account = $this->requireAccount($request);
+
+        $data = $request->validate([
+            'name'   => ['required', 'string', 'max:255', 'regex:/^[^\/]+$/'],
+            'parent' => 'nullable|string|max:500',
+        ], [
+            'name.regex' => 'Folder name cannot contain "/".',
+        ]);
+
+        $path = $data['parent'] ? $data['parent'] . '/' . $data['name'] : $data['name'];
+
+        if (in_array($path, MailboxService::listFolders($account), true)) {
+            return response()->json(['success' => false, 'message' => 'That folder already exists.'], 422);
+        }
+
+        try {
+            MailboxService::createFolder($account, $path);
+            return response()->json(['success' => true, 'message' => 'Folder created.', 'folder' => $path]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Create folder failed: ' . $e->getMessage()], 422);
+        }
+    }
+
+    /**
+     * Delete a folder. Refuses the folders the app itself relies on
+     * (PROTECTED_FOLDERS) and any folder that still has subfolders — most
+     * IMAP servers reject that anyway, but checking here first gives a
+     * clear message instead of a raw server error.
+     */
+    public function deleteFolder(Request $request, string $folder)
+    {
+        $account = $this->requireAccount($request);
+
+        $isProtected = collect(self::PROTECTED_FOLDERS)->contains(fn ($p) => strcasecmp($p, $folder) === 0);
+        if ($isProtected) {
+            return response()->json(['success' => false, 'message' => 'This folder cannot be deleted.'], 422);
+        }
+
+        $folders = MailboxService::listFolders($account);
+        if (!in_array($folder, $folders, true)) {
+            return response()->json(['success' => false, 'message' => 'Unknown folder.'], 422);
+        }
+
+        $hasChildren = collect($folders)->contains(fn ($f) => str_starts_with($f, $folder . '/'));
+        if ($hasChildren) {
+            return response()->json(['success' => false, 'message' => 'Delete the subfolders inside it first.'], 422);
+        }
+
+        try {
+            MailboxService::deleteFolder($account, $folder);
+            return response()->json(['success' => true, 'message' => 'Folder deleted.']);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Delete folder failed: ' . $e->getMessage()], 422);
         }
     }
 
