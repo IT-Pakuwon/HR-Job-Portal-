@@ -47,28 +47,52 @@
         <div class="grid flex-1 grid-cols-1 overflow-hidden xl:grid-cols-12">
 
             {{-- Left Panel — Information --}}
-            <div class="modal-scroll min-h-0 overflow-y-auto border-b border-slate-200 p-6 xl:col-span-7 xl:border-b-0 xl:border-r dark:border-white/[0.06]">
+            <div class="modal-scroll min-h-0 space-y-4 overflow-y-auto border-b border-slate-200 bg-slate-50/60 p-6 xl:col-span-7 xl:border-b-0 xl:border-r dark:border-white/[0.06] dark:bg-slate-900/40">
 
-                <h3 class="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Agreement Information</h3>
-
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div><label class="text-xs text-slate-400">Company</label><p id="detail_cpny_id" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
-                    <div><label class="text-xs text-slate-400">Agreement Date</label><p id="detail_agreement_date" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
-                    <div><label class="text-xs text-slate-400">Follow-up Cycle</label><p id="detail_cycle" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
-                    <div><label class="text-xs text-slate-400">Business Name</label><p id="detail_business_name" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
-                    <div><label class="text-xs text-slate-400">Trade Name</label><p id="detail_trade_name" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
-                    <div><label class="text-xs text-slate-400">Tenant No</label><p id="detail_tenant_no" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
-                    <div><label class="text-xs text-slate-400">Floor / Unit</label><p id="detail_floor_unit" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
-                    <div><label class="text-xs text-slate-400">PIC Legal</label><p id="detail_pic_legal" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
-                    <div><label class="text-xs text-slate-400">PIC Leasing</label><p id="detail_pic_leasing" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
-                    <div><label class="text-xs text-slate-400">PIC Penyewa</label><p id="detail_pic_penyewa" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
-                    <div><label class="text-xs text-slate-400">No. PSM/Addendum</label><p id="detail_no_psm" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
-                    <div><label class="text-xs text-slate-400">Requested By</label><p id="detail_created_user" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
+                {{-- Agreement --}}
+                <div class="agr-section rounded-xl border border-slate-200 bg-white p-5 dark:border-white/[0.06] dark:bg-slate-800/60">
+                    <div class="agr-section-head">
+                        <span class="agr-section-badge"><i class="fa-solid fa-file-signature text-[11px]"></i></span>
+                        <p class="agr-section-title">Agreement</p>
+                    </div>
+                    <div class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
+                        <div><label class="text-xs text-slate-400">Company</label><p id="detail_cpny_id" class="mt-1 truncate text-sm font-medium text-slate-800 dark:text-white">-</p></div>
+                        <div><label class="text-xs text-slate-400">Agreement Date</label><p id="detail_agreement_date" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
+                        <div><label class="text-xs text-slate-400">Follow-up Cycle</label><p id="detail_cycle" class="mt-1 flex flex-wrap items-center gap-2 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
+                        <div><label class="text-xs text-slate-400">No. PSM/Addendum</label><p id="detail_no_psm" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
+                        <div><label class="text-xs text-slate-400">Requested By</label><p id="detail_created_user" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
+                    </div>
                 </div>
 
-                <div class="mt-6">
-                    <label class="text-xs text-slate-400">Business Address</label>
-                    <p id="detail_business_address" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p>
+                {{-- Property & Tenant --}}
+                <div class="agr-section rounded-xl border border-slate-200 bg-white p-5 dark:border-white/[0.06] dark:bg-slate-800/60">
+                    <div class="agr-section-head">
+                        <span class="agr-section-badge"><i class="fa-solid fa-building text-[11px]"></i></span>
+                        <p class="agr-section-title">Property &amp; Tenant</p>
+                    </div>
+                    <div class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+                        <div><label class="text-xs text-slate-400">Business Name</label><p id="detail_business_name" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
+                        <div><label class="text-xs text-slate-400">Trade Name</label><p id="detail_trade_name" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
+                        <div><label class="text-xs text-slate-400">Tenant No</label><p id="detail_tenant_no" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
+                        <div><label class="text-xs text-slate-400">Floor / Unit</label><p id="detail_floor_unit" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
+                    </div>
+                    <div class="mt-4 border-t border-dashed border-slate-200 pt-4 dark:border-white/[0.06]">
+                        <label class="text-xs text-slate-400">Business Address</label>
+                        <p id="detail_business_address" class="mt-1 text-sm font-medium leading-relaxed text-slate-800 dark:text-white">-</p>
+                    </div>
+                </div>
+
+                {{-- PIC / Parties --}}
+                <div class="agr-section rounded-xl border border-slate-200 bg-white p-5 dark:border-white/[0.06] dark:bg-slate-800/60">
+                    <div class="agr-section-head">
+                        <span class="agr-section-badge"><i class="fa-solid fa-users text-[11px]"></i></span>
+                        <p class="agr-section-title">PIC &amp; Parties</p>
+                    </div>
+                    <div class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+                        <div><label class="text-xs text-slate-400">PIC Legal</label><p id="detail_pic_legal" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
+                        <div><label class="text-xs text-slate-400">PIC Leasing</label><p id="detail_pic_leasing" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
+                        <div><label class="text-xs text-slate-400">PIC Penyewa</label><p id="detail_pic_penyewa" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
+                    </div>
                 </div>
 
             </div>
@@ -82,9 +106,6 @@
                         <button type="button" class="agr-detail-tab active inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all duration-200" data-tab="tracking">
                             <i class="fa-solid fa-clock-rotate-left text-[12px]"></i> Tracking
                         </button>
-                        <button type="button" class="agr-detail-tab inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all duration-200" data-tab="discussion">
-                            <i class="fa-solid fa-comments text-[12px]"></i> Discussion
-                        </button>
                         <button type="button" class="agr-detail-tab inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all duration-200" data-tab="attachments">
                             <i class="fa-solid fa-paperclip text-[12px]"></i> Attachments
                         </button>
@@ -95,19 +116,6 @@
                 <div id="agr_tracking_panel" class="agr-tab-content modal-scroll flex-1 overflow-y-auto p-6">
                     <h3 class="mb-4 text-sm font-semibold text-slate-800 dark:text-slate-100">Tracking Timeline</h3>
                     <div id="detail_tracking_list" class="space-y-3"></div>
-                </div>
-
-                {{-- Discussion --}}
-                <div id="agr_discussion_panel" class="agr-tab-content hidden flex-1 overflow-y-auto">
-                    <div class="flex h-full flex-col">
-                        <div id="detail_comment_list" class="modal-scroll flex-1 space-y-4 overflow-y-auto p-6"></div>
-                        <div class="border-t border-slate-200 p-4 dark:border-white/[0.06]">
-                            <form id="commentForm" class="flex gap-2">
-                                <input type="text" id="comment_message" name="message" class="agr-input" placeholder="Write a comment..." />
-                                <button type="submit" class="shrink-0 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700">Send</button>
-                            </form>
-                        </div>
-                    </div>
                 </div>
 
                 {{-- Attachments --}}

@@ -805,18 +805,18 @@ function populateAgreementDetail(a) {
     $('#detail_agreement_id').text(a.agreement_id || '-');
     $('#detail_status_badge').html(renderStepBadge(a.agreement_step_id));
     $('#detail_subtitle').text([a.business_name, a.trade_name].filter(Boolean).join(' • ') || '-');
-    $('#detail_cpny_id').text(a.cpny_id || '-');
+    $('#detail_cpny_id').text(a.cpny_name || a.cpny_id || '-');
     $('#detail_agreement_date').text(formatDate(a.agreement_date));
     $('#detail_cycle').html(`${renderCycleBadge(a.cycle_info)} ${renderDaysCell(a.cycle_info)}`);
     $('#detail_business_name').text(a.business_name || '-');
     $('#detail_trade_name').text(a.trade_name || '-');
     $('#detail_tenant_no').text(a.tenant_no || '-');
     $('#detail_floor_unit').text(`${a.floor_id || '-'} / ${a.unit_id || '-'}`);
-    $('#detail_pic_legal').text(a.pic_legal || '-');
-    $('#detail_pic_leasing').text(a.pic_leasing || '-');
+    $('#detail_pic_legal').text(a.pic_legal_names || a.pic_legal || '-');
+    $('#detail_pic_leasing').text(a.pic_leasing_names || a.pic_leasing || '-');
     $('#detail_pic_penyewa').text(a.pic_penyewa || '-');
     $('#detail_no_psm').text(a.no_psm_or_addendum || '-');
-    $('#detail_created_user').text(a.created_user || '-');
+    $('#detail_created_user').text(a.created_user_name || a.created_user || '-');
     $('#detail_business_address').text(a.business_address || '-');
 }
 
@@ -1061,7 +1061,7 @@ const ACTION_CONFIG = {
         submitLabel: 'Activate Agreement', submitIcon: 'fa-solid fa-bolt',
     },
     complete: {
-        title: 'Complete Agreement', url: Agreement.routes.complete, pic: false, descrRequired: true, attachments: true, psm: true, attachmentField: 'attachments',
+        title: 'Complete Agreement', url: Agreement.routes.complete, pic: false, descrRequired: true, attachments: false, psm: false, attachmentField: 'attachments',
         subtitle: 'Mark this agreement as fully completed and close out the workflow.',
         icon: 'fa-solid fa-flag-checkered', iconClass: 'bg-slate-100 text-slate-600 dark:bg-white/[0.06] dark:text-slate-300',
         submitLabel: 'Complete Agreement', submitIcon: 'fa-solid fa-flag-checkered',
