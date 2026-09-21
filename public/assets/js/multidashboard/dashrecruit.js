@@ -201,7 +201,7 @@
         approval: {
             icon: "✅", badgeBg: "bg-blue-100 dark:bg-blue-900/30",
             title: row => row.docid,
-            link: row => `${row.url}/${row.hid}`,
+            link: row => `${row.url}/${row.hid}${row.query || ""}`,
             status: row => approvalStatusBadge(row),
             fields: row => [
                 { label: "Company", value: row.cpnyid },
@@ -214,7 +214,7 @@
         "approval-history": {
             icon: "📋", badgeBg: "bg-slate-100 dark:bg-slate-700",
             title: row => row.docid,
-            link: row => `${row.url}/${row.hid}`,
+            link: row => `${row.url}/${row.hid}${row.query || ""}`,
             status: row => approvalStatusBadge(row),
             fields: row => [
                 { label: "Company", value: row.cpnyid },

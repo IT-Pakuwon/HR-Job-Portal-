@@ -2,6 +2,12 @@
     <div class="mx-auto flex h-[calc(100dvh-72px)] w-full max-w-9xl flex-col overflow-hidden p-2" x-data="{
         currentFolder: @js($folder),
         accountEmail: @js($account?->email ?? ''),
+        // Kept in sync with the true server-side folder list by an x-init in
+        // _panel.blade.php that re-runs on every panel load/refresh (initial
+        // page load included) — used by the New Folder modal's parent picker,
+        // which lives outside #mailbox-panel and would otherwise go stale
+        // after refreshPanel()'s innerHTML swap.
+        folderList: @js($folders ?? []),
         modalOpen: false,
         loading: false,
         email: null,
@@ -336,6 +342,114 @@
                 .catch(() => { this.busyId = null; this.showToast('Delete failed.', false); });
         },
 
+        // 'Move to...' dropdown on each email row. Only one open at a time,
+        // tracked by email id (matches the busyId single-flight pattern used
+        // by archive/delete above).
+        moveMenuOpenId: null,
+        toggleMoveMenu(id) {
+            this.moveMenuOpenId = this.moveMenuOpenId === id ? null : id;
+        },
+        moveEmail(id, folder) {
+            this.moveMenuOpenId = null;
+            if (this.busyId) return;
+            this.busyId = id;
+            fetch(`{{ url('mailbox') }}/${id}/move`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ folder }),
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) { this.busyId = null; this.refreshPanel(); this.showToast(data.message || 'Moved.'); }
+                    else { this.busyId = null; this.showToast(data.message || 'Move failed.', false); }
+                })
+                .catch(() => { this.busyId = null; this.showToast('Move failed.', false); });
+        },
+
+        // Sidebar folder management: create (top-level or nested under an
+        // existing folder) and delete.
+        newFolderOpen: false,
+        newFolderName: '',
+        newFolderParent: null,
+        newFolderSaving: false,
+        // Mirrors _panel.blade.php's $folderLabel, plus a depth indent, for
+        // the parent-folder <select> in the New Folder modal (a flat list
+        // has no other way to show which folders are nested under others).
+        folderOptionLabel(path) {
+            const depth = (path.match(/\//g) || []).length;
+            const leaf = path.includes('/') ? path.split('/').pop() : path;
+            const label = leaf === 'INBOX' ? 'Inbox' : leaf;
+            return '    '.repeat(depth) + (depth > 0 ? '↳ ' : '') + label;
+        },
+        openNewFolder(parent = null) {
+            this.folderMenuOpenId = null;
+            this.newFolderName = '';
+            this.newFolderParent = parent;
+            this.newFolderOpen = true;
+        },
+        closeNewFolder() {
+            this.newFolderOpen = false;
+        },
+        saveNewFolder() {
+            const name = this.newFolderName.trim();
+            if (this.newFolderSaving || !name) return;
+            this.newFolderSaving = true;
+            fetch('{{ route('mailbox.folders.create') }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name, parent: this.newFolderParent }),
+            })
+                .then(r => r.json())
+                .then(data => {
+                    this.newFolderSaving = false;
+                    if (data.success) {
+                        this.newFolderOpen = false;
+                        this.showToast(data.message || 'Folder created.');
+                        this.loadPanel({ folder: data.folder });
+                    } else {
+                        this.showToast(data.message || 'Create folder failed.', false);
+                    }
+                })
+                .catch(() => { this.newFolderSaving = false; this.showToast('Create folder failed.', false); });
+        },
+        folderMenuOpenId: null,
+        toggleFolderMenu(f) {
+            this.folderMenuOpenId = this.folderMenuOpenId === f ? null : f;
+        },
+        deleteFolder(f) {
+            this.folderMenuOpenId = null;
+            this.askConfirm({
+                title: 'Delete folder?',
+                message: `'${f}' and any locally cached messages in it will be permanently removed from the mail server. This cannot be undone.`,
+                danger: true,
+                confirmLabel: 'Delete folder',
+                onConfirm: () => this.doDeleteFolder(f),
+            });
+        },
+        doDeleteFolder(f) {
+            const path = f.split('/').map(encodeURIComponent).join('/');
+            fetch(`{{ url('mailbox/folders') }}/${path}`, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) { this.showToast(data.message || 'Delete folder failed.', false); return; }
+                    this.showToast(data.message || 'Folder deleted.');
+                    if (this.currentFolder === f) this.loadPanel({ folder: 'INBOX' });
+                    else this.refreshPanel();
+                })
+                .catch(() => this.showToast('Delete folder failed.', false));
+        },
+
         confirmOpen: false,
         confirmTitle: '',
         confirmMessage: '',
@@ -623,6 +737,18 @@
             email: '', imap_host: '', imap_port: 993, imap_encryption: 'ssl', imap_username: '',
             imap_password: '', smtp_host: '', smtp_port: 465, smtp_encryption: 'ssl',
         },
+        // Every mailbox this app connects to is on this one domain, so the
+        // field only takes the local part and this is appended to build the
+        // real address — see MailboxService::DEFAULT_EMAIL_DOMAIN.
+        emailDomain: @js(\App\Services\MailboxService::DEFAULT_EMAIL_DOMAIN),
+        emailLocalPart: '',
+        // Mailbox username is always identical to the email address on this
+        // mail server, so the field is disabled and just mirrors it here.
+        onEmailLocalInput() {
+            this.emailLocalPart = this.emailLocalPart.replace(/@/g, '');
+            this.settings.email = this.emailLocalPart ? `${this.emailLocalPart}@${this.emailDomain}` : '';
+            this.settings.imap_username = this.settings.email;
+        },
         // The settings modal is bound 1:1 to the /mailbox/settings URL: open it
         // and the address bar moves there; close it and the URL drops back to
         // wherever it should be. `push` is false when we're reacting to a
@@ -638,6 +764,11 @@
                 .then(data => {
                     this.settingsConnected = data.connected;
                     this.settings.email = data.email;
+                    // Strip the fixed domain back off for the local-part input —
+                    // just the substring before the first '@', so a legacy
+                    // account saved under a different domain (if any) still
+                    // shows something sensible instead of the whole address.
+                    this.emailLocalPart = data.email ? data.email.split('@')[0] : '';
                     this.settings.imap_host = data.imap_host;
                     this.settings.imap_port = data.imap_port;
                     this.settings.imap_encryption = data.imap_encryption;
@@ -988,6 +1119,73 @@
             </div>
         </div>
 
+        <!-- NEW FOLDER MODAL: closes ONLY via the X or Cancel button -->
+        <div x-show="newFolderOpen" x-cloak style="display: none;" class="fixed inset-0 z-[70] flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]"></div>
+
+            <div x-show="newFolderOpen" x-transition
+                class="relative w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 dark:bg-[#0f172a] dark:ring-white/10">
+                <div class="flex items-start justify-between gap-3 px-5 pt-5">
+                    <div class="flex items-start gap-3">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z" />
+                            </svg>
+                        </span>
+                        <div class="pt-1.5">
+                            <h3 class="text-base font-semibold leading-tight text-gray-800 dark:text-gray-100">New Folder</h3>
+                            <p class="mt-0.5 text-sm text-gray-400 dark:text-gray-500">Organize your mailbox</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="closeNewFolder()"
+                        class="shrink-0 rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/[0.06] dark:hover:text-gray-200"
+                        title="Close">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 6 6 18M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="space-y-4 px-5 pb-5 pt-5">
+                    <div>
+                        <label class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">Name</label>
+                        <input type="text" x-model="newFolderName" placeholder="e.g. Clients" @keydown.enter="saveNewFolder()" autofocus
+                            class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm shadow-sm transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-100 dark:focus:border-blue-500 dark:focus:ring-blue-500/20" />
+                    </div>
+
+                    <div>
+                        <label class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">Location</label>
+                        <div class="relative">
+                            <select x-model="newFolderParent"
+                                class="h-10 w-full appearance-none rounded-lg border border-gray-300 bg-white pl-3 pr-9 text-sm shadow-sm transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-100 dark:focus:border-blue-500 dark:focus:ring-blue-500/20">
+                                <option :value="null">Top level</option>
+                                <template x-for="f in folderList" :key="f">
+                                    <option :value="f" x-text="folderOptionLabel(f)"></option>
+                                </template>
+                            </select>
+                            <svg class="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m6 9 6 6 6-6" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 border-t border-gray-100 px-5 py-4 dark:border-white/[0.06]">
+                    <button type="button" @click="closeNewFolder()"
+                        class="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-white/[0.08] dark:text-gray-200 dark:hover:bg-white/[0.04]">
+                        Cancel
+                    </button>
+                    <button type="button" @click="saveNewFolder()" :disabled="newFolderSaving || !newFolderName.trim()"
+                        class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-blue-500 disabled:opacity-50">
+                        <svg x-show="!newFolderSaving" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 5v14M5 12h14" />
+                        </svg>
+                        <span x-text="newFolderSaving ? 'Creating…' : 'Create Folder'"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- COMPOSE MODAL: closes ONLY via the X or Close/Discard button -->
         <div x-show="composeOpen" x-cloak style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-black/50"></div>
@@ -1132,12 +1330,30 @@
 
         <!-- SETTINGS MODAL: closes ONLY via the X or Close button -->
         <div x-show="settingsOpen" x-cloak style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div class="absolute inset-0 bg-black/50"></div>
+            <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]"></div>
 
             <div x-show="settingsOpen" x-transition
-                class="relative flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-xl bg-white shadow-xl dark:bg-[#0f172a]">
-                <div class="flex items-center justify-between gap-4 border-b border-gray-100 px-5 py-4 dark:border-white/[0.06]">
-                    <h3 class="text-base font-semibold text-gray-800 dark:text-gray-100">Mailbox Settings</h3>
+                class="relative flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 dark:bg-[#0f172a] dark:ring-white/10">
+                <div class="flex items-start justify-between gap-3 px-5 pt-5">
+                    <div class="flex items-start gap-3">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.32.22.66.22 1H21a2 2 0 0 1 0 4h-.09c-.34 0-.68.08-1 .22z" />
+                            </svg>
+                        </span>
+                        <div class="pt-1.5">
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-base font-semibold leading-tight text-gray-800 dark:text-gray-100">Mailbox Settings</h3>
+                                <span x-show="settingsConnected" x-cloak
+                                    class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                    Connected
+                                </span>
+                            </div>
+                            <p class="mt-0.5 text-sm text-gray-400 dark:text-gray-500">Connect your @<span x-text="emailDomain"></span> mailbox</p>
+                        </div>
+                    </div>
                     <button type="button" @click="closeSettings()"
                         class="shrink-0 rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/[0.06] dark:hover:text-gray-200"
                         title="Close">
@@ -1147,53 +1363,41 @@
                     </button>
                 </div>
 
-                <div class="flex-1 space-y-3 overflow-y-auto px-5 py-4">
+                <div class="flex-1 space-y-4 overflow-y-auto px-5 pb-5 pt-5">
                     <template x-if="settingsError">
-                        <div class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-400" x-text="settingsError"></div>
+                        <div class="flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2.5 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-400">
+                            <svg class="mt-0.5 h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10" /><path d="M12 8v5M12 16h.01" />
+                            </svg>
+                            <span x-text="settingsError"></span>
+                        </div>
                     </template>
 
+                    <p class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400">
+                        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" />
+                        </svg>
+                        Account
+                    </p>
+
                     <div>
-                        <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Your email address</label>
-                        <input type="email" x-model="settings.email" placeholder="you@pakuwon.com"
-                            class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100" />
+                        <label class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">Your email address</label>
+                        <div class="flex">
+                            <input type="text" x-model="emailLocalPart" @input="onEmailLocalInput()" placeholder="yourname" autocomplete="off"
+                                class="h-10 w-full min-w-0 rounded-l-lg border border-r-0 border-gray-300 px-3 text-sm shadow-sm transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-100 dark:focus:border-blue-500 dark:focus:ring-blue-500/20" />
+                            <span class="flex shrink-0 items-center whitespace-nowrap rounded-r-lg border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-gray-400"
+                                x-text="'@' + emailDomain"></span>
+                        </div>
+                        <p class="mt-1.5 text-xs text-gray-400 dark:text-gray-500">This also doubles as your mailbox login username.</p>
                     </div>
 
-                    <p class="pt-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Incoming (IMAP)</p>
-                    <div class="grid grid-cols-3 gap-2">
-                        <div class="col-span-2">
-                            <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Host</label>
-                            <input type="text" x-model="settings.imap_host" disabled placeholder="mail3.pakuwon.com"
-                                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100 dark:disabled:bg-white/[0.03] dark:disabled:text-gray-500" />
-                        </div>
-                        <div>
-                            <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Port</label>
-                            <input type="number" x-model="settings.imap_port" disabled
-                                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100 dark:disabled:bg-white/[0.03] dark:disabled:text-gray-500" />
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-3 gap-2">
-                        <div class="col-span-2">
-                            <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Mailbox username</label>
-                            <input type="text" x-model="settings.imap_username" placeholder="you@pakuwon.com"
-                                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100" />
-                        </div>
-                        <div>
-                            <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Encryption</label>
-                            <select x-model="settings.imap_encryption" disabled
-                                class="h-10 w-full rounded-lg border border-gray-300 px-2 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100 dark:disabled:bg-white/[0.03] dark:disabled:text-gray-500">
-                                <option value="ssl">SSL</option>
-                                <option value="tls">TLS</option>
-                                <option value="starttls">STARTTLS</option>
-                            </select>
-                        </div>
-                    </div>
                     <div x-data="{ showPassword: false }">
-                        <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
-                            Mailbox password <span class="font-normal normal-case text-gray-400">(leave blank to keep the current one)</span>
+                        <label class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">
+                            Mailbox password <span class="font-normal text-gray-400">(leave blank to keep the current one)</span>
                         </label>
                         <div class="relative">
                             <input :type="showPassword ? 'text' : 'password'" x-model="settings.imap_password" placeholder="••••••••" autocomplete="new-password"
-                                class="h-10 w-full rounded-lg border border-gray-300 px-3 pr-10 text-sm dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100" />
+                                class="h-10 w-full rounded-lg border border-gray-300 px-3 pr-10 text-sm shadow-sm transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-100 dark:focus:border-blue-500 dark:focus:ring-blue-500/20" />
                             <button type="button" @click="showPassword = !showPassword" tabindex="-1"
                                 class="absolute right-0 top-0 flex h-10 w-10 items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
                                 <svg x-show="!showPassword" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1208,34 +1412,46 @@
                         </div>
                     </div>
 
-                    <p class="pt-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Outgoing (SMTP)</p>
-                    <div class="grid grid-cols-4 gap-2">
-                        <div class="col-span-2">
-                            <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Host</label>
-                            <input type="text" x-model="settings.smtp_host" disabled placeholder="mx5.pakuwon.com"
-                                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100 dark:disabled:bg-white/[0.03] dark:disabled:text-gray-500" />
-                        </div>
-                        <div>
-                            <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Port</label>
-                            <input type="number" x-model="settings.smtp_port" disabled
-                                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100 dark:disabled:bg-white/[0.03] dark:disabled:text-gray-500" />
-                        </div>
-                        <div>
-                            <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Encryption</label>
-                            <select x-model="settings.smtp_encryption" disabled
-                                class="h-10 w-full rounded-lg border border-gray-300 px-2 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100 dark:disabled:bg-white/[0.03] dark:disabled:text-gray-500">
-                                <option value="ssl">SSL</option>
-                                <option value="tls">TLS</option>
-                                <option value="starttls">STARTTLS</option>
-                            </select>
+                    <!-- Fixed connection details: every @pakuwon.com mailbox uses the same
+                         mail servers, so these are shown as plain read-only info rather than
+                         a wall of disabled input boxes the user can't (and doesn't need to) touch. -->
+                    <div class="rounded-xl border border-gray-100 bg-gray-50/70 p-4 dark:border-white/[0.06] dark:bg-white/[0.02]">
+                        <p class="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400">
+                            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="10" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                            </svg>
+                            Server details
+                            <span class="font-normal normal-case text-gray-400">&middot; same for every @<span x-text="emailDomain"></span> mailbox</span>
+                        </p>
+                        <div class="grid grid-cols-2 gap-x-4 text-sm">
+                            <div>
+                                <p class="flex items-center gap-1.5 text-xs text-gray-400">
+                                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M22 12h-6l-2 3h-4l-2-3H2M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11Z" />
+                                    </svg>
+                                    Incoming (IMAP)
+                                </p>
+                                <p class="mt-1 font-medium text-gray-700 dark:text-gray-200" x-text="settings.imap_host + ':' + settings.imap_port"></p>
+                                <p class="text-xs text-gray-400" x-text="settings.imap_encryption.toUpperCase()"></p>
+                            </div>
+                            <div class="border-l border-gray-200 pl-4 dark:border-white/[0.08]">
+                                <p class="flex items-center gap-1.5 text-xs text-gray-400">
+                                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z" />
+                                    </svg>
+                                    Outgoing (SMTP)
+                                </p>
+                                <p class="mt-1 font-medium text-gray-700 dark:text-gray-200" x-text="settings.smtp_host + ':' + settings.smtp_port"></p>
+                                <p class="text-xs text-gray-400" x-text="settings.smtp_encryption.toUpperCase()"></p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="flex items-center justify-between gap-2 border-t border-gray-100 px-5 py-4 dark:border-white/[0.06]">
                     <button type="button" x-show="settingsConnected" @click="disconnectAccount()" :disabled="settingsSaving"
-                        class="inline-flex h-10 items-center justify-center rounded-lg border border-red-200 px-4 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 dark:border-red-400/30 dark:text-red-400 dark:hover:bg-red-500/10">
-                        Disconnect
+                        class="inline-flex h-10 items-center justify-center rounded-lg px-3 text-sm font-medium text-red-500 hover:bg-red-50 disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-500/10">
+                        Disconnect mailbox
                     </button>
                     <div class="ml-auto flex items-center gap-2">
                         <button type="button" @click="closeSettings()"
@@ -1243,7 +1459,7 @@
                             Close
                         </button>
                         <button type="button" @click="saveSettings()" :disabled="settingsSaving"
-                            class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500 disabled:opacity-50">
+                            class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-500 disabled:opacity-50">
                             <span x-text="settingsSaving ? 'Testing connection…' : 'Save & Connect'"></span>
                         </button>
                     </div>

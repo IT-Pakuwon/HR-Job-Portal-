@@ -2332,7 +2332,13 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{email}/attachments', 'attachments')->whereNumber('email')->name('attachments');
             Route::get('/{email}/attachments/{index}', 'downloadAttachment')->whereNumber('email')->whereNumber('index')->name('attachments.download');
             Route::post('/{email}/archive', 'archive')->whereNumber('email')->name('archive');
+            Route::post('/{email}/move', 'move')->whereNumber('email')->name('move');
             Route::delete('/{email}', 'destroy')->whereNumber('email')->name('destroy');
+            // Folder path segments (below) can themselves contain "/" (nested
+            // subfolders), so both use a `.*` wildcard like the {folder?}
+            // catch-all — must stay above it for the same reason.
+            Route::post('/folders', 'createFolder')->name('folders.create');
+            Route::delete('/folders/{folder}', 'deleteFolder')->where('folder', '.*')->name('folders.delete');
             // Folder as a path segment for a clean, bookmarkable URL
             // (/mailbox/Drafts) instead of a query string (/mailbox?folder=Drafts).
             // Must stay last: it's a catch-all and would otherwise swallow the
