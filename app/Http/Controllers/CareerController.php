@@ -2637,6 +2637,9 @@ class CareerController extends Controller
         }
         $this->assertApplicantCompanyAccess($user, $applicant->group_cpny_id, $company->cpny_id);
 
+        $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
+        $isSby = $groupCompanyId === 'SBY';
+
         $datebirth = Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y');
 
         $year = now()->year;
@@ -2686,6 +2689,7 @@ class CareerController extends Controller
             'applicant_reference' => $applicant_reference,
             'applicant_additional' => $applicant_additional,
             'applicant_organization' => $applicant_organization,
+            'isSby' => $isSby,
         ];
 
         $pdf = \PDF::loadView('pages.careers.pdfapplicantprofile', $data)

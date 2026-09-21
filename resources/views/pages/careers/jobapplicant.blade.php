@@ -955,7 +955,10 @@
                     },
                     {
                         data: 'company_name',
-                        name: 'company_name'
+                        name: 'company_name',
+                        render: function(data) {
+                            return data ? data : '-';
+                        }
                     },
                     {
                         data: 'match_score_percentage',
