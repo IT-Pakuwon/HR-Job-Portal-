@@ -29,7 +29,7 @@ class TrainingWaitlistNotifier
             'department_id' => $registration->department_id,
             'username' => 'system',
             'name' => 'System',
-            'message' => "Slot tersedia untuk {$trainingName}" . ($scheduleDateLabel ? " ({$scheduleDateLabel})" : '') . '. Anda punya waktu 24 jam untuk konfirmasi sebelum slot ini ditawarkan ke orang berikutnya.',
+            'message' => "A slot is available for {$trainingName}" . ($scheduleDateLabel ? " ({$scheduleDateLabel})" : '') . '. You have 24 hours to confirm before this slot is offered to the next person on the waiting list.',
             'status' => 'A',
             'created_by' => 'system',
         ]);
@@ -50,7 +50,7 @@ class TrainingWaitlistNotifier
             'url' => $url,
         ], function ($m) use ($to, $registration) {
             $m->to($to)
-                ->subject($registration->training_regist_id . ' - Slot Training Tersedia (Waiting List)')
+                ->subject($registration->training_regist_id . ' - Training Slot Available (Waiting List)')
                 ->from(config('mail.from.address'), config('app.name'));
         });
     }
@@ -71,7 +71,7 @@ class TrainingWaitlistNotifier
 
         $eid = Hashids::encode($registration->id);
         $url = url('/training-list/my/' . $eid);
-        $verb = $accepted ? 'menerima' : 'menolak';
+        $verb = $accepted ? 'accepted' : 'declined';
 
         TrMessage::create([
             'refnbr' => $registration->training_regist_id,
@@ -82,7 +82,7 @@ class TrainingWaitlistNotifier
             'department_id' => $registration->department_id,
             'username' => 'system',
             'name' => 'System',
-            'message' => "{$participantName} telah {$verb} slot waiting list untuk {$trainingName}" . ($scheduleDateLabel ? " ({$scheduleDateLabel})" : '') . '.',
+            'message' => "{$participantName} has {$verb} the waiting list slot for {$trainingName}" . ($scheduleDateLabel ? " ({$scheduleDateLabel})" : '') . '.',
             'status' => 'A',
             'created_by' => 'system',
         ]);
@@ -112,7 +112,7 @@ class TrainingWaitlistNotifier
                 'url' => $url,
             ], function ($m) use ($to, $registration, $accepted) {
                 $m->to($to)
-                    ->subject($registration->training_regist_id . ' - Waiting List ' . ($accepted ? 'Diterima' : 'Ditolak'))
+                    ->subject($registration->training_regist_id . ' - Waiting List ' . ($accepted ? 'Accepted' : 'Declined'))
                     ->from(config('mail.from.address'), config('app.name'));
             });
         }
@@ -143,7 +143,7 @@ class TrainingWaitlistNotifier
             'department_id' => $registration->department_id,
             'username' => 'system',
             'name' => 'System',
-            'message' => "{$participantName} diterima dari waiting list untuk {$trainingName}" . ($scheduleDateLabel ? " ({$scheduleDateLabel})" : '') . " oleh {$actorName}.",
+            'message' => "{$participantName} was accepted from the waiting list for {$trainingName}" . ($scheduleDateLabel ? " ({$scheduleDateLabel})" : '') . " by {$actorName}.",
             'status' => 'A',
             'created_by' => 'system',
         ]);
@@ -169,7 +169,7 @@ class TrainingWaitlistNotifier
             'url' => $url,
         ], function ($m) use ($to, $registration) {
             $m->to($to)
-                ->subject($registration->training_regist_id . ' - Peserta Diterima dari Waiting List')
+                ->subject($registration->training_regist_id . ' - Participant Accepted from Waiting List')
                 ->from(config('mail.from.address'), config('app.name'));
         });
     }
@@ -196,7 +196,7 @@ class TrainingWaitlistNotifier
             'department_id' => $registration->department_id,
             'username' => 'system',
             'name' => 'System',
-            'message' => "Jadwal {$trainingName} diubah" . ($oldDate ? " dari {$oldDate}" : '') . " ke {$newDate}. Alasan: {$reason}",
+            'message' => "The schedule for {$trainingName} has changed" . ($oldDate ? " from {$oldDate}" : '') . " to {$newDate}. Reason: {$reason}",
             'status' => 'A',
             'created_by' => 'system',
         ]);
@@ -219,7 +219,7 @@ class TrainingWaitlistNotifier
             'systemLabel' => 'Learning & Development System',
         ], function ($m) use ($to, $registration) {
             $m->to($to)
-                ->subject($registration->training_regist_id . ' - Jadwal Training Diubah')
+                ->subject($registration->training_regist_id . ' - Training Schedule Changed')
                 ->from(config('mail.from.address'), config('app.name'));
         });
     }
@@ -248,7 +248,7 @@ class TrainingWaitlistNotifier
             'department_id' => $registration->department_id,
             'username' => 'system',
             'name' => 'System',
-            'message' => "Sertifikat untuk {$trainingName}" . ($scheduleDateLabel ? " ({$scheduleDateLabel})" : '') . ' sudah tersedia untuk diunduh.',
+            'message' => "The certificate for {$trainingName}" . ($scheduleDateLabel ? " ({$scheduleDateLabel})" : '') . ' is now available for download.',
             'status' => 'A',
             'created_by' => 'system',
         ]);
@@ -268,7 +268,7 @@ class TrainingWaitlistNotifier
             'url' => $url,
         ], function ($m) use ($to, $registration) {
             $m->to($to)
-                ->subject($registration->training_regist_id . ' - Sertifikat Training Tersedia')
+                ->subject($registration->training_regist_id . ' - Training Certificate Available')
                 ->from(config('mail.from.address'), config('app.name'));
         });
     }
