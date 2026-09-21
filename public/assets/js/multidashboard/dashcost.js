@@ -306,7 +306,7 @@
         approval: {
             icon: "✅", badgeBg: "bg-emerald-100 dark:bg-emerald-900/30",
             title: row => row.docid,
-            link: row => `${row.url}/${row.hid}`,
+            link: row => `${row.url}/${row.hid}${row.query || ""}`,
             status: row => approvalStatusBadge(row),
             extra: row => privateNoteButton(row),
             fields: row => [
@@ -320,7 +320,7 @@
         "approval-history": {
             icon: "📋", badgeBg: "bg-slate-100 dark:bg-slate-700",
             title: row => row.docid,
-            link: row => `${row.url}/${row.hid}`,
+            link: row => `${row.url}/${row.hid}${row.query || ""}`,
             status: row => approvalStatusBadge(row),
             fields: row => [
                 { label: "Company", value: row.cpnyid },
@@ -774,7 +774,7 @@
             const rows = applySearchFilter(allRows, activeTab);
             rows.forEach((row) => {
                 const key = row.hid || row.eid;
-                if (row.url && key) window.open(`${row.url}/${key}`, "_blank");
+                if (row.url && key) window.open(`${row.url}/${key}${row.query || ""}`, "_blank");
             });
         });
 

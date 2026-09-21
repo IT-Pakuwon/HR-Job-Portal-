@@ -1106,10 +1106,13 @@
         }
         .viewModal-header {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 12px;
             padding: 20px 24px;
             border-bottom: 1px solid #f0f1f3;
+        }
+        .viewModal-statusChip {
+            flex-shrink: 0;
         }
         .viewModal-icon {
             width: 44px;
@@ -1183,6 +1186,81 @@
             text-transform: uppercase;
             color: #6b7280;
         }
+        .viewModal-participant {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #eef2ff, #f5f3ff);
+            border: 1px solid #e0e7ff;
+            margin-bottom: 12px;
+        }
+        .viewModal-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .viewModal-participant-name {
+            margin: 0;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #111827;
+            text-align: left;
+        }
+        .viewModal-participant-label {
+            margin: 2px 0 0;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            color: #6366f1;
+        }
+        .viewModal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .viewModal-gridItem {
+            display: flex;
+            gap: 9px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: #f9fafb;
+            border: 1px solid #f0f1f3;
+            min-width: 0;
+        }
+        .viewModal-gridIcon {
+            font-size: 15px;
+            line-height: 1.4;
+            flex-shrink: 0;
+        }
+        .viewModal-gridKey {
+            margin: 0;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .03em;
+            text-transform: uppercase;
+            color: #9ca3af;
+            text-align: left;
+        }
+        .viewModal-gridValue {
+            margin: 2px 0 0;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #111827;
+            text-align: left;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
         .viewModal-actionsRow {
             display: flex;
             gap: 8px;
@@ -1220,7 +1298,7 @@
             display: flex;
             gap: 10px;
             position: relative;
-            padding-bottom: 18px;
+            padding-bottom: 12px;
         }
         .approvalStep:last-child {
             padding-bottom: 0;
@@ -1228,19 +1306,19 @@
         .approvalStep::before {
             content: '';
             position: absolute;
-            left: 11px;
-            top: 24px;
-            bottom: 0;
-            width: 1px;
-            background: #e5e7eb;
+            left: 12.5px;
+            top: 26px;
+            bottom: 2px;
+            width: 2px;
+            background: #eef0f2;
         }
         .approvalStep:last-child::before {
             display: none;
         }
         .approvalStep-marker {
             flex-shrink: 0;
-            width: 24px;
-            height: 24px;
+            width: 26px;
+            height: 26px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -1248,6 +1326,8 @@
             font-size: 12px;
             font-weight: 700;
             z-index: 1;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 1px #f0f1f3;
         }
         .approvalStep-marker.approved {
             background: #dcfce7;
@@ -1268,7 +1348,10 @@
         .approvalStep-body {
             min-width: 0;
             flex: 1;
-            padding-top: 2px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: #f9fafb;
+            border: 1px solid #f0f1f3;
         }
         .approvalStep-top {
             display: flex;
@@ -1277,30 +1360,49 @@
             gap: 8px;
         }
         .approvalStep-level {
-            font-size: 10.5px;
+            font-size: 10px;
             font-weight: 700;
-            letter-spacing: .03em;
+            letter-spacing: .04em;
             text-transform: uppercase;
             color: #9ca3af;
         }
         .approvalStep-badge {
-            font-size: 10.5px;
+            font-size: 10px;
             font-weight: 700;
+            letter-spacing: .02em;
+            text-transform: uppercase;
+            padding: 2px 8px;
+            border-radius: 999px;
         }
-        .approvalStep-badge.approved { color: #16a34a; }
-        .approvalStep-badge.rejected { color: #dc2626; }
-        .approvalStep-badge.pending { color: #a16207; }
-        .approvalStep-badge.neutral { color: #6b7280; }
+        .approvalStep-badge.approved { background: #dcfce7; color: #16a34a; }
+        .approvalStep-badge.rejected { background: #fee2e2; color: #dc2626; }
+        .approvalStep-badge.pending { background: #fef9c3; color: #a16207; }
+        .approvalStep-badge.neutral { background: #f3f4f6; color: #6b7280; }
         .approvalStep-name {
-            margin-top: 2px;
+            margin-top: 4px;
             font-size: 13px;
             font-weight: 600;
             color: #111827;
         }
+        .approvalStep-nameList {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 5px;
+        }
+        .approvalStep-nameChip {
+            font-size: 11.5px;
+            font-weight: 600;
+            color: #111827;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            padding: 2px 9px;
+            border-radius: 999px;
+        }
         .approvalStep-when {
-            margin-top: 1px;
+            margin-top: 5px;
             font-size: 11px;
-            color: #6b7280;
+            color: #9ca3af;
         }
     </style>
     <script>
@@ -2358,6 +2460,11 @@
                     ? fmtDateTime(step.aprv_dateafter)
                     : (step.aprv_datebefore ? 'Since ' + fmtDateTime(step.aprv_datebefore) : null);
 
+                const names = (step.aprv_name ?? '-').split(',').map(n => n.trim()).filter(Boolean);
+                const namesHtml = names.length > 1
+                    ? `<div class="approvalStep-nameList">${names.map(n => `<span class="approvalStep-nameChip">${n}</span>`).join('')}</div>`
+                    : `<div class="approvalStep-name">${names[0] ?? '-'}</div>`;
+
                 return `
                     <div class="approvalStep">
                         <div class="approvalStep-marker ${meta.cls}">${meta.icon}</div>
@@ -2366,8 +2473,8 @@
                                 <span class="approvalStep-level">Level ${step.aprv_leveling}</span>
                                 <span class="approvalStep-badge ${meta.cls}">${meta.label}</span>
                             </div>
-                            <div class="approvalStep-name">${step.aprv_name ?? '-'}</div>
-                            ${whenLabel ? `<div class="approvalStep-when">${whenLabel}</div>` : ''}
+                            ${namesHtml}
+                            ${whenLabel ? `<div class="approvalStep-when">🕒 ${whenLabel}</div>` : ''}
                         </div>
                     </div>
                 `;
@@ -2392,17 +2499,33 @@
                 ? `${r.mode}${r.location || r.platform ? ' · ' + (r.location || r.platform) : ''}`
                 : '-';
 
-            const infoRows = [
-                ['Status', statusBadge(r.status)],
-                ['Schedule', scheduleLabel],
-                ['Mode / Location', modeLabel],
-                ['Speaker', r.speaker_name || '-'],
-                ['Level', r.grade_name || '-'],
+            const participantName = r.name || r.username;
+            const initials = participantName
+                ? participantName.trim().split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase() || '').join('')
+                : '';
+            const participantHtml = participantName ? `
+                <div class="viewModal-participant">
+                    <div class="viewModal-avatar">${initials}</div>
+                    <div>
+                        <p class="viewModal-participant-name">${participantName}</p>
+                        <p class="viewModal-participant-label">Participant</p>
+                    </div>
+                </div>
+            ` : '';
+
+            const gridItems = [
+                ['📅', 'Schedule', scheduleLabel, true],
+                ['📍', 'Mode / Location', modeLabel, true],
+                ['🎤', 'Speaker', r.speaker_name || '-', false],
+                ['🏷️', 'Level', r.grade_name || '-', false],
             ];
-            const infoHtml = infoRows.map(([k, v]) => `
-                <div class="viewModal-row">
-                    <span class="viewModal-key">${k}</span>
-                    <span class="viewModal-value">${v}</span>
+            const gridHtml = gridItems.map(([icon, key, value, full]) => `
+                <div class="viewModal-gridItem"${full ? ' style="grid-column:1 / -1;"' : ''}>
+                    <span class="viewModal-gridIcon">${icon}</span>
+                    <div style="min-width:0;">
+                        <p class="viewModal-gridKey">${key}</p>
+                        <p class="viewModal-gridValue">${value}</p>
+                    </div>
                 </div>
             `).join('');
 
@@ -2410,13 +2533,15 @@
                 html: `
                     <div class="viewModal-header">
                         <div class="viewModal-icon">🎓</div>
-                        <div style="min-width:0;">
+                        <div style="min-width:0; flex:1;">
                             <p class="viewModal-title">${r.training_name ?? '-'}</p>
                             <p class="viewModal-subtitle">${r.docid}</p>
                         </div>
+                        <div class="viewModal-statusChip">${statusBadge(r.status)}</div>
                     </div>
                     <div class="viewModal-body">
-                        <div class="viewModal-card">${infoHtml}</div>
+                        ${participantHtml}
+                        <div class="viewModal-grid">${gridHtml}</div>
                         ${showApprovalActions ? `
                             <div class="viewModal-actionsRow">
                                 <button type="button" class="modalApproveBtn" data-id="${r.id}">✓ Approve</button>

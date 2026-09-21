@@ -101,9 +101,16 @@ class TrainingRegistrationController extends Controller
             $query->where('user_registration', $user->username);
         }
 
-        $query->firstOrFail();
+        $registration = $query->firstOrFail();
 
-        $isApprovalTab = $request->query('tab') === 'approvals';
+        // Determined from actual ownership rather than the ?tab=approvals
+        // query flag alone — that flag gets stripped from the address bar
+        // once the modal opens (see openMyViewModal()'s history.replaceState
+        // call), so a plain refresh of the resulting clean URL would
+        // otherwise fall back to "My Registration" and fail to find an
+        // approver's (not the registrant's) row.
+        $isApprovalTab = $request->query('tab') === 'approvals'
+            || $registration->user_registration !== $user->username;
 
         return view('pages.training_list.index', [
             'initialEid' => null,
