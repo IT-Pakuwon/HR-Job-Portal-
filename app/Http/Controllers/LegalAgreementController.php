@@ -241,6 +241,18 @@ class LegalAgreementController extends Controller
             );
         }
 
+        // TrAgreement lives on pgsql5 while MsCompany/User live on pgsql2, so
+        // there's no cross-connection join — pull both lookup tables whole
+        // (they're small) and map cpny_id/pic usernames to display names below.
+        $companyNames = MsCompany::query()->pluck('cpny_name', 'cpny_id');
+        $userNames = User::query()->pluck('name', 'username');
+
+        $namesFor = function (?string $csv) use ($userNames) {
+            return collect(TrAgreement::splitPicList($csv))
+                ->map(fn ($username) => $userNames->get($username, $username))
+                ->implode(', ');
+        };
+
         return DataTables::of($query)
 
             ->addColumn('eid', function ($row) {
@@ -251,6 +263,18 @@ class LegalAgreementController extends Controller
 
             ->addColumn('cycle_info', function ($row) {
                 return $this->agreementCycleInfo($row);
+            })
+
+            ->addColumn('cpny_name', function ($row) use ($companyNames) {
+                return $companyNames->get($row->cpny_id, $row->cpny_id);
+            })
+
+            ->addColumn('pic_legal_names', function ($row) use ($namesFor) {
+                return $namesFor($row->pic_legal);
+            })
+
+            ->addColumn('pic_leasing_names', function ($row) use ($namesFor) {
+                return $namesFor($row->pic_leasing);
             })
 
             ->addColumn('actions', function ($row) use ($isManager) {
@@ -1533,6 +1557,7 @@ class LegalAgreementController extends Controller
         return StagingContractAgreement::query()
             ->whereNull('deleted_at')
             ->where('status', 'A')
+            ->withoutContractNo()
             ->count();
     }
 
@@ -1574,6 +1599,7 @@ class LegalAgreementController extends Controller
     {
         $query = StagingContractAgreement::query()
             ->whereNull('deleted_at')
+            ->withoutContractNo()
             ->select([
                 'id', 'cpny_id', 'business_id', 'contract_no',
                 'tenant_no', 'trade_name', 'property_cd', 'status',
@@ -1583,31 +1609,6 @@ class LegalAgreementController extends Controller
         $this->applyJobsFilters($query, $request);
 
         return DataTables::of($query)->make(true);
-    }
-
-    public function jobsUpdateStatus(Request $request)
-    {
-        $request->validate([
-            'cpny_id' => 'required',
-            'business_id' => 'required',
-            'status' => 'required|in:A,C,X',
-        ]);
-
-        // Applies to every lot row for this business, so the whole contract
-        // moves together instead of showing a mixed status across its lots.
-        StagingContractAgreement::query()
-            ->where('cpny_id', $request->cpny_id)
-            ->where('business_id', $request->business_id)
-            ->update([
-                'status' => $request->status,
-                'updated_by' => auth()->user()->username,
-                'updated_at' => now(),
-            ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Status updated.',
-        ]);
     }
 
     public function jobsExport(Request $request)
@@ -2004,8 +2005,23 @@ class LegalAgreementController extends Controller
 
         $attachments = $this->agreementAttachments($agreement);
 
-        $pdf = \PDF::loadView('pages.legal-agreement.print', compact('agreement', 'attachments'))
-            ->setPaper('a4', 'portrait');
+        $company = MsCompany::query()->where('cpny_id', $agreement->cpny_id)->first();
+
+        $userNames = User::query()->pluck('name', 'username');
+
+        $picNames = function (array $usernames) use ($userNames) {
+            return collect($usernames)
+                ->map(fn ($username) => $userNames->get($username, $username))
+                ->implode(', ');
+        };
+
+        $picLegalNames = $picNames($agreement->picLegalList());
+        $picLeasingNames = $picNames($agreement->picLeasingList());
+        $createdByName = $userNames->get($agreement->created_user, $agreement->created_user);
+
+        $pdf = \PDF::loadView('pages.legal-agreement.print', compact(
+            'agreement', 'attachments', 'company', 'picLegalNames', 'picLeasingNames', 'createdByName'
+        ))->setPaper('a4', 'portrait');
 
         return $pdf->stream("AGREEMENT-{$agreement->agreement_id}.pdf");
     }

@@ -28,4 +28,13 @@ class StagingContractAgreement extends Model
         'email_addr', 'email_addr2', 'nik', 'status_contract',
         'status', 'created_by', 'created_at', 'updated_by', 'updated_at', 'deleted_by', 'deleted_at',
     ];
+
+    // The Jobs list is for contracts that still need a Legal Agreement raised —
+    // once IFCA assigns a contract_no, it's no longer a pending job.
+    public function scopeWithoutContractNo($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereNull('contract_no')->orWhere('contract_no', '');
+        });
+    }
 }

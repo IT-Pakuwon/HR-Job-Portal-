@@ -367,6 +367,10 @@ function initDataTable() {
     $('#agreementTable').DataTable({
         processing: true,
         serverSide: true,
+        // No 'f' — the dedicated #agr_search input above the table already
+        // covers search; DataTables' own default search box would just
+        // duplicate it.
+        dom: 'lrtip',
         ajax: {
             url: Agreement.routes.json,
             data: function (d) {
@@ -387,13 +391,13 @@ function initDataTable() {
                 `,
             },
             { data: 'agreement_date', name: 'agreement_date', render: (d) => formatDate(d) },
-            { data: 'cpny_id', name: 'cpny_id' },
+            { data: 'cpny_name', name: 'cpny_name', orderable: false },
             {
                 data: null,
                 render: (row) => `<div class="font-medium">${row.business_name ?? '-'}</div><div class="text-xs text-slate-400">${row.trade_name ?? ''}</div>`,
             },
-            { data: 'pic_legal', name: 'pic_legal', render: (d) => d || '-' },
-            { data: 'pic_leasing', name: 'pic_leasing', render: (d) => d || '-' },
+            { data: 'pic_legal_names', name: 'pic_legal_names', orderable: false, render: (d) => d || '-' },
+            { data: 'pic_leasing_names', name: 'pic_leasing_names', orderable: false, render: (d) => d || '-' },
             { data: 'agreement_step_id', name: 'agreement_step_id', render: (d) => renderStepBadge(d) },
             { data: 'cycle_info', orderable: false, searchable: false, render: (info) => renderDaysCell(info) },
             { data: 'cycle_info', orderable: false, searchable: false, render: (info) => renderCycleBadge(info) },
@@ -839,6 +843,7 @@ function renderAttachments(attachments) {
                     <div class="min-w-0">
                         <div class="truncate text-sm font-medium text-slate-700 dark:text-slate-200">${file.display_name || file.name}</div>
                         <div class="mt-1 text-xs text-slate-400">${(file.extention || '-').toUpperCase()} &bull; ${formatFileSize(file.size || 0)}</div>
+                        <div class="mt-1 text-[11px] text-slate-400">Uploaded ${formatDateTime(file.created_at)}${file.created_by ? ` by ${escapeHtml(file.created_by)}` : ''}</div>
                     </div>
                 </div>
                 <i class="fa-solid fa-arrow-up-right-from-square text-slate-400"></i>
@@ -932,7 +937,7 @@ function renderTracking(tracking) {
                 <div class="rounded-lg border border-slate-200/80 bg-slate-50/20 px-4 py-2.5 dark:border-white/[0.05] dark:bg-slate-900/60">
                     <div class="flex items-start justify-between gap-3">
                         <div class="min-w-0 flex-1">
-                            <div class="truncate text-[13px] font-semibold text-slate-800 dark:text-white">${item.title || 'Activity'}</div>
+                            <div class="break-words text-[13px] font-semibold text-slate-800 dark:text-white">${item.title || 'Activity'}</div>
                             <div class="mt-0.5 flex flex-wrap items-center gap-1.5 text-[10px] text-slate-400 dark:text-slate-500">
                                 <span class="max-w-[130px] truncate">${submittedBy}</span>
                                 <span class="opacity-40">&bull;</span>

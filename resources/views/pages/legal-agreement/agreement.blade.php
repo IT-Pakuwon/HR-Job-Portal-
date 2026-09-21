@@ -126,7 +126,6 @@
                 counts: "{{ route('legal-agreement.counts') }}",
                 json: "{{ route('legal-agreement.json') }}",
                 jobsJson: "{{ route('legal-agreement.jobs.json') }}",
-                jobsUpdateStatus: "{{ route('legal-agreement.jobs.updateStatus') }}",
                 jobsExport: "{{ route('legal-agreement.jobs.export') }}",
                 createDropdown: "{{ route('legal-agreement.create-dropdown') }}",
                 picSearch: "{{ route('legal-agreement.picSearch') }}",

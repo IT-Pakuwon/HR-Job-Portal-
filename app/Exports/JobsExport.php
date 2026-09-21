@@ -18,7 +18,7 @@ class JobsExport implements FromCollection, WithHeadings
 
     public function collection()
     {
-        $query = StagingContractAgreement::query()->whereNull('deleted_at');
+        $query = StagingContractAgreement::query()->whereNull('deleted_at')->withoutContractNo();
 
         if ($this->request->filled('cpny_id')) {
             $query->where('cpny_id', $this->request->cpny_id);
