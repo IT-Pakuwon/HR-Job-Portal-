@@ -1081,7 +1081,8 @@ class TrainingRegistrationController extends Controller
                     $refnbr,
                     $registration->cpny_id,
                     $registration->department_id,
-                    'Registrasi training Anda telah disetujui sepenuhnya.'
+                    'Registrasi training Anda telah disetujui sepenuhnya.',
+                    'APPROVE'
                 );
             },
             function ($next, Carbon $now) use ($registration, $docUrl) {
@@ -1089,6 +1090,12 @@ class TrainingRegistrationController extends Controller
                     return;
                 }
 
+                // Deliberately no notifyDocSystem() bell entry here — "awaiting your
+                // approval" already has a dedicated home on the Approval Dashboard's
+                // Waiting Approval list, and the approver already gets an email via
+                // notifyFirstApprover() below. A bell notice on top of both was pure
+                // duplication, unlike the other TRN system notices (offer, approved,
+                // rejected, ...) which have nowhere else to surface.
                 app(ApprovalController::class)->notifyFirstApprover(
                     $registration->training_regist_id,
                     self::DOCTYPE,
@@ -1096,13 +1103,6 @@ class TrainingRegistrationController extends Controller
                     'Training Registration',
                     $docUrl,
                     ['createdby' => $registration->created_by, 'date' => $now->toDateTimeString()]
-                );
-
-                $this->notifyDocSystem(
-                    $registration->training_regist_id,
-                    $registration->cpny_id,
-                    $registration->department_id,
-                    'Registrasi training menunggu persetujuan Anda.'
                 );
             }
         );
@@ -1154,7 +1154,8 @@ class TrainingRegistrationController extends Controller
                     $refnbr,
                     $registration->cpny_id,
                     $registration->department_id,
-                    'Registrasi training Anda ditolak.'
+                    'Registrasi training Anda ditolak.',
+                    'REJECT'
                 );
             }
         );
@@ -1693,14 +1694,18 @@ class TrainingRegistrationController extends Controller
      * extendedDocTypeConfig(), so writing this row also surfaces in the bell
      * for the creator, current approval line, and HCDEVACCESS holders —
      * alongside whatever targeted email already went out for the same event.
+     * $eventCode drives the bell's label/icon (see DocumentNotificationService's
+     * trnSystemEventMeta()) instead of the generic "New Comment" styling.
+     * Kept to <=8 chars: tr_message.message_type is varchar(10) and the 'S_'
+     * prefix (see trnSystemEventMeta()'s detection) already takes 2.
      */
-    private function notifyDocSystem(string $docId, string $cpnyId, string $deptId, string $message): void
+    private function notifyDocSystem(string $docId, string $cpnyId, string $deptId, string $message, string $eventCode): void
     {
         TrMessage::create([
             'refnbr' => $docId,
             'doctype' => self::DOCTYPE,
             'message_date' => now(),
-            'message_type' => 'SYSTEM',
+            'message_type' => 'S_' . $eventCode,
             'cpny_id' => $cpnyId,
             'department_id' => $deptId,
             'username' => 'system',
@@ -1729,6 +1734,8 @@ class TrainingRegistrationController extends Controller
 
         $docUrl = url('/training-list/my');
 
+        // See the matching comment in approve()'s notifyFirstApprover closure — no
+        // notifyDocSystem() bell entry here either, same reasoning.
         $approvalCtl->notifyFirstApprover(
             $docId,
             self::DOCTYPE,
@@ -1741,8 +1748,6 @@ class TrainingRegistrationController extends Controller
                 'date' => $now->toDateTimeString(),
             ]
         );
-
-        $this->notifyDocSystem($docId, $cpnyId, $deptId, 'Registrasi training baru menunggu persetujuan Anda.');
     }
 
     private function generateRegistrationCode(string $username): string
