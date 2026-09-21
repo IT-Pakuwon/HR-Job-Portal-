@@ -3216,7 +3216,7 @@
 
         loadAvailable();
 
-        if (initialMyEid || initialApprovalEid) {
+        if (initialMyEid || initialApprovalEid || initialFeedbackEid) {
             $('.tabBtn[data-tab="mine"]').trigger('click');
         }
         if (initialApprovalEid) {
