@@ -66,6 +66,28 @@
 
             <ul class="py-1.5">
                 <li>
+                    <button type="button" id="btnShowNameCard"
+                       class="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-xs font-medium text-gray-600 transition-colors hover:bg-violet-50 hover:text-violet-600 dark:text-gray-300 dark:hover:bg-violet-500/10 dark:hover:text-violet-400"
+                       @click="open = false" @focus="open = true" @focusout="open = false">
+                        <svg class="h-4 w-4 shrink-0 fill-current" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                  d="M3 4a2 2 0 00-2 2v8a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2H3zm1.5 3a1 1 0 000 2h1a1 1 0 100-2h-1zM4 12a1 1 0 011-1h2a1 1 0 110 2H5a1 1 0 01-1-1zm7.5-5a1 1 0 100 2h4a1 1 0 100-2h-4zm-1 4a1 1 0 011-1h4a1 1 0 110 2h-4a1 1 0 01-1-1z" />
+                        </svg>
+                        Name Card
+                    </button>
+                </li>
+                <li>
+                    <button type="button" id="btnShowCheckinTraining"
+                       class="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-xs font-medium text-gray-600 transition-colors hover:bg-violet-50 hover:text-violet-600 dark:text-gray-300 dark:hover:bg-violet-500/10 dark:hover:text-violet-400"
+                       @click="open = false" @focus="open = true" @focusout="open = false">
+                        <svg class="h-4 w-4 shrink-0 fill-current" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
+                        </svg>
+                        Checkin Training
+                    </button>
+                </li>
+                <li>
                     <a class="flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-gray-600 transition-colors hover:bg-violet-50 hover:text-violet-600 dark:text-gray-300 dark:hover:bg-violet-500/10 dark:hover:text-violet-400"
                        href="{{ route('profile.showx') }}" @click="open = false" @focus="open = true"
                        @focusout="open = false">
@@ -95,5 +117,129 @@
             </ul>
         </div>
 
+        <!-- Name Card (QR vCard) modal -->
+        <div id="nameCardModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 p-4">
+            <button type="button" id="closeNameCardModal"
+                    class="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 sm:right-8 sm:top-8">
+                <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" clip-rule="evenodd"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" />
+                </svg>
+            </button>
+
+            <div class="flex w-full max-w-sm flex-col items-center rounded-lg border border-gray-200 bg-white p-8 text-center shadow-lg dark:border-gray-700 dark:bg-gray-800"
+                 onclick="event.stopPropagation()">
+                <p class="text-base font-semibold text-gray-800 dark:text-white">{{ $user->name }}</p>
+                <p class="mb-6 text-xs text-gray-400">NPK {{ $user->npk ?? '-' }}</p>
+
+                <div class="rounded-md border border-gray-200 p-3 dark:border-gray-700">
+                    <img id="nameCardModalImage" src="" alt="Name card QR" class="w-full max-w-55">
+                </div>
+
+                <p class="mt-6 text-sm font-semibold text-gray-800 dark:text-gray-100">Phone Camera</p>
+                <p class="mt-1 text-xs text-gray-400">Scan to save as a contact — also checks you in at any training
+                    event.</p>
+            </div>
+        </div>
+
+        <script>
+            (function () {
+                const nameCardQrUrl = "{{ route('profile.qr.image') }}";
+
+                $('#btnShowNameCard').on('click', function () {
+                    $('#nameCardModalImage').attr('src', nameCardQrUrl + '?t=' + Date.now());
+                    $('#nameCardModal').removeClass('hidden').addClass('flex');
+                });
+
+                $('#closeNameCardModal').on('click', function () {
+                    $('#nameCardModal').addClass('hidden').removeClass('flex');
+                });
+
+                $('#nameCardModal').on('click', function (e) {
+                    if (e.target === this) {
+                        $(this).addClass('hidden').removeClass('flex');
+                    }
+                });
+            })();
+        </script>
+
+        <!-- Checkin Training (Barcode / QR Code) modal -->
+        <div id="checkinTrainingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 p-4">
+            <button type="button" id="closeCheckinTrainingModal"
+                    class="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 sm:right-8 sm:top-8">
+                <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" clip-rule="evenodd"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" />
+                </svg>
+            </button>
+
+            <div class="flex w-full max-w-sm flex-col items-center rounded-lg border border-gray-200 bg-white p-8 text-center shadow-lg dark:border-gray-700 dark:bg-gray-800"
+                 onclick="event.stopPropagation()">
+                <p class="text-base font-semibold text-gray-800 dark:text-white">{{ $user->name }}</p>
+                <p class="mb-4 text-xs text-gray-400">NPK {{ $user->npk ?? '-' }}</p>
+
+                <div class="mb-5 inline-flex rounded-full bg-gray-100 p-1 dark:bg-gray-700">
+                    <button type="button" id="checkinTabBarcode"
+                            class="checkinTabBtn rounded-full px-4 py-1.5 text-xs font-semibold transition"
+                            data-kind="barcode">
+                        Barcode
+                    </button>
+                    <button type="button" id="checkinTabQr"
+                            class="checkinTabBtn rounded-full px-4 py-1.5 text-xs font-semibold transition"
+                            data-kind="qr">
+                        QR Code
+                    </button>
+                </div>
+
+                <div class="rounded-md border border-gray-200 p-3 dark:border-gray-700">
+                    <img id="checkinTrainingModalImage" src="" alt="" class="w-full max-w-55">
+                </div>
+
+                <p id="checkinTrainingModalTitle" class="mt-6 text-sm font-semibold text-gray-800 dark:text-gray-100"></p>
+                <p id="checkinTrainingModalCaption" class="mt-1 text-xs text-gray-400"></p>
+            </div>
+        </div>
+
+        <script>
+            (function () {
+                const checkinBarcodeUrl = "{{ route('profile.barcode.image') }}";
+                const checkinQrUrl = "{{ route('profile.qr.checkin.image') }}";
+
+                function setCheckinTab(kind) {
+                    const isBarcode = kind === 'barcode';
+
+                    $('.checkinTabBtn').removeClass('bg-white text-violet-600 shadow-sm dark:bg-gray-800 dark:text-violet-400')
+                        .addClass('text-gray-500 dark:text-gray-400');
+                    $(isBarcode ? '#checkinTabBarcode' : '#checkinTabQr')
+                        .removeClass('text-gray-500 dark:text-gray-400')
+                        .addClass('bg-white text-violet-600 shadow-sm dark:bg-gray-800 dark:text-violet-400');
+
+                    $('#checkinTrainingModalImage').attr('src', (isBarcode ? checkinBarcodeUrl : checkinQrUrl) + '?t=' + Date.now());
+                    $('#checkinTrainingModalTitle').text(isBarcode ? 'HR Check-in Scanner' : 'Phone Camera');
+                    $('#checkinTrainingModalCaption').text(isBarcode ?
+                        'Show this to the HR check-in scanner at any training event.' :
+                        'Scan with the check-in scanner or a phone camera to check in at any training event.');
+                }
+
+                $('#btnShowCheckinTraining').on('click', function () {
+                    setCheckinTab('barcode');
+                    $('#checkinTrainingModal').removeClass('hidden').addClass('flex');
+                });
+
+                $('.checkinTabBtn').on('click', function () {
+                    setCheckinTab($(this).data('kind'));
+                });
+
+                $('#closeCheckinTrainingModal').on('click', function () {
+                    $('#checkinTrainingModal').addClass('hidden').removeClass('flex');
+                });
+
+                $('#checkinTrainingModal').on('click', function (e) {
+                    if (e.target === this) {
+                        $(this).addClass('hidden').removeClass('flex');
+                    }
+                });
+            })();
+        </script>
     @endif
 </div>
