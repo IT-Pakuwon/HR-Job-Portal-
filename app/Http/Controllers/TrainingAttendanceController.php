@@ -8,6 +8,7 @@ use App\Http\Controllers\Traits\HasAttendanceWindow;
 use App\Models\MsCompany;
 use App\Models\MsDepartment;
 use App\Models\MsLndTrainingFeedback;
+use App\Models\MsTrainingEvent;
 use App\Models\StoGrading;
 use App\Models\TrLndTrainingAttendance;
 use App\Models\TrLndTrainingFeedbackAnswer;
@@ -439,5 +440,159 @@ class TrainingAttendanceController extends Controller
     public function exportFeedback($scheduleId)
     {
         return Excel::download(new TrainingFeedbackExport((string) $scheduleId), 'training-feedback.xlsx');
+    }
+
+    /**
+     * Dropdown data for the Training Report tab — trainings/companies/
+     * departments scoped to what the current user is allowed to see, same
+     * scoping helpers used by the GA reports.
+     */
+    public function reportFilters()
+    {
+        $user = Auth::user();
+
+        $trainings = MsTrainingEvent::orderBy('training_name')->pluck('training_name', 'training_id');
+        $companies = MsCompany::whereIn('cpny_id', $user->scopedCompanyIds())->orderBy('cpny_name')->pluck('cpny_name', 'cpny_id');
+        $departments = MsDepartment::whereIn('department_id', $user->scopedDepartmentIds())->orderBy('department_name')->pluck('department_name', 'department_id');
+
+        return response()->json([
+            'trainings' => $trainings->map(fn ($name, $id) => ['id' => $id, 'name' => $name])->values(),
+            'companies' => $companies->map(fn ($name, $id) => ['id' => $id, 'name' => $name])->values(),
+            'departments' => $departments->map(fn ($name, $id) => ['id' => $id, 'name' => $name])->values(),
+        ]);
+    }
+
+    /**
+     * Base "attended" query shared by the report summary and employee list —
+     * approved + actually checked in (completed_at set), scoped to the
+     * user's allowed companies/departments and narrowed by whatever report
+     * filters were submitted.
+     */
+    private function reportAttendanceQuery(Request $request)
+    {
+        $user = Auth::user();
+
+        $query = TrLndTrainingRegistration::where('status', TrLndTrainingRegistration::STATUS_APPROVED)
+            ->whereNotNull('completed_at')
+            ->whereIn('cpny_id', $user->scopedCompanyIds())
+            ->whereIn('department_id', $user->scopedDepartmentIds());
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('schedule_date', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('schedule_date', '<=', $request->date_to);
+        }
+
+        if ($request->filled('training_id')) {
+            $query->where('training_id', $request->training_id);
+        }
+
+        if ($request->filled('cpny_id')) {
+            $query->where('cpny_id', $request->cpny_id);
+        }
+
+        if ($request->filled('department_id')) {
+            $query->where('department_id', $request->department_id);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Totals + per-company/per-department attendance breakdown for the
+     * Training Report tab. "Total Schedule" counts sessions that took place
+     * in the filtered range regardless of company/department (a schedule
+     * isn't owned by one company), everything else follows the scoped
+     * attendance query above.
+     */
+    public function reportSummary(Request $request)
+    {
+        $scheduleQuery = MsLndTrainingSchedule::whereIn('status', ['P', 'C']);
+
+        if ($request->filled('date_from')) {
+            $scheduleQuery->whereDate('schedule_date', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $scheduleQuery->whereDate('schedule_date', '<=', $request->date_to);
+        }
+
+        if ($request->filled('training_id')) {
+            $scheduleQuery->where('training_id', $request->training_id);
+        }
+
+        $attended = $this->reportAttendanceQuery($request)->get();
+
+        $companyCounts = $attended->groupBy('cpny_id')->map->count();
+        $cpnyNames = MsCompany::whereIn('cpny_id', $companyCounts->keys())->pluck('cpny_name', 'cpny_id');
+        $byCompany = $companyCounts->map(fn ($cnt, $id) => [
+            'name' => $cpnyNames[$id] ?? $id,
+            'count' => $cnt,
+        ])->values()->sortByDesc('count')->values();
+
+        $departmentCounts = $attended->groupBy('department_id')->map->count();
+        $deptNames = MsDepartment::whereIn('department_id', $departmentCounts->keys())->pluck('department_name', 'department_id');
+        $byDepartment = $departmentCounts->map(fn ($cnt, $id) => [
+            'name' => $deptNames[$id] ?? $id,
+            'count' => $cnt,
+        ])->values()->sortByDesc('count')->values();
+
+        return response()->json([
+            'total_schedule' => $scheduleQuery->count(),
+            'total_attendance' => $attended->count(),
+            'by_company' => $byCompany,
+            'by_department' => $byDepartment,
+        ]);
+    }
+
+    /**
+     * Per-employee training history for the drill-down list: how many
+     * distinct trainings each person has attended, plus the detail list
+     * shown when HR expands a row. Grouped/decorated in PHP rather than
+     * joined, matching this controller's cross-connection decoration
+     * pattern (training data lives on pgsql5, users/company/department on
+     * pgsql2).
+     */
+    public function reportEmployees(Request $request)
+    {
+        $attended = $this->reportAttendanceQuery($request)->orderByDesc('schedule_date')->get();
+
+        $usernames = $attended->pluck('user_registration')->unique();
+        $names = $usernames->isEmpty() ? collect() : User::whereIn('username', $usernames)->pluck('name', 'username');
+
+        if ($request->filled('search')) {
+            $term = strtolower($request->search);
+            $matching = $usernames->filter(function ($username) use ($names, $term) {
+                return str_contains(strtolower($username), $term) || str_contains(strtolower($names[$username] ?? ''), $term);
+            });
+            $attended = $attended->whereIn('user_registration', $matching);
+        }
+
+        $trainingIds = $attended->pluck('training_id')->unique();
+        $trainingNames = $trainingIds->isEmpty() ? collect() : MsTrainingEvent::whereIn('training_id', $trainingIds)->pluck('training_name', 'training_id');
+
+        $cpnyNames = MsCompany::whereIn('cpny_id', $attended->pluck('cpny_id')->unique())->pluck('cpny_name', 'cpny_id');
+        $deptNames = MsDepartment::whereIn('department_id', $attended->pluck('department_id')->unique())->pluck('department_name', 'department_id');
+
+        $rows = $attended->groupBy('user_registration')->map(function ($rows, $username) use ($names, $trainingNames, $cpnyNames, $deptNames) {
+            $latest = $rows->sortByDesc('completed_at')->first();
+
+            return [
+                'username' => $username,
+                'name' => $names[$username] ?? $username,
+                'cpny_name' => $cpnyNames[$latest->cpny_id] ?? $latest->cpny_id,
+                'department_name' => $deptNames[$latest->department_id] ?? $latest->department_id,
+                'trainings_count' => $rows->pluck('training_id')->unique()->count(),
+                'sessions_count' => $rows->count(),
+                'trainings' => $rows->sortByDesc('schedule_date')->map(fn ($r) => [
+                    'training_name' => $trainingNames[$r->training_id] ?? $r->training_id,
+                    'schedule_date' => $r->schedule_date,
+                ])->values(),
+            ];
+        })->values()->sortByDesc('trainings_count')->values();
+
+        return response()->json(['data' => $rows]);
     }
 }

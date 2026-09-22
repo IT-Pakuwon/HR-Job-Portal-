@@ -8,19 +8,23 @@ use Carbon\Carbon;
 trait HasAttendanceWindow
 {
     /**
-     * A barcode is valid from midnight on the event day through 24h after
-     * the session's end time (schedule_start_time / schedule_end_time are
-     * the real columns on ms_lnd_training_schedule).
+     * A barcode is valid from 2h before the session's start time through 1h
+     * after its end time (schedule_start_time / schedule_end_time are the
+     * real columns on ms_lnd_training_schedule).
      */
     protected function attendanceWindow(MsLndTrainingSchedule $detail): array
     {
-        $from = Carbon::parse($detail->schedule_date)->startOfDay();
+        $dateStr = $detail->schedule_date->format('Y-m-d');
 
-        $until = $detail->schedule_end_time
-            ? Carbon::parse($detail->schedule_date->format('Y-m-d') . ' ' . $detail->schedule_end_time)
-            : $from->copy()->endOfDay();
+        $start = $detail->schedule_start_time
+            ? Carbon::parse($dateStr . ' ' . $detail->schedule_start_time)
+            : Carbon::parse($dateStr)->startOfDay();
 
-        return ['from' => $from, 'until' => $until->addDay()];
+        $end = $detail->schedule_end_time
+            ? Carbon::parse($dateStr . ' ' . $detail->schedule_end_time)
+            : $start->copy()->endOfDay();
+
+        return ['from' => $start->copy()->subHours(2), 'until' => $end->copy()->addHour()];
     }
 
     protected function isWithinAttendanceWindow(MsLndTrainingSchedule $detail): bool

@@ -228,7 +228,7 @@ class TrainingSessionController extends Controller
             'dates.*.places_id' => 'required_if:dates.*.mode,OFFLINE,HYBRID|nullable|string|max:20',
             'dates.*.platform' => 'nullable|string|max:100',
             'dates.*.meeting_link' => 'nullable|string|max:255',
-            'dates.*.registration_deadline' => 'nullable|date|after_or_equal:today',
+            'dates.*.registration_deadline' => 'nullable|date|after_or_equal:today|before_or_equal:dates.*.schedule_date',
             'dates.*.speaker_username' => ['required_if:is_ext_speaker,0', 'nullable', 'string', 'max:50', $this->speakerGroupRule()],
             'dates.*.speaker_name' => 'nullable|string|max:255',
             'dates.*.ext_speaker_name' => 'required_if:is_ext_speaker,1|nullable|string|max:255',
@@ -257,7 +257,7 @@ class TrainingSessionController extends Controller
             'places_id' => 'required_if:mode,OFFLINE,HYBRID|nullable|string|max:20',
             'platform' => 'nullable|string|max:100',
             'meeting_link' => 'nullable|string|max:255',
-            'registration_deadline' => 'nullable|date|after_or_equal:today',
+            'registration_deadline' => 'nullable|date|after_or_equal:today|before_or_equal:schedule_date',
             'speaker_username' => ['required_if:is_ext_speaker,0', 'nullable', 'string', 'max:50', $this->speakerGroupRule()],
             'speaker_name' => 'nullable|string|max:255',
             'ext_speaker_name' => 'required_if:is_ext_speaker,1|nullable|string|max:255',
@@ -516,7 +516,7 @@ class TrainingSessionController extends Controller
             'schedule_date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
-            'registration_deadline' => 'nullable|date|after_or_equal:today',
+            'registration_deadline' => 'nullable|date|after_or_equal:today|before_or_equal:schedule_date',
             'reason' => 'required|string|max:500',
         ]);
 
@@ -530,13 +530,26 @@ class TrainingSessionController extends Controller
             $user = Auth::user();
             $updatedBy = $user->username ?? 'system';
 
+            // Moving the date earlier can strand the old deadline past the
+            // new one (e.g. a deadline set for the old date now falls after
+            // it) — re-derive it with the same "3 days before, floor today"
+            // default used on create/edit whenever that would happen.
+            $newScheduleDate = Carbon::parse($newDate);
+            $existingDeadline = $detail->registration_deadline ? Carbon::parse($detail->registration_deadline) : null;
+
+            if ($request->filled('registration_deadline')) {
+                $deadline = $request->registration_deadline;
+            } elseif ($existingDeadline && $existingDeadline->lessThanOrEqualTo($newScheduleDate)) {
+                $deadline = $existingDeadline->toDateString();
+            } else {
+                $deadline = max($newScheduleDate->copy()->subDays(3), Carbon::today())->toDateString();
+            }
+
             $detail->update([
                 'schedule_date' => $newDate,
                 'schedule_start_time' => $request->start_time,
                 'schedule_end_time' => $request->end_time,
-                'registration_deadline' => $request->filled('registration_deadline')
-                    ? $request->registration_deadline
-                    : $detail->registration_deadline,
+                'registration_deadline' => $deadline,
                 // Moving a CLOSED schedule's date only makes sense if the
                 // intent is to accept registrations again — the validated
                 // schedule_date is already required to be >= today.
