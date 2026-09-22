@@ -298,15 +298,6 @@
             closeChangePasswordModal();
         });
 
-        const barcodeImageUrl = "{{ route('profile.barcode.image') }}";
-
-        function openCodeModal() {
-            $('#codeModalImage').attr('src', barcodeImageUrl + '?t=' + Date.now());
-            $('#codeModalTitle').text('HR Check-in Scanner');
-            $('#codeModalCaption').text('Show this to the HR check-in scanner at any training event.');
-            $('#codeModal').removeClass('hidden').addClass('flex');
-        }
-
         const myStarsUrl = "{{ route('training-list.my-stars') }}";
 
         function fmtTrainingDate(d) {
@@ -362,18 +353,6 @@
         });
 
         loadMyStars();
-
-        $('#btnShowBarcode').on('click', openCodeModal);
-
-        $('#closeCodeModal').on('click', function() {
-            $('#codeModal').addClass('hidden').removeClass('flex');
-        });
-
-        $('#codeModal').on('click', function(e) {
-            if (e.target === this) {
-                $(this).addClass('hidden').removeClass('flex');
-            }
-        });
 
         $(document).on('click', '.togglePassword', function() {
             const input = $(this).siblings('input');
