@@ -154,6 +154,7 @@ use App\Http\Controllers\SysRoleMenuController;
 use App\Http\Controllers\LegalAgreementController;
 use App\Http\Controllers\SysScreenController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\TestEmailController;
 use App\Http\Controllers\TicketController;
@@ -1587,6 +1588,16 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/category/update/{id}', 'updateCategory')->name('category.update');
                 Route::post('/category/status/{id}', 'updateCategoryStatus')->name('category.status');
             });
+
+        Route::controller(TeamController::class)->prefix('all-team')->name('all-team.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/json', 'json')->name('json');
+            Route::get('/search-users', 'searchUsers')->name('search-users');
+            Route::post('/', 'store')->name('store');
+            Route::get('/{teamId}/edit', 'edit')->name('edit');
+            Route::put('/{teamId}', 'update')->name('update');
+            Route::delete('/{teamId}', 'destroy')->name('destroy');
+        });
 
         Route::controller(PmGroupController::class)->prefix('project-groups')->name('project-groups.')->group(function () {
             Route::get('/', 'index')->name('index');
