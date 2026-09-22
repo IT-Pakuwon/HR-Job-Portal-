@@ -2312,6 +2312,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/settings/profile-photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo.update');
         Route::get('/settings/account/barcode-image', [ProfileController::class, 'barcodeImage'])->name('profile.barcode.image');
         Route::get('/settings/account/qr-image', [ProfileController::class, 'qrImage'])->name('profile.qr.image');
+        Route::get('/settings/account/qr-checkin-image', [ProfileController::class, 'qrCheckinImage'])->name('profile.qr.checkin.image');
 
         Route::prefix('approval-dashboard')->controller(ApprovalDashboardController::class)->group(function () {
             Route::get('/summary-json', 'summaryJson');

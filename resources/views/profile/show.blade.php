@@ -42,25 +42,6 @@
                                 {{ $originCpnyName ?? '-' }} &middot; {{ $originDepartmentName ?? '-' }}</p>
                         </div>
                     </div>
-
-                    <div class="flex shrink-0 items-center gap-2">
-                        <button type="button" id="btnShowBarcode"
-                            class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                            <span
-                                class="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300">
-                                <i class="fa-solid fa-barcode text-[9px]"></i>
-                            </span>
-                            Barcode
-                        </button>
-                        <button type="button" id="btnShowQr"
-                            class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                            <span
-                                class="flex h-5 w-5 items-center justify-center rounded-full bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-purple-300">
-                                <i class="fa-solid fa-qrcode text-[9px]"></i>
-                            </span>
-                            QR Code
-                        </button>
-                    </div>
                 </div>
 
                 <div
@@ -296,27 +277,6 @@
         </div>
     </div>
 
-    <!-- Fullscreen barcode/QR viewer -->
-    <div id="codeModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 p-4">
-        <button type="button" id="closeCodeModal"
-            class="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 sm:right-8 sm:top-8">
-            <i class="fa-solid fa-xmark text-lg"></i>
-        </button>
-
-        <div class="flex w-full max-w-sm flex-col items-center rounded-lg border border-gray-200 bg-white p-8 text-center shadow-lg dark:border-gray-700 dark:bg-gray-800"
-            onclick="event.stopPropagation()">
-            <p class="text-base font-semibold text-gray-800 dark:text-white">{{ Auth::user()->name }}</p>
-            <p class="mb-6 text-xs text-gray-400">NPK {{ $talenta->npk ?? '-' }}</p>
-
-            <div class="rounded-md border border-gray-200 p-3 dark:border-gray-700">
-                <img id="codeModalImage" src="" alt="" class="max-w-55 w-full">
-            </div>
-
-            <p id="codeModalTitle" class="mt-6 text-sm font-semibold text-gray-800 dark:text-gray-100"></p>
-            <p id="codeModalCaption" class="mt-1 text-xs text-gray-400"></p>
-        </div>
-    </div>
-
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         function resetPasswordVisibility() {
@@ -339,15 +299,11 @@
         });
 
         const barcodeImageUrl = "{{ route('profile.barcode.image') }}";
-        const qrImageUrl = "{{ route('profile.qr.image') }}";
 
-        function openCodeModal(kind) {
-            const isBarcode = kind === 'barcode';
-            $('#codeModalImage').attr('src', (isBarcode ? barcodeImageUrl : qrImageUrl) + '?t=' + Date.now());
-            $('#codeModalTitle').text(isBarcode ? 'HR Check-in Scanner' : 'Phone Camera');
-            $('#codeModalCaption').text(isBarcode ?
-                "Show this to the HR check-in scanner at any training event." :
-                'Scan to save as a contact — also checks you in at any training event.');
+        function openCodeModal() {
+            $('#codeModalImage').attr('src', barcodeImageUrl + '?t=' + Date.now());
+            $('#codeModalTitle').text('HR Check-in Scanner');
+            $('#codeModalCaption').text('Show this to the HR check-in scanner at any training event.');
             $('#codeModal').removeClass('hidden').addClass('flex');
         }
 
@@ -407,8 +363,7 @@
 
         loadMyStars();
 
-        $('#btnShowBarcode').on('click', () => openCodeModal('barcode'));
-        $('#btnShowQr').on('click', () => openCodeModal('qr'));
+        $('#btnShowBarcode').on('click', openCodeModal);
 
         $('#closeCodeModal').on('click', function() {
             $('#codeModal').addClass('hidden').removeClass('flex');

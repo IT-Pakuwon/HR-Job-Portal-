@@ -77,6 +77,29 @@ class ProfileController extends Controller
     }
 
     /**
+     * QR encoding nothing but the bare "USR-<username>" code — the same
+     * payload as barcodeImage(), just in QR form. Some 2D scanners (e.g. the
+     * Zebra DS9308 used at check-in) choke on the multi-line vCard payload
+     * from qrImage(), so the Checkin Training modal uses this single-line
+     * QR instead; the vCard QR stays reserved for the Name Card / "add
+     * contact" use case.
+     */
+    public function qrCheckinImage()
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            abort(401);
+        }
+
+        $renderer = new GDLibRenderer(240, 8, 'png');
+        $writer = new Writer($renderer);
+        $png = $writer->writeString($user->barcode_code);
+
+        return response($png, 200)->header('Content-Type', 'image/png');
+    }
+
+    /**
      * @return array{0: ?string, 1: ?string} [origin company name, origin department name]
      */
     private function resolveOriginNames(User $user): array
