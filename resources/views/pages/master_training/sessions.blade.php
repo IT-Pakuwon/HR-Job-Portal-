@@ -40,7 +40,7 @@
                 <div class="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
                     <div>
                         <h2 id="scheduleModalTitle" class="text-base font-bold text-gray-900 dark:text-white">Add Schedule</h2>
-                        <p id="scheduleModalSubtitle" class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">One level, one or more dates, shared quota.</p>
+                        <p id="scheduleModalSubtitle" class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">One or more levels, one or more dates, shared quota.</p>
                     </div>
                     <button type="button" id="closeScheduleModalX"
                         class="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white">
@@ -78,7 +78,8 @@
                         <div class="step-panel space-y-5" data-step-panel="1">
                             <div>
                                 <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Level</label>
-                                <select id="job_level" name="job_level" class="w-full" required></select>
+                                <select id="job_level" name="job_level[]" class="w-full" multiple required></select>
+                                <p id="jobLevelHint" class="mt-1 text-xs text-gray-500 dark:text-gray-400">You can select more than one level — they will share the same dates and quota.</p>
                             </div>
 
                             <div>
@@ -409,12 +410,13 @@
                     </div>
                     <div class="date-speakerWrapper mt-3" style="display:none;">
                         <label class="${labelClass}">Speaker</label>
-                        <select class="date-speaker w-full"></select>
-                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Pick a user, or type a name that isn't in the list.</p>
+                        <select class="date-speaker w-full" multiple></select>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Pick up to 3 users, or type names that aren't in the list.</p>
                     </div>
                     <div class="date-extSpeakerWrapper mt-3" style="display:none;">
                         <label class="${labelClass}">Speaker Name (External)</label>
-                        <input type="text" class="date-ext-speaker ${inputClass}" placeholder="Type speaker name">
+                        <select class="date-ext-speaker w-full" multiple></select>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Type up to 3 speaker names and press Enter after each.</p>
                     </div>
                 </div>`;
         }
@@ -450,8 +452,9 @@
             $el.select2({
                 width: '100%',
                 dropdownParent: $('#scheduleModal'),
-                placeholder: 'Pick a user or type a name',
+                placeholder: 'Pick up to 3 users or type names',
                 tags: true,
+                maximumSelectionLength: 3,
                 ajax: {
                     url: "{{ route('mastertraining.sessions.speaker-search') }}",
                     dataType: 'json',
@@ -468,12 +471,24 @@
             });
         }
 
+        function initExtSpeakerSelect2($el) {
+            $el.select2({
+                width: '100%',
+                dropdownParent: $('#scheduleModal'),
+                placeholder: 'Type up to 3 speaker names',
+                tags: true,
+                maximumSelectionLength: 3,
+                minimumResultsForSearch: Infinity
+            });
+        }
+
         function addDateBlock() {
             $('#datesContainer').append(dateBlockHtml(dateIndex));
             let $block = $('#datesContainer .date-block').last();
             setMode($block, 'OFFLINE');
             initPlaceSelect2($block.find('.date-places'));
             initSpeakerSelect2($block.find('.date-speaker'));
+            initExtSpeakerSelect2($block.find('.date-ext-speaker'));
             toggleSpeakerFields($block);
             dateIndex++;
             renumberDateBlocks();
@@ -645,8 +660,8 @@
 
         function validateStep(step) {
             if (step === 1) {
-                if (!$('#job_level').val()) {
-                    Swal.fire({ icon: 'warning', title: 'Level required', text: 'Choose a level before continuing.' });
+                if (!($('#job_level').val() || []).length) {
+                    Swal.fire({ icon: 'warning', title: 'Level required', text: 'Choose at least one level before continuing.' });
                     return false;
                 }
                 if (!$('#training_detail_name').val().trim()) {
@@ -671,11 +686,11 @@
                         incomplete = true;
                     }
 
-                    if (isExt && !$b.find('.date-ext-speaker').val().trim()) {
+                    if (isExt && !($b.find('.date-ext-speaker').val() || []).length) {
                         incomplete = true;
                     }
 
-                    if (!isExt && !$b.find('.date-speaker').val()) {
+                    if (!isExt && !($b.find('.date-speaker').val() || []).length) {
                         incomplete = true;
                     }
                 });
@@ -854,7 +869,7 @@
             $('#job_level').select2({
                 width: '100%',
                 dropdownParent: $('#scheduleModal'),
-                placeholder: 'Choose level',
+                placeholder: 'Choose level(s)',
                 ajax: {
                     url: "{{ route('mastertraining.sessions.level-search') }}",
                     dataType: 'json',
@@ -867,7 +882,8 @@
 
             $('#addScheduleBtn').click(function() {
                 $('#scheduleModalTitle').text('Add Schedule');
-                $('#scheduleModalSubtitle').text('One level, one or more dates, shared quota.');
+                $('#scheduleModalSubtitle').text('One or more levels, one or more dates, shared quota.');
+                $('#jobLevelHint').text('You can select more than one level — they will share the same dates and quota.');
                 resetScheduleForm();
                 $('#scheduleModal').removeClass('hidden');
             });
@@ -879,8 +895,13 @@
             function fillScheduleForm(s) {
                 $('#schedule_id').val(s.id);
 
-                let gradeOpt = new Option(s.grade_name, s.job_level, true, true);
-                $('#job_level').append(gradeOpt).trigger('change');
+                // job_level can hold several comma-joined levels (a batch
+                // shared across them) — one select2 option per level, all
+                // pre-selected.
+                (s.job_level || '').split(',').map(l => l.trim()).filter(l => l).forEach(function(level) {
+                    $('#job_level').append(new Option(level, level, true, true));
+                });
+                $('#job_level').trigger('change');
 
                 $('#training_detail_name').val(s.training_detail_name);
                 if (s.training_poster_url) {
@@ -911,14 +932,29 @@
                 $block.find('.date-meeting_link').val(s.meeting_link);
                 $block.find('.date-registration_deadline').val(s.registration_deadline).data('touched', true);
 
+                // Up to 3 speakers stored comma-joined (see combineSpeakers()/
+                // combineExtSpeakers() on the controller) — one option per
+                // entry, all pre-selected. Internal usernames/names stay
+                // position-aligned, so a blank username slot means that
+                // entry was typed free rather than picked from the list.
                 if (s.is_ext_speaker) {
-                    $block.find('.date-ext-speaker').val(s.training_ext_speaker_name);
-                } else if (s.training_speaker_username) {
-                    let speakerOpt = new Option(s.training_speaker_name, s.training_speaker_username, true, true);
-                    $block.find('.date-speaker').append(speakerOpt).trigger('change');
-                } else if (s.training_speaker_name) {
-                    let speakerOpt = new Option(s.training_speaker_name, '__free__' + s.training_speaker_name, true, true);
-                    $block.find('.date-speaker').append(speakerOpt).trigger('change');
+                    (s.training_ext_speaker_name || '').split(',').map(n => n.trim()).filter(n => n)
+                        .forEach(name => $block.find('.date-ext-speaker').append(new Option(name, name, true, true)));
+                    $block.find('.date-ext-speaker').trigger('change');
+                } else {
+                    let usernames = (s.training_speaker_username || '').split(',');
+                    let names = (s.training_speaker_name || '').split(',');
+                    let count = Math.max(usernames.length, names.length);
+
+                    for (let i = 0; i < count; i++) {
+                        let username = (usernames[i] || '').trim();
+                        let name = (names[i] || '').trim();
+                        if (!name) continue;
+
+                        let id = username || ('__free__' + name);
+                        $block.find('.date-speaker').append(new Option(name, id, true, true));
+                    }
+                    $block.find('.date-speaker').trigger('change');
                 }
 
                 $('#quotaRows').empty();
@@ -936,6 +972,7 @@
 
                 $('#scheduleModalTitle').text('Edit Schedule');
                 $('#scheduleModalSubtitle').text('Editing one date. Level/batch name/speaker-source changes apply to every date in this batch.');
+                $('#jobLevelHint').text('You can select more than one level — they will share the same dates and quota.');
                 isEditMode = true;
                 isViewMode = false;
                 $('#scheduleModal').removeClass('view-mode');
@@ -1093,16 +1130,30 @@
                     return;
                 }
 
+                // Up to 3 speakers per date — each selected id is either a
+                // real username or a free-typed '__free__Name' tag, so the
+                // two arrays returned here stay position-aligned (a free-typed
+                // entry leaves its username slot blank) for the controller's
+                // combineSpeakers() to store.
                 function readSpeaker($block) {
                     let $sel = $block.find('.date-speaker');
-                    let val = $sel.val();
-                    if (!val) return { username: '', name: '' };
-                    if (val.indexOf('__free__') === 0) {
-                        return { username: '', name: val.slice('__free__'.length) };
-                    }
-                    let data = $sel.select2('data');
-                    let text = (data && data[0]) ? data[0].text : '';
-                    return { username: val, name: text };
+                    let vals = $sel.val() || [];
+                    let data = $sel.select2('data') || [];
+                    let usernames = [];
+                    let names = [];
+
+                    vals.forEach(function(val) {
+                        if (val.indexOf('__free__') === 0) {
+                            usernames.push('');
+                            names.push(val.slice('__free__'.length));
+                        } else {
+                            let match = data.find(d => d.id === val);
+                            usernames.push(val);
+                            names.push(match ? match.text : val);
+                        }
+                    });
+
+                    return { usernames: usernames, names: names };
                 }
 
                 let dates = [];
@@ -1118,14 +1169,16 @@
                         platform: $block.find('.date-platform').val() || '',
                         meeting_link: $block.find('.date-meeting_link').val() || '',
                         registration_deadline: $block.find('.date-registration_deadline').val() || '',
-                        speaker_username: speaker.username,
-                        speaker_name: speaker.name,
-                        ext_speaker_name: $block.find('.date-ext-speaker').val() || '',
+                        speaker_usernames: speaker.usernames,
+                        speaker_names: speaker.names,
+                        ext_speaker_names: $block.find('.date-ext-speaker').val() || [],
                     });
                 });
 
+                let selectedLevels = $('#job_level').val() || [];
+
                 let formData = new FormData();
-                formData.append('job_level', $('#job_level').val() || '');
+                selectedLevels.forEach(level => formData.append('job_level[]', level));
                 formData.append('training_detail_name', $('#training_detail_name').val() || '');
                 formData.append('is_ext_speaker', $('#is_ext_speaker').val() || '0');
                 formData.append('_token', '{{ csrf_token() }}');
@@ -1148,9 +1201,9 @@
                     formData.append('platform', d.platform);
                     formData.append('meeting_link', d.meeting_link);
                     formData.append('registration_deadline', d.registration_deadline);
-                    formData.append('speaker_username', d.speaker_username);
-                    formData.append('speaker_name', d.speaker_name);
-                    formData.append('ext_speaker_name', d.ext_speaker_name);
+                    d.speaker_usernames.forEach(v => formData.append('speaker_username[]', v));
+                    d.speaker_names.forEach(v => formData.append('speaker_name[]', v));
+                    d.ext_speaker_names.forEach(v => formData.append('ext_speaker_name[]', v));
                 } else {
                     // Adding a batch: one-or-more dates (matches the controller's batchRules()).
                     dates.forEach(function(d, i) {
@@ -1162,9 +1215,9 @@
                         formData.append(`dates[${i}][platform]`, d.platform);
                         formData.append(`dates[${i}][meeting_link]`, d.meeting_link);
                         formData.append(`dates[${i}][registration_deadline]`, d.registration_deadline);
-                        formData.append(`dates[${i}][speaker_username]`, d.speaker_username);
-                        formData.append(`dates[${i}][speaker_name]`, d.speaker_name);
-                        formData.append(`dates[${i}][ext_speaker_name]`, d.ext_speaker_name);
+                        d.speaker_usernames.forEach(v => formData.append(`dates[${i}][speaker_username][]`, v));
+                        d.speaker_names.forEach(v => formData.append(`dates[${i}][speaker_name][]`, v));
+                        d.ext_speaker_names.forEach(v => formData.append(`dates[${i}][ext_speaker_name][]`, v));
                     });
                 }
 

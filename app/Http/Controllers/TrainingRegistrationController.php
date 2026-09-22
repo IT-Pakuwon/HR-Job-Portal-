@@ -258,8 +258,12 @@ class TrainingRegistrationController extends Controller
             // apply to those. Unresolved caller level (null) is also treated
             // as a match — HR-maintained level mapping may not cover every
             // employee yet, and that gap shouldn't silently lock people out.
-            $isLegacyLevel = $d->schedule->job_level !== null && ctype_digit((string) $d->schedule->job_level);
-            $levelMatch = $isLegacyLevel || $myLevelGroup === null || $myLevelGroup === $d->schedule->job_level;
+            // A batch created via the multi-select stores several levels
+            // comma-joined in that same field — matching any one of them
+            // is enough, since they all share this batch's dates/quota.
+            $scheduleLevels = $this->splitMulti($d->schedule->job_level);
+            $isLegacyLevel = $scheduleLevels->count() === 1 && ctype_digit($scheduleLevels->first());
+            $levelMatch = $isLegacyLevel || $myLevelGroup === null || $scheduleLevels->contains($myLevelGroup);
 
             return [
                 'id' => $d->schedule_id,
@@ -478,10 +482,12 @@ class TrainingRegistrationController extends Controller
                     ? $r->offer_expires_at
                     : null,
                 'has_attended' => $hasAttended,
+                'is_late_attendance' => $r->is_late_attendance,
                 'feedback_open' => $feedbackOpen,
                 'feedback_submitted' => $feedbackSubmitted,
                 'can_fill_feedback' => $hasAttended && $feedbackOpen,
                 'can_view_certificate' => $hasAttended && $isApproved && $certificateReady,
+                'stars' => $r->stars,
                 'created_at' => $r->created_at,
             ];
         });
@@ -526,12 +532,42 @@ class TrainingRegistrationController extends Controller
     }
 
     /**
+     * The caller's own attended trainings + star breakdown, for the profile
+     * page's "My Trainings & Stars" panel. Deliberately not gated by
+     * TRAININGLIST,VIEW (see route comment) so every employee can see their
+     * own record on their profile regardless of that module permission.
+     */
+    public function myTrainingStars()
+    {
+        $user = Auth::user();
+
+        $registrations = TrLndTrainingRegistration::where('user_registration', $user->username)
+            ->whereNotNull('completed_at')
+            ->with('schedule.schedule.training')
+            ->orderByDesc('completed_at')
+            ->get();
+
+        $rows = $registrations->map(fn ($r) => [
+            'training_name' => $r->schedule?->schedule?->training?->training_name ?? null,
+            'schedule_date' => ($r->schedule_date ?? $r->schedule?->schedule_date)?->format('Y-m-d'),
+            'is_late_attendance' => $r->is_late_attendance,
+            'attendance_stars' => $r->attendance_stars,
+            'feedback_stars' => $r->feedback_stars,
+            'stars' => $r->stars,
+        ])->values();
+
+        return response()->json([
+            'data' => $rows,
+            'total_stars' => $rows->sum('stars'),
+        ]);
+    }
+
+    /**
      * Streams a certificate PDF rendered fresh from this registration's own
      * data (no stored file/row) — available once the registration is
-     * Approved, the participant actually attended, and the event is at
-     * least a day past (is_certificate_ready; H+1, so a same-day mis-scan
-     * can still be corrected via unmarkAttend before a certificate could be
-     * pulled for it). Self-service only: scoped to the caller's own row.
+     * Approved, the participant actually attended, and HR has closed the
+     * feedback window for the schedule (is_certificate_ready). Self-service
+     * only: scoped to the caller's own row.
      */
     public function myCertificate($id)
     {
@@ -565,6 +601,7 @@ class TrainingRegistrationController extends Controller
             'certificateNo' => $certificateNo,
             'issueDate' => now(),
             'companyName' => $companyAddress->cpnyname ?? $company->cpny_name ?? '-',
+            'stars' => $registration->stars,
         ])->setPaper('a4', 'landscape');
 
         return $pdf->stream("certificate-{$certificateNo}.pdf");
@@ -706,21 +743,22 @@ class TrainingRegistrationController extends Controller
             $participants->push($participant);
         }
 
-        // Level gate: a schedule's job_level is a group_job_level bucket (see
-        // TrainingSessionController::levelSearch) — every participant must
-        // resolve to that same bucket via their own npk. A participant who
-        // can't be resolved (no npk/Talenta record/subgrade mapping) is let
-        // through rather than blocked, since this is HR-maintained reference
-        // data that may not cover everyone yet.
-        $scheduleLevelGroup = $detail->schedule?->job_level;
-        $isLegacyLevel = $scheduleLevelGroup !== null && ctype_digit((string) $scheduleLevelGroup);
-        if ($scheduleLevelGroup && !$isLegacyLevel) {
+        // Level gate: a schedule's job_level is one-or-more group_job_level
+        // buckets comma-joined (see TrainingSessionController::levelSearch /
+        // combineJobLevels) — every participant must resolve to one of those
+        // buckets via their own npk. A participant who can't be resolved (no
+        // npk/Talenta record/subgrade mapping) is let through rather than
+        // blocked, since this is HR-maintained reference data that may not
+        // cover everyone yet.
+        $scheduleLevels = $this->splitMulti($detail->schedule?->job_level);
+        $isLegacyLevel = $scheduleLevels->count() === 1 && ctype_digit($scheduleLevels->first());
+        if ($scheduleLevels->isNotEmpty() && !$isLegacyLevel) {
             $levelGroups = $this->jobLevelGroupsFor($participants);
 
             foreach ($participants as $participant) {
                 $participantLevel = $levelGroups->get($participant->username);
 
-                if ($participantLevel !== null && $participantLevel !== $scheduleLevelGroup) {
+                if ($participantLevel !== null && !$scheduleLevels->contains($participantLevel)) {
                     return response()->json([
                         'success' => false,
                         'message' => "Participant {$participant->username} is not at the appropriate level for this training",
@@ -903,8 +941,10 @@ class TrainingRegistrationController extends Controller
      * HCDEVACCESS-only admin cancel — approval participants can only
      * approve/reject their own step (see approve()/reject()); cancelling a
      * registration outright (Approved, Waiting List, or Pending/Offered) is
-     * an HR action. Blocked only once the row is already terminal (Rejected
-     * or already Cancelled) — nothing left to cancel at that point.
+     * an HR action. Blocked once the row is already terminal (Rejected or
+     * already Cancelled), once attendance has been recorded, or once the
+     * schedule date has passed (same-day is still cancellable; H+1 onward
+     * is not).
      */
     public function cancel(Request $request, $id)
     {
@@ -918,6 +958,10 @@ class TrainingRegistrationController extends Controller
         if ($registration->status === TrLndTrainingRegistration::STATUS_REJECTED
             || $registration->status_registration === TrLndTrainingRegistration::REG_STATUS_CANCELLED) {
             return response()->json(['success' => false, 'message' => 'This registration is no longer active'], 422);
+        }
+
+        if ($registration->completed_at) {
+            return response()->json(['success' => false, 'message' => 'This registration cannot be cancelled because attendance has already been recorded'], 422);
         }
 
         $scheduleDate = $registration->schedule_date ?? $registration->schedule?->schedule_date;
@@ -1393,6 +1437,7 @@ class TrainingRegistrationController extends Controller
                 'queue_no' => $queueNumbers[$r->id] ?? null,
                 'status' => $r->effective_status,
                 'registered_at' => $r->created_at,
+                'has_attended' => (bool) $r->completed_at,
                 'can_accept' => $canAccept,
                 'quota_options' => $quotaOptions,
             ];

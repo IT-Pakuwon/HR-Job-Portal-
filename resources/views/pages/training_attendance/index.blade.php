@@ -92,7 +92,9 @@
                                         <th class="py-2.5 px-4">Name</th>
                                         <th class="py-2.5 px-4">Company</th>
                                         <th class="py-2.5 px-4">Department</th>
+                                        <th class="py-2.5 px-4">Time</th>
                                         <th class="py-2.5 px-4">Status</th>
+                                        <th class="py-2.5 px-4">Late / Not Late</th>
                                     </tr>
                                 </thead>
                                 <tbody id="rosterBody" class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
@@ -192,6 +194,7 @@
                                     <th class="py-2.5 px-4">Company</th>
                                     <th class="py-2.5 px-4">Department</th>
                                     <th class="py-2.5 px-4">Trainings</th>
+                                    <th class="py-2.5 px-4">Total Stars</th>
                                     <th class="py-2.5 px-4"></th>
                                 </tr>
                             </thead>
@@ -526,6 +529,12 @@
                 const statusHtml = r.attended_at
                     ? `<span class="attendedBadge">✅ Attended</span>`
                     : `<span class="notAttendedText">⏳ Not yet</span>`;
+                const timeHtml = r.attended_at ? fmtDateTime(r.attended_at) : '-';
+                const lateHtml = !r.attended_at
+                    ? '<span class="text-sm text-gray-400">-</span>'
+                    : r.is_late_attendance
+                        ? '<span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">⏰ Late</span>'
+                        : '<span class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">✅ Not Late</span>';
 
                 $body.append(`
                     <tr class="rosterRow cursor-pointer transition hover:bg-gray-50 dark:hover:bg-gray-700/40" data-id="${r.id}">
@@ -533,7 +542,9 @@
                         <td class="py-2.5 px-4 font-medium text-gray-800 dark:text-gray-100">${r.name}</td>
                         <td class="py-2.5 px-4 text-gray-600 dark:text-gray-300">${r.cpny_name ?? '-'}</td>
                         <td class="py-2.5 px-4 text-gray-600 dark:text-gray-300">${r.department_name ?? '-'}</td>
+                        <td class="py-2.5 px-4 text-gray-600 dark:text-gray-300 whitespace-nowrap">${timeHtml}</td>
                         <td class="py-2.5 px-4">${statusHtml}</td>
+                        <td class="py-2.5 px-4">${lateHtml}</td>
                     </tr>
                 `);
             });
@@ -1114,7 +1125,10 @@
                         <span class="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-indigo-50 text-sm dark:bg-indigo-900/30">🎓</span>
                         <span class="truncate text-sm font-medium text-gray-700 dark:text-gray-200">${escAttr(t.training_name)}</span>
                     </div>
-                    <span class="metaBadge flex-none">📅 ${fmtDate(t.schedule_date)}</span>
+                    <div class="flex flex-none items-center gap-2">
+                        <span class="metaBadge">📅 ${fmtDate(t.schedule_date)}</span>
+                        <span class="inline-flex items-center gap-1 text-xs font-semibold text-amber-500">⭐ ${t.stars}</span>
+                    </div>
                 </div>
             `;
         }
@@ -1132,7 +1146,10 @@
                         </div>
                         <div class="min-w-0">
                             <p class="truncate text-lg font-bold text-gray-900 dark:text-white">${row.name}</p>
-                            <span class="inline-block rounded bg-gray-100 px-1.5 py-0.5 text-[11px] font-semibold text-gray-500 dark:bg-gray-700 dark:text-gray-400">${trainings.length} training${trainings.length === 1 ? '' : 's'} attended</span>
+                            <div class="mt-0.5 flex flex-wrap items-center gap-1.5">
+                                <span class="inline-block rounded bg-gray-100 px-1.5 py-0.5 text-[11px] font-semibold text-gray-500 dark:bg-gray-700 dark:text-gray-400">${trainings.length} training${trainings.length === 1 ? '' : 's'} attended</span>
+                                <span class="inline-flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-[11px] font-semibold text-amber-600 dark:bg-amber-900/30 dark:text-amber-400">⭐ ${row.total_stars} total</span>
+                            </div>
                         </div>
                     </div>
                     <div class="mt-4 max-h-72 divide-y divide-gray-100 overflow-y-auto border-y border-gray-100 pr-1 dark:divide-gray-700 dark:border-gray-700">
@@ -1163,7 +1180,8 @@
                         <td class="py-2.5 px-4 font-medium text-gray-800 dark:text-gray-100">${r.name}</td>
                         <td class="py-2.5 px-4 text-gray-600 dark:text-gray-300">${r.cpny_name ?? '-'}</td>
                         <td class="py-2.5 px-4 text-gray-600 dark:text-gray-300">${r.department_name ?? '-'}</td>
-                        <td class="py-2.5 px-4"><span class="metaBadge">🎓 ${r.trainings_count}</span></td>
+                        <td class="py-2.5 px-4"><span class="metaBadge">🎓 ${r.sessions_count}</span></td>
+                        <td class="py-2.5 px-4"><span class="inline-flex items-center gap-1 text-sm font-semibold text-amber-500">⭐ ${r.total_stars}</span></td>
                         <td class="py-2.5 px-4 text-right text-xs font-semibold text-indigo-600 dark:text-indigo-400">View list →</td>
                     </tr>
                 `);

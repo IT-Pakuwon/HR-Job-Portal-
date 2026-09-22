@@ -35,6 +35,11 @@
                         <option value="1">Mandatory Only</option>
                         <option value="0">Non-Mandatory Only</option>
                     </select>
+                    <select id="filterStatus" class="rounded-lg border border-gray-300 py-1.5 pl-2.5 pr-8 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                        <option value="open">Available Trainings</option>
+                        <option value="closed">Closed Training</option>
+                        <option value="all">All Trainings</option>
+                    </select>
                     <button id="filterResetBtn" class="text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white">Reset</button>
                 </div>
 
@@ -69,6 +74,8 @@
                                     <th class="py-2 pr-4">Speaker</th>
                                     <th class="py-2 pr-4">Date</th>
                                     <th class="py-2 pr-4">Status</th>
+                                    <th class="py-2 pr-4">Attendance</th>
+                                    <th class="py-2 pr-4">Stars</th>
                                     <th class="py-2 pr-4">Actions</th>
                                 </tr>
                             </thead>
@@ -314,32 +321,42 @@
 
         {{-- Training Detail modal --}}
         <div id="detailModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-            <div class="relative flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-800">
+            <div class="relative flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-800 sm:min-h-140 sm:flex-row">
                 <button type="button" id="closeDetailModalX"
-                    class="absolute right-4 top-4 z-10 rounded-lg bg-white/90 p-1.5 text-gray-500 shadow transition hover:bg-white hover:text-gray-900 dark:bg-gray-900/80 dark:text-gray-300">
+                    class="absolute right-4 top-4 z-20 rounded-lg bg-white/90 p-1.5 text-gray-500 shadow transition hover:bg-white hover:text-gray-900 dark:bg-gray-900/80 dark:text-gray-300">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
-                <button type="button" id="detailHeroFullPreviewBtn"
-                    class="absolute right-4 top-14 z-10 hidden items-center gap-1 rounded-lg bg-white/90 px-2.5 py-1.5 text-sm font-semibold text-gray-700 shadow transition hover:bg-white dark:bg-gray-900/80 dark:text-gray-200">
-                    🖼️ Full Preview
-                </button>
+
+                {{-- Poster panel — bg-cover fills the panel edge-to-edge (the
+                     Full Preview button is there for anyone who wants the
+                     uncropped poster). Sits left of the scrollable content on
+                     sm+, on top of it on mobile. Full Preview lives top-left
+                     of the panel so it never collides with the modal's own
+                     top-right close X. --}}
+                <div id="detailHeroWrap" class="relative h-72 w-full shrink-0 bg-gray-200 dark:bg-gray-700 sm:h-auto sm:w-80 md:w-96">
+                    <div id="detailHeroPoster" class="absolute inset-0 bg-cover bg-center bg-no-repeat"></div>
+                    <button type="button" id="detailHeroFullPreviewBtn"
+                        class="absolute left-3 top-3 z-10 hidden items-center gap-1 rounded-lg bg-white/90 px-2.5 py-1.5 text-sm font-semibold text-gray-700 shadow transition hover:bg-white dark:bg-gray-900/80 dark:text-gray-200">
+                        🖼️ Full Preview
+                    </button>
+                </div>
 
                 <div class="min-h-0 flex-1 overflow-y-auto">
-                    <div id="detailHeroWrap" class="relative h-56 w-full bg-gradient-to-br from-gray-800 via-gray-700 to-gray-900 sm:h-64">
-                        <div id="detailHeroPoster" class="absolute inset-0 bg-cover bg-center"></div>
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                        <div class="absolute inset-x-0 bottom-0 p-5">
-                            <div id="detailHeroBadges" class="mb-2 flex flex-wrap gap-1.5"></div>
-                            <h2 id="detailHeroTitle" class="wrap-break-word text-xl font-bold text-white sm:text-2xl"></h2>
-                            <p id="detailHeroMeta" class="mt-1 text-sm text-gray-200"></p>
-                        </div>
+                    {{-- Sticky so the title/description stay in view while a
+                         long schedule list scrolls beneath it. --}}
+                    <div class="sticky top-0 z-10 border-b border-gray-100 bg-white/95 px-5 pb-4 pt-5 backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/95">
+                        <div id="detailHeroBadges" class="mb-2 flex flex-wrap justify-start gap-1.5"></div>
+                        <h2 id="detailHeroTitle" class="wrap-break-word text-xl font-bold text-gray-800 dark:text-white sm:text-2xl"></h2>
+                        <p id="detailHeroMeta" class="mt-1 text-sm text-gray-500 dark:text-gray-400"></p>
+                        <p id="detailDescriptionText" class="mt-3 hidden rounded-lg bg-gray-50 p-3 text-sm leading-relaxed text-gray-600 dark:bg-gray-900/40 dark:text-gray-300"></p>
                     </div>
 
-                    <div class="p-5">
-                        <p id="detailDescriptionText" class="hidden text-sm leading-relaxed text-gray-600 dark:text-gray-300"></p>
-                        <h3 class="mb-3 mt-5 text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">Schedules</h3>
+                    <div class="p-5 pt-4">
+                        <h3 class="mb-3 flex items-center gap-1.5 text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                            🗓 Schedules
+                        </h3>
                         <div id="detailScheduleList" class="flex flex-col gap-3"></div>
                     </div>
                 </div>
@@ -1649,25 +1666,38 @@
             $category.val(categories.includes(selectedCategory) ? selectedCategory : '');
         }
 
+        // A card is "closed" once every schedule in its batch is no longer
+        // open (registration deadline passed and/or the schedule date is
+        // over) — mirrors the per-schedule `is_open` the backend already
+        // computes, just rolled up to the card level.
+        function isTrainingClosed(r) {
+            return r.schedules.length > 0 && r.schedules.every((s) => !s.is_open);
+        }
+
         function applyFilters() {
             const level = $('#filterLevel').val();
             const category = $('#filterCategory').val();
             const mandatory = $('#filterMandatory').val();
+            const status = $('#filterStatus').val();
 
             const filtered = allTrainingRows.filter((r) => {
                 if (level && !r.levels.includes(level)) return false;
                 if (category && r.category_name !== category) return false;
                 if (mandatory === '1' && !r.is_mandatory) return false;
                 if (mandatory === '0' && r.is_mandatory) return false;
+                const closed = isTrainingClosed(r);
+                if (status === 'open' && closed) return false;
+                if (status === 'closed' && !closed) return false;
                 return true;
             });
 
             renderTrainingCards(filtered);
         }
 
-        $('#filterLevel, #filterCategory, #filterMandatory').on('change', applyFilters);
+        $('#filterLevel, #filterCategory, #filterMandatory, #filterStatus').on('change', applyFilters);
         $('#filterResetBtn').on('click', function () {
             $('#filterLevel, #filterCategory, #filterMandatory').val('');
+            $('#filterStatus').val('open');
             applyFilters();
         });
 
@@ -1683,7 +1713,7 @@
                 rows.forEach((r) => { cardsByDocid[r.docid] = r; });
 
                 populateFilterOptions(rows);
-                renderTrainingCards(rows);
+                applyFilters();
 
                 if (!initialEidHandled && initialEid) {
                     initialEidHandled = true;
@@ -1733,7 +1763,7 @@
 
                     let registerBtnHtml = '';
                     if (!r.eligible) {
-                        const reasonText = r.level_eligible ? 'Not available for your company' : 'Your Level can\'t Register to This Training';
+                        const reasonText = r.level_eligible ? 'Not available for your company' : 'Your level can\'t register to this training';
                         registerBtnHtml = `<span class="flex items-center justify-center rounded-lg border border-dashed border-gray-200 px-2 py-1.5 text-center text-sm text-gray-400 dark:border-gray-700">${reasonText}</span>`;
                     } else if (openSchedules.length > 0) {
                         const anyAvailable = openSchedules.some((s) => s.eligible_companies.some((c) => c.available > 0));
@@ -1808,13 +1838,13 @@
 
             const badges = [];
             if (training.category_name) {
-                badges.push(`<span class="inline-flex items-center rounded-full bg-white/20 px-2.5 py-1 text-sm font-semibold text-white backdrop-blur">${training.category_name}</span>`);
+                badges.push(`<span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-sm font-semibold text-gray-700 dark:bg-gray-700 dark:text-gray-200">${training.category_name}</span>`);
             }
             if (training.training_type) {
-                badges.push(`<span class="inline-flex items-center rounded-full bg-blue-500/80 px-2.5 py-1 text-sm font-semibold text-white backdrop-blur">${training.training_type}</span>`);
+                badges.push(`<span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-sm font-semibold text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">${training.training_type}</span>`);
             }
             if (training.is_mandatory) {
-                badges.push('<span class="inline-flex items-center rounded-full bg-red-500/80 px-2.5 py-1 text-sm font-semibold text-white backdrop-blur">Mandatory</span>');
+                badges.push('<span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-1 text-sm font-semibold text-red-700 dark:bg-red-900/40 dark:text-red-300">Mandatory</span>');
             }
             $('#detailHeroBadges').html(badges.join(''));
 
@@ -1856,7 +1886,7 @@
                     const year = d.getFullYear();
 
                     const quotaHtml = !s.level_match
-                        ? '<p class="text-sm text-gray-400">Your Level can\'t Register to This Training</p>'
+                        ? '<p class="text-sm text-gray-400">Your level can\'t register to this training</p>'
                         : s.eligible_companies.length
                             ? s.eligible_companies.map((c) => capacityBar(c)).join('')
                             : '<p class="text-sm text-gray-400">Not available for your company</p>';
@@ -2172,6 +2202,19 @@
             return '';
         }
 
+        function starsBadge(r) {
+            if (!r.has_attended) return '<span class="text-sm text-gray-400">-</span>';
+            const title = r.is_late_attendance ? 'Attended (late)' : 'Attended (on time)';
+            return `<span title="${title}" class="inline-flex items-center gap-1 text-sm font-semibold text-amber-500">⭐ ${r.stars}</span>`;
+        }
+
+        function attendanceBadge(r) {
+            if (!r.has_attended) return '<span class="text-sm text-gray-400">-</span>';
+            return r.is_late_attendance
+                ? '<span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">⏰ Late</span>'
+                : '<span class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">✅ Not Late</span>';
+        }
+
         function certificateMenuItem(r) {
             if (r.can_view_certificate) {
                 return `<a href="${certificateUrl.replace('__ID__', r.id)}" target="_blank" class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-amber-700 transition hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-900/20">🎓 Certificate</a>`;
@@ -2215,7 +2258,7 @@
             minePage = page;
 
             pageRows.forEach(function (r) {
-                const cancelHtml = (isHcdevaccess && !['R', 'X'].includes(r.status) && !isDateStrPast(r.schedule_date))
+                const cancelHtml = (isHcdevaccess && !['R', 'X'].includes(r.status) && !r.has_attended && !isDateStrPast(r.schedule_date))
                     ? `<button type="button" class="cancelBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${r.id}">🗑 Cancel</button>`
                     : '';
                 const feedbackHtml = feedbackMenuItem(r);
@@ -2234,6 +2277,8 @@
                         <td class="py-2 pr-4 wrap-break-word" data-label="Speaker">${r.speaker_name ?? '-'}</td>
                         <td class="py-2 pr-4 whitespace-nowrap" data-label="Date">${fmtDate(r.schedule_date)}</td>
                         <td class="py-2 pr-4" data-label="Status">${statusBadge(r.status)}</td>
+                        <td class="py-2 pr-4" data-label="Attendance">${attendanceBadge(r)}</td>
+                        <td class="py-2 pr-4" data-label="Stars">${starsBadge(r)}</td>
                         <td class="py-2 pr-4" data-label="Actions">
                             <div class="relative inline-block text-left" x-data="{ open: false, top: 0, left: 0 }" @click.outside="open = false">
                                 <button type="button" @click="
@@ -3121,8 +3166,9 @@
 
                 // Same guard as TrainingRegistrationController::cancel(): a
                 // Rejected/already-Cancelled row has nothing left to cancel,
-                // and a past schedule date can no longer be backed out of.
-                const canCancel = !['R', 'X'].includes(r.status) && !isDateStrPast(r.schedule_date);
+                // an already-attended row can't be backed out of, and a past
+                // schedule date can no longer be cancelled either.
+                const canCancel = !['R', 'X'].includes(r.status) && !r.has_attended && !isDateStrPast(r.schedule_date);
                 const cancelHtml = canCancel
                     ? `<button type="button" class="allRegsCancelBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${r.id}">🗑 Cancel</button>`
                     : '';

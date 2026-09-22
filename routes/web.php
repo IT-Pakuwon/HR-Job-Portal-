@@ -295,6 +295,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/personnel/{id}/revise', [PersonnelController::class, 'revisePersonnel']);
         Route::get('/editpersonnels/{hash}', [PersonnelController::class, 'editPersonnel']);
         Route::put('/personnels/{id}', [PersonnelController::class, 'updatePersonnel'])->name('personnels.update');
+        Route::put('/personnels/{hash}/cancel', [PersonnelController::class, 'cancelPersonnel'])->name('personnels.cancel');
         Route::put('/personnels/remove-attachment/{id}', [PersonnelController::class, 'removeAttachment']);
     });
 
@@ -446,6 +447,10 @@ Route::middleware(['auth'])->group(function () {
         // reminder on every department dashboard, scoped to the caller's own
         // registrations regardless of whether they hold that module permission.
         Route::get('/pending-feedback', [TrainingRegistrationController::class, 'pendingFeedback'])->name('training-list.pending-feedback');
+
+        // Not gated by TRAININGLIST,VIEW — powers the "My Trainings & Stars"
+        // panel on the profile page, scoped to the caller's own registrations.
+        Route::get('/my-stars', [TrainingRegistrationController::class, 'myTrainingStars'])->name('training-list.my-stars');
     });
 
     Route::prefix('training-attendance')->group(function () {

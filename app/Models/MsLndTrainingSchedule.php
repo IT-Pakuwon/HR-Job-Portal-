@@ -68,18 +68,15 @@ class MsLndTrainingSchedule extends Model
     }
 
     /**
-     * Certificates unlock the day after the event (H+1), not same-day —
-     * gives room for a mis-scan to be corrected (unmarkAttend has no window
-     * check, see ATT-13) before a certificate could be pulled for it.
-     * Purely date-derived, no stored toggle/state needed.
+     * Certificates unlock once HR closes the feedback window for this
+     * schedule — an explicit HR action rather than a date-based delay, so
+     * there's no certificate until feedback has actually been wrapped up.
+     * If HR re-opens feedback (which clears feedback_closed_at), this flips
+     * back to false until they close it again.
      */
     public function getIsCertificateReadyAttribute(): bool
     {
-        if (!$this->schedule_date) {
-            return false;
-        }
-
-        return now()->greaterThanOrEqualTo($this->schedule_date->copy()->addDay()->startOfDay());
+        return $this->feedback_closed_at !== null;
     }
 
     /**

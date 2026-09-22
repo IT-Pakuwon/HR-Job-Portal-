@@ -32,6 +32,12 @@ class StoGrading extends Model
      * of job_level values at once — numeric ones through this table, anything
      * else (and any numeric value with no matching grade) passed through as-is.
      *
+     * A schedule created via the Level picker's multi-select stores several
+     * group_job_level labels joined with a comma (e.g. "Officer,Manager") in
+     * that same single job_level value — never numeric, so it always falls
+     * through to the passthrough branch, which adds a space after each comma
+     * for display.
+     *
      * @return \Illuminate\Support\Collection<string, string> jobLevel => label
      */
     public static function labelsFor($jobLevels): \Illuminate\Support\Collection
@@ -44,7 +50,7 @@ class StoGrading extends Model
             ? collect()
             : static::whereIn('grade_id', $numericIds)->pluck('grade_name', 'grade_id');
 
-        return $jobLevels->mapWithKeys(fn ($v) => [$v => $names[$v] ?? $v]);
+        return $jobLevels->mapWithKeys(fn ($v) => [$v => $names[$v] ?? str_replace(',', ', ', (string) $v)]);
     }
 }
 
