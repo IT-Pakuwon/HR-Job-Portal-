@@ -1347,6 +1347,9 @@ class ParkingRegistrationController extends Controller
             foreach ($detailNames as $i => $detailName) {               
 
                 $rowNo = $i + 1;
+                $detailUsername = $this->normalizeParkingDetailUsername(
+                    $request->input("detail_username.$i")
+                );
 
                 $stnkPath = $this->uploadParkingDetailFileGcs(
                     $request->file("detail_attach_stnk.$i"),
@@ -1378,7 +1381,7 @@ class ParkingRegistrationController extends Controller
                     'worker_type'        => $workerType,
                     'nopol'              => strtoupper((string) $request->input("detail_no_polisi.$i")),
                     'jenis_kendaraan'    => $request->input("detail_jenis_kendaraan.$i"),
-                    'username'           => $request->input("detail_username.$i"),
+                    'username'           => $detailUsername,
                     'nama'               => $detailName,
                     'cpny_id'            => $cpnyId,
                     'department_id'      => $departmentId,
@@ -1398,18 +1401,6 @@ class ParkingRegistrationController extends Controller
                 ]);
 
                 $parkingTypeUpper = strtoupper(trim((string) $parkingType));
-
-                // $detailUsername = $request->input("detail_username.$i");
-                // $detailUsername = $detailUsername && str_contains($detailUsername, '|')
-                //     ? explode('|', $detailUsername)[0]
-                //     : $detailUsername;
-                $detailUsername = $request->input("detail_username.$i");
-
-                if ($detailUsername && str_starts_with($detailUsername, 'OPRVEHICLES|')) {
-                    $detailUsername = null;
-                } elseif ($detailUsername && str_contains($detailUsername, '|')) {
-                    $detailUsername = explode('|', $detailUsername)[0];
-                }
 
                 $detailNopol = strtoupper(trim((string) $request->input("detail_no_polisi.$i")));
                 $detailJenis = $request->input("detail_jenis_kendaraan.$i");
@@ -1980,11 +1971,9 @@ class ParkingRegistrationController extends Controller
 
             foreach ($names as $i => $detailName) {
                 $rowNo = $i + 1;
-                $detailUsername = $request->input("detail_username.$i");
-
-                if ($detailUsername && str_contains($detailUsername, '|')) {
-                    $detailUsername = explode('|', $detailUsername)[0];
-                }
+                $detailUsername = $this->normalizeParkingDetailUsername(
+                    $request->input("detail_username.$i")
+                );
 
                 $detailNopol = strtoupper(trim((string) $request->input("detail_no_polisi.$i")));
                 $detailJenis = $request->input("detail_jenis_kendaraan.$i");
@@ -2446,6 +2435,9 @@ class ParkingRegistrationController extends Controller
                         ? strtoupper(trim((string) $detail->nopol_lama))
                         : strtoupper(trim((string) $detail->nopol));
 
+                    $matchNopolClean = strtoupper(preg_replace('/\s+/', '', $matchNopol));
+                    $detailUsername = $this->normalizeParkingDetailUsername($detail->username);
+
                     /*
                     |--------------------------------------------------------------------------
                     | Query master kendaraan pending
@@ -2454,13 +2446,14 @@ class ParkingRegistrationController extends Controller
                     $q = MsParkingKendaraan::query()
                         ->where('status', 'P')
                         ->where('site_id_parking', $detail->site_id_parking)
-                        ->where('parking_type', $detail->parking_type)
                         ->where('worker_type', $detail->worker_type)
-                        ->where('perpost', $detail->perpost)
-                        ->whereRaw('UPPER(TRIM(nopol)) = ?', [$matchNopol]);
+                        ->whereRaw(
+                            "UPPER(REGEXP_REPLACE(TRIM(nopol), '\\s+', '', 'g')) = ?",
+                            [$matchNopolClean]
+                        );
 
-                    if (!empty($detail->username)) {
-                        $q->where('username', $detail->username);
+                    if (!empty($detailUsername)) {
+                        $q->where('username', $detailUsername);
                     } else {
                         $q->where('nama', $detail->nama);
                     }
@@ -2515,7 +2508,7 @@ class ParkingRegistrationController extends Controller
                         'worker_type'     => $detail->worker_type,
                         'site_id_parking' => $detail->site_id_parking,
                         'perpost'         => $detail->perpost,
-                        'username'        => $detail->username,
+                        'username'        => $detailUsername,
                         'nama'            => $detail->nama,
                         'match_nopol'     => $matchNopol,
                         'new_nopol'       => $detail->nopol,
@@ -3273,6 +3266,24 @@ class ParkingRegistrationController extends Controller
             'success' => true,
             'message' => 'Parking Registration cancelled successfully.',
         ]);
+    }
+
+    private function normalizeParkingDetailUsername($value): ?string
+    {
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        $parts = explode('|', $value, 2);
+        $username = trim($parts[0]);
+
+        if (in_array(strtoupper($username), ['PARKING', 'OPRVEHICLES'], true)) {
+            return null;
+        }
+
+        return $username !== '' ? $username : null;
     }
 
     public function toggleStatusParkingKendaraan(Request $request, $id)

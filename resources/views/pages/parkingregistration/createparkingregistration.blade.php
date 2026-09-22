@@ -831,7 +831,7 @@
         function cleanSelectedUsername(raw) {
             raw = String(raw || '');
 
-            if (raw.startsWith('OPRVEHICLES|')) {
+            if (raw.startsWith('OPRVEHICLES|') || raw.startsWith('PARKING|') || raw === 'PARKING') {
                 return '';
             }
 
