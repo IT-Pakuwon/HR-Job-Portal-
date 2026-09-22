@@ -279,7 +279,7 @@ class TrainingRegistrationController extends Controller
                 'level_match' => $levelMatch,
                 'speaker_name' => $d->training_speaker_name ?: $d->training_ext_speaker_name,
                 'registration_deadline' => $d->registration_deadline,
-                'is_open' => !$d->registration_deadline || !Carbon::parse($d->registration_deadline)->isPast(),
+                'is_open' => (!$d->registration_deadline || !Carbon::parse($d->registration_deadline)->isPast()) && !$d->is_schedule_over,
                 'eligible_companies' => $eligibleCompanies,
                 'my_status' => $mine ? $mine->effective_status : null,
                 'my_registration_id' => $mine->id ?? null,
@@ -608,7 +608,7 @@ class TrainingRegistrationController extends Controller
         if ($now->lessThan($window['from'])) {
             return response()->json([
                 'available' => false,
-                'message' => 'Barcode will be active on '.Carbon::parse($detail->schedule_date)->translatedFormat('d M Y'),
+                'message' => 'Barcode will be active on '.$window['from']->translatedFormat('d M Y H:i'),
             ]);
         }
 
@@ -662,6 +662,10 @@ class TrainingRegistrationController extends Controller
 
         if ($detail->registration_deadline && Carbon::parse($detail->registration_deadline)->isPast()) {
             return response()->json(['success' => false, 'message' => 'The registration deadline has passed'], 422);
+        }
+
+        if ($detail->is_schedule_over) {
+            return response()->json(['success' => false, 'message' => 'This training schedule has already taken place'], 422);
         }
 
         $originCpnyId = trim((string) $user->origin_cpny_id);

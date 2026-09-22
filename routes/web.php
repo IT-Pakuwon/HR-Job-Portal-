@@ -451,6 +451,9 @@ Route::middleware(['auth'])->group(function () {
         Route::middleware('access:TRAININGATTENDANCE,VIEW')->group(function () {
             Route::get('/', [TrainingAttendanceController::class, 'index'])->name('training-attendance');
             Route::get('/events', [TrainingAttendanceController::class, 'events'])->name('training-attendance.events');
+            Route::get('/report/filters', [TrainingAttendanceController::class, 'reportFilters'])->name('training-attendance.report.filters');
+            Route::get('/report/summary', [TrainingAttendanceController::class, 'reportSummary'])->name('training-attendance.report.summary');
+            Route::get('/report/employees', [TrainingAttendanceController::class, 'reportEmployees'])->name('training-attendance.report.employees');
             Route::get('/{scheduleId}/roster', [TrainingAttendanceController::class, 'roster'])->name('training-attendance.roster')->where('scheduleId', '[A-Za-z0-9_-]+');
             Route::get('/{scheduleId}/after-event', [TrainingAttendanceController::class, 'afterEvent'])->name('training-attendance.after-event')->where('scheduleId', '[A-Za-z0-9_-]+');
             Route::get('/{scheduleId}/export/excel', [TrainingAttendanceController::class, 'exportExcel'])->name('training-attendance.export.excel')->where('scheduleId', '[A-Za-z0-9_-]+');

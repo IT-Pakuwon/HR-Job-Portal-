@@ -16,26 +16,28 @@
                 <button class="tabBtn active flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-semibold transition" data-tab="checkin">
                     <span>📋</span> Attendance List
                 </button>
-                <button class="tabBtn flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-semibold text-gray-500 transition hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="after">
-                    <span>🎉</span> After Event
+                <button class="tabBtn flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-semibold text-gray-500 transition hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="report">
+                    <span>📊</span> Training Report
                 </button>
                 <button class="tabBtn flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-semibold text-gray-500 transition hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="feedback">
                     <span>💬</span> Feedback
                 </button>
             </div>
 
-            {{-- Shared event picker --}}
-            <div class="rounded-2xl border border-gray-200 bg-linear-to-br from-gray-50 to-rose-50/30 p-4 dark:border-gray-700 dark:from-gray-800/40 dark:to-rose-900/10">
-                <label class="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">🗓️ Event</label>
-                <select id="eventSelect" class="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
-                    <option value="">Select an event…</option>
-                </select>
-                <div id="eventMeta" class="mt-3 hidden flex-wrap gap-2"></div>
-            </div>
+            {{-- Shared event picker (not shown on the Training Report tab, which is cross-event) --}}
+            <div id="eventPickerBlock">
+                <div class="rounded-2xl border border-gray-200 bg-linear-to-br from-gray-50 to-rose-50/30 p-4 dark:border-gray-700 dark:from-gray-800/40 dark:to-rose-900/10">
+                    <label class="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">🗓️ Event</label>
+                    <select id="eventSelect" class="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                        <option value="">Select an event…</option>
+                    </select>
+                    <div id="eventMeta" class="mt-3 hidden flex-wrap gap-2"></div>
+                </div>
 
-            <div id="noEventState" class="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-gray-300 p-10 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
-                <span class="text-3xl">🔍</span>
-                Select an event above to get started.
+                <div id="noEventState" class="mt-5 flex flex-col items-center gap-2 rounded-2xl border border-dashed border-gray-300 p-10 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
+                    <span class="text-3xl">🔍</span>
+                    Select an event above to get started.
+                </div>
             </div>
 
             {{-- Attendance List --}}
@@ -104,36 +106,107 @@
                 </div>
             </div>
 
-            {{-- After Event --}}
-            <div id="tab-after" class="tab-panel hidden space-y-3">
-                <div id="afterEventArea" class="hidden space-y-3">
-                    <div id="afterEventStats" class="grid grid-cols-1 gap-3 sm:grid-cols-3"></div>
-
-                    <div class="flex flex-wrap items-center justify-end gap-2">
-                        <a id="exportExcelBtn" href="#" class="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm transition hover:bg-emerald-50 active:scale-[0.98] dark:border-gray-600 dark:bg-transparent dark:text-emerald-400 dark:hover:bg-emerald-900/20">⬇ Excel</a>
-                        <a id="exportCsvBtn" href="#" class="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-sky-700 shadow-sm transition hover:bg-sky-50 active:scale-[0.98] dark:border-gray-600 dark:bg-transparent dark:text-sky-400 dark:hover:bg-sky-900/20">⬇ CSV</a>
-                        <a id="exportPdfBtn" href="#" class="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-rose-700 shadow-sm transition hover:bg-rose-50 active:scale-[0.98] dark:border-gray-600 dark:bg-transparent dark:text-rose-400 dark:hover:bg-rose-900/20">⬇ PDF</a>
-                    </div>
-
-                    <div class="overflow-hidden rounded-2xl border border-gray-200 shadow-sm dark:border-gray-700">
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
-                                <thead class="bg-gray-50 dark:bg-gray-900/50">
-                                    <tr class="text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                        <th class="py-2.5 px-4">Doc ID</th>
-                                        <th class="py-2.5 px-4">Name</th>
-                                        <th class="py-2.5 px-4">Company</th>
-                                        <th class="py-2.5 px-4">Department</th>
-                                        <th class="py-2.5 px-4">Attended At</th>
-                                        <th class="py-2.5 px-4">Attendance</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="afterEventBody" class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
-                            </table>
+            {{-- Training Report (cross-event, ignores the Event picker above) --}}
+            <div id="tab-report" class="tab-panel hidden space-y-3">
+                <div class="rounded-2xl border border-gray-200 bg-linear-to-br from-gray-50 to-indigo-50/30 p-4 dark:border-gray-700 dark:from-gray-800/40 dark:to-indigo-900/10">
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                        <div>
+                            <label class="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">📅 From</label>
+                            <input type="date" id="reportDateFrom" class="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
                         </div>
-                        <div id="afterEventEmpty" class="hidden flex flex-col items-center gap-1 p-10 text-center text-sm text-gray-500 dark:text-gray-400">
-                            <span class="text-2xl">🕒</span>
-                            No one attended this event yet.
+                        <div>
+                            <label class="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">📅 To</label>
+                            <input type="date" id="reportDateTo" class="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                        </div>
+                        <div>
+                            <label class="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">🎓 Training</label>
+                            <select id="reportTrainingSelect" class="reportSelect2 w-full">
+                                <option value="">All trainings</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">🏢 Company</label>
+                            <select id="reportCompanySelect" class="reportSelect2 w-full">
+                                <option value="">All companies</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">👥 Department</label>
+                            <select id="reportDepartmentSelect" class="reportSelect2 w-full">
+                                <option value="">All departments</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="reportStats" class="grid grid-cols-1 gap-3 sm:grid-cols-2"></div>
+
+                <div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                    <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700/60 dark:bg-slate-900">
+                        <button type="button" class="reportToggleBtn flex w-full items-center justify-between gap-2 px-5 py-4 text-left" data-target="reportCompanyBody">
+                            <h3 class="text-sm font-bold text-slate-800 dark:text-white">Attendance by Company</h3>
+                            <svg class="reportToggleIcon h-4 w-4 flex-none text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div id="reportCompanyBody" class="hidden">
+                            <div id="reportCompanyChart" class="px-2 pb-3 pt-1"></div>
+                            <p id="reportCompanyEmpty" class="hidden px-5 pb-4 text-xs text-slate-400 dark:text-slate-500">No attendance in this range.</p>
+                        </div>
+                    </div>
+                    <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700/60 dark:bg-slate-900">
+                        <button type="button" class="reportToggleBtn flex w-full items-center justify-between gap-2 px-5 py-4 text-left" data-target="reportDepartmentBody">
+                            <h3 class="text-sm font-bold text-slate-800 dark:text-white">Attendance by Department</h3>
+                            <svg class="reportToggleIcon h-4 w-4 flex-none text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div id="reportDepartmentBody" class="hidden">
+                            <div id="reportDepartmentChart" class="px-2 pb-3 pt-1"></div>
+                            <p id="reportDepartmentEmpty" class="hidden px-5 pb-4 text-xs text-slate-400 dark:text-slate-500">No attendance in this range.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <input type="text" id="reportSearch" placeholder="🔎 Search employee by name…"
+                        class="w-full flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200 sm:w-auto">
+                    <label class="flex flex-none items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400">
+                        Show
+                        <select id="reportPerPage" class="min-w-17 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-center text-sm font-semibold text-gray-700 shadow-sm focus:border-gray-900 focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                        entries
+                    </label>
+                </div>
+
+                <div class="overflow-hidden rounded-2xl border border-gray-200 shadow-sm dark:border-gray-700">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-900/50">
+                                <tr class="text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                    <th class="py-2.5 px-4">Name</th>
+                                    <th class="py-2.5 px-4">Company</th>
+                                    <th class="py-2.5 px-4">Department</th>
+                                    <th class="py-2.5 px-4">Trainings</th>
+                                    <th class="py-2.5 px-4"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportEmployeeBody" class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
+                        </table>
+                    </div>
+                    <div id="reportEmployeeEmpty" class="hidden flex flex-col items-center gap-1 p-10 text-center text-sm text-gray-500 dark:text-gray-400">
+                        <span class="text-2xl">🗂️</span>
+                        No one matches these filters.
+                    </div>
+                    <div id="reportEmployeePagination" class="hidden flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 px-4 py-2.5 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">
+                        <span id="reportEmployeePageInfo"></span>
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" id="reportEmployeePrevBtn" class="rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">‹ Prev</button>
+                            <button type="button" id="reportEmployeeNextBtn" class="rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">Next ›</button>
                         </div>
                     </div>
                 </div>
@@ -239,11 +312,6 @@
             font-size: 11px;
             font-weight: 600;
         }
-        .dark .metaBadge {
-            border-color: #4b5563;
-            background: rgba(17, 24, 39, 0.6);
-            color: #d1d5db;
-        }
         .statCard {
             border-radius: 1rem;
             border: 1px solid #e5e7eb;
@@ -269,6 +337,11 @@
             letter-spacing: 0.03em;
             color: #6b7280;
         }
+        .dark .metaBadge {
+            border-color: #4b5563;
+            background: rgba(17, 24, 39, 0.6);
+            color: #d1d5db;
+        }
     </style>
 
     <script>
@@ -280,10 +353,9 @@
             scan: "{{ route('training-attendance.scan') }}",
             attend: "{{ route('training-attendance.attend', ['registrationId' => '__ID__']) }}",
             unattend: "{{ route('training-attendance.unattend', ['registrationId' => '__ID__']) }}",
-            afterEvent: "{{ route('training-attendance.after-event', ['scheduleId' => '__ID__']) }}",
-            exportExcel: "{{ route('training-attendance.export.excel', ['scheduleId' => '__ID__']) }}",
-            exportCsv: "{{ route('training-attendance.export.csv', ['scheduleId' => '__ID__']) }}",
-            exportPdf: "{{ route('training-attendance.export.pdf', ['scheduleId' => '__ID__']) }}",
+            reportFilters: "{{ route('training-attendance.report.filters') }}",
+            reportSummary: "{{ route('training-attendance.report.summary') }}",
+            reportEmployees: "{{ route('training-attendance.report.employees') }}",
             feedbackResults: "{{ route('training-attendance.feedback.results', ['scheduleId' => '__ID__']) }}",
             feedbackOpen: "{{ route('training-attendance.feedback.open', ['scheduleId' => '__ID__']) }}",
             feedbackClose: "{{ route('training-attendance.feedback.close', ['scheduleId' => '__ID__']) }}",
@@ -392,22 +464,16 @@
 
             $('#noEventState').toggleClass('hidden', !!selectedEventId);
             $('#checkinArea').toggleClass('hidden', !selectedEventId);
-            $('#afterEventArea').toggleClass('hidden', !selectedEventId);
             $('#feedbackArea').toggleClass('hidden', !selectedEventId);
 
             if (!selectedEventId) return;
-
-            $('#exportExcelBtn').attr('href', routeUrl('exportExcel', selectedEventId));
-            $('#exportCsvBtn').attr('href', routeUrl('exportCsv', selectedEventId));
-            $('#exportPdfBtn').attr('href', routeUrl('exportPdf', selectedEventId));
 
             if (activeTab === 'checkin') focusScanInput();
 
             if (skipReload) return;
 
             if (activeTab === 'checkin') loadRoster();
-            else if (activeTab === 'after') loadAfterEvent();
-            else loadFeedback();
+            else if (activeTab === 'feedback') loadFeedback();
         }
 
         // select2 grabs focus back to its own control right after firing
@@ -432,12 +498,19 @@
 
             if (tab !== 'checkin' && typeof closeQrScanner === 'function') closeQrScanner();
 
+            $('#eventPickerBlock').toggleClass('hidden', tab === 'report');
+
+            if (tab === 'report') {
+                loadReportFilters();
+                reloadReport();
+                return;
+            }
+
             if (!selectedEventId) return;
             if (tab === 'checkin') {
                 loadRoster();
                 focusScanInput();
-            } else if (tab === 'after') loadAfterEvent();
-            else loadFeedback();
+            } else loadFeedback();
         });
 
         function renderRoster() {
@@ -734,124 +807,6 @@
             submitScanCode();
         });
 
-        let afterEventRows = [];
-        let afterEventCanUndo = false;
-
-        function attendanceCellHtml(row, canUndo) {
-            const historyBtn = `<button class="historyBtn rounded-lg border border-gray-300 bg-white px-2 py-1 text-[11px] font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 active:scale-[0.98] dark:border-gray-600 dark:bg-transparent dark:text-gray-200 dark:hover:bg-gray-700" data-id="${row.id}">🕓 History</button>`;
-            const undoBtn = canUndo
-                ? `<button class="undoAttendBtn ml-2 rounded-lg border border-red-300 bg-white px-2 py-1 text-[11px] font-semibold text-red-600 shadow-sm transition hover:bg-red-50 active:scale-[0.98] dark:border-red-800 dark:bg-transparent dark:text-red-400 dark:hover:bg-red-900/20" data-id="${row.id}">↺ Undo</button>`
-                : '';
-
-            return `<div class="flex items-center">${historyBtn}${undoBtn}</div>`;
-        }
-
-        function renderAfterEventStats() {
-            const event = events.find((e) => String(e.id) === String(selectedEventId));
-            const total = event?.approved_count ?? 0;
-            const attended = afterEventRows.length;
-            const rate = total ? Math.round((attended / total) * 100) : 0;
-
-            $('#afterEventStats').html(`
-                <div class="statCard">
-                    <p class="statLabel">Total Registrants</p>
-                    <p class="statValue">${total}</p>
-                </div>
-                <div class="statCard">
-                    <p class="statLabel">✅ Attended</p>
-                    <p class="statValue text-emerald-600 dark:text-emerald-400">${attended}</p>
-                </div>
-                <div class="statCard">
-                    <p class="statLabel">📈 Attendance Rate</p>
-                    <p class="statValue">${rate}%</p>
-                </div>
-            `);
-        }
-
-        function loadAfterEvent() {
-            if (!selectedEventId) return;
-
-            $.get(routeUrl('afterEvent', selectedEventId), function (res) {
-                afterEventRows = res.data || [];
-                afterEventCanUndo = !!res.can_undo;
-
-                renderAfterEventStats();
-
-                const $body = $('#afterEventBody').empty();
-                $('#afterEventEmpty').toggleClass('hidden', afterEventRows.length > 0);
-
-                afterEventRows.forEach((r) => {
-                    $body.append(`
-                        <tr class="transition hover:bg-gray-50 dark:hover:bg-gray-700/40">
-                            <td class="py-2.5 px-4 font-mono text-xs text-gray-500 dark:text-gray-400">${r.docid}</td>
-                            <td class="py-2.5 px-4 font-medium text-gray-800 dark:text-gray-100">${r.name}</td>
-                            <td class="py-2.5 px-4 text-gray-600 dark:text-gray-300">${r.cpny_name ?? '-'}</td>
-                            <td class="py-2.5 px-4 text-gray-600 dark:text-gray-300">${r.department_name ?? '-'}</td>
-                            <td class="py-2.5 px-4 text-gray-600 dark:text-gray-300">${fmtDateTime(r.attended_at)}</td>
-                            <td class="py-2.5 px-4">${attendanceCellHtml(r, afterEventCanUndo)}</td>
-                        </tr>
-                    `);
-                });
-            });
-        }
-
-        function historyRowHtml(h) {
-            const voidedTag = h.voided
-                ? `<span class="ml-1 text-[11px] font-semibold text-red-500">(voided)</span>`
-                : '';
-            const style = h.voided ? 'text-decoration:line-through;color:#9ca3af;' : '';
-
-            return `<li style="${style}">${fmtDateTime(h.attendance_datetime)} — marked by ${h.created_by ?? '-'}${voidedTag}</li>`;
-        }
-
-        $(document).on('click', '.historyBtn', function () {
-            const id = $(this).data('id');
-            const row = afterEventRows.find((r) => String(r.id) === String(id));
-            if (!row) return;
-
-            const items = (row.history || []).map(historyRowHtml).join('');
-
-            Swal.fire({
-                title: `Attendance history — ${row.name}`,
-                html: `<ul style="text-align:left;font-size:13px;list-style:disc;padding-left:18px;">${items || '<li>No history recorded.</li>'}</ul>`,
-                confirmButtonText: 'Close',
-            });
-        });
-
-        $(document).on('click', '.undoAttendBtn', function () {
-            const id = $(this).data('id');
-            const row = afterEventRows.find((r) => String(r.id) === String(id));
-            if (!row) return;
-
-            Swal.fire({
-                title: `Undo attendance — ${row.name}`,
-                text: 'This clears their attendance mark so they can be re-scanned. Continue?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Undo',
-                cancelButtonText: 'Cancel',
-                confirmButtonColor: '#dc2626',
-            }).then((result) => {
-                if (!result.isConfirmed) return;
-
-                $.ajax({
-                    url: routeUrl('unattend', row.id),
-                    method: 'POST',
-                    headers: csrfHeaders,
-                    success: function (res) {
-                        toast(res.success ? 'success' : 'error', res.message || 'Attendance updated');
-                        if (res.success) {
-                            loadAfterEvent();
-                            if (activeTab === 'checkin') loadRoster();
-                        }
-                    },
-                    error: function (xhr) {
-                        toast('error', xhr.responseJSON?.message || 'Gagal membatalkan attendance');
-                    },
-                });
-            });
-        });
-
         function escAttr(s) {
             return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         }
@@ -1049,6 +1004,240 @@
                 });
             });
         });
+
+        let reportFiltersLoaded = false;
+        let reportEmployeeRows = [];
+
+        function reportFilterParams() {
+            return {
+                date_from: $('#reportDateFrom').val(),
+                date_to: $('#reportDateTo').val(),
+                training_id: $('#reportTrainingSelect').val(),
+                cpny_id: $('#reportCompanySelect').val(),
+                department_id: $('#reportDepartmentSelect').val(),
+            };
+        }
+
+        function loadReportFilters() {
+            if (reportFiltersLoaded) return;
+            reportFiltersLoaded = true;
+
+            $.get(routeTemplates.reportFilters, function (res) {
+                const $training = $('#reportTrainingSelect');
+                (res.trainings || []).forEach((t) => $training.append(new Option(t.name, t.id)));
+
+                const $cpny = $('#reportCompanySelect');
+                (res.companies || []).forEach((c) => $cpny.append(new Option(c.name, c.id)));
+
+                const $dept = $('#reportDepartmentSelect');
+                (res.departments || []).forEach((d) => $dept.append(new Option(d.name, d.id)));
+
+                $('.reportSelect2').select2({ width: '100%', minimumResultsForSearch: 0 });
+            });
+        }
+
+        function renderReportStats(stats) {
+            $('#reportStats').html(`
+                <div class="statCard">
+                    <p class="statLabel">🗓️ Total Schedule</p>
+                    <p class="statValue">${stats.total_schedule}</p>
+                </div>
+                <div class="statCard">
+                    <p class="statLabel">✅ Total Attendance</p>
+                    <p class="statValue text-emerald-600 dark:text-emerald-400">${stats.total_attendance}</p>
+                </div>
+            `);
+        }
+
+        function renderReportBreakdownChart(containerId, emptyId, rows) {
+            const $container = $('#' + containerId).empty();
+            $('#' + emptyId).toggleClass('hidden', rows.length > 0);
+            if (!rows.length) return;
+
+            const config = {
+                series: [{ name: 'Attendance', data: rows.map((r) => r.count) }],
+                categories: rows.map((r) => r.name),
+                height: Math.max(160, rows.length * 34),
+                color: 'blue',
+                showLegend: false,
+            };
+
+            const $chart = $('<div>').attr('data-chart-type', 'bar').attr('data-config', JSON.stringify(config));
+            $container.append($chart);
+            window.CardChart.initBar($chart[0]);
+        }
+
+        let reportCompanyRows = [];
+        let reportDepartmentRows = [];
+
+        function loadReportSummary() {
+            $.get(routeTemplates.reportSummary, reportFilterParams(), function (res) {
+                renderReportStats(res);
+
+                reportCompanyRows = res.by_company || [];
+                reportDepartmentRows = res.by_department || [];
+
+                // Charts only render into a visible container (ApexCharts sizes
+                // itself off the container's width, which is 0 while hidden) —
+                // panels start collapsed, so just cache the rows here and let
+                // the toggle handler render whichever one gets opened.
+                if (!$('#reportCompanyBody').hasClass('hidden')) {
+                    renderReportBreakdownChart('reportCompanyChart', 'reportCompanyEmpty', reportCompanyRows);
+                }
+                if (!$('#reportDepartmentBody').hasClass('hidden')) {
+                    renderReportBreakdownChart('reportDepartmentChart', 'reportDepartmentEmpty', reportDepartmentRows);
+                }
+            });
+        }
+
+        $(document).on('click', '.reportToggleBtn', function () {
+            const targetId = $(this).data('target');
+            const $body = $('#' + targetId);
+            const expanding = $body.hasClass('hidden');
+
+            $body.toggleClass('hidden', !expanding);
+            $(this).find('.reportToggleIcon').toggleClass('rotate-180', expanding);
+
+            if (!expanding) return;
+
+            if (targetId === 'reportCompanyBody') {
+                renderReportBreakdownChart('reportCompanyChart', 'reportCompanyEmpty', reportCompanyRows);
+            } else if (targetId === 'reportDepartmentBody') {
+                renderReportBreakdownChart('reportDepartmentChart', 'reportDepartmentEmpty', reportDepartmentRows);
+            }
+        });
+
+        function reportTrainingRowHtml(t) {
+            return `
+                <div class="flex items-center justify-between gap-3 py-2.5 border-b border-gray-100 last:border-0 dark:border-gray-700">
+                    <div class="flex min-w-0 items-center gap-2.5">
+                        <span class="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-indigo-50 text-sm dark:bg-indigo-900/30">🎓</span>
+                        <span class="truncate text-sm font-medium text-gray-700 dark:text-gray-200">${escAttr(t.training_name)}</span>
+                    </div>
+                    <span class="metaBadge flex-none">📅 ${fmtDate(t.schedule_date)}</span>
+                </div>
+            `;
+        }
+
+        function reportEmployeeModalHtml(row) {
+            const trainings = row.trainings || [];
+            const items = trainings.map(reportTrainingRowHtml).join('')
+                || '<p class="py-6 text-center text-xs text-gray-400 dark:text-gray-500">No trainings recorded.</p>';
+
+            return `
+                <div class="text-left">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-12 w-12 flex-none items-center justify-center rounded-full bg-indigo-100 text-base font-bold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
+                            ${initials(row.name)}
+                        </div>
+                        <div class="min-w-0">
+                            <p class="truncate text-lg font-bold text-gray-900 dark:text-white">${row.name}</p>
+                            <span class="inline-block rounded bg-gray-100 px-1.5 py-0.5 text-[11px] font-semibold text-gray-500 dark:bg-gray-700 dark:text-gray-400">${trainings.length} training${trainings.length === 1 ? '' : 's'} attended</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 max-h-72 divide-y divide-gray-100 overflow-y-auto border-y border-gray-100 pr-1 dark:divide-gray-700 dark:border-gray-700">
+                        ${items}
+                    </div>
+                </div>
+            `;
+        }
+
+        let reportEmployeePage = 1;
+        let reportEmployeePerPage = 10;
+
+        function renderReportEmployees() {
+            const total = reportEmployeeRows.length;
+            const totalPages = Math.max(1, Math.ceil(total / reportEmployeePerPage));
+            if (reportEmployeePage > totalPages) reportEmployeePage = totalPages;
+
+            const start = (reportEmployeePage - 1) * reportEmployeePerPage;
+            const pageRows = reportEmployeeRows.slice(start, start + reportEmployeePerPage);
+
+            const $body = $('#reportEmployeeBody').empty();
+            $('#reportEmployeeEmpty').toggleClass('hidden', total > 0);
+            $('#reportEmployeePagination').toggleClass('hidden', total === 0);
+
+            pageRows.forEach((r) => {
+                $body.append(`
+                    <tr class="reportEmployeeRow cursor-pointer transition hover:bg-gray-50 dark:hover:bg-gray-700/40" data-username="${r.username}">
+                        <td class="py-2.5 px-4 font-medium text-gray-800 dark:text-gray-100">${r.name}</td>
+                        <td class="py-2.5 px-4 text-gray-600 dark:text-gray-300">${r.cpny_name ?? '-'}</td>
+                        <td class="py-2.5 px-4 text-gray-600 dark:text-gray-300">${r.department_name ?? '-'}</td>
+                        <td class="py-2.5 px-4"><span class="metaBadge">🎓 ${r.trainings_count}</span></td>
+                        <td class="py-2.5 px-4 text-right text-xs font-semibold text-indigo-600 dark:text-indigo-400">View list →</td>
+                    </tr>
+                `);
+            });
+
+            if (!total) return;
+
+            $('#reportEmployeePageInfo').text(`Showing ${start + 1} to ${Math.min(start + reportEmployeePerPage, total)} of ${total} entries`);
+            $('#reportEmployeePrevBtn').prop('disabled', reportEmployeePage === 1);
+            $('#reportEmployeeNextBtn').prop('disabled', reportEmployeePage === totalPages);
+        }
+
+        function loadReportEmployees() {
+            const params = Object.assign({}, reportFilterParams(), { search: $('#reportSearch').val().trim() });
+
+            $.get(routeTemplates.reportEmployees, params, function (res) {
+                reportEmployeeRows = res.data || [];
+                reportEmployeePage = 1;
+                renderReportEmployees();
+            });
+        }
+
+        $('#reportPerPage').on('change', function () {
+            reportEmployeePerPage = parseInt($(this).val(), 10) || 10;
+            reportEmployeePage = 1;
+            renderReportEmployees();
+        });
+
+        $('#reportEmployeePrevBtn').on('click', function () {
+            if (reportEmployeePage <= 1) return;
+            reportEmployeePage--;
+            renderReportEmployees();
+        });
+
+        $('#reportEmployeeNextBtn').on('click', function () {
+            const totalPages = Math.max(1, Math.ceil(reportEmployeeRows.length / reportEmployeePerPage));
+            if (reportEmployeePage >= totalPages) return;
+            reportEmployeePage++;
+            renderReportEmployees();
+        });
+
+        function reloadReport() {
+            loadReportSummary();
+            loadReportEmployees();
+        }
+
+        $(document).on('click', '.reportEmployeeRow', function () {
+            const username = $(this).data('username');
+            const row = reportEmployeeRows.find((r) => String(r.username) === String(username));
+            if (!row) return;
+
+            Swal.fire({
+                title: false,
+                html: reportEmployeeModalHtml(row),
+                confirmButtonText: 'Close',
+                showCancelButton: false,
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'rounded-2xl dark:bg-gray-800',
+                    confirmButton: 'rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 mx-1',
+                },
+            });
+        });
+
+        let reportSearchDebounce = null;
+        $('#reportSearch').on('input', function () {
+            clearTimeout(reportSearchDebounce);
+            reportSearchDebounce = setTimeout(loadReportEmployees, 300);
+        });
+
+        $('#reportDateFrom, #reportDateTo, #reportTrainingSelect, #reportCompanySelect, #reportDepartmentSelect').on('change', reloadReport);
+
+        $('#reportDateFrom').val(`${new Date().getFullYear()}-01-01`);
+        $('#reportDateTo').val(todayDateStr());
 
         loadEvents(false);
     </script>

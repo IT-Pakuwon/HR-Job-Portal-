@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -79,5 +80,24 @@ class MsLndTrainingSchedule extends Model
         }
 
         return now()->greaterThanOrEqualTo($this->schedule_date->copy()->addDay()->startOfDay());
+    }
+
+    /**
+     * A schedule that has already happened can no longer take registrations
+     * or waitlist joins, regardless of registration_deadline. Cutoff is the
+     * session's own end time (falling back to end of day when unset), same
+     * boundary HasAttendanceWindow uses for the event's start.
+     */
+    public function getIsScheduleOverAttribute(): bool
+    {
+        if (!$this->schedule_date) {
+            return false;
+        }
+
+        $until = $this->schedule_end_time
+            ? Carbon::parse($this->schedule_date->format('Y-m-d').' '.$this->schedule_end_time)
+            : $this->schedule_date->copy()->endOfDay();
+
+        return now()->greaterThan($until);
     }
 }
