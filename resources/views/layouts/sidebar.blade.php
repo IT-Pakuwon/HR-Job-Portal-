@@ -163,4 +163,45 @@
         color: rgb(243 244 246);
         /* gray-100 (white-ish) */
     }
+
+    /* ================= SIDEBAR SCROLLBAR ================= */
+    .sidebar-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: rgb(209 213 219) transparent;
+        /* gray-300 thumb */
+    }
+
+    .sidebar-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar-thumb {
+        background-color: rgb(209 213 219);
+        /* gray-300 */
+        border-radius: 9999px;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+        background-color: rgb(156 163 175);
+        /* gray-400 */
+    }
+
+    .dark .sidebar-scroll {
+        scrollbar-color: rgb(75 85 99) transparent;
+        /* gray-600 thumb */
+    }
+
+    .dark .sidebar-scroll::-webkit-scrollbar-thumb {
+        background-color: rgb(75 85 99);
+        /* gray-600 */
+    }
+
+    .dark .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+        background-color: rgb(107 114 128);
+        /* gray-500 */
+    }
 </style>
