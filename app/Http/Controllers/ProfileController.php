@@ -69,7 +69,7 @@ class ProfileController extends Controller
         $talenta = User::where('username', $user->username)->first();
         $vcard = $this->buildVcard($talenta);
 
-        $renderer = new GDLibRenderer(240, 8, 'png');
+        $renderer = new GDLibRenderer(480, 8, 'png');
         $writer = new Writer($renderer);
         $png = $writer->writeString($vcard);
 
@@ -92,7 +92,7 @@ class ProfileController extends Controller
             abort(401);
         }
 
-        $renderer = new GDLibRenderer(240, 8, 'png');
+        $renderer = new GDLibRenderer(480, 8, 'png');
         $writer = new Writer($renderer);
         $png = $writer->writeString($user->barcode_code);
 

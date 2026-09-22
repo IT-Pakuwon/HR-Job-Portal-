@@ -22,13 +22,6 @@
                  src="{{ $user->profile_photo_url ?? asset('images/avatar-default.png') }}"
                  width="32" height="32"
                  alt="{{ $user->name ?? 'User' }}" />
-            <span
-                class="ml-1 hidden max-w-28 truncate text-xs font-medium text-gray-600 group-hover:text-gray-800 sm:inline-block dark:text-gray-100 dark:group-hover:text-white">
-                {{ $user->name }}
-            </span>
-            <svg class="h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500" viewBox="0 0 12 12">
-                <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
-            </svg>
         </button>
 
         <div class="{{ $align === 'right' ? 'right-0' : 'left-0' }} absolute top-full z-10 mt-1.5 w-64 origin-top-right overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg shadow-gray-200/50 dark:border-gray-700/60 dark:bg-gray-800 dark:shadow-none"
@@ -73,7 +66,7 @@
                             <path fill-rule="evenodd" clip-rule="evenodd"
                                   d="M3 4a2 2 0 00-2 2v8a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2H3zm1.5 3a1 1 0 000 2h1a1 1 0 100-2h-1zM4 12a1 1 0 011-1h2a1 1 0 110 2H5a1 1 0 01-1-1zm7.5-5a1 1 0 100 2h4a1 1 0 100-2h-4zm-1 4a1 1 0 011-1h4a1 1 0 110 2h-4a1 1 0 01-1-1z" />
                         </svg>
-                        Name Card
+                        Business Card
                     </button>
                 </li>
                 <li>
@@ -127,13 +120,13 @@
                 </svg>
             </button>
 
-            <div class="flex w-full max-w-sm flex-col items-center rounded-lg border border-gray-200 bg-white p-8 text-center shadow-lg dark:border-gray-700 dark:bg-gray-800"
+            <div class="flex w-full max-w-lg flex-col items-center rounded-lg border border-gray-200 bg-white p-8 text-center shadow-lg dark:border-gray-700 dark:bg-gray-800"
                  onclick="event.stopPropagation()">
                 <p class="text-base font-semibold text-gray-800 dark:text-white">{{ $user->name }}</p>
                 <p class="mb-6 text-xs text-gray-400">NPK {{ $user->npk ?? '-' }}</p>
 
                 <div class="rounded-md border border-gray-200 p-3 dark:border-gray-700">
-                    <img id="nameCardModalImage" src="" alt="Name card QR" class="w-full max-w-55">
+                    <img id="nameCardModalImage" src="" alt="Name card QR" class="w-full max-w-lg">
                 </div>
 
                 <p class="mt-6 text-sm font-semibold text-gray-800 dark:text-gray-100">Phone Camera</p>
@@ -173,7 +166,7 @@
                 </svg>
             </button>
 
-            <div class="flex w-full max-w-sm flex-col items-center rounded-lg border border-gray-200 bg-white p-8 text-center shadow-lg dark:border-gray-700 dark:bg-gray-800"
+            <div class="flex w-full max-w-lg flex-col items-center rounded-lg border border-gray-200 bg-white p-8 text-center shadow-lg dark:border-gray-700 dark:bg-gray-800"
                  onclick="event.stopPropagation()">
                 <p class="text-base font-semibold text-gray-800 dark:text-white">{{ $user->name }}</p>
                 <p class="mb-4 text-xs text-gray-400">NPK {{ $user->npk ?? '-' }}</p>
@@ -192,7 +185,7 @@
                 </div>
 
                 <div class="rounded-md border border-gray-200 p-3 dark:border-gray-700">
-                    <img id="checkinTrainingModalImage" src="" alt="" class="w-full max-w-55">
+                    <img id="checkinTrainingModalImage" src="" alt="" class="w-full max-w-lg">
                 </div>
 
                 <p id="checkinTrainingModalTitle" class="mt-6 text-sm font-semibold text-gray-800 dark:text-gray-100"></p>

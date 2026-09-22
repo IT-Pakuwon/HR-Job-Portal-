@@ -11,7 +11,7 @@
         x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
         x-transition:leave="transform transition ease-in duration-200" x-transition:leave-start="translate-x-0"
         x-transition:leave-end="-translate-x-full" @keydown.escape.window="sidebarOpen = false"
-        class="fixed left-0 top-0 z-50 h-[100dvh] w-72 max-w-[85vw] overflow-y-auto bg-white shadow-xl dark:bg-gray-800">
+        class="sidebar-scroll fixed left-0 top-0 z-50 h-[100dvh] w-72 max-w-[85vw] overflow-y-auto bg-white shadow-xl dark:bg-gray-800">
 
 
         <!-- SIDEBAR HEADER -->
@@ -26,7 +26,7 @@
         </div>
 
         <!-- CONTENT -->
-        <div class="space-y-4 p-4">
+        <div class="space-y-2 p-4">
 
             @php
                 $menuSearchIndex = collect();
@@ -803,6 +803,13 @@
                 @endauth
 
             </ul>
+        </div>
+
+        <!-- SIDEBAR FOOTER -->
+        <div class="border-t border-gray-200 px-4 py-3 text-center dark:border-gray-700">
+            <span class="text-xs text-gray-400 dark:text-gray-500">
+                &copy; 2026, Pakuwon Jakarta
+            </span>
         </div>
     </aside>
 </div>

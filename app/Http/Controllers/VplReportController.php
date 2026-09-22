@@ -572,7 +572,10 @@ class VplReportController extends Controller
             return [];
         }
 
+        // Voucher-type only — Stock Voucher and Stock Summary are scoped to vouchers;
+        // Product-type items (product_type='P') get their own Product Report.
         $products = MsVplProduct::where('cpnyid', $cpnyid)
+            ->where('product_type', 'V')
             ->get()
             ->keyBy('product_id');
 
@@ -1654,7 +1657,12 @@ class VplReportController extends Controller
             return [];
         }
 
-        $products = MsVplProduct::where('cpnyid', $cpnyid)->get()->keyBy('product_id');
+        // Voucher-type only — Loyalty Usage Rate is scoped to vouchers, matching the
+        // other 3 reports in the Voucher Stock Reports group.
+        $products = MsVplProduct::where('cpnyid', $cpnyid)
+            ->where('product_type', 'V')
+            ->get()
+            ->keyBy('product_id');
 
         $monthStart = Carbon::create($year, $month, 1)->startOfMonth();
         $monthEnd   = Carbon::create($year, $month, 1)->endOfMonth();
