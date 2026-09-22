@@ -20,7 +20,7 @@
         position: relative;
         width: 297mm;
         height: 210mm;
-        background: #1b1a35;
+        background: #23308c;
     }
 
     .cert-inner {
@@ -29,23 +29,27 @@
         left: 7.7mm;
         width: 281.6mm;
         height: 194.6mm;
-        background: #fbf8f1;
-        border: 1.5px solid #a9803f;
-        color: #211f34;
+        background: #fdfdfd;
+        border: 1.5px solid #e21f2d;
+        color: #1c1c2e;
     }
 
     .cert-content {
         text-align: center;
-        padding: 37.5mm 26.7mm 0;
+        padding: 12mm 26.7mm 0;
+    }
+
+    .logo-img {
+        height: 22mm;
     }
 
     .brand-table {
         width: 105mm;
-        margin: 0 auto;
+        margin: 5mm auto 0;
         border-collapse: collapse;
     }
     .brand-line-cell { width: 38mm; }
-    .brand-line { height: 1px; background: #cbb27a; }
+    .brand-line { height: 1px; background: #e21f2d; }
     .brand-text-cell {
         white-space: nowrap;
         padding: 0 4mm;
@@ -53,56 +57,75 @@
         font-weight: bold;
         letter-spacing: 2px;
         text-transform: uppercase;
-        color: #93702f;
+        color: #23308c;
     }
 
     .title {
-        margin-top: 8.9mm;
-        font-size: 33px;
+        margin-top: 6.5mm;
+        font-size: 30px;
         font-weight: bold;
         letter-spacing: 1px;
         text-transform: uppercase;
-        color: #1b1a35;
+        color: #23308c;
     }
 
     .lede {
-        margin-top: 4.7mm;
+        margin-top: 4mm;
         font-size: 15px;
         color: #6d6a76;
     }
 
     .name {
-        margin-top: 3mm;
+        margin-top: 2.6mm;
         font-family: Georgia, "Times New Roman", serif;
         font-weight: bold;
-        font-size: 40px;
+        font-size: 36px;
         line-height: 1.1;
-        color: #7c2231;
+        color: #e21f2d;
     }
 
     .body-text {
-        margin: 6mm auto 0;
+        margin: 5mm auto 0;
         max-width: 166mm;
         font-size: 14.5px;
         line-height: 1.55;
         color: #3c3a49;
     }
-    .body-text b { color: #1b1a35; }
+    .body-text b { color: #23308c; }
 
     .meta-line {
-        margin-top: 4mm;
+        margin-top: 3.5mm;
         font-size: 13px;
         letter-spacing: .3px;
-        color: #93702f;
+        color: #23308c;
         font-weight: bold;
     }
     .meta-line .dot {
         margin: 0 2.4mm;
-        color: #cbb27a;
+        color: #e21f2d;
     }
 
+    .stars-row {
+        margin-top: 5mm;
+    }
+    .stars-row .stars-caption {
+        display: block;
+        font-size: 10px;
+        font-weight: bold;
+        letter-spacing: 1.6px;
+        text-transform: uppercase;
+        color: #9a95a5;
+        margin-bottom: 1.5mm;
+    }
+    .stars-row .star {
+        font-size: 26px;
+        letter-spacing: 2px;
+    }
+    .stars-row .star.filled { color: #e21f2d; }
+    .stars-row .star.empty { color: #e3e1e6; }
+
     .footer-row {
-        margin-top: 19mm;
+        margin-top: 10mm;
         width: 100%;
         table-layout: fixed;
     }
@@ -156,6 +179,8 @@
 <div class="sheet">
     <div class="cert-inner">
         <div class="cert-content">
+            <img class="logo-img" src="{{ public_path('logo/pakuwon-learning-academy.png') }}" alt="Pakuwon Learning Academy">
+
             <table class="brand-table">
                 <tr>
                     <td class="brand-line-cell"><div class="brand-line"></div></td>
@@ -175,6 +200,15 @@
                 @endif
                 Conducted {{ \Carbon\Carbon::parse($scheduleDate)->translatedFormat('d F Y') }}
             </div>
+
+            @if (isset($stars))
+                <div class="stars-row">
+                    <span class="stars-caption">Stars Earned</span>
+                    @for ($i = 1; $i <= 5; $i++)
+                        <span class="star {{ $i <= $stars ? 'filled' : 'empty' }}">&#9733;</span>
+                    @endfor
+                </div>
+            @endif
 
             <table class="footer-row">
                 <tr>

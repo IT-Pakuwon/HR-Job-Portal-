@@ -68,6 +68,16 @@ class User extends Authenticatable
         'is_darkmode' => 'boolean',
     ];
 
+    public function originCompany()
+    {
+        return $this->belongsTo(MsCompany::class, 'origin_cpny_id', 'cpny_id');
+    }
+
+    public function originDepartment()
+    {
+        return $this->belongsTo(MsDepartment::class, 'origin_department_id', 'department_id');
+    }
+
     public function roleIds()
     {
         return SysUserRole::where('username', $this->username)

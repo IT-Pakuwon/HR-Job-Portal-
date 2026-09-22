@@ -111,6 +111,8 @@ class TrainingAttendanceController extends Controller
                 'department_name' => $deptNames[$r->department_id] ?? $r->department_id,
                 'attended_at' => $r->completed_at,
                 'attended_by' => $r->completed_by,
+                'is_late_attendance' => $r->is_late_attendance,
+                'stars' => $r->stars,
             ];
 
             if ($withHistory) {
@@ -584,12 +586,14 @@ class TrainingAttendanceController extends Controller
                 'department_name' => $deptNames[$latest->department_id] ?? $latest->department_id,
                 'trainings_count' => $rows->pluck('training_id')->unique()->count(),
                 'sessions_count' => $rows->count(),
+                'total_stars' => $rows->sum(fn ($r) => $r->stars),
                 'trainings' => $rows->sortByDesc('schedule_date')->map(fn ($r) => [
                     'training_name' => $trainingNames[$r->training_id] ?? $r->training_id,
                     'schedule_date' => $r->schedule_date,
+                    'stars' => $r->stars,
                 ])->values(),
             ];
-        })->values()->sortByDesc('trainings_count')->values();
+        })->values()->sortByDesc('sessions_count')->values();
 
         return response()->json(['data' => $rows]);
     }

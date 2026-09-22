@@ -110,6 +110,37 @@
                 </div>
             </div>
 
+            <!-- My Trainings & Stars -->
+            <div class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+                <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+                    <div class="flex items-center gap-3">
+                        <span
+                            class="bg-linear-to-br flex h-8 w-8 items-center justify-center rounded-lg from-amber-500 to-orange-500 text-white shadow-sm shadow-amber-500/30">
+                            <i class="fa-solid fa-star text-xs"></i>
+                        </span>
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-100">My Trainings & Stars</h4>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Earned by attending trainings on time
+                                and submitting feedback before it closes</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="myStarsTotalBadge"
+                            class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-sm font-bold text-amber-600 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-400 dark:ring-amber-400/20">
+                            ⭐ -
+                        </span>
+                        <button type="button" id="btnShowMyStars"
+                            class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                            <span
+                                class="flex h-5 w-5 items-center justify-center rounded-full bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-300">
+                                <i class="fa-solid fa-list text-[9px]"></i>
+                            </span>
+                            View Trainings
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Company Access -->
             @php
                 $tagPalette = [
@@ -238,6 +269,33 @@
         </div>
     </div>
 
+    <!-- My Trainings & Stars modal -->
+    <div id="myStarsModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 p-4">
+        <div
+            class="w-full max-w-lg overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800">
+            <div class="bg-linear-to-br relative overflow-hidden from-amber-500 via-orange-500 to-orange-600 px-6 py-6">
+                <div class="pointer-events-none absolute -right-6 -top-6 text-8xl opacity-15">⭐</div>
+                <button type="button" id="btnCloseMyStarsModal"
+                    class="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <h2 class="text-base font-semibold text-white">My Trainings & Stars</h2>
+                <p class="mt-0.5 text-xs text-amber-100">Trainings you've attended</p>
+                <div class="mt-4 flex items-end gap-2">
+                    <span id="myStarsModalTotal" class="text-4xl font-extrabold leading-none text-white">0</span>
+                    <span class="mb-0.5 flex items-center gap-1 text-sm font-semibold text-amber-100">
+                        <i class="fa-solid fa-star"></i> total stars
+                    </span>
+                </div>
+            </div>
+            <div id="myStarsModalBody" class="max-h-96 space-y-2.5 overflow-y-auto p-5"></div>
+            <div id="myStarsModalEmpty" class="hidden flex flex-col items-center gap-2 px-6 py-12 text-center">
+                <span class="text-3xl opacity-40">🎓</span>
+                <p class="text-sm text-gray-400">No trainings attended yet.</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Fullscreen barcode/QR viewer -->
     <div id="codeModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 p-4">
         <button type="button" id="closeCodeModal"
@@ -292,6 +350,62 @@
                 'Scan to save as a contact — also checks you in at any training event.');
             $('#codeModal').removeClass('hidden').addClass('flex');
         }
+
+        const myStarsUrl = "{{ route('training-list.my-stars') }}";
+
+        function fmtTrainingDate(d) {
+            if (!d) return '-';
+            return new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        function myStarsRowHtml(t) {
+            const lateBadge = t.is_late_attendance
+                ? '<span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">⏰ Late</span>'
+                : '<span class="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">✅ Not Late</span>';
+            const feedbackBadge = t.feedback_stars > 0
+                ? '<span class="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">📝 Feedback +1</span>'
+                : '';
+
+            return `
+                <div class="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/60 p-3.5 transition hover:border-amber-200 hover:bg-amber-50/50 dark:border-gray-700 dark:bg-gray-700/30 dark:hover:border-amber-500/30 dark:hover:bg-amber-500/5">
+                    <span class="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-indigo-50 text-base dark:bg-indigo-900/30">🎓</span>
+                    <div class="min-w-0 flex-1">
+                        <p class="truncate text-sm font-semibold text-gray-800 dark:text-gray-100">${t.training_name ?? '-'}</p>
+                        <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
+                            <span class="inline-flex items-center gap-1 text-xs text-gray-400"><i class="fa-regular fa-calendar"></i> ${fmtTrainingDate(t.schedule_date)}</span>
+                            ${lateBadge}
+                            ${feedbackBadge}
+                        </div>
+                    </div>
+                    <span class="flex flex-none items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-sm font-extrabold text-amber-600 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-400 dark:ring-amber-400/20">⭐ ${t.stars}</span>
+                </div>
+            `;
+        }
+
+        function loadMyStars() {
+            $.get(myStarsUrl, function (res) {
+                const rows = res.data || [];
+                $('#myStarsTotalBadge').html('⭐ ' + res.total_stars);
+                $('#myStarsModalTotal').text(res.total_stars);
+                $('#myStarsModalBody').html(rows.map(myStarsRowHtml).join(''));
+                $('#myStarsModalEmpty').toggleClass('hidden', rows.length > 0);
+            });
+        }
+
+        $('#btnShowMyStars').on('click', function () {
+            $('#myStarsModal').removeClass('hidden').addClass('flex');
+            loadMyStars();
+        });
+
+        $('#btnCloseMyStarsModal').on('click', function () {
+            $('#myStarsModal').addClass('hidden').removeClass('flex');
+        });
+
+        $('#myStarsModal').on('click', function (e) {
+            if (e.target === this) $(this).addClass('hidden').removeClass('flex');
+        });
+
+        loadMyStars();
 
         $('#btnShowBarcode').on('click', () => openCodeModal('barcode'));
         $('#btnShowQr').on('click', () => openCodeModal('qr'));

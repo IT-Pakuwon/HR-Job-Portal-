@@ -101,7 +101,7 @@ class TrainingSessionController extends Controller
 
         $allDetails = $headers->flatMap(fn ($h) => $h->details);
 
-        $speakerUsernames = $allDetails->pluck('training_speaker_username')->filter()->unique();
+        $speakerUsernames = $allDetails->flatMap(fn ($d) => $this->splitMulti($d->training_speaker_username))->unique()->values();
         $speakerNames = $speakerUsernames->isEmpty()
             ? collect()
             : User::whereIn('username', $speakerUsernames)->pluck('name', 'username');
@@ -145,9 +145,7 @@ class TrainingSessionController extends Controller
                     'platform' => $detail->training_platform,
                     'meeting_link' => $detail->training_meeting_link,
                     'training_speaker_username' => $detail->training_speaker_username,
-                    'training_speaker_name' => $detail->training_speaker_username
-                        ? ($speakerNames[$detail->training_speaker_username] ?? $detail->training_speaker_name)
-                        : $detail->training_speaker_name,
+                    'training_speaker_name' => $this->refreshSpeakerNames($detail->training_speaker_username, $detail->training_speaker_name, $speakerNames),
                     'training_ext_speaker_name' => $detail->training_ext_speaker_name,
                     'registration_deadline' => $detail->registration_deadline,
                     'status' => self::STATUS_LABEL_MAP[$detail->status] ?? $detail->status,
@@ -208,15 +206,18 @@ class TrainingSessionController extends Controller
     }
 
     /**
-     * Rules for creating a batch: one level, one batch name, one shared
-     * speaker-source toggle, and one-or-more dates. Quota is entered once
-     * and applied to every date in the batch (each date still tracks its
-     * own quota independently from there on).
+     * Rules for creating a batch: one-or-more levels, one batch name, one
+     * shared speaker-source toggle, and one-or-more dates. Quota is entered
+     * once and applied to every date in the batch (each date still tracks
+     * its own quota independently from there on) — a batch with several
+     * levels shares that same quota/dates across all of them, it does not
+     * get split per level.
      */
     private function batchRules(): array
     {
         return [
-            'job_level' => 'required|string|max:50',
+            'job_level' => 'required|array|min:1',
+            'job_level.*' => 'required|string|max:50',
             'training_detail_name' => 'required|string|max:255',
             'training_poster' => 'nullable|image|max:5120',
             'is_ext_speaker' => 'required|boolean',
@@ -229,9 +230,12 @@ class TrainingSessionController extends Controller
             'dates.*.platform' => 'nullable|string|max:100',
             'dates.*.meeting_link' => 'nullable|string|max:255',
             'dates.*.registration_deadline' => 'nullable|date|after_or_equal:today|before_or_equal:dates.*.schedule_date',
-            'dates.*.speaker_username' => ['required_if:is_ext_speaker,0', 'nullable', 'string', 'max:50', $this->speakerGroupRule()],
-            'dates.*.speaker_name' => 'nullable|string|max:255',
-            'dates.*.ext_speaker_name' => 'required_if:is_ext_speaker,1|nullable|string|max:255',
+            'dates.*.speaker_username' => 'nullable|array|max:3',
+            'dates.*.speaker_username.*' => 'nullable|string|max:50',
+            'dates.*.speaker_name' => 'nullable|array|max:3',
+            'dates.*.speaker_name.*' => 'nullable|string|max:80',
+            'dates.*.ext_speaker_name' => 'nullable|array|max:3',
+            'dates.*.ext_speaker_name.*' => 'nullable|string|max:80',
             'quota' => 'required|array|min:1',
             'quota.*.cpny_id' => ['required', 'string', 'max:10', $this->quotaCompanyRule()],
             'quota.*.quota_pax' => 'required|integer|min:1',
@@ -246,7 +250,8 @@ class TrainingSessionController extends Controller
     private function dateRules(): array
     {
         return [
-            'job_level' => 'required|string|max:50',
+            'job_level' => 'required|array|min:1',
+            'job_level.*' => 'required|string|max:50',
             'training_detail_name' => 'required|string|max:255',
             'training_poster' => 'nullable|image|max:5120',
             'is_ext_speaker' => 'required|boolean',
@@ -258,13 +263,32 @@ class TrainingSessionController extends Controller
             'platform' => 'nullable|string|max:100',
             'meeting_link' => 'nullable|string|max:255',
             'registration_deadline' => 'nullable|date|after_or_equal:today|before_or_equal:schedule_date',
-            'speaker_username' => ['required_if:is_ext_speaker,0', 'nullable', 'string', 'max:50', $this->speakerGroupRule()],
-            'speaker_name' => 'nullable|string|max:255',
-            'ext_speaker_name' => 'required_if:is_ext_speaker,1|nullable|string|max:255',
+            'speaker_username' => 'nullable|array|max:3',
+            'speaker_username.*' => 'nullable|string|max:50',
+            'speaker_name' => 'nullable|array|max:3',
+            'speaker_name.*' => 'nullable|string|max:80',
+            'ext_speaker_name' => 'nullable|array|max:3',
+            'ext_speaker_name.*' => 'nullable|string|max:80',
             'quota' => 'required|array|min:1',
             'quota.*.cpny_id' => ['required', 'string', 'max:10', $this->quotaCompanyRule()],
             'quota.*.quota_pax' => 'required|integer|min:1',
         ];
+    }
+
+    /**
+     * Several group_job_level labels picked in the Level multi-select are
+     * stored as one comma-joined string in job_level (varchar(1000), plenty
+     * of room) — no schema change needed, and every other job_level reader
+     * (StoGrading::labelsFor, the registration eligibility gate) already
+     * knows to split back on the comma.
+     */
+    private function combineJobLevels(array $levels): string
+    {
+        return collect($levels)
+            ->map(fn ($level) => trim((string) $level))
+            ->filter()
+            ->unique()
+            ->implode(',');
     }
 
     /**
@@ -282,16 +306,140 @@ class TrainingSessionController extends Controller
     }
 
     /**
-     * An internal speaker must belong to the acting user's own group_cpny_id
-     * — mirrors speakerSearch()'s picker scoping.
+     * Up to 3 internal speakers picked in the Speaker multi-select are
+     * stored the same way multi-level is — comma-joined in the existing
+     * single varchar columns, username/name kept position-aligned so a
+     * name typed free (not picked from the list) simply leaves its
+     * username slot blank instead of losing its place.
+     *
+     * @return array{0: string, 1: string} [usernames_csv, names_csv]
      */
-    private function speakerGroupRule()
+    private function combineSpeakers(array $usernames, array $names): array
     {
-        $groupCpnyId = $this->userGroupCpnyId();
+        $pairs = [];
+        $count = max(count($usernames), count($names));
 
-        return Rule::exists(User::class, 'username')->where(function ($query) use ($groupCpnyId) {
-            $query->where('group_cpny_id', $groupCpnyId);
-        });
+        for ($i = 0; $i < $count; $i++) {
+            $name = trim((string) ($names[$i] ?? ''));
+            if ($name === '') {
+                continue;
+            }
+
+            $pairs[] = [trim((string) ($usernames[$i] ?? '')), $name];
+        }
+
+        $pairs = array_slice($pairs, 0, 3);
+
+        // Names joined with ", " (not just ",") since some readers of
+        // training_speaker_name (e.g. TrainingRegistrationController's
+        // display fields) use the raw stored value directly rather than
+        // going through decorateSchedules()'s refreshSpeakerNames() —
+        // the space is purely cosmetic and every position-aligned re-split
+        // downstream (explode(',', ...) + trim) still lines up correctly.
+        return [
+            implode(',', array_column($pairs, 0)),
+            implode(', ', array_column($pairs, 1)),
+        ];
+    }
+
+    /**
+     * Up to 3 external speaker names, comma-joined the same way — these
+     * have no username to stay aligned with, so blanks/duplicates are
+     * simply dropped. Joined with ", " (every reader downstream re-splits
+     * on plain "," and trims each piece, so the space is purely cosmetic —
+     * it just saves every display call site from reformatting this raw
+     * field the way StoGrading::labelsFor()/refreshSpeakerNames() already
+     * do for job_level and internal speakers).
+     */
+    private function combineExtSpeakers(array $names): string
+    {
+        return collect($names)
+            ->map(fn ($name) => trim((string) $name))
+            ->filter()
+            ->unique()
+            ->take(3)
+            ->implode(', ');
+    }
+
+    /**
+     * "At least one speaker" used to be a required_if validation rule, but
+     * an array can't express "at least one non-empty element" that way —
+     * checked here instead, after $request->validate() confirms the shape.
+     * An internal speaker's username (when present, i.e. picked from the
+     * list rather than typed free) must still belong to the acting user's
+     * own group_cpny_id, mirroring speakerSearch()'s picker scoping.
+     *
+     * @return string|null an error message, or null if the selection is valid
+     */
+    private function validateSpeakerSelection(array $usernames, array $names, array $extNames, bool $isExtSpeaker): ?string
+    {
+        if ($isExtSpeaker) {
+            $hasExt = collect($extNames)->map(fn ($n) => trim((string) $n))->filter()->isNotEmpty();
+
+            return $hasExt ? null : 'At least one external speaker name is required.';
+        }
+
+        $hasSpeaker = collect($names)->map(fn ($n) => trim((string) $n))->filter()->isNotEmpty();
+        if (!$hasSpeaker) {
+            return 'At least one speaker is required.';
+        }
+
+        $pickedUsernames = collect($usernames)->map(fn ($u) => trim((string) $u))->filter()->unique();
+        if ($pickedUsernames->isNotEmpty()) {
+            $validCount = User::whereIn('username', $pickedUsernames)
+                ->where('group_cpny_id', $this->userGroupCpnyId())
+                ->count();
+
+            if ($validCount !== $pickedUsernames->count()) {
+                return 'One or more selected speakers are not available in your company group.';
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Small comma-list helper shared with StoGrading::labelsFor's job_level
+     * handling — trims each piece and drops empties, but (unlike
+     * combineSpeakers) does not preserve position, since callers here only
+     * need the distinct set of values, not an aligned pair.
+     */
+    private function splitMulti(?string $raw): \Illuminate\Support\Collection
+    {
+        return collect(explode(',', (string) $raw))
+            ->map(fn ($v) => trim($v))
+            ->filter()
+            ->values();
+    }
+
+    /**
+     * decorateSchedules()'s per-detail speaker display name: refreshed from
+     * the User table wherever a position has a real username (in case that
+     * user's name changed since), falling back to the name stored at
+     * save-time for free-typed positions (blank username) or usernames no
+     * longer found.
+     */
+    private function refreshSpeakerNames(?string $usernamesCsv, ?string $namesCsv, \Illuminate\Support\Collection $speakerNameLookup): ?string
+    {
+        if (!$usernamesCsv) {
+            return $namesCsv;
+        }
+
+        $usernames = explode(',', $usernamesCsv);
+        $names = explode(',', (string) $namesCsv);
+
+        $refreshed = [];
+        foreach ($usernames as $i => $username) {
+            $username = trim($username);
+            $fallbackName = trim($names[$i] ?? '');
+            $resolved = $username !== '' ? ($speakerNameLookup[$username] ?? $fallbackName) : $fallbackName;
+
+            if ($resolved !== '') {
+                $refreshed[] = $resolved;
+            }
+        }
+
+        return $refreshed ? implode(', ', $refreshed) : null;
     }
 
     private function generateTrainingDetailCode(string $username): string
@@ -336,6 +484,23 @@ class TrainingSessionController extends Controller
 
         $request->validate($this->batchRules());
 
+        $isExtSpeaker = $request->boolean('is_ext_speaker');
+
+        foreach ($request->dates as $line => $dateRow) {
+            $error = $this->validateSpeakerSelection(
+                $dateRow['speaker_username'] ?? [],
+                $dateRow['speaker_name'] ?? [],
+                $dateRow['ext_speaker_name'] ?? [],
+                $isExtSpeaker
+            );
+
+            if ($error) {
+                $dateNo = $line + 1;
+
+                return response()->json(['success' => false, 'message' => "Date #{$dateNo}: {$error}"], 422);
+            }
+        }
+
         DB::connection('pgsql5')->beginTransaction();
 
         try {
@@ -343,7 +508,6 @@ class TrainingSessionController extends Controller
             $createdBy = $user->username ?? 'system';
 
             $trainingDetailId = $this->generateTrainingDetailCode($createdBy);
-            $isExtSpeaker = $request->boolean('is_ext_speaker');
 
             $posterPath = $request->hasFile('training_poster')
                 ? $this->gcsUpload($request->file('training_poster'), self::POSTER_FOLDER)
@@ -354,7 +518,7 @@ class TrainingSessionController extends Controller
                 'training_id' => $training->training_id,
                 'training_detail_name' => trim($request->training_detail_name),
                 'training_poster' => $posterPath,
-                'job_level' => trim($request->job_level),
+                'job_level' => $this->combineJobLevels($request->job_level),
                 'is_ext_speaker' => $isExtSpeaker,
                 'status' => 'A',
                 'created_by' => $createdBy,
@@ -369,6 +533,17 @@ class TrainingSessionController extends Controller
 
                 $isOffsite = in_array($dateRow['mode'], ['OFFLINE', 'HYBRID'], true);
 
+                if ($isExtSpeaker) {
+                    $speakerUsername = null;
+                    $speakerName = null;
+                    $extSpeakerName = $this->combineExtSpeakers($dateRow['ext_speaker_name'] ?? []) ?: null;
+                } else {
+                    [$speakerUsername, $speakerName] = $this->combineSpeakers($dateRow['speaker_username'] ?? [], $dateRow['speaker_name'] ?? []);
+                    $speakerUsername = $speakerUsername ?: null;
+                    $speakerName = $speakerName ?: null;
+                    $extSpeakerName = null;
+                }
+
                 $detail = MsLndTrainingSchedule::create([
                     'schedule_id' => $this->generateScheduleDateCode($createdBy),
                     'training_id' => $training->training_id,
@@ -381,9 +556,9 @@ class TrainingSessionController extends Controller
                     'training_platform' => $dateRow['platform'] ?? null,
                     'training_meeting_link' => $dateRow['meeting_link'] ?? null,
                     'registration_deadline' => $deadline,
-                    'training_speaker_username' => $isExtSpeaker ? null : ($dateRow['speaker_username'] ?? null),
-                    'training_speaker_name' => $isExtSpeaker ? null : ($dateRow['speaker_name'] ?? null),
-                    'training_ext_speaker_name' => $isExtSpeaker ? trim($dateRow['ext_speaker_name']) : null,
+                    'training_speaker_username' => $speakerUsername,
+                    'training_speaker_name' => $speakerName,
+                    'training_ext_speaker_name' => $extSpeakerName,
                     'status' => self::STATUS_CODE_MAP['DRAFT'],
                     'created_by' => $createdBy,
                 ]);
@@ -428,16 +603,27 @@ class TrainingSessionController extends Controller
 
         $request->validate($this->dateRules());
 
+        $isExtSpeaker = $request->boolean('is_ext_speaker');
+
+        $error = $this->validateSpeakerSelection(
+            $request->input('speaker_username', []),
+            $request->input('speaker_name', []),
+            $request->input('ext_speaker_name', []),
+            $isExtSpeaker
+        );
+
+        if ($error) {
+            return response()->json(['success' => false, 'message' => $error], 422);
+        }
+
         DB::connection('pgsql5')->beginTransaction();
 
         try {
             $user = Auth::user();
             $updatedBy = $user->username ?? 'system';
 
-            $isExtSpeaker = $request->boolean('is_ext_speaker');
-
             $scheduleUpdate = [
-                'job_level' => trim($request->job_level),
+                'job_level' => $this->combineJobLevels($request->job_level),
                 'training_detail_name' => trim($request->training_detail_name),
                 'is_ext_speaker' => $isExtSpeaker,
                 'updated_by' => $updatedBy,
@@ -457,6 +643,17 @@ class TrainingSessionController extends Controller
 
             $isOffsite = in_array($request->mode, ['OFFLINE', 'HYBRID'], true);
 
+            if ($isExtSpeaker) {
+                $speakerUsername = null;
+                $speakerName = null;
+                $extSpeakerName = $this->combineExtSpeakers($request->input('ext_speaker_name', [])) ?: null;
+            } else {
+                [$speakerUsername, $speakerName] = $this->combineSpeakers($request->input('speaker_username', []), $request->input('speaker_name', []));
+                $speakerUsername = $speakerUsername ?: null;
+                $speakerName = $speakerName ?: null;
+                $extSpeakerName = null;
+            }
+
             $detail->update([
                 'schedule_date' => $request->schedule_date,
                 'schedule_start_time' => $request->start_time,
@@ -466,9 +663,9 @@ class TrainingSessionController extends Controller
                 'training_platform' => $request->platform,
                 'training_meeting_link' => $request->meeting_link,
                 'registration_deadline' => $deadline,
-                'training_speaker_username' => $isExtSpeaker ? null : $request->speaker_username,
-                'training_speaker_name' => $isExtSpeaker ? null : $request->speaker_name,
-                'training_ext_speaker_name' => $isExtSpeaker ? trim($request->ext_speaker_name) : null,
+                'training_speaker_username' => $speakerUsername,
+                'training_speaker_name' => $speakerName,
+                'training_ext_speaker_name' => $extSpeakerName,
                 'updated_by' => $updatedBy,
             ]);
 
