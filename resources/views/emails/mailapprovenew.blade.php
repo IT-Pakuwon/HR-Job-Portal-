@@ -19,6 +19,7 @@
         $deptname = $deptname ?? '-';
         $date = $date ?? '-';
         $createdby = $createdby ?? '-';
+        $actionby = $actionby ?? null;
         $url = $url ?? '#';
         $tenant = $tenant ?? null;
         $voucherLines = $voucher_lines ?? [];
@@ -59,6 +60,13 @@
                 'btnText' => 'View Document →',
                 'btnColor' => '#10b981',
                 'intro' => "Dokumen {$docname} telah selesai diproses.",
+            ],
+            'X' => [
+                'title' => 'Cancelled',
+                'banner' => '#6b7280', // gray
+                'btnText' => 'View Document →',
+                'btnColor' => '#6b7280',
+                'intro' => "Dokumen {$docname} telah dibatalkan.",
             ],
         ];
         $cfg = $map[$status] ?? $map['P'];
@@ -125,6 +133,12 @@
                                     <td style="background:#f9fafb; font-weight:bold;">Created By</td>
                                     <td>{{ $createdby }}</td>
                                 </tr>
+                                @if($actionby)
+                                <tr>
+                                    <td style="background:#f9fafb; font-weight:bold;">{{ $status === 'X' ? 'Cancelled By' : ($status === 'D' ? 'Revised By' : 'Action By') }}</td>
+                                    <td>{{ $actionby }}</td>
+                                </tr>
+                                @endif
 
                             </table>
 

@@ -114,6 +114,65 @@ class PersonnelController extends Controller
         ];
     }
 
+    /**
+     * Revise (D) & Cancel (X) both need to alert HR Central (GroupAccspecific
+     * group_access_id=STEP) that a PRF went back to the requester / was pulled
+     * out of the approval flow, and who did it — on top of whatever email the
+     * creator already gets from the calling action.
+     */
+    private function notifyStepAccessOnPrfStatus(Personnel $personnel, string $statusCode, string $actorName): void
+    {
+        $stepUsernames = GroupAccspecific::where('group_access_id', 'STEP')
+            ->where('group_cpny_id', $personnel->group_cpny_id)
+            ->where('status', 'A')
+            ->pluck('username')
+            ->filter()
+            ->unique();
+
+        if ($stepUsernames->isEmpty()) {
+            return;
+        }
+
+        $recipients = User::whereIn('username', $stepUsernames)
+            ->where('group_cpny_id', $personnel->group_cpny_id)
+            ->where('status', 'A')
+            ->get();
+
+        if ($recipients->isEmpty()) {
+            return;
+        }
+
+        $eid = Hashids::encode($personnel->id);
+        $mailMaster = $this->personnelMailMasterNames($personnel);
+        $label = $statusCode === 'X' ? 'Cancelled' : 'Revise';
+
+        $data = [
+            'docid' => $personnel->docid,
+            'cpnyid' => $mailMaster['company'],
+            'deptname' => $mailMaster['department'],
+            'date' => Carbon::now()->toDateString(),
+            'createdby' => $mailMaster['creator'],
+            'actionby' => $actorName,
+            'docname' => 'Personnel Requisition',
+            'status' => $statusCode,
+            'info' => $personnel->job_title,
+            'url' => url('/showpersonnels/'.$eid),
+        ];
+
+        foreach ($recipients as $rcp) {
+            if (!$rcp->notification_email) {
+                continue;
+            }
+
+            $recipientData = array_merge($data, ['name' => $rcp->name ?: 'User']);
+            \Mail::send('emails.mailapproveprf', $recipientData, function ($message) use ($recipientData, $rcp, $label) {
+                $message->to($rcp->notification_email)
+                        ->subject($recipientData['docid'].' - '.$label.' Personnel')
+                        ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+            });
+        }
+    }
+
     private function personnelScopeForUser($user)
     {
         $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
@@ -213,7 +272,8 @@ class PersonnelController extends Controller
             SUM(CASE WHEN status = 'R' THEN 1 ELSE 0 END) AS reject,
             SUM(CASE WHEN status = 'D' THEN 1 ELSE 0 END) AS revise,
             SUM(CASE WHEN status = 'C' THEN 1 ELSE 0 END) AS completed,
-            SUM(CASE WHEN status = 'H' THEN 1 ELSE 0 END) AS draft
+            SUM(CASE WHEN status = 'H' THEN 1 ELSE 0 END) AS draft,
+            SUM(CASE WHEN status = 'X' THEN 1 ELSE 0 END) AS cancel
         ")->first();
 
         // =========================================================
@@ -237,6 +297,7 @@ class PersonnelController extends Controller
             'revise' => (int) ($counts->revise ?? 0),
             'completed' => (int) ($counts->completed ?? 0),
             'draft' => (int) ($counts->draft ?? 0),
+            'cancel' => (int) ($counts->cancel ?? 0),
             'hcbpAll' => (int) ($hcbpAll ?? 0), // 🔥 tambahan
             'departments' => $departments,
             'hasAllDeptAccess' => $hasAllDeptAccess,
@@ -2227,6 +2288,9 @@ class PersonnelController extends Controller
             });
         }
 
+        // Alert HR Central (STEP access) that this PRF was sent back for revision
+        $this->notifyStepAccessOnPrfStatus($personnel, 'D', $user->name ?: $user->username);
+
         // Simpan komentar (alasan revisi)
         $id = $personnel->id;
         $doctype = 'PRF';
@@ -2238,6 +2302,51 @@ class PersonnelController extends Controller
         );
 
         return response()->json(['success' => true, 'message' => 'Personnel revised successfully']);
+    }
+
+    /**
+     * Creator-only "withdraw" of their own PRF while it's back in their hands for
+     * revision (status D) — mirrors IMBudgetController::cancelIMBudget()'s cancel
+     * pattern. Reachable from the editpersonnels Cancel button instead of the
+     * discard-changes navigation used everywhere else on that page.
+     */
+    public function cancelPersonnel(Request $request, $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = $request->user();
+        $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
+
+        $personnel = Personnel::whereKey($id)
+            ->where('group_cpny_id', $groupCompanyId)
+            ->first();
+
+        if (!$personnel) {
+            return response()->json(['success' => false, 'message' => 'Personnel not found'], 404);
+        }
+
+        if ($personnel->created_user !== $user->username) {
+            return response()->json(['success' => false, 'message' => "Only the creator can cancel this document."], 403);
+        }
+
+        if ($personnel->status !== 'D') {
+            return response()->json(['success' => false, 'message' => 'Only a PRF that is back for Revise can be cancelled.'], 422);
+        }
+
+        $personnel->status = 'X';
+        $personnel->save();
+
+        // Guard: revisePersonnel() already flips pending approval lines to X, but
+        // cover the case directly should this ever be reachable another way.
+        TrApproval::where('refnbr', $personnel->docid)
+            ->where('aprv_cpnyid', $personnel->cpnyid)
+            ->where('status', 'P')
+            ->update(['status' => 'X']);
+
+        $this->notifyStepAccessOnPrfStatus($personnel, 'X', $user->name ?: $user->username);
+
+        return response()->json(['success' => true, 'message' => 'Personnel requisition cancelled successfully']);
     }
 
 

@@ -3,7 +3,7 @@
         $isHcbp = auth()->user()->hasRole('HCBPACCESS');
         $isSby = ($group_cpny_id ?? '') === 'SBY';
 
-        $xlCols = 5; // All, On Progress, Reject, Revise, Completed
+        $xlCols = 6; // All, On Progress, Reject, Revise, Completed, Cancel
 
         if ($isSby) {
             $xlCols++; // tambah 1 untuk Draft (Save as Draft / Copy Template khusus SBY)
@@ -109,6 +109,21 @@
                     <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
                 </div>
             </a>
+
+            {{-- Cancel --}}
+            <a href="#" class="status-filter group block h-full" data-status="X">
+                <div
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
+
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🚫</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-sm font-medium">Cancel</p>
+                    </div>
+
+                    <p class="shrink-0 text-base font-bold">{{ $cancel }}</p>
+                </div>
+            </a>
             @if($isHcbp)
             <a href="#" class="status-filter group block h-full" data-hcbp="1">
                 <div
@@ -141,6 +156,7 @@
                             <option value="R">Reject</option>
                             <option value="D">Revise</option>
                             <option value="C">Completed</option>
+                            <option value="X">Cancel</option>
                             @if($isSby)
                             <option value="H">Draft</option>
                             @endif

@@ -518,9 +518,9 @@
 
                         <div class="flex flex-col gap-3 md:flex-row md:items-center">
                             <button type="button" id="cancelBtn"
-                                class="flex items-center gap-2 rounded-md border border-red-300 bg-white px-4 py-2 text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-300 dark:border-red-500/40 dark:bg-transparent dark:text-red-400 dark:hover:bg-red-500/10">
-                                <span id="cancelText">Cancel</span>
-                                <svg id="cancelSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-red-600"
+                                class="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
+                                <span id="cancelText">{{ $personnel->status === 'D' && $personnel->created_user === auth()->user()->username ? 'Cancel Document' : 'Cancel' }}</span>
+                                <svg id="cancelSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
@@ -617,10 +617,56 @@
                 });
             });
 
+            @if ($personnel->status === 'D' && $personnel->created_user === auth()->user()->username)
+            // Creator cancelling their own Revise-status PRF -> actually cancels
+            // the document (status X), not just a discard-changes navigation.
+            $('#cancelBtn').click(async function() {
+                const confirmed = await Swal.fire({
+                    icon: 'warning',
+                    title: 'Cancel Document?',
+                    text: 'Are you sure you want to cancel this document? This action cannot be undone.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, cancel it',
+                    cancelButtonText: 'No',
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
+                    reverseButtons: true,
+                    focusCancel: true,
+                });
+
+                if (!confirmed.isConfirmed) return;
+
+                $('#cancelBtn').prop('disabled', true);
+                $('#cancelText').text('Cancelling...');
+                $('#cancelSpinner').removeClass('hidden');
+                showOverlay('Cancelling');
+
+                $.ajax({
+                    url: "{{ route('personnels.cancel', $hash) }}",
+                    type: 'POST',
+                    data: {
+                        _method: 'PUT',
+                        _token: "{{ csrf_token() }}"
+                    },
+                    success: function(res) {
+                        toastr.success(res.message || 'Document cancelled.');
+                        window.location.href = "{{ route('personnels') }}";
+                    },
+                    error: function(xhr) {
+                        toastr.error(xhr.responseJSON?.message || 'Failed to cancel document.');
+                        $('#cancelBtn').prop('disabled', false);
+                        $('#cancelText').text('Cancel Document');
+                        $('#cancelSpinner').addClass('hidden');
+                        hideOverlay();
+                    }
+                });
+            });
+            @else
             $('#cancelBtn').click(function() {
                 const confirmed = confirm("Are you sure you want to cancel? Unsaved changes will be lost.");
                 if (confirmed) window.location.href = "{{ route('personnels') }}";
             });
+            @endif
 
             // ========= SELECT2 INIT =========
             $('#cpnyid').select2({
