@@ -113,7 +113,6 @@ use App\Http\Controllers\PgTrekDashboardController;
 use App\Http\Controllers\PmGroupController;
 use App\Http\Controllers\PmProjectController;
 use App\Http\Controllers\PmTaskController;
-use App\Http\Controllers\PmTaskDetailController;
 use App\Http\Controllers\PoController;
 use App\Http\Controllers\PoListController;
 use App\Http\Controllers\ProfileController;
@@ -155,6 +154,7 @@ use App\Http\Controllers\LegalAgreementController;
 use App\Http\Controllers\SysScreenController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
+use App\Http\Controllers\TeamTaskController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\TestEmailController;
 use App\Http\Controllers\TicketController;
@@ -1595,8 +1595,22 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/search-users', 'searchUsers')->name('search-users');
             Route::post('/', 'store')->name('store');
             Route::get('/{teamId}/edit', 'edit')->name('edit');
+            Route::get('/{teamId}/detail', 'detail')->name('detail');
             Route::put('/{teamId}', 'update')->name('update');
             Route::delete('/{teamId}', 'destroy')->name('destroy');
+            Route::get('/{eid}', 'show')->name('show');
+        });
+
+        // A Team's own recursive Task tree — independent of Project.
+        Route::controller(TeamTaskController::class)->prefix('all-team/{teamId}/tasks')->name('all-team.tasks.')->group(function () {
+            Route::get('/board-data', 'boardData')->name('board-data');
+            Route::get('/tags', 'tags')->name('tags');
+            Route::post('/', 'store')->name('store');
+            Route::put('/{taskId}', 'update')->name('update');
+            Route::post('/{taskId}/status', 'updateStatus')->name('status');
+            Route::delete('/{taskId}', 'destroy')->name('destroy');
+            Route::post('/statuses', 'storeStatus')->name('statuses.store');
+            Route::get('/{taskId}/mentionable-users', 'mentionableUsers')->name('mentionable-users');
         });
 
         Route::controller(PmGroupController::class)->prefix('project-groups')->name('project-groups.')->group(function () {
@@ -1614,19 +1628,23 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/kanban', 'kanban')->name('kanban');
             Route::get('/gantt', 'gantt')->name('gantt');
             Route::get('/board-data', 'boardData')->name('board-data');
+            Route::get('/tags', 'tags')->name('tags');
+            Route::post('/favorites/toggle', 'toggleFavorite')->name('favorites.toggle');
             Route::post('/', 'store')->name('store');
             Route::post('/statuses', 'storeStatus')->name('statuses.store');
-            Route::get('/{projectId}', 'show')->name('show');
+            Route::get('/{projectId}/detail', 'detail')->name('detail');
             Route::put('/{projectId}', 'update')->name('update');
             Route::post('/{projectId}/status', 'updateStatus')->name('status');
             Route::delete('/{projectId}', 'destroy')->name('destroy');
             Route::post('/{projectId}/link', 'link')->name('link');
             Route::delete('/{projectId}/link/{linkedProjectId}', 'unlink')->name('unlink');
             Route::get('/{projectId}/mentionable-users', 'mentionableUsers')->name('mentionable-users');
+            Route::get('/{eid}', 'show')->name('show');
         });
 
         Route::controller(PmTaskController::class)->prefix('projects/{projectId}/tasks')->name('projects.tasks.')->group(function () {
             Route::get('/board-data', 'boardData')->name('board-data');
+            Route::get('/tags', 'tags')->name('tags');
             Route::post('/', 'store')->name('store');
             Route::put('/{taskId}', 'update')->name('update');
             Route::post('/{taskId}/status', 'updateStatus')->name('status');
@@ -1635,14 +1653,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{taskId}/mentionable-users', 'mentionableUsers')->name('mentionable-users');
         });
 
-        Route::controller(PmTaskDetailController::class)->prefix('projects/{projectId}/tasks/{taskId}/subtasks')->name('projects.subtasks.')->group(function () {
-            Route::post('/', 'store')->name('store');
-            Route::put('/{taskDetailId}', 'update')->name('update');
-            Route::post('/{taskDetailId}/status', 'updateStatus')->name('status');
-            Route::delete('/{taskDetailId}', 'destroy')->name('destroy');
-        });
-
-        Route::controller(BookingCarController::class)->group(function () {
+Route::controller(BookingCarController::class)->group(function () {
             Route::middleware('access:BOOKINGCAR,VIEW')->group(function () {
                 Route::get('/bookingcar', 'index')->name('bookingcar');
                 Route::get('/showbookingcar/{eid}', 'index')->name('bookingcar.show');

@@ -4,28 +4,31 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Traits\BuildsTaskTree;
 use App\Http\Controllers\Traits\HasAutonbr;
-use App\Models\MsProject;
-use App\Models\MsTaskStatus;
-use App\Models\MsTaskTag;
 use App\Models\MsTeam;
-use App\Models\TrProjectTask;
-use App\Models\TrProjectTaskAssignee;
-use App\Models\TrProjectTaskTag;
+use App\Models\MsTeamTaskStatus;
+use App\Models\MsTaskTag;
+use App\Models\TrTeamTask;
+use App\Models\TrTeamTaskAssignee;
+use App\Models\TrTeamTaskTag;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class PmTaskController extends Controller
+// A Team's own recursive Task tree — independent of Project (a Project
+// keeps its own separate tree, see PmTaskController). Structural twin of
+// PmTaskController against tr_team_task/ms_team_task_status/
+// tr_team_task_assignee/tr_team_task_tag.
+class TeamTaskController extends Controller
 {
     use HasAutonbr;
     use BuildsTaskTree;
 
-    private function project(string $projectId): MsProject
+    private function team(string $teamId): MsTeam
     {
-        $project = MsProject::where('project_id', $projectId)->firstOrFail();
+        $team = MsTeam::where('team_id', $teamId)->where('status', 'A')->firstOrFail();
 
-        $eligible = $this->eligibleUsernames($project);
+        $eligible = $team->memberUsers()->pluck('username')->map(fn ($u) => strtolower(trim($u)));
 
         abort_unless(
             $eligible->contains(strtolower(Auth::user()->username))
@@ -34,39 +37,18 @@ class PmTaskController extends Controller
             403
         );
 
-        return $project;
+        return $team;
     }
 
-    // Union of member usernames across every Team linked to the Project —
-    // a Project handled by more than one Team draws its eligible pool from
-    // all of them, not just one.
-    private function eligibleUsernames(MsProject $project)
-    {
-        $teamIds = $project->teams->pluck('team_id');
-
-        return MsTeam::whereIn('team_id', $teamIds)->get()
-            ->flatMap(fn ($t) => $t->memberUsers()->pluck('username'))
-            ->map(fn ($u) => strtolower(trim($u)))
-            ->unique();
-    }
-
-    // Recalculate a Project's rollup progress from its top-level
-    // (non-archived) Tasks only — former Subtasks now live in the same
-    // table but must stay excluded, same as before the recursive merge.
-    private function recalcProjectProgress(string $projectId): void
-    {
-        $avg = TrProjectTask::where('project_id', $projectId)
-            ->where('status', 'A')
-            ->whereNull('parent_task_id')
-            ->avg('progress_percent');
-
-        MsProject::where('project_id', $projectId)->update(['progress_percent' => $avg ?? 0]);
-    }
+    // Recalculate nothing at the Team level — MsTeam carries no
+    // progress_percent rollup (unlike MsProject); each Task's own
+    // progress_percent stays independently user-set, same as today's
+    // Project Task/Subtask behavior.
 
     // Collect a task's id plus every descendant's id, for cascade-archive.
-    private function subtreeTaskIds(string $projectId, string $taskId)
+    private function subtreeTaskIds(string $teamId, string $taskId)
     {
-        $all = TrProjectTask::where('project_id', $projectId)->where('status', 'A')->get(['task_id', 'parent_task_id']);
+        $all = TrTeamTask::where('team_id', $teamId)->where('status', 'A')->get(['task_id', 'parent_task_id']);
 
         $ids = collect([$taskId]);
         $frontier = collect([$taskId]);
@@ -80,12 +62,10 @@ class PmTaskController extends Controller
         return $ids->unique()->values();
     }
 
-    // Tags are a shared "master" list (ms_task_tag) — typing a new one on a
-    // Task registers it for every other Task's picker too, exact typed text
-    // preserved and matched/deduped via a normalized tag_id.
+    // Tags share the same "master" list as Project Tasks (ms_task_tag).
     private function syncTaskTags(string $taskId, array $tagNames, string $username, $now): void
     {
-        TrProjectTaskTag::where('task_id', $taskId)->update(['status' => 'X']);
+        TrTeamTaskTag::where('task_id', $taskId)->update(['status' => 'X']);
 
         foreach (collect($tagNames)->map(fn ($t) => trim($t))->filter()->unique(fn ($t) => strtolower($t)) as $tagName) {
             $tagId = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $tagName));
@@ -110,37 +90,36 @@ class PmTaskController extends Controller
                 ]);
             }
 
-            $existingLink = TrProjectTaskTag::where('task_id', $taskId)->where('tag_id', $tagId)->first();
+            $existingLink = TrTeamTaskTag::where('task_id', $taskId)->where('tag_id', $tagId)->first();
             if ($existingLink) {
                 $existingLink->update(['status' => 'A']);
             } else {
-                TrProjectTaskTag::create(['task_id' => $taskId, 'tag_id' => $tagId, 'status' => 'A']);
+                TrTeamTaskTag::create(['task_id' => $taskId, 'tag_id' => $tagId, 'status' => 'A']);
             }
         }
     }
 
-    // Master tag palette for the Task modal's Tags picker.
-    public function tags(string $projectId)
+    public function tags(string $teamId)
     {
-        $this->project($projectId);
+        $this->team($teamId);
 
         return response()->json(MsTaskTag::where('status', 'A')->orderBy('tag_name')->get(['tag_id', 'tag_name', 'color']));
     }
 
-    public function boardData(string $projectId)
+    public function boardData(string $teamId)
     {
-        $project = $this->project($projectId);
+        $team = $this->team($teamId);
 
-        $statuses = MsTaskStatus::where('project_id', $projectId)->where('status', 'A')->orderBy('sort_order')->get();
+        $statuses = MsTeamTaskStatus::where('team_id', $teamId)->where('status', 'A')->orderBy('sort_order')->get();
 
-        $tasks = TrProjectTask::where('project_id', $projectId)->where('status', 'A')->get();
+        $tasks = TrTeamTask::where('team_id', $teamId)->where('status', 'A')->get();
 
-        $assignees = TrProjectTaskAssignee::whereIn('task_id', $tasks->pluck('task_id'))
+        $assignees = TrTeamTaskAssignee::whereIn('task_id', $tasks->pluck('task_id'))
             ->where('status', 'A')
             ->get()
             ->groupBy('task_id');
 
-        $taskTags = TrProjectTaskTag::where('status', 'A')
+        $taskTags = TrTeamTaskTag::where('status', 'A')
             ->whereIn('task_id', $tasks->pluck('task_id'))
             ->get()
             ->groupBy('task_id');
@@ -192,44 +171,52 @@ class PmTaskController extends Controller
         ]);
     }
 
-    public function store(Request $request, string $projectId)
+    public function store(Request $request, string $teamId)
     {
-        $this->project($projectId);
+        $team = $this->team($teamId);
 
         $request->validate([
             'task_name' => ['required', 'string', 'max:255'],
             'task_description' => ['nullable', 'string'],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-            'parent_task_id' => ['nullable', 'string', 'exists:pgsql5.tr_project_task,task_id'],
+            'parent_task_id' => ['nullable', 'string', 'exists:pgsql5.tr_team_task,task_id'],
+            'status_id' => ['nullable', 'string'],
             'assignees' => ['nullable', 'array'],
             'assignees.*' => ['string'],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['string'],
         ]);
 
-        // A parent (if given) must belong to this same Project — a task
-        // can't be nested under another Project's tree.
         if ($request->parent_task_id) {
             abort_unless(
-                TrProjectTask::where('project_id', $projectId)->where('task_id', $request->parent_task_id)->exists(),
+                TrTeamTask::where('team_id', $teamId)->where('task_id', $request->parent_task_id)->exists(),
                 422,
-                'Parent task must belong to the same project.'
+                'Parent task must belong to the same team.'
             );
         }
+
+        // A Team Task's assignees must already be signed members of that Team.
+        $memberUsernames = $team->memberUsers()->pluck('username')->map(fn ($u) => strtolower(trim($u)));
+        abort_unless(
+            collect($request->input('assignees', []))->every(fn ($u) => $memberUsernames->contains(strtolower(trim($u)))),
+            422,
+            'Assignee must be a member of the Team.'
+        );
 
         $username = Auth::user()->username;
         $now = now();
 
-        $auto = $this->nextAutonbr('TSK', (int) $now->year, $now->format('m'), $username, 'Project Task');
-        $taskId = 'TSK' . substr((string) $now->year, 2) . $now->format('m') . sprintf('%04d', $auto['next']);
+        $auto = $this->nextAutonbr('TTK', (int) $now->year, $now->format('m'), $username, 'Team Task');
+        $taskId = 'TTK' . substr((string) $now->year, 2) . $now->format('m') . sprintf('%04d', $auto['next']);
 
-        $defaultStatus = MsTaskStatus::where('project_id', $projectId)->where('status_id', 'TODO')->exists() ? 'TODO' : null;
+        $defaultStatus = $request->status_id
+            ?? (MsTeamTaskStatus::where('team_id', $teamId)->where('status_id', 'TODO')->exists() ? 'TODO' : null);
 
-        DB::connection('pgsql5')->transaction(function () use ($request, $projectId, $taskId, $username, $now, $defaultStatus) {
-            TrProjectTask::create([
+        DB::connection('pgsql5')->transaction(function () use ($request, $teamId, $taskId, $username, $now, $defaultStatus) {
+            TrTeamTask::create([
                 'task_id' => $taskId,
-                'project_id' => $projectId,
+                'team_id' => $teamId,
                 'parent_task_id' => $request->parent_task_id,
                 'task_name' => $request->task_name,
                 'task_description' => $request->task_description,
@@ -243,7 +230,7 @@ class PmTaskController extends Controller
             ]);
 
             foreach ($request->input('assignees', []) as $assigneeUsername) {
-                TrProjectTaskAssignee::create([
+                TrTeamTaskAssignee::create([
                     'task_id' => $taskId,
                     'username' => $assigneeUsername,
                     'assigned_by' => $username,
@@ -255,15 +242,13 @@ class PmTaskController extends Controller
             $this->syncTaskTags($taskId, $request->input('tags', []), $username, $now);
         });
 
-        $this->recalcProjectProgress($projectId);
-
         return response()->json(['success' => true, 'message' => 'Task created successfully', 'task_id' => $taskId]);
     }
 
-    public function update(Request $request, string $projectId, string $taskId)
+    public function update(Request $request, string $teamId, string $taskId)
     {
-        $this->project($projectId);
-        $task = TrProjectTask::where('project_id', $projectId)->where('task_id', $taskId)->firstOrFail();
+        $team = $this->team($teamId);
+        $task = TrTeamTask::where('team_id', $teamId)->where('task_id', $taskId)->firstOrFail();
 
         $request->validate([
             'task_name' => ['required', 'string', 'max:255'],
@@ -277,6 +262,15 @@ class PmTaskController extends Controller
             'tags' => ['nullable', 'array'],
             'tags.*' => ['string'],
         ]);
+
+        if ($request->has('assignees')) {
+            $memberUsernames = $team->memberUsers()->pluck('username')->map(fn ($u) => strtolower(trim($u)));
+            abort_unless(
+                collect($request->input('assignees', []))->every(fn ($u) => $memberUsernames->contains(strtolower(trim($u)))),
+                422,
+                'Assignee must be a member of the Team.'
+            );
+        }
 
         $username = Auth::user()->username;
         $now = now();
@@ -294,17 +288,17 @@ class PmTaskController extends Controller
             ]);
 
             if ($request->has('assignees')) {
-                TrProjectTaskAssignee::where('task_id', $task->task_id)->update(['status' => 'X']);
+                TrTeamTaskAssignee::where('task_id', $task->task_id)->update(['status' => 'X']);
 
                 foreach ($request->input('assignees', []) as $assigneeUsername) {
-                    $existing = TrProjectTaskAssignee::where('task_id', $task->task_id)
+                    $existing = TrTeamTaskAssignee::where('task_id', $task->task_id)
                         ->where('username', $assigneeUsername)
                         ->first();
 
                     if ($existing) {
                         $existing->update(['status' => 'A']);
                     } else {
-                        TrProjectTaskAssignee::create([
+                        TrTeamTaskAssignee::create([
                             'task_id' => $task->task_id,
                             'username' => $assigneeUsername,
                             'assigned_by' => $username,
@@ -320,16 +314,14 @@ class PmTaskController extends Controller
             }
         });
 
-        $this->recalcProjectProgress($task->project_id);
-
         return response()->json(['success' => true, 'message' => 'Task updated successfully']);
     }
 
-    // Drag-and-drop status change on the per-project Task Kanban.
-    public function updateStatus(Request $request, string $projectId, string $taskId)
+    // Drag-and-drop status change on the Team's own Task Kanban.
+    public function updateStatus(Request $request, string $teamId, string $taskId)
     {
-        $this->project($projectId);
-        $task = TrProjectTask::where('project_id', $projectId)->where('task_id', $taskId)->firstOrFail();
+        $this->team($teamId);
+        $task = TrTeamTask::where('team_id', $teamId)->where('task_id', $taskId)->firstOrFail();
 
         $request->validate(['status_id' => ['required', 'string']]);
 
@@ -338,39 +330,34 @@ class PmTaskController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function destroy(string $projectId, string $taskId)
+    public function destroy(string $teamId, string $taskId)
     {
-        $this->project($projectId);
-        TrProjectTask::where('project_id', $projectId)->where('task_id', $taskId)->firstOrFail();
+        $this->team($teamId);
+        TrTeamTask::where('team_id', $teamId)->where('task_id', $taskId)->firstOrFail();
 
-        // Archiving a Task must cascade to its whole subtree — otherwise a
-        // parent disappears from the board while its children silently
-        // remain active and orphaned.
-        $ids = $this->subtreeTaskIds($projectId, $taskId);
+        $ids = $this->subtreeTaskIds($teamId, $taskId);
         $now = now();
         $username = Auth::user()->username;
 
-        TrProjectTask::where('project_id', $projectId)->whereIn('task_id', $ids)
+        TrTeamTask::where('team_id', $teamId)->whereIn('task_id', $ids)
             ->update(['status' => 'X', 'updated_by' => $username, 'updated_at' => $now]);
-        TrProjectTaskAssignee::whereIn('task_id', $ids)->update(['status' => 'X']);
-
-        $this->recalcProjectProgress($projectId);
+        TrTeamTaskAssignee::whereIn('task_id', $ids)->update(['status' => 'X']);
 
         return response()->json(['success' => true, 'message' => 'Task archived successfully']);
     }
 
-    // Per-project custom Task-board status columns ("+ Add status").
-    public function storeStatus(Request $request, string $projectId)
+    // Per-team custom Task-board status columns ("+ Add status").
+    public function storeStatus(Request $request, string $teamId)
     {
-        $this->project($projectId);
+        $this->team($teamId);
 
         $request->validate(['status_name' => ['required', 'string', 'max:100']]);
 
         $statusId = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $request->status_name));
-        $nextOrder = (int) MsTaskStatus::where('project_id', $projectId)->max('sort_order') + 1;
+        $nextOrder = (int) MsTeamTaskStatus::where('team_id', $teamId)->max('sort_order') + 1;
 
-        $status = MsTaskStatus::firstOrCreate(
-            ['project_id' => $projectId, 'status_id' => $statusId],
+        $status = MsTeamTaskStatus::firstOrCreate(
+            ['team_id' => $teamId, 'status_id' => $statusId],
             [
                 'status_name' => $request->status_name,
                 'color' => $request->input('color', '#6366F1'),
@@ -384,15 +371,14 @@ class PmTaskController extends Controller
         return response()->json(['success' => true, 'status' => $status]);
     }
 
-    // @mention autocomplete for a Task's chat — same eligible pool as the
-    // parent Project (union of members across every linked Team).
-    public function mentionableUsers(string $projectId, string $taskId)
+    // @mention autocomplete for a Team Task's chat — eligible members of the Team.
+    public function mentionableUsers(string $teamId, string $taskId)
     {
-        $project = $this->project($projectId);
-        $usernames = $this->eligibleUsernames($project)
-            ->reject(fn ($u) => $u === strtolower(Auth::user()->username));
+        $team = $this->team($teamId);
 
-        $users = User::whereIn(DB::raw('lower(username)'), $usernames->all())->get(['username', 'name']);
+        $users = $team->memberUsers()
+            ->reject(fn ($u) => strtolower(trim($u->username)) === strtolower(Auth::user()->username))
+            ->values();
 
         return response()->json($users->map(fn ($u) => ['username' => $u->username, 'name' => $u->name]));
     }

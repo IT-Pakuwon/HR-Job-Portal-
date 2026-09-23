@@ -4,14 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class TrProjectTask extends Model
+class TrTeamTask extends Model
 {
     protected $connection = 'pgsql5';
-    protected $table = 'tr_project_task';
+    protected $table = 'tr_team_task';
 
     protected $fillable = [
         'task_id',
-        'project_id',
+        'team_id',
         'parent_task_id',
         'task_name',
         'task_description',
@@ -33,24 +33,12 @@ class TrProjectTask extends Model
         'end_date' => 'date',
     ];
 
-    public function project()
+    public function team()
     {
-        return $this->belongsTo(MsProject::class, 'project_id', 'project_id');
+        return $this->belongsTo(MsTeam::class, 'team_id', 'team_id');
     }
 
-    // status_id is only unique combined with project_id (each Project has
-    // its own status vocabulary) — a plain belongsTo on status_id alone
-    // would risk matching another project's status row of the same id.
-    public function taskStatus()
-    {
-        return MsTaskStatus::where('project_id', $this->project_id)
-            ->where('status_id', $this->status_id)
-            ->first();
-    }
-
-    // Self-referencing — a Task's children can themselves have children,
-    // to unlimited depth (what used to be the separate, one-level-only
-    // TrProjectTaskDetail "Subtask" is now just a Task with a parent_task_id).
+    // Self-referencing, unlimited depth — same shape as TrProjectTask.
     public function children()
     {
         return $this->hasMany(self::class, 'parent_task_id', 'task_id')
@@ -62,9 +50,18 @@ class TrProjectTask extends Model
         return $this->belongsTo(self::class, 'parent_task_id', 'task_id');
     }
 
+    // status_id is only unique combined with team_id — same reasoning as
+    // TrProjectTask::taskStatus().
+    public function taskStatus()
+    {
+        return MsTeamTaskStatus::where('team_id', $this->team_id)
+            ->where('status_id', $this->status_id)
+            ->first();
+    }
+
     public function assignees()
     {
-        return $this->hasMany(TrProjectTaskAssignee::class, 'task_id', 'task_id')
+        return $this->hasMany(TrTeamTaskAssignee::class, 'task_id', 'task_id')
             ->where('status', 'A');
     }
 }
