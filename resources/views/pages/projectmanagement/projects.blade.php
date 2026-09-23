@@ -762,6 +762,17 @@
             color: rgb(100 116 139);
         }
 
+        /* Fills the tab panel's full available height instead of shrinking
+           to the chart's content height — renderGantt()/renderTeamGantt()
+           measure this and pass it as Frappe Gantt's own container_height
+           option, so .gantt-container's own built-in overflow:auto only
+           kicks in (scrolling just the chart) once the rows genuinely
+           don't fit, rather than the chart always sitting content-height
+           tall with empty space below it. */
+        #ganttPanel {
+            height: 100%;
+        }
+
         /* Gantt chart theming (Frappe Gantt) — the library's built-in dark
            theme keys off html[data-theme="dark"], which this app never
            sets (dark mode toggles a `.dark` class on <html> instead), so
@@ -829,6 +840,14 @@
             stroke: rgb(30 27 75 / .45);
             stroke-width: 3px;
             stroke-linejoin: round;
+        }
+        /* Overdue bars (custom_class: 'gantt-bar-late' — see isLate()) get a
+           solid red outline on top of their normal status color, so a late
+           task/project stands out without losing which status column it's
+           still sitting in. */
+        .gantt .bar-wrapper.gantt-bar-late .bar {
+            stroke: #EF4444;
+            stroke-width: 2px;
         }
     </style>
 
@@ -1251,10 +1270,11 @@
                     // 0% forever even with subtasks done. Leaf tasks (no
                     // subtasks) fall back to their own progress_percent.
                     const displayPct = children.length ? Math.round((childDone / children.length) * 100) : t.progress_percent;
+                    const late = isLate(t.end_date, displayPct, cancelled);
 
                     const $card = $(`
                         <div data-task-id="${t.task_id}"
-                            class="group relative block cursor-move rounded-xl border border-gray-200 bg-white p-3.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 ${cancelled ? 'opacity-60' : ''}">
+                            class="group relative block cursor-move rounded-xl border ${late ? 'border-red-200 dark:border-red-500/30' : 'border-gray-200 dark:border-gray-700'} bg-white p-3.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:bg-gray-800 ${cancelled ? 'opacity-60' : ''}">
 
                             <div class="flex items-start justify-between">
                                 <span class="text-gray-300 transition group-hover:text-gray-400 dark:text-gray-600"><i class="fas fa-grip-vertical text-xs"></i></span>
@@ -1274,6 +1294,7 @@
                             <div class="mt-1.5 flex items-center gap-1.5">
                                 <p class="min-w-0 flex-1 truncate text-sm font-semibold leading-snug text-gray-800 dark:text-gray-100 ${cancelled ? 'text-gray-400 line-through dark:text-gray-500' : ''}">${this.escapeHtml(t.task_name)}</p>
                                 ${cancelled ? `<span class="shrink-0 rounded-full bg-gray-200 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:bg-white/10 dark:text-gray-400">Cancelled</span>` : ''}
+                                ${late ? `<span class="shrink-0 inline-flex items-center gap-1 rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-600 dark:bg-red-500/10 dark:text-red-400"><i class="fas fa-triangle-exclamation text-[9px]"></i> Late</span>` : ''}
                             </div>
 
                             ${tagBadges ? `<div class="mt-2 flex flex-wrap gap-1">${tagBadges}</div>` : ''}
@@ -1286,7 +1307,7 @@
                             </div>
 
                             <div class="mt-3 flex items-center justify-between border-t border-gray-100 pt-2.5 text-xs text-gray-400 dark:border-gray-700">
-                                ${dateRange ? `<span class="inline-flex items-center gap-1"><i class="fas fa-calendar-day text-[10px]"></i> ${dateRange}</span>` : '<span></span>'}
+                                ${dateRange ? `<span class="inline-flex items-center gap-1 ${late ? 'font-semibold text-red-500 dark:text-red-400' : ''}"><i class="fas fa-calendar-day text-[10px]"></i> ${dateRange}</span>` : '<span></span>'}
                                 ${children.length ? `<span class="inline-flex items-center gap-1"><i class="fas fa-list-check text-[10px]"></i> ${childDone}/${children.length}</span>` : ''}
                             </div>
                         </div>
@@ -1336,16 +1357,21 @@
                         ${pics.length ? `<p class="mt-1.5 text-[11px] text-gray-400"><span class="font-medium text-gray-300">PIC:</span> ${this.escapeHtml(pics.map(pic => pic.name).join(', '))}</p>` : ''}
                     `;
 
+                    const late = isLate(p.end_date, p.progress_percent, false);
+
                     const $card = $(`
                         <div data-project-id="${p.project_id}"
-                            class="project-card-open group relative block cursor-move rounded-xl border border-gray-200 bg-white p-3.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
+                            class="project-card-open group relative block cursor-move rounded-xl border ${late ? 'border-red-200 dark:border-red-500/30' : 'border-gray-200 dark:border-gray-700'} bg-white p-3.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:bg-gray-800">
 
                             <div class="flex items-start justify-between">
                                 <span class="text-gray-300 transition group-hover:text-gray-400 dark:text-gray-600"><i class="fas fa-grip-vertical text-xs"></i></span>
                                 ${picAvatars ? `<div class="flex items-center">${picAvatars}</div>` : ''}
                             </div>
 
-                            <p class="mt-1.5 text-sm font-semibold leading-snug text-gray-800 dark:text-gray-100">${this.escapeHtml(p.project_name)}</p>
+                            <div class="mt-1.5 flex items-center gap-1.5">
+                                <p class="min-w-0 flex-1 truncate text-sm font-semibold leading-snug text-gray-800 dark:text-gray-100">${this.escapeHtml(p.project_name)}</p>
+                                ${late ? `<span class="shrink-0 inline-flex items-center gap-1 rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-600 dark:bg-red-500/10 dark:text-red-400"><i class="fas fa-triangle-exclamation text-[9px]"></i> Late</span>` : ''}
+                            </div>
 
                             ${tagBadges ? `<div class="mt-2 flex flex-wrap gap-1">${tagBadges}</div>` : ''}
 
@@ -1354,7 +1380,7 @@
                             </div>
 
                             ${dateRange ? `
-                                <div class="mt-3 flex items-center gap-1.5 border-t border-gray-100 pt-2.5 text-xs text-gray-400 dark:border-gray-700">
+                                <div class="mt-3 flex items-center gap-1.5 border-t border-gray-100 pt-2.5 text-xs ${late ? 'font-semibold text-red-500 dark:text-red-400' : 'text-gray-400'} dark:border-gray-700">
                                     <i class="fas fa-calendar-day text-[10px]"></i>
                                     <span>${dateRange}</span>
                                 </div>
@@ -1385,14 +1411,16 @@
                         .filter(p => p.start_date && p.end_date)
                         .map(p => {
                             const color = this.statusColor(p.status_id);
+                            const late = isLate(p.end_date, p.progress_percent, false);
                             return {
                                 id: p.project_id,
-                                name: p.project_name,
+                                name: (late ? '⚠ ' : '') + p.project_name,
                                 start: p.start_date,
                                 end: p.end_date,
                                 progress: p.progress_percent,
                                 color: hexToRgba(color, 0.3),
                                 color_progress: color,
+                                custom_class: late ? 'gantt-bar-late' : '',
                             };
                         });
 
@@ -1403,6 +1431,7 @@
 
                     new FrappeGantt('#ganttSvg', tasks, {
                         bar_corner_radius: 6,
+                        container_height: Math.max(container.height(), 200),
                         on_click: (task) => openProjectDetail(task.id, 'push'),
                     });
                 },
@@ -1419,14 +1448,16 @@
                             const childDone = children.filter(c => c.progress_percent >= 100).length;
                             const progress = children.length ? Math.round((childDone / children.length) * 100) : t.progress_percent;
                             const color = this.teamStatusColor(t.status_id);
+                            const late = isLate(t.end_date, progress, t.status === 'C');
                             return {
                                 id: t.task_id,
-                                name: t.task_name,
+                                name: (late ? '⚠ ' : '') + t.task_name,
                                 start: t.start_date,
                                 end: t.end_date,
                                 progress,
                                 color: hexToRgba(color, 0.3),
                                 color_progress: color,
+                                custom_class: late ? 'gantt-bar-late' : '',
                             };
                         });
 
@@ -1438,6 +1469,7 @@
 
                     new FrappeGantt('#ganttSvg', items, {
                         bar_corner_radius: 6,
+                        container_height: Math.max(container.height(), 200),
                         on_click: (task) => {
                             const t = findTaskInTree(task.id, currentTasksCache);
                             if (t) {
@@ -1512,13 +1544,19 @@
                 spreadsheetProjectRow(p) {
                     const dateLabel = p.end_date ? formatDate(p.end_date) : '—';
                     const pct = p.progress_percent || 0;
+                    const late = isLate(p.end_date, pct, false);
                     const $row = $(`
                         <tr data-project-id="${p.project_id}"
                             class="spreadsheet-project-row cursor-pointer border-b border-gray-100 last:border-0 transition hover:bg-indigo-50/40 dark:border-white/[0.04] dark:hover:bg-indigo-900/10">
-                            <td class="px-3 py-2.5"><span class="text-sm font-medium text-gray-700 dark:text-gray-200">${this.escapeHtml(p.project_name)}</span></td>
+                            <td class="px-3 py-2.5">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200">${this.escapeHtml(p.project_name)}</span>
+                                    ${late ? `<span class="shrink-0 inline-flex items-center gap-1 rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-600 dark:bg-red-500/10 dark:text-red-400"><i class="fas fa-triangle-exclamation text-[9px]"></i> Late</span>` : ''}
+                                </div>
+                            </td>
                             <td class="max-w-[260px] truncate px-3 py-2.5 text-xs text-gray-400">${p.project_description ? this.escapeHtml(stripHtml(p.project_description)) : '—'}</td>
                             <td class="px-3 py-2.5">${subtaskPicHtml(p.pics) || '<span class="text-xs text-gray-300">—</span>'}</td>
-                            <td class="whitespace-nowrap px-3 py-2.5 text-xs text-gray-500 dark:text-gray-400">${dateLabel}</td>
+                            <td class="whitespace-nowrap px-3 py-2.5 text-xs ${late ? 'font-semibold text-red-500 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}">${dateLabel}</td>
                             <td class="px-3 py-2.5">
                                 <div class="flex items-center gap-2">
                                     <div class="h-1.5 w-20 rounded-full bg-gray-100 dark:bg-gray-700">
@@ -2124,6 +2162,17 @@
             return d.isValid() ? d.format('DD MMM YYYY') : dateStr;
         }
 
+        // A row/card/bar is "late" once its own end_date has passed with it
+        // still short of 100% — cancelled items and already-done items are
+        // never late regardless of date. `progressPct` should already be
+        // whichever value the caller displays (a parent task's own
+        // progress_percent is overridden by its children's completion
+        // everywhere else in this file, so late-ness follows the same rule).
+        function isLate(endDate, progressPct, cancelled) {
+            if (!endDate || cancelled || progressPct >= 100) return false;
+            return dayjs(endDate).isBefore(dayjs(), 'day');
+        }
+
         // Plain-text excerpt of a Quill-authored description, for the
         // single-line truncated previews on task/subtask rows — the raw
         // HTML can't be nested inside those rows' own <p> (browsers close a
@@ -2241,6 +2290,7 @@
                 const displayPct = activeChildren.length ? Math.round((childDone / activeChildren.length) * 100) : t.progress_percent;
                 const done = displayPct >= 100;
                 const desc = stripHtml(t.task_description || '');
+                const late = isLate(t.end_date, displayPct, cancelled);
 
                 const row = `
                     <tr data-task-row data-task-id="${t.task_id}" data-ancestors="${ancestors.join(',')}" data-depth="${depth}"
@@ -2255,12 +2305,13 @@
                                 </button>
                                 <span class="truncate text-sm font-medium text-gray-700 dark:text-gray-200 ${(done || cancelled) ? 'text-gray-400 line-through dark:text-gray-500' : ''}">${t.task_name}</span>
                                 ${cancelled ? `<span class="shrink-0 rounded-full bg-gray-200 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:bg-white/10 dark:text-gray-400">Cancelled</span>` : ''}
+                                ${late ? `<span class="shrink-0 inline-flex items-center gap-1 rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-600 dark:bg-red-500/10 dark:text-red-400"><i class="fas fa-triangle-exclamation text-[9px]"></i> Late</span>` : ''}
                                 ${activeChildren.length ? `<span class="shrink-0 rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-500 dark:bg-white/10 dark:text-gray-400">${childDone}/${activeChildren.length}</span>` : ''}
                             </div>
                         </td>
                         <td class="max-w-[220px] truncate px-3 py-2.5 text-xs text-gray-400">${desc || '—'}</td>
                         <td class="px-3 py-2.5">${subtaskPicHtml(t.assignee_people) || '<span class="text-xs text-gray-300">—</span>'}</td>
-                        <td class="whitespace-nowrap px-3 py-2.5 text-xs text-gray-500 dark:text-gray-400">${formatDate(t.end_date)}</td>
+                        <td class="whitespace-nowrap px-3 py-2.5 text-xs ${late ? 'font-semibold text-red-500 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}">${formatDate(t.end_date)}</td>
                         <td class="px-3 py-2.5">
                             <div class="flex items-center gap-2">
                                 <div class="h-1.5 w-20 rounded-full bg-gray-100 dark:bg-gray-700">
