@@ -11,6 +11,8 @@ class JobApplyStep extends Model
     protected $table = "hr_trx_job_apply_step";   
     protected $fillable = [       
         'docid',
+        'cpnyid',
+        'group_cpny_id',
         'jobid',
         'applicant_id',
         'step_id',

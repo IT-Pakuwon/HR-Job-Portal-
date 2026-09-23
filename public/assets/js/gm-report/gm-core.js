@@ -3,11 +3,12 @@
 
     // ── Shared filter state — mutated by gm-filter, read by all sections ───────
     window.gmState = {
-        cpnyId  : '',
-        dateFrom: '',   // ISO date: YYYY-MM-DD
-        dateTo  : '',   // ISO date: YYYY-MM-DD
-        depts   : [],
-        preset  : 'this-year',
+        cpnyId    : '',
+        dateFrom  : '',   // ISO date: YYYY-MM-DD
+        dateTo    : '',   // ISO date: YYYY-MM-DD
+        depts     : [],
+        preset    : 'this-year',
+        ticketType: '',   // only used by pages that render the Ticket Type filter (e.g. corp-teknik-report)
     };
 
     // ── Shared utilities — available to all section scripts ────────────────────
@@ -39,13 +40,51 @@
                 .replace(/"/g, '&quot;');
         },
 
+        // Renders a section's "Summary Insight" bullet list. insights: array of
+        // { type: 'positive'|'warning'|'critical'|'info', text: <safe HTML string> }.
+        // Callers are responsible for escHtml-ing any dynamic values (names,
+        // labels) before interpolating them into `text` — numbers/percentages
+        // formatted via idr()/toLocaleString() are safe as-is.
+        renderInsights: function (listId, insights) {
+            var el = document.getElementById(listId);
+            if (!el) return;
+
+            var countEl = document.getElementById(listId + '-count');
+
+            if (!insights || !insights.length) {
+                el.innerHTML = '<li class="col-span-full text-xs text-slate-400 dark:text-slate-500">Not enough data yet for insights in this period.</li>';
+                if (countEl) countEl.textContent = '';
+                return;
+            }
+
+            var ICONS = {
+                positive: { color: '#10B981', path: 'M5 13l4 4L19 7' },
+                warning:  { color: '#F59E0B', path: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' },
+                critical: { color: '#EF4444', path: 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
+                info:     { color: '#6366F1', path: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
+            };
+
+            el.innerHTML = insights.map(function (ins) {
+                var ic = ICONS[ins.type] || ICONS.info;
+                return '<li class="flex items-start gap-1.5 py-0.5 text-xs leading-relaxed text-slate-700 dark:text-slate-200">'
+                    + '<svg class="mt-0.5 h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="' + ic.color + '" stroke-width="2">'
+                    +   '<path stroke-linecap="round" stroke-linejoin="round" d="' + ic.path + '"/>'
+                    + '</svg>'
+                    + '<span>' + ins.text + '</span>'
+                    + '</li>';
+            }).join('');
+
+            if (countEl) countEl.textContent = insights.length;
+        },
+
         // Builds ?date_from=&date_to=&cpny_id=&departments[]= from current gmState
         buildParams: function () {
             var s = window.gmState;
             var parts = [];
-            if (s.dateFrom) parts.push('date_from=' + encodeURIComponent(s.dateFrom));
-            if (s.dateTo)   parts.push('date_to='   + encodeURIComponent(s.dateTo));
-            if (s.cpnyId)   parts.push('cpny_id='   + encodeURIComponent(s.cpnyId));
+            if (s.dateFrom)   parts.push('date_from='   + encodeURIComponent(s.dateFrom));
+            if (s.dateTo)     parts.push('date_to='     + encodeURIComponent(s.dateTo));
+            if (s.cpnyId)     parts.push('cpny_id='     + encodeURIComponent(s.cpnyId));
+            if (s.ticketType) parts.push('ticket_type=' + encodeURIComponent(s.ticketType));
             s.depts.forEach(function (d) { parts.push('departments[]=' + encodeURIComponent(d)); });
             return parts.length ? '?' + parts.join('&') : '';
         },

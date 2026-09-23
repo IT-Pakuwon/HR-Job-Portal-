@@ -33,7 +33,7 @@
         <div class="overflow-x-auto">
             <table id="cvTable" class="w-max table-auto whitespace-nowrap border">
                 <thead>
-                    <tr class="bg-gray-100 align-top">
+                    <tr class="bg-gray-100 align-top dark:bg-gray-900">
                         <th class="w-64 border px-3 py-2">Description</th>
                         <th class="w-16 border px-3 py-2 text-center">Qty</th>
                         <th class="w-16 border px-3 py-2 text-center">UOM</th>
@@ -55,7 +55,7 @@
                 </tbody>
                 <!--  FOOTER  -->
                 <tfoot>
-                    <tr id="summaryRow" class="bg-gray-50 align-top">
+                    <tr id="summaryRow" class="bg-gray-50 align-top dark:bg-gray-900">
                         <!-- 3 sel kosong awal (Description / Qty / UOM) -->
                         <td colspan="3" class="border px-3 py-2 text-right font-semibold">
                             Ringkasan
@@ -66,7 +66,7 @@
 
             </table>
 
-            <p id="emptyMsg" class="mt-2 text-xs italic text-gray-500">
+            <p id="emptyMsg" class="mt-2 text-xs italic text-gray-500 dark:text-gray-400">
                 Belum ada vendor – klik “Add Vendor”.
             </p>
 
@@ -148,7 +148,7 @@
             <th id="th-vendor-${id}" class="border relative px-3 py-2" style="width:${colWidth}; max-width:${colWidth};">
                 <div class="font-semibold text-center">${v.name}</div>
 
-                <div class="text-xs text-gray-500 leading-4 mt-0.5 whitespace-normal break-words">
+                <div class="text-xs text-gray-500 leading-4 mt-0.5 whitespace-normal break-words dark:text-gray-400">
                     <div>✉️ ${v.contact ?? '-'}</div>
                     <div>☎️ ${v.phone ?? '-'}</div>
                     <div>🏠 ${v.address ?? '-'}</div>                  
@@ -218,7 +218,7 @@
 
                     /* label total */
                     const $total = $(
-                        `<small class="total-label text-right text-xs font-bold text-gray-600">0</small>`
+                        `<small class="total-label text-right text-xs font-bold text-gray-600 dark:text-gray-400">0</small>`
                     );
 
                     /* radio “Pilih vendor”  */
@@ -227,7 +227,7 @@
                     <input type="radio"
                         name="selected_vendor_${rowIdx}"
                         value="${id}"
-                        class="pick-vendor h-3 w-3 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                        class="pick-vendor h-3 w-3 text-indigo-600 border-gray-300 focus:ring-indigo-500 dark:border-gray-700">
                 </div>
             `);
 

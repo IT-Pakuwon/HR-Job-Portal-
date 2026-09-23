@@ -310,7 +310,7 @@ class IMBudgetNonPurchController extends Controller
 
             // ===== GENERATE DOC ID =====
             $auto = $this->nextAutonbr($doctype, $year, $month, $username, 'IMBudget Non Purchase');
-            $docid = $doctype . substr($year, 2) . $month . sprintf('%03d', $auto['next']);
+            $docid = $doctype . substr($year, 2) . $month . sprintf('%04d', $auto['next']);
 
             // ============================
             // HEADER (MODEL BARU)
@@ -424,8 +424,8 @@ class IMBudgetNonPurchController extends Controller
                 $meta = [
                     'refnbr' => $docid,
                     'doctype' => $doctype,
-                    'cpnyid' => $request->input('cpnyid'),
-                    'departementid' => $request->input('departementid'),
+                    'cpny_id' => $request->input('cpnyid'),
+                    'department_id' => $request->input('departementid'),
                     'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by' => $username,
                 ];
@@ -820,8 +820,8 @@ class IMBudgetNonPurchController extends Controller
                 $meta = [
                     'refnbr' => $header->imnonpurchaseid,
                     'doctype' => $doctype,
-                    'cpnyid' => $request->input('cpnyid'),
-                    'departementid' => $request->input('departementid'),
+                    'cpny_id' => $request->input('cpnyid'),
+                    'department_id' => $request->input('departementid'),
                     'base_folder' => 'att-purchasing-app/' . strtolower($doctype),
                     'created_by' => $username,
                 ];

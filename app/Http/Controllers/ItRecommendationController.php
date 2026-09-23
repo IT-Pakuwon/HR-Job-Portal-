@@ -51,7 +51,7 @@ class ItRecommendationController extends Controller
             : (array) $user->department_id;
 
         $q = TrItrecommend::query()
-            ->when(!$isITHardware, function ($query) use ($cpnyIds, $deptIds) {
+            ->when(!$isITHardware && !$user->hasFullDataScope(), function ($query) use ($cpnyIds, $deptIds) {
                 $query->whereIn('cpny_id', $cpnyIds)
                     ->whereIn('department_id', $deptIds);
             });
@@ -142,7 +142,7 @@ class ItRecommendationController extends Controller
 
         $base = TrItrecommend::query()
             ->whereNotIn('status', ['L'])
-            ->when(!$isITHardware, function ($query) use ($cpnyIds, $deptIds) {
+            ->when(!$isITHardware && !$user->hasFullDataScope(), function ($query) use ($cpnyIds, $deptIds) {
                 $query->whereIn('cpny_id', $cpnyIds)
                     ->whereIn('department_id', $deptIds);
             });
@@ -158,13 +158,38 @@ class ItRecommendationController extends Controller
         $recordsTotal = (clone $base)->count();
 
         if ($search !== '') {
-            $base->where(function ($q) use ($search) {
+            $statusMap = [
+                'waiting it revision' => ['I'],
+                'waiting it'          => ['W', 'I'],
+                'waiting approval'    => ['P'],
+                'waiting'             => ['W', 'I', 'P'],
+                'completed'           => ['C'],
+                'rejected'            => ['R'],
+                'revise'              => ['D'],
+                'cancelled'           => ['X'],
+            ];
+
+            $matchedStatuses = [];
+            $searchLower = strtolower($search);
+            foreach ($statusMap as $keyword => $codes) {
+                if (str_contains($searchLower, $keyword)) {
+                    $matchedStatuses = array_unique(array_merge($matchedStatuses, $codes));
+                    break;
+                }
+            }
+
+            $base->where(function ($q) use ($search, $matchedStatuses) {
                 $q->where('docid', 'ilike', "%{$search}%")
                     ->orWhere('ticketnbr', 'ilike', "%{$search}%")
                     ->orWhere('cpny_id', 'ilike', "%{$search}%")
                     ->orWhere('department_id', 'ilike', "%{$search}%")
+                    ->orWhere('user_peminta', 'ilike', "%{$search}%")
                     ->orWhere('keperluan', 'ilike', "%{$search}%")
                     ->orWhere('recommend_pic', 'ilike', "%{$search}%");
+
+                if (!empty($matchedStatuses)) {
+                    $q->orWhereIn('status', $matchedStatuses);
+                }
             });
         }
 
@@ -1392,25 +1417,6 @@ class ItRecommendationController extends Controller
             ->where('role_id', 'ITHARDWARE')
             ->exists();
 
-        $canAccess = (
-            (
-                in_array($header->cpny_id, $cpnyIds)
-                && in_array($header->department_id, $deptIds)
-            )
-            || $header->created_by === $user->username
-            || $isITHardware
-            || TrApproval::where('refnbr', $header->docid)
-            ->where('aprv_username', $user->username)
-            ->exists()
-        );
-
-        if (!$canAccess) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized access',
-            ], 403);
-        }
-
         $details = TrItrecommendDetail::where('docid', $header->docid)
             ->get();
 
@@ -1509,45 +1515,6 @@ class ItRecommendationController extends Controller
     {
         $header = TrItrecommend::where('docid', $docid)
             ->firstOrFail();
-
-        $user = auth()->user();
-
-        /*
-        |--------------------------------------------------------------------------
-        | ACCESS VALIDATION
-        |--------------------------------------------------------------------------
-        */
-
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_map('trim', explode(',', $user->cpny_id))
-            : (array) $user->cpny_id;
-
-        $deptIds = is_string($user->department_id)
-            ? array_map('trim', explode(',', $user->department_id))
-            : (array) $user->department_id;
-
-        $isITHardware = SysUserRole::where('username', $user->username)
-            ->where('role_id', 'ITHARDWARE')
-            ->exists();
-
-        $canAccess = (
-            (
-                in_array($header->cpny_id, $cpnyIds)
-                && in_array($header->department_id, $deptIds)
-            )
-            || $header->created_by === $user->username
-            || $isITHardware
-            || TrApproval::where('refnbr', $header->docid)
-            ->where('aprv_username', $user->username)
-            ->exists()
-        );
-
-        if (!$canAccess) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized access',
-            ], 403);
-        }
 
         $timeline = [];
 
@@ -1943,6 +1910,14 @@ class ItRecommendationController extends Controller
             ->where('role_id', 'ITHARDWARE')
             ->exists();
 
+        $isApprover = TrApproval::where('refnbr', $header->docid)
+            ->get()
+            ->contains(function ($row) use ($user) {
+                return collect(preg_split('/[,;|]/', $row->aprv_username))
+                    ->map(fn ($x) => strtolower(trim($x)))
+                    ->contains(strtolower($user->username));
+            });
+
         $canAccess = (
             (
                 in_array($header->cpny_id, $cpnyIds)
@@ -1950,9 +1925,7 @@ class ItRecommendationController extends Controller
             )
             || $header->created_by === $user->username
             || $isITHardware
-            || TrApproval::where('refnbr', $header->docid)
-            ->where('aprv_username', $user->username)
-            ->exists()
+            || $isApprover
         );
 
         if (!$canAccess) {
@@ -2064,6 +2037,38 @@ class ItRecommendationController extends Controller
             ->get();
 
         return response()->json($comments);
+    }
+
+    public function mentionableUsers($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        abort_if(!$id, 404);
+
+        $header = TrItrecommend::findOrFail($id);
+
+        $approverUsernames = \App\Services\DocumentNotificationService::splitApproverUsernames(
+            TrApproval::where('refnbr', $header->docid)->pluck('aprv_username')
+        );
+
+        $roleUsernames = SysUserRole::where('role_id', 'ITHARDWARE')
+            ->where('status', 'A')
+            ->pluck('username');
+
+        $usernames = collect([$header->user_peminta, $header->created_by])
+            ->merge($approverUsernames)
+            ->merge($roleUsernames)
+            ->filter()
+            ->map(fn ($u) => strtolower(trim($u)))
+            ->unique()
+            ->reject(fn ($u) => $u === strtolower(Auth::user()->username));
+
+        $users = User::query()
+            ->whereIn(DB::raw('lower(username)'), $usernames->all())
+            ->get(['username', 'name'])
+            ->values();
+
+        return response()->json($users);
     }
 
     public function print($hash)

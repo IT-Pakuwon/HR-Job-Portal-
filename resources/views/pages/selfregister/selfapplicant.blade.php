@@ -16,90 +16,306 @@
             text-overflow: ellipsis !important;
             white-space: nowrap !important;
         }
+
+        .select2-dropdown {
+            z-index: 99999 !important;
+        }
+
+        #applicantsTable tr.row-checked td { color: #000000; }
+        #applicantsTable tr.row-unchecked td { color: #2563eb; }
+        #applicantsTable tr.row-reject td { color: #dc2626; }
+
+        .dark #applicantsTable tr.row-checked td { color: #ffffff; }
+        .dark #applicantsTable tr.row-unchecked td { color: #22d3ee; }
+        .dark #applicantsTable tr.row-reject td { color: #f87171; }
+
+        /* Filter panel — make select2 fields look like the bordered text inputs beside them */
+        select.app-filter-field + .select2-container .select2-selection--single {
+            height: 38px; display: flex; align-items: center;
+            border-radius: 0.5rem; border: 1px solid #e2e8f0 !important;
+            background-color: #fff; padding: 0 1.75rem 0 0.75rem;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+        }
+        select.app-filter-field + .select2-container--open .select2-selection--single {
+            border-color: #818cf8 !important;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+        }
+        select.app-filter-field + .select2-container .select2-selection__rendered {
+            padding: 0; line-height: 1; color: #334155; font-size: 0.875rem;
+        }
+        select.app-filter-field + .select2-container .select2-selection__arrow { height: 38px; right: 8px; }
+        select.app-filter-field + .select2-container .select2-selection__placeholder { color: #94a3b8; }
+
+        .dark select.app-filter-field + .select2-container .select2-selection--single {
+            background-color: #1e293b; border-color: #475569 !important;
+        }
+        .dark select.app-filter-field + .select2-container .select2-selection__rendered { color: #e2e8f0; }
+
+        .selfreg-select2-dropdown {
+            border-radius: 0.75rem !important; border: 1px solid #e2e8f0 !important;
+            overflow: hidden; margin-top: 4px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+        }
+        .selfreg-select2-dropdown .select2-search__field {
+            border-radius: 0.5rem; border: 1px solid #e2e8f0;
+            padding: 0.375rem 0.5rem; font-size: 0.8rem; outline: none;
+        }
+        .selfreg-select2-dropdown .select2-search__field:focus {
+            border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+        }
+        .selfreg-select2-dropdown .select2-results__option { font-size: 0.8rem; padding: 0.5rem 0.75rem; }
+        .selfreg-select2-dropdown .select2-results__option--highlighted[aria-selected] { background-color: #EEF2FF; color: #4338CA; }
+        .selfreg-select2-dropdown .select2-results__option[aria-selected="true"] { background-color: #E0E7FF; color: #3730A3; font-weight: 600; }
+
+        .dark .selfreg-select2-dropdown { background-color: #1e293b; border-color: #475569 !important; }
+        .dark .selfreg-select2-dropdown .select2-search__field { background-color: #334155; border-color: #475569; color: #e2e8f0; }
+        .dark .selfreg-select2-dropdown .select2-results__option { color: #e2e8f0; }
+        .dark .selfreg-select2-dropdown .select2-results__option--highlighted[aria-selected] { background-color: #4338CA; color: #fff; }
+        .dark .selfreg-select2-dropdown .select2-results__option[aria-selected="true"] { background-color: #3730A3; color: #fff; }
     </style>
     <div class="max-w-9xl mx-auto p-2">
 
-        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div
-                class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center dark:border-gray-700">
-                {{-- Changed text-lg to text-base --}}
-                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Self Register Applicant</h1>
-                {{-- <a"
-                        class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                        List Job Posting
-                        </a> --}}
-            </div>
-            {{-- Padding applied here instead of outer container --}}
+        {{-- Filter Cards --}}
+        <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-8">
 
-            <div id="applicantsFilters" class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-5 lg:grid-cols-9">
-                <!-- filters will be injected here -->
-                <button id="btnResetFilters" class="rounded-md border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50">
+            <a href="#" class="status-filter group block h-full" data-status="">
+                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📄</div>
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-sm font-medium">All</p>
+                    </div>
+                    <p class="shrink-0 text-base font-bold">{{ $all }}</p>
+                </div>
+            </a>
+
+            <a href="#" class="status-filter group block h-full" data-status="is_read_N">
+                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⏳</div>
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-sm font-medium">Unchecked</p>
+                    </div>
+                    <p class="shrink-0 text-base font-bold">{{ $unchecked }}</p>
+                </div>
+            </a>
+
+            <a href="#" class="status-filter group block h-full" data-status="is_read_Y">
+                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✏️</div>
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-sm font-medium">Checked</p>
+                    </div>
+                    <p class="shrink-0 text-base font-bold">{{ $checked }}</p>
+                </div>
+            </a>
+
+            <a href="#" class="status-filter group block h-full" data-status="R">
+                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✕</div>
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-sm font-medium">Rejected</p>
+                    </div>
+                    <p class="shrink-0 text-base font-bold">{{ $reject }}</p>
+                </div>
+            </a>
+
+            <a href="#" class="status-filter group block h-full" data-status="mapping">
+                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🔗</div>
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-sm font-medium">Mapping</p>
+                    </div>
+                    <p class="shrink-0 text-base font-bold">{{ $mapped }}</p>
+                </div>
+            </a>
+
+            <a href="#" class="status-filter group block h-full" data-status="unmapping">
+                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🔓</div>
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-sm font-medium">Unmapping</p>
+                    </div>
+                    <p class="shrink-0 text-base font-bold">{{ $unmapped }}</p>
+                </div>
+            </a>
+
+            <a href="#" class="status-filter group block h-full" data-status="tagged">
+                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-fuchsia-700 bg-fuchsia-200/20 p-3 text-fuchsia-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-fuchsia-100 hover:shadow-md active:scale-95">
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🏷️</div>
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-sm font-medium">Tagged</p>
+                    </div>
+                    <p class="shrink-0 text-base font-bold">{{ $tagged }}</p>
+                </div>
+            </a>
+
+            <a href="#" class="status-filter group block h-full" data-status="untagged">
+                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-md active:scale-95">
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🔖</div>
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-sm font-medium">Untagged</p>
+                    </div>
+                    <p class="shrink-0 text-base font-bold">{{ $untagged }}</p>
+                </div>
+            </a>
+
+        </div>
+
+        <div id="applicantFiltersCard"
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div class="flex items-center justify-between px-5 py-3">
+                <button type="button" id="btnToggleFilters" class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300">
+                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h18M6 9.75h12M9.75 15h4.5" />
+                    </svg>
+                    Filters
+                    <svg id="filtersChevron" class="h-3.5 w-3.5 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <button type="button" id="btnResetFilters"
+                    class="flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:bg-slate-200/70 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700/60 dark:hover:text-slate-200">
+                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" />
+                    </svg>
                     Reset
                 </button>
             </div>
 
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="applicantsTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th scope="col" class="w-32 px-4 py-3 text-center">
+            <div id="applicantFiltersBody" class="border-t border-gray-100 px-5 pb-4 pt-4 dark:border-white/[0.06]">
+                {{-- Division / Department Filter --}}
+                <div class="mb-3 flex flex-col gap-3 sm:flex-row">
+                    <div class="flex-1">
+                        <label for="filterDivision" class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Division</label>
+                        <select id="filterDivision" class="app-filter-field w-full" style="width:100%">
+                            <option value="">Filter by Division</option>
+                            @foreach($divisions as $div)
+                                <option value="{{ $div->division_id }}">{{ $div->division_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="flex-1">
+                        <label for="filterDepartment" class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Department</label>
+                        <select id="filterDepartment" class="app-filter-field w-full" style="width:100%">
+                            <option value="">Filter by Department</option>
+                        </select>
+                    </div>
+                </div>
+
+                {{-- Column Search Filters --}}
+                <div id="applicantsFilters" class="flex flex-wrap lg:flex-nowrap items-start gap-3 overflow-x-auto pb-1"></div>
+            </div>
+        </div>
+
+        <div
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-col items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Self Register
+                    Applicant</h2>
+            </div>
+
+            <div class="relative mt-4 overflow-hidden">
+                <table id="applicantsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 DocID
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-left">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Date
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-left">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Name
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-left">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Divisi
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-left">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Department
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-left">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Education
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-left">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Religion
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-center">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Height
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-center">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Weight
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-center">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Last Working
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-center">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
+                                Tagged
+                            </th>
+                            <th scope="col" class="w-40 px-4 py-3 text-left font-medium">
+                                Job Mapping
+                            </th>
+                            <th scope="col" class="w-28 px-4 py-3 text-left font-medium">
                                 Action
                             </th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                    <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-[#0f172a]">
                         {{-- Table rows will be populated here by JavaScript/DataTables --}}
                     </tbody>
                 </table>
             </div>
         </div>
+        <!-- Tagging Modal -->
+        <div id="taggingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+            <div class="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl dark:bg-gray-800">
+                <div class="mb-5 flex items-center justify-between">
+                    <h2 class="text-lg font-bold text-gray-800 dark:text-gray-200">Tag Applicant</h2>
+                    <button id="closeTaggingModal" class="text-gray-400 hover:text-gray-600 text-xl font-bold">✕</button>
+                </div>
+
+                <input type="hidden" id="tagApplicantId">
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">Division</label>
+                    <select id="tagDivisionSelect" class="w-full" style="width:100%">
+                        <option value="">-- Select Division --</option>
+                        @foreach($divisions as $div)
+                            <option value="{{ $div->division_id }}">{{ $div->division_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">Department</label>
+                    <select id="tagDeptSelect" class="w-full" style="width:100%">
+                        <option value="">-- Select Division first --</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-end gap-3">
+                    <button id="closeTaggingModalBtn" class="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-400 dark:border-gray-700">Cancel</button>
+                    <button id="saveTagging" class="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700">Save Tag</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Mapping Modal -->
         <div id="mappingModal"
             class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40  ">
 
             <div
-                class="w-full max-w-2xl transform rounded-2xl bg-white p-8 shadow-2xl transition-all duration-300 scale-95 opacity-0"
+                class="w-full max-w-5xl transform rounded-2xl bg-white p-8 shadow-2xl transition-all duration-300 scale-95 opacity-0 dark:bg-gray-800"
                 id="mappingModalContent">
 
                 <!-- Header -->
                 <div class="mb-5 flex items-center justify-between">
                     <div>
-                        <h2 class="text-lg font-bold text-gray-800">
+                        <h2 class="text-lg font-bold text-gray-800 dark:text-gray-200">
                             Mapping Applicant
                         </h2>
-                        <p class="text-sm text-gray-500">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">
                             Assign candidate to job posting
                         </p>
                     </div>
@@ -118,7 +334,7 @@
 
                     <!-- DOC ID -->
                     <div
-                        class="min-w-[200px] rounded-xl bg-gray-100 px-5 py-3 text-center text-base font-semibold text-gray-700 shadow-inner">
+                        class="min-w-[200px] rounded-xl bg-gray-100 px-5 py-3 text-center text-base font-semibold text-gray-700 shadow-inner dark:bg-gray-900 dark:text-gray-300">
                         <span id="mapDocId">DOCID</span>
                     </div>
 
@@ -128,9 +344,7 @@
                     <!-- Select -->
                     <div class="flex-1 min-w-0">
                         <select id="jobPostingSelect"
-                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm
-                                focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500
-                                hover:border-gray-400 transition">
+                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 hover:border-gray-400 transition dark:border-gray-700">
                         </select>
                     </div>
 
@@ -139,7 +353,7 @@
                 <!-- Actions -->
                 <div class="flex justify-end gap-2">
                     <button id="closeMappingModalBtn"
-                        class="rounded-lg px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700">
+                        class="rounded-lg px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-900 dark:hover:bg-gray-700 dark:text-gray-300">
                         Cancel
                     </button>
 
@@ -156,6 +370,7 @@
 
     <script>
         var currentUser = "{{ auth()->user()->username }}";
+        var canRemap = {{ auth()->user()->hasRole('RECACCALLDEPT') ? 'true' : 'false' }};
     </script>
 
 
@@ -165,68 +380,115 @@
         $(document).ready(function() {
             let currentStatus = '';
 
+            // Filters card — collapsible, remembers the user's choice
+            (function() {
+                const STORAGE_KEY = 'selfregister-filters-collapsed';
+                const $body = $('#applicantFiltersBody');
+                const $chevron = $('#filtersChevron');
+
+                function setCollapsed(collapsed) {
+                    $body.toggleClass('hidden', collapsed);
+                    $chevron.toggleClass('-rotate-90', collapsed);
+                    try {
+                        localStorage.setItem(STORAGE_KEY, collapsed ? '1' : '0');
+                    } catch (e) {}
+                }
+
+                let startCollapsed = true;
+                try {
+                    const stored = localStorage.getItem(STORAGE_KEY);
+                    if (stored !== null) {
+                        startCollapsed = stored === '1';
+                    }
+                } catch (e) {}
+                setCollapsed(startCollapsed);
+
+                $('#btnToggleFilters').on('click', function() {
+                    setCollapsed(!$body.hasClass('hidden'));
+                });
+            })();
+
             // Filter input per kolom (index harus sesuai kolom DataTables)
             const columnFilters = [
                 {
                     index: 1,
                     type: 'text',
-                    placeholder: 'DocID'
+                    placeholder: 'DocID',
+                    span: 'w-32 shrink-0'
                 },
                 {
                     index: 2,
                     type: 'text',
-                    placeholder: 'Apply Date'
+                    placeholder: 'Apply Date',
+                    title: 'Type a single date, or a range like 2026-08-01 - 2026-08-31',
+                    hint: 'e.g. 2026-08-01 - 2026-08-31',
+                    span: 'w-40 shrink-0'
                 },
                 {
                     index: 3,
                     type: 'text',
-                    placeholder: 'Full Name'
+                    placeholder: 'Full Name',
+                    span: 'flex-1 min-w-[140px]'
                 },
                 {
                     index: 4,
                     type: 'text',
-                    placeholder: 'Division' // 🔥 NEW
+                    placeholder: 'Division', // 🔥 NEW
+                    span: 'w-40 shrink-0'
                 },
                 {
                     index: 5,
                     type: 'text',
-                    placeholder: 'Department' // 🔥 NEW
+                    placeholder: 'Department', // 🔥 NEW
+                    span: 'w-40 shrink-0'
                 },
                 {
                     index: 6,
                     type: 'text',
-                    placeholder: 'Education'
+                    placeholder: 'Education',
+                    span: 'flex-1 min-w-[140px]'
                 },
                 {
                     index: 7,
                     type: 'text',
-                    placeholder: 'Religion'
+                    placeholder: 'Religion',
+                    span: 'w-36 shrink-0'
                 },
                 {
                     index: 8,
                     type: 'text',
-                    placeholder: 'Height'
+                    placeholder: 'Height',
+                    title: 'Type a value, a range like 160-180, or >=170',
+                    hint: 'e.g. 160-180 or >=170',
+                    span: 'w-24 shrink-0'
                 },
                 {
                     index: 9,
                     type: 'text',
-                    placeholder: 'Weight'
+                    placeholder: 'Weight',
+                    title: 'Type a value, a range like 60-80, or >=70',
+                    hint: 'e.g. 60-80 or >=70',
+                    span: 'w-24 shrink-0'
                 },
                 {
                     index: 10,
                     type: 'text',
-                    placeholder: 'Company'
+                    placeholder: 'Company',
+                    span: 'flex-1 min-w-[140px]'
                 }
             ];
 
             const $filters = $('#applicantsFilters');
+            const filterFieldClass = 'app-filter-field w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200';
 
             columnFilters.forEach(col => {
+                const $wrap = $(`<div class="flex flex-col gap-1 ${col.span || 'flex-1 min-w-[140px]'}"></div>`);
+                $wrap.append(`<label class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">${col.placeholder}</label>`);
+
                 const $el = $(`
                     <input type="text"
-                        class="w-full rounded-md border border-gray-200 px-3 py-2 text-sm
-                            focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                        placeholder="Search ${col.placeholder}">
+                        class="${filterFieldClass}"
+                        placeholder="${col.placeholder}"${col.title ? ` title="${col.title}"` : ''}>
                 `);
 
                 let debounce;
@@ -238,7 +500,13 @@
                     }, 300);
                 });
 
-                $filters.append($el);
+                $wrap.append($el);
+
+                if (col.hint) {
+                    $wrap.append(`<p class="text-[10px] text-slate-400 dark:text-slate-500">${col.hint}</p>`);
+                }
+
+                $filters.append($wrap);
             });
 
             const applicantTable = $('#applicantsTable').DataTable({
@@ -306,7 +574,9 @@
                     url: "{{ route('selfregister.json') }}",
                     type: 'GET',
                     data: function(d) {
-                        d.status = currentStatus;
+                        d.status          = currentStatus;
+                        d.division_filter = $('#filterDivision').val() || '';
+                        d.department_filter = $('#filterDepartment').val() || '';
                     }
                 },
 
@@ -371,95 +641,326 @@
                         data: 'company_name',
                         name: 'company_name'
                     }, // 8
-                    {
+                    { // 9 — Tagged
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            if (!row.is_tagged) {
+                                return `<span class="text-xs text-gray-400">—</span>`;
+                            }
+                            return `<span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-fuchsia-100 text-fuchsia-700">
+                                🏷 ${row.division_name || '—'} · ${row.department_name || '—'}
+                            </span>`;
+                        }
+                    },
+                    { // 10 — Job Mapping
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            if (row.status === 'R') return `<span class="text-xs text-gray-400">—</span>`;
+                            if (!row.jobposting_docid) return `<span class="text-xs text-gray-400">—</span>`;
+                            return `<span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">
+                                ✓ ${row.job_name || row.jobposting_docid}
+                            </span>`;
+                        }
+                    },
+                    { // 11 — Action
                         data: null,
                         orderable: false,
                         searchable: false,
                         className: 'text-center',
                         render: function(data, type, row) {
 
-                            // ✅ SUDAH MAPPED
-                            if (row.jobposting_docid) {
-                                return `
-                                    <div class="flex flex-col items-center gap-3 py-2">
+                            if (!canRemap) return `<span class="text-xs text-gray-400">—</span>`;
 
-                                        <!-- STATUS -->
-                                        <span class="px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-700">
-                                            ✓ Mapped
-                                        </span>
-
-                                        <!-- JOB INFO -->
-                                        <div class="text-center leading-tight">
-                                            <div class="text-sm font-semibold text-gray-800">
-                                                ${row.job_name || '-'}
-                                            </div>
-                                            <div class="text-xs text-gray-500 mt-1">
-                                                ${row.jobposting_docid}
-                                            </div>
-                                        </div>
-
-                                        <!-- ACTION -->
-                                        <button
-                                            class="rollback-btn text-sm font-medium text-red-500 hover:text-red-600 hover:underline transition"
-                                            data-id="${row.eid}" data-job="${row.jobposting_docid}">
-                                            Undo Mapping
-                                        </button>
-                                    </div>
-                                `;
+                            // ❌ REJECTED
+                            if (row.status === 'R') {
+                                return `<span class="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-600">Rejected</span>`;
                             }
 
-                            // ❌ BELUM MAPPED
-                            return `
-                                <div class="flex justify-center py-3">
-                                    <button
-                                        class="map-btn px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg shadow hover:bg-indigo-700 hover:shadow-md transition"
+                            // ✅ SUDAH MAPPED → Re-map / Undo / Reject
+                            if (row.jobposting_docid) {
+                                const items = [
+                                    `<button class="slf-action-item w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-indigo-600 dark:hover:bg-gray-700"
+                                        data-action="remap" data-id="${row.eid}" data-docid="${row.docid}">🔄 Re-map</button>`,
+                                    `<button class="slf-action-item w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-red-500 dark:hover:bg-gray-700"
+                                        data-action="undo" data-id="${row.eid}" data-job="${row.jobposting_docid}">↩ Undo Mapping</button>`,
+                                    `<button class="slf-action-item w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-red-600 dark:hover:bg-gray-700"
+                                        data-action="reject" data-id="${row.eid}">✕ Reject</button>`,
+                                ].join('');
 
-                                        data-id="${row.eid}"
-                                        data-docid="${row.docid}">
-                                        + Map Candidate
-                                    </button>
+                                return `
+                                    <div class="slf-dropdown relative inline-block">
+                                        <button class="slf-toggle inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300 dark:bg-gray-900 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700"
+                                            data-id="${row.eid}">Action ▾</button>
+                                    </div>
+                                    <div class="slf-menu-data" data-id="${row.eid}" style="display:none">${items}</div>`;
+                            }
+
+                            // 🔵 BELUM MAPPED → Tag / Map / Reject
+                            const tagLabel = row.is_tagged ? '🏷 Re-tag' : '🏷 Tag';
+                            const items = [
+                                `<button class="slf-action-item w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-purple-600 dark:hover:bg-gray-700"
+                                    data-action="tag" data-id="${row.eid}" data-docid="${row.docid}"
+                                    data-division="${row.division_id || ''}" data-department="${row.department_id || ''}">${tagLabel}</button>`,
+                                `<button class="slf-action-item w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-indigo-600 dark:hover:bg-gray-700"
+                                    data-action="map" data-id="${row.eid}" data-docid="${row.docid}">+ Map</button>`,
+                                `<button class="slf-action-item w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-red-500 dark:hover:bg-gray-700"
+                                    data-action="reject" data-id="${row.eid}">✕ Reject</button>`,
+                            ].join('');
+
+                            return `
+                                <div class="slf-dropdown relative inline-block">
+                                    <button class="slf-toggle inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300 dark:bg-gray-900 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700"
+                                        data-id="${row.eid}">Action ▾</button>
                                 </div>
-                            `;
+                                <div class="slf-menu-data" data-id="${row.eid}" style="display:none">${items}</div>`;
                         }
                     },
                 ],
 
                 rowCallback: function(row, data) {
-                    $(row).css('color', '');
-                    if (data.status === 'R') $(row).css('color', '#dc2626');
-                    else $(row).css('color', 'black');
+                    $(row).removeClass('row-checked row-unchecked row-reject');
+
+                    if (data.status === 'R') {
+                        $(row).addClass('row-reject');
+                    } else if (!data.is_read || data.is_read === 'N') {
+                        $(row).addClass('row-unchecked');
+                    } else {
+                        $(row).addClass('row-checked');
+                    }
                 }
             });
 
-            $(document).on('click', '.rollback-btn', function () {
+            // ── FIXED DROPDOWN (self register) ───────────────────────
+            const $slfMenu = $(`
+                <div id="slf-fixed-menu" class="hidden fixed z-[9999] w-44 rounded-md shadow-lg bg-white border border-gray-200 py-1 dark:bg-gray-800 dark:border-gray-700"></div>
+            `).appendTo('body');
 
-                let applicantId = $(this).data('id');
-                let jobId = $(this).data('job'); // 🔥 TAMBAH
+            // Toggle
+            $(document).on('click', '.slf-toggle', function(e) {
+                e.stopPropagation();
+                const id   = $(this).data('id');
+                const html = $(`.slf-menu-data[data-id="${id}"]`).html();
 
-                if (!confirm('Undo mapping?')) return;
+                $slfMenu.html(html || '');
 
-                $.ajax({
-                    url: "{{ route('applicant.mapping.rollback') }}",
-                    type: "POST",
-                    data: {
-                        applicant_id: applicantId,
-                        jobposting_docid: jobId, // 🔥 WAJIB
-                        _token: "{{ csrf_token() }}"
-                    },
-                    success: function () {
-                        alert('Mapping removed!');
-                        $('#applicantsTable').DataTable().ajax.reload();
-                    },
-                    error: function (err) {
-                        console.log(err);
-                        alert('Rollback failed!');
-                    }
+                const rect = this.getBoundingClientRect();
+                const slfW = 176;
+                $slfMenu.css({
+                    top:  rect.bottom + 4,
+                    left: Math.max(8, Math.min(rect.right - slfW, window.innerWidth - slfW - 8)),
                 });
+
+                const isOpen = !$slfMenu.hasClass('hidden');
+                $slfMenu.toggleClass('hidden', isOpen);
+            });
+
+            // Close on outside click
+            $(document).on('click', function() { $slfMenu.addClass('hidden'); });
+
+            // Handle action item
+            $(document).on('click', '.slf-action-item', function(e) {
+                e.stopPropagation();
+                $slfMenu.addClass('hidden');
+
+                const btn    = $(this);
+                const action = btn.data('action');
+                const id     = btn.data('id');
+
+                if (action === 'tag') {
+                    $('#tagApplicantId').val(id);
+                    const div  = btn.data('division')   || '';
+                    const dept = btn.data('department') || '';
+                    $('#taggingModal').removeClass('hidden').addClass('flex');
+                    if (div) {
+                        $('#tagDivisionSelect').val(div).trigger('change');
+                        $('#tagDivisionSelect').one('deptLoaded', function() {
+                            $('#tagDeptSelect').val(dept).trigger('change');
+                        });
+                    } else {
+                        $('#tagDivisionSelect').val(null).trigger('change');
+                    }
+
+                } else if (action === 'map' || action === 'remap') {
+                    $('#mapApplicantId').val(id);
+                    $('#mapDocId').text(btn.data('docid'));
+                    loadJobPostings();
+                    $('#mappingModal').removeClass('hidden').addClass('flex');
+                    setTimeout(() => {
+                        $('#mappingModalContent').removeClass('scale-95 opacity-0').addClass('scale-100 opacity-100');
+                    }, 10);
+
+                } else if (action === 'reject') {
+                    Swal.fire({
+                        title: 'Reject Applicant',
+                        text: 'Are you sure you want to reject this applicant?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes, Reject',
+                        confirmButtonColor: '#dc2626',
+                    }).then(result => {
+                        if (!result.isConfirmed) return;
+                        $.post("{{ route('applicant.reject.store') }}", {
+                            applicant_id: id,
+                            _token: '{{ csrf_token() }}'
+                        }).done(function() {
+                            Swal.fire({ icon: 'success', title: 'Rejected', timer: 1200, showConfirmButton: false });
+                            applicantTable.ajax.reload(null, false);
+                        }).fail(function() {
+                            Swal.fire('Error', 'Failed to reject.', 'error');
+                        });
+                    });
+
+                } else if (action === 'undo') {
+                    Swal.fire({
+                        title: 'Undo Mapping?',
+                        text: 'Remove the mapping for this applicant?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes, Undo',
+                        confirmButtonColor: '#dc2626',
+                    }).then(result => {
+                        if (!result.isConfirmed) return;
+                        $.post("{{ route('applicant.mapping.rollback') }}", {
+                            applicant_id: id,
+                            jobposting_docid: btn.data('job'),
+                            _token: '{{ csrf_token() }}'
+                        }).done(function() {
+                            Swal.fire({ icon: 'success', title: 'Mapping removed', timer: 1200, showConfirmButton: false });
+                            applicantTable.ajax.reload(null, false);
+                        }).fail(function() {
+                            Swal.fire('Error', 'Rollback failed.', 'error');
+                        });
+                    });
+                }
+            });
+
+            // ── DIVISION / DEPARTMENT FILTER ─────────────────────────
+            $('#filterDivision').select2({
+                placeholder: 'Filter by Division',
+                allowClear: true,
+                width: '100%',
+                dropdownParent: $('body'),
+                dropdownCssClass: 'selfreg-select2-dropdown',
+            });
+
+            $('#filterDepartment').select2({
+                placeholder: 'Filter by Department',
+                allowClear: true,
+                width: '100%',
+                dropdownParent: $('body'),
+                dropdownCssClass: 'selfreg-select2-dropdown',
+            });
+
+            $('#filterDivision').on('change', function () {
+                const divId = $(this).val();
+                const $dept = $('#filterDepartment');
+
+                $dept.empty().append('<option value="">Filter by Department</option>');
+                if ($dept.hasClass('select2-hidden-accessible')) $dept.select2('destroy');
+                $dept.select2({ placeholder: 'Filter by Department', allowClear: true, width: '100%', dropdownCssClass: 'selfreg-select2-dropdown' });
+
+                if (divId) {
+                    $.get("{{ route('applicant.departments') }}", { division_id: divId }, function (data) {
+                        data.forEach(d => $dept.append(`<option value="${d.department_id}">${d.department_name}</option>`));
+                    });
+                }
+
+                applicantTable.ajax.reload();
+            });
+
+            $('#filterDepartment').on('change', function () {
+                applicantTable.ajax.reload();
+            });
+
+            // Init division Select2 once
+            $('#tagDivisionSelect').select2({
+                dropdownParent: $('#taggingModal'),
+                placeholder: '🔍 Search Division...',
+                width: '100%',
+                allowClear: true,
+            });
+
+            function initDeptSelect2() {
+                const $dept = $('#tagDeptSelect');
+                if ($dept.hasClass('select2-hidden-accessible')) {
+                    $dept.select2('destroy');
+                }
+                $dept.select2({
+                    dropdownParent: $('#taggingModal'),
+                    placeholder: '🔍 Search Department...',
+                    width: '100%',
+                    allowClear: true,
+                });
+            }
+
+            // Init dept Select2 with empty state
+            initDeptSelect2();
+
+            $('#tagDivisionSelect').on('change', function() {
+                const divId = $(this).val();
+                const $dept = $('#tagDeptSelect');
+
+                if (!divId) {
+                    if ($dept.hasClass('select2-hidden-accessible')) $dept.select2('destroy');
+                    $dept.html('<option value="">-- Select Division first --</option>');
+                    initDeptSelect2();
+                    return;
+                }
+
+                if ($dept.hasClass('select2-hidden-accessible')) $dept.select2('destroy');
+                $dept.html('<option value="">Loading...</option>');
+                initDeptSelect2();
+
+                $.get("{{ route('applicant.departments') }}", { division_id: divId }, function(data) {
+                    if ($dept.hasClass('select2-hidden-accessible')) $dept.select2('destroy');
+                    $dept.html('<option value="">-- Select Department --</option>');
+                    data.forEach(d => {
+                        $dept.append(`<option value="${d.department_id}">${d.department_name}</option>`);
+                    });
+                    initDeptSelect2();
+                    $('#tagDivisionSelect').trigger('deptLoaded');
+                });
+            });
+
+            $('#saveTagging').on('click', function() {
+                const applicantId = $('#tagApplicantId').val();
+                const divisionId  = $('#tagDivisionSelect').val();
+                const departmentId = $('#tagDeptSelect').val();
+
+                if (!divisionId || !departmentId) {
+                    Swal.fire('Incomplete', 'Please select both division and department.', 'warning');
+                    return;
+                }
+
+                $.post("{{ route('applicant.tag.store') }}", {
+                    applicant_id: applicantId,
+                    division_id: divisionId,
+                    department_id: departmentId,
+                    _token: '{{ csrf_token() }}'
+                }).done(function() {
+                    Swal.fire({ icon: 'success', title: 'Tagged!', timer: 1200, showConfirmButton: false });
+                    $('#taggingModal').addClass('hidden').removeClass('flex');
+                    applicantTable.ajax.reload(null, false);
+                }).fail(function() {
+                    Swal.fire('Error', 'Failed to save tag.', 'error');
+                });
+            });
+
+            $('#closeTaggingModal, #closeTaggingModalBtn').on('click', function() {
+                $('#taggingModal').addClass('hidden').removeClass('flex');
             });
 
             // reset filters
             $('#btnResetFilters').on('click', function() {
                 $('#applicantsFilters input').val('');
+                $('#filterDivision').val(null).trigger('change.select2');
+                $('#filterDepartment').empty().append('<option value="">Filter by Department</option>').val(null).trigger('change.select2');
                 applicantTable.search('').columns().search('').draw();
             });
 
@@ -471,28 +972,6 @@
                 currentStatus = $(this).data('status') || '';
                 applicantTable.ajax.reload();
             });
-
-            // ==============================
-            // OPEN MODAL
-            // ==============================
-            $(document).on('click', '.map-btn', function () {
-                let applicantId = $(this).data('id');
-                let docId = $(this).data('docid');
-
-                $('#mapApplicantId').val(applicantId);
-                $('#mapDocId').text(docId);
-
-                loadJobPostings();
-
-                $('#mappingModal').removeClass('hidden').addClass('flex');
-
-                setTimeout(() => {
-                    $('#mappingModalContent')
-                        .removeClass('scale-95 opacity-0')
-                        .addClass('scale-100 opacity-100');
-                }, 10);
-            });
-
 
             // ==============================
             // CLOSE MODAL (FIXED ❗)
@@ -524,7 +1003,7 @@
 
                         res.forEach(item => {
                             $select.append(`
-                                <option value="${item.docid}">
+                                <option value="${item.docid}" data-status="${item.status}">
                                     ${item.docid} - ${item.job_name}
                                 </option>
                             `);
@@ -551,14 +1030,21 @@
                 if (!data.id) return data.text;
 
                 let text = data.text;
-
-                // split docid + info
                 let [doc, info] = text.split(' - ');
+
+                const status = $(data.element).data('status');
+                const statusCfg = {
+                    P: { label: 'Posted',   bg: '#dbeafe', color: '#1d4ed8' },
+                    U: { label: 'Unposted', bg: '#f3f4f6', color: '#374151' },
+                };
+                const cfg = statusCfg[status] ?? { label: status, bg: '#f3f4f6', color: '#374151' };
+                const badge = `<span style="font-size:10px; font-weight:600; padding:2px 7px; border-radius:999px;
+                    background:${cfg.bg}; color:${cfg.color}; margin-left:6px;">${cfg.label}</span>`;
 
                 return $(`
                     <div class="py-2 px-1">
-                        <div style="font-size:14px; font-weight:600; color:#111827;">
-                            ${info || '-'}
+                        <div style="font-size:14px; font-weight:600; color:#111827; display:flex; align-items:center;">
+                            ${info || '-'} ${badge}
                         </div>
                         <div style="font-size:12px; color:#6b7280; margin-top:2px;">
                             ${doc}

@@ -108,7 +108,7 @@
             </div>
 
             <x-input x-ref="plaintextToken" type="text" readonly :value="$plainTextToken"
-                class="mt-4 w-full break-all rounded-sm bg-gray-100 px-4 py-2 font-mono text-xs text-gray-500" autofocus
+                class="mt-4 w-full break-all rounded-sm bg-gray-100 px-4 py-2 font-mono text-xs text-gray-500 dark:bg-gray-900 dark:text-gray-400" autofocus
                 autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
                 @showing-token-modal.window="setTimeout(() => $refs.plaintextToken.select(), 250)" />
         </x-slot>

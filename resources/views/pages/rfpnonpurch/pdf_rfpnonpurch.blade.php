@@ -23,103 +23,155 @@
 
         td, th {
             vertical-align: top;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+        }
+
+        /* ============ HEADER ============ */
+        .header-table {
+            table-layout: fixed;
+        }
+
+        .header-table td {
+            padding: 0 3px;
+        }
+
+        .header-rule {
+            border: none;
+            border-top: 1px solid #000;
+            margin: 6px 0 10px 0;
         }
 
         .header-title {
             font-size: 20px;
             font-weight: bold;
             text-align: center;
-            white-space: nowrap;
+            line-height: 1.15;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
         }
 
         .doc-no {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
             white-space: nowrap;
+            line-height: 1.15;
+            text-align: right;
         }
 
         .left-company {
             font-size: 15px;
+            font-weight: bold;
             line-height: 1.15;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
         }
 
-        .info-wrapper {
-            margin-top: 24px;
-            width: 100%;
-            border-collapse: collapse;
+        .left-title {
+            margin-top: 2px;
+            font-size: 15px;
+            font-weight: bold;
+            line-height: 1.15;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
         }
 
-        .info-wrapper td {
-            padding: 0;
-            vertical-align: top;
-        }
-
-        .left-info {
-            width: 67%;
-        }
-
-        .right-info {
-            width: 33%;
-            padding-left: 14px !important;
-        }
-
-        .info-left-table,
-        .info-right-table {
-            width: 100%;
-            border-collapse: collapse;
+        /* ============ INFO / FORM ============ */
+        .info-table {
             table-layout: fixed;
         }
 
-        .info-left-table td,
-        .info-right-table td {
-            font-size: 14px;
-            line-height: 1.25;
-            padding: 2px 2px;
-            vertical-align: top;
+        .info-table td {
+            font-size: 15px;
+            line-height: 1.3;
+            padding: 3px 3px;
+            border-bottom: 1px solid #e0e0e0;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
         }
 
-        .info-label {
-            width: 45%;
-            white-space: nowrap;
+        .info-table .label {
+            white-space: normal;
         }
 
-        .info-label-long {
-            width: 62%;
-            white-space: nowrap;
-            font-size: 13px;
-        }
-
-        .info-colon {
-            width: 3%;
+        .info-table .colon {
             text-align: center;
             white-space: nowrap;
-        }
-
-        .info-value {
-            width: 52%;
-        }
-
-        .right-label {
-            width: 38%;
-            white-space: nowrap;
-        }
-
-        .right-colon {
-            width: 5%;
-            text-align: center;
-            white-space: nowrap;
-        }
-
-        .right-value {
-            width: 57%;
         }
 
         .nowrap {
             white-space: nowrap;
         }
 
+        /* ============ DETAIL SECTION ============ */
+        .detail-title {
+            margin-top: 20px;
+            margin-bottom: 5px;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .detail-table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 13px;
+            table-layout: fixed;
+        }
+
+        .detail-table th,
+        .detail-table td {
+            border: 1px solid #000;
+            padding: 5px 6px;
+            vertical-align: top;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+        }
+
+        .detail-table th {
+            background-color: #f2f2f2;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .detail-no {
+            width: 6%;
+            text-align: center;
+        }
+
+        .detail-amount {
+            width: 18%;
+            text-align: right;
+        }
+
+        .detail-tax {
+            width: 14%;
+            line-height: 1.35;
+            color: #333;
+        }
+
+        .detail-budget {
+            width: 27%;
+            line-height: 1.35;
+            color: #333;
+        }
+
+        .detail-budget .b-line {
+            display: block;
+        }
+
+        .detail-budget .b-desc {
+            font-weight: bold;
+            color: #000;
+        }
+
+        .detail-table tfoot td {
+            font-weight: bold;
+            background-color: #f9f9f9;
+        }
+
+        /* ============ APPROVAL ============ */
         .approval-table {
-            margin-top: 88px;
+            margin-top: 40px;
             border-collapse: collapse;
             font-size: 12px;
         }
@@ -129,6 +181,8 @@
             border: 1px solid #000;
             padding: 7px;
             vertical-align: top;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
         }
 
         .approval-table th {
@@ -147,23 +201,19 @@
         }
 
         .blue {
-            color: blue;
+            color: #1a4d8f;
         }
 
         .red {
-            color: red;
+            color: #b02a2a;
         }
 
         .orange {
-            color: orange;
+            color: #a15c00;
         }
 
         .black {
             color: #000;
-        }
-
-        .nowrap {
-            white-space: nowrap;
         }
     </style>
 </head>
@@ -220,9 +270,9 @@
     @endphp
 
     {{-- HEADER --}}
-    <table>
+    <table class="header-table">
         <tr>
-            <td style="width: 31%;">
+            <td style="width: 24%;">
                 <div class="left-company">
                     {{ $cpny_name ?: $rfpnonpurch->cpny_id }}
                 </div>
@@ -233,19 +283,21 @@
                 </div>
             </td>
 
-            <td style="width: 44%; text-align: center;">
+            <td style="width: 54%; text-align: center;">
                 <div class="header-title">
                     {{ $cpny_name ?: $rfpnonpurch->cpny_id }}
                 </div>
             </td>
 
-            <td style="width: 25%; text-align: left;">
+            <td style="width: 22%;">
                 <div class="doc-no">
                     No. {{ $rfpnonpurch->rfpnonpurchaseid }}
                 </div>
             </td>
         </tr>
-    </table><br>
+    </table>
+
+    <hr class="header-rule">
 
     {{-- BODY INFO --}}
     <table class="info-table">
@@ -262,11 +314,13 @@
         <tr>
             <td class="label">Dibayarkan kpd/Please Pay to</td>
             <td class="colon">:</td>
-            <td>{{ $rfpnonpurch->pleasepayto ?: '-' }}</td>
+            <td colspan="4">{{ $rfpnonpurch->pleasepayto ?: '-' }}</td>
+        </tr>
 
+        <tr>
             <td class="label">Jumlah/Amount</td>
             <td class="colon">:</td>
-            <td class="nowrap">Rp. {{ number_format($amount, 0, ',', '.') }}</td>
+            <td colspan="4" class="nowrap">Rp. {{ number_format($amount, 0, ',', '.') }}</td>
         </tr>
 
         <tr>
@@ -279,6 +333,18 @@
             <td class="label">Keperluan/Purpose</td>
             <td class="colon">:</td>
             <td colspan="4">{{ $rfpnonpurch->keperluan ?: '-' }}</td>
+        </tr>
+
+        <tr>
+            <td class="label">Business Unit</td>
+            <td class="colon">:</td>
+            <td colspan="4">{{ $rfpnonpurch->business_unit_name ?: ($rfpnonpurch->business_unit_id ?: '-') }}</td>
+        </tr>
+
+        <tr>
+            <td class="label">Group Biaya</td>
+            <td class="colon">:</td>
+            <td colspan="4">{{ $rfpnonpurch->groupbiaya->groupbiayadescr ?? '-' }}</td>
         </tr>
 
         <tr>
@@ -300,7 +366,133 @@
                 {{ $paymentText }}
             </td>
         </tr>
+
+        @if (!empty($deposit))
+            <tr>
+                <td class="label">Transfer To / Bank Account</td>
+                <td class="colon">:</td>
+                <td colspan="4">
+                    {{ $deposit->transferto ?: '-' }} /
+                    {{ $deposit->bankname ?: '-' }} /
+                    {{ $deposit->bankacct ?: '-' }}
+                </td>
+            </tr>
+        @endif
     </table>
+
+    {{-- DETAIL --}}
+    @if (isset($details) && $details->count())
+        @if (!$isRCA)
+            <div class="detail-title">
+                Detail RFP Non Purchase
+            </div>
+        @endif
+
+        @php
+            $noW = !$isRCA ? 6 : 0;
+            $amtW = 18;
+            $taxW = !empty($hasTaxDetail) ? 14 : 0;
+            $budgetW = !empty($hasBudgetDetail) ? 27 : 0;
+            $descW = 100 - $noW - $amtW - $taxW - $budgetW;
+        @endphp
+
+        <table class="detail-table">
+            <colgroup>
+                @if (!$isRCA)
+                    <col style="width: {{ $noW }}%;">
+                @endif
+                <col style="width: {{ $descW }}%;">
+                <col style="width: {{ $amtW }}%;">
+                @if (!empty($hasTaxDetail))
+                    <col style="width: {{ $taxW }}%;">
+                @endif
+                @if (!empty($hasBudgetDetail))
+                    <col style="width: {{ $budgetW }}%;">
+                @endif
+            </colgroup>
+
+            <thead>
+                <tr>
+                    @if (!$isRCA)
+                        <th class="detail-no">No</th>
+                    @endif
+                    <th>{{ $isRCA ? 'Keperluan' : 'Description' }}</th>
+                    <th class="detail-amount">Amount Request</th>
+                    @if (!empty($hasTaxDetail))
+                        <th class="detail-tax">Tax</th>
+                    @endif
+                    @if (!empty($hasBudgetDetail))
+                        <th class="detail-budget">Budget</th>
+                    @endif
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach ($details as $i => $d)
+                    <tr>
+                        @if (!$isRCA)
+                            <td class="detail-no">{{ $i + 1 }}</td>
+                        @endif
+                        <td>{{ $isRCA ? ($rfpnonpurch->keperluan ?: '-') : ($d->keperluan_detail ?: '-') }}</td>
+                        <td class="detail-amount">Rp {{ number_format((float) ($d->amount_request ?? 0), 2, ',', '.') }}</td>
+
+                        @if (!empty($hasTaxDetail))
+                            <td class="detail-tax">
+                                @php
+                                    $taxData = $d->tax_data ?? null;
+                                    $taxRate = (float) ($taxData->taxrate ?? 0);
+                                @endphp
+
+                                <span class="b-line b-desc">
+                                    {{ optional($taxData)->descr ?: ($d->taxcodeid ?: '-') }}
+                                    @if ($taxRate > 0)
+                                        ({{ rtrim(rtrim(number_format($taxRate, 2), '0'), '.') }}%)
+                                    @endif
+                                </span>
+                            </td>
+                        @endif
+
+                        @if (!empty($hasBudgetDetail))
+                            <td class="detail-budget">
+                                @php
+                                    $budgetData = $d->budget_data ?? null;
+                                @endphp
+
+                                @if ($budgetData)
+                                    <span class="b-line">
+                                        {{ $d->budget_business_unit_id ?: '-' }} /
+                                        {{ $d->budget_department_fin_id ?: '-' }} /
+                                        {{ $d->budget_account_id ?: '-' }}
+                                    </span>
+                                    <span class="b-line b-desc">
+                                        {{ $d->budget_activity_descr ?: $d->budget_activity_id ?: '-' }}
+                                    </span>
+                                    <span class="b-line">
+                                        Available: Rp {{ number_format((float) ($d->budget_remaining ?? 0), 0, ',', '.') }}
+                                    </span>
+                                @else
+                                    -
+                                @endif
+                            </td>
+                        @endif
+                    </tr>
+                @endforeach
+            </tbody>
+
+            <tfoot>
+                <tr>
+                    <td colspan="{{ $isRCA ? 1 : 2 }}" style="text-align: right;">Total</td>
+                    <td class="detail-amount">Rp {{ number_format((float) $details->sum('amount_request'), 2, ',', '.') }}</td>
+                    @if (!empty($hasTaxDetail))
+                        <td></td>
+                    @endif
+                    @if (!empty($hasBudgetDetail))
+                        <td></td>
+                    @endif
+                </tr>
+            </tfoot>
+        </table>
+    @endif
 
     {{-- APPROVAL --}}
     <table class="approval-table">

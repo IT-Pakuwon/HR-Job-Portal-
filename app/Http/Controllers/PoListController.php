@@ -20,8 +20,7 @@ class PoListController extends Controller
 
         $u = $user->username ?? '';
 
-        $cpnyRaw = $user->cpny_id ?? '';
-        $cpnyList = $cpnyRaw !== '' ? array_values(array_filter(array_map('trim', explode(',', $cpnyRaw)))) : [];
+        $cpnyList = $user->scopedCompanyIds();
 
         $isFinanceAccess = SysUserRole::where('username', $u)
             ->where('role_id', 'FINACCESS')
@@ -48,10 +47,7 @@ class PoListController extends Controller
         $creator = trim((string) $req->query('creator', ''));
 
         // ===== company list user =====
-        $cpnyRaw = $user->cpny_id ?? '';
-        $cpnyList = $cpnyRaw !== ''
-            ? array_values(array_filter(array_map('trim', explode(',', $cpnyRaw))))
-            : [];
+        $cpnyList = $user->scopedCompanyIds();
 
         $isFinanceAccess = SysUserRole::where('username', $u)
             ->where('role_id', 'FINACCESS')
@@ -70,7 +66,7 @@ class PoListController extends Controller
         }
 
         // ===== TAB filter =====
-        if ($tab === 'my') {
+        if ($tab === 'my' && !$user->hasFullDataScope()) {
             // ⚠️ IMPORTANT: use username (NOT id)
             $base->where('created_by', $user->username);
         }

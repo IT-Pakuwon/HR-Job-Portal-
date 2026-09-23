@@ -35,6 +35,53 @@ class SysRoleMenuController extends Controller
         return view('pages.role_menus.role_menus', compact('roles', 'menus', 'parentMenus'));
     }
 
+    public function byRole($roleId)
+    {
+        $menuIds = SysRoleMenu::where('role_id', $roleId)
+            ->where('status', 'A')
+            ->pluck('menu_id');
+
+        return response()->json(['menu_ids' => $menuIds]);
+    }
+
+    public function saveByRole(Request $request)
+    {
+        $request->validate([
+            'role_id'   => 'required|string|max:50',
+            'menu_id'   => 'array',
+            'menu_id.*' => 'string',
+        ]);
+
+        DB::connection('pgsql2')->beginTransaction();
+
+        try {
+            $user = Auth::user();
+
+            SysRoleMenu::where('role_id', $request->role_id)->delete();
+
+            foreach ($request->input('menu_id', []) as $menuId) {
+                SysRoleMenu::create([
+                    'role_id'    => $request->role_id,
+                    'menu_id'    => $menuId,
+                    'status'     => 'A',
+                    'created_by' => $user->username ?? 'system',
+                    'updated_by' => $user->username ?? 'system',
+                ]);
+            }
+
+            DB::connection('pgsql2')->commit();
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            DB::connection('pgsql2')->rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyimpan mapping role',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function json()
     {
         $data = SysRoleMenu::select([

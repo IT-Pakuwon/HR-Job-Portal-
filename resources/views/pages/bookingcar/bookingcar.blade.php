@@ -1,6 +1,6 @@
 <x-app-layout>
 
-    <div class="mb-4 rounded-lg border border-gray-200 bg-white px-5 py-4 shadow-sm">
+    <div class="mb-4 rounded-lg border border-gray-200 bg-white px-5 py-4 shadow-sm dark:bg-gray-800 dark:border-gray-700">
 
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
@@ -21,7 +21,7 @@
 
                     </h1>
 
-                    <p class="mt-0.5 text-sm text-gray-500">
+                    <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
 
                         Manage booking requests and vehicle schedules
 
@@ -96,12 +96,6 @@
                     <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                         <span class="h-2.5 w-2.5 rounded-full bg-amber-500"></span> Revised
                     </span>
-                    <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                        <span class="h-2.5 w-2.5 rounded-full bg-red-500"></span> Rejected
-                    </span>
-                    <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                        <span class="h-2.5 w-2.5 rounded-full bg-slate-400"></span> Cancelled
-                    </span>
                 </div>
 
                 <!-- ... existing header content ... -->
@@ -155,6 +149,9 @@
                 <!-- Filter Buttons -->
                 <div class="mt-4 flex flex-wrap gap-2">
                     <button class="booking-filter active-filter" data-filter="ALL">All</button>
+                    @if (auth()->check() && auth()->user()->isAdmin())
+                        <button class="booking-filter" data-filter="ALL_TRANSACTIONS">All Transaction</button>
+                    @endif
                     <button class="booking-filter" data-filter="P">Pending</button>
                     <button class="booking-filter" data-filter="C">Approved</button>
                     @if (auth()->check() && auth()->user()->hasRole('GAACCESS'))
@@ -295,21 +292,28 @@
 
                                 </label>
 
-                                <select id="department_id" name="department_id"
-                                    class="h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]"
-                                    required>
+                                @if (count($userdept) === 1)
+                                    <input type="text" value="{{ $userdept[0]->department_name ?? $userdept[0]->department_id }}" readonly
+                                        class="h-11 w-full rounded-lg border border-slate-200 bg-slate-100 px-4 text-sm dark:border-white/10 dark:bg-white/[0.04]">
+                                    <input type="hidden" id="department_id" name="department_id"
+                                        value="{{ $userdept[0]->department_id }}">
+                                @else
+                                    <select id="department_id" name="department_id"
+                                        class="h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]"
+                                        required>
 
-                                    <option value="">
-                                        Select Department
-                                    </option>
-
-                                    @foreach ($userdept as $p)
-                                        <option value="{{ $p->department_id }}">
-                                            {{ $p->department_id }}
+                                        <option value="">
+                                            Select Department
                                         </option>
-                                    @endforeach
 
-                                </select>
+                                        @foreach ($userdept as $p)
+                                            <option value="{{ $p->department_id }}">
+                                                {{ $p->department_name ?? $p->department_id }}
+                                            </option>
+                                        @endforeach
+
+                                    </select>
+                                @endif
 
                             </div>
 
@@ -339,7 +343,7 @@
 
                                 </label>
 
-                                <input type="number" id="passenger" name="passenger" min="1"
+                                <input type="number" id="passenger" name="passenger" min="0"
                                     placeholder="Input total passenger"
                                     class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0b1220]"
                                     required>
@@ -535,7 +539,8 @@
 
                                         @foreach ($requesters as $p)
                                             <option value="{{ $p->username }}"
-                                                data-dept="{{ trim($p->department_id) }}">
+                                                data-dept="{{ $p->all_dept_ids }}"
+                                                data-cpny="{{ $p->all_cpny_ids }}">
 
                                                 {{ $p->name }}
 
@@ -653,6 +658,13 @@
 
                 <div class="flex items-center gap-3">
 
+                    <button type="button" id="privateNoteBookingBtn"
+                        class="hidden h-10 rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08]">
+
+                        🗒️ Private Note
+
+                    </button>
+
                     <a id="printBookingBtn" href="#" target="_blank"
                         class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-red-600 px-4 text-sm font-semibold text-white transition hover:bg-red-500">
 
@@ -685,7 +697,7 @@
 
                             <div>
 
-                                <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                                <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                                     Requester
                                 </div>
 
@@ -707,7 +719,7 @@
 
                             <div>
 
-                                <div class="text-xs text-slate-500">
+                                <div class="text-xs text-slate-500 dark:text-slate-400">
                                     Booking Date
                                 </div>
 
@@ -719,7 +731,7 @@
 
                             <div>
 
-                                <div class="text-xs text-slate-500">
+                                <div class="text-xs text-slate-500 dark:text-slate-400">
                                     Total Passenger
                                 </div>
 
@@ -731,7 +743,7 @@
 
                             <div>
 
-                                <div class="text-xs text-slate-500">
+                                <div class="text-xs text-slate-500 dark:text-slate-400">
                                     Start Time
                                 </div>
 
@@ -743,7 +755,7 @@
 
                             <div>
 
-                                <div class="text-xs text-slate-500">
+                                <div class="text-xs text-slate-500 dark:text-slate-400">
                                     End Time
                                 </div>
 
@@ -755,7 +767,7 @@
 
                             <div>
 
-                                <div class="text-xs text-slate-500">
+                                <div class="text-xs text-slate-500 dark:text-slate-400">
                                     Company - Company Request
                                 </div>
 
@@ -774,7 +786,7 @@
 
                             <div>
 
-                                <div class="text-xs text-slate-500">
+                                <div class="text-xs text-slate-500 dark:text-slate-400">
                                     Department
                                 </div>
 
@@ -979,7 +991,7 @@
                                 </button>
 
                                 <button type="button" id="reviseBookingBtn"
-                                    class="flex-1 rounded-lg bg-yellow-400 px-4 py-2 text-xs font-semibold text-black transition hover:bg-yellow-300">
+                                    class="flex-1 rounded-lg bg-yellow-400 px-4 py-2 text-xs font-semibold text-black transition hover:bg-yellow-300 dark:text-white">
 
                                     <i class="fa-solid fa-rotate-left mr-1"></i>
                                     Revise
@@ -1158,7 +1170,7 @@
 
                                     @foreach ($userdept as $p)
                                         <option value="{{ $p->department_id }}">
-                                            {{ $p->department_id }}
+                                            {{ $p->department_name ?? $p->department_id }}
                                         </option>
                                     @endforeach
 
@@ -1187,7 +1199,7 @@
                                     Total Passenger *
                                 </label>
 
-                                <input type="number" id="edit_passenger" name="passenger" min="1"
+                                <input type="number" id="edit_passenger" name="passenger" min="0"
                                     placeholder="Input total passenger"
                                     class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0b1220]"
                                     required>
@@ -1359,7 +1371,8 @@
 
                                         @foreach ($requesters as $p)
                                             <option value="{{ $p->username }}"
-                                                data-dept="{{ trim($p->department_id) }}">
+                                                data-dept="{{ $p->all_dept_ids }}"
+                                                data-cpny="{{ $p->all_cpny_ids }}">
                                                 {{ $p->name }}
                                             </option>
                                         @endforeach
@@ -1556,25 +1569,25 @@
                         <div class="grid grid-cols-2 gap-x-8 gap-y-3 p-4 md:grid-cols-4">
 
                             <div>
-                                <span class="text-xs text-slate-500">Requester</span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">Requester</span>
                                 <div id="ga_booking_requester"
                                     class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">-</div>
                             </div>
 
                             <div>
-                                <span class="text-xs text-slate-500">Booking Date</span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">Booking Date</span>
                                 <div id="ga_booking_date"
                                     class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">-</div>
                             </div>
 
                             <div>
-                                <span class="text-xs text-slate-500">Start Time</span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">Start Time</span>
                                 <div id="ga_booking_start"
                                     class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">-</div>
                             </div>
 
                             <div>
-                                <span class="text-xs text-slate-500">End Time</span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">End Time</span>
                                 <div id="ga_booking_end"
                                     class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">-</div>
                             </div>
@@ -1583,18 +1596,34 @@
 
                         <div class="border-t border-slate-200 px-4 py-3 dark:border-white/10">
 
-                            <span class="text-xs text-slate-500">Route</span>
+                            <div class="mb-2 flex items-center justify-between">
+                                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Route</span>
+                                <button type="button" id="gaProcessAddRouteBtn"
+                                    class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-300 dark:hover:bg-emerald-500/20">
+                                    <i class="fa-solid fa-plus text-[10px]"></i>
+                                    Add Route
+                                </button>
+                            </div>
 
-                            <div id="ga_booking_route"
-                                class="mt-1 text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                                -
+                            <div class="overflow-hidden rounded-lg border border-slate-200 dark:border-white/10">
+                                <table class="w-full text-sm">
+                                    <thead>
+                                        <tr class="border-b border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/2">
+                                            <th class="w-10 px-4 py-2 text-left text-xs font-semibold text-slate-500 dark:text-slate-400">No</th>
+                                            <th class="px-4 py-2 text-left text-xs font-semibold text-slate-500 dark:text-slate-400">Pickup</th>
+                                            <th class="px-4 py-2 text-left text-xs font-semibold text-slate-500 dark:text-slate-400">Destination</th>
+                                            <th class="w-12 px-4 py-2"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="gaProcessRouteTableBody"></tbody>
+                                </table>
                             </div>
 
                         </div>
 
                         <div class="border-t border-slate-200 px-4 py-3 dark:border-white/10">
 
-                            <span class="text-xs text-slate-500">Purpose</span>
+                            <span class="text-xs text-slate-500 dark:text-slate-400">Purpose</span>
 
                             <div id="ga_booking_purpose" class="mt-1 text-sm text-slate-700 dark:text-slate-300">
                                 -
@@ -1646,7 +1675,6 @@
 
                                 </select>
                             </div>
-ve
                         </div>
 
                     </div>
@@ -1810,6 +1838,8 @@ ve
         </div>
 
     </div>
+
+    @include('partials.private-note-widget', ['doctype' => 'BCR', 'floatingButton' => false, 'akses_cc' => $isGA ?? false])
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 

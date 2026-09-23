@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="mx-auto max-w-7xl px-4 py-6">
+    <div class="mx-auto max-w-9xl px-4 py-6">
         <div class="rounded-xl border border-gray-200 bg-white">
             <div class="border-b border-gray-200 px-5 py-4">
                 <h1 class="text-xl font-semibold text-gray-800">IFCA Integration</h1>
@@ -37,11 +37,11 @@
                         class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
                         Issue
                     </button>
-                    
+
                     <button type="button" data-tab="tab-po-sl"
                         class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
                         PO Solomon
-                    </button>                    
+                    </button>
 
                     <button type="button" data-tab="tab-grn-sl"
                         class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
@@ -103,7 +103,7 @@
                 <div id="tab-issue" class="hidden">
                     @include('pages.integration.ifcaapiissue')
                 </div>
-                
+
                 {{-- TAB: PO Solomon --}}
                 <div id="tab-po-sl" class="hidden">
                     @include('pages.integration.slapipo')

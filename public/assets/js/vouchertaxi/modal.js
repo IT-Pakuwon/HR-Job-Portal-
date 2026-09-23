@@ -79,6 +79,12 @@ const VoucherTaxiModal = {
     // INIT ALL MODAL CLOSE BUTTONS
     // --------------------------------------------------------
     init() {
+        // ── OPEN CREATE MODAL ─────────────────────────────────
+        document.getElementById('openCreateVoucherModal')
+            ?.addEventListener('click', () => {
+                VoucherTaxiModal.openCreate();
+            });
+
         // ── CREATE MODAL ─────────────────────────────────────
         document.getElementById('closeCreateVoucherModal')
             ?.addEventListener('click', () => {

@@ -75,9 +75,20 @@
                 position: legendPosition,
                 horizontalAlign: (legendPosition === 'top' || legendPosition === 'bottom') ? 'center' : 'left',
                 fontSize: '12px',
-                markers: { radius: 6 },
+                markers: { shape: 'circle', size: 6 },
                 itemMargin: { horizontal: 8, vertical: 4 },
+                formatter: function(seriesName, opts) {
+                    var val = opts.w.globals.series[opts.seriesIndex];
+                    var pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                    return seriesName + ':  ' + val.toLocaleString() + ' (' + pct + '%)';
+                },
             },
+            responsive: [{
+                breakpoint: 1024,
+                options: {
+                    legend: { position: 'bottom', horizontalAlign: 'center' },
+                },
+            }],
         });
         chart.render();
 
@@ -86,6 +97,16 @@
             chart.updateOptions({
                 chart: { foreColor: d ? '#94A3B8' : '#64748B' },
                 tooltip: { theme: d ? 'dark' : 'light' },
+                plotOptions: {
+                    pie: {
+                        donut: {
+                            labels: {
+                                total: { color: d ? '#94A3B8' : '#64748B' },
+                                value: { color: d ? '#F8FAFC' : '#0F172A' },
+                            },
+                        },
+                    },
+                },
             });
         }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     }
@@ -93,4 +114,7 @@
     function boot() { document.querySelectorAll('[data-chart-type="donut"]').forEach(init); }
 
     if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', boot); } else { boot(); }
+
+    window.CardChart = window.CardChart || {};
+    window.CardChart.initDonut = init;
 })();

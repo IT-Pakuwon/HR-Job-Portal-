@@ -11,14 +11,18 @@ class SignPayroll extends Model
     protected $table = "ms_approval_payroll";
     // protected $primaryKey = 'id';
     protected $fillable = [
-        'aprvid',
         'docid',
+        'cpnyid',
+        'group_cpny_id',
+        'aprvid',
         'jabatan',
         'aprvusername',
         'name',
         'status',
         'created_user',
-        'updated_user'
+        'created_at',
+        'updated_user',
+        'updated_at'
     ];
 
   

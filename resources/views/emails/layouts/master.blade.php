@@ -15,12 +15,12 @@
 
                     {{-- Header --}}
                     <tr>
-                        <td style="background:linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 55%,#3b82f6 100%);border-radius:16px 16px 0 0;padding:32px 40px 28px;">
+                        <td style="background-color:#1d4ed8;background:linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 55%,#3b82f6 100%);border-radius:16px 16px 0 0;padding:32px 40px 28px;">
                             <table cellpadding="0" cellspacing="0" border="0" width="100%">
                                 <tr>
                                     <td>
                                         <p style="margin:0 0 16px;display:inline-block;background:rgba(255,255,255,0.15);border-radius:999px;padding:3px 12px;font-size:10px;font-weight:700;color:#bfdbfe;letter-spacing:0.12em;text-transform:uppercase;">
-                                            IT Ticketing System
+                                            {{ $systemLabel ?? 'Engineering & BS Ticketing System' }}
                                         </p>
                                     </td>
                                 </tr>
@@ -62,7 +62,7 @@
                                 <tr>
                                     <td>
                                         <p style="margin:0;font-size:11px;color:#94a3b8;line-height:1.7;">
-                                            This is an automated email from <strong style="color:#64748b;">IT Ticketing System</strong>.<br>
+                                            This is an automated email from <strong style="color:#64748b;">{{ $systemLabel ?? 'Engineering & BS Ticketing System' }}</strong>.<br>
                                             Please do not reply directly to this email.
                                         </p>
                                     </td>

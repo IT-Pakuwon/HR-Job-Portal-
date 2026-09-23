@@ -24,9 +24,7 @@ class CalrListController extends Controller
         if (!$user) return redirect()->route('login');
         
         $u        = $user->username ?? '';
-        $cpnyRaw  = $user->cpny_id ?? '';
-        // bisa "AW" atau "AW,GPS"
-        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
+        $cpnyList = $user->scopedCompanyIds();
 
         $isFinanceAccess = SysUserRole::where('username', $u)
             ->where('role_id', 'FINACCESS')
@@ -34,9 +32,17 @@ class CalrListController extends Controller
 
         // 🔁 Calr Jobs: dari TrRfca + TrRfcaStep (calr_gen = true) dan BELUM punya CALR
         $calrjobs = TrRfca::query()
-            ->join('tr_rfca_step as s', function ($q) {
-                $q->on('s.rfcaid', 'tr_rfca.rfcaid')
-                ->on('s.ponbr',  'tr_rfca.ponbr');
+            ->join('tr_rfca_step as calr_step', function ($q) {
+                $q->on('calr_step.rfcaid', 'tr_rfca.rfcaid')
+                    ->on('calr_step.ponbr', 'tr_rfca.ponbr')
+                    ->where('calr_step.calr_gen', true)
+                    ->where('calr_step.status_rfca', 'C');
+            })
+            ->join('tr_rfca_step as current_step', function ($q) {
+                $q->on('current_step.rfcaid', 'tr_rfca.rfcaid')
+                    ->on('current_step.ponbr', 'tr_rfca.ponbr')
+                    ->where('current_step.progress_approval', true)
+                    ->where('current_step.status_rfca', 'P');
             })
             ->leftJoin('tr_calr as c', function ($q) {
                 $q->on('c.rfcaid', 'tr_rfca.rfcaid')
@@ -44,14 +50,26 @@ class CalrListController extends Controller
                 ->whereNotIn('c.status', ['X', 'R']);
             })
             ->when(!empty($cpnyList), fn($q) => $q->whereIn('tr_rfca.cpny_id', $cpnyList))
-            ->where('s.calr_gen', true)
-            ->where('s.status_rfca', 'C')
-            ->whereNull('tr_rfca.calrid')
+            ->whereRaw("UPPER(TRIM(COALESCE(tr_rfca.status, ''))) NOT IN ('X', 'L')")
+            // ->whereNull('tr_rfca.calrid')
+            ->where(function ($q) {
+                $q->whereNull('tr_rfca.calrid')
+                  ->orWhereRaw("TRIM(COALESCE(tr_rfca.calrid, '')) = ''");
+            })
             ->whereNull('c.calrid')
-            ->where('s.created_by', $u)
-            ->count();
+            ->whereNotExists(function ($q) {
+                $q->selectRaw('1')
+                    ->from('tr_rfca as next_rfca')
+                    ->join('tr_calr as next_calr', function ($join) {
+                        $join->on('next_calr.rfcaid', '=', 'next_rfca.rfcaid')
+                            ->whereNotIn('next_calr.status', ['X', 'R']);
+                    })
+                    ->whereRaw("TRIM(COALESCE(next_rfca.prev_rfcaid, '')) = TRIM(COALESCE(tr_rfca.rfcaid, ''))");
+            })
+            ->where('calr_step.created_by', $u)
+            ->distinct('tr_rfca.id')
+            ->count('tr_rfca.id');
 
-        
         // Helper closure untuk created_by filtering
         $filterCreator = function ($q) use ($isFinanceAccess, $u) {
             return $isFinanceAccess ? $q : $q->where('created_by', $u);
@@ -94,8 +112,7 @@ class CalrListController extends Controller
         $user    = Auth::user();
         $u       = $user->username ?? '';
 
-        $cpnyRaw  = $user->cpny_id ?? '';
-        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
+        $cpnyList = $user->scopedCompanyIds();
 
         $draw   = (int) $req->input('draw', 1);
         $start  = (int) $req->input('start', 0);
@@ -110,9 +127,17 @@ class CalrListController extends Controller
         if ($scope === 'calrjobs') {
             // 🔁 JOBS CALR: dari TrRfca + TrRfcaStep (calr_gen = 't'), belum punya CALR
             $base = TrRfca::query()
-                ->join('tr_rfca_step as s', function ($q) {
-                    $q->on('s.rfcaid', 'tr_rfca.rfcaid')
-                    ->on('s.ponbr',  'tr_rfca.ponbr');
+                ->join('tr_rfca_step as calr_step', function ($q) {
+                    $q->on('calr_step.rfcaid', 'tr_rfca.rfcaid')
+                        ->on('calr_step.ponbr', 'tr_rfca.ponbr')
+                        ->where('calr_step.calr_gen', 't')
+                        ->where('calr_step.status_rfca', 'C');
+                })
+                ->join('tr_rfca_step as current_step', function ($q) {
+                    $q->on('current_step.rfcaid', 'tr_rfca.rfcaid')
+                        ->on('current_step.ponbr', 'tr_rfca.ponbr')
+                        ->where('current_step.progress_approval', 't')
+                        ->where('current_step.status_rfca', 'P');
                 })
                 ->leftJoin('tr_calr as c', function ($q) {
                     $q->on('c.rfcaid', 'tr_rfca.rfcaid')
@@ -120,11 +145,23 @@ class CalrListController extends Controller
                     ->whereNotIn('c.status', ['X', 'R']);
                 })
                 ->when(!empty($cpnyList), fn($q) => $q->whereIn('tr_rfca.cpny_id', $cpnyList))
-                ->where('s.calr_gen', 't')
-                ->where('s.status_rfca', 'C')
-                ->whereNull('tr_rfca.calrid')
+                ->whereRaw("UPPER(TRIM(COALESCE(tr_rfca.status, ''))) NOT IN ('X', 'L')")
+                // ->whereNull('tr_rfca.calrid')
+                ->where(function ($q) {
+                    $q->whereNull('tr_rfca.calrid')
+                      ->orWhereRaw("TRIM(COALESCE(tr_rfca.calrid, '')) = ''");
+                })
                 ->whereNull('c.calrid')
-                ->where('s.created_by', $u)
+                ->whereNotExists(function ($q) {
+                    $q->selectRaw('1')
+                        ->from('tr_rfca as next_rfca')
+                        ->join('tr_calr as next_calr', function ($join) {
+                            $join->on('next_calr.rfcaid', '=', 'next_rfca.rfcaid')
+                                ->whereNotIn('next_calr.status', ['X', 'R']);
+                        })
+                        ->whereRaw("TRIM(COALESCE(next_rfca.prev_rfcaid, '')) = TRIM(COALESCE(tr_rfca.rfcaid, ''))");
+                })
+                ->where('calr_step.created_by', $u)
                 ->select([
                     'tr_rfca.id',
                     'tr_rfca.rfcaid',
@@ -132,8 +169,8 @@ class CalrListController extends Controller
                     'tr_rfca.cpny_id',
                     'tr_rfca.vendorname',
                     'tr_rfca.created_by',
-                    's.rfca_step_descr',
-                    's.rfca_type',
+                    'current_step.rfca_step_descr',
+                    'current_step.rfca_type',
                 ]);
 
             $orderColumns = [
@@ -154,8 +191,8 @@ class CalrListController extends Controller
                     ->orWhere('tr_rfca.cpny_id','ilike',"%{$search}%")
                     ->orWhere('tr_rfca.vendorname','ilike',"%{$search}%")
                     ->orWhere('tr_rfca.created_by','ilike',"%{$search}%")
-                    ->orWhere('s.rfca_step_descr','ilike',"%{$search}%")
-                    ->orWhere('s.rfca_type','ilike',"%{$search}%");
+                    ->orWhere('current_step.rfca_step_descr','ilike',"%{$search}%")
+                    ->orWhere('current_step.rfca_type','ilike',"%{$search}%");
                 });
             }
         } else {

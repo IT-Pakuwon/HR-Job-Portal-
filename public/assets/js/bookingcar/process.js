@@ -137,15 +137,8 @@ const BookingCarProcess = {
         BookingCarHelper.setText('ga_booking_start', BookingCar.formatTime(booking.start_time) ?? '-');
         BookingCarHelper.setText('ga_booking_end', BookingCar.formatTime(booking.end_time) ?? '-');
 
-        // Route summary
-        const routes = booking.details ?? [];
-        let routeText = '-';
-        if (routes.length > 0) {
-            routeText = routes
-                .map(r => `${r.origin} → ${r.destination}`)
-                .join(', ');
-        }
-        BookingCarHelper.setText('ga_booking_route', routeText);
+        // Load editable route rows
+        BookingCarRoute.loadProcessRoutes(booking.details ?? []);
 
         // Purpose
         BookingCarHelper.setText('ga_booking_purpose', booking.purpose_descr ?? '-');
@@ -282,12 +275,15 @@ const BookingCarProcess = {
             const handphone = BookingCarHelper.getValue('ga_handphone') || null;
             const nopol     = BookingCarHelper.getValue('ga_no_polisi') || null;
 
+            const routes = BookingCarRoute.getProcessRoutes();
+
             const payload = {
                 lock:              lock,
                 status_perjalanan: statusPerjalanan || null,
                 driver:            driver,
                 handphone:         handphone,
                 no_polisi:         nopol,
+                routes:            routes.length > 0 ? routes : null,
             };
 
             const response = await BookingCar.request(
@@ -343,6 +339,7 @@ const BookingCarProcess = {
 
         // Reset form
         BookingCarHelper.resetForm('gaProcessForm');
+        BookingCarRoute.clearProcess();
 
         // Hide sections
         BookingCarHelper.hide('driverAssignmentWrapper');

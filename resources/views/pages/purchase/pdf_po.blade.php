@@ -40,7 +40,7 @@
         }
 
         .header-table td {
-            padding: 6px;
+            padding: 4px;
             vertical-align: top;
             font-size: 10px;
         }
@@ -114,16 +114,24 @@
         }
 
         .conditions {
-            font-size: 10.5px;
-            line-height: 1.4;
-            padding: 0 5px 180px 5px;
+            font-size: 10px;
+            line-height: 1.25;
+            padding: 0 5px 90px 5px;
             /* adds bottom padding so signature fits */
             text-align: justify;
         }
 
+        .conditions ol {
+            margin: 0;
+        }
+
+        .conditions li {
+            margin-bottom: 3px;
+        }
+
         .signature-box {
             position: absolute;
-            bottom: 100px;
+            bottom: 40px;
             /* anchors above footer */
             right: 40px;
             text-align: center;
@@ -136,7 +144,7 @@
         .signature-box .title {
             font-weight: bold;
             text-transform: uppercase;
-            margin-bottom: 60px;
+            margin-bottom: 40px;
             display: block;
         }
 
@@ -366,8 +374,8 @@
         <table style="width:100%; border-collapse:collapse;">
             <tbody>
                 <tr>
-                    <td style="height:200px; text-align:right; padding-left:40px;">
-                        <strong>Approved by System</strong><br><br><br><br><br>
+                    <td style="height:90px; text-align:right; padding-left:40px;">
+                        <strong>Approved by System</strong><br><br>
 
                         ___________________________<br>
                         Paraf by Supplier
@@ -375,10 +383,6 @@
                 </tr>
             </tbody>
         </table>
-
-
-
-
         {{-- <div class="fixed-footer">
             <div>Created by: {{ $purchaser }}, Sent by: {{ $purchaser }}, On: {{ $now->format('d/m/Y H:i') }}</div>
             <div>Page: 1 of 2</div>
@@ -489,13 +493,15 @@
                     untuk menyelesaikan perselisihan tersebut.
                 </li>
                 <li style="text-align: justify"><strong> BAHASA</strong>
-                    <br>Bahasa yang digunakan dan berlaku dalam PO ini adalah Bahasa Indonesia
+                    <br>Bahasa yang digunakan dan berlaku dalam PO ini adalah Bahasa Indonesia.
+                </li>
+                <li style="text-align: justify"><strong> KETERLAMBATAN PENAGIHAN</strong>
+                    <br>Apabila terjadi keterlambatan penyerahan dokumen tagihan, yaitu terhitung 2 (dua) bulan dari tanggal STTB (Surat Tanda Terima Barang)  yang dibuat oleh pihak User (Warehouse), maka User berhak untuk tidak memproses pembayaran kepada pihak Supplier.
                 </li>
             </ol>
         </div>
 
-
-        <div style="text-align:right; margin-top:40px;">
+        <div style="text-align:right; margin-top:10px;">
             <div class="signature-box">
                 <div class="title">Disetujui oleh Supplier</div>
                 <div class="line">Supplier atau yang Berwenang / Supplier's Authorized Representative<br>

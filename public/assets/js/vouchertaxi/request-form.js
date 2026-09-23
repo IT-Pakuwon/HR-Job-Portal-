@@ -21,11 +21,14 @@ const VoucherTaxiForm = {
 
         // Auto-load topup employees if department already set (single-dept user)
         const deptId = document.getElementById('department_id')?.value;
-        if (deptId) VoucherTaxiForm.loadTopupEmployees(deptId);
+        const cpnyExpense = document.getElementById('cpny_id_expense')?.value;
+        if (deptId) VoucherTaxiForm.loadTopupEmployees(deptId, cpnyExpense);
 
-        // Department change → reload topup employees
-        $(document).on('change.voucherCreate', '#department_id', function () {
-            VoucherTaxiForm.loadTopupEmployees($(this).val());
+        // Department or Company Expense change → reload topup employees
+        $(document).on('change.voucherCreate', '#department_id, #cpny_id_expense', function () {
+            const dept = $('#department_id').val();
+            const cpny = $('#cpny_id_expense').val();
+            VoucherTaxiForm.loadTopupEmployees(dept, cpny);
         });
 
         // Form submit
@@ -50,7 +53,8 @@ const VoucherTaxiForm = {
         };
 
         // Static selects (options rendered by blade)
-        make($('#cpny_id'),         { placeholder: 'Select Company' });
+        // Only init Select2 on <select> — blade renders a hidden input when user has 1 company
+        if ($('#cpny_id').is('select')) make($('#cpny_id'), { placeholder: 'Select Company' });
         make($('#cpny_id_expense'), { placeholder: 'Select Company' });
 
         // Purpose — AJAX search (options NOT in blade, loaded on demand)
@@ -74,7 +78,7 @@ const VoucherTaxiForm = {
     // --------------------------------------------------------
     // LOAD TOPUP EMPLOYEES BY DEPARTMENT
     // --------------------------------------------------------
-    loadTopupEmployees(deptId) {
+    loadTopupEmployees(deptId, cpnyId = null) {
         const $select = $('#user_topup');
 
         if (!deptId) {
@@ -82,7 +86,10 @@ const VoucherTaxiForm = {
             return;
         }
 
-        fetch(`/vouchertaxi/employee-by-department?department_id=${encodeURIComponent(deptId)}`, {
+        let url = `/vouchertaxi/employee-by-department?department_id=${encodeURIComponent(deptId)}`;
+        if (cpnyId) url += `&cpny_id=${encodeURIComponent(cpnyId)}`;
+
+        fetch(url, {
             headers: {
                 'X-CSRF-TOKEN':     VoucherTaxi.csrf(),
                 'X-Requested-With': 'XMLHttpRequest',
@@ -118,9 +125,10 @@ const VoucherTaxiForm = {
             VoucherTaxiHelper.setValue('date_used', payload.date_used);
         }
 
-        // Re-load employees for existing department selection
+        // Re-load employees for existing department and company expense selection
         const deptId = document.getElementById('department_id')?.value;
-        if (deptId) VoucherTaxiForm.loadTopupEmployees(deptId);
+        const cpnyExpense = document.getElementById('cpny_id_expense')?.value;
+        if (deptId) VoucherTaxiForm.loadTopupEmployees(deptId, cpnyExpense);
     },
 
     // --------------------------------------------------------

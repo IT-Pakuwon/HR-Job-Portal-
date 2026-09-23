@@ -20,7 +20,7 @@
 
             <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-12">
                 <div class="md:col-span-3">
-                    <label class="mb-1 block text-xs font-semibold text-gray-500">Filter Status</label>
+                    <label class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">Filter Status</label>
                     <select id="filterStatus"
                         class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
                         <option value="">All</option>
@@ -31,7 +31,7 @@
                 </div>
 
                 <div class="md:col-span-6">
-                    <label class="mb-1 block text-xs font-semibold text-gray-500">Search</label>
+                    <label class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">Search</label>
                     <input id="searchInput"
                         class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                         placeholder="cpny_id / issue_id / reference_no / spb_id / wo_id / user_peminta...">
@@ -62,7 +62,7 @@
                         </thead>
                         <tbody id="tbody" class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
                             <tr>
-                                <td colspan="8" class="px-4 py-8 text-center text-gray-500">Loading...</td>
+                                <td colspan="8" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">Loading...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -80,7 +80,7 @@
                     <p id="modalSub" class="text-sm font-semibold text-gray-700 dark:text-gray-200"></p>
                 </div>
                 <button id="btnCloseModal"
-                    class="rounded-lg px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">✕</button>
+                    class="rounded-lg px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-400">✕</button>
             </div>
 
             <div class="flex-1 overflow-y-auto p-5 space-y-4">
@@ -88,53 +88,53 @@
 
                 <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
                     <div class="grid grid-cols-[120px_12px_1fr] items-center gap-2 text-sm">
-                        <div class="text-gray-500">Company</div><div>:</div>
+                        <div class="text-gray-500 dark:text-gray-400">Company</div><div>:</div>
                         <input id="mCpny" readonly class="w-full rounded-md border border-gray-300 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
                     </div>
                     <div class="grid grid-cols-[120px_12px_1fr] items-center gap-2 text-sm">
-                        <div class="text-gray-500">Issue ID</div><div>:</div>
+                        <div class="text-gray-500 dark:text-gray-400">Issue ID</div><div>:</div>
                         <input id="mIssueId" readonly class="w-full rounded-md border border-gray-300 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
                     </div>
 
                     <div class="grid grid-cols-[120px_12px_1fr] items-center gap-2 text-sm">
-                        <div class="text-gray-500">Issue Date</div><div>:</div>
+                        <div class="text-gray-500 dark:text-gray-400">Issue Date</div><div>:</div>
                         <input id="mIssueDate" readonly class="w-full rounded-md border border-gray-300 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
                     </div>
                     <div class="grid grid-cols-[120px_12px_1fr] items-center gap-2 text-sm">
-                        <div class="text-gray-500">Reference No</div><div>:</div>
+                        <div class="text-gray-500 dark:text-gray-400">Reference No</div><div>:</div>
                         <input id="mReferenceNo" readonly class="w-full rounded-md border border-gray-300 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
                     </div>
 
                     <div class="grid grid-cols-[120px_12px_1fr] items-center gap-2 text-sm">
-                        <div class="text-gray-500">SPB ID</div><div>:</div>
+                        <div class="text-gray-500 dark:text-gray-400">SPB ID</div><div>:</div>
                         <input id="mSpbId" readonly class="w-full rounded-md border border-gray-300 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
                     </div>
                     <div class="grid grid-cols-[120px_12px_1fr] items-center gap-2 text-sm">
-                        <div class="text-gray-500">WO ID</div><div>:</div>
+                        <div class="text-gray-500 dark:text-gray-400">WO ID</div><div>:</div>
                         <input id="mWoId" readonly class="w-full rounded-md border border-gray-300 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
                     </div>
 
                     <div class="grid grid-cols-[120px_12px_1fr] items-center gap-2 text-sm">
-                        <div class="text-gray-500">Department</div><div>:</div>
+                        <div class="text-gray-500 dark:text-gray-400">Department</div><div>:</div>
                         <input id="mDepartment" readonly class="w-full rounded-md border border-gray-300 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
                     </div>
                     <div class="grid grid-cols-[120px_12px_1fr] items-center gap-2 text-sm">
-                        <div class="text-gray-500">Peminta</div><div>:</div>
+                        <div class="text-gray-500 dark:text-gray-400">Peminta</div><div>:</div>
                         <input id="mPeminta" readonly class="w-full rounded-md border border-gray-300 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
                     </div>
 
                     <div class="grid grid-cols-[120px_12px_1fr] items-center gap-2 text-sm md:col-span-2">
-                        <div class="text-gray-500">Keeper</div><div>:</div>
+                        <div class="text-gray-500 dark:text-gray-400">Keeper</div><div>:</div>
                         <input id="mKeeper" readonly class="w-full rounded-md border border-gray-300 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
                     </div>
 
                     <div class="grid grid-cols-[120px_12px_1fr] items-start gap-2 text-sm md:col-span-2">
-                        <div class="pt-1 text-gray-500">Remarks</div><div class="pt-1">:</div>
+                        <div class="pt-1 text-gray-500 dark:text-gray-400">Remarks</div><div class="pt-1">:</div>
                         <textarea id="mRemark" rows="2" readonly class="w-full rounded-md border border-gray-300 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900 dark:text-white"></textarea>
                     </div>
 
                     <div class="grid grid-cols-[120px_12px_1fr] items-center gap-2 text-sm md:col-span-2">
-                        <div class="text-gray-500">Integration Type</div><div>:</div>
+                        <div class="text-gray-500 dark:text-gray-400">Integration Type</div><div>:</div>
                         <select id="mIntegrationType"
                             class="w-full rounded-md border border-gray-300 bg-white px-2 py-1 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
                             <option value="">-- Select Integration Type --</option>
@@ -160,7 +160,7 @@
                             </thead>
                             <tbody id="detailTbody" class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
                                 <tr>
-                                    <td colspan="5" class="px-3 py-6 text-center text-gray-500">Loading...</td>
+                                    <td colspan="5" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">Loading...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -169,7 +169,7 @@
 
                 <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
                     <div>
-                        <label class="mb-1 block text-xs font-semibold text-gray-500">Status</label>
+                        <label class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">Status</label>
                         <select id="mStatus"
                             class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
                             <option value="D">Waiting Review</option>
@@ -177,7 +177,7 @@
                         </select>
                     </div>
                     <div class="md:col-span-2">
-                        <label class="mb-1 block text-xs font-semibold text-gray-500">Review Note</label>
+                        <label class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">Review Note</label>
                         <input id="mNote"
                             class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                             placeholder="Catatan review...">
@@ -349,7 +349,7 @@
         const status = document.getElementById('filterStatus').value;
         const search = document.getElementById('searchInput').value.trim();
 
-        tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">Loading...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">Loading...</td></tr>`;
 
         const qs = new URLSearchParams();
         if (status) qs.set('status', status);
@@ -363,7 +363,7 @@
         const rows = json.data || [];
 
         if (!rows.length) {
-            tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">No data</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">No data</td></tr>`;
             return;
         }
 
@@ -395,7 +395,7 @@
     }
 
     async function openRow(id) {
-        detailTbody.innerHTML = `<tr><td colspan="5" class="px-3 py-6 text-center text-gray-500">Loading...</td></tr>`;
+        detailTbody.innerHTML = `<tr><td colspan="5" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">Loading...</td></tr>`;
 
         const res = await fetch(`${BASE}/${id}`, {
             headers: { 'Accept': 'application/json' }
@@ -433,7 +433,7 @@
             `Reference: ${(header.reference_no ?? '-')}`;
 
         if (!details.length) {
-            detailTbody.innerHTML = `<tr><td colspan="5" class="px-3 py-6 text-center text-gray-500">No detail</td></tr>`;
+            detailTbody.innerHTML = `<tr><td colspan="5" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">No detail</td></tr>`;
         } else {
             detailTbody.innerHTML = details.map(d => {
                 const rid = d.id;
@@ -451,7 +451,7 @@
 
                         <td class="px-3 py-2 align-top">
                             <div class="text-right font-semibold">${formatQty(d.issue_qty)}</div>
-                            <div class="text-right text-gray-500">${escapeHtml(d.uom ?? '')}</div>
+                            <div class="text-right text-gray-500 dark:text-gray-400">${escapeHtml(d.uom ?? '')}</div>
                         </td>
 
                         <td class="px-3 py-2 align-top">

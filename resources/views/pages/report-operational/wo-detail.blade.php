@@ -1,34 +1,34 @@
 <div class="space-y-4">
 
     <!-- FILTER PANEL -->
-    <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm">
+    <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800/40">
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-6">
 
             <!-- Date From -->
             <div>
-                <label class="text-xs text-gray-500">Date From</label>
-                <input type="date" id="op_date_from" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                <label class="text-xs text-gray-500 dark:text-gray-400">Date From</label>
+                <input type="date" id="op_date_from" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700">
             </div>
 
             <!-- Date To -->
             <div>
-                <label class="text-xs text-gray-500">Date To</label>
-                <input type="date" id="op_date_to" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                <label class="text-xs text-gray-500 dark:text-gray-400">Date To</label>
+                <input type="date" id="op_date_to" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700">
             </div>
 
             <!-- WO -->
             <div>
-                <label class="text-xs text-gray-500">WO Number</label>
+                <label class="text-xs text-gray-500 dark:text-gray-400">WO Number</label>
                 <input type="text" id="op_woid" placeholder="WO-xxxx"
-                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700">
             </div>
 
             <!-- Department -->
             <div>
-                <label class="text-xs text-gray-500">Department</label>
+                <label class="text-xs text-gray-500 dark:text-gray-400">Department</label>
                 <input type="text" id="op_department"
-                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700">
             </div>
 
             <!-- ACTION -->
@@ -38,12 +38,12 @@
                     Apply
                 </button>
 
-                <button id="opReset" class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm">
+                <button id="opReset" class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
                     Reset
                 </button>
 
                 <button id="opExport"
-                    class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-700">
+                    class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20">
                     Export
                 </button>
 
@@ -54,23 +54,23 @@
     </div>
 
     <!-- TABLE -->
-    <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
+    <div class="rounded-2xl border border-gray-200 bg-white shadow-sm dark:bg-gray-800 dark:border-gray-700">
 
         <div class="border-b px-6 py-4">
-            <h2 class="text-sm font-semibold text-gray-800">
+            <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">
                 Operational Report
             </h2>
 
-            <p class="text-xs text-gray-500">
+            <p class="text-xs text-gray-500 dark:text-gray-400">
                 Work Order monitoring with SPB & SPPBJKT tracking
             </p>
         </div>
 
         <div class="overflow-x-auto p-5">
 
-            <table id="opTable" class="min-w-full text-sm text-gray-700">
+            <table id="opTable" class="min-w-full text-sm text-gray-700 dark:text-gray-300">
 
-                <thead class="bg-gray-50 text-[11px] uppercase text-gray-500">
+                <thead class="bg-gray-50 text-[11px] uppercase text-gray-500 dark:bg-gray-900 dark:text-gray-400">
                     <tr>
                         <th></th>
                         <th>Date</th>
@@ -166,13 +166,13 @@
                     render: function(data) {
 
                         let color = {
-                            'Pending': 'bg-yellow-100 text-yellow-700',
-                            'Completed': 'bg-green-100 text-green-700',
-                            'Cancelled': 'bg-red-100 text-red-700',
-                            'Rejected': 'bg-red-100 text-red-700',
+                            'Pending': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-400',
+                            'Completed': 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400',
+                            'Cancelled': 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400',
+                            'Rejected': 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400',
                         };
 
-                        return `<span class="px-2 py-1 text-xs rounded ${color[data] ?? 'bg-gray-100'}">${data}</span>`;
+                        return `<span class="px-2 py-1 text-xs rounded ${color[data] ?? 'bg-gray-100 dark:bg-gray-500/15 dark:text-gray-400'}">${data}</span>`;
                     }
                 },
                 {
@@ -180,13 +180,13 @@
                     render: function(data) {
 
                         let color = {
-                            'Progress': 'bg-blue-100 text-blue-700',
-                            'On Hold': 'bg-orange-100 text-orange-700',
-                            'Done': 'bg-green-100 text-green-700',
-                            'Cancelled': 'bg-red-100 text-red-700',
+                            'Progress': 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400',
+                            'On Hold': 'bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400',
+                            'Done': 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400',
+                            'Cancelled': 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400',
                         };
 
-                        return `<span class="px-2 py-1 text-xs rounded ${color[data] ?? 'bg-gray-100'}">${data}</span>`;
+                        return `<span class="px-2 py-1 text-xs rounded ${color[data] ?? 'bg-gray-100 dark:bg-gray-500/15 dark:text-gray-400'}">${data}</span>`;
                     }
                 },
                 {
@@ -275,7 +275,7 @@
                             return `
                 <div class="text-left leading-tight w-full">
                     ${row.budget_user ? `
-                        <div class="text-xs text-gray-700">
+                        <div class="text-xs text-gray-700 dark:text-gray-300">
                             👤 ${row.budget_user}
                         </div>
                     ` : ''}
@@ -290,7 +290,7 @@
             <div class="text-left leading-tight space-y-1 w-full">
 
                 ${dept ? `
-                    <div class="font-semibold text-gray-800 text-xs">
+                    <div class="font-semibold text-gray-800 text-xs dark:text-gray-200">
                         🏢 ${dept}
                     </div>
                 ` : ''}
@@ -302,7 +302,7 @@
                 ` : ''}
 
                 ${account ? `
-                    <div class="text-[11px] text-gray-500">
+                    <div class="text-[11px] text-gray-500 dark:text-gray-400">
                         <span class="font-medium">Acc:</span> ${account}
                     </div>
                 ` : ''}

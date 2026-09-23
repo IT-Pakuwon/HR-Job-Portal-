@@ -121,7 +121,7 @@
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <img src="{{ asset('images/manual/sppb/preview.png') }}"
                                  class="rounded-lg border shadow dark:border-gray-800">
-                             <p class="mt-2 text-center text-xs text-gray-500">
+                             <p class="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
                                  Figure 1.1 – Create SPPB Header Section
                              </p>
                          </div>
@@ -196,7 +196,7 @@
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <img src="{{ asset('images/manual/sppb/create/emergency-wo.png') }}"
                                  class="rounded-lg border shadow dark:border-gray-800">
-                             <p class="mt-2 text-center text-xs text-gray-500">
+                             <p class="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
                                  Figure 1.2 – Emergency Flag and WO Selection
                              </p>
                          </div> --}}
@@ -224,7 +224,7 @@
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <img src="{{ asset('images/manual/sppb/detail-table.png') }}"
                                  class="rounded-lg border shadow dark:border-gray-800">
-                             <p class="mt-2 text-center text-xs text-gray-500">
+                             <p class="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
                                  Figure 1.3 – SPPB Detail Table
                              </p>
                          </div>
@@ -365,7 +365,7 @@
                      <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                          <img src="{{ asset('images/manual/sppb/edit-list.png') }}"
                              class="rounded-lg border shadow dark:border-gray-800">
-                         <p class="mt-2 text-center text-xs text-gray-500">
+                         <p class="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
                              Figure 2.1 – Revise SPPB Section
                          </p>
                      </div>
@@ -403,7 +403,7 @@
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <img src="{{ asset('images/manual/sppb/edit-header.png') }}"
                                  class="rounded-lg border shadow dark:border-gray-800">
-                             <p class="mt-2 text-center text-xs text-gray-500">
+                             <p class="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
                                  Figure 2.1 – Edit SPPB Header Section
                              </p>
                          </div>
@@ -441,7 +441,7 @@
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <img src="{{ asset('images/manual/sppb/edit-detail.png') }}"
                                  class="rounded-lg border shadow dark:border-gray-800">
-                             <p class="mt-2 text-center text-xs text-gray-500">
+                             <p class="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
                                  Figure 2.2 – Edit SPPB Detail Table
                              </p>
                          </div>
@@ -480,7 +480,7 @@
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <img src="{{ asset('images/manual/sppb/edit-attachment.png') }}"
                                  class="rounded-lg border shadow dark:border-gray-800">
-                             <p class="mt-2 text-center text-xs text-gray-500">
+                             <p class="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
                                  Figure 2.3 – Edit Attachments Section
                              </p>
                          </div>
@@ -554,7 +554,7 @@
                      <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                          <img src="{{ asset('images/manual/sppb/list.png') }}"
                              class="rounded-lg border shadow dark:border-gray-800">
-                         <p class="mt-2 text-center text-xs text-gray-500">
+                         <p class="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
                              Figure 2.3 – Edit Attachments Section
                          </p>
                      </div>
@@ -686,7 +686,7 @@
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <img src="{{ asset('images/manual/sppb/tracking-modal.png') }}"
                                  class="rounded-lg border shadow dark:border-gray-800">
-                             <p class="mt-2 text-center text-xs text-gray-500">
+                             <p class="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
                                  Figure 3.2 – Tracking Detail Modal
                              </p>
                          </div>
@@ -727,7 +727,7 @@
                      <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                          <img src="{{ asset('images/manual/sppb/show.png') }}"
                              class="rounded-lg border shadow dark:border-gray-800">
-                         <p class="mt-2 text-center text-xs text-gray-500">
+                         <p class="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
                              Figure 4.1 – Show SPPB Details
                          </p>
                      </div>

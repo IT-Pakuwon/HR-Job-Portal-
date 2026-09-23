@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\Autonbr;
 use App\Models\MsCompany;
+use App\Models\MsDepartment;
 // use App\Models\TrApproval;
 use App\Models\MsApprovalGroupBiaya;
 use App\Models\TrApproval;
@@ -13,6 +14,7 @@ use App\Models\TrRfpNonPurch;
 use App\Models\TrRfpNonPurchDetail;
 use App\Models\SysUserRole;
 use App\Models\MsGroupbiayaNonPurch;
+use App\Models\MsGroupbiayaNonPurchBudget;
 use App\Models\BusinessUnit;
 use App\Models\TrRfpNonPurchDeposit;
 use App\Models\TrPO;
@@ -41,41 +43,72 @@ use Vinkla\Hashids\Facades\Hashids;
 use App\Models\BudgetDetail;
 use App\Models\MsPurchSetting;
 use App\Models\TrIMBudget;
+use App\Models\MsTax;
 
 class RfpNonPurchController extends Controller
 {
     use HasAutonbr;
+
+    private function rfpNonPurchaseTaxes()
+    {
+        return MsTax::query()
+            ->where(function ($q) {
+                $q->where('is_rfp_nonpurchase', true)
+                    ->orWhere('is_rfp_nonpurchase', 't')
+                    ->orWhere('is_rfp_nonpurchase', 1);
+            })
+            ->where('status', 'A')
+            ->orderBy('taxrate')
+            ->orderBy('taxid')
+            ->get(['taxid', 'taxrate', 'descr'])
+            ->map(function ($row) {
+                $taxId = trim((string) $row->taxid);
+
+                return (object) [
+                    'taxid' => $taxId,
+                    'taxrate' => (float) $row->taxrate,
+                    'descr' => trim((string) ($row->descr ?: $taxId)),
+                ];
+            })
+            ->values();
+    }
 
     public function index()
     {
         $user = Auth::user();
         if (!$user) return redirect()->route('login');
 
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
-            : (array) $user->cpny_id;
-
-        $deptIds = is_string($user->department_id)
-            ? array_filter(array_map('trim', explode(',', $user->department_id)))
-            : (array) $user->department_id;
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $baseQuery = TrRfpNonPurch::query()
             ->whereIn('cpny_id', $cpnyIds)
             ->whereIn('department_id', $deptIds);
 
-        $all        = (clone $baseQuery)->count();
-        $onProgress = (clone $baseQuery)->where('status', 'P')->count();
-        $reject     = (clone $baseQuery)->where('status', 'R')->count();
-        $revise     = (clone $baseQuery)->where('status', 'D')->count();
-        $completed  = (clone $baseQuery)->where('status', 'C')->count();
+        $normalBaseQuery = (clone $baseQuery)
+            ->where(function ($q) use ($user) {
+                $q->where('groupbiaya_id', '<>', 'GB010')
+                    ->orWhereNull('groupbiaya_id')
+                    ->orWhere('created_by', $user->username);
+            });
+
+        $all        = (clone $normalBaseQuery)->count();
+        $onProgress = (clone $normalBaseQuery)->where('status', 'P')->count();
+        $reject     = (clone $normalBaseQuery)->where('status', 'R')->count();
+        $revise     = (clone $normalBaseQuery)->where('status', 'D')->count();
+        $completed  = (clone $normalBaseQuery)->where('status', 'C')->count();
 
         $hasRfpAllAccess = $user->hasRole('FINACCESS');
         $hasApFinAccess  = $user->hasRole('APFINACCESS');
         $hasApTreAccess  = $user->hasRole('APTREACCESS');
 
         $rfpAll = 0;
+        $rfpFinance = 0;
         if ($hasRfpAllAccess) {
             $rfpAll = TrRfpNonPurch::whereIn('cpny_id', $cpnyIds)
+                ->count();
+
+            $rfpFinance = TrRfpNonPurch::whereIn('cpny_id', $cpnyIds)
                 ->where('status', 'C')
                 ->count();
         }
@@ -103,6 +136,8 @@ class RfpNonPurchController extends Controller
             'revise',
             'completed',
             'rfpAll',
+            'rfpFinance',
+            'cpnyIds',
             'hasRfpAllAccess',
             'hasApFinAccess',
             'hasApTreAccess',
@@ -115,13 +150,8 @@ class RfpNonPurchController extends Controller
     {
         $user = Auth::user();
 
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
-            : (array) $user->cpny_id;
-
-        $deptIds = is_string($user->department_id)
-            ? array_filter(array_map('trim', explode(',', $user->department_id)))
-            : (array) $user->department_id;
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $draw   = (int) $request->input('draw', 1);
         $start  = (int) $request->input('start', 0);
@@ -129,14 +159,70 @@ class RfpNonPurchController extends Controller
         $search = trim((string) $request->input('search.value', ''));
         $status = (string) $request->query('status', '');
         $scope  = (string) $request->query('scope', '');
+        $financeCpny = trim((string) $request->query('finance_cpny', ''));
+        $financeStatus = trim((string) $request->query('finance_status', ''));
+        $type = strtoupper(trim((string) $request->query('type', '')));
+        $hasRfpAllAccess = $user->hasRole('FINACCESS');
+        $orderColumnIndex = (int) $request->input('order.0.column', 1);
+        $orderDirection = strtolower((string) $request->input('order.0.dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+        $orderColumns = [
+            1 => 'r.rfpnonpurchaseid',
+            2 => 'r.datediperlukan',
+            3 => 'r.cpny_id',
+            4 => 'r.department_id',
+            5 => 'r.user_peminta',
+            6 => 'g.groupbiayadescr',
+            7 => 'r.pleasepayto',
+            8 => 'r.keperluan',
+            9 => 'r.amountrequestpayment',
+            11 => 'r.status',
+        ];
+        $orderColumn = $orderColumns[$orderColumnIndex] ?? 'r.rfpnonpurchaseid';
+
+        if (in_array($scope, ['rfp_all', 'rfp_finance'], true) && !$hasRfpAllAccess) {
+            $scope = '';
+        }
 
         $base = TrRfpNonPurch::from('tr_rfp_nonpurchase as r')
             ->leftJoin('ms_groupbiaya_nonpurchase as g', 'r.groupbiaya_id', '=', 'g.groupbiaya_id')
             ->whereIn('r.cpny_id', $cpnyIds)
             ->when(
-                $scope !== 'rfp_all',
+                !in_array($scope, ['rfp_all', 'rfp_finance'], true),
                 fn ($q) => $q->whereIn('r.department_id', $deptIds)
             )
+            ->when($scope === '', function ($q) use ($user) {
+                $q->where(function ($q2) use ($user) {
+                    $q2->where('r.groupbiaya_id', '<>', 'GB010')
+                        ->orWhereNull('r.groupbiaya_id')
+                        ->orWhere('r.created_by', $user->username);
+                });
+            })
+            ->when($scope === 'rfp_finance', function ($q) {
+                $q->where('r.status', 'C');
+            })
+            ->when($scope === 'rfp_finance' && $financeCpny !== '' && in_array($financeCpny, $cpnyIds, true), function ($q) use ($financeCpny) {
+                $q->where('r.cpny_id', $financeCpny);
+            })
+            ->when($scope === 'rfp_finance' && $financeStatus === 'waiting_user', function ($q) {
+                $q->where(function ($q2) {
+                    $q2->whereNull('r.statusreceive')
+                        ->orWhere('r.statusreceive', 'P');
+                })->where(function ($q2) {
+                    $q2->whereNull('r.statuspayment')
+                        ->orWhere('r.statuspayment', 'P');
+                });
+            })
+            ->when($scope === 'rfp_finance' && $financeStatus === 'finance_received', function ($q) {
+                $q->where('r.statusreceive', 'C')
+                    ->where(function ($q2) {
+                        $q2->whereNull('r.statuspayment')
+                            ->orWhere('r.statuspayment', 'P');
+                    });
+            })
+            ->when($scope === 'rfp_finance' && $financeStatus === 'treasury_received', function ($q) {
+                $q->where('r.statusreceive', 'C')
+                    ->where('r.statuspayment', 'C');
+            })
 
             // 🔥 FINANCE FLOW TETAP
             ->when($scope === 'finance_received', function ($q) {
@@ -153,11 +239,10 @@ class RfpNonPurchController extends Controller
                 ->where('r.statusreceive', 'C')
                 ->where('r.statuspayment', 'C');
             })
-
-            ->when(
-                $scope === 'rfp_all',
-                fn ($q) => $q->where('r.status', 'C')
-            );
+            ->when(in_array($type, ['RFP', 'RCA'], true), function ($q) use ($type) {
+                $q->where('r.rfpnonpurchaseid', 'ilike', "{$type}%");
+            })
+            ;
 
         if ($status !== '') {
             $base->where('r.status', $status);
@@ -199,6 +284,7 @@ class RfpNonPurchController extends Controller
                 'r.paymentdate',
                 'r.created_by'
             )
+            ->orderBy($orderColumn, $orderDirection)
             ->orderBy('r.rfpnonpurchaseid', 'desc')
             ->skip($start)
             ->take($length)
@@ -265,6 +351,33 @@ class RfpNonPurchController extends Controller
             ->orderBy('groupbiayadescr')
             ->get();
 
+        $cpnyIds = $usercpny->pluck('cpny_id')->filter()->values();
+        $deptIds = $userdept->pluck('department_id')->filter()->values();
+
+        $departmentFinMap = MsDepartment::query()
+            ->whereIn('department_id', $deptIds)
+            ->where('status', 'A')
+            ->pluck('department_fin_id', 'department_id');
+
+        $departmentFinIds = $departmentFinMap->filter()->unique()->values();
+
+        $groupbiayaBudgetSettings = MsGroupbiayaNonPurchBudget::query()
+            ->where('status', 'A')
+            ->when($cpnyIds->isNotEmpty(), fn ($q) => $q->whereIn('budget_cpny_id', $cpnyIds))
+            ->when($departmentFinIds->isNotEmpty(), fn ($q) => $q->whereIn('budget_department_fin_id', $departmentFinIds))
+            ->get(['budget_cpny_id', 'budget_business_unit_id', 'budget_department_fin_id', 'groupbiaya_id'])
+            ->mapWithKeys(function ($row) {
+                $key = trim((string) $row->budget_cpny_id)
+                    . '|'
+                    . trim((string) $row->budget_business_unit_id)
+                    . '|'
+                    . trim((string) $row->budget_department_fin_id)
+                    . '|'
+                    . trim((string) $row->groupbiaya_id);
+
+                return [$key => 1];
+            });
+
         $kepada = User::query()
             ->whereNotNull('username')
             ->where('status', 'A')
@@ -279,7 +392,90 @@ class RfpNonPurchController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('pages.rfpnonpurch.createrfpnonpurch', compact('usercpny', 'usercpny2', 'userdept', 'userdept2', 'akses_stock', 'groupbiaya', 'kepada', 'tembusan'));
+        $rfpNonPurchaseTaxes = $this->rfpNonPurchaseTaxes();
+
+        return view('pages.rfpnonpurch.createrfpnonpurch', compact('usercpny', 'usercpny2', 'userdept', 'userdept2', 'akses_stock', 'groupbiaya', 'groupbiayaBudgetSettings', 'departmentFinMap', 'kepada', 'tembusan', 'rfpNonPurchaseTaxes'));
+    }
+
+    public function groupBiayaOptions(Request $request)
+    {
+        $cpnyId = trim((string) $request->query('cpnyid', ''));
+        $departmentId = trim((string) $request->query('departementid', ''));
+        $selectedGroupBiayaId = trim((string) $request->query('selected_groupbiaya_id', ''));
+
+        $baseGroupQuery = fn () => MsGroupbiayaNonPurch::query()
+            ->where('status', 'A')
+            ->orderBy('groupbiayadescr');
+
+        if ($cpnyId === '' || $departmentId === '') {
+            return response()->json([
+                'data' => $this->formatGroupBiayaOptions($baseGroupQuery()->get()),
+                'mode' => 'all',
+                'has_company_budget_setting' => false,
+            ]);
+        }
+
+        $departmentFinId = MsDepartment::query()
+            ->where('department_id', $departmentId)
+            ->where('status', 'A')
+            ->value('department_fin_id');
+
+        $hasCompanyBudgetSetting = MsGroupbiayaNonPurchBudget::query()
+            ->where('status', 'A')
+            ->where('budget_cpny_id', $cpnyId)
+            ->exists();
+
+        if (!$hasCompanyBudgetSetting || trim((string) $departmentFinId) === '') {
+            return response()->json([
+                'data' => $this->formatGroupBiayaOptions($baseGroupQuery()->get()),
+                'mode' => 'all',
+                'has_company_budget_setting' => $hasCompanyBudgetSetting,
+            ]);
+        }
+
+        $groupBiayaIds = MsGroupbiayaNonPurchBudget::query()
+            ->where('status', 'A')
+            ->where('budget_cpny_id', $cpnyId)
+            ->where('budget_department_fin_id', $departmentFinId)
+            ->pluck('groupbiaya_id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $rows = collect();
+
+        if ($groupBiayaIds->isNotEmpty() || $selectedGroupBiayaId !== '') {
+            $rows = $baseGroupQuery()
+                ->where(function ($q) use ($groupBiayaIds, $selectedGroupBiayaId) {
+                    if ($groupBiayaIds->isNotEmpty()) {
+                        $q->whereIn('groupbiaya_id', $groupBiayaIds);
+                    }
+
+                    if ($selectedGroupBiayaId !== '') {
+                        $method = $groupBiayaIds->isNotEmpty() ? 'orWhere' : 'where';
+                        $q->{$method}('groupbiaya_id', $selectedGroupBiayaId);
+                    }
+                })
+                ->get();
+        }
+
+        return response()->json([
+            'data' => $this->formatGroupBiayaOptions($rows),
+            'mode' => 'budget',
+            'department_fin_id' => $departmentFinId,
+            'has_company_budget_setting' => true,
+        ]);
+    }
+
+    private function formatGroupBiayaOptions($rows): array
+    {
+        return $rows->map(function ($row) {
+            return [
+                'id' => $row->groupbiaya_id,
+                'text' => $row->groupbiayadescr,
+                'is_deposit' => ($row->is_deposit === true || $row->is_deposit === 't' || $row->is_deposit == 1) ? '1' : '0',
+            ];
+        })->values()->toArray();
     }
     
     public function storeRfpNonPurch(Request $request)
@@ -342,7 +538,7 @@ class RfpNonPurchController extends Controller
             // GENERATE DOC ID
             // =========================
             $auto = $this->nextAutonbr($doctype, $year, $month, $username, $docName);
-            $docid = $doctype . substr($year, 2) . $month . sprintf('%03d', $auto['next']);
+            $docid = $doctype . substr($year, 2) . $month . sprintf('%04d', $auto['next']);
 
             // =========================
             // HEADER
@@ -417,63 +613,7 @@ class RfpNonPurchController extends Controller
                 ]);
             }
 
-            // // =========================
-            // // DETAIL ONLY RFP
-            // // =========================
-            // $totalAmountRequest = 0;
-
-            // if ($doctype === 'RFP') {
-            //     $descs = $request->rfpnonpurchase_descr ?? [];
-            //     $prices = $request->price ?? [];
-
-            //     $coaIds = $request->coa_id ?? [];
-            //     $activityIds = $request->activity_id ?? [];
-            //     $busUnitIds = $request->business_unit_id_detail ?? [];
-            //     $deptFinIds = $request->department_fin_id ?? [];
-            //     $actDescrs = $request->activity_descr ?? [];
-
-            //     $rowCount = count($descs);
-
-            //     for ($i = 0; $i < $rowCount; $i++) {
-            //         $desc = trim($descs[$i] ?? '');
-            //         $amount = $toFloat($prices[$i] ?? 0);
-
-            //         if (!$desc || $amount <= 0) {
-            //             continue;
-            //         }
-
-            //         $totalAmountRequest += $amount;
-
-            //         TrRfpNonPurchDetail::create([
-            //             'rfpnonpurchaseid' => $docid,
-            //             'keperluan_detail' => $desc,
-            //             'amount_request' => $amount,
-
-            //             'budget_perpost' => $year,
-            //             'budget_cpny_id' => $request->cpnyid,
-            //             'budget_business_unit_id' => $busUnitIds[$i] ?? null,
-            //             'budget_department_fin_id' => $deptFinIds[$i] ?? null,
-            //             'budget_account_id' => $coaIds[$i] ?? null,
-            //             'budget_activity_id' => $activityIds[$i] ?? null,
-            //             'budget_activity_descr' => $actDescrs[$i] ?? null,
-
-            //             'status' => 'P',
-            //             'created_by' => $username,
-            //         ]);
-            //     }
-
-            //     $header->amountrequestpayment = $totalAmountRequest;
-            //     $header->save();
-            // }
-
-            // if ($doctype === 'RCA') {
-            //     $header->amountrequestpayment = $toFloat($request->amountrequestpayment);
-            //     $header->save();
-            // }
-
-            // =========================
-            // DETAIL RFP / RCA
-            // =========================
+          
             $totalAmountRequest = 0;
 
             $descs = $request->rfpnonpurchase_descr ?? [];
@@ -484,15 +624,19 @@ class RfpNonPurchController extends Controller
             $busUnitIds = $request->business_unit_id_detail ?? [];
             $deptFinIds = $request->department_fin_id ?? [];
             $actDescrs = $request->activity_descr ?? [];
+            $taxCodeIds = $request->taxcodeid ?? [];
+
+            $taxMap = $this->rfpNonPurchaseTaxes()->keyBy('taxid');
 
             $rowCount = count($prices);
             $insertedDetail = 0;
+            $needsIMBudget = false;
 
             for ($i = 0; $i < $rowCount; $i++) {
                 $desc = trim((string) ($descs[$i] ?? ''));
                 $amount = $toFloat($prices[$i] ?? 0);
 
-                if ($amount <= 0) {
+                if ($amount == 0) {
                     continue;
                 }
 
@@ -509,6 +653,55 @@ class RfpNonPurchController extends Controller
                 $totalAmountRequest += $amount;
                 $insertedDetail++;
 
+                $budgetBusinessUnitId = trim((string) ($busUnitIds[$i] ?? '')) !== ''
+                    ? $busUnitIds[$i]
+                    : ($request->business_unit_id ?: null);
+                $budgetDepartmentFinId = $deptFinIds[$i] ?? null;
+                $budgetAccountId = $coaIds[$i] ?? null;
+                $budgetActivityId = $activityIds[$i] ?? null;
+                $taxCodeId = $doctype === 'RCA' ? 'NONTAX' : null;
+                $amountDpp = $doctype === 'RCA' ? $amount : null;
+                $amountTax = $doctype === 'RCA' ? 0 : null;
+
+                if ($doctype === 'RFP') {
+                    $taxCodeId = trim((string) ($taxCodeIds[$i] ?? ''));
+
+                    if ($taxCodeId === '') {
+                        DB::rollBack();
+
+                        return response()->json([
+                            'message' => 'Tax wajib diisi pada detail baris ' . ($i + 1) . '.',
+                        ], 422);
+                    }
+
+                    $tax = $taxCodeId !== '' ? $taxMap->get($taxCodeId) : null;
+
+                    if (!$tax) {
+                        DB::rollBack();
+
+                        return response()->json([
+                            'message' => 'Tax tidak valid pada detail baris ' . ($i + 1) . '.',
+                        ], 422);
+                    }
+
+                    $rate = (float) ($tax->taxrate ?? 0);
+                    $amountDpp = $rate > 0
+                        ? round($amount * 100 / (100 + $rate), 2)
+                        : $amount;
+                    $amountTax = $rate > 0
+                        ? round($amountDpp * $rate / 100, 2)
+                        : 0;
+                }
+
+                if (
+                    trim((string) $budgetBusinessUnitId) !== '' &&
+                    trim((string) $budgetDepartmentFinId) !== '' &&
+                    trim((string) $budgetAccountId) !== '' &&
+                    trim((string) $budgetActivityId) !== ''
+                ) {
+                    $needsIMBudget = true;
+                }
+
                 TrRfpNonPurchDetail::create([
                     'rfpnonpurchaseid' => $docid,
 
@@ -517,19 +710,21 @@ class RfpNonPurchController extends Controller
                         ? null
                         : $desc,
 
-                    // RCA isi refid BUDGET-RFCA
-                    'refid' => $doctype === 'RCA'
-                        ? 'BUDGET-RFCA'
-                        : null,
+                    'rfpnonpurch_budget_type' => $doctype === 'RCA'
+                        ? 'BUDGET-RCA'
+                        : 'BUDGET-RFP',
 
                     'amount_request' => $amount,
+                    'amount_request_dpp' => $amountDpp,
+                    'taxcodeid' => $taxCodeId,
+                    'amount_request_taxamt' => $amountTax,
 
                     'budget_perpost' => $year,
                     'budget_cpny_id' => $request->cpnyid,
-                    'budget_business_unit_id' => $busUnitIds[$i] ?? null,
-                    'budget_department_fin_id' => $deptFinIds[$i] ?? null,
-                    'budget_account_id' => $coaIds[$i] ?? null,
-                    'budget_activity_id' => $activityIds[$i] ?? null,
+                    'budget_business_unit_id' => $budgetBusinessUnitId,
+                    'budget_department_fin_id' => $budgetDepartmentFinId,
+                    'budget_account_id' => $budgetAccountId,
+                    'budget_activity_id' => $budgetActivityId,
                     'budget_activity_descr' => $actDescrs[$i] ?? null,
 
                     'status' => 'P',
@@ -547,6 +742,12 @@ class RfpNonPurchController extends Controller
 
             // Total header dari detail, baik RFP maupun RCA
             $header->amountrequestpayment = $totalAmountRequest;
+
+            if ($needsIMBudget) {
+                $this->reserveBudget($doctype, $docid, $request->cpnyid, 'Submit', $username);
+                // $header->flag_imbudget = true;
+            }
+
             $header->save();
 
             // =========================
@@ -590,7 +791,15 @@ class RfpNonPurchController extends Controller
                         ->where('aprv_cpnyid', $request->cpnyid)
                         ->where('aprv_departementid', $request->departementid)
                         ->where('aprv_leveling', $rule->aprv_leveling)
-                        // ->where('aprv_username', $rule->aprv_username)
+                        ->where(function ($q) use ($rule) {
+                            $ruleUsername = trim((string) $rule->aprv_username);
+
+                            $q->where('aprv_username', $ruleUsername)
+                                ->orWhereRaw(
+                                    "? = ANY(string_to_array(REPLACE(aprv_username, ';', ','), ','))",
+                                    [$ruleUsername]
+                                );
+                        })
                         ->where('status', 'P')
                         ->delete();
                 }
@@ -602,7 +811,16 @@ class RfpNonPurchController extends Controller
                         ->where('aprv_cpnyid', $request->cpnyid)
                         ->where('aprv_departementid', $request->departementid)
                         ->where('aprv_leveling', $rule->aprv_leveling)
-                        // ->where('aprv_username', $rule->aprv_username)
+                        ->where(function ($q) use ($rule) {
+                            $ruleUsername = trim((string) $rule->aprv_username);
+
+                            $q->where('aprv_username', $ruleUsername)
+                                ->orWhereRaw(
+                                    "? = ANY(string_to_array(REPLACE(aprv_username, ';', ','), ','))",
+                                    [$ruleUsername]
+                                );
+                        })
+                        ->where('status', 'P')
                         ->exists();
 
                     if (!$exists) {
@@ -614,13 +832,35 @@ class RfpNonPurchController extends Controller
                             'aprv_departementid'  => $request->departementid,
                             'aprv_username'       => $rule->aprv_username,
                             'aprv_name'           => $rule->aprv_name,
-                            'aprv_datebefore'     => $dt,
+                            'aprv_datebefore'     => null,
                             'aprv_type'           => 'Normal',
                             'status'              => 'P',
                             'created_by'          => $username,
                         ]);
                     }
                 }
+            }
+
+            $firstPendingLevelAfterGroup = TrApproval::query()
+                ->where('refnbr', $docid)
+                ->where('aprv_doctype', $doctype)
+                ->where('status', 'P')
+                ->orderByRaw('CAST(aprv_leveling AS DECIMAL(10,2)) ASC')
+                ->value('aprv_leveling');
+
+            TrApproval::query()
+                ->where('refnbr', $docid)
+                ->where('aprv_doctype', $doctype)
+                ->where('status', 'P')
+                ->update(['aprv_datebefore' => null]);
+
+            if ($firstPendingLevelAfterGroup !== null) {
+                TrApproval::query()
+                    ->where('refnbr', $docid)
+                    ->where('aprv_doctype', $doctype)
+                    ->where('status', 'P')
+                    ->where('aprv_leveling', $firstPendingLevelAfterGroup)
+                    ->update(['aprv_datebefore' => $dt]);
             }
 
             // Ambil ulang first approval setelah ADD / DEL
@@ -688,32 +928,7 @@ class RfpNonPurchController extends Controller
                     ->filter()
                     ->toArray();
 
-                // =========================
-                // KEPADA (TO tambahan)
-                // =========================
-                $kepadaUsers = explode(',', (string)$header->imnonpurchase_kepada);
-
-                $kepadaEmails = User::query()
-                    ->whereIn('username', $kepadaUsers)
-                    ->pluck('notification_email')
-                    ->filter()
-                    ->toArray();
-
-                // =========================
-                // TEMBUSAN (CC)
-                // =========================
-                $tembusanUsers = explode(',', (string)$header->imnonpurchase_tembusan);
-
-                $ccEmails = User::query()
-                    ->whereIn('username', $tembusanUsers)
-                    ->pluck('notification_email')
-                    ->filter()
-                    ->toArray();
-
-                // =========================
-                // MERGE EMAIL
-                // =========================
-                $toEmails = array_unique(array_merge($approverEmails, $kepadaEmails));
+                $toEmails = array_unique($approverEmails);
 
                 // =========================
                 // EMAIL DATA
@@ -737,13 +952,9 @@ class RfpNonPurchController extends Controller
                 // SEND EMAIL
                 // =========================
                 if (!empty($toEmails)) {
-                    Mail::send('emails.mailapprovenew', $mailData, function ($message) use ($toEmails, $ccEmails, $docid, $docName) {
+                    Mail::send('emails.mailapprovenew', $mailData, function ($message) use ($toEmails, $docid, $docName) {
 
                         $message->to($toEmails);
-
-                        if (!empty($ccEmails)) {
-                            $message->cc($ccEmails);
-                        }
 
                         $message->subject($docid . ' - WaitingApproval ' . $docName)
                             ->from(config('mail.from.address'), config('app.name'));
@@ -827,7 +1038,7 @@ class RfpNonPurchController extends Controller
                 ->where('rfpnonpurchaseid', $docid);
 
             if ($doctype === 'RCA') {
-                $detailsQuery->where('refid', 'BUDGET-RFCA');
+                $detailsQuery->where('rfpnonpurch_budget_type', 'BUDGET-RCA');
             }
 
             $details = $detailsQuery
@@ -908,6 +1119,28 @@ class RfpNonPurchController extends Controller
         // }
 
         // =========================
+        // BUSINESS UNIT (ambil dari detail)
+        // =========================
+        $selectedBuId = $details
+            ->pluck('budget_business_unit_id')
+            ->filter(fn($v) => filled($v))
+            ->unique()
+            ->first();
+
+        $selectedBuName = null;
+
+        if ($selectedBuId) {
+            $bu = BusinessUnit::query()
+                ->where('business_unit_id', $selectedBuId)
+                ->first();
+
+            $selectedBuName = $bu->business_unit_name ?? null;
+        }
+
+        $rfpnonpurch->business_unit_id = $selectedBuId;
+        $rfpnonpurch->business_unit_name = $selectedBuName;
+
+        // =========================
         // ATTACHMENTS
         // =========================
         $rows = TrAttachment::where('refnbr', $docid)
@@ -970,33 +1203,49 @@ class RfpNonPurchController extends Controller
         // USER ACCESS
         // =========================
         $canUpload = $rfpnonpurch->status === 'P';
+        $hasApFinAccess = $user->hasRole('APFINACCESS');
+        $hasApTreAccess = $user->hasRole('APTREACCESS');
+
+        $loginUsername = $user->username ?? $user->name ?? null;
+        $isApprover = TrApproval::where('refnbr', $rfpnonpurch->rfpnonpurchaseid)
+            ->where('aprv_doctype', $doctype)
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
 
         $userdept = Userdept::where('username', $user->username)->get();
         $userdept2 = Userdept::where('username', $user->username)->first();
+
+        $hasBlockingIM = !empty($rfpnonpurch->imbudgetid) && $rfpnonpurch->status_imbudget !== 'C';
 
         // =========================
         // PROGRESS STEPS
         // =========================
         $rfpnonpurchSteps = collect();
 
+        // $rfpnonpurchSteps->push([
+        //     'order' => 1,
+        //     'description' => $doctype . ' Created',
+        //     'user' => $rfpnonpurch->created_by ?: '-',
+        //     'date' => $rfpnonpurch->created_at,
+        //     'status' => 'Done',
+        // ]);
+
+        // $rfpnonpurchSteps->push([
+        //     'order' => 2,
+        //     'description' => 'Approval Process',
+        //     'user' => $rfpnonpurch->completed_by ?: '-',
+        //     'date' => $rfpnonpurch->completed_at,
+        //     'status' => $rfpnonpurch->status === 'P' ? 'Pending' : 'Done',
+        // ]);
+
         $rfpnonpurchSteps->push([
             'order' => 1,
-            'description' => $doctype . ' Created',
-            'user' => $rfpnonpurch->created_by ?: '-',
-            'date' => $rfpnonpurch->created_at,
-            'status' => 'Done',
-        ]);
-
-        $rfpnonpurchSteps->push([
-            'order' => 2,
-            'description' => 'Approval Process',
-            'user' => $rfpnonpurch->completed_by ?: '-',
-            'date' => $rfpnonpurch->completed_at,
-            'status' => $rfpnonpurch->status === 'P' ? 'Pending' : 'Done',
-        ]);
-
-        $rfpnonpurchSteps->push([
-            'order' => 3,
             'description' => 'Finance Received',
             'user' => $rfpnonpurch->userreceive ?: '-',
             'date' => $rfpnonpurch->receivedate,
@@ -1004,7 +1253,7 @@ class RfpNonPurchController extends Controller
         ]);
 
         $rfpnonpurchSteps->push([
-            'order' => 4,
+            'order' => 2,
             'description' => 'Treasury Payment',
             'user' => $rfpnonpurch->userpayment ?: '-',
             'date' => $rfpnonpurch->paymentdate,
@@ -1018,6 +1267,10 @@ class RfpNonPurchController extends Controller
             ->where('rfpnonpurchaseid', $docid)
             ->first();
 
+        $taxDescriptions = $this->rfpNonPurchaseTaxes()
+            ->mapWithKeys(fn ($tax) => [$tax->taxid => $tax->descr])
+            ->all();
+
         return view('pages.rfpnonpurch.showrfpnonpurch', compact(
             'rfpnonpurch',
             'details',
@@ -1025,10 +1278,15 @@ class RfpNonPurchController extends Controller
             'stagingAttachments',
             'hash',
             'canUpload',
+            'isApprover',
+            'hasApFinAccess',
+            'hasApTreAccess',
+            'hasBlockingIM',
             'userdept',
             'userdept2',
             'rfpnonpurchSteps',
             'deposit',
+            'taxDescriptions',
             'imbudgetUrl',
             'imbudgetHash'
         ));
@@ -1346,25 +1604,13 @@ class RfpNonPurchController extends Controller
                 $rfpnonpurch->updated_by = $user->username;
                 $rfpnonpurch->save();
 
-                // =========================
-                // EMAIL TO REQUESTER
-                // =========================
-                app(ApprovalController::class)->notifyRequesterOnStatus(
-                    $rfpnonpurch->rfpnonpurchaseid,
+                $this->sendCompletedRfpNonPurchEmail(
+                    $rfpnonpurch,
                     $doctype,
-                    'C',
-                    $rfpnonpurch->created_by,
+                    $docName,
                     $docUrl,
-                    [
-                        'cpnyid'    => $rfpnonpurch->cpny_id ?? '',
-                        'deptname'  => $rfpnonpurch->department_id ?? '',
-                        'date'      => $now->toDateTimeString(),
-                        'info'      => $rfpnonpurch->keperluan ?? '',
-                        'fullname'  => $fullname,
-                        'name'      => $fullname,
-                        'createdby' => $fullname,
-                        'docname'   => $docName,
-                    ]
+                    $fullname,
+                    $now
                 );
             },
 
@@ -1544,6 +1790,16 @@ class RfpNonPurchController extends Controller
                 $rfpnonpurch->updated_by = $user->username;
                 $rfpnonpurch->save();
 
+                if ($this->needsIMBudgetFromRfpNonPurchDetail($rfpnonpurch->rfpnonpurchaseid)) {
+                    $this->reserveBudget(
+                        $doctype,
+                        $rfpnonpurch->rfpnonpurchaseid,
+                        $request->cpnyid ?? $rfpnonpurch->cpny_id,
+                        'Reject',
+                        $user->username
+                    );
+                }
+
                 app(ApprovalController::class)->notifyRequesterOnStatus(
                     $rfpnonpurch->rfpnonpurchaseid,
                     $doctype,
@@ -1636,6 +1892,16 @@ class RfpNonPurchController extends Controller
                 $rfpnonpurch->completed_at = $now;
                 $rfpnonpurch->updated_by = $user->username;
                 $rfpnonpurch->save();
+
+                if ($this->needsIMBudgetFromRfpNonPurchDetail($rfpnonpurch->rfpnonpurchaseid)) {
+                    $this->reserveBudget(
+                        $doctype,
+                        $rfpnonpurch->rfpnonpurchaseid,
+                        $request->cpnyid ?? $rfpnonpurch->cpny_id,
+                        'Revise',
+                        $user->username
+                    );
+                }
 
                 app(ApprovalController::class)->notifyRequesterOnStatus(
                     $rfpnonpurch->rfpnonpurchaseid,
@@ -1762,6 +2028,54 @@ class RfpNonPurchController extends Controller
             ->orderBy('groupbiayadescr')
             ->get();
 
+        $cpnyIds = $usercpny->pluck('cpny_id')->filter()->values();
+        $deptIds = $userdept->pluck('department_id')->filter()->values();
+
+        $departmentFinMap = MsDepartment::query()
+            ->whereIn('department_id', $deptIds)
+            ->where('status', 'A')
+            ->pluck('department_fin_id', 'department_id');
+
+        $departmentFinIds = $departmentFinMap->filter()->unique()->values();
+
+        $groupbiayaBudgetSettings = MsGroupbiayaNonPurchBudget::query()
+            ->where('status', 'A')
+            ->when($cpnyIds->isNotEmpty(), fn ($q) => $q->whereIn('budget_cpny_id', $cpnyIds))
+            ->when($departmentFinIds->isNotEmpty(), fn ($q) => $q->whereIn('budget_department_fin_id', $departmentFinIds))
+            ->get(['budget_cpny_id', 'budget_business_unit_id', 'budget_department_fin_id', 'groupbiaya_id'])
+            ->mapWithKeys(function ($row) {
+                $key = trim((string) $row->budget_cpny_id)
+                    . '|'
+                    . trim((string) $row->budget_business_unit_id)
+                    . '|'
+                    . trim((string) $row->budget_department_fin_id)
+                    . '|'
+                    . trim((string) $row->groupbiaya_id);
+
+                return [$key => 1];
+            });
+
+        $hasExistingBudgetDetail = $rfpnonpurchasedetail->contains(function ($row) {
+            return trim((string) ($row->budget_department_fin_id ?? '')) !== ''
+                || trim((string) ($row->budget_account_id ?? '')) !== ''
+                || trim((string) ($row->budget_activity_id ?? '')) !== ''
+                || trim((string) ($row->budget_activity_descr ?? '')) !== '';
+        });
+
+        $currentDepartmentFinId = $departmentFinMap[$rfpnonpurch->department_id] ?? null;
+
+        if ($hasExistingBudgetDetail && $selectedBuId && $currentDepartmentFinId && $rfpnonpurch->groupbiaya_id) {
+            $currentBudgetKey = trim((string) $rfpnonpurch->cpny_id)
+                . '|'
+                . trim((string) $selectedBuId)
+                . '|'
+                . trim((string) $currentDepartmentFinId)
+                . '|'
+                . trim((string) $rfpnonpurch->groupbiaya_id);
+
+            $groupbiayaBudgetSettings->put($currentBudgetKey, 1);
+        }
+
         // =========================
         // USER KEPADA / TEMBUSAN
         // =========================
@@ -1848,6 +2162,8 @@ class RfpNonPurchController extends Controller
         $rfpnonpurch->transferto   = $deposit->transferto ?? null;
         $rfpnonpurch->bankname     = $deposit->bankname ?? null;
         $rfpnonpurch->bankacct     = $deposit->bankacct ?? null;
+
+        $rfpNonPurchaseTaxes = $this->rfpNonPurchaseTaxes();
   
         return view('pages.rfpnonpurch.editrfpnonpurch', compact(
             'rfpnonpurch',
@@ -1857,10 +2173,13 @@ class RfpNonPurchController extends Controller
             'userdept',
             'userdept2',
             'groupbiaya',
+            'groupbiayaBudgetSettings',
+            'departmentFinMap',
             'kepada',
             'tembusan',
             'attachments',
-            'hash'
+            'hash',
+            'rfpNonPurchaseTaxes'
         ));
     }
 
@@ -2012,65 +2331,139 @@ class RfpNonPurchController extends Controller
                 ->delete();
 
             // =========================
-            // INSERT DETAIL BARU ONLY RFP
+            // INSERT DETAIL BARU
             // =========================
             $totalAmountRequest = 0;
+            $insertedDetail = 0;
 
-            if ($doctype === 'RFP') {
-                $descs = $request->rfpnonpurchase_descr ?? [];
-                $prices = $request->price ?? [];
+            $descs = $request->rfpnonpurchase_descr ?? [];
+            $prices = $request->price ?? [];
 
-                $coaIds = $request->coa_id ?? [];
-                $activityIds = $request->activity_id ?? [];
-                $busUnitIds = $request->business_unit_id_detail ?? [];
-                $deptFinIds = $request->department_fin_id ?? [];
-                $actDescrs = $request->activity_descr ?? [];
+            $coaIds = $request->coa_id ?? [];
+            $activityIds = $request->activity_id ?? [];
+            $busUnitIds = $request->business_unit_id_detail ?? [];
+            $deptFinIds = $request->department_fin_id ?? [];
+            $actDescrs = $request->activity_descr ?? [];
+            $taxCodeIds = $request->taxcodeid ?? [];
 
-                $rowCount = count($descs);
+            $taxMap = $this->rfpNonPurchaseTaxes()->keyBy('taxid');
 
-                for ($i = 0; $i < $rowCount; $i++) {
-                    $desc = trim($descs[$i] ?? '');
-                    $amount = $toFloat($prices[$i] ?? 0);
+            $rowCount = count($prices);
+            $needsIMBudget = false;
 
-                    if (!$desc || $amount <= 0) {
-                        continue;
-                    }
+            for ($i = 0; $i < $rowCount; $i++) {
+                $desc = trim((string) ($descs[$i] ?? ''));
+                $amount = $toFloat($prices[$i] ?? 0);
 
-                    $totalAmountRequest += $amount;
-
-                    TrRfpNonPurchDetail::create([
-                        'rfpnonpurchaseid' => $docid,
-                        'keperluan_detail' => $desc,
-                        'amount_request' => $amount,
-
-                        'budget_perpost' => $year,
-                        'budget_cpny_id' => $request->cpnyid,
-                        'budget_business_unit_id' => $busUnitIds[$i] ?? null,
-                        'budget_department_fin_id' => $deptFinIds[$i] ?? null,
-                        'budget_account_id' => $coaIds[$i] ?? null,
-                        'budget_activity_id' => $activityIds[$i] ?? null,
-                        'budget_activity_descr' => $actDescrs[$i] ?? null,
-
-                        'status' => 'P',
-                        'created_by' => $username,
-                    ]);
+                if ($amount == 0) {
+                    continue;
                 }
 
-                $header->amountrequestpayment = $totalAmountRequest;
-                $header->save();
+                if ($doctype === 'RFP' && $desc === '') {
+                    continue;
+                }
+
+                $totalAmountRequest += $amount;
+                $insertedDetail++;
+
+                $budgetBusinessUnitId = trim((string) ($busUnitIds[$i] ?? '')) !== ''
+                    ? $busUnitIds[$i]
+                    : ($request->business_unit_id ?: null);
+                $budgetDepartmentFinId = $deptFinIds[$i] ?? null;
+                $budgetAccountId = $coaIds[$i] ?? null;
+                $budgetActivityId = $activityIds[$i] ?? null;
+                $taxCodeId = $doctype === 'RCA' ? 'NONTAX' : null;
+                $amountDpp = $doctype === 'RCA' ? $amount : null;
+                $amountTax = $doctype === 'RCA' ? 0 : null;
+
+                if ($doctype === 'RFP') {
+                    $taxCodeId = trim((string) ($taxCodeIds[$i] ?? ''));
+
+                    if ($taxCodeId === '') {
+                        DB::rollBack();
+
+                        return response()->json([
+                            'message' => 'Tax wajib diisi pada detail baris ' . ($i + 1) . '.',
+                        ], 422);
+                    }
+
+                    $tax = $taxCodeId !== '' ? $taxMap->get($taxCodeId) : null;
+
+                    if (!$tax) {
+                        DB::rollBack();
+
+                        return response()->json([
+                            'message' => 'Tax tidak valid pada detail baris ' . ($i + 1) . '.',
+                        ], 422);
+                    }
+
+                    $rate = (float) ($tax->taxrate ?? 0);
+                    $amountDpp = $rate > 0
+                        ? round($amount * 100 / (100 + $rate), 2)
+                        : $amount;
+                    $amountTax = $rate > 0
+                        ? round($amountDpp * $rate / 100, 2)
+                        : 0;
+                }
+
+                if (
+                    trim((string) $budgetBusinessUnitId) !== '' &&
+                    trim((string) $budgetDepartmentFinId) !== '' &&
+                    trim((string) $budgetAccountId) !== '' &&
+                    trim((string) $budgetActivityId) !== ''
+                ) {
+                    $needsIMBudget = true;
+                }
+
+                TrRfpNonPurchDetail::create([
+                    'rfpnonpurchaseid' => $docid,
+                    'keperluan_detail' => $doctype === 'RCA'
+                        ? null
+                        : $desc,
+                    'amount_request' => $amount,
+                    'amount_request_dpp' => $amountDpp,
+                    'taxcodeid' => $taxCodeId,
+                    'amount_request_taxamt' => $amountTax,
+
+                    'budget_perpost' => $year,
+                    'budget_cpny_id' => $request->cpnyid,
+                    'budget_business_unit_id' => $budgetBusinessUnitId,
+                    'budget_department_fin_id' => $budgetDepartmentFinId,
+                    'budget_account_id' => $budgetAccountId,
+                    'budget_activity_id' => $budgetActivityId,
+                    'budget_activity_descr' => $actDescrs[$i] ?? null,
+                    'rfpnonpurch_budget_type' => $doctype === 'RCA'
+                        ? 'BUDGET-RCA'
+                        : 'BUDGET-RFP',
+
+                    'status' => 'P',
+                    'created_by' => $username,
+                ]);
             }
 
-            if ($doctype === 'RCA') {
-                $header->amountrequestpayment = $toFloat($request->amountrequestpayment);
-                $header->save();
+            $header->amountrequestpayment = $insertedDetail > 0
+                ? $totalAmountRequest
+                : $toFloat($request->amountrequestpayment);
+
+            if ($needsIMBudget) {
+                $this->reserveBudget($doctype, $docid, $request->cpnyid, 'Submit', $username);
+                // $header->flag_imbudget = true;
             }
+
+            $header->save();
 
             // =========================
             // RESET APPROVAL LAMA
             // =========================
-            // TrApproval::query()
-            //     ->where('refnbr', $docid)
-            //     ->delete();
+            TrApproval::query()
+                ->where('refnbr', $docid)
+                ->where('aprv_doctype', $doctype)
+                ->where('status', 'P')
+                ->update([
+                    'status' => 'X',
+                    'updated_by' => $username,
+                    'updated_at' => $dt,
+                ]);
 
             // =========================
             // APPROVAL BARU
@@ -2091,7 +2484,7 @@ class RfpNonPurchController extends Controller
                 $doctype,
                 $request->cpnyid,
                 $request->departementid,
-                $username,
+                $header->created_by ?? $username,
                 $ctx,
                 $dt
             );
@@ -2118,6 +2511,15 @@ class RfpNonPurchController extends Controller
                         ->where('aprv_cpnyid', $request->cpnyid)
                         ->where('aprv_departementid', $request->departementid)
                         ->where('aprv_leveling', $rule->aprv_leveling)
+                        ->where(function ($q) use ($rule) {
+                            $ruleUsername = trim((string) $rule->aprv_username);
+
+                            $q->where('aprv_username', $ruleUsername)
+                                ->orWhereRaw(
+                                    "? = ANY(string_to_array(REPLACE(aprv_username, ';', ','), ','))",
+                                    [$ruleUsername]
+                                );
+                        })
                         ->where('status', 'P')
                         ->delete();
                 }
@@ -2129,6 +2531,16 @@ class RfpNonPurchController extends Controller
                         ->where('aprv_cpnyid', $request->cpnyid)
                         ->where('aprv_departementid', $request->departementid)
                         ->where('aprv_leveling', $rule->aprv_leveling)
+                        ->where(function ($q) use ($rule) {
+                            $ruleUsername = trim((string) $rule->aprv_username);
+
+                            $q->where('aprv_username', $ruleUsername)
+                                ->orWhereRaw(
+                                    "? = ANY(string_to_array(REPLACE(aprv_username, ';', ','), ','))",
+                                    [$ruleUsername]
+                                );
+                        })
+                        ->where('status', 'P')
                         ->exists();
 
                     if (!$exists) {
@@ -2140,13 +2552,35 @@ class RfpNonPurchController extends Controller
                             'aprv_departementid' => $request->departementid,
                             'aprv_username' => $rule->aprv_username,
                             'aprv_name' => $rule->aprv_name,
-                            'aprv_datebefore' => $dt,
+                            'aprv_datebefore' => null,
                             'aprv_type' => 'Normal',
                             'status' => 'P',
                             'created_by' => $username,
                         ]);
                     }
                 }
+            }
+
+            $firstPendingLevelAfterGroup = TrApproval::query()
+                ->where('refnbr', $docid)
+                ->where('aprv_doctype', $doctype)
+                ->where('status', 'P')
+                ->orderByRaw('CAST(aprv_leveling AS DECIMAL(10,2)) ASC')
+                ->value('aprv_leveling');
+
+            TrApproval::query()
+                ->where('refnbr', $docid)
+                ->where('aprv_doctype', $doctype)
+                ->where('status', 'P')
+                ->update(['aprv_datebefore' => null]);
+
+            if ($firstPendingLevelAfterGroup !== null) {
+                TrApproval::query()
+                    ->where('refnbr', $docid)
+                    ->where('aprv_doctype', $doctype)
+                    ->where('status', 'P')
+                    ->where('aprv_leveling', $firstPendingLevelAfterGroup)
+                    ->update(['aprv_datebefore' => $dt]);
             }
 
             // =========================
@@ -2276,6 +2710,42 @@ class RfpNonPurchController extends Controller
             ], 500);
         }
     }
+
+    public function cancelRfpNonPurch(Request $request, $hash)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'User not authenticated',
+            ], 401);
+        }
+
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        if (!$id) {
+            return response()->json([
+                'message' => 'RFP/RCA Non Purchase tidak ditemukan.',
+            ], 404);
+        }
+
+        $rfpnonpurch = TrRfpNonPurch::find($id);
+
+        if (!$rfpnonpurch) {
+            return response()->json([
+                'message' => 'RFP/RCA Non Purchase tidak ditemukan.',
+            ], 404);
+        }
+
+        $rfpnonpurch->status = 'X';
+        $rfpnonpurch->updated_by = $user->username ?? 'system';
+        $rfpnonpurch->updated_at = now();
+        $rfpnonpurch->save();
+
+        return response()->json([
+            'message' => 'RFP/RCA Non Purchase berhasil di-cancel.',
+        ]);
+    }
     
    
     public function printPdfRfpNonPurch($hash)
@@ -2287,8 +2757,15 @@ class RfpNonPurchController extends Controller
             return redirect()->route('login');
         }
 
-        $rfpnonpurch = TrRfpNonPurch::with(['creator:username,name'])->findOrFail($id);
+        $rfpnonpurch = TrRfpNonPurch::with(['creator:username,name', 'groupbiaya:groupbiaya_id,groupbiayadescr'])->findOrFail($id);
 
+        $pdf = $this->buildRfpNonPurchPdf($rfpnonpurch);
+
+        return $pdf->stream("RFP_{$rfpnonpurch->rfpnonpurchaseid}.pdf");
+    }
+
+    private function buildRfpNonPurchPdf(TrRfpNonPurch $rfpnonpurch)
+    {
         // =========================
         // APPROVAL
         // =========================
@@ -2296,6 +2773,148 @@ class RfpNonPurchController extends Controller
             ->where('status', '<>', 'X')
             ->orderBy('aprv_leveling')
             ->get();
+
+        // =========================
+        // DETAIL (RFP / RCA)
+        // =========================
+        $doctype = strtoupper(trim((string) $rfpnonpurch->rfpnonpurchase_type));
+        $isRCA = $doctype === 'RCA';
+
+        $detailsQuery = TrRfpNonPurchDetail::query()
+            ->where('rfpnonpurchaseid', $rfpnonpurch->rfpnonpurchaseid);
+
+        if ($isRCA) {
+            $detailsQuery->where('rfpnonpurch_budget_type', 'BUDGET-RCA');
+        }
+
+        $details = $detailsQuery->orderBy('id')->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Mapping Budget Detail
+        |--------------------------------------------------------------------------
+        | Sama seperti di showRfpNonPurch(): totalbudget, totalbudget_add,
+        | total_reserve, total_used, account_descr dipakai di kolom Budget PDF.
+        */
+        $budgets = BudgetDetail::leftJoin('ms_coa', function ($join) {
+                $join->on('ms_budget.account_id', '=', 'ms_coa.account_id')
+                    ->on('ms_budget.cpny_id', '=', 'ms_coa.cpny_id');
+            })
+            ->where('ms_budget.status', 'C')
+            ->select(
+                'ms_budget.cpny_id',
+                'ms_budget.business_unit_id',
+                'ms_budget.department_fin_id',
+                'ms_budget.account_id',
+                'ms_budget.activity_id',
+                'ms_budget.activity_descr',
+                'ms_budget.perpost',
+                'ms_budget.totalbudget',
+                'ms_budget.totalbudget_add',
+                'ms_budget.total_reserve',
+                'ms_budget.total_used',
+                'ms_coa.account_descr as account_descr'
+            )
+            ->get();
+
+        $budgetMap = [];
+
+        foreach ($budgets as $b) {
+            $key = implode('|', [
+                (string) $b->cpny_id,
+                (string) $b->business_unit_id,
+                (string) $b->department_fin_id,
+                (string) $b->account_id,
+                (string) $b->activity_descr,
+                (string) $b->perpost,
+            ]);
+
+            $budgetMap[$key] = $b;
+        }
+
+        foreach ($details as $item) {
+            $key = implode('|', [
+                (string) $item->budget_cpny_id,
+                (string) $item->budget_business_unit_id,
+                (string) $item->budget_department_fin_id,
+                (string) $item->budget_account_id,
+                (string) $item->budget_activity_descr,
+                (string) $item->budget_perpost,
+            ]);
+
+            if (isset($budgetMap[$key])) {
+                $budget = $budgetMap[$key];
+
+                $item->budget_data = $budget;
+                $item->account_descr = $budget->account_descr;
+
+                $budgetValue = (float) ($budget->totalbudget ?? 0);
+                $additional  = (float) ($budget->totalbudget_add ?? 0);
+                $reserved    = (float) ($budget->total_reserve ?? 0);
+                $used        = (float) ($budget->total_used ?? 0);
+
+                $item->budget_remaining = $budgetValue + $additional - $reserved - $used;
+            } else {
+                $item->budget_data = null;
+                $item->account_descr = null;
+                $item->budget_remaining = 0;
+            }
+        }
+
+        $hasBudgetDetail = $details->contains(function ($d) {
+            return trim((string) ($d->budget_department_fin_id ?? '')) !== ''
+                || trim((string) ($d->budget_account_id ?? '')) !== ''
+                || trim((string) ($d->budget_activity_id ?? '')) !== ''
+                || trim((string) ($d->budget_activity_descr ?? '')) !== '';
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Mapping Tax Detail (RFP only — RCA rows are tagged NONTAX)
+        |--------------------------------------------------------------------------
+        */
+        $taxMap = MsTax::query()
+            ->whereIn('taxid', $details->pluck('taxcodeid')->filter()->unique())
+            ->get()
+            ->keyBy('taxid');
+
+        foreach ($details as $item) {
+            $item->tax_data = $taxMap->get($item->taxcodeid);
+        }
+
+        $hasTaxDetail = !$isRCA && $details->contains(function ($d) {
+            $taxId = trim((string) ($d->taxcodeid ?? ''));
+
+            return $taxId !== '' && $taxId !== 'NONTAX';
+        });
+
+        // =========================
+        // BUSINESS UNIT (ambil dari detail)
+        // =========================
+        $selectedBuId = TrRfpNonPurchDetail::query()
+            ->where('rfpnonpurchaseid', $rfpnonpurch->rfpnonpurchaseid)
+            ->pluck('budget_business_unit_id')
+            ->filter(fn($v) => filled($v))
+            ->unique()
+            ->first();
+
+        $business_unit_name = null;
+
+        if ($selectedBuId) {
+            $bu = BusinessUnit::query()
+                ->where('business_unit_id', $selectedBuId)
+                ->first();
+
+            $business_unit_name = $bu->business_unit_name ?? null;
+        }
+
+        $rfpnonpurch->business_unit_id = $selectedBuId;
+        $rfpnonpurch->business_unit_name = $business_unit_name;
+
+        $deposit = TrRfpNonPurchDeposit::query()
+            ->where('rfpnonpurchaseid', $rfpnonpurch->rfpnonpurchaseid)
+            ->where('status', 'A')
+            ->first();
 
         // =========================
         // FORMAT DATE
@@ -2347,11 +2966,136 @@ class RfpNonPurchController extends Controller
             'created_by_username' => $created_by_username,
             'req_date_fmt' => $req_date_fmt,
             'cpny_name' => $cpny_name,
+            'details' => $details,
+            'isRCA' => $isRCA,
+            'hasBudgetDetail' => $hasBudgetDetail,
+            'hasTaxDetail' => $hasTaxDetail,
+            'deposit' => $deposit,
         ]);
 
         $pdf->setPaper('A4', 'portrait');
 
-        return $pdf->stream("RFP_{$rfpnonpurch->rfpnonpurchaseid}.pdf");
+        return $pdf;
+    }
+
+    private function sendCompletedRfpNonPurchEmail(
+        TrRfpNonPurch $rfpnonpurch,
+        string $doctype,
+        string $docName,
+        string $docUrl,
+        string $fullname,
+        \Carbon\Carbon $now
+    ): void {
+        $requesterEmail = User::query()
+            ->where('username', $rfpnonpurch->created_by)
+            ->where('status', 'A')
+            ->value('notification_email');
+
+        $requesterEmail = trim((string) $requesterEmail);
+
+        $kepadaUsers = array_values(array_filter(array_map(
+            fn ($username) => trim((string) $username),
+            explode(',', (string) $rfpnonpurch->imnonpurchase_kepada)
+        )));
+
+        $kepadaEmails = User::query()
+            ->whereIn('username', $kepadaUsers)
+            ->where('status', 'A')
+            ->pluck('notification_email')
+            ->filter(fn ($email) => trim((string) $email) !== '')
+            ->unique()
+            ->values()
+            ->toArray();
+
+        $toEmails = array_values(array_unique(array_filter(array_merge(
+            [$requesterEmail],
+            $kepadaEmails
+        ), fn ($email) => trim((string) $email) !== '')));
+
+        if (empty($toEmails)) {
+            return;
+        }
+
+        $tembusanUsers = array_values(array_filter(array_map(
+            fn ($username) => trim((string) $username),
+            explode(',', (string) $rfpnonpurch->imnonpurchase_tembusan)
+        )));
+
+        $tembusanEmails = User::query()
+            ->whereIn('username', $tembusanUsers)
+            ->where('status', 'A')
+            ->pluck('notification_email')
+            ->filter(fn ($email) => trim((string) $email) !== '')
+            ->unique()
+            ->values()
+            ->toArray();
+
+        $ccUsernames = SysUserRole::query()
+            ->where('role_id', 'APFINACCESS')
+            ->where('status', 'A')
+            ->pluck('username')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $ccEmails = User::query()
+            ->whereIn('username', $ccUsernames)
+            ->whereRaw(
+                "? = ANY(string_to_array(REPLACE(COALESCE(cpny_id, ''), ' ', ''), ','))",
+                [trim((string) $rfpnonpurch->cpny_id)]
+            )
+            ->where('status', 'A')
+            ->get(['notification_email', 'user_role'])
+            // Admin accounts sometimes pick up finance access roles for testing or
+            // oversight — they're not real finance staff, so skip them here.
+            ->reject(fn ($u) => $u->isAdmin())
+            ->pluck('notification_email')
+            ->filter(fn ($email) => trim((string) $email) !== '')
+            ->unique()
+            ->values()
+            ->toArray();
+
+        $ccEmails = array_values(array_diff(
+            array_unique(array_merge($ccEmails, $tembusanEmails)),
+            $toEmails
+        ));
+
+        $mailData = [
+            'docid'     => $rfpnonpurch->rfpnonpurchaseid,
+            'cpnyid'    => $rfpnonpurch->cpny_id ?? '',
+            'deptname'  => $rfpnonpurch->department_id ?? '',
+            'date'      => $now->toDateTimeString(),
+            'name'      => $fullname,
+            'status'    => 'C',
+            'docname'   => $docName,
+            'url'       => $docUrl,
+            'info'      => $rfpnonpurch->keperluan ?? '',
+            'createdby' => $fullname,
+        ];
+
+        $pdf = $this->buildRfpNonPurchPdf($rfpnonpurch);
+        $pdfFilename = 'RFP_' . $rfpnonpurch->rfpnonpurchaseid . '.pdf';
+
+        Mail::send('emails.mailapprovehold', $mailData, function ($message) use (
+            $toEmails,
+            $ccEmails,
+            $rfpnonpurch,
+            $docName,
+            $pdf,
+            $pdfFilename
+        ) {
+            $message->to($toEmails);
+
+            if (!empty($ccEmails)) {
+                $message->cc($ccEmails);
+            }
+
+            $message->subject($rfpnonpurch->rfpnonpurchaseid . ' - Completed ' . $docName)
+                ->from(config('mail.from.address'), config('app.name'))
+                ->attachData($pdf->output(), $pdfFilename, [
+                    'mime' => 'application/pdf',
+                ]);
+        });
     }
 
     private function terbilang($angka)
@@ -2375,6 +3119,10 @@ class RfpNonPurchController extends Controller
             return $this->terbilang($angka / 1000) . " Ribu" . $this->terbilang($angka % 1000);
         } elseif ($angka < 1000000000) {
             return $this->terbilang($angka / 1000000) . " Juta" . $this->terbilang($angka % 1000000);
+        } elseif ($angka < 1000000000000) {
+            return $this->terbilang($angka / 1000000000) . " Milyar" . $this->terbilang($angka % 1000000000);
+        } elseif ($angka < 1000000000000000) {
+            return $this->terbilang($angka / 1000000000000) . " Triliun" . $this->terbilang($angka % 1000000000000);
         } else {
             return "Terlalu Besar";
         }
@@ -2545,9 +3293,19 @@ class RfpNonPurchController extends Controller
                 'aprv_duration' => $lastApproval->aprv_duration ?? null,
                 'aprv_purpose' => $request->message,
                 'status' => 'D',
-                'created_by' => $user->username,
+                'created_by' => $rfpnonpurch->created_by,
                 'updated_by' => $user->username,
             ]);
+
+            if ($this->needsIMBudgetFromRfpNonPurchDetail($rfpnonpurch->rfpnonpurchaseid)) {
+                    $this->reserveBudget(
+                        $doctype,
+                        $rfpnonpurch->rfpnonpurchaseid,
+                        $request->cpnyid ?? $rfpnonpurch->cpny_id,
+                        'Revise',
+                        $user->username
+                    );
+                }
 
             /*
             |--------------------------------------------------------------------------
@@ -2583,12 +3341,35 @@ class RfpNonPurchController extends Controller
         }
     }
 
+    private function needsIMBudgetFromRfpNonPurchDetail(string $docid): bool
+    {
+        return TrRfpNonPurchDetail::query()
+            ->where('rfpnonpurchaseid', $docid)       
+            ->whereNotNull('budget_department_fin_id')
+            ->where('budget_department_fin_id', '<>', '')
+            ->whereNotNull('budget_account_id')
+            ->where('budget_account_id', '<>', '')
+            ->whereNotNull('budget_activity_id')
+            ->where('budget_activity_id', '<>', '')
+            ->exists();
+    }
+
     private function isTruthy($value): bool
     {
         return in_array(
             strtolower(trim((string) $value)),
             ['1', 'true', 't', 'yes', 'y'],
             true
+        );
+    }
+
+    private function reserveBudget(string $doctype, string $docid, string $cpnyId, string $activity, string $username): void
+    {
+        // Panggil PostgreSQL Stored Procedure: sp_process_budget(doctype, docid, activity, user)
+        // Contoh: CALL sp_process_budget('CS','CS25120001','Submit','williemhalim');
+        DB::connection('pgsql')->statement(
+            'CALL public.sp_process_budget(?, ?, ?, ?,?)',
+            [strtoupper($doctype), $docid, $cpnyId, $activity, $username]
         );
     }
 

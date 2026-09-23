@@ -53,6 +53,7 @@
             @csrf
 
             <input type="hidden" id="docid" value="{{ $parkingRegistration->docid }}">
+            <input type="hidden" name="is_draft" id="isDraftField" value="0">
 
             {{-- HEADER --}}
             <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
@@ -189,7 +190,7 @@
                     </div>
                 </div>
 
-                {{-- Date Range + Info: tampil hanya jika Worker Type bukan EMPLOYEE --}}
+                {{-- Date Range + Info --}}
                 @php
                     $firstDetail = $parkingRegistrationDetail->first();
                 @endphp
@@ -197,7 +198,7 @@
                 <div id="nonEmployeeExtraSection" class="mt-6 hidden grid grid-cols-1 gap-6 lg:grid-cols-2">
 
                     {{-- Date Range --}}
-                    <div class="flex flex-col gap-2">
+                    <div id="extraDateRangeBox" class="flex flex-col gap-2">
                         <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Date Range
                         </label>
@@ -220,7 +221,7 @@
                     </div>
 
                     {{-- Info --}}
-                    <div class="flex flex-col gap-2">
+                    <div id="infoBox" class="flex flex-col gap-2">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Info
                         </label>
@@ -238,8 +239,8 @@
                     <summary
                         class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                         <span>Detail</span>
-                        <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details →</span>
-                        <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details ↓</span>
+                        <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See details →</span>
+                        <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide details ↓</span>
                     </summary>
 
                     <div class="flex h-auto flex-col justify-start pt-4">
@@ -294,7 +295,7 @@
                                                 <input type="hidden" name="detail_nopol_lama[]" class="oldNopolHidden" value="{{ $d->nopol_lama }}">
 
                                                 <div class="oldNopolWrapper mb-2 hidden">
-                                                    <label class="mb-1 block text-xs font-semibold text-gray-500">
+                                                    <label class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">
                                                         No Polisi Lama
                                                     </label>
                                                     <input type="text"
@@ -303,7 +304,7 @@
                                                         readonly>
                                                 </div>
 
-                                                <label class="nopolFinalLabel mb-1 hidden text-xs font-semibold text-gray-500">
+                                                <label class="nopolFinalLabel mb-1 hidden text-xs font-semibold text-gray-500 dark:text-gray-400">
                                                     No Polisi Baru
                                                 </label>
 
@@ -317,7 +318,7 @@
                                                 <input type="hidden" name="detail_jenis_lama[]" class="oldJenisHidden" value="{{ $d->jenis_lama }}">
 
                                                 <div class="oldJenisWrapper mb-2 hidden">
-                                                    <label class="mb-1 block text-xs font-semibold text-gray-500">
+                                                    <label class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">
                                                         Jenis Kendaraan Lama
                                                     </label>
                                                     <input type="text"
@@ -326,7 +327,7 @@
                                                         readonly>
                                                 </div>
 
-                                                <label class="jenisFinalLabel mb-1 hidden text-xs font-semibold text-gray-500">
+                                                <label class="jenisFinalLabel mb-1 hidden text-xs font-semibold text-gray-500 dark:text-gray-400">
                                                     Jenis Kendaraan Baru
                                                 </label>
 
@@ -402,7 +403,7 @@
                                                 <input type="hidden" name="detail_nopol_lama[]" class="oldNopolHidden">
 
                                                 <div class="oldNopolWrapper mb-2 hidden">
-                                                    <label class="mb-1 block text-xs font-semibold text-gray-500">
+                                                    <label class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">
                                                         No Polisi Lama
                                                     </label>
                                                     <input type="text"
@@ -410,7 +411,7 @@
                                                         readonly>
                                                 </div>
 
-                                                <label class="nopolFinalLabel mb-1 hidden text-xs font-semibold text-gray-500">
+                                                <label class="nopolFinalLabel mb-1 hidden text-xs font-semibold text-gray-500 dark:text-gray-400">
                                                     No Polisi Baru
                                                 </label>
 
@@ -423,7 +424,7 @@
                                                 <input type="hidden" name="detail_jenis_lama[]" class="oldJenisHidden">
 
                                                 <div class="oldJenisWrapper mb-2 hidden">
-                                                    <label class="mb-1 block text-xs font-semibold text-gray-500">
+                                                    <label class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">
                                                         Jenis Kendaraan Lama
                                                     </label>
                                                     <input type="text"
@@ -431,7 +432,7 @@
                                                         readonly>
                                                 </div>
 
-                                                <label class="jenisFinalLabel mb-1 hidden text-xs font-semibold text-gray-500">
+                                                <label class="jenisFinalLabel mb-1 hidden text-xs font-semibold text-gray-500 dark:text-gray-400">
                                                     Jenis Kendaraan Baru
                                                 </label>
 
@@ -490,11 +491,11 @@
                 <details class="group" open>
                     <summary
                         class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                        <span>Attachments <span class="text-sm font-normal text-gray-500">(Optional)</span></span>
-                        <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">
+                        <span>Attachments <span class="text-sm font-normal text-gray-500 dark:text-gray-400">(Optional)</span></span>
+                        <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">
                             See details →
                         </span>
-                        <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">
+                        <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">
                             Hide details ↓
                         </span>
                     </summary>
@@ -526,7 +527,7 @@
 
                 <div class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
                     <button type="button" id="backBtn"
-                        class="flex items-center justify-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                        class="flex items-center justify-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-300">
                         <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -540,6 +541,19 @@
                             class="flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">
                             <i class="fa-solid fa-ban"></i>
                             <span>Cancel</span>
+                        </button>
+
+                        <button type="button" id="saveDraftBtn"
+                            class="flex items-center gap-2 rounded-md bg-gray-500 px-4 py-2 text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                            <span id="draftBtnText">Save as Draft</span>
+                            <svg id="draftLoadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                    stroke="currentColor" stroke-width="4">
+                                </circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8v8z"></path>
+                            </svg>
                         </button>
 
                         <button type="submit" id="submitBtn"
@@ -582,6 +596,8 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
+        const parkingAttachSettings = @json($parkingAttachSettings ?? []);
+
         function isRenewalType() {
             return currentParkingType() === 'RENEWAL';
         }
@@ -641,6 +657,29 @@
             } else {
                 $('.buktiBayarHeader').addClass('hidden').hide();
             }
+
+            $('.stnkHeader').toggleClass('req', showStnk);
+            $('.idcardHeader').toggleClass('req', showIdCard);
+            $('.buktiBayarHeader').toggleClass('req', showBuktiBayar);
+        }
+
+        function currentAttachmentSetting() {
+            const key = `${currentParkingType()}|${currentWorkerType()}`;
+            const setting = parkingAttachSettings[key];
+
+            if (!setting) {
+                return {
+                    att_stnk: true,
+                    att_idcard: true,
+                    att_buktibayar: true
+                };
+            }
+
+            return {
+                att_stnk: Boolean(setting.att_stnk),
+                att_idcard: Boolean(setting.att_idcard),
+                att_buktibayar: Boolean(setting.att_buktibayar)
+            };
         }
 
         function resetParkingDetailRows() {
@@ -676,41 +715,13 @@
 
         function applyParkingTypeDetailMode() {
             const parkingType = currentParkingType();
+            const attachSetting = currentAttachmentSetting();
 
-            /*
-            |--------------------------------------------------------------------------
-            | Default NEWREQUEST / TEMPREQUEST
-            |--------------------------------------------------------------------------
-            */
-            setFileHeader(true, true, true);
-
-            /*
-            |--------------------------------------------------------------------------
-            | RENEWAL
-            |--------------------------------------------------------------------------
-            */
-            if (parkingType === 'RENEWAL') {
-                setFileHeader(false, false, false);
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | CHANGENOPOL
-            |--------------------------------------------------------------------------
-            */
-            if (parkingType === 'CHANGENOPOL') {
-                setFileHeader(true, false, true);
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | CHANGECARD / Pergantian Kartu
-            | Attach STNK dan Attach ID Card hidden
-            |--------------------------------------------------------------------------
-            */
-            if (parkingType === 'CHANGECARD') {
-                setFileHeader(false, false, true);
-            }
+            setFileHeader(
+                attachSetting.att_stnk,
+                attachSetting.att_idcard,
+                attachSetting.att_buktibayar
+            );
 
             $('#parkingDetailTable .parking-detail-row').each(function () {
                 const $row = $(this);
@@ -741,9 +752,9 @@
 
                 setReadonlyVehicle($row, false);
 
-                setFileCell($stnkCell, $stnkInput, true, true);
-                setFileCell($idcardCell, $idcardInput, true, true);
-                setFileCell($buktiCell, $buktiInput, true, false);
+                setFileCell($stnkCell, $stnkInput, attachSetting.att_stnk, attachSetting.att_stnk);
+                setFileCell($idcardCell, $idcardInput, attachSetting.att_idcard, attachSetting.att_idcard);
+                setFileCell($buktiCell, $buktiInput, attachSetting.att_buktibayar, attachSetting.att_buktibayar);
 
                 /*
                 |--------------------------------------------------------------------------
@@ -752,10 +763,6 @@
                 */
                 if (parkingType === 'RENEWAL') {
                     setReadonlyVehicle($row, true);
-
-                    setFileCell($stnkCell, $stnkInput, false, false);
-                    setFileCell($idcardCell, $idcardInput, false, false);
-                    setFileCell($buktiCell, $buktiInput, false, false);
                 }
 
                 /*
@@ -771,10 +778,6 @@
                     $jenisFinalLabel.removeClass('hidden');
 
                     setReadonlyVehicle($row, false);
-
-                    setFileCell($stnkCell, $stnkInput, true, true);
-                    setFileCell($idcardCell, $idcardInput, false, false);
-                    setFileCell($buktiCell, $buktiInput, true, false);
                 }
 
                 /*
@@ -784,10 +787,6 @@
                 */
                 if (parkingType === 'CHANGECARD') {
                     setReadonlyVehicle($row, true);
-
-                    setFileCell($stnkCell, $stnkInput, false, false);
-                    setFileCell($idcardCell, $idcardInput, false, false);
-                    setFileCell($buktiCell, $buktiInput, true, false);
                 }
             });
         }
@@ -954,7 +953,7 @@
             | Jadi username dikirim kosong/null.
             |--------------------------------------------------------------------------
             */
-            if (raw.startsWith('OPRVEHICLES|')) {
+            if (raw.startsWith('OPRVEHICLES|') || raw.startsWith('PARKING|') || raw === 'PARKING') {
                 return '';
             }
 
@@ -1069,13 +1068,13 @@
                         <input type="hidden" name="detail_nopol_lama[]" class="oldNopolHidden">
 
                         <div class="oldNopolWrapper mb-2 hidden">
-                            <label class="mb-1 block text-xs font-semibold text-gray-500">No Polisi Lama</label>
+                            <label class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">No Polisi Lama</label>
                             <input type="text"
                                 class="oldNopolDisplay w-full rounded border border-gray-300 bg-gray-100 p-2 text-sm uppercase text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                 readonly>
                         </div>
 
-                        <label class="nopolFinalLabel mb-1 hidden text-xs font-semibold text-gray-500">
+                        <label class="nopolFinalLabel mb-1 hidden text-xs font-semibold text-gray-500 dark:text-gray-400">
                             No Polisi Baru
                         </label>
 
@@ -1088,13 +1087,13 @@
                         <input type="hidden" name="detail_jenis_lama[]" class="oldJenisHidden">
 
                         <div class="oldJenisWrapper mb-2 hidden">
-                            <label class="mb-1 block text-xs font-semibold text-gray-500">Jenis Kendaraan Lama</label>
+                            <label class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">Jenis Kendaraan Lama</label>
                             <input type="text"
                                 class="oldJenisDisplay w-full rounded border border-gray-300 bg-gray-100 p-2 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                 readonly>
                         </div>
 
-                        <label class="jenisFinalLabel mb-1 hidden text-xs font-semibold text-gray-500">
+                        <label class="jenisFinalLabel mb-1 hidden text-xs font-semibold text-gray-500 dark:text-gray-400">
                             Jenis Kendaraan Baru
                         </label>
 
@@ -1162,25 +1161,41 @@
 
             /*
             |--------------------------------------------------------------------------
-            | Date Range + Info tampil jika:
+            | Extra section tampil jika:
+            | 1. Worker Type selain EMPLOYEE
+            | 2. Parking Type NEWREQUEST / TEMPREQUEST + Worker Type EMPLOYEE/Karyawan
+            |
+            | Date Range tampil dan wajib jika:
             | 1. Worker Type selain EMPLOYEE
             | 2. Parking Type TEMPREQUEST + Worker Type EMPLOYEE/Karyawan
             |--------------------------------------------------------------------------
             */
+            const shouldShowEmployeeInfo = ['NEWREQUEST', 'TEMPREQUEST'].includes(parkingType) && isEmp;
+            const shouldShowEmployeeDateRange = parkingType === 'TEMPREQUEST' && isEmp;
             const showExtraSection =
                 workerType !== '' &&
                 (
                     !isEmp ||
-                    (parkingType === 'TEMPREQUEST' && isEmp)
+                    shouldShowEmployeeInfo
                 );
+            const shouldRequireDateRange = workerType !== '' && (!isEmp || shouldShowEmployeeDateRange);
 
             if (showExtraSection) {
                 $('#nonEmployeeExtraSection').removeClass('hidden').show();
+                $('#extraDateRangeBox').toggleClass('hidden', !shouldRequireDateRange);
+                $('#infoBox').toggleClass('lg:col-span-2', !shouldRequireDateRange);
 
-                $('#startdate').prop('required', true);
-                $('#enddate').prop('required', true);
+                $('#startdate').prop('required', shouldRequireDateRange);
+                $('#enddate').prop('required', shouldRequireDateRange);
+
+                if (!shouldRequireDateRange) {
+                    $('#startdate').val('');
+                    $('#enddate').val('');
+                }
             } else {
                 $('#nonEmployeeExtraSection').addClass('hidden').hide();
+                $('#extraDateRangeBox').removeClass('hidden');
+                $('#infoBox').removeClass('lg:col-span-2');
 
                 $('#startdate').prop('required', false);
                 $('#enddate').prop('required', false);
@@ -1365,6 +1380,10 @@
                     }
                 }
             });
+
+            $('#site_id_parking, #parking_type, #worker_type').select2({
+                width: '100%'
+            });
         });
     </script>
 
@@ -1465,24 +1484,28 @@
             });
         });
 
-        $('#parkingRegistrationForm').on('submit', function (e) {
-            e.preventDefault();
-
-            if (!syncDetailNamesBeforeSubmit()) {
+        function submitParkingForm(isDraft) {
+            if (!isDraft && !syncDetailNamesBeforeSubmit()) {
                 return;
             }
 
-            $('#submitBtn, #backBtn').prop('disabled', true);
-            $('#btnText').text('Processing...');
-            $('#loadingSpinner').removeClass('hidden');
-            showOverlay('Updating');
+            $('#isDraftField').val(isDraft ? '1' : '0');
+
+            const $btnText = isDraft ? $('#draftBtnText') : $('#btnText');
+            const $spinner = isDraft ? $('#draftLoadingSpinner') : $('#loadingSpinner');
+            const idleText = isDraft ? 'Save as Draft' : 'Update Approval';
+
+            $('#submitBtn, #saveDraftBtn, #cancelBtn, #backBtn').prop('disabled', true);
+            $btnText.text('Processing...');
+            $spinner.removeClass('hidden');
+            showOverlay(isDraft ? 'Saving draft' : 'Updating');
 
             syncDetailUsernameBeforeSubmit();
 
             const formData = new FormData(document.getElementById('parkingRegistrationForm'));
 
             formData.append('_method', 'PUT');
-            
+
             $.ajax({
                 url: "{{ route('parkingregistration.update', $parkingRegistration->docid) }}",
                 type: "POST",
@@ -1491,7 +1514,7 @@
                 contentType: false
             })
             .done(function (res) {
-                toastr.success(res.message || 'Parking Registration updated successfully.');
+                toastr.success(res.message || (isDraft ? 'Parking Registration saved as draft.' : 'Parking Registration updated successfully.'));
 
                 setTimeout(function () {
                     window.location.href = "{{ route('parkingregistration') }}";
@@ -1521,11 +1544,20 @@
                 console.error(xhr.responseText);
             })
             .always(function () {
-                $('#submitBtn, #backBtn').prop('disabled', false);
-                $('#btnText').text('Update Approval');
-                $('#loadingSpinner').addClass('hidden');
+                $('#submitBtn, #saveDraftBtn, #cancelBtn, #backBtn').prop('disabled', false);
+                $btnText.text(idleText);
+                $spinner.addClass('hidden');
                 hideOverlay();
             });
+        }
+
+        $('#parkingRegistrationForm').on('submit', function (e) {
+            e.preventDefault();
+            submitParkingForm(false);
+        });
+
+        $('#saveDraftBtn').on('click', function () {
+            submitParkingForm(true);
         });
 
         $(function () {

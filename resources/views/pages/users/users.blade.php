@@ -1,6 +1,8 @@
 <x-app-layout>
     @php
-        $currentPage = Route::currentRouteName() == 'users' ? 'Users' : '';
+        $currentPage = in_array(Route::currentRouteName(), ['users', 'users-sby']) ? 'Users' : '';
+        $usersSby = Route::is('users-sby') || Route::is('users-sby.*');
+        $usersBase = $usersSby ? '/users-sby' : '/users';
     @endphp
     <style>
         .select2-container--default .select2-selection--multiple {
@@ -29,25 +31,53 @@
         }
     </style>
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="mt-4 flex flex-col gap-4 rounded-lg bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Users List</h1>
+        {{-- Tab nav --}}
+        <div class="flex gap-1 border-b border-gray-200 dark:border-gray-700">
+            <button type="button" id="tabBtnList"
+                class="user-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-indigo-600 dark:border-gray-700 dark:bg-gray-800 dark:text-indigo-400">
+                👥 Users List
+            </button>
+            @unless ($usersSby)
+                <button type="button" id="tabBtnDuplicates"
+                    class="user-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
+                    🧬 Duplicate Users
+                    <span id="dupCountBadge"
+                        class="ml-1 hidden rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white"></span>
+                </button>
+                <button type="button" id="tabBtnInactive"
+                    class="user-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
+                    🚫 Inactive Users
+                    <span id="inactiveCountBadge"
+                        class="ml-1 hidden rounded-full bg-gray-500 px-2 py-0.5 text-xs font-bold text-white"></span>
+                </button>
+                <button type="button" id="tabBtnSby"
+                    class="user-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
+                    🏢 User SBY
+                </button>
+            @endunless
+        </div>
+
+        <div id="tabPanelList"
+            class="rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Users List</h2>
                 <button id="addAppBtn"
-                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                    class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
                     + Add User
                 </button>
             </div>
 
             {{-- Filter Company & Department --}}
-            <div class="mb-3 flex flex-wrap items-end gap-3">
+            <div class="flex flex-wrap items-end gap-3 px-5 pt-4">
                 <div class="min-w-[200px] flex-1">
                     <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
                         Filter Company
                     </label>
                     <select id="filterCompany"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
                         <option value="">All Company</option>
-                        @foreach ($company as $c)
+                        @foreach ($filterCompanies as $c)
                             <option value="{{ $c->cpny_id }}">{{ $c->cpny_id }} - {{ $c->cpny_name }}</option>
                         @endforeach
                     </select>
@@ -55,42 +85,56 @@
 
                 <div class="min-w-[200px] flex-1">
                     <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                        Filter Department
+                        Filter Division
                     </label>
-                    <select id="filterDepartment"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
-                        <option value="">All Department</option>
-                        @foreach ($department as $d)
-                            <option value="{{ $d->department_id }}">{{ $d->department_id }}</option>
-                        @endforeach
+                    <select id="filterDivision"
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
+                        <option value="">All Division</option>
                     </select>
                 </div>
 
-                <div class="min-w-[200px] flex-1">
-                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                        Filter Business Unit
-                    </label>
-                    <select id="filterBusinessUnit"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
-                        <option value="">All Business Unit</option>
-                        @foreach ($businessUnits as $bu)
-                            <option value="{{ $bu->business_unit_id }}">{{ $bu->business_unit_id }} -
-                                {{ $bu->business_unit_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                @unless ($usersSby)
+                    <div class="min-w-[200px] flex-1">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                            Filter Department
+                        </label>
+                        <select id="filterDepartment"
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
+                            <option value="">All Department</option>
+                            @foreach ($filterDepartments as $d)
+                                <option value="{{ $d->department_id }}">{{ $d->department_id }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endunless
 
-                <div class="min-w-[200px] flex-1">
-                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                        Filter Jabatan
-                    </label>
-                    <select id="filterJabatan"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
-                        <option value="">All Jabatan</option>
-                        <option value="staff">staff</option>
-                        <option value="manager">manager</option>
-                    </select>
-                </div>
+                @unless ($usersSby)
+                    <div class="min-w-[200px] flex-1">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                            Filter Business Unit
+                        </label>
+                        <select id="filterBusinessUnit"
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
+                            <option value="">All Business Unit</option>
+                            @foreach ($businessUnits as $bu)
+                                <option value="{{ $bu->business_unit_id }}">{{ $bu->business_unit_id }} -
+                                    {{ $bu->business_unit_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="min-w-[200px] flex-1">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                            Filter Jabatan
+                        </label>
+                        <select id="filterJabatan"
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
+                            <option value="">All Jabatan</option>
+                            <option value="staff">staff</option>
+                            <option value="manager">manager</option>
+                        </select>
+                    </div>
+                @endunless
 
 
                 <div class="mt-6">
@@ -102,21 +146,22 @@
             </div>
 
             {{-- Table --}}
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="usersTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th class="w-48 px-4 py-3 font-medium">Actions</th>
+            <div class="relative mt-4 overflow-hidden">
+                <table id="usersTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th class="w-48 px-4 py-3 text-left font-medium">Actions</th>
                             <th class="px-4 py-3 text-left font-medium">Name</th>
                             <th class="px-4 py-3 text-left font-medium">Username</th>
                             <th class="px-4 py-3 text-left font-medium">Email</th>
+                            <th class="px-4 py-3 text-left font-medium">Division</th>
                             <th class="px-4 py-3 text-left font-medium">Company</th>
                             <th class="px-4 py-3 text-left font-medium">Departement</th>
                             <th class="px-4 py-3 text-left font-medium">BusinessUnit</th>
                             <th class="px-4 py-3 text-left font-medium">Jabatan</th>
-                            <th class="w-32 px-4 py-3 text-center font-medium">Status</th>
+                            <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -124,6 +169,103 @@
             </div>
 
         </div>
+
+        @unless ($usersSby)
+        <div id="tabPanelDuplicates"
+            class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div class="border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🧬 Duplicate Users</h2>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Users sharing the same email, username, or NPK. Review and deactivate the extra
+                    accounts to keep one active record per person.
+                </p>
+            </div>
+
+            <div class="relative overflow-hidden">
+                <table id="dupUsersTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th class="w-40 px-4 py-3 text-left font-medium">Actions</th>
+                            <th class="px-4 py-3 text-left font-medium">Matched By</th>
+                            <th class="px-4 py-3 text-left font-medium">Name</th>
+                            <th class="px-4 py-3 text-left font-medium">Username</th>
+                            <th class="px-4 py-3 text-left font-medium">Email</th>
+                            <th class="px-4 py-3 text-left font-medium">NPK</th>
+                            <th class="px-4 py-3 text-left font-medium">Company</th>
+                            <th class="px-4 py-3 text-left font-medium">Departement</th>
+                            <th class="px-4 py-3 text-left font-medium">BusinessUnit</th>
+                            <th class="px-4 py-3 text-left font-medium">Jabatan</th>
+                            <th class="px-4 py-3 text-left font-medium">Created</th>
+                            <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tabPanelInactive"
+            class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div class="border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🚫 Inactive Users</h2>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Users currently deactivated. Toggle the switch to reactivate an account.
+                </p>
+            </div>
+
+            <div class="relative overflow-hidden">
+                <table id="inactiveUsersTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th class="w-48 px-4 py-3 text-left font-medium">Actions</th>
+                            <th class="px-4 py-3 text-left font-medium">Name</th>
+                            <th class="px-4 py-3 text-left font-medium">Username</th>
+                            <th class="px-4 py-3 text-left font-medium">Email</th>
+                            <th class="px-4 py-3 text-left font-medium">Company</th>
+                            <th class="px-4 py-3 text-left font-medium">Departement</th>
+                            <th class="px-4 py-3 text-left font-medium">BusinessUnit</th>
+                            <th class="px-4 py-3 text-left font-medium">Jabatan</th>
+                            <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tabPanelSby"
+            class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div class="border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🏢 User SBY</h2>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Active users belonging to the SBY company group.
+                </p>
+            </div>
+
+            <div class="relative overflow-hidden">
+                <table id="sbyUsersTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th class="w-48 px-4 py-3 text-left font-medium">Actions</th>
+                            <th class="px-4 py-3 text-left font-medium">Name</th>
+                            <th class="px-4 py-3 text-left font-medium">Username</th>
+                            <th class="px-4 py-3 text-left font-medium">Email</th>
+                            <th class="px-4 py-3 text-left font-medium">Division</th>
+                            <th class="px-4 py-3 text-left font-medium">Jabatan</th>
+                            <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        @endunless
 
         <!-- Modal -->
         <div id="appModal" class="fixed inset-0 z-50 hidden">
@@ -140,13 +282,13 @@
                             <h2 id="modalTitle" class="text-2xl font-semibold text-slate-900 dark:text-white">
                                 Add User
                             </h2>
-                            <p class="mt-1 text-sm text-slate-500">
+                            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
                                 Create and manage user permissions and access scopes.
                             </p>
                         </div>
 
                         <button id="closeModal" type="button"
-                            class="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 dark:hover:bg-slate-700">
+                            class="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 dark:hover:bg-slate-700 dark:text-slate-400">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -165,40 +307,42 @@
                                         <h3 class="font-semibold text-slate-900 dark:text-white">
                                             User Information
                                         </h3>
-                                        <p class="mt-1 text-sm text-slate-500">
+                                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
                                             Basic profile information.
                                         </p>
                                     </div>
 
                                     <div class="grid gap-5 p-6 md:grid-cols-2">
 
-                                        <div>
-                                            <label
-                                                class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                                Full Name
-                                            </label>
-                                            <input id="name" name="name" type="text" placeholder="John Doe"
-                                                required
-                                                class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-700 dark:text-white">
-                                        </div>
+                                        <div class="grid gap-5 md:col-span-2 md:grid-cols-3">
+                                            <div>
+                                                <label
+                                                    class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                    Full Name
+                                                </label>
+                                                <input id="name" name="name" type="text" placeholder="John Doe"
+                                                    required
+                                                    class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                                            </div>
 
-                                        <div>
-                                            <label
-                                                class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                                Username
-                                            </label>
-                                            <input id="username" name="username" type="text" placeholder="Auto-filled from email (or type manually)"
-                                                class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-700 dark:text-white">
-                                        </div>
+                                            <div>
+                                                <label
+                                                    class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                    Username
+                                                </label>
+                                                <input id="username" name="username" type="text" placeholder="Auto-filled from email (or type manually)"
+                                                    class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                                            </div>
 
-                                        <div>
-                                            <label
-                                                class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                                Email Address
-                                            </label>
-                                            <input id="email" name="email" type="email"
-                                                placeholder="john.doe@example.com" required
-                                                class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                                            <div>
+                                                <label
+                                                    class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                    Email Address
+                                                </label>
+                                                <input id="email" name="email" type="email"
+                                                    placeholder="john.doe@example.com" required
+                                                    class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                                            </div>
                                         </div>
 
                                         <div>
@@ -223,6 +367,34 @@
                                             </select>
                                         </div>
 
+                                        @unless ($usersSby)
+                                            <div>
+                                                <label class="mb-2 block text-sm font-medium">Origin Company</label>
+                                                <select id="origin_cpny_id" name="origin_cpny_id" class="w-full"
+                                                    data-placeholder="Select origin company">
+                                                    <option value="">-- Select Origin Company --</option>
+                                                    @foreach ($company as $c)
+                                                        <option value="{{ $c->cpny_id }}">
+                                                            {{ $c->cpny_id }} - {{ $c->cpny_name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <label class="mb-2 block text-sm font-medium">Origin Department</label>
+                                                <select id="origin_department_id" name="origin_department_id" class="w-full"
+                                                    data-placeholder="Select origin department">
+                                                    <option value="">-- Select Origin Department --</option>
+                                                    @foreach ($department as $d)
+                                                        <option value="{{ $d->department_id }}">
+                                                            {{ $d->department_id }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        @endunless
+
                                     </div>
                                 </div>
 
@@ -233,7 +405,7 @@
                                         <h3 class="font-semibold text-slate-900 dark:text-white">
                                             Access Scope
                                         </h3>
-                                        <p class="mt-1 text-sm text-slate-500">
+                                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
                                             Configure organization access.
                                         </p>
                                     </div>
@@ -241,56 +413,60 @@
                                     <div class="grid gap-5 p-6 md:grid-cols-2">
 
                                         <div>
+                                            <label class="mb-2 block text-sm font-medium">Company Group</label>
+                                            <select id="group_cpny_id" name="group_cpny_id" class="w-full"
+                                                data-placeholder="Select company group (optional)">
+                                                <option value="">-- All Groups --</option>
+                                                <option value="JKT">JKT</option>
+                                                <option value="SBY">SBY</option>
+                                            </select>
+                                        </div>
+
+                                        <div>
                                             <label class="mb-2 block text-sm font-medium">Company</label>
                                             <select name="cpny_id[]" class="select2 w-full" multiple
                                                 data-placeholder="Search and select company access" required>
                                                 <option></option>
-                                                @foreach ($company as $c)
-                                                    <option value="{{ $c->cpny_id }}">
-                                                        {{ $c->cpny_id }} - {{ $c->cpny_name }}
-                                                    </option>
-                                                @endforeach
                                             </select>
                                         </div>
 
-                                        <div>
-                                            <label class="mb-2 block text-sm font-medium">Department</label>
-                                            <select name="department_id[]" class="select2 w-full" multiple
-                                                data-placeholder="Search and select department access" required>
-                                                <option></option>
-                                                @foreach ($department as $d)
-                                                    <option value="{{ $d->department_id }}">
-                                                        {{ $d->department_id }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
+                                        @unless ($usersSby)
+                                            <div>
+                                                <label class="mb-2 block text-sm font-medium">Department</label>
+                                                <select name="department_id[]" class="select2 w-full" multiple
+                                                    data-placeholder="Search and select department access">
+                                                    <option></option>
+                                                    @foreach ($department as $d)
+                                                        <option value="{{ $d->department_id }}">
+                                                            {{ $d->department_id }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        @endunless
 
                                         <div>
                                             <label class="mb-2 block text-sm font-medium">Division</label>
                                             <select name="division_id[]" class="select2 w-full" multiple
-                                                data-placeholder="Search and select division access" required>
+                                                data-placeholder="Search and select division access">
                                                 <option></option>
-                                                @foreach ($divisions as $d)
-                                                    <option value="{{ $d->division_id }}">
-                                                        {{ $d->division_id }} - {{ $d->division_name }}
-                                                    </option>
-                                                @endforeach
                                             </select>
                                         </div>
 
-                                        <div>
-                                            <label class="mb-2 block text-sm font-medium">Business Unit</label>
-                                            <select name="business_unit_id[]" class="select2 w-full" multiple
-                                                data-placeholder="Search and select business unit access" required>
-                                                <option></option>
-                                                @foreach ($businessUnits as $bu)
-                                                    <option value="{{ $bu->business_unit_id }}">
-                                                        {{ $bu->business_unit_id }} - {{ $bu->business_unit_name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
+                                        @unless ($usersSby)
+                                            <div>
+                                                <label class="mb-2 block text-sm font-medium">Business Unit</label>
+                                                <select name="business_unit_id[]" class="select2 w-full" multiple
+                                                    data-placeholder="Search and select business unit access">
+                                                    <option></option>
+                                                    @foreach ($businessUnits as $bu)
+                                                        <option value="{{ $bu->business_unit_id }}">
+                                                            {{ $bu->business_unit_id }} - {{ $bu->business_unit_name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        @endunless
 
                                     </div>
                                 </div>
@@ -302,7 +478,7 @@
                                         <h3 class="font-semibold text-slate-900 dark:text-white">
                                             Security & Permissions
                                         </h3>
-                                        <p class="mt-1 text-sm text-slate-500">
+                                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
                                             Configure roles and dashboard access.
                                         </p>
                                     </div>
@@ -334,11 +510,14 @@
                                                 User Type
                                             </label>
 
-                                            <select name="role" required
-                                                class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white">
-                                                <option value="">Select Type</option>
+                                            <select name="role[]" class="select2 w-full" multiple required
+                                                data-placeholder="Select user type">
+                                                <option></option>
                                                 <option value="user">User</option>
-                                                <option value="admin">Admin</option>
+                                                @unless ($usersSby)
+                                                    <option value="admin">Admin</option>
+                                                @endunless
+                                                <option value="adminsby">Adminsby</option>
                                             </select>
                                         </div>
 
@@ -398,10 +577,481 @@
         </div>
     </div>
 
+    <style>
+        tr.group-alt {
+            background-color: rgba(250, 204, 21, 0.06);
+        }
+    </style>
+
     <script>
+        const companiesData = {!! $company->toJson() !!};
+        const divisionsData = {!! $divisions->toJson() !!};
+        const isSbyUser = @json($usersSby);
+
+        // Rebuild the Company multi-select options, scoped to the chosen company group.
+        function renderCompanyOptions(group, selectedIds = []) {
+            const $select = $('select[name="cpny_id[]"]');
+            $select.empty();
+
+            companiesData
+                .filter(c => !group || c.group_cpny_id === group)
+                .forEach(c => {
+                    const isSelected = selectedIds.includes(c.cpny_id);
+                    $select.append(new Option(`${c.cpny_id} - ${c.cpny_name}`, c.cpny_id, isSelected, isSelected));
+                });
+
+            $select.trigger('change');
+        }
+
+        // Rebuild the Division multi-select options, scoped to the chosen company group.
+        function renderDivisionOptions(group, selectedIds = []) {
+            const $select = $('select[name="division_id[]"]');
+            $select.empty();
+
+            divisionsData
+                .filter(d => !group || d.group_cpny_id === group)
+                .forEach(d => {
+                    const isSelected = selectedIds.includes(d.division_id);
+                    $select.append(new Option(`${d.division_id} - ${d.division_name}`, d.division_id, isSelected, isSelected));
+                });
+
+            $select.trigger('change');
+        }
+
         $(document).ready(function() {
+
+            // ===== Tabs =====
+            let dupTable = null;
+            let dupTableLoaded = false;
+
+            function initDupTable() {
+                if (dupTableLoaded) return;
+                dupTableLoaded = true;
+
+                let lastGroupKey = null;
+                let groupToggle = false;
+
+                dupTable = $('#dupUsersTable').DataTable({
+                    ajax: {
+                        url: "{{ $usersSby ? route('users-sby.duplicates.json') : route('users.duplicates.json') }}",
+                        dataSrc: function(json) {
+                            updateDupBadge(json.data ? json.data.length : 0);
+                            return json.data;
+                        }
+                    },
+                    processing: true,
+                    serverSide: false,
+                    lengthMenu: [
+                        [10, 25, 50, 100, 250, -1],
+                        [10, 25, 50, 100, 250, 'All']
+                    ],
+                    order: [],
+                    responsive: {
+                        details: {
+                            type: 'column',
+                            target: 0
+                        }
+                    },
+                    columnDefs: [{
+                        targets: 0,
+                        width: '28px',
+                        className: 'dtr-control',
+                        orderable: false
+                    }],
+                    dom: '<"dt-toolbar flex items-center justify-start gap-4"lf>rtip',
+                    createdRow: function(row, data) {
+                        if (data.group_key !== lastGroupKey) {
+                            groupToggle = !groupToggle;
+                            lastGroupKey = data.group_key;
+                        }
+                        if (groupToggle) {
+                            $(row).addClass('group-alt');
+                        }
+                    },
+                    columns: [{
+                            data: null,
+                            defaultContent: ''
+                        },
+                        {
+                            data: 'id',
+                            render: function(data, type, row) {
+                                return `
+                                    <div class="flex justify-center space-x-2">
+                                        <label class="switch cursor-pointer">
+                                            <input type="checkbox" class="toggleStatus" data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
+                                            <span class="slider round"></span>
+                                        </label>
+                                        <button type="button"
+                                                class="editAppBtn bg-blue-500 text-white px-2 py-1 rounded cursor-pointer"
+                                                data-id="${data}" title="Edit User">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="impersonateBtn bg-yellow-500 text-white px-2 py-1 rounded cursor-pointer"
+                                                data-id="${data}" title="Login As">
+                                            <i class="fas fa-key"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="resetPwdBtn bg-red-500 text-white px-2 py-1 rounded cursor-pointer"
+                                                data-id="${data}" title="Reset Password">
+                                            <i class="fas fa-undo"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="hardDeleteBtn bg-gray-800 text-white px-2 py-1 rounded cursor-pointer"
+                                                data-id="${data}" data-name="${row.name ?? ''}" title="Delete Permanently">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                `;
+                            }
+                        },
+                        {
+                            data: 'duplicate_reason',
+                            className: 'no-pointer',
+                            render: function(data) {
+                                if (!data) return '';
+                                return data.split(', ').map(r =>
+                                    `<span class="mr-1 inline-block rounded bg-amber-200/60 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-300 dark:text-amber-900">${r}</span>`
+                                ).join('');
+                            }
+                        },
+                        {
+                            data: 'name',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'username',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'email',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'npk',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'cpny_id',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'department_id',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'business_unit_id',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'jabatan',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'created_at',
+                            className: 'no-pointer',
+                            render: function(data) {
+                                return data ? new Date(data).toLocaleDateString() : '';
+                            }
+                        },
+                        {
+                            data: 'status',
+                            className: 'no-pointer',
+                            render: function(data) {
+                                return data === 'A' ?
+                                    '<span class="w-full max-w-25 bg-green-300/30 dark:bg-green-300 text-green-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Active</span>' :
+                                    '<span class="w-full max-w-25 bg-red-300/30 dark:bg-red-300 text-red-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Inactive</span>';
+                            }
+                        }
+                    ]
+                });
+            }
+
+            function updateDupBadge(count) {
+                if (count > 0) {
+                    $('#dupCountBadge').removeClass('hidden').text(count);
+                } else {
+                    $('#dupCountBadge').addClass('hidden');
+                }
+            }
+
+            @unless ($usersSby)
+                // Preload the duplicate count badge even before the tab is opened
+                $.getJSON("{{ route('users.duplicates.json') }}", function(json) {
+                    updateDupBadge(json.data ? json.data.length : 0);
+                });
+            @endunless
+
+            // ===== Inactive Users tab =====
+            let inactiveTable = null;
+            let inactiveTableLoaded = false;
+
+            function initInactiveTable() {
+                if (inactiveTableLoaded) return;
+                inactiveTableLoaded = true;
+
+                inactiveTable = $('#inactiveUsersTable').DataTable({
+                    ajax: {
+                        url: "{{ $usersSby ? route('users-sby.inactive.json') : route('users.inactive.json') }}",
+                        dataSrc: function(json) {
+                            updateInactiveBadge(json.data ? json.data.length : 0);
+                            return json.data;
+                        }
+                    },
+                    processing: true,
+                    serverSide: false,
+                    lengthMenu: [
+                        [10, 25, 50, 100, 250, -1],
+                        [10, 25, 50, 100, 250, 'All']
+                    ],
+                    responsive: {
+                        details: {
+                            type: 'column',
+                            target: 0
+                        }
+                    },
+                    columnDefs: [{
+                        targets: 0,
+                        width: '28px',
+                        className: 'dtr-control',
+                        orderable: false
+                    }],
+                    dom: '<"dt-toolbar flex items-center justify-start gap-4"lf>rtip',
+                    columns: [{
+                            data: null,
+                            defaultContent: ''
+                        },
+                        {
+                            data: 'id',
+                            render: function(data, type, row) {
+                                return `
+                                    <div class="flex justify-center space-x-2">
+                                        <label class="switch cursor-pointer">
+                                            <input type="checkbox" class="toggleStatus" data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
+                                            <span class="slider round"></span>
+                                        </label>
+                                        <button type="button"
+                                                class="editAppBtn bg-blue-500 text-white px-2 py-1 rounded cursor-pointer"
+                                                data-id="${data}" title="Edit User">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="impersonateBtn bg-yellow-500 text-white px-2 py-1 rounded cursor-pointer"
+                                                data-id="${data}" title="Login As">
+                                            <i class="fas fa-key"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="resetPwdBtn bg-red-500 text-white px-2 py-1 rounded cursor-pointer"
+                                                data-id="${data}" title="Reset Password">
+                                            <i class="fas fa-undo"></i>
+                                        </button>
+                                    </div>
+                                `;
+                            }
+                        },
+                        {
+                            data: 'name',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'username',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'email',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'cpny_id',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'department_id',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'business_unit_id',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'jabatan',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'status',
+                            className: 'no-pointer',
+                            render: function(data) {
+                                return data === 'A' ?
+                                    '<span class="w-full max-w-25 bg-green-300/30 dark:bg-green-300 text-green-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Active</span>' :
+                                    '<span class="w-full max-w-25 bg-red-300/30 dark:bg-red-300 text-red-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Inactive</span>';
+                            }
+                        }
+                    ]
+                });
+            }
+
+            // ===== User SBY tab =====
+            let sbyTable = null;
+            let sbyTableLoaded = false;
+
+            function initSbyTable() {
+                if (sbyTableLoaded) return;
+                sbyTableLoaded = true;
+
+                sbyTable = $('#sbyUsersTable').DataTable({
+                    ajax: "{{ route('users-sby.json') }}",
+                    processing: true,
+                    serverSide: false,
+                    lengthMenu: [
+                        [10, 25, 50, 100, 250, -1],
+                        [10, 25, 50, 100, 250, 'All']
+                    ],
+                    responsive: {
+                        details: {
+                            type: 'column',
+                            target: 0
+                        }
+                    },
+                    columnDefs: [{
+                        targets: 0,
+                        width: '28px',
+                        className: 'dtr-control',
+                        orderable: false
+                    }],
+                    dom: '<"dt-toolbar flex items-center justify-start gap-4"lf>rtip',
+                    columns: [{
+                            data: null,
+                            defaultContent: ''
+                        },
+                        {
+                            data: 'id',
+                            render: function(data, type, row) {
+                                return `
+                                    <div class="flex justify-center space-x-2">
+                                        <label class="switch cursor-pointer">
+                                            <input type="checkbox" class="toggleStatus" data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
+                                            <span class="slider round"></span>
+                                        </label>
+                                        <button type="button"
+                                                class="editAppBtn bg-blue-500 text-white px-2 py-1 rounded cursor-pointer"
+                                                data-id="${data}" title="Edit User">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="impersonateBtn bg-yellow-500 text-white px-2 py-1 rounded cursor-pointer"
+                                                data-id="${data}" title="Login As">
+                                            <i class="fas fa-key"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="resetPwdBtn bg-red-500 text-white px-2 py-1 rounded cursor-pointer"
+                                                data-id="${data}" title="Reset Password">
+                                            <i class="fas fa-undo"></i>
+                                        </button>
+                                    </div>
+                                `;
+                            }
+                        },
+                        {
+                            data: 'name',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'username',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'email',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'division_id',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'jabatan',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'status',
+                            className: 'no-pointer',
+                            render: function(data) {
+                                return data === 'A' ?
+                                    '<span class="w-full max-w-25 bg-green-300/30 dark:bg-green-300 text-green-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Active</span>' :
+                                    '<span class="w-full max-w-25 bg-red-300/30 dark:bg-red-300 text-red-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Inactive</span>';
+                            }
+                        }
+                    ]
+                });
+            }
+
+            function updateInactiveBadge(count) {
+                if (count > 0) {
+                    $('#inactiveCountBadge').removeClass('hidden').text(count);
+                } else {
+                    $('#inactiveCountBadge').addClass('hidden');
+                }
+            }
+
+            @unless ($usersSby)
+                // Preload the inactive count badge even before the tab is opened
+                $.getJSON("{{ route('users.inactive.json') }}", function(json) {
+                    updateInactiveBadge(json.data ? json.data.length : 0);
+                });
+            @endunless
+
+            function activateTab(tab) {
+                const isList = tab === 'list';
+                const isDuplicates = tab === 'duplicates';
+                const isInactive = tab === 'inactive';
+                const isSby = tab === 'sby';
+
+                $('#tabPanelList').toggleClass('hidden', !isList);
+                $('#tabPanelDuplicates').toggleClass('hidden', !isDuplicates);
+                $('#tabPanelInactive').toggleClass('hidden', !isInactive);
+                $('#tabPanelSby').toggleClass('hidden', !isSby);
+
+                $('#tabBtnList')
+                    .toggleClass('bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400', isList)
+                    .toggleClass('bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400', !isList);
+                $('#tabBtnDuplicates')
+                    .toggleClass('bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400', isDuplicates)
+                    .toggleClass('bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400', !isDuplicates);
+                $('#tabBtnInactive')
+                    .toggleClass('bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400', isInactive)
+                    .toggleClass('bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400', !isInactive);
+                $('#tabBtnSby')
+                    .toggleClass('bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400', isSby)
+                    .toggleClass('bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400', !isSby);
+
+                if (isList) {
+                    table.columns.adjust().draw(false);
+                } else if (isDuplicates) {
+                    initDupTable();
+                    if (dupTable) dupTable.columns.adjust().draw(false);
+                } else if (isInactive) {
+                    initInactiveTable();
+                    if (inactiveTable) inactiveTable.columns.adjust().draw(false);
+                } else if (isSby) {
+                    initSbyTable();
+                    if (sbyTable) sbyTable.columns.adjust().draw(false);
+                }
+            }
+
+            $('#tabBtnList').on('click', function() {
+                activateTab('list');
+            });
+            $('#tabBtnDuplicates').on('click', function() {
+                activateTab('duplicates');
+            });
+            $('#tabBtnInactive').on('click', function() {
+                activateTab('inactive');
+            });
+            $('#tabBtnSby').on('click', function() {
+                activateTab('sby');
+            });
+
             let table = $('#usersTable').DataTable({
-                ajax: "{{ route('users.json') }}",
+                ajax: "{{ $usersSby ? route('users-sby.json') : route('users.json') }}",
                 processing: true,
                 serverSide: false,
                 lengthMenu: [
@@ -416,11 +1066,28 @@
                 },
 
                 columnDefs: [{
-                    targets: 0,
-                    width: '28px',
-                    className: 'dtr-control',
-                    orderable: false
-                }],
+                        targets: 0,
+                        width: '28px',
+                        className: 'dtr-control',
+                        orderable: false
+                    },
+                    {
+                        targets: 5, // Division
+                        visible: {{ $usersSby ? 'true' : 'false' }}
+                    },
+                    {
+                        targets: 6, // Company
+                        visible: {{ $usersSby ? 'false' : 'true' }}
+                    },
+                    {
+                        targets: 7, // Department
+                        visible: {{ $usersSby ? 'false' : 'true' }}
+                    },
+                    {
+                        targets: 8, // Business Unit
+                        visible: {{ $usersSby ? 'false' : 'true' }}
+                    }
+                ],
                 dom: '<"dt-toolbar flex items-center justify-start gap-4"lBf>rtip',
                 buttons: [{
                         extend: 'excelHtml5',
@@ -499,6 +1166,10 @@
                         className: 'no-pointer'
                     },
                     {
+                        data: 'division_id',
+                        className: 'no-pointer'
+                    },
+                    {
                         data: 'cpny_id',
                         className: 'no-pointer'
                     },
@@ -526,22 +1197,32 @@
                 ]
             });
 
-            // ===== Filter Company (kolom 3) =====
+            // ===== Filter Company (kolom 4) =====
             $('#filterCompany').on('change', function() {
                 const val = $(this).val();
 
                 table
-                    .column(5) // cpny_id
+                    .column(6) // cpny_id
                     .search(val || '', false, false)
                     .draw();
             });
 
-            // ===== Filter Department (kolom 4) =====
+            // ===== Filter Division (kolom 5) =====
+            $('#filterDivision').on('change', function() {
+                const val = $(this).val();
+
+                table
+                    .column(5) // division_id
+                    .search(val || '', false, false)
+                    .draw();
+            });
+
+            // ===== Filter Department (kolom 5) =====
             $('#filterDepartment').on('change', function() {
                 const val = $(this).val();
 
                 table
-                    .column(6) // department_id
+                    .column(7) // department_id
                     .search(val || '', false, false)
                     .draw();
             });
@@ -549,16 +1230,16 @@
             $('#filterBusinessUnit').on('change', function() {
                 const val = $(this).val();
                 table
-                    .column(7) // business_unit_id
+                    .column(8) // business_unit_id
                     .search(val || '', false, false)
                     .draw();
             });
 
-            // ===== Filter Jabatan (kolom 8) =====
+            // ===== Filter Jabatan (kolom 9) =====
             $('#filterJabatan').on('change', function() {
                 const val = $(this).val();
                 table
-                    .column(8) // jabatan
+                    .column(9) // jabatan
                     .search(val || '', false, false)
                     .draw();
             });
@@ -570,15 +1251,17 @@
 
                 // reset select2 UI + value
                 $('#filterCompany').val(null).trigger('change');
+                $('#filterDivision').val(null).trigger('change');
                 $('#filterDepartment').val(null).trigger('change');
                 $('#filterBusinessUnit').val(null).trigger('change');
                 $('#filterJabatan').val(null).trigger('change');
 
                 // reset datatable filter untuk kolom yg benar
-                table.column(5).search(''); // company
-                table.column(6).search(''); // department
-                table.column(7).search(''); // business unit
-                table.column(8).search(''); // jabatan
+                table.column(5).search(''); // division
+                table.column(6).search(''); // company
+                table.column(7).search(''); // department
+                table.column(8).search(''); // business unit
+                table.column(9).search(''); // jabatan
 
                 // reset global search juga kalau ada
                 table.search('');
@@ -600,14 +1283,25 @@
 
                 $('#homepage').val(null).trigger('change');
 
-                $('select[name="role"]').val('').trigger('change');
+                $('select[name="role[]"]').val(null).trigger('change');
                 $('select[name="jabatan"]').val('').trigger('change');
 
-                $('select[name="cpny_id[]"]').val(null).trigger('change');
+                $('#group_cpny_id').prop('disabled', isSbyUser);
+                if (isSbyUser) {
+                    $('#group_cpny_id').val('SBY').trigger('change');
+                    renderCompanyOptions('SBY', []);
+                    renderDivisionOptions('SBY', []);
+                } else {
+                    $('#group_cpny_id').val('').trigger('change');
+                    renderCompanyOptions(null, []);
+                    renderDivisionOptions(null, []);
+                }
                 $('select[name="department_id[]"]').val(null).trigger('change');
-                $('select[name="division_id[]"]').val(null).trigger('change');
                 $('select[name="business_unit_id[]"]').val(null).trigger('change');
                 $('select[name="role_ids[]"]').val(null).trigger('change');
+
+                $('#origin_cpny_id').val('').trigger('change');
+                $('#origin_department_id').val('').trigger('change');
 
                 const $submitBtn = $('#appForm').find('button[type="submit"]');
 
@@ -630,7 +1324,7 @@
 
                 $('#closeModal').prop('disabled', false);
 
-                $.get(`/users/${appId}/edit`, function(app) {
+                $.get(`{{ $usersBase }}/${appId}/edit`, function(app) {
 
                     $('#modalTitle').text('Edit User');
 
@@ -643,15 +1337,20 @@
                     $('#homepage').val(app.homepage).trigger('change');
 
                     $('select[name="jabatan"]').val(app.jabatan).trigger('change');
-                    $('select[name="role"]').val(app.role).trigger('change');
+                    $('select[name="role[]"]').val(app.role).trigger('change');
 
-                    $('select[name="cpny_id[]"]').val(app.cpny_id).trigger('change');
+                    $('#group_cpny_id').prop('disabled', isSbyUser);
+                    $('#group_cpny_id').val(isSbyUser ? 'SBY' : app.group_cpny_id).trigger('change');
+                    renderCompanyOptions(isSbyUser ? 'SBY' : app.group_cpny_id, app.cpny_id);
+                    renderDivisionOptions(isSbyUser ? 'SBY' : app.group_cpny_id, app.division_id);
                     $('select[name="department_id[]"]').val(app.department_id).trigger('change');
-                    $('select[name="division_id[]"]').val(app.division_id).trigger('change');
                     $('select[name="business_unit_id[]"]').val(app.business_unit_id).trigger(
                         'change');
 
                     $('select[name="role_ids[]"]').val(app.role_ids).trigger('change');
+
+                    $('#origin_cpny_id').val(app.origin_cpny_id).trigger('change');
+                    $('#origin_department_id').val(app.origin_department_id).trigger('change');
 
                     $('#appModal').removeClass('hidden');
                 });
@@ -665,7 +1364,7 @@
                 let newStatus = $(this).is(':checked') ? 'A' : 'X';
 
                 $.ajax({
-                    url: `/users/${appId}/toggle-status`,
+                    url: `{{ $usersBase }}/${appId}/toggle-status`,
                     type: 'PUT',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -675,6 +1374,9 @@
                     },
                     success: function() {
                         table.ajax.reload(null, false);
+                        if (inactiveTable) inactiveTable.ajax.reload(null, false);
+                        if (dupTable) dupTable.ajax.reload(null, false);
+                        if (sbyTable) sbyTable.ajax.reload(null, false);
                     }
                 });
             });
@@ -692,7 +1394,7 @@
                 }
 
                 let appId = $('#id').val();
-                let url = appId ? `/users/${appId}` : "{{ route('users.store') }}";
+                let url = appId ? `{{ $usersBase }}/${appId}` : "{{ $usersSby ? route('users-sby.store') : route('users.store') }}";
                 let method = 'POST';
 
                 let formData = new FormData(document.getElementById('appForm'));
@@ -718,6 +1420,9 @@
                     success: function(res) {
                         $('#appModal').addClass('hidden');
                         table.ajax.reload(null, false);
+                        if (inactiveTable) inactiveTable.ajax.reload(null, false);
+                        if (dupTable) dupTable.ajax.reload(null, false);
+                        if (sbyTable) sbyTable.ajax.reload(null, false);
 
                         Swal.fire({
                             icon: 'success',
@@ -800,8 +1505,48 @@
                 placeholder: 'Search and select homepage'
             });
 
+            $('#group_cpny_id').select2({
+                width: '100%',
+                allowClear: true,
+                dropdownParent: $('#appModal'),
+                placeholder: 'Select company group'
+            });
+
+            // Company and Division options are scoped to the selected group — re-filter on every manual change.
+            $(document).on('change', '#group_cpny_id', function() {
+                renderCompanyOptions($(this).val(), []);
+                renderDivisionOptions($(this).val(), []);
+            });
+
+            $('#origin_cpny_id').select2({
+                width: '100%',
+                allowClear: true,
+                dropdownParent: $('#appModal'),
+                placeholder: 'Select origin company'
+            });
+
+            $('#origin_department_id').select2({
+                width: '100%',
+                allowClear: true,
+                dropdownParent: $('#appModal'),
+                placeholder: 'Select origin department'
+            });
+
             $('#filterCompany').select2({
                 placeholder: 'All Company',
+                allowClear: true,
+                width: '100%'
+            });
+
+            // Filter Division options are scoped to this page's company group (SBY vs JKT)
+            divisionsData
+                .filter(d => d.group_cpny_id === (isSbyUser ? 'SBY' : 'JKT'))
+                .forEach(d => {
+                    $('#filterDivision').append(new Option(`${d.division_id} - ${d.division_name}`, d.division_id));
+                });
+
+            $('#filterDivision').select2({
+                placeholder: 'All Division',
                 allowClear: true,
                 width: '100%'
             });
@@ -846,7 +1591,7 @@
 
                 if (result.isConfirmed) {
                     $.ajax({
-                        url: `/users/${userId}/impersonate`,
+                        url: `{{ $usersBase }}/${userId}/impersonate`,
                         type: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -854,14 +1599,13 @@
                         success: function(res) {
 
                             Swal.fire({
-                                title: "Sucessfully!",
-                                text: res.message || "Login Sucessfully.",
+                                title: "Successfully!",
+                                text: res.message || "Login Successfully.",
                                 icon: "success",
                                 timer: 1500,
                                 showConfirmButton: false
                             }).then(() => {
-                                window.location.href = res.redirect ?? window.location
-                                    .href;
+                                window.location.href = res.redirect ?? window.location.href;
                             });
 
                         },
@@ -878,6 +1622,7 @@
 
             });
         });
+
         // 🔁 Reset Password ke default: pakuwon1234#
         $(document).on('click', '.resetPwdBtn', function(e) {
             e.preventDefault();
@@ -925,6 +1670,68 @@
                         }
                     });
 
+                }
+
+            });
+        });
+
+        // 🗑️ Hard delete: permanently remove the user record
+        $(document).on('click', '.hardDeleteBtn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            let userId = $(this).data('id');
+            let userName = $(this).data('name') || 'this user';
+
+            Swal.fire({
+                title: "Delete Permanently?",
+                html: `This will <b>permanently delete</b> <b>${userName}</b> and all of its access records. This action cannot be undone.`,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#1f2937",
+                cancelButtonColor: "#6b7280",
+                confirmButtonText: "Yes, Delete Permanently",
+                cancelButtonText: "Cancel"
+            }).then((result) => {
+
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: `/users/${userId}`,
+                        type: "DELETE",
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        success: function(res) {
+                            Swal.fire({
+                                title: "Deleted!",
+                                text: res.message || "User permanently deleted.",
+                                icon: "success",
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+
+                            if ($.fn.DataTable.isDataTable('#dupUsersTable')) {
+                                $('#dupUsersTable').DataTable().ajax.reload(null, false);
+                            }
+                            if ($.fn.DataTable.isDataTable('#usersTable')) {
+                                $('#usersTable').DataTable().ajax.reload(null, false);
+                            }
+                            if ($.fn.DataTable.isDataTable('#inactiveUsersTable')) {
+                                $('#inactiveUsersTable').DataTable().ajax.reload(null, false);
+                            }
+                            if ($.fn.DataTable.isDataTable('#sbyUsersTable')) {
+                                $('#sbyUsersTable').DataTable().ajax.reload(null, false);
+                            }
+                        },
+                        error: function(xhr) {
+                            Swal.fire({
+                                title: "Failed!",
+                                text: xhr.responseJSON?.message ||
+                                    "Failed to delete user.",
+                                icon: "error"
+                            });
+                        }
+                    });
                 }
 
             });

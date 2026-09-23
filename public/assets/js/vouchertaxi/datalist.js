@@ -12,7 +12,7 @@ const VoucherTaxiDatalist = {
         page:          1,
         perPage:       10,
         total:         0,
-        filter:        'P',
+        filter:        'ALL',
         search:        '',
         isLoading:     false,
         debounceTimer: null,
@@ -57,7 +57,7 @@ const VoucherTaxiDatalist = {
                 });
                 btn.classList.add('active-filter');
 
-                VoucherTaxiDatalist.state.filter = btn.dataset.filter ?? 'P';
+                VoucherTaxiDatalist.state.filter = btn.dataset.filter ?? 'ALL';
                 VoucherTaxiDatalist.state.page   = 1;
                 VoucherTaxiDatalist.load();
             });
@@ -109,12 +109,14 @@ const VoucherTaxiDatalist = {
         VoucherTaxiDatalist.renderLoading();
 
         try {
+            const isAllTrx = VoucherTaxiDatalist.state.filter === 'ALL_TRANSACTIONS';
             const params = new URLSearchParams({
-                draw:   VoucherTaxiDatalist.state.page,
-                start:  (VoucherTaxiDatalist.state.page - 1) * VoucherTaxiDatalist.state.perPage,
-                length: VoucherTaxiDatalist.state.perPage,
-                search: VoucherTaxiDatalist.state.search,
-                status: VoucherTaxiDatalist.state.filter === 'ALL' ? '' : VoucherTaxiDatalist.state.filter,
+                draw:             VoucherTaxiDatalist.state.page,
+                start:            (VoucherTaxiDatalist.state.page - 1) * VoucherTaxiDatalist.state.perPage,
+                length:           VoucherTaxiDatalist.state.perPage,
+                search:           VoucherTaxiDatalist.state.search,
+                status:           (VoucherTaxiDatalist.state.filter === 'ALL' || isAllTrx) ? '' : VoucherTaxiDatalist.state.filter,
+                all_transactions: isAllTrx ? '1' : '',
             });
 
             const url = `${VoucherTaxi.routes.json}?${params.toString()}`;

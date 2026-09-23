@@ -3,12 +3,12 @@
         <div class="mb-4 sm:flex sm:items-center sm:justify-between"></div>
         <div class="mb-4 flex items-center justify-end sm:mb-0"></div>
         <div class="mb-2 mt-2 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <h2 class="mb-4 mt-6 bg-white text-lg font-bold">Create Tasks</h2>
-            <form id="taskForm" enctype="multipart/form-data" class="space-y-6 rounded-lg bg-white p-4">
+            <h2 class="mb-4 mt-6 bg-white text-lg font-bold dark:bg-gray-800">Create Tasks</h2>
+            <form id="taskForm" enctype="multipart/form-data" class="space-y-6 rounded-lg bg-white p-4 dark:bg-gray-800">
                 @csrf
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                     <div>
-                        <label class="block font-semibold text-gray-700">Company</label>
+                        <label class="block font-semibold text-gray-700 dark:text-gray-300">Company</label>
                         <select class="w-full rounded-lg border p-3 focus:ring focus:ring-blue-300" name="cpnyid"
                             required>
                             @foreach ($usercpny as $p)
@@ -19,7 +19,7 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-700">Department</label>
+                        <label class="block font-semibold text-gray-700 dark:text-gray-300">Department</label>
                         <select class="w-full rounded-lg border p-3 focus:ring focus:ring-blue-300" name="departementid"
                             required>
                             @foreach ($userdept as $p)
@@ -30,7 +30,7 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-700">Type</label>
+                        <label class="block font-semibold text-gray-700 dark:text-gray-300">Type</label>
                         <select class="w-full rounded-lg border p-3 focus:ring focus:ring-blue-300" name="tasktype"
                             required>
                             <option value="">Select Task</option>
@@ -39,16 +39,16 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-gray-700">Summary</label>
+                        <label class="block text-gray-700 dark:text-gray-300">Summary</label>
                         <textarea name="summary" id="summary" class="w-full rounded border p-2"></textarea>
                     </div>
 
                     <div>
-                        <label class="block text-gray-700">Description</label>
+                        <label class="block text-gray-700 dark:text-gray-300">Description</label>
                         <textarea name="description" id="description" class="w-full rounded border p-2"></textarea>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-700">Participant</label>
+                        <label class="block font-semibold text-gray-700 dark:text-gray-300">Participant</label>
                         {{-- <select class="w-full p-3 border rounded-lg focus:ring focus:ring-blue-300" name="participant" required> --}}
                         <select class="select2 w-full rounded-lg border p-3 focus:ring focus:ring-blue-300"
                             name="participant[]" multiple required>
@@ -58,11 +58,11 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-gray-700">Start Date</label>
+                        <label class="block text-gray-700 dark:text-gray-300">Start Date</label>
                         <input type="date" name="startdate" id="startdate" class="w-full rounded border p-2">
                     </div>
                     <div>
-                        <label class="block text-gray-700">Due Date</label>
+                        <label class="block text-gray-700 dark:text-gray-300">Due Date</label>
                         <input type="date" name="duedate" id="duedate" class="w-full rounded border p-2">
                     </div>
                 </div>

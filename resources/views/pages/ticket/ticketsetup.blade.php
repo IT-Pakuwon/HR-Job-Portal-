@@ -119,6 +119,7 @@
                                 <th>No</th>
                                 <th>Type</th>
                                 <th>Type Name</th>
+                                <th>Department</th>
                                 <th>Status</th>
                                 <th class="text-right">Action</th>
 
@@ -195,6 +196,29 @@
                         <div>
 
                             <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Department
+                            </label>
+
+                            <select name="department_id" id="create_type_department_id"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+
+                                <option value="">
+                                    Select Department
+                                </option>
+
+                                @foreach ($departments as $dept)
+                                    <option value="{{ $dept->department_id }}">
+                                        {{ $dept->department_name }}
+                                    </option>
+                                @endforeach
+
+                            </select>
+
+                        </div>
+
+                        <div>
+
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Status
                             </label>
 
@@ -214,7 +238,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="toggleModal('#createTypeModal', false)"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -297,6 +321,29 @@
                         <div>
 
                             <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Department
+                            </label>
+
+                            <select name="department_id" id="edit_type_department_id"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+
+                                <option value="">
+                                    Select Department
+                                </option>
+
+                                @foreach ($departments as $dept)
+                                    <option value="{{ $dept->department_id }}">
+                                        {{ $dept->department_name }}
+                                    </option>
+                                @endforeach
+
+                            </select>
+
+                        </div>
+
+                        <div>
+
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Status
                             </label>
 
@@ -316,7 +363,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="toggleModal('#editTypeModal', false)"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -499,7 +546,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="toggleModal('#createCategoryModal', false)"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -624,7 +671,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="toggleModal('#editCategoryModal', false)"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -826,7 +873,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="toggleModal('#createSubcategoryModal', false)"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -968,7 +1015,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="toggleModal('#editSubcategoryModal', false)"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -1203,7 +1250,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="toggleModal('#createPriorityModal', false)"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -1376,7 +1423,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="toggleModal('#editPriorityModal', false)"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -1539,7 +1586,7 @@
                                 Department
                             </label>
 
-                            <select name="department_id"
+                            <select name="department_id" id="create_dept_department_id"
                                 class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
 
                                 <option value="">
@@ -1562,7 +1609,7 @@
                                 Username
                             </label>
 
-                            <select name="username"
+                            <select name="username" id="create_username"
                                 class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
 
                                 <option value="">
@@ -1601,7 +1648,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="toggleModal('#createDeptModal', false)"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -1767,7 +1814,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="toggleModal('#editDeptModal', false)"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -1831,6 +1878,7 @@
                                 <th>No</th>
                                 <th>Company</th>
                                 <th>Company ID</th>
+                                <th>Ticket Type</th>
                                 <th>Chat ID</th>
                                 <th>Status</th>
                                 <th class="text-right">Action</th>
@@ -1905,6 +1953,29 @@
                         <div>
 
                             <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Ticket Type
+                            </label>
+
+                            <select name="ticket_type"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-white">
+
+                                <option value="">
+                                    Select Type
+                                </option>
+
+                                @foreach ($types as $type)
+                                    <option value="{{ $type->ticket_type }}">
+                                        {{ $type->ticket_type_name }}
+                                    </option>
+                                @endforeach
+
+                            </select>
+
+                        </div>
+
+                        <div>
+
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Chat ID
                             </label>
 
@@ -1940,7 +2011,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="toggleModal('#createWaSettingModal', false)"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -2023,6 +2094,29 @@
                         <div>
 
                             <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Ticket Type
+                            </label>
+
+                            <select name="ticket_type" id="edit_wa_ticket_type"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-white">
+
+                                <option value="">
+                                    Select Type
+                                </option>
+
+                                @foreach ($types as $type)
+                                    <option value="{{ $type->ticket_type }}">
+                                        {{ $type->ticket_type_name }}
+                                    </option>
+                                @endforeach
+
+                            </select>
+
+                        </div>
+
+                        <div>
+
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Chat ID
                             </label>
 
@@ -2058,7 +2152,7 @@
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="toggleModal('#editWaSettingModal', false)"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700">
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
@@ -2089,6 +2183,42 @@
         let tableWaSetting;
         $(document).ready(function() {
 
+            $('#create_type_department_id').select2({
+                dropdownParent: $('#createTypeModal'),
+                placeholder: 'Select Department',
+                width: '100%'
+            });
+
+            $('#edit_type_department_id').select2({
+                dropdownParent: $('#editTypeModal'),
+                placeholder: 'Select Department',
+                width: '100%'
+            });
+
+            $('#create_dept_department_id').select2({
+                dropdownParent: $('#createDeptModal'),
+                placeholder: 'Select Department',
+                width: '100%'
+            });
+
+            $('#edit_department_id').select2({
+                dropdownParent: $('#editDeptModal'),
+                placeholder: 'Select Department',
+                width: '100%'
+            });
+
+            $('#create_username').select2({
+                dropdownParent: $('#createDeptModal'),
+                placeholder: 'Select User',
+                width: '100%'
+            });
+
+            $('#edit_username').select2({
+                dropdownParent: $('#editDeptModal'),
+                placeholder: 'Select User',
+                width: '100%'
+            });
+
             tableType = $('#tableType').DataTable(baseTableConfig({
 
                 ajax: routes.type.json,
@@ -2106,6 +2236,10 @@
                     {
                         data: 'ticket_type_name',
                         name: 'ticket_type_name'
+                    },
+                    {
+                        data: 'department_name',
+                        name: 'department_name'
                     },
                     {
                         data: 'status_badge',
@@ -2359,6 +2493,10 @@
                     {
                         data: 'cpny_id',
                         name: 'cpny_id'
+                    },
+                    {
+                        data: 'ticket_type_name',
+                        name: 'ticket_type_name'
                     },
                     {
                         data: 'chat_id',
@@ -2786,6 +2924,7 @@
             $('#edit_ticket_type_old').val(row.ticket_type);
             $('#edit_ticket_type').val(row.ticket_type);
             $('#edit_ticket_type_name').val(row.ticket_type_name);
+            $('#edit_type_department_id').val(row.department_id).trigger('change');
             $('#edit_type_status').val(row.status);
 
             toggleModal('#editTypeModal', true);
@@ -2905,8 +3044,8 @@
 
             $('#edit_dept_id').val(row.id);
             $('#edit_dept_ticket_type').val(row.ticket_type);
-            $('#edit_department_id').val(row.department_id);
-            $('#edit_username').val(row.username);
+            $('#edit_department_id').val(row.department_id).trigger('change');
+            $('#edit_username').val(row.username).trigger('change');
             $('#edit_dept_status').val(row.status);
 
             loadCategoryOptions(
@@ -2938,6 +3077,7 @@
 
             $('#edit_wa_setting_id').val(row.id);
             $('#edit_cpny_id').val(row.cpny_id);
+            $('#edit_wa_ticket_type').val(row.ticket_type);
             $('#edit_chat_id').val(row.chat_id);
             $('#edit_wa_status').val(row.status);
 

@@ -4,10 +4,10 @@
     @endphp
     <div class="max-w-9xl mx-auto w-full p-2">
         @php
-            $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS');
+            $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS') || auth()->user()->hasRole('FINACCESS');
         @endphp
         <div
-            class="{{ $hasAllList ? 'xl:grid-cols-6' : 'xl:grid-cols-5' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+            class="{{ $hasAllList ? 'xl:grid-cols-7' : 'xl:grid-cols-6' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
 
             {{-- All Status --}}
             <button type="button" class="text-left">
@@ -43,6 +43,23 @@
                 </a>
             </button>
 
+            {{-- Draft Status --}}
+            <button type="button" class="text-left">
+                <a href="#" class="status-filter group block h-full" data-status="H">
+                    <div
+                        class="status-card flex h-full items-center gap-3 rounded-lg border border-pink-700 bg-pink-200/20 p-3 text-pink-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-pink-100 hover:shadow-md active:scale-95">
+
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📝</div>
+
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="break-words text-sm font-medium">Draft</p>
+                        </div>
+
+                        <p class="shrink-0 text-base font-bold">{{ $draft }}</p>
+                    </div>
+                </a>
+            </button>
+
             {{-- Reject Status --}}
             <button type="button" class="text-left">
                 <a href="#" class="status-filter group block h-full" data-status="R">
@@ -60,7 +77,7 @@
                 </a>
             </button>
 
-            {{-- Revise / Draft Status --}}
+            {{-- Revise Status --}}
             <button type="button" class="text-left">
                 <a href="#" class="status-filter group block h-full" data-status="D">
                     <div
@@ -69,7 +86,7 @@
                         <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✏️</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Revise / Draft</p>
+                            <p class="break-words text-sm font-medium">Revise</p>
                         </div>
 
                         <p class="shrink-0 text-base font-bold">{{ $revise }}</p>
@@ -94,7 +111,7 @@
                 </a>
             </button>
 
-            @if (auth()->user()->hasRole('COSTCTRLACCESS'))
+            @if (auth()->user()->hasRole('COSTCTRLACCESS') || auth()->user()->hasRole('FINACCESS'))
                 {{-- SPPT All List --}}
                 <button type="button" class="text-left">
                     <a href="#" class="status-filter group block h-full" data-mode="all">
@@ -118,11 +135,13 @@
         </div>
 
 
-        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-center justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 id="pageTitle" class="text-base font-extrabold text-gray-700 dark:text-white">
+        <div
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-row items-center justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                <h2 id="pageTitle" class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
                     Request SPPT
-                </h1>
+                </h2>
 
                 <div class="flex items-center gap-4">
                     {{-- FILTER SECTION (ONLY FOR ALL MODE) --}}
@@ -152,36 +171,36 @@
 
             </div>
 
-            <div class="rounded-base relative overflow-x-auto"> {{-- Padding applied here instead of outer container --}}
-                <table id="spptsTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th scope="col" class="w-32 px-6 py-2 font-medium">
+            <div class="relative overflow-hidden">
+                <table id="spptsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 DocID
                             </th>
-                            <th scope="col" class="w-32 px-6 py-2 font-medium">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Date
                             </th>
-                            <th scope="col" class="w-32 px-6 py-2 font-medium">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Company
                             </th>
-                            <th scope="col" class="w-32 px-6 py-2 font-medium">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Department
                             </th>
-                            <th scope="col" class="w-32 px-6 py-2 font-medium">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Request Type
                             </th>
-                            <th scope="col" class="w-32 px-6 py-2 font-medium">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Description
                             </th>
-                            <th scope="col" class="w-32 px-6 py-2 font-medium">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Status
                             </th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                    <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-[#0f172a]">
                         {{-- Table rows will be populated here by JavaScript/DataTables --}}
                     </tbody>
                 </table>
@@ -221,7 +240,7 @@
                         <div id="tlLoading"
                             class="hidden items-center gap-2 text-sm text-gray-500 dark:text-gray-300">
                             <span
-                                class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-transparent"></span>
+                                class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-transparent dark:border-gray-700"></span>
                             Loading...
                         </div>
 
@@ -234,7 +253,7 @@
                         <!-- CS -->
                         <div id="tab-cs" class="track-pane hidden">
                             <div class="mb-2">
-                                <label class="text-xs text-gray-500">Select CS</label>
+                                <label class="text-xs text-gray-500 dark:text-gray-400">Select CS</label>
                                 <select id="selCs"
                                     class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"></select>
                             </div>
@@ -245,7 +264,7 @@
                         <!-- PO -->
                         <div id="tab-po" class="track-pane hidden">
                             <div class="mb-2">
-                                <label class="text-xs text-gray-500">Select SPK</label>
+                                <label class="text-xs text-gray-500 dark:text-gray-400">Select SPK</label>
                                 <select id="selPo"
                                     class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"></select>
                             </div>
@@ -256,7 +275,7 @@
                         <!-- BAST -->
                         <div id="tab-bast" class="track-pane hidden">
                             <div class="mb-2">
-                                <label class="text-xs text-gray-500">Select BAST</label>
+                                <label class="text-xs text-gray-500 dark:text-gray-400">Select BAST</label>
                                 <select id="selBast"
                                     class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"></select>
                             </div>
@@ -282,7 +301,7 @@
         // if (!list) return;
 
         // if (!Array.isArray(steps) || steps.length === 0) {
-        //     list.innerHTML = `<p class=" text-sm  text-gray-500">No tracking history found.</p>`;
+        //     list.innerHTML = `<p class="text-sm text-gray-500 dark:text-gray-400">No tracking history found.</p>`;
         //     return;
         // }
 
@@ -337,7 +356,7 @@
             if (!list) return;
 
             if (!Array.isArray(steps) || steps.length === 0) {
-                list.innerHTML = `<p class=" text-sm  text-gray-500">No tracking history found.</p>`;
+                list.innerHTML = `<p class="text-sm text-gray-500 dark:text-gray-400">No tracking history found.</p>`;
                 return;
             }
 
@@ -385,9 +404,9 @@
 
                 // tampilkan jadi multi-line: status, nama, waktu
                 let detailHtml = '';
-                if (statusText) detailHtml += `<p class=" text-sm  text-gray-500">${statusText}</p>`;
-                if (by) detailHtml += `<p class=" text-sm  text-gray-500">${by}</p>`;
-                if (when) detailHtml += `<p class=" text-sm  text-gray-500">${when}</p>`;
+                if (statusText) detailHtml += `<p class="text-sm text-gray-500 dark:text-gray-400">${statusText}</p>`;
+                if (by) detailHtml += `<p class="text-sm text-gray-500 dark:text-gray-400">${by}</p>`;
+                if (when) detailHtml += `<p class="text-sm text-gray-500 dark:text-gray-400">${when}</p>`;
 
                 const isLast = i === steps.length - 1;
                 const connector = !isLast ?
@@ -495,8 +514,8 @@
             if (st === 'D')
                 return `<span class="inline-block rounded bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">Revise</span>`;
             if (st === 'H')
-                return `<span class="inline-block rounded bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">Hold</span>`;
-            return `<span class="inline-block rounded bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700">${esc(st || '-')}</span>`;
+                return `<span class="inline-block rounded bg-pink-100 px-2 py-0.5 text-xs font-semibold text-pink-700">Draft</span>`;
+            return `<span class="inline-block rounded bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700 dark:bg-gray-900 dark:text-gray-300">${esc(st || '-')}</span>`;
         }
 
         function statusLabel2(st) {
@@ -510,6 +529,8 @@
                     return 'Rejected';
                 case 'D':
                     return 'Revise';
+                case 'H':
+                    return 'Draft';
                 default:
                     return st || '-';
             }
@@ -562,9 +583,9 @@
             //                 </div>
             //             </div>
             //             <div class="mt-1 text-gray-700 dark:text-gray-200">
-            //                 <div><span class="text-gray-500">By:</span> <span class="font-semibold">${who}</span></div>
-            //                 ${dtb ? `<div><span class="text-gray-500">Start:</span> ${dtb}</div>` : ''}
-            //                 ${dta ? `<div><span class="text-gray-500">Finish:</span> ${dta}</div>` : ''}
+            //                 <div><span class="text-gray-500 dark:text-gray-400">By:</span> <span class="font-semibold">${who}</span></div>
+            //                 ${dtb ? `<div><span class="text-gray-500 dark:text-gray-400">Start:</span> ${dtb}</div>` : ''}
+            //                 ${dta ? `<div><span class="text-gray-500 dark:text-gray-400">Finish:</span> ${dta}</div>` : ''}
             //             </div>
             //         </div>
             //     `;
@@ -622,6 +643,10 @@ const approvals = header.approval_list || [];
                 badge = 'REJECTED';
                 color = 'text-red-700';
                 dot = 'bg-red-500';
+            } else if (st === 'D') {
+                badge = 'REVISE';
+                color = 'text-blue-700';
+                dot = 'bg-blue-500';
             } else {
                 badge = 'WAITING';
                 color = 'text-gray-500';
@@ -640,12 +665,12 @@ const approvals = header.approval_list || [];
                 Lvl ${a.level} - ${esc(a.name || a.username || '-')}
             </div>
 
-            <div class="text-[10px] font-semibold px-2 py-0.5 rounded bg-white border">
+            <div class="text-[10px] font-semibold px-2 py-0.5 rounded bg-white border dark:bg-gray-800">
                 ${badge}
             </div>
         </div>
 
-        <div class="text-xs text-gray-500">
+        <div class="text-xs text-gray-500 dark:text-gray-400">
             ${a.date_before || ''}
             ${a.date_after ? ' → ' + a.date_after : ''}
         </div>
@@ -677,20 +702,20 @@ const approvals = header.approval_list || [];
                     </div>
 
                     <div class="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
-                        <div><span class="text-gray-500">Company:</span>
+                        <div><span class="text-gray-500 dark:text-gray-400">Company:</span>
                             <span class="font-semibold text-gray-800 dark:text-white">${esc(header.cpny_id || '-')}</span>
                         </div>
-                        <div><span class="text-gray-500">Department:</span>
+                        <div><span class="text-gray-500 dark:text-gray-400">Department:</span>
                             <span class="font-semibold text-gray-800 dark:text-white">${esc(header.department_id || '-')}</span>
                         </div>
 
                         ${header.vendorname !== undefined ? `
-                                                                                    <div class="sm:col-span-2"><span class="text-gray-500">Vendor:</span>
+                                                                                    <div class="sm:col-span-2"><span class="text-gray-500 dark:text-gray-400">Vendor:</span>
                                                                                         <span class="font-semibold text-gray-800 dark:text-white">${esc(header.vendorname || '-')}</span>
                                                                                     </div>` : ''}
 
                         ${header.keperluan !== undefined ? `
-                                                                                    <div class="sm:col-span-2"><span class="text-gray-500">Keperluan:</span>
+                                                                                    <div class="sm:col-span-2"><span class="text-gray-500 dark:text-gray-400">Keperluan:</span>
                                                                                         <span class="font-semibold text-gray-800 dark:text-white">${esc(header.keperluan || '-')}</span>
                                                                                     </div>` : ''}
 
@@ -706,7 +731,7 @@ const approvals = header.approval_list || [];
         render detail tables
         ========================= */
         function renderDetailSppt(rows) {
-            if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500">No detail.</div>`;
+            if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500 dark:text-gray-400">No detail.</div>`;
             const trs = rows.map(r => `
             <tr class="border-b dark:border-gray-700">
             <td class="px-3 py-2">${esc(r.inventoryid)}</td>
@@ -736,7 +761,7 @@ const approvals = header.approval_list || [];
         }
 
         function renderDetailCs(rows) {
-            if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500">No detail.</div>`;
+            if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500 dark:text-gray-400">No detail.</div>`;
             const trs = rows.map(r => `
             <tr class="border-b dark:border-gray-700">
             <td class="px-3 py-2">${esc(r.inventoryid)}</td>
@@ -764,7 +789,7 @@ const approvals = header.approval_list || [];
         }
 
         function renderDetailPo(rows) {
-            if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500">No detail.</div>`;
+            if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500 dark:text-gray-400">No detail.</div>`;
             const trs = rows.map(r => `
             <tr class="border-b dark:border-gray-700">
             <td class="px-3 py-2">${esc(r.inventoryid)}</td>
@@ -791,12 +816,12 @@ const approvals = header.approval_list || [];
 
         function renderBastExtra(extra) {
             if (!extra) {
-                return `<div class="text-sm text-gray-500">No detail.</div>`;
+                return `<div class="text-sm text-gray-500 dark:text-gray-400">No detail.</div>`;
             }
 
             const row = (label, val) => `
                 <div class="flex justify-between gap-3 border-b py-2 dark:border-gray-700">
-                <div class="text-gray-500">${esc(label)}</div>
+                <div class="text-gray-500 dark:text-gray-400">${esc(label)}</div>
                 <div class="font-semibold text-gray-800 dark:text-white text-right">${esc(val ?? '-')}</div>
                 </div>
             `;
@@ -1082,8 +1107,8 @@ const approvals = header.approval_list || [];
 
                             const text = data || row.id;
 
-                            const isDraftOwner = (row.status === 'D' && row.created_by ===
-                                currentUser);
+                            const isDraftOwner = ((row.status === 'D' || row.status === 'H') &&
+                                row.created_by === currentUser);
 
                             // icon view (mata)
                             const viewBtn = `
@@ -1166,6 +1191,10 @@ const approvals = header.approval_list || [];
                                 'R': {
                                     t: 'Rejected',
                                     c: 'bg-red-200/60 text-red-800 border border-red-600/40'
+                                },
+                                'H': {
+                                    t: 'Draft',
+                                    c: 'bg-pink-200/60 text-pink-800 border border-pink-600/40'
                                 },
                             };
                             const it = map[data] || {

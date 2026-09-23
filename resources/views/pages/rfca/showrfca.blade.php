@@ -1,24 +1,26 @@
-<x-app-layout>
+﻿<x-app-layout>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     @php
-        $stepCode = optional($currentStep)->rfca_step_id ?: $rfca->rfca_step_id;
-        $statusCode = $rfca->status_rfca;
+        $statusCode = strtoupper(trim((string) $rfca->status));
 
-        $statusRfcaText = match (true) {
-            $stepCode === 'PC' || $statusCode === 'C' => 'RFCA Completed',
-            $stepCode === 'TP' => 'Treasury Payment',
-            $stepCode === 'FR' => 'Finance Received',
-            $stepCode === 'PS' => 'RFCA Jobs',
-            empty($stepCode) => 'RFCA Jobs',
-            default => optional($currentStep)->rfca_step_descr ?: 'RFCA Jobs',
+        $statusRfcaText = match ($statusCode) {
+            'C' => 'RFCA Completed',
+            'P' => 'On Progress',
+            'D' => 'Revise',
+            'R' => 'Rejected',
+            'X' => 'Cancel',
+            'L' => 'Linked',
+            'H' => 'RFCA Jobs',
+            default => $statusCode ?: 'RFCA Jobs',
         };
 
-        $statusRfcaClass = match (true) {
-            $stepCode === 'PC' || $statusCode === 'C' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300',
-            $stepCode === 'TP' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300',
-            $stepCode === 'FR' => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
-            $stepCode === 'PS' || empty($stepCode) => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
+        $statusRfcaClass = match ($statusCode) {
+            'C' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300',
+            'P' => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
+            'D' => 'bg-amber-100 text-amber-700 dark:bg-amber-800/30 dark:text-amber-300',
+            'R', 'X' => 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300',
+            'L' => 'bg-purple-100 text-purple-700 dark:bg-purple-800/30 dark:text-purple-300',
             default => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
         };
     @endphp
@@ -26,7 +28,13 @@
 
 
     <div class="max-w-9xl mx-auto p-2">
-        <div class="mb-4 flex items-center justify-end">          
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'RFCA', 'url' => route('rfcalist')],
+            ['label' => 'Show Details'],
+        ]" />
+
+        <div class="mb-4 flex items-center justify-end">
 
             {{-- @if (!empty($canSubmit) && $canSubmit)
                 <div class="flex gap-3">
@@ -72,7 +80,7 @@
 
         </div>
 
-         <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
+         <div class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
              <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
                 {{-- Left card (Rfca Info) --}}
                 <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
@@ -223,35 +231,6 @@
                                     'value' => $pct($rfca->payment_pct),
                                 ],
 
-                                // ==== Previous RFCA info ====
-                                [
-                                    'icon' => 'arrow-uturn-left',
-                                    'label' => 'Previous RFCA ID',
-                                    'value' => $rfca->prev_rfcaid
-                                        ? (!empty($prevRfcaUrl)
-                                            ? '<a href="' .
-                                                e($prevRfcaUrl) .
-                                                '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
-                                                e($rfca->prev_rfcaid) .
-                                                '</a>'
-                                            : e($rfca->prev_rfcaid))
-                                        : '-',
-                                ],
-                                [
-                                    'icon' => 'currency-dollar',
-                                    'label' => 'Previous RFCA Amount',
-                                    'value' =>
-                                        $rfca->prev_rfca_amount !== null
-                                            ? 'Rp ' . $money($rfca->prev_rfca_amount)
-                                            : '-',
-                                ],
-                                [
-                                    'icon' => 'plus-circle',
-                                    'label' => 'Additional RFCA Amount',
-                                    'value' =>
-                                        $rfca->add_rfca_amount !== null ? 'Rp ' . $money($rfca->add_rfca_amount) : '-',
-                                ],
-
                                 // ==== Dates pipeline ====
                                 [
                                     'icon' => 'calendar',
@@ -269,16 +248,60 @@
                                     'icon' => 'tag',
                                     'label' => 'RFCA Type',
                                     'value' => $rfca->rfca_type !== null ? e($rfca->rfca_type) : '-',
-                                ],                               
+                                ],
                                 [
                                     'icon' => 'user-circle',
                                     'label' => 'Purchaser',
                                     'value' => e($rfca->created_by),
                                 ],
-                               
+
+                            ];
+
+                            $hasPrevRfca = !empty($rfca->prev_rfcaid);
+                            $prevRfcaFields = [
+                                [
+                                    'icon' => 'arrow-uturn-left',
+                                    'label' => 'RFCA ID',
+                                    'value' => $hasPrevRfca
+                                        ? (!empty($prevRfcaUrl)
+                                            ? '<a href="' .
+                                                e($prevRfcaUrl) .
+                                                '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                                e($rfca->prev_rfcaid) .
+                                                '</a>'
+                                            : e($rfca->prev_rfcaid))
+                                        : '-',
+                                ],
+                                [
+                                    'icon' => 'hashtag',
+                                    'label' => 'PO Nbr',
+                                    'value' => e($rfca->prev_ponbr ?: '-'),
+                                ],
+                                [
+                                    'icon' => 'document-duplicate',
+                                    'label' => 'CS ID',
+                                    'value' => e($rfca->prev_csid ?: '-'),
+                                ],
+                                [
+                                    'icon' => 'currency-dollar',
+                                    'label' => 'RFCA Amount',
+                                    'value' =>
+                                        $rfca->prev_rfca_amount !== null
+                                            ? 'Rp ' . $money($rfca->prev_rfca_amount)
+                                            : '-',
+                                ],
+                                [
+                                    'icon' => 'plus-circle',
+                                    'label' => 'Additional Amount',
+                                    'value' =>
+                                        $rfca->add_rfca_amount !== null ? 'Rp ' . $money($rfca->add_rfca_amount) : '-',
+                                ],
                             ];
                         @endphp
 
+                        <div class="mb-2 border-b border-gray-100 pb-2 text-xs font-bold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">
+                            Current RFCA
+                        </div>
 
                         <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
 
@@ -294,6 +317,26 @@
                             @endforeach
 
                         </div>
+
+                        @if ($hasPrevRfca)
+                            <div class="mt-4 border-t border-gray-100 pt-3 dark:border-gray-700">
+                                <div class="mb-2 text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                                    Previous RFCA
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
+                                    @foreach ($prevRfcaFields as $f)
+                                        <div class="{{ $rowClass }}">
+                                            <div class="{{ $labelClass }} whitespace-nowrap break-words">
+                                                <x-dynamic-component :component="'heroicon-o-' . $f['icon']" class="h-5 w-5 text-gray-400" />
+                                                <span>{{ $f['label'] }}</span>
+                                            </div>
+                                            <span class="{{ $valueClass }}">{!! $f['value'] !!}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
 
                     </div>
 
@@ -405,7 +448,7 @@
                                     <div class="flex h-full flex-col">
                                         <div id="commentList"
                                             class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
-                                            <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                            <p class="py-4 text-center italic text-gray-500 dark:text-gray-400">Loading comments...</p>
                                         </div>
                                         <div
                                             class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
@@ -630,7 +673,7 @@
 
                             <button type="button"
                                 id="closeMatchingRfcaModal"
-                                class="rounded-md px-2 py-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700">
+                                class="rounded-md px-2 py-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:text-gray-400">
                                 ✕
                             </button>
                         </div>
@@ -661,14 +704,14 @@
                                             <th class="px-3 py-2 text-left">Department</th>
                                             <th class="px-3 py-2 text-left">Vendor</th>
                                             <th class="px-3 py-2 text-right">PO Amount</th>
-                                            <th class="px-3 py-2 text-right">RFCA Amount</th>                                           
+                                            <th class="px-3 py-2 text-right">RFCA Amount</th>
                                         </tr>
                                     </thead>
 
                                     <tbody id="matchingRfcaTableBody"
                                         class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800">
                                         <tr>
-                                            <td colspan="11" class="px-3 py-4 text-center text-gray-500">
+                                            <td colspan="11" class="px-3 py-4 text-center text-gray-500 dark:text-gray-400">
                                                 Klik Search untuk menampilkan data.
                                             </td>
                                         </tr>
@@ -676,7 +719,7 @@
                                 </table>
                             </div>
 
-                            <div class="mt-3 text-xs text-gray-500">
+                            <div class="mt-3 text-xs text-gray-500 dark:text-gray-400">
                                 Data yang tampil hanya RFCA status <b>P</b> dan PO status <b>D</b>.
                             </div>
                         </div>
@@ -715,6 +758,7 @@
     </script>
 
     {{-- Comments --}}
+    <script src="{{ asset('assets/js/shared/mention-autocomplete.js') }}"></script>
     <script>
         $(document).ready(function() {
             const rfcaid = "{{ $rfca->rfcaid }}";
@@ -722,9 +766,14 @@
 
             loadComments(rfcaid, doctype);
 
+            attachMentionAutocomplete({
+                inputSelector: '#commentInput',
+                fetchUrlFn: () => `/mentionable-users/${doctype}/${rfcaid}`,
+            });
+
             function loadComments(refnbr, doctype) {
                 let commentList = $('#commentList');
-                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>');
+                commentList.html('<p class="text-gray-500 italic dark:text-gray-400">Loading comments...</p>');
 
                 $.ajax({
                     url: `/comments/${doctype}/${refnbr}`,
@@ -734,7 +783,7 @@
 
                         if (!response.comments || response.comments.length === 0) {
                             commentList.append(
-                                '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
+                                '<p class="text-gray-500 text-sm italic dark:text-gray-400">No comments yet. Be the first to comment!</p>'
                             );
                             return;
                         }
@@ -748,9 +797,9 @@
                                 <div class="px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
                                     <p class=" text-sm  font-semibold">
                                         ${comment.username}
-                                        <span class=" text-sm  text-gray-500">(${timeAgo})</span>
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">(${timeAgo})</span>
                                     </p>
-                                    <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
+                                    <p class="text-gray-800 dark:text-gray-200">${highlightMentions(comment.message)}</p>
                                 </div>
                             `);
                         });
@@ -1139,7 +1188,7 @@
             function loadMatchingRfca(search = '') {
                 matchingRfcaTableBody.html(`
                     <tr>
-                        <td colspan="11" class="px-3 py-4 text-center text-gray-500">
+                        <td colspan="11" class="px-3 py-4 text-center text-gray-500 dark:text-gray-400">
                             Loading data...
                         </td>
                     </tr>
@@ -1159,7 +1208,7 @@
                         if (!res.success || !res.data || res.data.length === 0) {
                             matchingRfcaTableBody.html(`
                                 <tr>
-                                    <td colspan="11" class="px-3 py-4 text-center text-gray-500">
+                                    <td colspan="11" class="px-3 py-4 text-center text-gray-500 dark:text-gray-400">
                                         Data RFCA tidak ditemukan.
                                     </td>
                                 </tr>
@@ -1188,11 +1237,11 @@
                                     <td class="whitespace-nowrap px-3 py-2">${row.department_id ?? '-'}</td>
                                     <td class="whitespace-nowrap px-3 py-2">
                                         <div class="font-medium">${row.vendorname ?? '-'}</div>
-                                        <div class="text-xs text-gray-500">${row.vendorid ?? '-'}</div>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">${row.vendorid ?? '-'}</div>
                                     </td>
                                     <td class="whitespace-nowrap px-3 py-2 text-right">${formatNumber(row.po_amount)}</td>
                                     <td class="whitespace-nowrap px-3 py-2 text-right">${formatNumber(row.rfca_amount)}</td>
-                                    
+
                                 </tr>
                             `;
                         });

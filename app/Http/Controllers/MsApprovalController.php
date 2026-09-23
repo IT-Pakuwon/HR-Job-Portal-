@@ -8,18 +8,58 @@ use App\Models\MsDepartment;
 use App\Models\MsCompany;
 use App\Models\User;
 use App\Models\MsCategory;
+use App\Models\MsGroupbiayaNonPurch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\DepartmentHR;
+use Yajra\DataTables\Facades\DataTables;
 
 class MsApprovalController extends Controller
 {
+    /**
+     * The "adminsby" role (routes named *-sby*) is locked down to doctype PRF /
+     * HR departments only. The plain "admin" role (routes without the -sby
+     * suffix) keeps unrestricted access.
+     */
+    private function isRestrictedAdmin(): bool
+    {
+        return request()->routeIs('*-sby*');
+    }
+
+    private function isHrDepartment(?string $deptId): bool
+    {
+        if (!$deptId) return false;
+
+        return DepartmentHR::where('department_id', $deptId)->exists();
+    }
+
+    private function isSbyCompany(?string $cpnyId): bool
+    {
+        if (!$cpnyId) return false;
+
+        return MsCompany::where('cpny_id', $cpnyId)->where('group_cpny_id', 'SBY')->exists();
+    }
+
+    private function sbyCompanyIds()
+    {
+        return MsCompany::where('group_cpny_id', 'SBY')->pluck('cpny_id');
+    }
+
+    private function allUsernamesAreSby(array $usernames): bool
+    {
+        $usernames = array_values(array_unique(array_filter($usernames)));
+        if (empty($usernames)) return true;
+
+        $count = User::where('group_cpny_id', 'SBY')->whereIn('username', $usernames)->count();
+        return $count === count($usernames);
+    }
+
     public function index()
     {
         $user = Auth::user();
         if (!$user) return redirect()->route('login');
-        
+
         $doctypes = Autonbr::select('doctype','doctype_descr')
             ->distinct()
             ->orderBy('doctype')
@@ -31,16 +71,19 @@ class MsApprovalController extends Controller
             ->get();
 
         $users = User::select('username', 'name')
+            ->when($this->isRestrictedAdmin(), fn($q) => $q->where('group_cpny_id', 'SBY'))
             ->orderBy('username')
             ->get();
 
         $companies = MsCompany::select('cpny_id', 'cpny_name')
             ->where('status', 'A')
+            ->when($this->isRestrictedAdmin(), fn($q) => $q->where('group_cpny_id', 'SBY'))
             ->orderBy('cpny_id')
             ->get();
 
         $type = MsCategory::select('category_name')
             ->where('categoryid', 'type')
+            ->where('doctype', 'APR')
             ->where('status', 'A')
             ->orderBy('category_name')
             ->get();
@@ -51,6 +94,17 @@ class MsApprovalController extends Controller
             ->orderBy('category_name')
             ->get();
 
+        $groupbiaya = MsGroupbiayaNonPurch::query()
+            ->select('groupbiaya_id', 'groupbiayadescr')
+            ->where('status', 'A')
+            ->orderBy('groupbiayadescr')
+            ->get();
+
+        $sbyCompanies = MsCompany::select('cpny_id', 'cpny_name')
+            ->where('status', 'A')
+            ->where('group_cpny_id', 'SBY')
+            ->orderBy('cpny_id')
+            ->get();
 
         return view('pages.approval.approvals', [
             'doctypes'      => $doctypes,
@@ -59,12 +113,54 @@ class MsApprovalController extends Controller
             'companies' => $companies,
             'type' => $type,
             'condition' => $condition,
+            'groupbiaya' => $groupbiaya,
+            'sbyCompanies' => $sbyCompanies,
+            'restrictAdmin' => $this->isRestrictedAdmin(),
         ]);
     }
 
-    public function json()
+    public function json(Request $request)
     {
-        $rows = MsApproval::select([
+        $query = MsApproval::query()
+            ->select([
+                'id',
+                'aprv_leveling',
+                'aprv_doctype',
+                'aprv_cpnyid',
+                'aprv_departementid',
+                'aprv_username',
+                'aprv_name',
+                'aprv_type',
+                'aprv_condition',
+                'aprv_start_nominal',
+                'aprv_end_nominal',
+                'status',
+            ]);
+
+        if ($this->isRestrictedAdmin()) {
+            $query->where('aprv_doctype', 'PRF')
+                ->whereIn('aprv_departementid', DepartmentHR::pluck('department_id'))
+                ->whereIn('aprv_cpnyid', $this->sbyCompanyIds());
+        }
+
+        if (!$request->has('order')) {
+            $query->orderBy('aprv_doctype')
+                ->orderBy('aprv_departementid')
+                ->orderBy('aprv_leveling');
+        }
+
+        return DataTables::of($query)->make(true);
+    }
+
+    /**
+     * Approval list scoped to every company in the SBY group — any doctype,
+     * any department (unlike the adminsby-restricted *-sby* routes, which are
+     * additionally locked to doctype PRF and HR departments).
+     */
+    public function sbyJson(Request $request)
+    {
+        $query = MsApproval::query()
+            ->select([
                 'id',
                 'aprv_leveling',
                 'aprv_doctype',
@@ -78,12 +174,15 @@ class MsApprovalController extends Controller
                 'aprv_end_nominal',
                 'status',
             ])
-            ->orderBy('aprv_doctype')
-            ->orderBy('aprv_departementid')
-            ->orderBy('aprv_leveling')
-            ->get();
+            ->whereIn('aprv_cpnyid', $this->sbyCompanyIds());
 
-        return response()->json(['data' => $rows]);
+        if (!$request->has('order')) {
+            $query->orderBy('aprv_doctype')
+                ->orderBy('aprv_departementid')
+                ->orderBy('aprv_leveling');
+        }
+
+        return DataTables::of($query)->make(true);
     }
 
     /**
@@ -121,6 +220,22 @@ class MsApprovalController extends Controller
             'aprv_end_nominal'      => 'nullable|array',
             'aprv_end_nominal.*'    => 'nullable|numeric',
         ]);
+
+        if ($this->isRestrictedAdmin()) {
+            if (strtoupper($request->aprv_doctype) !== 'PRF') {
+                abort(403, 'This account can only manage PRF approvals.');
+            }
+            if (!$this->isHrDepartment($request->aprv_departementid)) {
+                abort(403, 'This account can only manage HR department approvals.');
+            }
+            if (!$this->isSbyCompany($request->aprv_cpnyid)) {
+                abort(403, 'This account can only manage approvals for Surabaya group companies.');
+            }
+            $allUsernames = collect($request->aprv_username)->flatten()->filter()->all();
+            if (!$this->allUsernamesAreSby($allUsernames)) {
+                abort(403, 'This account can only assign approvers from Surabaya group companies.');
+            }
+        }
 
         DB::beginTransaction();
 
@@ -201,6 +316,10 @@ class MsApprovalController extends Controller
     {
         $row = MsApproval::findOrFail($id);
 
+        if ($this->isRestrictedAdmin() && (strtoupper($row->aprv_doctype) !== 'PRF' || !$this->isSbyCompany($row->aprv_cpnyid))) {
+            abort(403);
+        }
+
         return response()->json([
             'id'                 => $row->id,
             'aprv_leveling'      => $row->aprv_leveling,
@@ -241,6 +360,21 @@ class MsApprovalController extends Controller
             'aprv_start_nominal.0' => 'nullable|numeric',
             'aprv_end_nominal.0'   => 'nullable|numeric',
         ]);
+
+        if ($this->isRestrictedAdmin()) {
+            if (strtoupper($row->aprv_doctype) !== 'PRF' || strtoupper($request->aprv_doctype) !== 'PRF') {
+                abort(403, 'This account can only manage PRF approvals.');
+            }
+            if (!$this->isHrDepartment($request->aprv_departementid)) {
+                abort(403, 'This account can only manage HR department approvals.');
+            }
+            if (!$this->isSbyCompany($row->aprv_cpnyid) || !$this->isSbyCompany($request->aprv_cpnyid)) {
+                abort(403, 'This account can only manage approvals for Surabaya group companies.');
+            }
+            if (!$this->allUsernamesAreSby($request->aprv_username[0] ?? [])) {
+                abort(403, 'This account can only assign approvers from Surabaya group companies.');
+            }
+        }
 
         DB::beginTransaction();
 
@@ -310,6 +444,11 @@ class MsApprovalController extends Controller
     public function toggleStatus($id)
     {
         $row = MsApproval::findOrFail($id);
+
+        if ($this->isRestrictedAdmin() && (strtoupper($row->aprv_doctype) !== 'PRF' || !$this->isSbyCompany($row->aprv_cpnyid))) {
+            abort(403);
+        }
+
         $newStatus = request('status');
         $username  = Auth::check() ? Auth::user()->username : 'system';
 
@@ -324,15 +463,124 @@ class MsApprovalController extends Controller
         ]);
     }
 
-    public function departmentHR(Request $request)
+    /**
+     * Ambil semua approval lines untuk 1 kombinasi doctype+company+department.
+     * Dipakai untuk fitur "duplicate / copy from existing template".
+     */
+    public function groupLines(Request $request)
+    {
+        $doctype = $this->isRestrictedAdmin() ? 'PRF' : $request->query('doctype');
+        $cpnyId  = $request->query('cpnyid');
+        $deptId  = $request->query('departementid');
+
+        if (!$doctype || !$cpnyId || !$deptId) {
+            return response()->json(['lines' => []]);
+        }
+
+        if ($this->isRestrictedAdmin() && !$this->isSbyCompany($cpnyId)) {
+            return response()->json(['lines' => []]);
+        }
+
+        $rows = MsApproval::where('aprv_doctype', $doctype)
+            ->where('aprv_cpnyid', $cpnyId)
+            ->where('aprv_departementid', $deptId)
+            ->where('status', 'A')
+            ->orderBy('aprv_leveling')
+            ->get([
+                'aprv_leveling',
+                'aprv_username',
+                'aprv_name',
+                'aprv_type',
+                'aprv_condition',
+                'aprv_start_nominal',
+                'aprv_end_nominal',
+            ]);
+
+        return response()->json(['lines' => $rows]);
+    }
+
+    public function conditions(Request $request)
     {
         $doctype = strtoupper(trim((string) $request->query('doctype', '')));
+
+        $query = MsCategory::query()
+            ->select('category_name')
+            ->where('categoryid', 'condition')
+            ->where('status', 'A');
+
+        $items = (clone $query)
+            ->when($doctype !== '', fn($q) => $q->where('doctype', $doctype))
+            ->orderBy('category_name')
+            ->pluck('category_name')
+            ->values();
+
+        // Some legacy doctypes do not have condition categories assigned to
+        // their doctype (for example CS). Keep the scoped list when available,
+        // but fall back to the active global list instead of showing an empty
+        // dropdown in the Add/Edit Approval forms.
+        if ($doctype !== '' && $items->isEmpty()) {
+            $items = $query
+                ->orderBy('category_name')
+                ->pluck('category_name')
+                ->values();
+        }
+
+        return response()->json($items);
+    }
+
+    /**
+     * Daftar department untuk filter di halaman list, dipilih berdasarkan sumber
+     * data (Finance / HR), independen dari Doc Type.
+     */
+    public function departmentsBySource(Request $request)
+    {
+        $source = $this->isRestrictedAdmin() ? 'HR' : strtoupper(trim((string) $request->query('source', '')));
+
+        $finance = fn() => MsDepartment::query()
+            ->selectRaw("department_id as value, department_name as text")
+            ->where('status', 'A')
+            ->whereNotNull('department_id')
+            ->where('department_id', '<>', '')
+            ->get();
+
+        $hr = fn() => DepartmentHR::query()
+            ->selectRaw("department_id as value, department_name as text")
+            ->whereNotNull('department_id')
+            ->where('department_id', '<>', '')
+            ->when(
+                $this->isRestrictedAdmin(),
+                fn($q) => $q->where('group_cpny_id', 'SBY'),
+                fn($q) => $q->where(fn($q2) => $q2->where('group_cpny_id', '<>', 'SBY')->orWhereNull('group_cpny_id'))
+            )
+            ->get();
+
+        if ($source === 'FIN') {
+            $items = $finance();
+        } elseif ($source === 'HR') {
+            $items = $hr();
+        } else {
+            $items = $finance()->concat($hr());
+        }
+
+        $items = $items->unique('value')->sortBy('value')->values();
+
+        return response()->json($items);
+    }
+
+    public function departmentHR(Request $request)
+    {
+        $doctype = $this->isRestrictedAdmin() ? 'PRF' : strtoupper(trim((string) $request->query('doctype', '')));
 
         if ($doctype === 'PRF') {
             $items = DepartmentHR::query()
                 ->selectRaw("department_id as value, department_name as text")
                 ->whereNotNull('department_id')
                 ->where('department_id', '<>', '')
+                ->when(
+                    $this->isRestrictedAdmin(),
+                    fn($q) => $q->where('group_cpny_id', 'SBY'),
+                    fn($q) => $q->where(fn($q2) => $q2->where('group_cpny_id', '<>', 'SBY')->orWhereNull('group_cpny_id'))
+                )
                 ->orderBy('department_id')
                 ->get();
         } else {

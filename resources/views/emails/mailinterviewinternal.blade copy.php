@@ -34,6 +34,6 @@
     </table>
 
     <p>Warm regards,</p>
-    <strong>Talent Acquisition Pakuwon Group Jakarta</strong>
+    <strong>Talent Acquisition Pakuwon Group</strong>
   </body>
 </html>

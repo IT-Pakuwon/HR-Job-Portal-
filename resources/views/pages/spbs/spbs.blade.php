@@ -4,10 +4,10 @@
     @endphp
     <div class="max-w-9xl mx-auto w-full p-2">
         @php
-            $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS');
+            $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS') || ($isAdmin ?? false);
         @endphp
         <div
-            class="{{ $hasAllList ? 'xl:grid-cols-7' : 'xl:grid-cols-6' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+            class="{{ $hasAllList ? 'xl:grid-cols-8' : 'xl:grid-cols-7' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
 
             {{-- All --}}
             <button type="button" class="status-filter group block h-full" data-status="">
@@ -42,6 +42,21 @@
                 </div>
             </button>
 
+            {{-- Draft --}}
+            <button type="button" class="status-filter group block h-full" data-status="H">
+                <div
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-pink-700 bg-pink-200/20 p-2 text-pink-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-pink-100 hover:shadow-lg active:scale-95">
+
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📝</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col">
+                        <p class="break-words text-sm font-medium leading-tight">Draft</p>
+                    </div>
+
+                    <p class="shrink-0 text-sm font-bold">{{ $draft }}</p>
+                </div>
+            </button>
+
             {{-- Reject --}}
             <button type="button" class="status-filter group block h-full" data-status="R">
                 <div
@@ -57,7 +72,7 @@
                 </div>
             </button>
 
-            {{-- Revise / Draft --}}
+            {{-- Revise --}}
             <button type="button" class="status-filter group block h-full" data-status="D">
                 <div
                     class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-2 text-gray-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-lg active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
@@ -65,7 +80,7 @@
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✏️</div>
 
                     <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Revise / Draft</p>
+                        <p class="break-words text-sm font-medium leading-tight">Revise</p>
                     </div>
 
                     <p class="shrink-0 text-sm font-bold">{{ $revise }}</p>
@@ -100,7 +115,7 @@
             </button>
 
             {{-- SPB All List --}}
-            @if (auth()->user()->hasRole('COSTCTRLACCESS'))
+            @if ($hasAllList)
                 <button type="button" class="text-left">
                     <a href="#" class="status-filter group block h-full" data-mode="all">
                         <div
@@ -124,29 +139,41 @@
 
         </div>
 
-        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-center justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 id="pageTitle" class="text-base font-extrabold text-gray-700 dark:text-white">
+        <div
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-row items-center justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                <h2 id="pageTitle" class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
                     Request SPB
-                </h1>
+                </h2>
 
                 <div class="flex items-center gap-4">
                     {{-- FILTER SECTION (ONLY FOR ALL MODE) --}}
-                    <div id="allFilters" class="flex hidden items-center gap-2">
+                    <div id="allFilters" class="flex hidden items-center gap-3">
 
                         {{-- Status Filter --}}
-                        <select id="filterStatus"
-                            class="rounded-md border px-3 py-1 text-sm dark:border-gray-700 dark:bg-gray-800">
-                            <option value="">All Status</option>
-                            <option value="P">On Progress</option>
-                            <option value="C">Completed</option>
-                        </select>
+                        <div class="relative">
+                            <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400 dark:text-gray-500">
+                                <i class="fas fa-check-circle text-xs"></i>
+                            </span>
+                            <select id="filterStatus"
+                                class="rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-6 text-sm font-medium text-gray-700 shadow-sm transition-colors focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                <option value="">All Status</option>
+                                <option value="P">On Progress</option>
+                                <option value="C">Completed</option>
+                            </select>
+                        </div>
 
                         {{-- Department Filter --}}
-                        <select id="filterDepartment"
-                            class="rounded-md border px-3 py-1 text-sm dark:border-gray-700 dark:bg-gray-800">
-                            <option value="">All Department</option>
-                        </select>
+                        <div class="relative">
+                            <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400 dark:text-gray-500">
+                                <i class="fas fa-sitemap text-xs"></i>
+                            </span>
+                            <select id="filterDepartment"
+                                class="rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-6 text-sm font-medium text-gray-700 shadow-sm transition-colors focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                <option value="">All Department</option>
+                            </select>
+                        </div>
 
                     </div>
                     <a id="createBtn" href="{{ url('/createspbs') }}"
@@ -158,10 +185,10 @@
 
             </div>
 
-            <div class="rounded-base relative overflow-x-auto">
+            <div class="relative overflow-hidden">
 
-                <table id="spbsTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead id="spbsHead" class="bg-gray-50 dark:bg-gray-700"></thead>
+                <table id="spbsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead id="spbsHead" class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400"></thead>
                     <tbody>
                         {{-- Table rows will be populated here by JavaScript/DataTables --}}
                     </tbody>
@@ -247,7 +274,7 @@
                         <div id="tlLoadingSppb"
                             class="hidden items-center gap-2 text-sm text-gray-500 dark:text-gray-300">
                             <span
-                                class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-transparent"></span>
+                                class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-transparent dark:border-gray-700"></span>
                             Loading...
                         </div>
 
@@ -258,7 +285,7 @@
 
                         <div id="tab-cs-sppb" class="track-pane-sppb hidden">
                             <div class="mb-2">
-                                <label class="text-xs text-gray-500">Select CS</label>
+                                <label class="text-xs text-gray-500 dark:text-gray-400">Select CS</label>
                                 <select id="selCsSppb"
                                     class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"></select>
                             </div>
@@ -268,7 +295,7 @@
 
                         <div id="tab-po-sppb" class="track-pane-sppb hidden">
                             <div class="mb-2">
-                                <label class="text-xs text-gray-500">Select PO</label>
+                                <label class="text-xs text-gray-500 dark:text-gray-400">Select PO</label>
                                 <select id="selPoSppb"
                                     class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"></select>
                             </div>
@@ -278,7 +305,7 @@
 
                         <div id="tab-receipt-sppb" class="track-pane-sppb hidden">
                             <div class="mb-2">
-                                <label class="text-xs text-gray-500">Select Receipt</label>
+                                <label class="text-xs text-gray-500 dark:text-gray-400">Select Receipt</label>
                                 <select id="selReceiptSppb"
                                     class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"></select>
                             </div>
@@ -305,21 +332,21 @@
             if (!list) return;
 
             if (!Array.isArray(steps) || steps.length === 0) {
-                list.innerHTML = `<p class="text-sm text-gray-500">No tracking history found.</p>`;
+                list.innerHTML = `<p class="text-sm text-gray-500 dark:text-gray-400">No tracking history found.</p>`;
                 return;
             }
 
             list.className = "px-2 py-3";
 
             list.innerHTML = `
-                <div class="rounded-xl border border-gray-200 bg-white p-4">
+                <div class="rounded-xl border border-gray-200 bg-white p-4 dark:bg-gray-800 dark:border-gray-700">
 
                     <!-- HEADER -->
                     <div class="flex justify-between items-center mb-4">
-                        <div class="text-sm font-semibold text-gray-700">
+                        <div class="text-sm font-semibold text-gray-700 dark:text-gray-300">
                             Approval Tracking
                         </div>
-                        <div class="text-xs text-gray-500">
+                        <div class="text-xs text-gray-500 dark:text-gray-400">
                             ${steps[steps.length - 1]?.status_label || ''}
                         </div>
                     </div>
@@ -390,15 +417,15 @@
 
                                     <div class="h-2 w-2 rounded-full ${dot}"></div>
 
-                                    <div class="h-8 w-8 flex items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-600">
+                                    <div class="h-8 w-8 flex items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-600 dark:bg-gray-900 dark:text-gray-400">
                                         ${initials}
                                     </div>
 
                                     <div>
-                                        <div class="text-sm font-medium text-gray-800">
+                                        <div class="text-sm font-medium text-gray-800 dark:text-gray-200">
                                             ${s.title}
                                         </div>
-                                        <div class="text-xs text-gray-500">
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">
                                             ${name}
                                         </div>
                                     </div>
@@ -675,8 +702,8 @@ error: function(err) {
 
                                 const text = data || row.id;
 
-                                const isDraftOwner = (row.status === 'D' && row.created_by ===
-                                    currentUser);
+                                const isDraftOwner = ((row.status === 'D' || row.status === 'H') &&
+                                    row.created_by === currentUser);
 
                                 // icon view (mata)
                                 const viewBtn = `
@@ -756,6 +783,10 @@ error: function(err) {
                                     'R': {
                                         t: 'Rejected',
                                         c: 'bg-red-200/60 text-red-800 border border-red-600/40'
+                                    },
+                                    'H': {
+                                        t: 'Draft',
+                                        c: 'bg-pink-200/60 text-pink-800 border border-pink-600/40'
                                     },
                                 };
                                 const it = map[data] || {
@@ -1146,6 +1177,10 @@ error: function(err) {
                     'D': {
                         text: 'Revise',
                         cls: 'bg-blue-100 text-blue-700'
+                    },
+                    'H': {
+                        text: 'Draft',
+                        cls: 'bg-pink-100 text-pink-700'
                     }
                 };
 
@@ -1172,6 +1207,8 @@ error: function(err) {
                         return 'Rejected';
                     case 'D':
                         return 'Revise';
+                    case 'H':
+                        return 'Draft';
                     default:
                         return st || '-';
                 }
@@ -1230,9 +1267,9 @@ error: function(err) {
                                 </div>
                             </div>
                             <div class="mt-1 text-gray-700 dark:text-gray-200">
-                                <div><span class="text-gray-500">By:</span> <span class="font-semibold">${who}</span></div>
-                                ${dtb ? `<div><span class="text-gray-500">Start:</span> ${dtb}</div>` : ''}
-                                ${dta ? `<div><span class="text-gray-500">Finish:</span> ${dta}</div>` : ''}
+                                <div><span class="text-gray-500 dark:text-gray-400">By:</span> <span class="font-semibold">${who}</span></div>
+                                ${dtb ? `<div><span class="text-gray-500 dark:text-gray-400">Start:</span> ${dtb}</div>` : ''}
+                                ${dta ? `<div><span class="text-gray-500 dark:text-gray-400">Finish:</span> ${dta}</div>` : ''}
                             </div>
                         </div>
                     `;
@@ -1251,24 +1288,24 @@ error: function(err) {
                         </div>
 
                         <div class="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
-                            <div><span class="text-gray-500">Company:</span>
+                            <div><span class="text-gray-500 dark:text-gray-400">Company:</span>
                                 <span class="font-semibold text-gray-800 dark:text-white">${esc(header.cpny_id || '-')}</span>
                             </div>
-                            <div><span class="text-gray-500">Department:</span>
+                            <div><span class="text-gray-500 dark:text-gray-400">Department:</span>
                                 <span class="font-semibold text-gray-800 dark:text-white">${esc(header.department_id || '-')}</span>
                             </div>
-                            <div><span class="text-gray-500">Created By:</span>
+                            <div><span class="text-gray-500 dark:text-gray-400">Created By:</span>
                                 <span class="font-semibold text-gray-800 dark:text-white">${esc(header.created_by || '-')}</span>
                             </div>
 
                             ${header.vendorname !== undefined
-                                ? `<div class="sm:col-span-2"><span class="text-gray-500">Vendor:</span>
+                                ? `<div class="sm:col-span-2"><span class="text-gray-500 dark:text-gray-400">Vendor:</span>
                                                                                                                                                                                                                                                                                                                                                                                         <span class="font-semibold text-gray-800 dark:text-white">${esc(header.vendorname || '-')}</span></div>`
                                 : ''
                             }
 
                             ${header.keperluan !== undefined
-                                ? `<div class="sm:col-span-2"><span class="text-gray-500">Keperluan:</span>
+                                ? `<div class="sm:col-span-2"><span class="text-gray-500 dark:text-gray-400">Keperluan:</span>
                                                                                                                                                                                                                                                                                                                                                                                         <span class="font-semibold text-gray-800 dark:text-white">${esc(header.keperluan || '-')}</span></div>`
                                 : ''
                             }
@@ -1282,7 +1319,7 @@ error: function(err) {
             // ---------- Detail renderers ----------
             function renderDetailSppb(rows) {
                 if (!Array.isArray(rows) || rows.length === 0)
-                    return `<div class="text-sm text-gray-500">No detail.</div>`;
+                    return `<div class="text-sm text-gray-500 dark:text-gray-400">No detail.</div>`;
                 const trs = rows.map(r => `
             <tr class="border-b dark:border-gray-700">
                 <td class="px-3 py-2">${esc(r.inventoryid)}</td>
@@ -1312,7 +1349,7 @@ error: function(err) {
 
             function renderDetailCs(rows) {
                 if (!Array.isArray(rows) || rows.length === 0)
-                    return `<div class="text-sm text-gray-500">No detail.</div>`;
+                    return `<div class="text-sm text-gray-500 dark:text-gray-400">No detail.</div>`;
 
                 const trs = rows.map(r => `
                 <tr class="border-b dark:border-gray-700">
@@ -1344,7 +1381,7 @@ error: function(err) {
 
             function renderDetailPo(rows) {
                 if (!Array.isArray(rows) || rows.length === 0)
-                    return `<div class="text-sm text-gray-500">No detail.</div>`;
+                    return `<div class="text-sm text-gray-500 dark:text-gray-400">No detail.</div>`;
                 const trs = rows.map(r => `
             <tr class="border-b dark:border-gray-700">
                 <td class="px-3 py-2">${esc(r.inventoryid)}</td>
@@ -1370,7 +1407,7 @@ error: function(err) {
 
             function renderDetailReceipt(rows) {
                 if (!Array.isArray(rows) || rows.length === 0)
-                    return `<div class="text-sm text-gray-500">No detail.</div>`;
+                    return `<div class="text-sm text-gray-500 dark:text-gray-400">No detail.</div>`;
                 const trs = rows.map(r => `
             <tr class="border-b dark:border-gray-700">
                 <td class="px-3 py-2">${esc(r.inventoryid)}</td>
@@ -1485,7 +1522,7 @@ error: function(err) {
                 } else {
                     renderHeader('receiptHeaderBoxSppb', null, 'Receipt');
                     document.getElementById('receiptDetailBoxSppb').innerHTML =
-                        `<div class="text-sm text-gray-500">No detail.</div>`;
+                        `<div class="text-sm text-gray-500 dark:text-gray-400">No detail.</div>`;
                 }
             });
 

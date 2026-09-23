@@ -8,6 +8,7 @@ use App\Models\MsBASTRating;
 use App\Models\MsBASTRatingLegend;
 use App\Models\MsCompany;
 use App\Models\MsPenalty;
+use App\Models\MsTopdetail;
 use App\Models\SysCalendar;
 use App\Models\TrApproval;
 use App\Models\TrBast;
@@ -439,6 +440,17 @@ class BastController extends Controller
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload = $bast->created_by === $loginUsername;
 
+        $isApprover = TrApproval::where('refnbr', $bast->bastid)
+            ->where('aprv_doctype', 'BA')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
+
         return view('pages.bast.showbast', [
             'bast' => $bast,
             'hash' => $hash,
@@ -449,6 +461,7 @@ class BastController extends Controller
             'ratingLegendName' => $ratingLegendName,
             'bastRatingRows' => $bastRatingRows,
             'canUpload' => $canUpload,
+            'isApprover' => $isApprover,
         ]);
     }
 
@@ -474,7 +487,20 @@ class BastController extends Controller
         $docUrl = url('/showbast/' . $eid);
         $fullname = data_get($bast, 'creator.name') ?: $bast->created_by;
 
-        return \DB::transaction(function () use ($user, $doctype, $bast, $ratingScores, $docUrl, $fullname) {
+        $pendingApprovalQuery = TrApproval::query()
+            ->where('refnbr', $bast->bastid)
+            ->where('aprv_doctype', $doctype)
+            ->where('status', 'P')
+            ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
+            ->orderBy('id', 'asc');
+
+        $currentApproval = (clone $pendingApprovalQuery)
+            ->whereNotNull('aprv_datebefore')
+            ->first() ?: $pendingApprovalQuery->first();
+
+        $isLevelOneApproval = number_format((float) ($currentApproval->aprv_leveling ?? 0), 2, '.', '') === '1.00';
+
+        return \DB::transaction(function () use ($user, $doctype, $bast, $ratingScores, $docUrl, $fullname, $isLevelOneApproval) {
 
             $result = app(ApprovalController::class)->approveStep(
                 $bast->bastid,
@@ -483,9 +509,10 @@ class BastController extends Controller
                 $user->name,
 
                 // FINAL APPROVER
-                function (string $refnbr, Carbon $now) use ($bast, $fullname, $docUrl) {
-                    // JANGAN jalankan applyBastApprovalSideEffects di final
-                    // karena requirement: hanya untuk approval level 1.00 saja
+                function (string $refnbr, Carbon $now) use ($bast, $fullname, $docUrl, $ratingScores, $isLevelOneApproval) {
+                    if ($isLevelOneApproval) {
+                        $this->applyBastApprovalSideEffects($bast, $now, $ratingScores);
+                    }
 
                     $bast->status = 'C';
                     $bast->completed_by = auth()->user()->username;
@@ -510,16 +537,8 @@ class BastController extends Controller
                 },
 
                 // NEXT APPROVER
-                function ($next, Carbon $now) use ($bast, $docUrl, $ratingScores) {
-
-                    /*
-                    * Jika setelah approve current step, next approver adalah level 2.00,
-                    * berarti current approver yang baru saja approve adalah level 1.00.
-                    *
-                    * Jadi applyBastApprovalSideEffects hanya jalan sekali,
-                    * yaitu setelah approval level 1.00.
-                    */
-                    if ((float) ($next['aprv_leveling'] ?? 0) > 1.00) {
+                function ($next, Carbon $now) use ($bast, $docUrl, $ratingScores, $isLevelOneApproval) {
+                    if ($isLevelOneApproval) {
                         $this->applyBastApprovalSideEffects($bast, $now, $ratingScores);
                     }
 
@@ -1053,6 +1072,45 @@ class BastController extends Controller
         // Company
         $company = MsCompany::where('cpny_id', $bast->cpny_id)->first();
 
+        $termDetailQuery = MsTopdetail::query()
+            ->where('terms_id', $bast->terms_id);
+
+        if (!empty($bast->topid)) {
+            $termDetailQuery->where('topid', $bast->topid);
+        }
+
+        $termDetail = $termDetailQuery->first()
+            ?: MsTopdetail::query()->where('terms_id', $bast->terms_id)->first();
+
+        $termsType = trim((string) ($termDetail->terms_type ?? ''));
+        $title = 'Berita Acara Serah Terima';
+
+        if (strcasecmp($termsType, 'Retensi') === 0) {
+            $title = 'Berita Acara Retensi';
+        } elseif (strcasecmp($termsType, 'TERMIN') === 0) {
+            $terminQuery = MsTopdetail::query()
+                ->whereRaw('UPPER(terms_type) = ?', ['TERMIN']);
+
+            if (!empty($termDetail->topid ?? null)) {
+                $terminQuery->where('topid', $termDetail->topid);
+            }
+
+            if (!empty($termDetail->top_type ?? null)) {
+                $terminQuery->where('top_type', $termDetail->top_type);
+            }
+
+            $terminRows = $terminQuery
+                ->orderByRaw('CAST(order_term AS numeric) ASC')
+                ->orderBy('id', 'asc')
+                ->get(['id', 'terms_id']);
+
+            $terminNo = $terminRows->search(function ($row) use ($bast, $termDetail) {
+                return (string) $row->terms_id === (string) ($bast->terms_id ?? $termDetail->terms_id ?? '');
+            });
+
+            $title = 'Berita Acara Progres ' . ($terminNo === false ? 1 : $terminNo + 1);
+        }
+
         // Mapping status dokumen
         switch ($bast->status) {
             case 'R':
@@ -1073,7 +1131,7 @@ class BastController extends Controller
         }
 
         $data = [
-            'title' => 'Berita Acara Serah Terima',
+            'title' => $title,
             'doc_type' => 'BAST',
             'docid' => $bast->bastid,
             'department_id' => $bast->department_id,
@@ -1122,6 +1180,7 @@ class BastController extends Controller
             'realize_amount' => $bast->realize_amount,
             'spkpic' => $bast->spkpic,
             'spkwarranty' => $bast->spkwarranty,
+            'terms_name' => $termDetail->terms_name ?? '',
         ];
 
         // Kirim ke view

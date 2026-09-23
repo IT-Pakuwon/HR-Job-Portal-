@@ -1,29 +1,25 @@
-<x-app-layout>
+﻿<x-app-layout>
     <div class="max-w-9xl mx-auto p-2">
-        <div class="mb-4 flex items-center justify-end">
-            <div class="flex gap-3">
-                <button id="approveBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200">
-                    Approve
-                </button>
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'RFP Non Purchase', 'url' => route('rfpnonpurch')],
+            ['label' => 'Show Details'],
+        ]">
+            <x-approval-actions
+                :status="$rfpnonpurch->status"
+                :is-approver="$isApprover"
+                :has-blocking-im="$hasBlockingIM"
+                :im-blocking-id="$rfpnonpurch->imbudgetid ?? null"
+                :im-blocking-status="$rfpnonpurch->status_imbudget ?? null"
+                :edit-url="url('/editrfpnonpurch/' . $hash)"
+            />
+        </x-breadcrumb>
 
-                <button id="reviseBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-600">
-                    Revise
-                </button>
-
-                <button id="rejectBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200">
-                    Reject
-                </button>
-            </div>
-        </div>
-
-         <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
-             <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+         <div class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
+             <div class="grid grid-cols-1 gap-6 xl:grid-cols-5">
 
                 {{-- LEFT CARD --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800 xl:col-span-3">
                     <header class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
                             <span class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
@@ -110,6 +106,7 @@
                                 ['label' => 'Created User', 'value' => optional($rfpnonpurch->creator)->name ?: $rfpnonpurch->created_by ?: '-'],
                                 ['label' => 'Request By', 'value' => $rfpnonpurch->user_peminta ?: '-'],
                                 ['label' => 'Type Payment', 'value' => $rfpnonpurch->rfpnonpurchase_type ?: '-'],
+                                ['label' => 'Business Unit', 'value' => $rfpnonpurch->business_unit_name ?: ($rfpnonpurch->business_unit_id ?: '-')],
                                 ['label' => 'Group Biaya', 'value' => $rfpnonpurch->groupbiaya_descr ?: '-'],
                                 ['label' => 'Please Pay To', 'value' => $rfpnonpurch->pleasepayto ?: '-'],
                                 ['label' => 'Amount Request Payment', 'value' => $amountRequest],
@@ -159,7 +156,7 @@
 
                         @if (!$isRCA)
                             <div class="col-span-2 mt-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                                <div class="flex items-center gap-2 text-gray-500">
+                                <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                                     <span class="text-sm font-medium">Keperluan</span>
                                 </div>
                                 <span class="whitespace-pre-line break-words text-sm font-medium text-gray-900 dark:text-gray-300">
@@ -204,12 +201,11 @@
                         @endif
 
                         @php
-                            $showAccountColumn = $details->contains(function ($d) {
-                                return !empty($d->budget_account_id);
-                            });
-
-                            $showActivityColumn = $details->contains(function ($d) {
-                                return !empty($d->budget_activity_id) || !empty($d->budget_activity_descr);
+                            $hasBudgetDetail = $details->contains(function ($d) {
+                                return trim((string) ($d->budget_department_fin_id ?? '')) !== ''
+                                    || trim((string) ($d->budget_account_id ?? '')) !== ''
+                                    || trim((string) ($d->budget_activity_id ?? '')) !== ''
+                                    || trim((string) ($d->budget_activity_descr ?? '')) !== '';
                             });
                         @endphp
 
@@ -225,15 +221,19 @@
                                 @endif
 
                                 <div class="overflow-x-auto">
-                                    <table class="w-full table-fixed text-sm">
+                                    <table class="w-full min-w-160 table-fixed text-sm">
                                         <colgroup>
                                             @if (!$isRCA)
                                                 <col class="w-[50px]">
                                             @endif
 
-                                            <col class="{{ $isRCA ? 'w-[45%]' : 'w-[40%]' }}">
-                                            <col class="w-[180px]">
-                                            <col class="w-[420px]">
+                                            <col class="{{ $hasBudgetDetail ? ($isRCA ? 'w-[28%]' : 'w-[30%]') : 'w-auto' }}">
+                                            @if ($hasBudgetDetail)
+                                                <col class="w-70">
+                                            @endif
+                                            <col class="w-35">
+                                            <col class="w-32">
+                                            <col class="w-35">
                                         </colgroup>
 
                                         <thead class="border-b text-gray-600 dark:text-gray-300">
@@ -246,8 +246,12 @@
                                                     {{ $isRCA ? 'Keperluan' : 'Description' }}
                                                 </th>
 
+                                                @if ($hasBudgetDetail)
+                                                    <th class="p-2 text-left">Budget</th>
+                                                @endif
+                                                <th class="p-2 text-right">Amount DPP</th>
+                                                <th class="p-2 text-left">Tax</th>
                                                 <th class="p-2 text-right">Amount Request</th>
-                                                <th class="p-2 text-left">Budget</th>
                                             </tr>
                                         </thead>
 
@@ -262,10 +266,7 @@
                                                         {{ $isRCA ? ($rfpnonpurch->keperluan ?: '-') : ($d->keperluan_detail ?: '-') }}
                                                     </td>
 
-                                                    <td class="p-2 text-right">
-                                                        Rp {{ number_format((float) ($d->amount_request ?? 0), 2, ',', '.') }}
-                                                    </td>
-
+                                                    @if ($hasBudgetDetail)
                                                     <td class="p-2">
                                                         <div class="group relative inline-block cursor-help">
                                                             @php
@@ -319,10 +320,32 @@
                                                             </div>
                                                         </div>
                                                     </td>
+                                                    @endif
+
+                                                    <td class="p-2 text-right">
+                                                        Rp {{ number_format((float) ($d->amount_request_dpp ?? 0), 2, ',', '.') }}
+                                                    </td>
+
+                                                    <td class="p-2">
+                                                        @php
+                                                            $taxCode = trim((string) ($d->taxcodeid ?? ''));
+                                                            $taxDescr = $taxCode !== ''
+                                                                ? ($taxDescriptions[$taxCode] ?? $taxCode)
+                                                                : '-';
+                                                        @endphp
+
+                                                        <span class="font-semibold text-gray-700 dark:text-gray-200">
+                                                            {{ $taxDescr }}
+                                                        </span>
+                                                    </td>
+
+                                                    <td class="p-2 text-right">
+                                                        Rp {{ number_format((float) ($d->amount_request ?? 0), 2, ',', '.') }}
+                                                    </td>
                                                 </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="{{ $isRCA ? 3 : 4 }}" class="p-3 text-center italic text-gray-500">
+                                                    <td colspan="{{ ($isRCA ? 4 : 5) + ($hasBudgetDetail ? 1 : 0) }}" class="p-3 text-center italic text-gray-500 dark:text-gray-400">
                                                         No detail found.
                                                     </td>
                                                 </tr>
@@ -330,6 +353,7 @@
                                         </tbody>
                                     </table>
 
+                                    @if ($hasBudgetDetail)
                                     <div id="budgetTooltip"
                                         class="fixed z-[9999] hidden w-72 rounded-xl border border-gray-200 bg-white p-4 text-sm shadow-lg dark:border-gray-700 dark:bg-gray-900">
 
@@ -359,12 +383,12 @@
                                             </div>
 
                                             <div class="flex justify-between">
-                                                <span class="text-gray-500">Reserved</span>
+                                                <span class="text-gray-500 dark:text-gray-400">Reserved</span>
                                                 <span id="ttReserved" class="text-red-500"></span>
                                             </div>
 
                                             <div class="flex justify-between">
-                                                <span class="text-gray-500">Used</span>
+                                                <span class="text-gray-500 dark:text-gray-400">Used</span>
                                                 <span id="ttUsed" class="text-red-500"></span>
                                             </div>
 
@@ -376,6 +400,7 @@
                                             </div>
                                         </div>
                                     </div>
+                                    @endif
                                 </div>
                             </div>
                         @endif
@@ -384,9 +409,9 @@
                 </div>
 
                 {{-- RIGHT CARD --}}
-                <div class="flex flex-1 flex-col gap-6">
+                <div class="flex flex-1 flex-col gap-6 xl:col-span-2">
                     <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
-                        <div x-data="{ activeTab: 'attachment' }" class="flex max-h-[100%] flex-1 flex-col overflow-y-auto">
+                        <div x-data="{ activeTab: 'attachment', tabsOpen: true }" class="flex max-h-[100%] flex-1 flex-col overflow-y-auto">
                             <header class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                                 <nav class="flex flex-grow">
                                     <button @click="activeTab = 'attachment'"
@@ -411,9 +436,13 @@
                                         Comments
                                     </button>
                                 </nav>
+                                <button type="button" @click="tabsOpen = !tabsOpen"
+                                    class="ml-3 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-indigo-300 via-indigo-400 to-indigo-500 text-[10px] font-bold leading-none text-indigo-950 shadow-[0_1px_2px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.6),inset_0_-1px_1px_rgba(0,0,0,0.15)] transition hover:brightness-110 dark:from-indigo-400 dark:via-indigo-500 dark:to-indigo-600 dark:text-indigo-50 dark:shadow-[0_1px_2px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.4),inset_0_-1px_1px_rgba(0,0,0,0.25)]"
+                                    x-text="tabsOpen ? '−' : '+'" :title="tabsOpen ? 'Minimize' : 'Restore'">
+                                </button>
                             </header>
 
-                            <div class="flex flex-1 flex-col">
+                            <div class="flex flex-1 flex-col" :class="{ hidden: !tabsOpen }">
                                 <div x-show="activeTab === 'approval'" class="flex-1 overflow-y-auto px-4">
                                     <table class="w-full text-sm">
                                         <thead>
@@ -477,7 +506,7 @@
                                 <div x-show="activeTab === 'comments'" class="flex-1 overflow-y-auto px-4">
                                     <div class="flex h-full flex-col">
                                         <div id="commentList" class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
-                                            <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                            <p class="py-4 text-center italic text-gray-500 dark:text-gray-400">Loading comments...</p>
                                         </div>
                                         <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
                                             <input id="commentInput" type="text"
@@ -495,16 +524,90 @@
                     </div>
 
                     <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
-                        <header class="flex items-center justify-between border-b px-6 py-2 bg-gray-50 dark:bg-gray-700">
+                        <header class="flex items-center justify-between border-b px-6 py-2 rounded-xl  bg-gray-50 dark:bg-gray-700">
                             <div class="flex items-center gap-3">
                                 <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
-                                    RFP Progress Steps
+                                    Progress Steps
                                 </h2>
 
                                 <span class="rounded-full bg-indigo-100 px-2.5 py-0.5 text-sm font-semibold text-indigo-700">
                                     Type: {{ $rfpnonpurch->rfpnonpurchase_type }} Non Purchase
                                 </span>
                             </div>
+
+                            @if ($hasApFinAccess || $hasApTreAccess)
+                                @php
+                                    $isReceiveCompleted = $rfpnonpurch->statusreceive === 'C'
+                                        || (!empty($rfpnonpurch->userreceive) && !empty($rfpnonpurch->receivedate));
+                                    $isPaymentCompleted = $rfpnonpurch->statuspayment === 'C'
+                                        || (!empty($rfpnonpurch->userpayment) && !empty($rfpnonpurch->paymentdate));
+
+                                    if ($isPaymentCompleted) {
+                                        $finFlowStatus = 'Treasury Received';
+                                    } elseif ($isReceiveCompleted) {
+                                        $finFlowStatus = 'Finance Received';
+                                    } else {
+                                        $finFlowStatus = 'Waiting User';
+                                    }
+                                @endphp
+
+                                <div class="relative">
+                                    <button type="button" id="btnProgressAction"
+                                        class="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700">
+                                        Action <span>▾</span>
+                                    </button>
+
+                                    <div id="progressActionDropdown"
+                                        class="absolute right-0 top-full z-50 mt-1 hidden w-52 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+
+                                        @if ($hasApTreAccess && $isReceiveCompleted)
+                                            @php
+                                                $treAction = $isPaymentCompleted ? 'rollback' : 'update';
+                                                $treText   = $isPaymentCompleted ? 'Rollback Treasury' : 'Update Treasury';
+                                            @endphp
+                                            <button type="button"
+                                                class="progress-action-item block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                data-mode="treasury"
+                                                data-action="{{ $treAction }}"
+                                                data-user="{{ $rfpnonpurch->userpayment ?? '' }}"
+                                                data-date="{{ $rfpnonpurch->paymentdate ?? '' }}"
+                                                data-button-text="{{ $treText }}">
+                                                {{ $treText }}
+                                            </button>
+                                        @elseif ($hasApFinAccess && in_array($finFlowStatus, ['Waiting User', 'Finance Received']))
+                                            @php
+                                                $finAction = $isReceiveCompleted ? 'rollback' : 'update';
+                                                $finText   = $isReceiveCompleted ? 'Rollback Received' : 'Update Received';
+                                            @endphp
+                                            <button type="button"
+                                                class="progress-action-item block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                data-mode="received"
+                                                data-action="{{ $finAction }}"
+                                                data-user="{{ $rfpnonpurch->userreceive ?? '' }}"
+                                                data-date="{{ $rfpnonpurch->receivedate ?? '' }}"
+                                                data-button-text="{{ $finText }}">
+                                                {{ $finText }}
+                                            </button>
+                                        @endif
+
+                                        <button type="button"
+                                            class="progress-action-item block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            data-mode="revise" data-action="update"
+                                            data-user="" data-date=""
+                                            data-button-text="Submit Revise">
+                                            Revise
+                                        </button>
+
+                                        <button type="button"
+                                            class="progress-action-item block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            data-mode="reminder" data-action="update"
+                                            data-user="" data-date=""
+                                            data-button-text="Send Reminder">
+                                            Reminder
+                                        </button>
+                                    </div>
+                                </div>
+                            @endif
                         </header>
 
                         <div class="overflow-x-auto">
@@ -550,7 +653,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="5" class="text-center text-gray-500 italic p-3">
+                                            <td colspan="5" class="text-center text-gray-500 italic p-3 dark:text-gray-400">
                                                 No progress yet
                                             </td>
                                         </tr>
@@ -559,6 +662,41 @@
                             </table>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Finance Action Modal (Progress Steps) --}}
+        <div id="rfpProgressActionModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+            <div class="w-full max-w-lg rounded-xl bg-white p-6 dark:bg-gray-800">
+                <h2 id="progressActionTitle" class="mb-4 text-lg font-semibold text-gray-800 dark:text-white">Action</h2>
+
+                <div class="space-y-3 text-sm">
+                    <div><strong>RFP ID:</strong> {{ $rfpnonpurch->rfpnonpurchaseid }}</div>
+                    <div><strong>Keperluan:</strong> {{ $rfpnonpurch->keperluan ?: '-' }}</div>
+                    <div><strong>Amount:</strong> Rp {{ number_format((float) $rfpnonpurch->amountrequestpayment, 2, ',', '.') }}</div>
+                    <div><strong id="progressModalUserLabel">User:</strong> <span id="progressModalUserValue">-</span></div>
+                    <div><strong id="progressModalDateLabel">Date:</strong> <span id="progressModalDateValue">-</span></div>
+
+                    <div id="progressModalMessageWrapper" class="hidden">
+                        <label id="progressModalMessageLabel" class="mb-1 block font-semibold text-gray-700 dark:text-gray-200">
+                            Message
+                        </label>
+                        <textarea id="progressModalMessage" rows="4"
+                            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                            placeholder="Input message..."></textarea>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-2">
+                    <button type="button" id="closeProgressActionModal"
+                        class="rounded border border-gray-300 px-4 py-2 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700">
+                        Cancel
+                    </button>
+                    <button type="button" id="submitProgressActionBtn"
+                        class="rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
+                        Update
+                    </button>
                 </div>
             </div>
         </div>
@@ -579,7 +717,7 @@
                     placeholder="Enter rejection reason..."></textarea>
 
                 <div class="mt-4 flex justify-between">
-                    <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                    <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
                         Cancel
                     </button>
                     <button id="confirmRejectBtn" class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600">
@@ -596,10 +734,10 @@
                     placeholder="Enter revise reason..."></textarea>
 
                 <div class="mt-4 flex justify-between">
-                    <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                    <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
                         Cancel
                     </button>
-                    <button id="confirmReviseBtn" class="rounded-lg bg-gray-500 px-4 py-2 text-white hover:bg-gray-600">
+                    <button id="confirmReviseBtn" class="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
                         Revise
                     </button>
                 </div>
@@ -612,6 +750,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/plugin/relativeTime.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{{ asset('assets/js/shared/mention-autocomplete.js') }}"></script>
 
     <script>
         dayjs.extend(dayjs_plugin_relativeTime);
@@ -683,7 +822,7 @@
 
         function loadComments(refnbr, doctype) {
             let commentList = $('#commentList');
-            commentList.html('<p class="text-gray-500 italic">Loading comments...</p>');
+            commentList.html('<p class="text-gray-500 italic dark:text-gray-400">Loading comments...</p>');
 
             $.ajax({
                 url: `/comments/${doctype}/${refnbr}`,
@@ -692,7 +831,7 @@
                     commentList.empty();
 
                     if (!response.comments || response.comments.length === 0) {
-                        commentList.append('<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>');
+                        commentList.append('<p class="text-gray-500 text-sm italic dark:text-gray-400">No comments yet. Be the first to comment!</p>');
                         return;
                     }
 
@@ -704,9 +843,9 @@
                             <div class="px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
                                 <p class="text-sm font-semibold">
                                     ${comment.username}
-                                    <span class="text-sm text-gray-500">(${timeAgo})</span>
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">(${timeAgo})</span>
                                 </p>
-                                <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
+                                <p class="text-gray-800 dark:text-gray-200">${highlightMentions(comment.message)}</p>
                             </div>
                         `);
                     });
@@ -776,6 +915,11 @@
             loadApproval(rfpid, doctype);
             loadComments(rfpid, doctype);
 
+            attachMentionAutocomplete({
+                inputSelector: '#commentInput',
+                fetchUrlFn: () => `/mentionable-users/${doctype}/${rfpid}`,
+            });
+
             $('#postCommentBtn').on('click', function(e) {
                 e.preventDefault();
                 addComment();
@@ -788,7 +932,7 @@
                 }
             });
 
-           
+
             $(document).on("click", "#approveBtn", function() {
                 approveRfpNonPurchWithIMCheck(rfpid);
             });
@@ -1199,5 +1343,144 @@
         $(document).on('mouseleave', '.budget-trigger', function() {
             $('#budgetTooltip').addClass('hidden');
         });
+    </script>
+    <script>
+        (function () {
+            const hash      = @json($hash);
+            const csrfToken = @json(csrf_token());
+
+            function formatNow() {
+                const now   = new Date();
+                const day   = String(now.getDate()).padStart(2, '0');
+                const month = now.toLocaleString('en-US', { month: 'short' });
+                const year  = now.getFullYear();
+                const time  = now.toTimeString().slice(0, 8);
+                return `${day} ${month} ${year} ${time}`;
+            }
+
+            let progActionMode = null;
+            let progActionType = null;
+
+            // Toggle dropdown
+            $('#btnProgressAction').on('click', function (e) {
+                e.stopPropagation();
+                $('#progressActionDropdown').toggleClass('hidden');
+            });
+
+            $(document).on('click', function (e) {
+                if (!$(e.target).closest('#btnProgressAction, #progressActionDropdown').length) {
+                    $('#progressActionDropdown').addClass('hidden');
+                }
+            });
+
+            // Open modal on item click
+            $(document).on('click', '.progress-action-item', function () {
+                $('#progressActionDropdown').addClass('hidden');
+
+                progActionMode = $(this).data('mode');
+                progActionType = $(this).data('action');
+                const user       = $(this).data('user') || '';
+                const date       = $(this).data('date') || '';
+                const buttonText = $(this).data('button-text') || 'Update';
+
+                $('#progressModalMessageWrapper').addClass('hidden');
+                $('#progressModalMessage').val('');
+
+                if (progActionMode === 'received') {
+                    $('#progressActionTitle').text(progActionType === 'rollback' ? 'Rollback Received Finance' : 'Received Finance');
+                    $('#progressModalUserLabel').text('User Receive:');
+                    $('#progressModalDateLabel').text('Date Receive:');
+                    $('#progressModalUserValue').text(user || '-');
+                    $('#progressModalDateValue').text(date || '-');
+                } else if (progActionMode === 'treasury') {
+                    $('#progressActionTitle').text(progActionType === 'rollback' ? 'Rollback Treasury' : 'Received Treasury');
+                    $('#progressModalUserLabel').text('User Payment:');
+                    $('#progressModalDateLabel').text('Date Payment:');
+                    $('#progressModalUserValue').text(user || '-');
+                    $('#progressModalDateValue').text(date || '-');
+                } else if (progActionMode === 'revise') {
+                    $('#progressActionTitle').text('Revise RFP');
+                    $('#progressModalUserLabel').text('Action:');
+                    $('#progressModalDateLabel').text('Date:');
+                    $('#progressModalUserValue').text('Revise');
+                    $('#progressModalDateValue').text(formatNow());
+                    $('#progressModalMessageWrapper').removeClass('hidden');
+                    $('#progressModalMessage').attr('placeholder', 'Input revise reason/message...');
+                } else if (progActionMode === 'reminder') {
+                    $('#progressActionTitle').text('Send Reminder');
+                    $('#progressModalUserLabel').text('Action:');
+                    $('#progressModalDateLabel').text('Date:');
+                    $('#progressModalUserValue').text('Reminder');
+                    $('#progressModalDateValue').text(formatNow());
+                    $('#progressModalMessageWrapper').removeClass('hidden');
+                    $('#progressModalMessage').attr('placeholder', 'Input reminder message...');
+                }
+
+                $('#submitProgressActionBtn')
+                    .text(buttonText)
+                    .removeClass('bg-indigo-600 hover:bg-indigo-700 bg-red-600 hover:bg-red-700 bg-yellow-600 hover:bg-yellow-700')
+                    .addClass(
+                        progActionType === 'rollback'  ? 'bg-red-600 hover:bg-red-700' :
+                        progActionMode  === 'revise'   ? 'bg-yellow-600 hover:bg-yellow-700' :
+                                                         'bg-indigo-600 hover:bg-indigo-700'
+                    );
+
+                $('#rfpProgressActionModal').removeClass('hidden').addClass('flex');
+            });
+
+            $('#closeProgressActionModal').on('click', function () {
+                $('#rfpProgressActionModal').addClass('hidden').removeClass('flex');
+            });
+
+            $('#submitProgressActionBtn').on('click', function () {
+                if (!progActionMode) return;
+
+                let message = '';
+                if (progActionMode === 'revise' || progActionMode === 'reminder') {
+                    message = ($('#progressModalMessage').val() || '').trim();
+                    if (!message) {
+                        toastr.error('Message wajib diisi.');
+                        $('#progressModalMessage').focus();
+                        return;
+                    }
+                }
+
+                const urlMap = {
+                    received : `/rfpnonpurch/${hash}/received`,
+                    treasury : `/rfpnonpurch/${hash}/treasury`,
+                    revise   : `/rfpnonpurch/${hash}/finance-revise`,
+                    reminder : `/rfpnonpurch/${hash}/reminder`,
+                };
+                const url = urlMap[progActionMode];
+                if (!url) return;
+
+                $('#submitProgressActionBtn').prop('disabled', true).text('Processing...');
+
+                $.ajax({
+                    url,
+                    type: 'POST',
+                    data: {
+                        _token      : csrfToken,
+                        action_type : progActionType,
+                        message, comment: message, reason: message,
+                    },
+                    success: function (res) {
+                        if (res.success) {
+                            toastr.success(res.message || 'Action processed successfully.');
+                            $('#rfpProgressActionModal').addClass('hidden').removeClass('flex');
+                            setTimeout(() => location.reload(), 800);
+                        } else {
+                            toastr.error(res.message || 'Action failed.');
+                        }
+                    },
+                    error: function (xhr) {
+                        toastr.error(xhr.responseJSON?.error || xhr.responseJSON?.message || 'Action failed.');
+                    },
+                    complete: function () {
+                        $('#submitProgressActionBtn').prop('disabled', false);
+                    },
+                });
+            });
+        })();
     </script>
 </x-app-layout>

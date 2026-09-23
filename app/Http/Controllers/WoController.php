@@ -38,19 +38,8 @@ class WoController extends Controller
             return redirect()->route('login');
         }
 
-        // Company multi
-        if (is_string($user->cpny_id)) {
-            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
-        } else {
-            $cpnyIds = (array) $user->cpny_id;
-        }
-
-        // Department multi
-        if (is_string($user->department_id)) {
-            $deptIds = array_map('trim', explode(',', $user->department_id));
-        } else {
-            $deptIds = (array) $user->department_id;
-        }
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         // ===============================
         // APPROVAL STATUS (existing)
@@ -131,18 +120,8 @@ class WoController extends Controller
     {
         $user = Auth::user();
 
-        if (is_string($user->cpny_id)) {
-            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
-        } else {
-            $cpnyIds = (array) $user->cpny_id;
-        }
-
-        // department_id juga bisa multi, tapi di debug sudah "IT"
-        if (is_string($user->department_id)) {
-            $deptIds = array_map('trim', explode(',', $user->department_id));
-        } else {
-            $deptIds = (array) $user->department_id;
-        }
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $draw = (int) $request->input('draw', 1);
         $start = (int) $request->input('start', 0);
@@ -321,6 +300,7 @@ class WoController extends Controller
             'sub_location_id' => ['required', 'string', 'max:50'],
             'keperluan' => ['nullable', 'string', 'max:1000'],
             'wobudget' => ['required', 'in:Pemberi Kerja,Penerima Kerja'], // Pemberi Kerja/ Penerima Kerja
+            'business_unit_id' => ['required', 'string', 'max:100'],
         ];
 
         // Kalau budget = Internal (Pemberi Kerja) → COA wajib + perpost dipakai
@@ -330,7 +310,6 @@ class WoController extends Controller
                 'perpost' => ['required', 'string', 'max:10'],
                 'coa_id' => ['required', 'string', 'max:100'],
                 'activity_id' => ['required', 'string', 'max:100'],
-                'business_unit_id' => ['required', 'string', 'max:100'],
                 'department_fin_id' => ['required', 'string', 'max:100'],
                 'activity_descr' => ['required', 'string', 'max:255'],
             ]);
@@ -340,7 +319,6 @@ class WoController extends Controller
                 'perpost' => ['nullable', 'string', 'max:10'],
                 'coa_id' => ['nullable', 'string', 'max:100'],
                 'activity_id' => ['nullable', 'string', 'max:100'],
-                'business_unit_id' => ['nullable', 'string', 'max:100'],
                 'department_fin_id' => ['nullable', 'string', 'max:100'],
                 'activity_descr' => ['nullable', 'string', 'max:255'],
             ]);
@@ -360,7 +338,7 @@ class WoController extends Controller
             'perpost.required' => 'Perpost wajib untuk Budget Pemberi Kerja.',
             'coa_id.required' => 'COA wajib untuk Budget Pemberi Kerja.',
             'activity_id.required' => 'Activity wajib untuk Budget Pemberi Kerja.',
-            'business_unit_id.required' => 'Business Unit wajib untuk Budget Pemberi Kerja.',
+            'business_unit_id.required' => 'Business Unit wajib.',
             'department_fin_id.required' => 'Department Finance wajib untuk Budget Pemberi Kerja.',
             'activity_descr.required' => 'Deskripsi activity wajib untuk Budget Pemberi Kerja.',
         ];
@@ -719,6 +697,7 @@ class WoController extends Controller
             'sub_location_id' => ['required', 'string', 'max:50'],
             'keperluan' => ['nullable', 'string', 'max:1000'],
             'wobudget' => ['required', 'in:Pemberi Kerja,Penerima Kerja'],
+            'business_unit_id' => ['required', 'string', 'max:100'],
         ];
 
         $input = $request->all();
@@ -727,7 +706,6 @@ class WoController extends Controller
                 'perpost' => ['required', 'string', 'max:10'],
                 'coa_id' => ['required', 'string', 'max:100'],
                 'activity_id' => ['required', 'string', 'max:100'],
-                'business_unit_id' => ['required', 'string', 'max:100'],
                 'department_fin_id' => ['required', 'string', 'max:100'],
                 'activity_descr' => ['required', 'string', 'max:255'],
             ]);
@@ -736,7 +714,6 @@ class WoController extends Controller
                 'perpost' => ['nullable', 'string', 'max:10'],
                 'coa_id' => ['nullable', 'string', 'max:100'],
                 'activity_id' => ['nullable', 'string', 'max:100'],
-                'business_unit_id' => ['nullable', 'string', 'max:100'],
                 'department_fin_id' => ['nullable', 'string', 'max:100'],
                 'activity_descr' => ['nullable', 'string', 'max:255'],
             ]);
@@ -756,7 +733,7 @@ class WoController extends Controller
             'perpost.required' => 'Perpost wajib untuk Budget Pemberi Kerja.',
             'coa_id.required' => 'COA wajib untuk Budget Pemberi Kerja.',
             'activity_id.required' => 'Activity wajib untuk Budget Pemberi Kerja.',
-            'business_unit_id.required' => 'Business Unit wajib untuk Budget Pemberi Kerja.',
+            'business_unit_id.required' => 'Business Unit wajib.',
             'department_fin_id.required' => 'Department Finance wajib untuk Budget Pemberi Kerja.',
             'activity_descr.required' => 'Deskripsi activity wajib untuk Budget Pemberi Kerja.',
         ];
@@ -809,10 +786,10 @@ class WoController extends Controller
                 $wo->budget_activity_descr = $validated['activity_descr'] ?? null;
             } else {
                 $wo->budget_perpost = $validated['perpost'] ?? null;
-                $wo->budget_cpny_id = null;
+                $wo->budget_cpny_id = $validated['cpnyid'] ?? null;
                 $wo->budget_account_id = null;
                 $wo->budget_activity_id = null;
-                $wo->budget_business_unit_id = null;
+                $wo->budget_business_unit_id = $validated['business_unit_id'] ?? null;
                 $wo->budget_department_fin_id = null;
                 $wo->budget_activity_descr = null;
             }
@@ -926,6 +903,27 @@ class WoController extends Controller
         }
     }
 
+    // Dept assignment for a WO's worktype is checked from both showWo() (UI button state)
+    // and processWo() (server-side authorization), so it lives here once.
+    private function deptMatchesWorktype($user, TrWO $wo): bool
+    {
+        $userDepts = collect(explode(',', (string) ($user->department_id ?? '')))
+            ->map(fn ($v) => strtoupper(trim($v)))
+            ->filter()
+            ->unique()
+            ->values();
+
+        $worktypeDepts = MsWorktypeDept::where('worktypeid', $wo->worktypeid)
+            ->pluck('department_id')
+            ->map(fn ($v) => strtoupper(trim((string) $v)))
+            ->filter()
+            ->unique()
+            ->values();
+
+        return $worktypeDepts->contains('ALL')
+            || $userDepts->intersect($worktypeDepts)->isNotEmpty();
+    }
+
     public function showWo($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
@@ -1007,23 +1005,7 @@ class WoController extends Controller
         // ✅ HITUNG isProcessor DI CONTROLLER
         // department_id user: "ENGINEERING,ENGINEERING HVAC,..." => array
         // =========================
-        $userDeptRaw = (string) ($user->department_id ?? '');
-        $userDepts = collect(explode(',', $userDeptRaw))
-            ->map(fn ($v) => strtoupper(trim($v)))
-            ->filter()
-            ->unique()
-            ->values();
-
-        // MsWorktypeDept: ambil semua department utk worktype WO ini
-        $worktypeDepts = MsWorktypeDept::where('worktypeid', $wo->worktypeid)
-            ->pluck('department_id')
-            ->map(fn ($v) => strtoupper(trim((string) $v)))
-            ->filter()
-            ->unique()
-            ->values();
-
-        $deptMatch = $worktypeDepts->contains('ALL')
-            || $userDepts->intersect($worktypeDepts)->isNotEmpty();
+        $deptMatch = $this->deptMatchesWorktype($user, $wo);
 
         // PIC WO boleh proses juga
         $loginUsername = strtolower(trim((string) ($user->username ?? $user->name ?? '')));
@@ -1040,6 +1022,17 @@ class WoController extends Controller
         $loginUsername2 = $user->username ?? $user->name ?? null;
         $canUpload = $wo->created_by === $loginUsername2;
 
+        $isApprover = TrApproval::where('refnbr', $wo->woid)
+            ->where('aprv_doctype', 'WO')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername2) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername2), array_map('strtolower', $list), true);
+            });
+
         $userdept = Userdept::where('username', '=', $user->username)->get();
         $userdept2 = Userdept::where('username', '=', $user->username)->first();
 
@@ -1048,12 +1041,11 @@ class WoController extends Controller
             'attachments',
             'hash',
             'canUpload',
+            'isApprover',
             'userdept',
             'userdept2',
             'canProcess',
-            'isPicWo',
-            'worktypeDepts',
-            'userDepts'
+            'isPicWo'
         ));
     }
 
@@ -1835,14 +1827,26 @@ class WoController extends Controller
 
             foreach ($sorted as $a) {
 
-                $map = match ($a->status) {
-                    'A' => ['label' => 'Approved', 'status' => 'C'],
-                    'P' => ['label' => 'Waiting Approval', 'status' => 'P'],
-                    'R' => ['label' => 'Rejected', 'status' => 'R'],
-                    'D' => ['label' => 'Revised', 'status' => 'D'],
-                    'X' => ['label' => 'Cancelled', 'status' => 'X'],
-                    default => ['label' => 'Pending', 'status' => '_']
-                };
+                switch ($a->status) {
+                    case 'A':
+                        $map = ['label' => 'Approved', 'status' => 'C'];
+                        break;
+                    case 'P':
+                        $map = ['label' => 'Waiting Approval', 'status' => 'P'];
+                        break;
+                    case 'R':
+                        $map = ['label' => 'Rejected', 'status' => 'R'];
+                        break;
+                    case 'D':
+                        $map = ['label' => 'Revised', 'status' => 'D'];
+                        break;
+                    case 'X':
+                        $map = ['label' => 'Cancelled', 'status' => 'X'];
+                        break;
+                    default:
+                        $map = ['label' => 'Pending', 'status' => '_'];
+                        break;
+                }
 
                 $steps[] = [
                     'type' => 'approval',
@@ -2011,25 +2015,19 @@ class WoController extends Controller
             return redirect()->route('login');
         }
 
-        // 📌 Company bisa multi (cpny1,cpny2,...)
-        if (is_string($user->cpny_id)) {
-            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
-        } else {
-            $cpnyIds = (array) $user->cpny_id;
-        }
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
+        $isAdmin = $user->isAdmin();
 
-        // 📌 Department juga bisa multi (IT,HRD,...)
-        if (is_string($user->department_id)) {
-            $deptIds = array_map('trim', explode(',', $user->department_id));
-        } else {
-            $deptIds = (array) $user->department_id;
-        }
-        // dd($deptIds);
         // Kalau salah satu kosong → tidak ada data
         if (empty($cpnyIds) || empty($deptIds)) {
-            $all = $onProgress = $cancel = $completed = $wojobs = 0;
-
-            return view('pages.wos.wojobs', compact('all', 'onProgress', 'cancel', 'wojobs', 'completed'));
+            $all = $onProgress = $cancel = $completed = $wojobs = $adminAll = 0;
+            if ($isAdmin) {
+                $adminAll = TrWO::from('tr_wo as wo')
+                    ->where('wo.status', 'C')
+                    ->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
+            }
+            return view('pages.wos.wojobs', compact('all', 'onProgress', 'cancel', 'wojobs', 'completed', 'adminAll', 'isAdmin'));
         }
 
         $base = TrWO::from('tr_wo as wo')
@@ -2047,7 +2045,14 @@ class WoController extends Controller
         $completed = (clone $base)->where('wo.status_pekerjaan', 'C')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
         $wojobs = (clone $base)->where('wo.status_pekerjaan', 'H')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
 
-        return view('pages.wos.wojobs', compact('all', 'onProgress', 'cancel', 'wojobs', 'completed'));
+        $adminAll = 0;
+        if ($isAdmin) {
+            $adminAll = TrWO::from('tr_wo as wo')
+                ->where('wo.status', 'C')
+                ->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
+        }
+
+        return view('pages.wos.wojobs', compact('all', 'onProgress', 'cancel', 'wojobs', 'completed', 'adminAll', 'isAdmin'));
     }
 
     public function jsonJobs(Request $request)
@@ -2063,21 +2068,14 @@ class WoController extends Controller
             ]);
         }
 
-        // Company multi
-        if (is_string($user->cpny_id)) {
-            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
-        } else {
-            $cpnyIds = (array) $user->cpny_id;
-        }
+        $isAdmin  = $user->isAdmin();
+        $adminAll = $isAdmin && (bool) $request->query('admin_all', false);
 
-        // Department multi
-        if (is_string($user->department_id)) {
-            $deptIds = array_map('trim', explode(',', $user->department_id));
-        } else {
-            $deptIds = (array) $user->department_id;
-        }
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
-        if (empty($cpnyIds) || empty($deptIds)) {
+        // Admin with admin_all bypasses company/dept requirement
+        if (!$adminAll && (empty($cpnyIds) || empty($deptIds))) {
             return response()->json([
                 'draw' => (int) $request->input('draw', 1),
                 'recordsTotal' => 0,
@@ -2130,8 +2128,10 @@ class WoController extends Controller
                 $j->on('subloc.sub_location_id', '=', 'wo.sub_location_id');
             })
 
-            ->whereIn('wo.cpny_id', $cpnyIds)
-            ->whereIn('wtd.department_id', $deptIds);
+            ->when(!$adminAll, function ($q) use ($cpnyIds, $deptIds) {
+                $q->whereIn('wo.cpny_id', $cpnyIds)
+                  ->whereIn('wtd.department_id', $deptIds);
+            });
 
         // Filter job status
         if ($jobStatus !== '') {
@@ -2213,27 +2213,28 @@ class WoController extends Controller
         ]);
     }
 
-    public function businessUnits()
+    public function businessUnits(Request $request)
     {
         $user = Auth::user();
 
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_map('trim', explode(',', $user->cpny_id))
-            : (array) $user->cpny_id;
+        $isAdmin  = $user->isAdmin();
+        $adminAll = ($isAdmin && (bool) $request->query('admin_all', false)) || $user->hasFullDataScope();
 
-        $deptIds = is_string($user->department_id)
-            ? array_map('trim', explode(',', $user->department_id))
-            : (array) $user->department_id;
+        $query = TrWO::from('tr_wo as wo')
+            ->whereNotNull('wo.budget_business_unit_id');
 
-        $data = TrWO::from('tr_wo as wo')
-            ->join('ms_worktype_dept as wtd', function ($j) {
-                $j->on('wtd.worktypeid', '=', 'wo.worktypeid');
-            })
-            ->whereIn('wo.cpny_id', $cpnyIds)
-            ->whereIn('wtd.department_id', $deptIds)
-            ->whereNotNull('wo.budget_business_unit_id')
-            ->distinct()
-            ->pluck('wo.budget_business_unit_id');
+        if (!$adminAll) {
+            $cpnyIds = $user->scopedCompanyIds();
+            $deptIds = $user->scopedDepartmentIds();
+
+            $query->join('ms_worktype_dept as wtd', function ($j) {
+                    $j->on('wtd.worktypeid', '=', 'wo.worktypeid');
+                })
+                ->whereIn('wo.cpny_id', $cpnyIds)
+                ->whereIn('wtd.department_id', $deptIds);
+        }
+
+        $data = $query->distinct()->pluck('wo.budget_business_unit_id');
 
         return response()->json($data);
     }
@@ -2243,29 +2244,40 @@ class WoController extends Controller
     {
         $user = auth()->user();
 
-        $wo = TrWO::where('woid', $woid)->firstOrFail();
+        return DB::transaction(function () use ($user, $woid) {
+            // lockForUpdate() so two users clicking Process at the same time
+            // can't both pass the "no PIC yet" check before either one saves.
+            $wo = TrWO::where('woid', $woid)->lockForUpdate()->firstOrFail();
 
-        if ($wo->pic_wo) {
+            if ($wo->pic_wo) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'WO already processed.',
+                ], 400);
+            }
+
+            if (!$user->isAdmin() && !$this->deptMatchesWorktype($user, $wo)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You are not authorized to process this WO.',
+                ], 403);
+            }
+
+            $wo->pic_wo = $user->username;
+
+            // REMOVE this if column does not exist
+            // $wo->pic_department = $user->department_id ?? null;
+
+            $wo->status_pekerjaan = 'P';
+
+            $wo->save();
+
             return response()->json([
-                'success' => false,
-                'message' => 'WO already processed.',
-            ], 400);
-        }
-
-        $wo->pic_wo = $user->username;
-
-        // REMOVE this if column does not exist
-        // $wo->pic_department = $user->department_id ?? null;
-
-        $wo->status_pekerjaan = 'P';
-
-        $wo->save();
-
-        return response()->json([
-            'success' => true,
-            'pic_wo' => $wo->pic_wo,
-            'status_pekerjaan' => $wo->status_pekerjaan,
-        ]);
+                'success' => true,
+                'pic_wo' => $wo->pic_wo,
+                'status_pekerjaan' => $wo->status_pekerjaan,
+            ]);
+        });
     }
 
     // POST /wo/{woid}/job-status
@@ -2279,7 +2291,19 @@ class WoController extends Controller
             'attachment' => 'nullable|file|max:10240', // 10MB
         ]);
 
+        $user = auth()->user();
         $wo = TrWO::where('woid', $woid)->firstOrFail();
+
+        $loginUsername = strtolower(trim((string) ($user->username ?? '')));
+        $pic = strtolower(trim((string) ($wo->pic_wo ?? '')));
+        $isPicWo = ($pic !== '' && $pic === $loginUsername);
+
+        if (!$isPicWo && !$user->isAdmin()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only the assigned PIC can update this WO.',
+            ], 403);
+        }
 
         // =========================
         // UPDATE JOB STATUS
@@ -2298,9 +2322,6 @@ class WoController extends Controller
         // =========================
         // FLAG NORMALIZATION
         // =========================
-        $flag = filter_var($req->input('flag_sppbjkt'), FILTER_VALIDATE_BOOLEAN)
-                || $req->input('flag_sppbjkt') == 1;
-
         $wo->flag_sppbjkt = $req->has('flag_sppbjkt') && $req->flag_sppbjkt == 1 ? 'Y' : 'N';
 
         $wo->save();

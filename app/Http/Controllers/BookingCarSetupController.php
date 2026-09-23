@@ -106,7 +106,7 @@ class BookingCarSetupController extends Controller
     public function jsonVehicle(Request $request)
     {
         $query = MsKendaraan::query()
-            ->where('kategori_kendaraan', 'Operational')
+            ->whereRaw('UPPER(kategori_kendaraan) = ?', ['OPERATIONAL'])
             ->orderByDesc('id');
 
         return DataTables::of($query)
@@ -177,6 +177,7 @@ class BookingCarSetupController extends Controller
     {
         $query = MsCategory::query()
             ->where('doctype', 'BCR')
+            ->where('groups', 'PURPOSE')
             ->orderByDesc('id');
 
         return DataTables::of($query)
@@ -265,7 +266,7 @@ class BookingCarSetupController extends Controller
 
     public function findVehicle($id)
     {
-        $vehicle = MsKendaraan::where('kategori_kendaraan', 'Operational')
+        $vehicle = MsKendaraan::whereRaw('UPPER(kategori_kendaraan) = ?', ['OPERATIONAL'])
             ->findOrFail($id);
 
         return response()->json([
@@ -406,11 +407,11 @@ class BookingCarSetupController extends Controller
         try {
 
             MsKendaraan::create([
-                'no_polisi'          => strtoupper(trim($request->no_polisi)),
-                'namakendaraan'      => strtoupper(trim($request->namakendaraan)),
-                'typekendaraan'      => $request->typekendaraan ? strtoupper(trim($request->typekendaraan)) : null,
-                'merk_kendaraan'     => $request->merk_kendaraan ? strtoupper(trim($request->merk_kendaraan)) : null,
-                'pemilikkendaraan'   => $request->pemilikkendaraan ? strtoupper(trim($request->pemilikkendaraan)) : null,
+                'no_polisi'          => trim($request->no_polisi),
+                'namakendaraan'      => trim($request->namakendaraan),
+                'typekendaraan'      => $request->typekendaraan ? trim($request->typekendaraan) : null,
+                'merk_kendaraan'     => $request->merk_kendaraan ? trim($request->merk_kendaraan) : null,
+                'pemilikkendaraan'   => $request->pemilikkendaraan ? trim($request->pemilikkendaraan) : null,
                 'kategori_kendaraan' => 'Operational',
                 'status'             => 'A',
                 'created_by'         => Auth::user()->username ?? Auth::user()->name,
@@ -448,15 +449,15 @@ class BookingCarSetupController extends Controller
 
         try {
 
-            $vehicle = MsKendaraan::where('kategori_kendaraan', 'Operational')
+            $vehicle = MsKendaraan::whereRaw('UPPER(kategori_kendaraan) = ?', ['OPERATIONAL'])
                 ->findOrFail($id);
 
             $vehicle->update([
-                'no_polisi'          => strtoupper(trim($request->no_polisi)),
-                'namakendaraan'      => strtoupper(trim($request->namakendaraan)),
-                'typekendaraan'      => $request->typekendaraan ? strtoupper(trim($request->typekendaraan)) : null,
-                'merk_kendaraan'     => $request->merk_kendaraan ? strtoupper(trim($request->merk_kendaraan)) : null,
-                'pemilikkendaraan'   => $request->pemilikkendaraan ? strtoupper(trim($request->pemilikkendaraan)) : null,
+                'no_polisi'          => trim($request->no_polisi),
+                'namakendaraan'      => trim($request->namakendaraan),
+                'typekendaraan'      => $request->typekendaraan ? trim($request->typekendaraan) : null,
+                'merk_kendaraan'     => $request->merk_kendaraan ? trim($request->merk_kendaraan) : null,
+                'pemilikkendaraan'   => $request->pemilikkendaraan ? trim($request->pemilikkendaraan) : null,
                 'kategori_kendaraan' => 'Operational',
                 'updated_by'         => Auth::user()->username ?? Auth::user()->name,
             ]);
@@ -525,8 +526,8 @@ class BookingCarSetupController extends Controller
 
             MsCategory::create([
                 'doctype'       => 'BCR',
-                'categoryid'    => strtoupper($request->categoryid),
-                'category_name' => strtoupper($request->category_name),
+                'categoryid'    => $request->categoryid,
+                'category_name' => $request->category_name,
                 'groups'        => strtoupper($request->groups),
                 'username'      => Auth::user()->username ?? Auth::user()->name,
                 'status'        => 'A',
@@ -568,8 +569,8 @@ class BookingCarSetupController extends Controller
                 ->findOrFail($id);
 
             $category->update([
-                'categoryid'    => strtoupper($request->categoryid),
-                'category_name' => strtoupper($request->category_name),
+                'categoryid'    => $request->categoryid,
+                'category_name' => $request->category_name,
                 'groups'        => strtoupper($request->groups),
                 'type'          => strtoupper($request->type),
                 'updated_by'    => Auth::user()->username ?? Auth::user()->name,

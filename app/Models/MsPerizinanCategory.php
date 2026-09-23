@@ -6,11 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class MsPerizinanCategory extends Model
 {
-    protected $connection = 'pgsql5';
+    protected $connection = 'pgsql';
     protected $table = 'ms_perizinan_category';
 
     protected $fillable = [
-        'perizinancategory',
+        'perizinan_category',
         'perizinancategory_descr',
         'status',
         'created_by',

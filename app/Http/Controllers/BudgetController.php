@@ -123,19 +123,8 @@ class BudgetController extends Controller
     {
         $user = Auth::user();
 
-        // cpny_id bisa "AW" atau "AW,EP,PSA,GPS"
-        if (is_string($user->cpny_id)) {
-            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
-        } else {
-            $cpnyIds = (array) $user->cpny_id;
-        }
-
-        // department_id juga bisa multi, tapi di debug sudah "IT"
-        if (is_string($user->department_id)) {
-            $deptIds = array_map('trim', explode(',', $user->department_id));
-        } else {
-            $deptIds = (array) $user->department_id;
-        }
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         // Normal: ambil mapping dept -> dept_fin
         $departmentFinIds = MsDepartment::whereIn('department_id', $deptIds)
@@ -143,7 +132,7 @@ class BudgetController extends Controller
             ->pluck('department_fin_id')
             ->toArray();
 
-        $full = $this->hasFullAccess();
+        $full = $this->hasFullAccess() || $user->hasFullDataScope();
 
 
         // Kalau FULLACCESS → filter company saja
@@ -1027,8 +1016,18 @@ class BudgetController extends Controller
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload     = $budget->created_by === $loginUsername;
 
+        $isApprover = TrApproval::where('refnbr', $budget->budget_id)
+            ->where('aprv_doctype', 'BD')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
 
-        return view('pages.budgets.showbudgets', compact('budget','budgetdetail','hash','canUpload'));
+        return view('pages.budgets.showbudgets', compact('budget', 'budgetdetail', 'hash', 'canUpload', 'isApprover'));
     }
 
 

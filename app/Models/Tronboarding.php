@@ -12,6 +12,8 @@ class Tronboarding extends Model
    
     protected $fillable = [    
         'docid',
+        'cpnyid',
+        'group_cpny_id',
         'jobapply_id',
         'jobid',
         'applicant_id',

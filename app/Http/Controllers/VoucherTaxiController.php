@@ -46,8 +46,8 @@ class VoucherTaxiController extends Controller
         // 🔹 Base query
         $q = TrVoucherTaxi::query();
 
-        // 🔥 APPLY FILTER ONLY IF NOT GA
-        if (!$isGA) {
+        // 🔥 APPLY FILTER ONLY IF NOT GA (and not a full-scope role like DIRECTORACCESS)
+        if (!$isGA && !$user->hasFullDataScope()) {
             if (!empty($cpnyIds)) {
                 $q->whereIn(DB::raw('TRIM(cpny_id)'), $cpnyIds);
             }
@@ -68,7 +68,10 @@ class VoucherTaxiController extends Controller
         $usercpny = Usercpny::where('username', $user->username)->get();
         $usercpny2 = Usercpny::where('username', $user->username)->first();
 
-        $userdept = Userdept::where('username', $user->username)->get();
+        $userdept = Userdept::where('ms_user_dept.username', $user->username)
+            ->leftJoin('ms_department', 'ms_user_dept.department_id', '=', 'ms_department.department_id')
+            ->select('ms_user_dept.department_id', 'ms_department.department_name')
+            ->get();
         $userdept2 = Userdept::where('username', $user->username)->first();
 
         $company = MsCompany::where('status', 'A')
@@ -108,22 +111,8 @@ class VoucherTaxiController extends Controller
             'requesters',
             'company',
             'departments',
-            'purposes'  // 👈 ADD THIS
-        ));
-
-        return view('pages.vouchertaxi.vouchertaxi', compact(
-            'all',
-            'onProgress',
-            'reject',
-            'revise',
-            'completed',
-            'usercpny',
-            'usercpny2',
-            'userdept',
-            'userdept2',
-            'requesters',
-            'company',
-            'departments'
+            'purposes',
+            'isGA'
         ));
     }
 
@@ -167,7 +156,10 @@ class VoucherTaxiController extends Controller
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        $isGA = $authUser->hasRole('GAACCESS');
+        $isGA      = $authUser->hasRole('GAACCESS');
+        $isAdmin   = $authUser->isAdmin();
+        $showAll   = ($isAdmin && $request->input('all_transactions') === '1')
+            || $authUser->hasFullDataScope();
 
         $cpnyIds = is_string($authUser->cpny_id)
             ? array_filter(array_map('trim', explode(',', $authUser->cpny_id)))
@@ -200,40 +192,24 @@ class VoucherTaxiController extends Controller
                 'vt.created_at',
             ]);
 
-        if ($isGA) {
-            // GA user: sees approval-chain vouchers OR own company/department (BOTH views)
-            $approvalDocids = TrApproval::where('status', '!=', 'X')
-                ->whereRaw(
-                    "LOWER(aprv_username) ~ ?",
-                    ['(^|,)\s*' . preg_quote($username, '/') . '\s*(,|$)']
-                )
-                ->pluck('refnbr')
-                ->unique()
-                ->values()
-                ->toArray();
-
-            $query->where(function ($q) use ($approvalDocids, $cpnyIds, $deptIds) {
-                $q->whereIn('vt.docid', $approvalDocids);
-
-                if (!empty($cpnyIds) || !empty($deptIds)) {
-                    $q->orWhere(function ($sub) use ($cpnyIds, $deptIds) {
-                        if (!empty($cpnyIds)) {
-                            $sub->whereIn(DB::raw('TRIM(vt.cpny_id)'), $cpnyIds);
-                        }
-                        if (!empty($deptIds)) {
-                            $sub->whereIn(DB::raw('TRIM(vt.department_id)'), $deptIds);
-                        }
+        if (!$showAll) {
+            if ($isGA) {
+                // GA: all vouchers for their assigned company (requester or expense company)
+                if (!empty($cpnyIds)) {
+                    $query->where(function ($q) use ($cpnyIds) {
+                        $q->whereIn(DB::raw('TRIM(vt.cpny_id)'), $cpnyIds)
+                          ->orWhereIn(DB::raw('TRIM(vt.cpny_id_expense)'), $cpnyIds);
                     });
                 }
-            });
-        } else {
-            // Regular user: sees all vouchers in their company AND department
-            if (!empty($cpnyIds)) {
-                $query->whereIn(DB::raw('TRIM(vt.cpny_id)'), $cpnyIds);
-            }
+            } else {
+                // Regular user: sees all vouchers in their company AND department
+                if (!empty($cpnyIds)) {
+                    $query->whereIn(DB::raw('TRIM(vt.cpny_id)'), $cpnyIds);
+                }
 
-            if (!empty($deptIds)) {
-                $query->whereIn(DB::raw('TRIM(vt.department_id)'), $deptIds);
+                if (!empty($deptIds)) {
+                    $query->whereIn(DB::raw('TRIM(vt.department_id)'), $deptIds);
+                }
             }
         }
 
@@ -297,30 +273,29 @@ class VoucherTaxiController extends Controller
         $isGA     = $user->hasRole('GAACCESS');
         $username = strtolower(trim($user->username));
 
+        $cpnyIds = is_string($user->cpny_id)
+            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
+            : (array) $user->cpny_id;
+
         $base = TrVoucherTaxi::query()
-            ->whereIn('status', ['P', 'C', 'F', 'D', 'R'])
+            ->whereIn('status', ['P', 'C', 'F', 'D'])
             ->select([
                 'id', 'docid', 'date_used',
                 'origin', 'destination',
                 'purpose_descr', 'status',
-                'cpny_id', 'department_id', 'created_by',
+                'cpny_id', 'cpny_id_expense', 'department_id', 'created_by',
             ]);
 
-        if ($isGA) {
-            $docids = TrApproval::where('status', '!=', 'X')
-                ->whereRaw(
-                    "LOWER(aprv_username) ~ ?",
-                    ['(^|,)\s*' . preg_quote($username, '/') . '\s*(,|$)']
-                )
-                ->pluck('refnbr')
-                ->unique()
-                ->values()
-                ->toArray();
-
-            $base->where(function ($q) use ($docids, $username) {
-                $q->whereIn('docid', $docids)
-                  ->orWhereRaw('LOWER(TRIM(created_by)) = ?', [$username]);
-            });
+        if ($user->hasFullDataScope()) {
+            // Full scope (e.g. DIRECTORACCESS): every voucher, no company/creator filter.
+        } elseif ($isGA) {
+            // GA: all vouchers for their assigned company (requester or expense company)
+            if (!empty($cpnyIds)) {
+                $base->where(function ($q) use ($cpnyIds) {
+                    $q->whereIn(DB::raw('TRIM(cpny_id)'), $cpnyIds)
+                      ->orWhereIn(DB::raw('TRIM(cpny_id_expense)'), $cpnyIds);
+                });
+            }
         } else {
             $base->whereRaw('LOWER(TRIM(created_by)) = ?', [$username]);
         }
@@ -389,12 +364,27 @@ class VoucherTaxiController extends Controller
 
     public function employeeByDepartment(Request $request)
     {
-        $employees = User::query()
-            ->where('status', 'A')
-            ->where('department_id', $request->department_id)
-            ->select('username', 'name')
-            ->orderBy('name')
-            ->get();
+        $dept = $request->department_id;
+
+        $query = User::query()
+            ->where('ms_user.status', 'A')
+            ->whereIn('ms_user.username', function ($q) use ($dept) {
+                $q->select('username')
+                    ->from('ms_user_dept')
+                    ->where('department_id', $dept);
+            })
+            ->select('ms_user.username', 'ms_user.name');
+
+        if ($request->filled('cpny_id')) {
+            $cpny = $request->cpny_id;
+            $query->whereIn('ms_user.username', function ($q) use ($cpny) {
+                $q->select('username')
+                    ->from('ms_user_cpny')
+                    ->where('cpny_id', $cpny);
+            });
+        }
+
+        $employees = $query->orderBy('ms_user.name')->get();
 
         return response()->json([
             'success' => true,
@@ -426,6 +416,8 @@ class VoucherTaxiController extends Controller
 
             'origin' => ['required'],
             'destination' => ['required'],
+
+            'cpny_id_expense' => ['required'],
         ]);
 
         if (!$user->hasRole('GAACCESS')) {
@@ -487,7 +479,7 @@ class VoucherTaxiController extends Controller
 
             $tglbln = substr((string) $year, 2) . $month;
 
-            $docid = $doctype . $tglbln . sprintf('%03d', $urutan);
+            $docid = $doctype . $tglbln . sprintf('%04d', $urutan);
 
             $voucher = TrVoucherTaxi::create([
                 'docid' => $docid,
@@ -497,7 +489,7 @@ class VoucherTaxiController extends Controller
                 'department_id' => $validated['department_id'],
                 'user_peminta' => $validated['user_peminta'],
 
-                'cpny_id_expense' => $validated['cpny_id'],
+                'cpny_id_expense' => $validated['cpny_id_expense'],
                 'department_id_expense' => $validated['department_id'],
                 'user_peminta_expense' => $validated['user_peminta'],
 
@@ -600,6 +592,8 @@ class VoucherTaxiController extends Controller
 
             'origin' => ['required'],
             'destination' => ['required'],
+
+            'cpny_id_expense' => ['required'],
         ]);
 
         DB::connection('pgsql5')->beginTransaction();
@@ -636,7 +630,7 @@ class VoucherTaxiController extends Controller
             $voucher->department_id = $validated['department_id'];
             $voucher->user_peminta = $validated['user_peminta'];
 
-            $voucher->cpny_id_expense = $validated['cpny_id'];
+            $voucher->cpny_id_expense = $validated['cpny_id_expense'];
             $voucher->department_id_expense = $validated['department_id'];
             $voucher->user_peminta_expense = $validated['user_peminta'];
 
@@ -857,6 +851,10 @@ class VoucherTaxiController extends Controller
                 $canProcess = true;
             }
 
+            // GAACCESS can only leave a private note on a voucher they're on the approval line for.
+            $canPrivateNote = $user->hasRole('GAACCESS')
+                && \App\Services\DocumentNotificationService::isOnApprovalLine('VCR', $voucher->docid, $user->username);
+
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -935,6 +933,7 @@ class VoucherTaxiController extends Controller
                     'can_revise' => $canRevise,
 
                     'can_process' => $canProcess,
+                    'can_private_note' => $canPrivateNote,
                 ]
             ]);
         } catch (\Throwable $e) {

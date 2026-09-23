@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <style>
@@ -132,31 +132,23 @@
     @endphp
 
     <div class="max-w-9xl mx-auto p-2">
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'CALR Non Purchase', 'url' => route('calrnonpurch')],
+            ['label' => 'Show Details'],
+        ]">
+            <x-approval-actions
+                :status="$calr->status"
+                :is-approver="$isApprover"
+                :edit-url="url('/editcalrnonpurch/' . $hash)"
+            />
+        </x-breadcrumb>
 
-        <div class="mb-4 flex items-center justify-end">
-            <div class="flex gap-3">
-                <button id="approveBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200">
-                    Approve
-                </button>
-
-                <button id="reviseBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-600">
-                    Revise
-                </button>
-
-                <button id="rejectBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200">
-                    Reject
-                </button>
-            </div>
-        </div>
-
-        <div class="flex w-full flex-col gap-6">
-             <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <div class="flex w-full flex-col gap-4">
+             <div class="grid grid-cols-1 gap-4 xl:grid-cols-5">
 
                 {{-- LEFT CARD --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800 xl:col-span-3">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-[8px] dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
@@ -235,7 +227,9 @@
                                     'value' => 'Rp ' . $fmtMoney($calr->amountsettlement),
                                 ],
                                 [
-                                    'label' => 'Sisa / (Kurang) Pembayaran',
+                                    'label' => (float) ($calr->amountdiff ?? 0) < 0
+                                        ? 'Kurang Kasbon'
+                                        : 'Lebih Kasbon',
                                     'value' => 'Rp ' . $fmtMoney($calr->amountdiff),
                                 ],
                                 [
@@ -263,13 +257,205 @@
                                 </div>
                             @endforeach
                         </div>
+
+                        @php
+                            $hasBudgetDetail = $details->contains(function ($d) {
+                                return trim((string) ($d->budget_department_fin_id ?? '')) !== ''
+                                    || trim((string) ($d->budget_account_id ?? '')) !== ''
+                                    || trim((string) ($d->budget_activity_id ?? '')) !== ''
+                                    || trim((string) ($d->budget_activity_descr ?? '')) !== '';
+                            });
+                        @endphp
+
+                        <div class="mt-4 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                            <div class="mb-3 flex items-center justify-between">
+                                <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">
+                                    CALR Detail
+                                </h3>
+                            </div>
+
+                            <div class="overflow-x-auto">
+                                <table class="w-full table-fixed text-sm">
+                                    <colgroup>
+                                        <col class="{{ $hasBudgetDetail ? 'w-[30%]' : 'w-auto' }}">
+                                        @if ($hasBudgetDetail)
+                                            <col class="w-70">
+                                        @endif
+                                        <col class="w-35">
+                                        <col class="w-32">
+                                        <col class="w-35">
+                                    </colgroup>
+
+                                    <thead class="border-b text-gray-600 dark:text-gray-300">
+                                        <tr>
+                                            <th class="p-2 text-left">Description</th>
+                                            @if ($hasBudgetDetail)
+                                                <th class="p-2 text-left">Budget</th>
+                                            @endif
+                                            <th class="p-2 text-right">Amount DPP</th>
+                                            <th class="p-2 text-left">Tax</th>
+                                            <th class="p-2 text-right">Amount</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody class="divide-y dark:divide-gray-600">
+                                        @forelse ($details as $d)
+                                            <tr>
+                                                <td class="p-2">
+                                                    {{ $d->keperluan_detail ?: '-' }}
+                                                </td>
+
+                                                @if ($hasBudgetDetail)
+                                                    <td class="p-2">
+                                                        @php
+                                                            $budgetData = $d->budget_data ?? null;
+
+                                                            $budget = (float) ($budgetData->totalbudget ?? 0);
+                                                            $additional = (float) ($budgetData->totalbudget_add ?? 0);
+                                                            $reserved = (float) ($budgetData->total_reserve ?? 0);
+                                                            $used = (float) ($budgetData->total_used ?? 0);
+
+                                                            $totalBudget = $budget + $additional;
+                                                            $available = $totalBudget - $reserved - $used;
+                                                        @endphp
+
+                                                        <div class="budget-trigger cursor-help"
+                                                            data-budget="{{ $budget }}"
+                                                            data-additional="{{ $additional }}"
+                                                            data-reserved="{{ $reserved }}"
+                                                            data-used="{{ $used }}"
+                                                            data-available="{{ $available }}"
+                                                            data-desc="{{ $d->budget_activity_descr ?: $d->budget_activity_id ?: '-' }}"
+                                                            data-account="{{ $d->budget_account_id ?: '-' }}"
+                                                            data-coa="{{ optional($budgetData)->account_descr ?: '-' }}"
+                                                            data-bu="{{ $d->budget_business_unit_id ?: '-' }}">
+
+                                                            <div class="flex flex-wrap items-center gap-2 text-sm">
+                                                                @if (!empty($d->budget_department_fin_id))
+                                                                    <span class="rounded-md bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-800/30 dark:text-indigo-300">
+                                                                        {{ $d->budget_department_fin_id }}
+                                                                    </span>
+                                                                @endif
+
+                                                                @if (!empty($d->budget_business_unit_id))
+                                                                    <span class="rounded-md bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700 dark:bg-purple-800/30 dark:text-purple-300">
+                                                                        {{ $d->budget_business_unit_id }}
+                                                                    </span>
+                                                                @endif
+
+                                                                <span class="font-semibold text-gray-700 dark:text-gray-200">
+                                                                    {{ $d->budget_account_id ?: '-' }}
+                                                                </span>
+
+                                                                <span class="text-gray-400 dark:text-gray-500">-</span>
+
+                                                                <span class="max-w-[240px] truncate text-gray-500 dark:text-gray-400">
+                                                                    {{ $d->budget_activity_descr ?: $d->budget_activity_id ?: '-' }}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                @endif
+
+                                                <td class="p-2 text-right">
+                                                    Rp {{ $fmtMoney($d->amount_request_dpp ?? $d->amount_request_penyelesaian) }}
+                                                </td>
+
+                                                <td class="p-2">
+                                                    @php
+                                                        $taxCode = trim((string) ($d->taxcodeid ?? ''));
+                                                        $taxDescr = $taxCode !== ''
+                                                            ? ($taxDescriptions[$taxCode] ?? $taxCode)
+                                                            : '-';
+                                                    @endphp
+
+                                                    <span class="font-semibold text-gray-700 dark:text-gray-200">
+                                                        {{ $taxDescr }}
+                                                    </span>
+                                                </td>
+
+                                                <td class="p-2 text-right">
+                                                    Rp {{ $fmtMoney($d->amount_request_penyelesaian) }}
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="{{ $hasBudgetDetail ? 5 : 4 }}" class="p-3 text-center italic text-gray-500 dark:text-gray-400">
+                                                    No detail found.
+                                                </td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+
+                                    <tfoot class="bg-gray-50 dark:bg-gray-700">
+                                        <tr>
+                                            <th colspan="{{ $hasBudgetDetail ? 4 : 3 }}" class="p-2 text-right font-semibold">
+                                                Total
+                                            </th>
+                                            <th class="p-2 text-right font-semibold">
+                                                Rp {{ $fmtMoney($details->sum('amount_request_penyelesaian')) }}
+                                            </th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+
+                                @if ($hasBudgetDetail)
+                                    <div id="budgetTooltip"
+                                        class="fixed z-[9999] hidden w-72 rounded-xl border border-gray-200 bg-white p-4 text-sm shadow-lg dark:border-gray-700 dark:bg-gray-900">
+
+                                        <div class="space-y-1">
+                                            <div id="ttDesc" class="font-semibold text-gray-900 dark:text-white"></div>
+
+                                            <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                <span id="ttAccount"></span>
+                                                <span class="mx-1 text-gray-300">|</span>
+                                                <span id="ttCoa"></span>
+                                                <span class="mx-1 text-gray-300">|</span>
+                                                <span id="ttBU"></span>
+                                            </div>
+                                        </div>
+
+                                        <div class="my-3 border-t border-gray-200 dark:border-gray-700"></div>
+
+                                        <div class="space-y-1.5">
+                                            <div class="flex justify-between text-gray-600 dark:text-gray-400">
+                                                <span>Budget</span>
+                                                <span id="ttBudget"></span>
+                                            </div>
+
+                                            <div class="flex justify-between text-gray-600 dark:text-gray-400">
+                                                <span>Additional</span>
+                                                <span id="ttAdditional"></span>
+                                            </div>
+
+                                            <div class="flex justify-between">
+                                                <span class="text-gray-500 dark:text-gray-400">Reserved</span>
+                                                <span id="ttReserved" class="text-red-500"></span>
+                                            </div>
+
+                                            <div class="flex justify-between">
+                                                <span class="text-gray-500 dark:text-gray-400">Used</span>
+                                                <span id="ttUsed" class="text-red-500"></span>
+                                            </div>
+
+                                            <div class="my-2 border-t border-gray-200 dark:border-gray-700"></div>
+
+                                            <div class="flex justify-between font-semibold">
+                                                <span class="text-gray-700 dark:text-gray-300">Available</span>
+                                                <span id="ttAvailable"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 {{-- RIGHT CARD --}}
-                <div class="flex flex-1 flex-col gap-6">
+                <div class="flex flex-1 flex-col gap-4 xl:col-span-2">
                     <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
-                        <div x-data="{ activeTab: 'attachment' }" class="flex max-h-[100%] flex-1 flex-col">
+                        <div x-data="{ activeTab: 'attachment', tabsOpen: true }" class="flex max-h-[100%] flex-1 flex-col">
                             <header
                                 class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                                 <nav class="flex flex-grow">
@@ -297,9 +483,13 @@
                                         Comments
                                     </button>
                                 </nav>
+                                <button type="button" @click="tabsOpen = !tabsOpen"
+                                    class="ml-3 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-indigo-300 via-indigo-400 to-indigo-500 text-[10px] font-bold leading-none text-indigo-950 shadow-[0_1px_2px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.6),inset_0_-1px_1px_rgba(0,0,0,0.15)] transition hover:brightness-110 dark:from-indigo-400 dark:via-indigo-500 dark:to-indigo-600 dark:text-indigo-50 dark:shadow-[0_1px_2px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.4),inset_0_-1px_1px_rgba(0,0,0,0.25)]"
+                                    x-text="tabsOpen ? '−' : '+'" :title="tabsOpen ? 'Minimize' : 'Restore'">
+                                </button>
                             </header>
 
-                            <div class="flex flex-1 flex-col">
+                            <div class="flex flex-1 flex-col" :class="{ hidden: !tabsOpen }">
                                 {{-- Approval --}}
                                 <div x-show="activeTab === 'approval'" class="flex-1 overflow-y-auto px-4">
                                     <table class="w-full text-sm">
@@ -378,7 +568,7 @@
                                     <div class="flex h-full flex-col">
                                         <div id="commentList"
                                             class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
-                                            <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                            <p class="py-4 text-center italic text-gray-500 dark:text-gray-400">Loading comments...</p>
                                         </div>
 
                                         <div
@@ -396,120 +586,65 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            {{-- DETAIL + CALR PROGRESS --}}
-            <div class="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
+                    <div class="rounded-xl bg-white p-4 dark:bg-gray-800">
+                        <div class="mb-4 border-b border-gray-200 pb-3 dark:border-gray-700">
+                            <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">
+                                CALR Non Purchase Progress Steps
+                            </h3>
+                        </div>
 
-                {{-- LEFT: CALR DETAIL --}}
-                <div class="rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                    <div class="mb-4 border-b border-gray-200 pb-3 dark:border-gray-700">
-                        <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">
-                            CALR Detail
-                        </h3>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-700">
-                                <tr>
-                                    <th class="w-16 px-3 py-2 text-center font-semibold">No</th>
-                                    <th class="px-3 py-2 text-left font-semibold">Description</th>
-                                    <th class="w-[220px] px-3 py-2 text-right font-semibold">Price</th>
-                                </tr>
-                            </thead>
-
-                            <tbody class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800">
-                                @forelse ($details as $i => $d)
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                        <td class="px-3 py-2 text-center">{{ $i + 1 }}</td>
-                                        <td class="px-3 py-2">{{ $d->keperluan_detail }}</td>
-                                        <td class="px-3 py-2 text-right">
-                                            Rp {{ $fmtMoney($d->amount_request_penyelesaian) }}
-                                        </td>
-                                    </tr>
-                                @empty
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full text-sm">
+                                <thead class="border-b text-gray-600 dark:text-gray-300">
                                     <tr>
-                                        <td colspan="3" class="px-3 py-4 text-center text-gray-500">
-                                            No detail found.
-                                        </td>
+                                        <th class="p-2 text-left">Order</th>
+                                        <th class="p-2 text-left">Description</th>
+                                        <th class="p-2 text-left">User</th>
+                                        <th class="p-2 text-left">Date</th>
+                                        <th class="p-2 text-left">Status</th>
                                     </tr>
-                                @endforelse
-                            </tbody>
+                                </thead>
 
-                            <tfoot class="bg-gray-50 dark:bg-gray-700">
-                                <tr>
-                                    <th colspan="2" class="px-3 py-2 text-right font-semibold">
-                                        Total
-                                    </th>
-                                    <th class="px-3 py-2 text-right font-semibold">
-                                        Rp {{ $fmtMoney($details->sum('amount_request_penyelesaian')) }}
-                                    </th>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
+                                <tbody class="divide-y dark:divide-gray-700">
+                                    @forelse ($calrnonpurchSteps as $step)
+                                        @php
+                                            $cls = match ($step['status']) {
+                                                'Done' => 'bg-green-100 text-green-700',
+                                                'Pending' => 'bg-yellow-100 text-yellow-700',
+                                                'Rejected' => 'bg-red-100 text-red-700',
+                                                'Revise' => 'bg-blue-100 text-blue-700',
+                                                default => 'bg-gray-100 text-gray-700',
+                                            };
+                                        @endphp
 
-                {{-- RIGHT: CALR PROGRESS STEPS --}}
-                <div class="rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                    <div class="mb-4 border-b border-gray-200 pb-3 dark:border-gray-700">
-                        <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">
-                            CALR Non Purchase Progress Steps
-                        </h3>
-                    </div>
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                            <td class="p-2">{{ $step['order'] }}</td>
+                                            <td class="p-2">{{ $step['description'] }}</td>
+                                            <td class="p-2">{{ $step['user'] }}</td>
 
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full text-sm">
-                            <thead class="border-b text-gray-600 dark:text-gray-300">
-                                <tr>
-                                    <th class="p-2 text-left">Order</th>
-                                    <th class="p-2 text-left">Description</th>
-                                    <th class="p-2 text-left">User</th>
-                                    <th class="p-2 text-left">Date</th>
-                                    <th class="p-2 text-left">Status</th>
-                                </tr>
-                            </thead>
+                                            <td class="p-2">
+                                                {{ $step['date']
+                                                    ? \Carbon\Carbon::parse($step['date'])->format('d M Y H:i')
+                                                    : '-' }}
+                                            </td>
 
-                            <tbody class="divide-y dark:divide-gray-700">
-                                @forelse ($calrnonpurchSteps as $step)
-                                    @php
-                                        $cls = match ($step['status']) {
-                                            'Done' => 'bg-green-100 text-green-700',
-                                            'Pending' => 'bg-yellow-100 text-yellow-700',
-                                            'Rejected' => 'bg-red-100 text-red-700',
-                                            'Revise' => 'bg-blue-100 text-blue-700',
-                                            default => 'bg-gray-100 text-gray-700',
-                                        };
-                                    @endphp
-
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                                        <td class="p-2">{{ $step['order'] }}</td>
-                                        <td class="p-2">{{ $step['description'] }}</td>
-                                        <td class="p-2">{{ $step['user'] }}</td>
-
-                                        <td class="p-2">
-                                            {{ $step['date']
-                                                ? \Carbon\Carbon::parse($step['date'])->format('d M Y H:i')
-                                                : '-' }}
-                                        </td>
-
-                                        <td class="p-2">
-                                            <span class="{{ $cls }} rounded-full px-2 py-1 text-xs font-semibold">
-                                                {{ $step['status'] }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="p-3 text-center italic text-gray-500">
-                                            No progress yet
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+                                            <td class="p-2">
+                                                <span class="{{ $cls }} rounded-full px-2 py-1 text-xs font-semibold">
+                                                    {{ $step['status'] }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="p-3 text-center italic text-gray-500 dark:text-gray-400">
+                                                No progress yet
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -526,7 +661,7 @@
                 placeholder="Enter rejection reason..."></textarea>
 
             <div class="mt-4 flex justify-between">
-                <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
                     Cancel
                 </button>
 
@@ -547,12 +682,12 @@
                 placeholder="Enter revise reason..."></textarea>
 
             <div class="mt-4 flex justify-between">
-                <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
                     Cancel
                 </button>
 
                 <button id="confirmReviseBtn"
-                    class="rounded-lg bg-gray-500 px-4 py-2 text-white hover:bg-gray-600">
+                    class="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
                     Revise
                 </button>
             </div>
@@ -645,14 +780,20 @@
     </script>
 
     {{-- Comments --}}
+    <script src="{{ asset('assets/js/shared/mention-autocomplete.js') }}"></script>
     <script>
         $(function() {
             loadComments(calrid, doctype);
 
+            attachMentionAutocomplete({
+                inputSelector: '#commentInput',
+                fetchUrlFn: () => `/mentionable-users/${doctype}/${calrid}`,
+            });
+
             function loadComments(refnbr, doctype) {
                 const commentList = $('#commentList');
 
-                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>');
+                commentList.html('<p class="text-gray-500 italic dark:text-gray-400">Loading comments...</p>');
 
                 $.ajax({
                     url: `/comments/${doctype}/${refnbr}`,
@@ -662,7 +803,7 @@
 
                         if (!response.comments || response.comments.length === 0) {
                             commentList.append(
-                                '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
+                                '<p class="text-gray-500 text-sm italic dark:text-gray-400">No comments yet. Be the first to comment!</p>'
                             );
                             return;
                         }
@@ -675,9 +816,9 @@
                                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
                                     <p class="text-sm font-semibold">
                                         ${comment.username}
-                                        <span class="text-sm text-gray-500">(${timeAgo})</span>
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">(${timeAgo})</span>
                                     </p>
-                                    <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
+                                    <p class="text-gray-800 dark:text-gray-200">${highlightMentions(comment.message)}</p>
                                 </div>
                             `);
                         });
@@ -749,7 +890,7 @@
                         if (!res.data || !res.data.length) {
                             tbody.innerHTML = `
                                 <tr>
-                                    <td colspan="4" class="px-3 py-4 text-center text-gray-500">
+                                    <td colspan="4" class="px-3 py-4 text-center text-gray-500 dark:text-gray-400">
                                         No approval data.
                                     </td>
                                 </tr>
@@ -893,6 +1034,67 @@
             $('#btnResetAttachment').on('click', function() {
                 $('#attachFiles').val('');
             });
+        });
+    </script>
+
+    <script>
+        function formatBudgetNumber(value) {
+            value = Number(value || 0);
+
+            return value.toLocaleString('id-ID', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        $(document).on('mouseenter', '.budget-trigger', function() {
+            const $el = $(this);
+            const $tooltip = $('#budgetTooltip');
+
+            $('#ttDesc').text($el.data('desc') || '-');
+            $('#ttAccount').text($el.data('account') || '-');
+            $('#ttCoa').text($el.data('coa') || '-');
+            $('#ttBU').text($el.data('bu') || '-');
+
+            $('#ttBudget').text(formatBudgetNumber($el.data('budget')));
+            $('#ttAdditional').text(formatBudgetNumber($el.data('additional')));
+            $('#ttReserved').text(formatBudgetNumber($el.data('reserved')));
+            $('#ttUsed').text(formatBudgetNumber($el.data('used')));
+
+            const available = Number($el.data('available') || 0);
+            $('#ttAvailable')
+                .text(formatBudgetNumber(available))
+                .removeClass('text-red-600 text-emerald-600')
+                .addClass(available < 0 ? 'text-red-600' : 'text-emerald-600');
+
+            $tooltip.removeClass('hidden');
+        });
+
+        $(document).on('mousemove', '.budget-trigger', function(e) {
+            const $tooltip = $('#budgetTooltip');
+
+            let left = e.clientX + 16;
+            let top = e.clientY + 16;
+
+            const tooltipWidth = $tooltip.outerWidth() || 288;
+            const tooltipHeight = $tooltip.outerHeight() || 220;
+
+            if (left + tooltipWidth > window.innerWidth) {
+                left = e.clientX - tooltipWidth - 16;
+            }
+
+            if (top + tooltipHeight > window.innerHeight) {
+                top = e.clientY - tooltipHeight - 16;
+            }
+
+            $tooltip.css({
+                left: left + 'px',
+                top: top + 'px'
+            });
+        });
+
+        $(document).on('mouseleave', '.budget-trigger', function() {
+            $('#budgetTooltip').addClass('hidden');
         });
     </script>
 

@@ -5,129 +5,425 @@
         </h2>
     </x-slot>
 
-    <div class="py-8">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="overflow-hidden bg-white p-4 sm:rounded-lg dark:bg-gray-800">
-                <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-                    <!-- Left Column (Profile Sidebar) -->
-                    <div class="rounded-lg bg-white p-4 shadow dark:bg-gray-900">
-                        <div class="text-center">
-                            <img class="mx-auto h-28 w-28 rounded-full border border-gray-300 object-cover"
-                                src="{{ asset('avatar/' . Auth::user()->npk . '.jpg') }}"
-                                onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png';"
-                                alt="User avatar">
+        <div class="mx-auto max-w-9xl space-y-6 p-4 sm:p-6 lg:p-8">
 
-                            <h3 class="mt-4 text-sm font-semibold text-gray-800 dark:text-white">
-                                {{ Auth::user()->name }}
-                            </h3>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">
-                                {{ Auth::user()->departmentid }}
-                            </p>
-                            {{-- <p class="text-sm text-gray-500 dark:text-gray-400">
-                                {{ $talenta->branch }}
-                            </p> --}}
+            <!-- Profile -->
+            <div class="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+                <div
+                    class="flex flex-col gap-4 border-b border-blue-100 bg-blue-50 p-6 dark:border-blue-500/20 dark:bg-blue-500/10 sm:flex-row sm:items-start sm:justify-between">
+                    <div class="flex items-start gap-4">
+                        <div class="relative shrink-0">
+                            <div class="bg-linear-to-br rounded-full from-blue-500 via-indigo-500 to-purple-500 p-0.75 shadow-sm">
+                                <img id="profilePhotoPreview"
+                                    class="h-16 w-16 rounded-full border-2 border-white object-cover dark:border-gray-800"
+                                    src="{{ Auth::user()->profile_photo_url }}" alt="User avatar">
+                            </div>
+                            <button type="button" id="btnChangePhoto"
+                                class="bg-linear-to-br absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white from-blue-600 to-indigo-600 text-white shadow transition hover:scale-110 dark:border-gray-800"
+                                title="Change photo">
+                                <i class="fa-solid fa-camera text-[10px]"></i>
+                            </button>
+                            <input type="file" id="profilePhotoInput" name="photo"
+                                accept="image/png,image/jpeg,image/webp" class="hidden">
+                        </div>
 
-                            <div class="mt-4 flex justify-center gap-2">
-                                {{-- <button class="px-3 py-1  text-sm  bg-blue-500 text-white rounded">Follow</button> --}}
-                                <button id="btnChangePassword"
-                                    class="rounded border border-blue-500 px-3 py-1 text-sm text-blue-500">
-                                    Change Password
-                                </button>
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+                                    {{ Auth::user()->name }}</h3>
+                                <span
+                                    class="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-semibold text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-500/10 dark:text-green-400 dark:ring-green-500/20">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
+                                    Employee</span>
+                            </div>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                NPK {{ $talenta->npk ?? '-' }} &middot; {{ Auth::user()->email }}</p>
+                            <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+                                {{ $originCpnyName ?? '-' }} &middot; {{ $originDepartmentName ?? '-' }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    class="grid grid-cols-1 divide-y divide-gray-100 dark:divide-gray-700 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
+                    <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <span
+                                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+                                <i class="fa-solid fa-key text-xs"></i>
+                            </span>
+                            <div>
+                                <p class="text-sm font-medium text-gray-800 dark:text-gray-100">Password</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Change your account password</p>
                             </div>
                         </div>
-
-                        {{-- <div class="mt-6 border-t pt-4">
-                            <ul class="space-y-2  text-sm  text-gray-700 dark:text-gray-300">
-                                <li><strong>Websitex:</strong> yourwebsite.com</li>
-                                <li><strong>Github:</strong> github.com/username</li>
-                                <li><strong>Twitter:</strong> @username</li>
-                                <li><strong>Instagram:</strong> @username</li>
-                                <li><strong>Facebook:</strong> fb.com/username</li>
-                            </ul>
-                        </div> --}}
+                        <button type="button" id="btnChangePassword"
+                            class="bg-linear-to-r inline-flex items-center gap-2 rounded-full from-blue-600 to-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm shadow-blue-500/30 transition hover:-translate-y-0.5 hover:shadow-md hover:shadow-blue-500/40">
+                            <i class="fa-solid fa-key text-[10px]"></i>
+                            Change Password
+                        </button>
                     </div>
-
-                    <div id="changePasswordModal"
-                        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-                        <div class="w-full max-w-md rounded-lg bg-white p-4">
-                            <h2 class="mb-4 text-sm font-semibold">Change Password</h2>
-                            <form id="changePasswordForm">
-                                @csrf
-                                <div class="mb-4">
-                                    <label class="block text-sm font-medium">Current Password</label>
-                                    <input type="password" name="current_password"
-                                        class="w-full rounded border px-3 py-2" required>
-                                </div>
-                                <div class="mb-4">
-                                    <label class="block text-sm font-medium">New Password</label>
-                                    <input type="password" name="password" class="w-full rounded border px-3 py-2"
-                                        required>
-                                </div>
-                                <div class="mb-4">
-                                    <label class="block text-sm font-medium">Confirm New Password</label>
-                                    <input type="password" name="password_confirmation"
-                                        class="w-full rounded border px-3 py-2" required>
-                                </div>
-                                <div class="flex justify-end gap-2">
-                                    <button type="button" id="btnCancel"
-                                        class="rounded bg-gray-300 px-4 py-2">Cancel</button>
-                                    <button type="submit"
-                                        class="rounded bg-blue-600 px-4 py-2 text-white">Update</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-
-                    <!-- Right Column (User Info) -->
-                    <div class="md:col-span-2">
-                        <div class="mb-6 rounded-lg bg-gray-100 p-4 dark:bg-gray-700">
-                            <h4 class="mb-4 text-sm font-semibold text-gray-800 dark:text-gray-100">User Information
-                            </h4>
-                            <div class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
-                                <div><strong>Full Name:</strong> {{ Auth::user()->name }}</div>
-                                <div><strong>Email:</strong> {{ Auth::user()->email }}</div>
-                                <div><strong>Company:</strong> {{ $talenta->cpny_id }}</div>
-                                <div><strong>Business Unit:</strong> {{ $talenta->business_unit_id }}</div>
-                                <div><strong>Department:</strong> {{ $talenta->department_id }}</div>
-                                {{-- <div><strong>Position:</strong> {{ $talenta->job_position }}</div>
-                                <div><strong>Mobile:</strong> {{ $talenta->mobile_phone }}</div>
-                                <div class="sm:col-span-2"><strong>Address:</strong> {{ $talenta->current_address }} --}}
+                    <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <span
+                                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
+                                <i class="fa-solid fa-moon text-xs"></i>
+                            </span>
+                            <div>
+                                <p class="text-sm font-medium text-gray-800 dark:text-gray-100">Dark Mode</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Use dark mode by default whenever
+                                    you sign in</p>
                             </div>
                         </div>
-                        {{-- <div class="mt-4">
-                                <a href="{{ route('profile.show') }}"
-                                    class="bg-green-600 text-white px-4 py-2 rounded  text-sm  hover:bg-green-700">Edit</a>
-                            </div> --}}
-                    </div>
-
-                    <!-- Project Status -->
-                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        {{-- @foreach (['Web Design', 'Website Markup', 'One Page', 'Mobile Template'] as $project)
-                                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-                                    <div class=" text-sm  text-gray-600 dark:text-gray-300 mb-2">
-                                        <span class="italic text-blue-600">assignment</span> {{ $project }}
-                                    </div>
-                                    <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2.5">
-                                        <div class="bg-blue-500 h-2.5 rounded-full" style="width: {{ rand(40, 90) }}%;"></div>
-                                    </div>
-                                </div>
-                            @endforeach --}}
+                        <span
+                            class="bg-linear-to-r has-checked:from-indigo-700 has-checked:to-blue-700 relative inline-flex h-7 w-14 shrink-0 items-center rounded-full from-amber-200 to-amber-100 shadow-inner transition-colors duration-300 dark:from-gray-600 dark:to-gray-600">
+                            <input type="checkbox" id="darkmodeDefaultSwitch"
+                                class="peer absolute inset-0 z-20 cursor-pointer opacity-0"
+                                {{ Auth::user()->is_darkmode ? 'checked' : '' }}>
+                            <i
+                                class="fa-solid fa-sun absolute left-1.75 text-[10px] text-amber-500 transition-opacity duration-300 peer-checked:opacity-0"></i>
+                            <i
+                                class="fa-solid fa-moon absolute right-1.75 text-[10px] text-white opacity-0 transition-opacity duration-300 peer-checked:opacity-100"></i>
+                            <span
+                                class="pointer-events-none relative z-10 inline-block h-5 w-5 translate-x-1 rounded-full bg-white shadow-md transition-transform duration-300 peer-checked:translate-x-8"></span>
+                        </span>
                     </div>
                 </div>
             </div>
+
+            <!-- My Trainings & Stars -->
+            <div class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+                <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+                    <div class="flex items-center gap-3">
+                        <span
+                            class="bg-linear-to-br flex h-8 w-8 items-center justify-center rounded-lg from-amber-500 to-orange-500 text-white shadow-sm shadow-amber-500/30">
+                            <i class="fa-solid fa-star text-xs"></i>
+                        </span>
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-100">My Trainings & Stars</h4>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Earned by attending trainings on time
+                                and submitting feedback before it closes</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="myStarsTotalBadge"
+                            class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-sm font-bold text-amber-600 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-400 dark:ring-amber-400/20">
+                            ⭐ -
+                        </span>
+                        <button type="button" id="btnShowMyStars"
+                            class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                            <span
+                                class="flex h-5 w-5 items-center justify-center rounded-full bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-300">
+                                <i class="fa-solid fa-list text-[9px]"></i>
+                            </span>
+                            View Trainings
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Company Access -->
+            @php
+                $tagPalette = [
+                    'bg-blue-50 text-blue-700 ring-blue-600/15 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-400/20',
+                    'bg-purple-50 text-purple-700 ring-purple-600/15 dark:bg-purple-500/10 dark:text-purple-300 dark:ring-purple-400/20',
+                    'bg-pink-50 text-pink-700 ring-pink-600/15 dark:bg-pink-500/10 dark:text-pink-300 dark:ring-pink-400/20',
+                    'bg-amber-50 text-amber-700 ring-amber-600/15 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-400/20',
+                    'bg-teal-50 text-teal-700 ring-teal-600/15 dark:bg-teal-500/10 dark:text-teal-300 dark:ring-teal-400/20',
+                    'bg-emerald-50 text-emerald-700 ring-emerald-600/15 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-400/20',
+                    'bg-indigo-50 text-indigo-700 ring-indigo-600/15 dark:bg-indigo-500/10 dark:text-indigo-300 dark:ring-indigo-400/20',
+                    'bg-rose-50 text-rose-700 ring-rose-600/15 dark:bg-rose-500/10 dark:text-rose-300 dark:ring-rose-400/20',
+                ];
+                $tagClass = fn (string $label) => $tagPalette[crc32(trim($label)) % count($tagPalette)];
+            @endphp
+            <div class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+                <div class="flex items-center gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                    <span
+                        class="bg-linear-to-br flex h-8 w-8 items-center justify-center rounded-lg from-blue-600 to-indigo-500 text-white shadow-sm shadow-blue-500/30">
+                        <i class="fa-solid fa-building text-xs"></i>
+                    </span>
+                    <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Company Access</h4>
+                </div>
+                <div class="divide-y divide-gray-100 dark:divide-gray-700">
+                    <div class="grid grid-cols-1 gap-2 px-6 py-4 sm:grid-cols-4 sm:items-center sm:gap-4">
+                        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Company</p>
+                        <div class="flex flex-wrap gap-1.5 sm:col-span-3">
+                            @foreach (explode(',', $talenta->cpny_id) as $c)
+                                <span
+                                    class="rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset transition hover:scale-105 {{ $tagClass($c) }}">{{ trim($c) }}</span>
+                            @endforeach
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-2 px-6 py-4 sm:grid-cols-4 sm:items-center sm:gap-4">
+                        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Department</p>
+                        <p
+                            class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-800 dark:text-gray-100 sm:col-span-3">
+                            <i class="fa-solid fa-sitemap text-[11px] text-indigo-500"></i>
+                            {{ $talenta->department_id }}
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-1 gap-2 px-6 py-4 sm:grid-cols-4 sm:items-start sm:gap-4">
+                        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Business Unit</p>
+                        <div class="flex flex-wrap gap-1.5 sm:col-span-3">
+                            @foreach (explode(',', $talenta->business_unit_id) as $bu)
+                                <span
+                                    class="rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset transition hover:scale-105 {{ $tagClass($bu) }}">{{ trim($bu) }}</span>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    <div id="changePasswordModal"
+        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 p-4">
+        <div
+            class="w-full max-w-md overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+            <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                <div>
+                    <h2 class="text-base font-semibold text-gray-800 dark:text-gray-100">Change Password</h2>
+                    <p class="text-xs text-gray-400">Keep your account secure</p>
+                </div>
+                <button type="button" id="btnCloseModal"
+                    class="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-200">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="changePasswordForm" class="px-6 py-5">
+                @csrf
+                <div class="mb-4">
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Current
+                        Password</label>
+                    <div class="relative">
+                        <i
+                            class="fa-solid fa-lock pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400"></i>
+                        <input type="password" name="current_password"
+                            class="w-full rounded-md border border-gray-300 py-2 pl-9 pr-9 text-sm transition focus:border-blue-500 focus:ring focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                            required>
+                        <button type="button"
+                            class="togglePassword absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                            <i class="fa-solid fa-eye text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">New
+                        Password</label>
+                    <div class="relative">
+                        <i
+                            class="fa-solid fa-lock pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400"></i>
+                        <input type="password" name="password"
+                            class="w-full rounded-md border border-gray-300 py-2 pl-9 pr-9 text-sm transition focus:border-blue-500 focus:ring focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                            required>
+                        <button type="button"
+                            class="togglePassword absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                            <i class="fa-solid fa-eye text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-5">
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Confirm
+                        New Password</label>
+                    <div class="relative">
+                        <i
+                            class="fa-solid fa-lock pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400"></i>
+                        <input type="password" name="password_confirmation"
+                            class="w-full rounded-md border border-gray-300 py-2 pl-9 pr-9 text-sm transition focus:border-blue-500 focus:ring focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                            required>
+                        <button type="button"
+                            class="togglePassword absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                            <i class="fa-solid fa-eye text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 border-t border-gray-100 pt-4 dark:border-gray-700">
+                    <button type="button" id="btnCancel"
+                        class="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Cancel</button>
+                    <button type="submit"
+                        class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700">
+                        <i class="fa-solid fa-check text-xs"></i>
+                        Update</button>
+                </div>
+            </form>
         </div>
     </div>
+
+    <!-- My Trainings & Stars modal -->
+    <div id="myStarsModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 p-4">
+        <div
+            class="w-full max-w-lg overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800">
+            <div class="bg-linear-to-br relative overflow-hidden from-amber-500 via-orange-500 to-orange-600 px-6 py-6">
+                <div class="pointer-events-none absolute -right-6 -top-6 text-8xl opacity-15">⭐</div>
+                <button type="button" id="btnCloseMyStarsModal"
+                    class="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <h2 class="text-base font-semibold text-white">My Trainings & Stars</h2>
+                <p class="mt-0.5 text-xs text-amber-100">Trainings you've attended</p>
+                <div class="mt-4 flex items-end gap-2">
+                    <span id="myStarsModalTotal" class="text-4xl font-extrabold leading-none text-white">0</span>
+                    <span class="mb-0.5 flex items-center gap-1 text-sm font-semibold text-amber-100">
+                        <i class="fa-solid fa-star"></i> total stars
+                    </span>
+                </div>
+            </div>
+            <div id="myStarsModalBody" class="max-h-96 space-y-2.5 overflow-y-auto p-5"></div>
+            <div id="myStarsModalEmpty" class="hidden flex flex-col items-center gap-2 px-6 py-12 text-center">
+                <span class="text-3xl opacity-40">🎓</span>
+                <p class="text-sm text-gray-400">No trainings attended yet.</p>
+            </div>
+        </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        function resetPasswordVisibility() {
+            $('#changePasswordForm input[type="text"]').attr('type', 'password');
+            $('.togglePassword i').removeClass('fa-eye-slash').addClass('fa-eye');
+        }
+
+        function closeChangePasswordModal() {
+            $('#changePasswordModal').addClass('hidden');
+            $('#changePasswordForm')[0].reset();
+            resetPasswordVisibility();
+        }
+
         $('#btnChangePassword').click(function() {
             $('#changePasswordModal').removeClass('hidden');
         });
 
-        $('#btnCancel').click(function() {
-            $('#changePasswordModal').addClass('hidden');
+        $('#btnCancel, #btnCloseModal').click(function() {
+            closeChangePasswordModal();
+        });
+
+        const myStarsUrl = "{{ route('training-list.my-stars') }}";
+
+        function fmtTrainingDate(d) {
+            if (!d) return '-';
+            return new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        function myStarsRowHtml(t) {
+            const lateBadge = t.is_late_attendance
+                ? '<span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">⏰ Late</span>'
+                : '<span class="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">✅ Not Late</span>';
+            const feedbackBadge = t.feedback_stars > 0
+                ? '<span class="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">📝 Feedback +1</span>'
+                : '';
+
+            return `
+                <div class="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/60 p-3.5 transition hover:border-amber-200 hover:bg-amber-50/50 dark:border-gray-700 dark:bg-gray-700/30 dark:hover:border-amber-500/30 dark:hover:bg-amber-500/5">
+                    <span class="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-indigo-50 text-base dark:bg-indigo-900/30">🎓</span>
+                    <div class="min-w-0 flex-1">
+                        <p class="truncate text-sm font-semibold text-gray-800 dark:text-gray-100">${t.training_name ?? '-'}</p>
+                        <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
+                            <span class="inline-flex items-center gap-1 text-xs text-gray-400"><i class="fa-regular fa-calendar"></i> ${fmtTrainingDate(t.schedule_date)}</span>
+                            ${lateBadge}
+                            ${feedbackBadge}
+                        </div>
+                    </div>
+                    <span class="flex flex-none items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-sm font-extrabold text-amber-600 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-400 dark:ring-amber-400/20">⭐ ${t.stars}</span>
+                </div>
+            `;
+        }
+
+        function loadMyStars() {
+            $.get(myStarsUrl, function (res) {
+                const rows = res.data || [];
+                $('#myStarsTotalBadge').html('⭐ ' + res.total_stars);
+                $('#myStarsModalTotal').text(res.total_stars);
+                $('#myStarsModalBody').html(rows.map(myStarsRowHtml).join(''));
+                $('#myStarsModalEmpty').toggleClass('hidden', rows.length > 0);
+            });
+        }
+
+        $('#btnShowMyStars').on('click', function () {
+            $('#myStarsModal').removeClass('hidden').addClass('flex');
+            loadMyStars();
+        });
+
+        $('#btnCloseMyStarsModal').on('click', function () {
+            $('#myStarsModal').addClass('hidden').removeClass('flex');
+        });
+
+        $('#myStarsModal').on('click', function (e) {
+            if (e.target === this) $(this).addClass('hidden').removeClass('flex');
+        });
+
+        loadMyStars();
+
+        $(document).on('click', '.togglePassword', function() {
+            const input = $(this).siblings('input');
+            const icon = $(this).find('i');
+            const isPassword = input.attr('type') === 'password';
+            input.attr('type', isPassword ? 'text' : 'password');
+            icon.toggleClass('fa-eye', !isPassword).toggleClass('fa-eye-slash', isPassword);
+        });
+
+        $('#btnChangePhoto').on('click', function() {
+            $('#profilePhotoInput').trigger('click');
+        });
+
+        $('#profilePhotoInput').on('change', function() {
+            const file = this.files[0];
+            if (!file) return;
+
+            const previewUrl = URL.createObjectURL(file);
+            $('#profilePhotoPreview').attr('src', previewUrl);
+
+            const formData = new FormData();
+            formData.append('photo', file);
+
+            $.ajax({
+                url: '{{ route('profile.photo.update') }}',
+                type: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    toastr.success('Profile photo updated');
+                    $('#profilePhotoPreview').attr('src', response.url);
+                    $('#headerAvatarImg').attr('src', response.url);
+                },
+                error: function(xhr) {
+                    const res = xhr.responseJSON;
+                    toastr.error(res && res.message ? res.message : 'Failed to update profile photo');
+                }
+            });
+        });
+
+        $('#darkmodeDefaultSwitch').on('change', function() {
+            const isDark = $(this).is(':checked');
+
+            // apply immediately to this session so the toggle previews live
+            document.documentElement.classList.add('**:transition-none!');
+            document.documentElement.classList.toggle('dark', isDark);
+            document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
+            localStorage.setItem('dark-mode', isDark ? 'true' : 'false');
+            document.querySelectorAll('.light-switch').forEach(el => el.checked = isDark);
+            setTimeout(() => document.documentElement.classList.remove('**:transition-none!'), 1);
+
+            $.ajax({
+                url: '{{ route('darkmode.update.custom') }}',
+                type: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                data: {
+                    is_darkmode: isDark ? 1 : 0
+                },
+                success: function() {
+                    toastr.success('Theme preference saved');
+                },
+                error: function() {
+                    toastr.error('Failed to save theme preference');
+                }
+            });
         });
 
         $('#changePasswordForm').submit(function(e) {
@@ -140,8 +436,7 @@
                 success: function(response) {
                     // alert(response.message);
                     toastr.success(response.message);
-                    $('#changePasswordModal').addClass('hidden');
-                    $('#changePasswordForm')[0].reset();
+                    closeChangePasswordModal();
                 },
                 error: function(xhr) {
                     const res = xhr.responseJSON;

@@ -106,14 +106,18 @@ class ReportBastController extends Controller
             'COSTCTRLACCESS',
             'FINACCESS',
         ])->contains(fn ($role) => $user->hasRole($role));
-        // Company scope
-        $companyIds = \App\Models\Usercpny::where('username', $user->username)
-            ->pluck('cpny_id');
+        $isFullScope = $user->hasFullDataScope();
 
-        $query->whereIn('b.cpny_id', $companyIds);
+        // Company scope (skipped for full-scope roles like DIRECTORACCESS)
+        if (!$isFullScope) {
+            $companyIds = \App\Models\Usercpny::where('username', $user->username)
+                ->pluck('cpny_id');
 
-        // Department restriction (ONLY if not cost control)
-        if (!$isCostCtrl) {
+            $query->whereIn('b.cpny_id', $companyIds);
+        }
+
+        // Department restriction (ONLY if not cost control / not full scope)
+        if (!$isCostCtrl && !$isFullScope) {
             $deptIds = \App\Models\Userdept::where('username', $user->username)
                 ->pluck('department_id');
 

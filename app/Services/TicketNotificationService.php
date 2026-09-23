@@ -21,12 +21,70 @@ use Illuminate\Support\Facades\Mail;
 
 class TicketNotificationService
 {
+    // Ticket types that support a per-company override with a shared
+    // 'ALL' fallback row when no company-specific chat group is set.
+    protected const ALL_COMPANY_FALLBACK_TICKET_TYPES = [
+        'BSSUPPORTTICKET',
+        'FOSUPPORTTICKET',
+        'ENGSUPPORTTICKET',
+        'BA_BS',
+        'BA_ENG',
+        'BA_FO',
+    ];
+
+    // BS/FO ticket types only get a WhatsApp notification on ticket
+    // creation; Engineering gets notified on a wider (but still limited)
+    // set of events — see ENG_ALLOWED_WHATSAPP_EVENTS below.
+    protected const CREATED_ONLY_WHATSAPP_TICKET_TYPES = [
+        'BSSUPPORTTICKET',
+        'FOSUPPORTTICKET',
+        'BA_BS',
+        'BA_FO',
+    ];
+
+    protected const ENG_WHATSAPP_TICKET_TYPES = [
+        'ENGSUPPORTTICKET',
+        'BA_ENG',
+    ];
+
+    // Engineering tickets skip WhatsApp for PROCESS, PENDING and REJECTED —
+    // only these events are worth pinging the group chat for.
+    protected const ENG_ALLOWED_WHATSAPP_EVENTS = [
+        'CREATED',
+        'RESPONSE',
+        'PENDING APPROVAL',
+        'COMPLETED',
+        'REVISE',
+        'OPEN',
+    ];
+
     protected function getCompanyChatId(
-        string $cpnyId
+        string $cpnyId,
+        string $ticketType
     ): ?string {
-        return MsWaSetting::query()
+        $chatId = MsWaSetting::query()
 
             ->where('cpny_id', $cpnyId)
+
+            ->where('ticket_type', $ticketType)
+
+            ->where('status', 'A')
+
+            ->value('chat_id');
+
+        if ($chatId) {
+            return $chatId;
+        }
+
+        if (!in_array($ticketType, self::ALL_COMPANY_FALLBACK_TICKET_TYPES, true)) {
+            return null;
+        }
+
+        return MsWaSetting::query()
+
+            ->where('cpny_id', 'ALL')
+
+            ->where('ticket_type', $ticketType)
 
             ->where('status', 'A')
 
@@ -41,6 +99,13 @@ class TicketNotificationService
 
         return $user->notification_email
             ?: $user->email;
+    }
+
+    protected function ticketDoctypeFor(TrTicket $ticket): string
+    {
+        return in_array($ticket->ticket_type, ['ENGSUPPORTTICKET', 'BSSUPPORTTICKET', 'FOSUPPORTTICKET', 'BA_BS', 'BA_ENG', 'BA_FO'], true)
+            ? 'TOK'
+            : 'TIC';
     }
 
     protected function getITUsers()
@@ -456,7 +521,7 @@ class TicketNotificationService
             try {
                 Mail::to($email)->send(
                     new \App\Mail\CommentNotificationMail(
-                        'TIC',
+                        $this->ticketDoctypeFor($ticket),
                         $ticket->ticketid,
                         $commenterName,
                         $message,
@@ -496,10 +561,10 @@ class TicketNotificationService
             'working_end_date' => $activity?->working_end_date,
         ]);
 
-        $chatId = MsWaSetting::query()
-            ->where('cpny_id', $ticket->cpny_id)
-            ->where('status', 'A')
-            ->value('chat_id');
+        $chatId = $this->getCompanyChatId(
+            $ticket->cpny_id,
+            $ticket->ticket_type
+        );
 
         if (!$chatId) {
             Log::warning(
@@ -507,6 +572,7 @@ class TicketNotificationService
                 [
                     'ticketid' => $ticket->ticketid,
                     'cpny_id' => $ticket->cpny_id,
+                    'ticket_type' => $ticket->ticket_type,
                 ]
             );
 
@@ -583,6 +649,133 @@ ORDER/MONTHLY : Monthly
                 [
                     'ticketid' => $ticket->ticketid,
                     'cpny_id' => $ticket->cpny_id,
+                    'chat_id' => $chatId,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]
+            );
+        }
+    }
+
+    /**
+     * Eng/BS Ticket WhatsApp notification. Chat group is resolved from
+     * ms_wa_setting scoped by the ticket's own ticket_type
+     * (ENGSUPPORTTICKET / BSSUPPORTTICKET).
+     */
+    public function ticketWhatsapp(
+        TrTicket $ticket,
+        string $eventLabel,
+        string $detail = ''
+    ): void {
+        if (
+            $eventLabel !== 'CREATED'
+            && in_array($ticket->ticket_type, self::CREATED_ONLY_WHATSAPP_TICKET_TYPES, true)
+        ) {
+            return;
+        }
+
+        if (
+            in_array($ticket->ticket_type, self::ENG_WHATSAPP_TICKET_TYPES, true)
+            && !in_array($eventLabel, self::ENG_ALLOWED_WHATSAPP_EVENTS, true)
+        ) {
+            return;
+        }
+
+        $chatId = $this->getCompanyChatId(
+            $ticket->cpny_id,
+            $ticket->ticket_type
+        );
+
+        if (!$chatId) {
+            Log::warning(
+                'WA Chat Group Not Found',
+                [
+                    'ticketid' => $ticket->ticketid,
+                    'cpny_id' => $ticket->cpny_id,
+                    'ticket_type' => $ticket->ticket_type,
+                ]
+            );
+
+            return;
+        }
+
+        $ticket->loadMissing([
+            'site',
+            'location',
+            'subLocation',
+        ]);
+
+        $requestDate = $ticket->ticketdate
+            ? Carbon::parse(
+                $ticket->ticketdate
+            )->format('d-m-Y')
+            : '-';
+
+        $plainDetail = html_entity_decode(
+            strip_tags($detail),
+            ENT_QUOTES | ENT_HTML5,
+            'UTF-8'
+        );
+
+        $ticketTypeLabel = match ($ticket->ticket_type) {
+            'BSSUPPORTTICKET' => 'Ticket Building Service Support',
+            'FOSUPPORTTICKET' => 'Ticket Fit Out Support',
+            'ENGSUPPORTTICKET' => 'Ticket Engineering Support',
+            default => 'TICKET OPR TEKNIK',
+        };
+
+        // BA_BS / BA_ENG / BA_FO store a ms_location id in location_id,
+        // everything else (ENGSUPPORTTICKET / BSSUPPORTTICKET /
+        // FOSUPPORTTICKET) stores a ms_site id.
+        $isBaTicket = in_array($ticket->ticket_type, ['BA_BS', 'BA_ENG', 'BA_FO'], true);
+
+        $locationName = $isBaTicket
+            ? $ticket->location?->location_name
+            : $ticket->site?->site_name;
+
+        $message = "
+PAKUWON SYSTEM
+{$ticketTypeLabel}
+=================
+STATUS : {$eventLabel}
+PROJECT : {$ticket->department_id}
+LOCATION : {$locationName}
+SUB LOCATION : {$ticket->subLocation?->sub_location_name}
+
+TICKET DATE : {$requestDate}
+PIC : {$ticket->pic_ticket}
+----------------------------------
+NO TICKET : #{$ticket->ticketid}
+REQUESTER : {$ticket->created_by}
+DEPARTMENT : {$ticket->department_id}
+----------------------------------
+SUMMARY : {$ticket->issue_summary}
+
+{$plainDetail}
+----------------------------------
+";
+
+        try {
+            $result = $this->whatsapp->sendText(
+                $chatId,
+                $message
+            );
+
+            Log::info(
+                'Ticket WhatsApp Success',
+                [
+                    'ticketid' => $ticket->ticketid,
+                    'event' => $eventLabel,
+                    'chat_id' => $chatId,
+                    'response' => $result,
+                ]
+            );
+        } catch (\Throwable $e) {
+            Log::error(
+                'Ticket WhatsApp Failed',
+                [
+                    'ticketid' => $ticket->ticketid,
+                    'event' => $eventLabel,
                     'chat_id' => $chatId,
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString(),

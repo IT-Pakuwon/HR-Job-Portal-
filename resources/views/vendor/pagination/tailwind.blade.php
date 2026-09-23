@@ -74,7 +74,7 @@
             </div>
         </nav>
 
-        <div class="text-center text-sm text-gray-500 sm:text-left">
+        <div class="text-center text-sm text-gray-500 sm:text-left dark:text-gray-400">
             {!! __('Showing') !!}
             @if ($paginator->firstItem())
                 <span class="font-medium text-gray-600 dark:text-gray-300">{{ $paginator->firstItem() }}</span>

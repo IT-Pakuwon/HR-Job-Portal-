@@ -145,7 +145,7 @@
             </div>
         </div>
 
-         <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
+         <div class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
              <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
 
                 {{-- Left card (Kontrak Info) --}}
@@ -446,9 +446,9 @@
                 </h2>
             </header>
 
-            <div class="p-4 overflow-auto">
+            <div class="max-h-150 overflow-auto p-4">
                 <table class="min-w-full text-sm">
-                    <thead class="text-gray-600 dark:text-gray-300">
+                    <thead class="sticky top-0 z-10 bg-white text-gray-600 dark:bg-gray-800 dark:text-gray-300">
                         <tr class="border-b border-gray-200 dark:border-gray-700">
                             <th class="p-3 text-left font-semibold">BQ No</th>
                             <th class="p-3 text-left font-semibold">Line</th>
@@ -693,7 +693,7 @@
 
             function loadComments(refnbr, doctype) {
                 let commentList = $('#commentList');
-                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>');
+                commentList.html('<p class="text-gray-500 italic dark:text-gray-400">Loading comments...</p>');
 
                 $.ajax({
                     url: `/comments/${doctype}/${refnbr}`,
@@ -703,7 +703,7 @@
 
                         if (!response.comments || response.comments.length === 0) {
                             commentList.append(
-                                '<p class="text-gray-500 text-sm italic">No comments yet.</p>');
+                                '<p class="text-gray-500 text-sm italic dark:text-gray-400">No comments yet.</p>');
                             return;
                         }
 
@@ -714,7 +714,7 @@
                                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
                                     <p class="text-sm font-semibold">
                                         ${comment.username}
-                                        <span class="text-sm text-gray-500">(${timeAgo})</span>
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">(${timeAgo})</span>
                                     </p>
                                     <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
                                 </div>

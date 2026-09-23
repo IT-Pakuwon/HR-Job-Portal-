@@ -1,8 +1,13 @@
 <x-app-layout>
     @php
         $isHcbp = auth()->user()->hasRole('HCBPACCESS');
+        $isSby = ($group_cpny_id ?? '') === 'SBY';
 
-        $xlCols = 5; // default jumlah card
+        $xlCols = 6; // All, On Progress, Reject, Revise, Completed, Cancel
+
+        if ($isSby) {
+            $xlCols++; // tambah 1 untuk Draft (Save as Draft / Copy Template khusus SBY)
+        }
 
         if ($isHcbp) {
             $xlCols++; // tambah 1 untuk HCBP All
@@ -58,7 +63,7 @@
                 </div>
             </a>
 
-            {{-- Revise / Draft --}}
+            {{-- Revise --}}
             <a href="#" class="status-filter group block h-full" data-status="D">
                 <div
                     class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
@@ -66,12 +71,29 @@
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✏️</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Revise / Draft</p>
+                        <p class="break-words text-sm font-medium">Revise</p>
                     </div>
 
                     <p class="shrink-0 text-base font-bold">{{ $revise }}</p>
                 </div>
             </a>
+
+            {{-- Draft --}}
+            @if($isSby)
+            <a href="#" class="status-filter group block h-full" data-status="H">
+                <div
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-md active:scale-95">
+
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📝</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-sm font-medium">Draft</p>
+                    </div>
+
+                    <p class="shrink-0 text-base font-bold">{{ $draft }}</p>
+                </div>
+            </a>
+            @endif
 
             {{-- Completed --}}
             <a href="#" class="status-filter group block h-full" data-status="C">
@@ -85,6 +107,21 @@
                     </div>
 
                     <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
+                </div>
+            </a>
+
+            {{-- Cancel --}}
+            <a href="#" class="status-filter group block h-full" data-status="X">
+                <div
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
+
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🚫</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-sm font-medium">Cancel</p>
+                    </div>
+
+                    <p class="shrink-0 text-base font-bold">{{ $cancel }}</p>
                 </div>
             </a>
             @if($isHcbp)
@@ -103,10 +140,12 @@
             </a>
             @endif
         </div>
-        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                {{-- Changed text-lg to text-base --}}
-                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Personnel Requisition Form</h1>
+        <div
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Personnel
+                    Requisition Form</h2>
                 <div class="flex flex-row items-center gap-2">
                     @if(auth()->user()->hasRole('HCBPACCESS'))
                     <div class="flex items-center gap-2" id="hcbpFilters" style="display:none;">
@@ -117,6 +156,10 @@
                             <option value="R">Reject</option>
                             <option value="D">Revise</option>
                             <option value="C">Completed</option>
+                            <option value="X">Cancel</option>
+                            @if($isSby)
+                            <option value="H">Draft</option>
+                            @endif
                         </select>
 
                         <select id="filterDept" class="border rounded px-3 py-2 text-sm">
@@ -148,50 +191,165 @@
 
             </div>
 
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="personnelsTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th scope="col" class="w-32 px-6 py-2 font-medium">
+            @php $hasAllDeptAccessFlag = $hasAllDeptAccess ?? false; @endphp
+            <div id="allDeptFilterWrap" class="pill-filter-bar {{ $hasAllDeptAccessFlag ? '' : 'hidden' }} border-b border-gray-100 px-5 py-3 dark:border-white/[0.06]">
+                <div class="flex flex-1 flex-col rounded-2xl border border-slate-200 bg-slate-50/60 shadow-sm sm:flex-row sm:items-stretch dark:border-slate-700/60 dark:bg-slate-800/40">
+                    <div class="flex flex-1 flex-wrap items-stretch divide-y divide-slate-200 sm:flex-nowrap sm:divide-x sm:divide-y-0 dark:divide-slate-700/60">
+                        @if($hasAllDeptAccessFlag)
+                        <div class="flex flex-1 min-w-[180px] items-center gap-2 px-3 py-2">
+                            <svg class="h-4 w-4 shrink-0 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+                            </svg>
+                            <select id="filterCompanyAllDept" class="w-full min-w-0 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-200">
+                                <option value="">All Company</option>
+                                @foreach($filterCompanies as $company)
+                                    <option value="{{ $company->cpny_id }}">{{ $company->cpny_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="flex flex-1 min-w-[180px] items-center gap-2 px-3 py-2">
+                            <svg class="h-4 w-4 shrink-0 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                            <select id="filterDivisionAllDept" class="w-full min-w-0 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-200">
+                                <option value="">All Division</option>
+                                @foreach($filterDivisions as $division)
+                                    <option value="{{ $division->division_id }}">{{ $division->division_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="flex flex-1 min-w-[180px] items-center gap-2 px-3 py-2">
+                            <svg class="h-4 w-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                            </svg>
+                            <select id="filterDepartmentAllDept" class="w-full min-w-0 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-200">
+                                <option value="">All Department</option>
+                                @foreach($filterDepartments as $department)
+                                    <option value="{{ $department->department_id }}" data-division="{{ $department->division_id }}">{{ $department->department_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @endif
+                        {{-- Job Posting Status — only relevant (and shown) while the Completed tab is active --}}
+                        <div id="jobPostingStatusSegment" class="hidden flex-1 min-w-[180px] items-center gap-2 px-3 py-2">
+                            <svg class="h-4 w-4 shrink-0 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <select id="filterJobPostingStatus" class="w-full min-w-0 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-200">
+                                <option value="">All Job Posting Status</option>
+                                <option value="P">Posted</option>
+                                <option value="C">Closed</option>
+                                <option value="U">Unposted</option>
+                                <option value="H">Hold</option>
+                                <option value="X">Cancelled</option>
+                                <option value="NOTPOSTED">Not Posted</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-end border-t border-slate-200 px-2 py-2 sm:border-l sm:border-t-0 dark:border-slate-700/60">
+                        <button type="button" id="resetAllDeptFilters"
+                            class="flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:bg-slate-200/70 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700/60 dark:hover:text-slate-200">
+                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" />
+                            </svg>
+                            Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <style>
+                #jobPostingStatusSegment { display: flex; }
+                #jobPostingStatusSegment.hidden { display: none; }
+                .pill-filter-bar .select2-container { width: 100% !important; }
+                .pill-filter-bar .select2-selection--single {
+                    height: 28px; display: flex; align-items: center;
+                    border: none !important; background: transparent !important;
+                    padding: 0 1.25rem 0 0; font-size: 0.75rem;
+                }
+                .pill-filter-bar .select2-container--open .select2-selection--single { box-shadow: none; }
+                .pill-filter-bar .select2-selection__rendered {
+                    padding: 0; line-height: 28px; color: #334155; font-weight: 600;
+                    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+                }
+                .pill-filter-bar .select2-selection__arrow { height: 28px; right: 0; }
+                .pill-filter-bar .select2-selection__arrow b { border-color: #94a3b8 transparent transparent transparent; }
+                .pill-filter-bar .select2-selection--single .select2-selection__clear {
+                    position: absolute !important; right: 18px !important;
+                    top: 50% !important; transform: translateY(-50%) !important;
+                    margin: 0 !important; font-size: 15px !important;
+                    font-weight: 400 !important; color: #94a3b8 !important;
+                    z-index: 1;
+                }
+                .pill-filter-bar .select2-selection--single .select2-selection__clear:hover { color: #ef4444 !important; }
+                .pill-filter-bar .select2-dropdown {
+                    border-radius: 0.75rem; border: 1px solid #e2e8f0;
+                    overflow: hidden; margin-top: 4px;
+                    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.05);
+                }
+                .pill-filter-bar .select2-search__field {
+                    border-radius: 0.5rem; border: 1px solid #e2e8f0;
+                    padding: 0.375rem 0.5rem; font-size: 0.75rem; outline: none;
+                }
+                .pill-filter-bar .select2-search__field:focus {
+                    border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+                }
+                .pill-filter-bar .select2-results__option { font-size: 0.75rem; padding: 0.5rem 0.75rem; transition: background .1s; }
+                .pill-filter-bar .select2-results__option--highlighted[aria-selected] { background-color: #EEF2FF; color: #4338CA; }
+                .pill-filter-bar .select2-results__option[aria-selected="true"] { background-color: #E0E7FF; color: #3730A3; font-weight: 600; }
+
+                .dark .pill-filter-bar .select2-selection__rendered { color: #e2e8f0; }
+                .dark .pill-filter-bar .select2-selection__arrow b { border-color: #64748b transparent transparent transparent; }
+                .dark .pill-filter-bar .select2-dropdown { background-color: #1e293b; border-color: #475569; }
+                .dark .pill-filter-bar .select2-search__field { background-color: #334155; border-color: #475569; color: #e2e8f0; }
+                .dark .pill-filter-bar .select2-results__option { color: #e2e8f0; }
+                .dark .pill-filter-bar .select2-results__option--highlighted[aria-selected] { background-color: #4338CA; color: #fff; }
+                .dark .pill-filter-bar .select2-results__option[aria-selected="true"] { background-color: #3730A3; color: #fff; }
+                .dark .pill-filter-bar .select2-search__field:focus { border-color: #6366f1; }
+            </style>
+
+            <div class="relative overflow-hidden">
+                <table id="personnelsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 DocID
                             </th>
-                            <th scope="col" class="w-32 px-6 py-2 font-medium">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Date
                             </th>
-                            <th scope="col" class="px-6 py-3 font-medium">
+                            <th scope="col" class="px-4 py-3 text-left font-medium">
                                 Company
                             </th>
-                            <th scope="col" class="px-6 py-3 font-medium">
+                            <th scope="col" class="px-4 py-3 text-left font-medium">
                                 Division
                             </th>
-                            <th scope="col" class="px-6 py-3 font-medium">
+                            <th scope="col" class="px-4 py-3 text-left font-medium">
                                 Department
                             </th>
-                            <th scope="col" class="px-6 py-3 font-medium">
+                            <th scope="col" class="px-4 py-3 text-left font-medium">
                                 Title
                             </th>
-                            <th scope="col" class="w-32 px-6 py-2 font-medium">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Level
                             </th>
-                            <th scope="col" class="w-32 px-6 py-2 font-medium">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 User
                             </th>
-                            <th scope="col" class="w-32 px-6 py-2 font-medium">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Status
                             </th>
-                            <th scope="col" class="w-32 px-6 py-2 font-medium">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Job Posting Status
                             </th>
-                            <th scope="col" class="w-32 px-6 py-2 font-medium">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Action
                             </th>
                         </tr>
                     </thead>
                     <tbody></tbody>
-                    {{-- Table rows will be populated here by JavaScript/DataTables --}}
-                    </tbody>
                 </table>
             </div>
         </div>
@@ -200,6 +358,112 @@
         var currentUser = "{{ auth()->user()->username }}";
         var personnelsTable;
         $(document).ready(function() {
+            const hasAllDeptAccess = @json($hasAllDeptAccess ?? false);
+
+            function appendAllDeptFilters(url) {
+                let finalUrl = url;
+                if (hasAllDeptAccess) {
+                    const separator = finalUrl.includes('?') ? '&' : '?';
+                    finalUrl += separator
+                        + 'company=' + encodeURIComponent($('#filterCompanyAllDept').val() || '')
+                        + '&division=' + encodeURIComponent($('#filterDivisionAllDept').val() || '')
+                        + '&department=' + encodeURIComponent($('#filterDepartmentAllDept').val() || '');
+                }
+                const jpSeparator = finalUrl.includes('?') ? '&' : '?';
+                finalUrl += jpSeparator + 'jobposting_status=' + encodeURIComponent($('#filterJobPostingStatus').val() || '');
+                return finalUrl;
+            }
+
+            function reloadAllDeptFilters() {
+                if (!personnelsTable) return;
+                const currentUrl = new URL(personnelsTable.ajax.url(), window.location.origin);
+                if (hasAllDeptAccess) {
+                    currentUrl.searchParams.set('company', $('#filterCompanyAllDept').val() || '');
+                    currentUrl.searchParams.set('division', $('#filterDivisionAllDept').val() || '');
+                    currentUrl.searchParams.set('department', $('#filterDepartmentAllDept').val() || '');
+                }
+                currentUrl.searchParams.set('jobposting_status', $('#filterJobPostingStatus').val() || '');
+                personnelsTable.ajax.url(currentUrl.pathname + currentUrl.search).load();
+            }
+
+            // Job Posting Status filter only makes sense on the Completed tab —
+            // shown/hidden by the status-tab click handler further below.
+            $('#filterJobPostingStatus').select2({
+                placeholder: 'All Job Posting Status',
+                width: '100%',
+                allowClear: true,
+                dropdownParent: $('#allDeptFilterWrap')
+            });
+            $('#filterJobPostingStatus').on('change', reloadAllDeptFilters);
+
+            function setJobPostingFilterVisible(status) {
+                const showJobPosting = status === 'C';
+                $('#jobPostingStatusSegment').toggleClass('hidden', !showJobPosting);
+                if (!showJobPosting) {
+                    $('#filterJobPostingStatus').val('').trigger('change.select2');
+                }
+                // The whole filter row only needs to be shown for non-AllDept users
+                // when the Job Posting Status filter itself is visible.
+                $('#allDeptFilterWrap').toggleClass('hidden', !(hasAllDeptAccess || showJobPosting));
+            }
+
+            if (hasAllDeptAccess) {
+                $('#filterCompanyAllDept').select2({
+                    placeholder: 'All Company',
+                    width: '100%',
+                    allowClear: true,
+                    dropdownParent: $('#allDeptFilterWrap')
+                });
+                $('#filterDivisionAllDept').select2({
+                    placeholder: 'All Division',
+                    width: '100%',
+                    allowClear: true,
+                    dropdownParent: $('#allDeptFilterWrap')
+                });
+                $('#filterDepartmentAllDept').select2({
+                    placeholder: 'All Department',
+                    width: '100%',
+                    allowClear: true,
+                    dropdownParent: $('#allDeptFilterWrap')
+                });
+
+                // cache the full, group-scoped department list once so the division
+                // filter can rebuild the dropdown client-side without another request
+                const allDeptOptions = $('#filterDepartmentAllDept option[value!=""]').map(function() {
+                    return {
+                        value: $(this).val(),
+                        text: $(this).text(),
+                        division: $(this).data('division')
+                    };
+                }).get();
+
+                function rebuildDeptOptions(divisionId) {
+                    const $dept = $('#filterDepartmentAllDept');
+                    $dept.empty().append('<option value="">All Department</option>');
+                    allDeptOptions
+                        .filter(o => !divisionId || String(o.division) == String(divisionId))
+                        .forEach(o => {
+                            $dept.append(`<option value="${o.value}" data-division="${o.division}">${o.text}</option>`);
+                        });
+                    $dept.val('').trigger('change');
+                }
+
+                $('#filterDivisionAllDept').on('change', function() {
+                    rebuildDeptOptions($(this).val());
+                    reloadAllDeptFilters();
+                });
+
+                $('#filterCompanyAllDept, #filterDepartmentAllDept').on('change', reloadAllDeptFilters);
+            }
+
+            $('#resetAllDeptFilters').on('click', function() {
+                if (hasAllDeptAccess) {
+                    rebuildDeptOptions('');
+                    $('#filterCompanyAllDept, #filterDivisionAllDept').val('').trigger('change.select2');
+                }
+                $('#filterJobPostingStatus').val('').trigger('change.select2');
+                reloadAllDeptFilters();
+            });
             function toggleActionColumn(table, data) {
 
                 let hasToggle = data.some(r =>
@@ -213,7 +477,7 @@
 
             // Hanya inisialisasi tabel personnelsTable
             personnelsTable = $('#personnelsTable').DataTable({
-                ajax: "{{ route('personnels.json') }}?status=P",
+                ajax: appendAllDeptFilters("{{ route('personnels.json') }}?status=P"),
                 processing: true,
                 serverSide: false,
                 lengthMenu: [
@@ -309,13 +573,21 @@
                                 'inline-flex justify-center items-center min-w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-600 hover:bg-gray-700';
                             const buttonText = row.docid;
 
-                            const isReviseOwner = row.status === 'D' && row.created_user === currentUser;
+                            const isReviseOwner = (row.status === 'D' || row.status === 'H') && row.created_user === currentUser;
 
                             if (isReviseOwner) {
                                 mainUrl = `/editpersonnels/${row.eid}`;
                                 buttonClass =
                                     'inline-flex justify-center items-center min-w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
                             }
+
+                            const canCopyTemplate = row.status === 'C' && row.group_cpny_id === 'SBY';
+                            const copyBtnHtml = canCopyTemplate ? `
+                                <button type="button" class="copyTemplateBtn inline-flex h-9 w-9 items-center justify-center rounded bg-teal-500 text-white transition-colors duration-200 hover:bg-teal-600"
+                                    title="Copy Template" data-eid="${row.eid}">
+                                    <i class="fas fa-copy text-sm"></i>
+                                </button>
+                            ` : '';
 
                             if (isReviseOwner) {
                                 return `
@@ -329,14 +601,18 @@
                                         title="View">
                                             <i class="fas fa-eye text-sm"></i>
                                         </a>
+                                        ${copyBtnHtml}
                                     </div>
                                 `;
                             }
 
                             return `
-                                <a href="${mainUrl}" class="${buttonClass}">
-                                    ${buttonText}
-                                </a>
+                                <div class="flex items-center gap-2">
+                                    <a href="${mainUrl}" class="${buttonClass}">
+                                        ${buttonText}
+                                    </a>
+                                    ${copyBtnHtml}
+                                </div>
                             `;
                         }
                     },
@@ -406,6 +682,10 @@
                                 statusText = "Completed";
                                 badgeClass =
                                     "w-32 bg-green-200/60 text-green-800 dark:bg-green-300/40 dark:text-green-900 pointer-events-none border border-green-600/40 font-semibold px-4 py-2 text-center rounded";
+                            } else if (data === 'H') {
+                                statusText = "Draft";
+                                badgeClass =
+                                    "w-32 bg-slate-200/60 text-slate-800 dark:bg-slate-300/40 dark:text-slate-900 pointer-events-none border border-slate-600/40 font-semibold px-4 py-2 text-center rounded";
                             } else if (data === 'X') {
                                 statusText = "Cancel";
                                 badgeClass =
@@ -425,7 +705,7 @@
                     },
                     {
                         data: 'jobposting_status',
-                        render: function(data) {
+                        render: function(data, type, row) {
 
                             let text = '';
                             let cls = '';
@@ -433,6 +713,9 @@
                            if (!data) {
                                 text = 'Not Posted';
                                 cls = 'bg-gray-200 text-gray-700';
+                            } else if (data === 'U') {
+                                text = 'Unposted';
+                                cls = 'bg-gray-200 text-gray-600';
                             } else if (data === 'P') {
                                 text = 'Posted';
                                 cls = 'bg-blue-200 text-blue-800';
@@ -440,11 +723,16 @@
                                 text = 'Closed';
                                 cls = 'bg-green-200 text-green-800';
                             } else if (data === 'X') {
-                                text = 'Cancelled'; // ✅ ADD THIS
+                                text = 'Cancelled';
                                 cls = 'bg-red-200 text-red-800';
                             } else if (data === 'H') {
                                 text = 'Hold';
                                 cls = 'bg-orange-200 text-orange-800';
+                                const reason = row.jobposting_reason ?? null;
+                                const reasonIcon = reason
+                                    ? ` <span class="jp-reason-icon cursor-pointer ml-1 align-middle" title="${reason}" data-reason="${reason}">ℹ️</span>`
+                                    : '';
+                                return `<span class="px-2 py-1 rounded ${cls}">${text}${reasonIcon}</span>`;
                             } else {
                                 text = data;
                                 cls = 'bg-gray-200 text-gray-700';
@@ -462,181 +750,233 @@
                             if (row.status !== 'C') return `<span class="text-gray-300 text-xs">-</span>`;
                             if (row.jobposting_status === 'X') return `<span class="text-red-500 text-xs font-semibold">Cancelled</span>`;
 
-                            let items = '';
-
-                            if (row.jobposting_status === 'P') {
-                                items += `<button class="toggle-status w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-red-600" data-docid="${row.docid}" data-status="P">🔒 Close</button>`;
-                                items += `<button class="cancel-status w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-gray-600" data-docid="${row.docid}">✖ Cancel</button>`;
-                            } else if (row.jobposting_status === 'C') {
-                                items += `<button class="toggle-status w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-green-600" data-docid="${row.docid}" data-status="C">🔓 Reopen</button>`;
-                                items += `<button class="cancel-status w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-gray-600" data-docid="${row.docid}">✖ Cancel</button>`;
-                            } else if (row.jobposting_status === 'H') {
-                                items += `<button class="toggle-status w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-blue-600" data-docid="${row.docid}" data-status="H">🔄 Open</button>`;
+                            // ❌ CANCELLED → no action (terminal)
+                            if (row.jobposting_status === 'X') {
+                                return `<span class="text-red-500 text-xs font-semibold">Cancelled</span>`;
                             }
 
+                            const s = row.jobposting_status;
+                            const id = row.docid;
+
+                            const actionMap = {
+                                U: [
+                                    { label: '📢 Post',    action: 'post',   cls: 'text-blue-700'  },
+                                    { label: '🔒 Close',   action: 'close',  cls: 'text-red-700'   },
+                                    { label: '⏸ Hold',    action: 'hold',   cls: 'text-amber-700' },
+                                    { label: '✖ Cancel',  action: 'cancel', cls: 'text-gray-600'  },
+                                ],
+                                P: [
+                                    { label: '🔒 Close',   action: 'close',  cls: 'text-red-700'   },
+                                    { label: '⏸ Hold',    action: 'hold',   cls: 'text-amber-700' },
+                                    { label: '📥 Unpost', action: 'unpost', cls: 'text-yellow-700' },
+                                    { label: '✖ Cancel',  action: 'cancel', cls: 'text-gray-600'  },
+                                ],
+                                C: [
+                                    { label: '🔓 Reopen',  action: 'reopen', cls: 'text-green-700' },
+                                    { label: '📥 Unpost', action: 'unpost', cls: 'text-yellow-700' },
+                                    { label: '✖ Cancel',  action: 'cancel', cls: 'text-gray-600'  },
+                                ],
+                                H: [
+                                    { label: '🔄 Open',    action: 'open',   cls: 'text-blue-700'  },
+                                    { label: '📥 Unpost', action: 'unpost', cls: 'text-yellow-700' },
+                                ],
+                            };
+
+                            const items = actionMap[s] ?? [];
+                            if (!items.length) return `<span class="text-gray-300 text-xs">-</span>`;
+
+                            const menuItems = items.map(i =>
+                                `<button class="jp-action-item w-full text-left px-4 py-2 text-xs hover:bg-gray-100 ${i.cls}"
+                                    data-docid="${id}" data-status="${s}" data-action="${i.action}">${i.label}</button>`
+                            ).join('');
+
                             return `
-                                <div class="jp-dropdown relative inline-block">
-                                    <button class="jp-toggle inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300">Action ▾</button>
+                                <div class="jp-dropdown inline-block text-left">
+                                    <button class="jp-dropdown-toggle inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition border border-gray-300 dark:bg-gray-900 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700"
+                                        data-docid="${id}">
+                                        Action ▾
+                                    </button>
                                 </div>
-                                <div class="jp-menu-data" data-docid="${row.docid}" style="display:none">${items}</div>`;
+                            `;
                         }
                     }
                 ]
             });
 
-            // ── FIXED DROPDOWN (personnels) ───────────────────────────
-            const $jpMenu = $('<div id="jp-fixed-menu" class="hidden fixed z-[9999] w-44 rounded-md shadow-lg bg-white border border-gray-200 py-1"></div>').appendTo('body');
+                // Buat satu elemen menu fixed yang di-share semua baris
+                const $jpMenu = $(`
+                    <div id="jp-fixed-menu" class="hidden fixed z-[9999] w-40 rounded-md shadow-lg bg-white border border-gray-200 py-1 dark:bg-gray-800 dark:border-gray-700">
+                    </div>
+                `).appendTo('body');
 
-            $(document).on('click', '.jp-toggle', function(e) {
-                e.stopPropagation();
-                const docid = $(this).closest('.jp-dropdown').next('.jp-menu-data').data('docid');
-                const html  = $(`.jp-menu-data[data-docid="${docid}"]`).html();
-                $jpMenu.html(html || '');
+                const actionLabels = {
+                    post:   { label: '📢 Post',    cls: 'text-blue-700'   },
+                    close:  { label: '🔒 Close',   cls: 'text-red-700'    },
+                    hold:   { label: '⏸ Hold',    cls: 'text-amber-700'  },
+                    unpost: { label: '📥 Unpost',  cls: 'text-yellow-700' },
+                    cancel: { label: '✖ Cancel',  cls: 'text-gray-600'   },
+                    reopen: { label: '🔓 Reopen',  cls: 'text-green-700'  },
+                    open:   { label: '🔄 Open',    cls: 'text-blue-700'   },
+                };
 
-                const rect = this.getBoundingClientRect();
-                const jpW  = 176;
-                $jpMenu.css({
-                    top:  rect.bottom + 4,
-                    left: Math.max(8, Math.min(rect.right - jpW, window.innerWidth - jpW - 8)),
-                });
+                const statusActions = {
+                    U: ['post', 'close', 'hold', 'cancel'],
+                    P: ['close', 'hold', 'unpost', 'cancel'],
+                    C: ['reopen', 'unpost', 'cancel'],
+                    H: ['open', 'unpost'],
+                };
 
-                const isOpen = !$jpMenu.hasClass('hidden');
-                $jpMenu.toggleClass('hidden', isOpen);
-            });
+                // Toggle dropdown open/close
+                $('#personnelsTable').on('click', '.jp-dropdown-toggle', function(e) {
+                    e.stopPropagation();
 
-            $(document).on('click', function() { $jpMenu.addClass('hidden'); });
+                    const btn      = $(this);
+                    const docid    = btn.data('docid');
+                    const jpStatus = btn.closest('tr').find('[data-jp-status]').data('jp-status')
+                                  || btn.closest('td').prev('[data-jp-status]').data('jp-status')
+                                  || btn.closest('tr').find('.jp-status-cell').data('jp-status');
 
-                $(document).on('click', '.toggle-status', function() {
+                    // Ambil status dari data yg sudah di-render di kolom Job Posting Status
+                    const rowData  = personnelsTable.row(btn.closest('tr')).data();
+                    const s        = rowData ? rowData.jobposting_status : null;
 
-                    let btn = $(this);
-                    let docid = btn.data('docid');
-                    let currentStatus = btn.data('status');
-
-                    let title = '';
-                    let text = '';
-                    let showHoldClose = false;
-
-                    // 🔥 Decide popup based on current status
-                    if (currentStatus === 'P') {
-                        title = 'Select Action';
-                        text = 'Do you want to HOLD or CLOSE this job posting?';
-                        showHoldClose = true;
-                    } else if (currentStatus === 'C') {
-                        title = 'Reopen Job Posting';
-                        text = 'Do you want to reopen this job posting?';
-                    } else if (currentStatus === 'H') {
-                        title = 'Open Job Posting';
-                        text = 'Do you want to post this job again?';
+                    if (!s || !statusActions[s]) {
+                        $jpMenu.addClass('hidden');
+                        return;
                     }
 
+                    // Build menu items
+                    const items = statusActions[s].map(action => {
+                        const cfg = actionLabels[action];
+                        return `<button class="jp-action-item w-full text-left px-4 py-2 text-xs hover:bg-gray-100 ${cfg.cls}"
+                            data-docid="${docid}" data-status="${s}" data-action="${action}">${cfg.label}</button>`;
+                    }).join('');
+
+                    $jpMenu.html(items);
+
+                    // Posisi fixed berdasarkan koordinat tombol
+                    const rect = this.getBoundingClientRect();
+                    $jpMenu.css({
+                        top:  rect.bottom + window.scrollY,
+                        left: rect.right - 160 + window.scrollX,
+                    });
+
+                    const isVisible = !$jpMenu.hasClass('hidden');
+                    $jpMenu.toggleClass('hidden', isVisible);
+                });
+
+                // Show hold reason on click
+                $('#personnelsTable').on('click', '.jp-reason-icon', function(e) {
+                    e.stopPropagation();
+                    const reason = $(this).data('reason');
                     Swal.fire({
-                        title,
-                        text,
+                        title: 'Hold Reason',
+                        text: reason,
+                        icon: 'info',
+                        confirmButtonColor: '#f59e0b',
+                    });
+                });
+
+                // Copy Template (Completed PRF -> new draft)
+                $('#personnelsTable').on('click', '.copyTemplateBtn', function(e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+
+                    const $btn = $(this);
+                    const eid = $btn.data('eid');
+
+                    Swal.fire({
+                        title: 'Copy this PRF?',
+                        text: 'A new draft PRF will be created with all fields copied from this one.',
                         icon: 'question',
                         showCancelButton: true,
-                        showDenyButton: showHoldClose,
-
-                        confirmButtonText: showHoldClose ? 'Close' : 'Yes',
-                        denyButtonText: 'Hold',
-                        cancelButtonText: 'Cancel',
-
-                        confirmButtonColor: '#dc2626',
-                        denyButtonColor: '#f59e0b'
+                        confirmButtonText: 'Yes, Copy',
+                        confirmButtonColor: '#0d9488',
                     }).then((result) => {
+                        if (!result.isConfirmed) return;
 
-                        // 🔴 CLOSE
-                        if (showHoldClose && result.isConfirmed) {
-                            processStatus(docid, 'C', 'Closed', btn);
-                        }
+                        $btn.prop('disabled', true);
 
-                        // 🟡 HOLD → NEED REASON
-                        else if (showHoldClose && result.isDenied) {
-
-                            Swal.fire({
-                                title: 'Reason for Hold',
-                                input: 'textarea',
-                                inputPlaceholder: 'Enter reason...',
-                                inputAttributes: {
-                                    'aria-label': 'Reason'
-                                },
-                                showCancelButton: true,
-                                confirmButtonText: 'Submit',
-                                confirmButtonColor: '#f59e0b',
-                                preConfirm: (value) => {
-                                    if (!value) {
-                                        Swal.showValidationMessage('Reason is required');
-                                    }
-                                    return value;
+                        $.ajax({
+                            url: `/personnels/${eid}/copy`,
+                            type: 'POST',
+                            data: {
+                                _token: '{{ csrf_token() }}'
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    toastr.success('Draft PRF created from template.');
+                                    window.location.href = `/editpersonnels/${response.hash}`;
+                                } else {
+                                    toastr.error(response.message || 'Failed to copy PRF.');
+                                    $btn.prop('disabled', false);
                                 }
-                            }).then((res) => {
-
-                                if (!res.isConfirmed) return;
-
-                                let reason = res.value;
-
-                                processStatus(docid, 'H', 'Put on Hold', btn, reason);
-                            });
-                        }
-
-                        // 🔵 REOPEN / OPEN
-                        else {
-                            if (!result.isConfirmed) return;
-
-                            let status = null;
-                            let successText = '';
-
-                            if (currentStatus === 'C') {
-                                status = 'P';
-                                successText = 'Reopened';
-                            } else if (currentStatus === 'H') {
-                                status = 'P';
-                                successText = 'Opened';
+                            },
+                            error: function(xhr) {
+                                toastr.error(xhr.responseJSON?.message || 'Failed to copy PRF.');
+                                $btn.prop('disabled', false);
                             }
-
-                            processStatus(docid, status, successText, btn);
-                        }
-                    });
-                });
-
-                $(document).on('click', '.cancel-status', function () {
-
-                let btn = $(this);
-                let docid = btn.data('docid');
-
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: 'You are about to cancel this job posting.',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#6b7280',
-                    confirmButtonText: 'Yes, cancel it!'
-                }).then((result) => {
-
-                    if (!result.isConfirmed) return;
-
-                    btn.prop('disabled', true).html('Processing...');
-
-                    $.post('/jobposting/toggle-status', {
-                        docid,
-                        status: 'X', // 🔥 CANCELLED
-                        _token: '{{ csrf_token() }}'
-                    })
-                    .done(() => {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Cancelled',
-                            timer: 1200,
-                            showConfirmButton: false
                         });
-
-                        personnelsTable.ajax.reload(null, false);
-                    })
-                    .fail(() => {
-                        Swal.fire('Failed', 'Something went wrong', 'error');
-                        btn.prop('disabled', false);
                     });
                 });
-            });
+
+                // Close dropdown saat klik di luar
+                $(document).on('click', function() {
+                    $jpMenu.addClass('hidden');
+                });
+
+                // Handle pilihan dari dropdown
+                $(document).on('click', '.jp-action-item', function(e) {
+                    e.stopPropagation();
+                    $jpMenu.addClass('hidden');
+
+                    const btn    = $(this);
+                    const docid  = btn.data('docid');
+                    const status = btn.data('status');
+                    const action = btn.data('action');
+
+                    const confirmMap = {
+                        post:   { title: 'Post Job Posting',    text: 'Publish this job posting?',              confirmText: 'Yes, Post',    color: '#2563eb', targetStatus: 'P', successText: 'Posted'    },
+                        close:  { title: 'Close Job Posting',   text: 'Close this job posting?',                confirmText: 'Yes, Close',   color: '#dc2626', targetStatus: 'C', successText: 'Closed'    },
+                        reopen: { title: 'Reopen Job Posting',  text: 'Reopen this job posting?',               confirmText: 'Yes, Reopen',  color: '#16a34a', targetStatus: 'P', successText: 'Reopened'  },
+                        open:   { title: 'Open Job Posting',    text: 'Post this job again?',                   confirmText: 'Yes, Open',    color: '#2563eb', targetStatus: 'P', successText: 'Opened'    },
+                        unpost: { title: 'Unpost Job Posting',  text: 'Move back to Unposted?',                 confirmText: 'Yes, Unpost',  color: '#ca8a04', targetStatus: 'U', successText: 'Unposted'  },
+                        cancel: { title: 'Cancel Job Posting',  text: 'You are about to cancel this posting.',  confirmText: 'Yes, Cancel',  color: '#6b7280', targetStatus: 'X', successText: 'Cancelled' },
+                    };
+
+                    if (action === 'hold') {
+                        Swal.fire({
+                            title: 'Reason for Hold',
+                            input: 'textarea',
+                            inputPlaceholder: 'Enter reason...',
+                            inputAttributes: { 'aria-label': 'Reason' },
+                            showCancelButton: true,
+                            confirmButtonText: 'Submit',
+                            confirmButtonColor: '#f59e0b',
+                            preConfirm: (value) => {
+                                if (!value) Swal.showValidationMessage('Reason is required');
+                                return value;
+                            }
+                        }).then((res) => {
+                            if (res.isConfirmed) processStatus(docid, 'H', 'Put on Hold', btn, res.value);
+                        });
+                        return;
+                    }
+
+                    const cfg = confirmMap[action];
+                    if (!cfg) return;
+
+                    Swal.fire({
+                        title: cfg.title,
+                        text: cfg.text,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: cfg.confirmText,
+                        confirmButtonColor: cfg.color,
+                    }).then((result) => {
+                        if (result.isConfirmed) processStatus(docid, cfg.targetStatus, cfg.successText, btn);
+                    });
+                });
 
             // Event listener untuk klik pada baris grup (collapse/expand) untuk personnelsTable
             $('#personnelsTable tbody').on('click', 'tr.group-row', function() {
@@ -676,6 +1016,8 @@
                     let status = $('#filterStatus').val();
                     let dept = $('#filterDept').val();
 
+                    setJobPostingFilterVisible(status);
+
                     newUrl += "?hcbp=1"
                         + "&status=" + encodeURIComponent(status ?? '')
                         + "&department=" + encodeURIComponent(dept ?? '');
@@ -684,10 +1026,12 @@
 
                     $('#hcbpFilters').hide();
 
+                    setJobPostingFilterVisible(selectedStatus);
+
                     newUrl += "?status=" + encodeURIComponent(selectedStatus ?? '');
                 }
 
-                personnelsTable.ajax.url(newUrl).load();
+                personnelsTable.ajax.url(appendAllDeptFilters(newUrl)).load();
             });
 
             // 🔥 APPLY FILTER
@@ -696,6 +1040,8 @@
                 let status = $('#filterStatus').val();
                 let dept = $('#filterDept').val();
 
+                setJobPostingFilterVisible(status);
+
                 let newUrl = "{{ route('personnels.json') }}"
                     + "?hcbp=1"
                     + "&status=" + encodeURIComponent(status ?? '')
@@ -703,7 +1049,7 @@
 
                 console.log("APPLY URL:", newUrl); // debug
 
-                personnelsTable.ajax.url(newUrl).load();
+                personnelsTable.ajax.url(appendAllDeptFilters(newUrl)).load();
             });
 
             $('#resetFilter').on('click', function() {
@@ -711,11 +1057,13 @@
                 $('#filterStatus').val('');
                 $('#filterDept').val('');
 
+                setJobPostingFilterVisible('');
+
                 let newUrl = "{{ route('personnels.json') }}?hcbp=1";
 
                 console.log("RESET URL:", newUrl);
 
-                personnelsTable.ajax.url(newUrl).load();
+                personnelsTable.ajax.url(appendAllDeptFilters(newUrl)).load();
             });
         });
         // Make each .grid-col-1 set independent

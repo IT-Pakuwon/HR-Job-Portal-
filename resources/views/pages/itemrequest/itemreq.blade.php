@@ -6,7 +6,8 @@
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- STATUS CARDS --}}
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+        <div
+            class="{{ ($isAdmin ?? false) ? 'xl:grid-cols-6' : 'xl:grid-cols-5' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
             {{-- All --}}
             <button type="button" class="text-left">
                 <a href="#" class="status-filter active group block h-full" data-status="">
@@ -76,41 +77,57 @@
                     </div>
                 </a>
             </button>
+
+            {{-- Item Request All List (admin only) --}}
+            @if ($isAdmin ?? false)
+                <button type="button" class="text-left">
+                    <a href="#" class="status-filter group block h-full" data-status="" data-mode="all">
+                        <div
+                            class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
+                            <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📊</div>
+                            <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                                <p class="break-words text-sm font-medium">Item Request All List</p>
+                            </div>
+                            <p class="shrink-0 text-base font-bold">{{ $allListCount }}</p>
+                        </div>
+                    </a>
+                </button>
+            @endif
         </div>
 
-        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Item Request</h1>
+        <div
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Item Request</h2>
 
                 {{-- sesuaikan URL/route create --}}
                 <a href="{{ url('/createitemreq') }}"
-                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                    class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
                     <i class="fas fa-plus pr-2"></i>Create
                 </a>
             </div>
 
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="itemReqTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th class="w-32 px-6 py-2 font-medium">
+            <div class="relative overflow-hidden">
+                <table id="itemReqTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 IRID</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Date</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Company</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Department</th>
-                            <th class="w-32 px-6 py-2 font-medium">Inventory Type</th>
-                            <th
-                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                            <th class="w-32 px-4 py-3 text-left font-medium">Inventory Type</th>
+                            <th class="px-4 py-3 text-left font-medium">
                                 Description</th>
-                            <th
-                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                            <th class="px-4 py-3 text-left font-medium">
                                 PIC</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Status</th>
                         </tr>
                     </thead>
@@ -127,6 +144,7 @@
         $(document).ready(function() {
             // default status filter: '' (All)
             let statusFilter = '';
+            let modeFilter = 'normal';
 
             const table = $('#itemReqTable').DataTable({
                 processing: true,
@@ -186,6 +204,7 @@
                     type: "GET",
                     data: function(d) {
                         d.status = statusFilter ?? '';
+                        d.mode = modeFilter;
                     }
                 },
 
@@ -299,6 +318,7 @@
             $('.status-filter').on('click', function(e) {
                 e.preventDefault();
                 statusFilter = $(this).data('status') || '';
+                modeFilter = $(this).data('mode') === 'all' ? 'all' : 'normal';
                 table.ajax.reload(null, true);
             });
 

@@ -93,7 +93,7 @@
         </div>
         {{-- Table --}}
         <div
-            class="mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
             <div
                 class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
@@ -826,7 +826,7 @@
                                     <div>
 
                                         <label
-                                            class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
+                                            class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
 
                                             Recommendation Type
 
@@ -858,7 +858,7 @@
                                     <div>
 
                                         <label
-                                            class="mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
+                                            class="mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
 
                                             Warranty
 
@@ -872,7 +872,7 @@
                                     <div class="md:col-span-2">
 
                                         <label
-                                            class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
+                                            class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
 
                                             Recommendation
 
@@ -1132,7 +1132,7 @@
                                         <div>
 
                                             <label
-                                                class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
+                                                class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
 
                                                 Recommendation Type
 
@@ -1160,7 +1160,7 @@
                                         <div>
 
                                             <label
-                                                class="mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
+                                                class="mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
 
                                                 Warranty
 
@@ -1174,7 +1174,7 @@
                                         <div class="md:col-span-2">
 
                                             <label
-                                                class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
+                                                class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
 
                                                 Recommendation
 
@@ -1343,7 +1343,7 @@
                     </div>
 
                     <button type="button"
-                        class="btn-close-attachment-modal inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-all duration-200 hover:bg-slate-100 dark:hover:bg-white/10">
+                        class="btn-close-attachment-modal inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-all duration-200 hover:bg-slate-100 dark:hover:bg-white/10 dark:text-slate-400">
 
                         <i class="fa-solid fa-xmark"></i>
 
@@ -1482,6 +1482,7 @@
 
     <script src="{{ asset('assets/js/it-recommendation/request-form.js') }}"></script>
 
+    <script src="{{ asset('assets/js/shared/mention-autocomplete.js') }}"></script>
     <script src="{{ asset('assets/js/it-recommendation/detail-modal.js') }}"></script>
 
     <script src="{{ asset('assets/js/it-recommendation/process.js') }}"></script>

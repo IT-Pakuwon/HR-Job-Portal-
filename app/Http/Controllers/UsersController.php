@@ -12,36 +12,73 @@ use App\Models\Usercpny;
 use App\Models\Userdept;
 use App\Models\Userbusinessunit;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use App\Models\SysRole;
 use App\Models\SysUserRole;
 use App\Models\BusinessUnit;
-use App\Models\MsDivision;
+use App\Models\Division;
 use App\Models\Userdivision;
 use App\Models\UserDas;
 use App\Models\SysScreen;
 
 class UsersController extends Controller
 {
+    /**
+     * adminsby may only assign these RBAC roles to a user.
+     */
+    private const SBY_ALLOWED_ROLE_IDS = ['RECACCALLDEPT', 'RECACCESS', 'RECDIRACCESS'];
+
+    private function isSbyContext(): bool
+    {
+        return request()->routeIs('users-sby*');
+    }
 
     public function index()
     {
         $user = Auth::user();
         if (!$user) return redirect()->route('login');
 
-        $company = MsCompany::select(['cpny_id', 'cpny_name'])->where('status', 'A')->get();
+        $company = MsCompany::select(['cpny_id', 'cpny_name', 'group_cpny_id'])->where('status', 'A')->get();
         $department = MsDepartment::select(['department_id', 'department_name'])->where('status', 'A')->get();
+
+        // Scoped lists for the Filter Company / Filter Department dropdowns only
+        // (the Access Scope selects inside the Add/Edit modal keep the full, unscoped lists above).
+        $filterGroupCpnyId = $this->isSbyContext() ? 'SBY' : 'JKT';
+
+        $filterCompanies = MsCompany::select(['cpny_id', 'cpny_name'])
+            ->where('status', 'A')
+            ->where('group_cpny_id', $filterGroupCpnyId)
+            ->orderBy('cpny_id')
+            ->get();
+
+        $filterDepartmentIds = User::where('group_cpny_id', $filterGroupCpnyId)
+            ->whereNotNull('department_id')
+            ->where('department_id', '!=', '')
+            ->pluck('department_id')
+            ->flatMap(fn ($csv) => explode(',', $csv))
+            ->map(fn ($id) => trim($id))
+            ->filter()
+            ->unique();
+
+        $filterDepartments = MsDepartment::select(['department_id', 'department_name'])
+            ->where('status', 'A')
+            ->whereIn('department_id', $filterDepartmentIds)
+            ->orderBy('department_id')
+            ->get();
+
         // $businessUnits = BusinessUnit::select('business_unit_id')->where('status', 'A')->get();
         $businessUnits = BusinessUnit::select(['business_unit_id', 'business_unit_name'])
             ->where('status', 'A')
             ->distinct()
             ->get();
 
-        $divisions = MsDivision::select(['division_id', 'division_name'])
+        $divisions = Division::select(['division_id', 'division_name', 'group_cpny_id'])
             ->where('status', 'A')
             ->orderBy('division_name')
             ->get();
 
         $roles = SysRole::where('status', 'A')
+            ->when($this->isSbyContext(), fn ($q) => $q->whereIn('role_id', self::SBY_ALLOWED_ROLE_IDS))
             ->orderBy('role_id')
             ->get();
 
@@ -60,6 +97,8 @@ class UsersController extends Controller
             compact(
                 'company',
                 'department',
+                'filterCompanies',
+                'filterDepartments',
                 'businessUnits',
                 'divisions',
                 'roles',
@@ -85,6 +124,8 @@ class UsersController extends Controller
             'homepage',
             'status'
         ])
+            ->where('status', 'A')
+            ->when($this->isSbyContext(), fn ($q) => $q->where('group_cpny_id', 'SBY'))
             ->orderByDesc('id')
             ->get();
 
@@ -92,29 +133,147 @@ class UsersController extends Controller
     }
 
 
+    public function inactiveJson()
+    {
+        $users = User::select([
+            'id',
+            'name',
+            'username',
+            'email',
+            'cpny_id',
+            'department_id',
+            'business_unit_id',
+            'division_id',
+            'jabatan',
+            'npk',
+            'homepage',
+            'status'
+        ])
+            ->where('status', '!=', 'A')
+            ->when($this->isSbyContext(), fn ($q) => $q->where('group_cpny_id', 'SBY'))
+            ->orderByDesc('id')
+            ->get();
+
+        return response()->json(['data' => $users]);
+    }
+
+
+    public function duplicatesJson()
+    {
+        $emailKeys = User::query()
+            ->select(DB::raw('LOWER(TRIM(email)) as key_val'))
+            ->whereNotNull('email')
+            ->where('email', '!=', '')
+            ->groupBy(DB::raw('LOWER(TRIM(email))'))
+            ->havingRaw('COUNT(*) > 1')
+            ->pluck('key_val');
+
+        $usernameKeys = User::query()
+            ->select(DB::raw('LOWER(TRIM(username)) as key_val'))
+            ->whereNotNull('username')
+            ->where('username', '!=', '')
+            ->groupBy(DB::raw('LOWER(TRIM(username))'))
+            ->havingRaw('COUNT(*) > 1')
+            ->pluck('key_val');
+
+        $npkKeys = User::query()
+            ->select('npk')
+            ->whereNotNull('npk')
+            ->where('npk', '!=', '')
+            ->groupBy('npk')
+            ->havingRaw('COUNT(*) > 1')
+            ->pluck('npk');
+
+        if ($emailKeys->isEmpty() && $usernameKeys->isEmpty() && $npkKeys->isEmpty()) {
+            return response()->json(['data' => []]);
+        }
+
+        $users = User::query()
+            ->select([
+                'id',
+                'name',
+                'username',
+                'email',
+                'npk',
+                'cpny_id',
+                'department_id',
+                'business_unit_id',
+                'jabatan',
+                'status',
+                'created_at',
+            ])
+            ->where(function ($q) use ($emailKeys, $usernameKeys, $npkKeys) {
+                if ($emailKeys->isNotEmpty()) {
+                    $q->orWhereIn(DB::raw('LOWER(TRIM(email))'), $emailKeys);
+                }
+                if ($usernameKeys->isNotEmpty()) {
+                    $q->orWhereIn(DB::raw('LOWER(TRIM(username))'), $usernameKeys);
+                }
+                if ($npkKeys->isNotEmpty()) {
+                    $q->orWhereIn('npk', $npkKeys);
+                }
+            })
+            ->when($this->isSbyContext(), fn ($q) => $q->where('group_cpny_id', 'SBY'))
+            ->orderByRaw('LOWER(TRIM(email)) ASC NULLS LAST, LOWER(TRIM(username)) ASC NULLS LAST')
+            ->get();
+
+        $users = $users->map(function ($u) use ($emailKeys, $usernameKeys, $npkKeys) {
+            $emailKey = $u->email ? mb_strtolower(trim($u->email)) : null;
+            $usernameKey = $u->username ? mb_strtolower(trim($u->username)) : null;
+
+            $reasons = [];
+            if ($emailKey && $emailKeys->contains($emailKey)) {
+                $reasons[] = 'Email';
+            }
+            if ($usernameKey && $usernameKeys->contains($usernameKey)) {
+                $reasons[] = 'Username';
+            }
+            if ($u->npk && $npkKeys->contains($u->npk)) {
+                $reasons[] = 'NPK';
+            }
+
+            $u->duplicate_reason = implode(', ', $reasons);
+            $u->group_key = $emailKey ?: ($usernameKey ?: $u->npk);
+
+            return $u;
+        });
+
+        return response()->json(['data' => $users->values()]);
+    }
+
+
     public function store(Request $request)
     {
+        $isSby = $this->isSbyContext();
+
         $request->validate([
             'name' => 'required',
             'email' => 'required',
+            'group_cpny_id' => 'nullable|string',
             'cpny_id' => 'required|array',
-            'department_id' => 'required|array',
-            'division_id' => 'required|array',
-            'business_unit_id' => 'required|array',
+            'department_id' => 'nullable|array',
+            'division_id' => 'nullable|array',
+            'business_unit_id' => 'nullable|array',
             'homepage' => 'nullable|string',
             'jabatan' => 'required',
-            'role' => 'required',
+            'role' => 'required|array',
             'role_ids' => 'nullable|array',
+            'origin_cpny_id' => 'nullable|string',
+            'origin_department_id' => 'nullable|string',
         ]);
         DB::beginTransaction();
         try {
 
             $loginUser = Auth::user();
 
+            $groupCpnyId = $isSby ? 'SBY' : $request->group_cpny_id;
+
             $companyIdsString = implode(',', $request->cpny_id);
-            $deptIdsString    = implode(',', $request->department_id);
-            $businessUnitIdsString = implode(',', $request->business_unit_id);
-            $divisionIdsString = implode(',', $request->division_id);
+            $deptIdsString    = implode(',', $request->department_id ?? []);
+            $businessUnitIdsString = implode(',', $request->business_unit_id ?? []);
+            $divisionIdsString = implode(',', $request->division_id ?? []);
+            $roles = $isSby ? array_values(array_intersect($request->role, ['user', 'adminsby'])) : $request->role;
+            $roleString = implode(',', $roles);
 
             $email    = $request->email;
             $username = $request->filled('username')
@@ -128,15 +287,18 @@ class UsersController extends Controller
                 'email'              => $email,
                 'username'           => $username,
                 'cpny_id'            => $companyIdsString,
+                'group_cpny_id'      => $groupCpnyId,
                 'department_id'      => $deptIdsString,
                 'division_id'        => $divisionIdsString,
                 'business_unit_id'   => $businessUnitIdsString,
                 'homepage' => $request->homepage,
                 'jabatan'            => $request->jabatan,
                 'password'           => $password,
-                'user_role'          => $request->role, // user/admin (level UI)
+                'user_role'          => $roleString, // user/admin (level UI)
                 'notification_email' => $email,
                 'npk'                => $request->npk,
+                'origin_cpny_id'     => $request->origin_cpny_id,
+                'origin_department_id' => $request->origin_department_id,
                 'created_by'         => $loginUser->username,
                 'status'             => 'A',
             ]);
@@ -152,7 +314,7 @@ class UsersController extends Controller
             }
 
             // USERDEPT
-            foreach ($request->department_id as $dept) {
+            foreach ($request->department_id ?? [] as $dept) {
                 Userdept::create([
                     'username'      => $username,
                     'department_id' => $dept,
@@ -162,7 +324,7 @@ class UsersController extends Controller
             }
 
             // USERDIVISION
-            foreach ($request->division_id as $div) {
+            foreach ($request->division_id ?? [] as $div) {
                 Userdivision::create([
                     'username'   => $username,
                     'division_id'=> $div,
@@ -173,7 +335,7 @@ class UsersController extends Controller
 
 
             // USERBUSINESSUNIT (dengan cpny_id)
-            $buIds = $request->business_unit_id;
+            $buIds = $request->business_unit_id ?? [];
 
             // ambil mapping cpny_id per business_unit_id (1 query)
             $buCpnyMap = BusinessUnit::query()
@@ -195,15 +357,17 @@ class UsersController extends Controller
 
 
             // ✅ SYS_USER_ROLE – simpan roles RBAC
-            if ($request->filled('role_ids')) {
-                foreach ($request->role_ids as $roleId) {
-                    SysUserRole::create([
-                        'username'   => $username,
-                        'role_id'    => $roleId,
-                        'status'     => 'A',
-                        'created_by' => $loginUser->username,
-                    ]);
-                }
+            $roleIds = $isSby
+                ? array_values(array_intersect($request->role_ids ?? [], self::SBY_ALLOWED_ROLE_IDS))
+                : ($request->role_ids ?? []);
+
+            foreach ($roleIds as $roleId) {
+                SysUserRole::create([
+                    'username'   => $username,
+                    'role_id'    => $roleId,
+                    'status'     => 'A',
+                    'created_by' => $loginUser->username,
+                ]);
             }
 
             DB::commit();
@@ -219,6 +383,10 @@ class UsersController extends Controller
     {
         $user = User::findOrFail($id);
 
+        if ($this->isSbyContext() && $user->group_cpny_id !== 'SBY') {
+            abort(403);
+        }
+
         // ambil semua role user ini dari sys_user_role
         $userRoles = SysUserRole::where('username', $user->username)
             ->where('status', 'A')
@@ -232,9 +400,12 @@ class UsersController extends Controller
             'email' => $user->email,
             'npk' => $user->npk,
             'jabatan' => $user->jabatan,
-            'role' => $user->user_role,
+            'role' => array_values(array_filter(explode(',', $user->user_role ?? ''), fn($v) => $v !== '')),
             'homepage' => $user->homepage,
             'cpny_id' => array_values(array_filter(explode(',', $user->cpny_id ?? ''), fn($v) => $v !== '')),
+            'group_cpny_id' => $user->group_cpny_id,
+            'origin_cpny_id' => $user->origin_cpny_id,
+            'origin_department_id' => $user->origin_department_id,
             'department_id' => array_values(array_filter(explode(',', $user->department_id ?? ''), fn($v) => $v !== '')),
             'division_id' => array_values(array_filter(explode(',', (string) ($user->division_id ?? '')), fn($v) => $v !== '')),
             'business_unit_id' => array_values(array_filter(explode(',', $user->business_unit_id ?? ''), fn($v) => $v !== '')),
@@ -245,17 +416,22 @@ class UsersController extends Controller
 
     public function update(Request $request, $id)
     {
+        $isSby = $this->isSbyContext();
+
         $request->validate([
             'name'          => 'required',
             'email'         => 'required',
+            'group_cpny_id' => 'nullable|string',
             'cpny_id'       => 'required|array',
-            'department_id' => 'required|array',
-            'division_id'   => 'required|array',
-            'business_unit_id' => 'required|array',
+            'department_id' => 'nullable|array',
+            'division_id'   => 'nullable|array',
+            'business_unit_id' => 'nullable|array',
             'homepage'      => 'nullable|string',
             'jabatan'       => 'required',
-            'role'          => 'required',
+            'role'          => 'required|array',
             'role_ids'      => 'nullable|array',
+            'origin_cpny_id' => 'nullable|string',
+            'origin_department_id' => 'nullable|string',
         ]);
 
         DB::beginTransaction();
@@ -265,29 +441,44 @@ class UsersController extends Controller
 
             $user = User::findOrFail($id);
 
+            if ($isSby && $user->group_cpny_id !== 'SBY') {
+                abort(403);
+            }
+
+            $groupCpnyId = $isSby ? 'SBY' : $request->group_cpny_id;
+
             $oldUsername = $user->username;
             $newUsername = $request->filled('username')
                 ? trim($request->username)
                 : $oldUsername;
 
             $companyIdsString = implode(',', $request->cpny_id);
-            $deptIdsString    = implode(',', $request->department_id);
-            $divisionIdsString = implode(',', $request->division_id);
-            $businessUnitIdsString = implode(',', $request->business_unit_id);
+            $deptIdsString    = implode(',', $request->department_id ?? []);
+            $divisionIdsString = implode(',', $request->division_id ?? []);
+            $businessUnitIdsString = implode(',', $request->business_unit_id ?? []);
+            $roles = $isSby ? array_values(array_intersect($request->role, ['user', 'adminsby'])) : $request->role;
+            $roleString = implode(',', $roles);
 
             $updateData = [
                 'name' => strtoupper($request->name),
                 'email' => $request->email,
                 'cpny_id' => $companyIdsString,
+                'group_cpny_id' => $groupCpnyId,
                 'department_id' => $deptIdsString,
                 'division_id' => $divisionIdsString,
                 'business_unit_id' => $businessUnitIdsString,
                 'homepage' => $request->homepage,
-                'user_role' => $request->role,
+                'user_role' => $roleString,
                 'npk' => $request->npk,
                 'jabatan' => $request->jabatan,
+                'origin_cpny_id' => $request->origin_cpny_id,
+                'origin_department_id' => $request->origin_department_id,
                 'updated_by' => $loginUser->username,
             ];
+
+            if (config('app.name') === 'Pakuwon System') {
+                $updateData['notification_email'] = $request->email;
+            }
 
             if ($newUsername !== $oldUsername) {
                 $updateData['username'] = $newUsername;
@@ -312,7 +503,7 @@ class UsersController extends Controller
                 ]);
             }
 
-            foreach ($request->department_id as $dept) {
+            foreach ($request->department_id ?? [] as $dept) {
                 Userdept::create([
                     'username'      => $newUsername,
                     'department_id' => $dept,
@@ -321,7 +512,7 @@ class UsersController extends Controller
                 ]);
             }
 
-            foreach ($request->division_id as $div) {
+            foreach ($request->division_id ?? [] as $div) {
                 Userdivision::create([
                     'username'   => $newUsername,
                     'division_id'=> $div,
@@ -330,7 +521,7 @@ class UsersController extends Controller
                 ]);
             }
 
-            $buIds = $request->business_unit_id;
+            $buIds = $request->business_unit_id ?? [];
             $buCpnyMap = BusinessUnit::query()
                 ->whereIn('business_unit_id', $buIds)
                 ->pluck('cpny_id', 'business_unit_id');
@@ -350,15 +541,17 @@ class UsersController extends Controller
             // ✅ RESET + INSERT ULANG SYS_USER_ROLE
             SysUserRole::where('username', $newUsername)->delete();
 
-            if ($request->filled('role_ids')) {
-                foreach ($request->role_ids as $roleId) {
-                    SysUserRole::create([
-                        'username'   => $newUsername,
-                        'role_id'    => $roleId,
-                        'status'     => 'A',
-                        'created_by' => $loginUser->username,
-                    ]);
-                }
+            $roleIds = $isSby
+                ? array_values(array_intersect($request->role_ids ?? [], self::SBY_ALLOWED_ROLE_IDS))
+                : ($request->role_ids ?? []);
+
+            foreach ($roleIds as $roleId) {
+                SysUserRole::create([
+                    'username'   => $newUsername,
+                    'role_id'    => $roleId,
+                    'status'     => 'A',
+                    'created_by' => $loginUser->username,
+                ]);
             }
 
             DB::commit();
@@ -377,6 +570,25 @@ class UsersController extends Controller
         $user->update(['status' => request('status')]);
 
         return response()->json(['message' => 'Status updated']);
+    }
+
+    public function updateDarkmode(Request $request)
+    {
+        $request->validate([
+            'is_darkmode' => ['required', 'boolean'],
+        ]);
+
+        $authUser = Auth::user();
+        if (!$authUser) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+
+        $authUser->update(['is_darkmode' => $request->boolean('is_darkmode')]);
+
+        return response()->json([
+            'message' => 'Theme preference updated',
+            'is_darkmode' => $authUser->is_darkmode,
+        ]);
     }
 
     public function updatePassword(Request $request)
@@ -460,24 +672,70 @@ class UsersController extends Controller
     public function impersonate($id)
     {
         $currentUser = Auth::user();
+        $currentRoles = array_map('trim', explode(',', $currentUser->user_role ?? ''));
+        $isAdmin = in_array('admin', $currentRoles, true);
+        $isAdminSby = in_array('adminsby', $currentRoles, true);
 
-        if (!$currentUser || $currentUser->user_role !== 'admin') {
+        if (!$currentUser || (!$isAdmin && !$isAdminSby)) {
             abort(403, 'Unauthorized');
+        }
+
+        if (session()->has('impersonate_original_username')) {
+            abort(403, 'Already impersonating a user. Return to your account first.');
         }
 
         $targetUser = User::findOrFail($id);
 
-        session(['impersonate_original_id' => $currentUser->id]);
+        // adminsby may only impersonate SBY-scoped users, via the /users-sby route
+        if (!$isAdmin && (!$this->isSbyContext() || $targetUser->group_cpny_id !== 'SBY')) {
+            abort(403, 'Unauthorized');
+        }
+
+        session(['impersonate_original_username' => $currentUser->username]);
 
         Auth::login($targetUser);
+
+        Log::info('User impersonation started', [
+            'admin_id'  => $currentUser->id,
+            'admin'     => $currentUser->username,
+            'target_id' => $targetUser->id,
+            'target'    => $targetUser->username,
+        ]);
 
         return response()->json([
             'success'  => true,
             'message'  => 'Now logged in as ' . $targetUser->username,
-            'redirect' => route('users'),
+            'redirect' => route('dashboard'),
         ]);
     }
 
+    /**
+     * 🔙 Kembali ke akun admin setelah Login As
+     */
+    public function stopImpersonate()
+    {
+        $originalUsername = session('impersonate_original_username');
+
+        if (!$originalUsername) {
+            abort(403, 'Not currently impersonating a user.');
+        }
+
+        $impersonatedUser = Auth::user();
+        $originalUser = User::where('username', $originalUsername)->firstOrFail();
+
+        session()->forget('impersonate_original_username');
+
+        Auth::login($originalUser);
+
+        Log::info('User impersonation ended', [
+            'admin_id'  => $originalUser->id,
+            'admin'     => $originalUser->username,
+            'target_id' => $impersonatedUser?->id,
+            'target'    => $impersonatedUser?->username,
+        ]);
+
+        return redirect()->route('dashboard')->with('success', 'Returned to your account.');
+    }
 
     /**
      * 🔁 Reset password user ke default: pakuwon1234#
@@ -487,7 +745,7 @@ class UsersController extends Controller
         $currentUser = Auth::user();
 
         // Hanya admin yang boleh reset password
-        if (!$currentUser || $currentUser->user_role !== 'admin') {
+        if (!$currentUser || !in_array('admin', array_map('trim', explode(',', $currentUser->user_role ?? '')), true)) {
             abort(403, 'Unauthorized');
         }
 
@@ -500,5 +758,45 @@ class UsersController extends Controller
             'success' => true,
             'message' => 'Password berhasil di-reset ke default.',
         ]);
+    }
+
+    /**
+     * 🗑️ Hard delete: permanently remove a user and its related access rows.
+     */
+    public function destroy($id)
+    {
+        $currentUser = Auth::user();
+
+        if (!$currentUser || !in_array('admin', array_map('trim', explode(',', $currentUser->user_role ?? '')), true)) {
+            abort(403, 'Unauthorized');
+        }
+
+        $user = User::findOrFail($id);
+
+        if ($user->id === $currentUser->id) {
+            return response()->json(['message' => 'You cannot delete your own account.'], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            $username = $user->username;
+
+            Usercpny::where('username', $username)->delete();
+            Userdept::where('username', $username)->delete();
+            Userdivision::where('username', $username)->delete();
+            Userbusinessunit::where('username', $username)->delete();
+            SysUserRole::where('username', $username)->delete();
+
+            $user->delete();
+
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'User permanently deleted.']);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Gagal menghapus user.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
     }
 }

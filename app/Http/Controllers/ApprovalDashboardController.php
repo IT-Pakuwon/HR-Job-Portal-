@@ -2,8 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MsCompany;
 use App\Models\TrApproval;
+use App\Models\TrBookingCar;
 use App\Models\TrCS;
+use App\Models\TrKontrak;
+use App\Models\TrLndTrainingRegistration;
+use App\Models\TrRfp;
+use App\Models\TrRfpNonPurch;
+use App\Models\TrVoucherTaxi;
+use App\Models\TrxVplReceive;
+use App\Models\TrxVplSettlement;
+use App\Models\TrxVplTransfer;
+use App\Models\TrxVplUsage;
 use App\Models\ViewDasAll;
 use App\Models\ViewJobApply;
 use App\Models\ViewtrPurch;
@@ -106,7 +117,9 @@ class ApprovalDashboardController extends Controller
             ->table($tblApr)
             ->select(
                 'refnbr',
-                'aprv_datebefore'
+                'aprv_datebefore',
+                'aprv_cpnyid',
+                'aprv_departementid'
             )
             ->whereRaw(
                 "(',' || lower(regexp_replace(coalesce(aprv_username,''), '\s+', '', 'g')) || ',') like ?",
@@ -120,20 +133,54 @@ class ApprovalDashboardController extends Controller
             return collect();
         }
 
+        // Individual company/department codes aren't reliable enough to
+        // disambiguate a duplicated refnbr: some approval lines are stamped
+        // with the approver's own company/department rather than the
+        // document's (e.g. BCR/IS), so an exact match would wrongly hide
+        // legitimate approvals. Group Company ID (ms_company.group_cpny_id)
+        // is stable across those cases and is still enough to tell apart
+        // documents from genuinely different companies (e.g. PRF numbering
+        // colliding between a JKT-group and an SBY-group company).
+        $groupMap = DB::connection((new MsCompany())->getConnectionName() ?: config('database.default'))
+            ->table((new MsCompany())->getTable())
+            ->select('cpny_id', 'group_cpny_id')
+            ->get()
+            ->reduce(function ($map, $r) {
+                $cpnyid = strtoupper(trim($r->cpny_id));
+                $map[$cpnyid] = strtoupper(trim((string) $r->group_cpny_id)) ?: $cpnyid;
+
+                return $map;
+            }, []);
+
+        $resolveGroup = function ($cpnyid) use ($groupMap) {
+            $cpnyid = strtoupper(trim((string) $cpnyid));
+
+            return $groupMap[$cpnyid] ?? $cpnyid;
+        };
+
+        // A refnbr is only unique within a company group — the same refnbr
+        // can legitimately belong to two different documents from two
+        // different company groups (e.g. PRF numbering). Key approvals by
+        // refnbr+group so we resolve to the correct document.
         $approvalMap = $approvalRows
-            ->groupBy(fn ($r) => strtoupper(trim($r->refnbr)))
-            ->map(function ($rows, $refnbr) {
+            ->groupBy(function ($r) use ($resolveGroup) {
+                return strtoupper(trim($r->refnbr)).'|'.$resolveGroup($r->aprv_cpnyid);
+            })
+            ->map(function ($rows) {
                 $latest = collect($rows)
                     ->sortByDesc(fn ($r) => $r->aprv_datebefore)
                     ->first();
 
                 return [
-                    'refnbr' => $refnbr,
+                    'refnbr' => strtoupper(trim($latest->refnbr)),
                     'aprv_datebefore' => $latest->aprv_datebefore,
                 ];
             });
 
-        $docids = $approvalMap->keys()->values();
+        $docids = $approvalMap
+            ->pluck('refnbr')
+            ->unique()
+            ->values();
 
         if ($doctype !== '') {
             $docids = $docids
@@ -153,7 +200,6 @@ class ApprovalDashboardController extends Controller
 
         $selectCols = [
             'id',
-            'docdate',
             'cpnyid',
             'departementid',
             'infohd',
@@ -209,13 +255,297 @@ class ApprovalDashboardController extends Controller
             ]);
         }
 
+        // BCR (Booking Car) — may not exist in v_all_das; fetch directly
+        try {
+            $bcrDocids = $docids->filter(fn ($id) => str_starts_with($id, 'BCR'))->values();
+            if ($bcrDocids->isNotEmpty()) {
+                $bcrM   = new TrBookingCar();
+                $bcrConn  = $bcrM->getConnectionName() ?: config('database.default');
+                $bcrTable = $bcrM->getTable();
+                $bcrRows  = collect();
+                foreach ($bcrDocids->chunk(1200) as $chunk) {
+                    $bcrRows = $bcrRows->concat(
+                        DB::connection($bcrConn)
+                            ->table($bcrTable)
+                            ->whereIn('docid', $chunk->all())
+                            ->select(
+                                'id',
+                                'booking_date as docdate',
+                                'cpny_id_site as cpnyid',
+                                'department_id as departementid',
+                                'purpose_descr as infohd',
+                                'docid'
+                            )
+                            ->get()
+                            ->map(fn ($r) => (object) array_merge((array) $r, ['url' => '/showbookingcar']))
+                    );
+                }
+                $data = $data->concat($bcrRows);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('approvalJson BCR fetch failed', [
+                'err' => $e->getMessage(),
+            ]);
+        }
+
+        // VCR (Voucher Taxi) — may not exist in v_all_das; fetch directly
+        try {
+            $vcrDocids = $docids->filter(fn ($id) => str_starts_with($id, 'VCR'))->values();
+            if ($vcrDocids->isNotEmpty()) {
+                $vcrM   = new TrVoucherTaxi();
+                $vcrConn  = $vcrM->getConnectionName() ?: config('database.default');
+                $vcrTable = $vcrM->getTable();
+                $vcrRows  = collect();
+                foreach ($vcrDocids->chunk(1200) as $chunk) {
+                    $vcrRows = $vcrRows->concat(
+                        DB::connection($vcrConn)
+                            ->table($vcrTable)
+                            ->whereIn('docid', $chunk->all())
+                            ->select(
+                                'id',
+                                'voucher_date as docdate',
+                                'cpny_id as cpnyid',
+                                'department_id as departementid',
+                                'purpose_descr as infohd',
+                                'docid'
+                            )
+                            ->get()
+                            ->map(fn ($r) => (object) array_merge((array) $r, ['url' => '/showvouchertaxi']))
+                    );
+                }
+                $data = $data->concat($vcrRows);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('approvalJson VCR fetch failed', [
+                'err' => $e->getMessage(),
+            ]);
+        }
+
+        // CS (Comparison Sheet) — may not exist in views with correct url; fetch directly
+        try {
+            $csDocidsToFetch = $docids->filter(fn ($id) => str_starts_with($id, 'CS'))->values();
+            if ($csDocidsToFetch->isNotEmpty()) {
+                $csFetchM     = new TrCS();
+                $csFetchConn  = $csFetchM->getConnectionName() ?: config('database.default');
+                $csFetchTable = $csFetchM->getTable();
+                $csFetchRows  = collect();
+                foreach ($csDocidsToFetch->chunk(1200) as $chunk) {
+                    $csFetchRows = $csFetchRows->concat(
+                        DB::connection($csFetchConn)
+                            ->table($csFetchTable)
+                            ->whereIn('csid', $chunk->all())
+                            ->whereNull('deleted_at')
+                            ->select('id', 'csdate as docdate', 'cpny_id as cpnyid', 'department_id as departementid', 'keperluan as infohd', 'csid as docid')
+                            ->get()
+                            ->map(fn ($r) => (object) array_merge((array) $r, ['url' => '/showcs']))
+                    );
+                }
+                $data = $data->concat($csFetchRows);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('approvalJson CS fetch failed', [
+                'err' => $e->getMessage(),
+            ]);
+        }
+
+        // VPT (Voucher Product Transfer) — not in v_all_das/v_all_trx; fetch directly
+        try {
+            $vptDocids = $docids->filter(fn ($id) => str_starts_with($id, 'VPT'))->values();
+            if ($vptDocids->isNotEmpty()) {
+                $vptM     = new TrxVplTransfer();
+                $vptConn  = $vptM->getConnectionName() ?: config('database.default');
+                $vptTable = $vptM->getTable();
+                $vptRows  = collect();
+                foreach ($vptDocids->chunk(1200) as $chunk) {
+                    $vptRows = $vptRows->concat(
+                        DB::connection($vptConn)
+                            ->table($vptTable)
+                            ->whereIn('transfer_id', $chunk->all())
+                            ->select(
+                                'id',
+                                'transfer_date as docdate',
+                                'cpnyid',
+                                'department as departementid',
+                                'transfer_remark as infohd',
+                                'transfer_id as docid'
+                            )
+                            ->get()
+                            ->map(fn ($r) => (object) array_merge((array) $r, ['url' => '/showtransfervp']))
+                    );
+                }
+                $data = $data->concat($vptRows);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('approvalJson VPT fetch failed', [
+                'err' => $e->getMessage(),
+            ]);
+        }
+
+        // VPR (Voucher Product Receive) — not in v_all_das/v_all_trx; fetch directly
+        try {
+            $vprDocids = $docids->filter(fn ($id) => str_starts_with($id, 'VPR'))->values();
+            if ($vprDocids->isNotEmpty()) {
+                $vprM     = new TrxVplReceive();
+                $vprConn  = $vprM->getConnectionName() ?: config('database.default');
+                $vprTable = $vprM->getTable();
+                $vprRows  = collect();
+                foreach ($vprDocids->chunk(1200) as $chunk) {
+                    $vprRows = $vprRows->concat(
+                        DB::connection($vprConn)
+                            ->table($vprTable)
+                            ->whereIn('receive_id', $chunk->all())
+                            ->select(
+                                'id',
+                                'receive_date as docdate',
+                                'cpnyid',
+                                'department as departementid',
+                                'receive_remark as infohd',
+                                'receive_id as docid'
+                            )
+                            ->get()
+                            ->map(fn ($r) => (object) array_merge((array) $r, ['url' => '/showreceivevp']))
+                    );
+                }
+                $data = $data->concat($vprRows);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('approvalJson VPR fetch failed', [
+                'err' => $e->getMessage(),
+            ]);
+        }
+
+        // VPU (Voucher Product Usage) — not in v_all_das/v_all_trx; fetch directly
+        try {
+            $vpuDocids = $docids->filter(fn ($id) => str_starts_with($id, 'VPU'))->values();
+            if ($vpuDocids->isNotEmpty()) {
+                $vpuM     = new TrxVplUsage();
+                $vpuConn  = $vpuM->getConnectionName() ?: config('database.default');
+                $vpuTable = $vpuM->getTable();
+                $vpuRows  = collect();
+                foreach ($vpuDocids->chunk(1200) as $chunk) {
+                    $vpuRows = $vpuRows->concat(
+                        DB::connection($vpuConn)
+                            ->table($vpuTable)
+                            ->whereIn('usage_id', $chunk->all())
+                            ->select(
+                                'id',
+                                'usage_date as docdate',
+                                'cpnyid',
+                                'department as departementid',
+                                'usage_remark as infohd',
+                                'usage_id as docid'
+                            )
+                            ->get()
+                            ->map(fn ($r) => (object) array_merge((array) $r, ['url' => '/showusagevp']))
+                    );
+                }
+                $data = $data->concat($vpuRows);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('approvalJson VPU fetch failed', [
+                'err' => $e->getMessage(),
+            ]);
+        }
+
+        // VPS (Voucher Product Settlement) — not in v_all_das/v_all_trx; fetch directly
+        try {
+            $vpsDocids = $docids->filter(fn ($id) => str_starts_with($id, 'VPS'))->values();
+            if ($vpsDocids->isNotEmpty()) {
+                $vpsM     = new TrxVplSettlement();
+                $vpsConn  = $vpsM->getConnectionName() ?: config('database.default');
+                $vpsTable = $vpsM->getTable();
+                $vpsRows  = collect();
+                foreach ($vpsDocids->chunk(1200) as $chunk) {
+                    $vpsRows = $vpsRows->concat(
+                        DB::connection($vpsConn)
+                            ->table($vpsTable)
+                            ->whereIn('settlement_id', $chunk->all())
+                            ->select(
+                                'id',
+                                'settlement_date as docdate',
+                                'cpnyid',
+                                'department as departementid',
+                                'settlement_remark as infohd',
+                                'settlement_id as docid'
+                            )
+                            ->get()
+                            ->map(fn ($r) => (object) array_merge((array) $r, ['url' => '/showsettlementvp']))
+                    );
+                }
+                $data = $data->concat($vpsRows);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('approvalJson VPS fetch failed', [
+                'err' => $e->getMessage(),
+            ]);
+        }
+
+        // TRN (Training Registration) — not in v_all_das/v_all_trx; fetch directly
+        try {
+            $trnDocids = $docids->filter(fn ($id) => str_starts_with($id, 'TRN'))->values();
+            if ($trnDocids->isNotEmpty()) {
+                $trnM     = new TrLndTrainingRegistration();
+                $trnConn  = $trnM->getConnectionName() ?: config('database.default');
+                $trnTable = $trnM->getTable();
+                $trnRows  = collect();
+                foreach ($trnDocids->chunk(1200) as $chunk) {
+                    $trnRows = $trnRows->concat(
+                        DB::connection($trnConn)
+                            ->table("{$trnTable} as tr")
+                            ->leftJoin('ms_lnd_training as evt', 'evt.training_id', '=', 'tr.training_id')
+                            ->whereIn('tr.training_regist_id', $chunk->all())
+                            ->whereNull('tr.deleted_at')
+                            ->select(
+                                'tr.id',
+                                'tr.training_regist_date as docdate',
+                                'tr.cpny_id as cpnyid',
+                                'tr.department_id as departementid',
+                                DB::raw("coalesce(evt.training_name, 'Training') || ' - ' || tr.user_registration as infohd"),
+                                'tr.training_regist_id as docid'
+                            )
+                            ->get()
+                            ->map(fn ($r) => (object) array_merge((array) $r, ['url' => '/training-list/my']))
+                    );
+                }
+                $data = $data->concat($trnRows);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('approvalJson TRN fetch failed', [
+                'err' => $e->getMessage(),
+            ]);
+        }
+
         $data = $data
-            ->map(function ($r) use ($approvalMap, $status) {
+            ->map(function ($r) use ($approvalMap, $status, $resolveGroup) {
                 $docidKey = strtoupper(
                     trim($r->docid)
                 );
 
-                $approval = $approvalMap->get($docidKey);
+                // Match on docid+company-group, not docid alone — a refnbr
+                // can be shared by two different documents from two
+                // different company groups (e.g. PRF numbering), so
+                // docid-only matching could resolve to the wrong document.
+                $compositeKey = $docidKey.'|'.$resolveGroup($r->cpnyid);
+
+                $approval = $approvalMap->get($compositeKey);
+
+                if (!$approval) {
+                    return null;
+                }
+
+                // Eng Ticket (TOK) shares tr_ticket with the IT ticket module in
+                // the v_all_trx view, which still points its url at the IT
+                // module's /ticket route — override it to the Eng module's own.
+                $url = str_starts_with($docidKey, 'TOK')
+                    ? '/showoprtekticket'
+                    : $r->url;
+
+                // TRN's /training-list/my/{hid} route defaults to looking this
+                // eid up among the registrant's own rows, which won't contain
+                // an approver's pending item — ?tab=approvals tells the page
+                // it needs to also check pendingApprovals() (merged into the
+                // Registration List tab) to find and open this row instead.
+                $query = str_starts_with($docidKey, 'TRN') ? '?tab=approvals' : null;
 
                 return [
                     'hid' => Hashids::encode($r->id),
@@ -224,35 +554,23 @@ class ApprovalDashboardController extends Controller
                     'cpnyid' => $r->cpnyid,
                     'departementid' => $r->departementid,
                     'infohd' => $r->infohd,
-                    'url' => $r->url,
+                    'url' => $url,
+                    'query' => $query,
                     'status' => $status,
                 ];
             })
+            ->filter()
+            // De-duplicate: the group match above already resolved which
+            // document this approval belongs to, so any rows still sharing
+            // a docid here are the same document surfacing from more than
+            // one source view (e.g. CS/BCR/VCR also exist in v_all_das,
+            // sometimes with a slightly different company code within the
+            // same group) — keep one.
+            ->unique(fn ($r) => strtoupper(trim($r['docid'])))
             ->sortByDesc(fn ($r) => $r['docdate'] ?? '')
             ->values();
 
-        $csDocids = $data
-            ->filter(fn ($r) => str_starts_with(strtoupper($r['docid'] ?? ''), 'CS'))
-            ->pluck('docid')
-            ->values();
-
-        if ($csDocids->isNotEmpty()) {
-            $csM = new TrCS();
-            $imBudgetMap = DB::connection($csM->getConnectionName() ?: config('database.default'))
-                ->table($csM->getTable())
-                ->whereIn('csid', $csDocids->all())
-                ->select('csid', 'flag_imbudget', 'imbudgetid', 'status_imbudget')
-                ->get()
-                ->keyBy(fn ($r) => strtoupper(trim($r->csid)));
-
-            $data = $data->map(function ($r) use ($imBudgetMap) {
-                $cs = $imBudgetMap->get(strtoupper(trim($r['docid'] ?? '')));
-                $r['flag_imbudget']   = $cs?->flag_imbudget   ?? null;
-                $r['imbudgetid']      = $cs?->imbudgetid      ?? null;
-                $r['status_imbudget'] = $cs?->status_imbudget ?? null;
-                return $r;
-            })->values();
-        }
+        $data = $this->attachIMBudgetInfo($data);
 
         Log::info('approvalDashboard', [
             'user' => $user->username,
@@ -263,5 +581,91 @@ class ApprovalDashboardController extends Controller
         ]);
 
         return $data;
+    }
+
+    /**
+     * IM Budget can gate CS, RP (RFP Purchase), RFP/RCA (RFP Non-Purchase),
+     * and KO (Kontrak) documents. CS/RP/RFP/RCA carry flag_imbudget /
+     * imbudgetid / status_imbudget on their own header; KO has none of its
+     * own — it inherits the status from the CS it was generated from
+     * (tr_kontrak.csid), so that one needs a join instead of a direct read.
+     */
+    private function attachIMBudgetInfo(Collection $data): Collection
+    {
+        $directSources = [
+            'CS'  => [new TrCS(), 'csid'],
+            'RP'  => [new TrRfp(), 'rfp_id'],
+            'RFP' => [new TrRfpNonPurch(), 'rfpnonpurchaseid'],
+            'RCA' => [new TrRfpNonPurch(), 'rfpnonpurchaseid'],
+        ];
+
+        $imBudgetByDocid = collect();
+
+        foreach ($directSources as $prefix => [$model, $keyColumn]) {
+            $docids = $data
+                ->filter(fn ($r) => str_starts_with(strtoupper($r['docid'] ?? ''), $prefix))
+                ->pluck('docid')
+                ->values();
+
+            if ($docids->isEmpty()) {
+                continue;
+            }
+
+            DB::connection($model->getConnectionName() ?: config('database.default'))
+                ->table($model->getTable())
+                ->whereIn($keyColumn, $docids->all())
+                ->select("{$keyColumn} as docid", 'flag_imbudget', 'imbudgetid', 'status_imbudget')
+                ->get()
+                ->each(fn ($r) => $imBudgetByDocid->put(strtoupper(trim($r->docid)), $r));
+        }
+
+        $koDocids = $data
+            ->filter(fn ($r) => str_starts_with(strtoupper($r['docid'] ?? ''), 'KO'))
+            ->pluck('docid')
+            ->values();
+
+        if ($koDocids->isNotEmpty()) {
+            $kM = new TrKontrak();
+
+            $kontrakToCs = DB::connection($kM->getConnectionName() ?: config('database.default'))
+                ->table($kM->getTable())
+                ->whereIn('kontrakid', $koDocids->all())
+                ->select('kontrakid', 'csid')
+                ->get()
+                ->keyBy(fn ($r) => strtoupper(trim($r->kontrakid)));
+
+            $csIds = $kontrakToCs->pluck('csid')->filter()->unique()->values();
+
+            if ($csIds->isNotEmpty()) {
+                $csM = new TrCS();
+
+                $csImBudget = DB::connection($csM->getConnectionName() ?: config('database.default'))
+                    ->table($csM->getTable())
+                    ->whereIn('csid', $csIds->all())
+                    ->select('csid', 'flag_imbudget', 'imbudgetid', 'status_imbudget')
+                    ->get()
+                    ->keyBy(fn ($r) => strtoupper(trim($r->csid)));
+
+                foreach ($kontrakToCs as $kontrakKey => $kontrak) {
+                    $cs = $csImBudget->get(strtoupper(trim($kontrak->csid ?? '')));
+
+                    if ($cs) {
+                        $imBudgetByDocid->put($kontrakKey, $cs);
+                    }
+                }
+            }
+        }
+
+        if ($imBudgetByDocid->isEmpty()) {
+            return $data;
+        }
+
+        return $data->map(function ($r) use ($imBudgetByDocid) {
+            $src = $imBudgetByDocid->get(strtoupper(trim($r['docid'] ?? '')));
+            $r['flag_imbudget']   = $src?->flag_imbudget   ?? null;
+            $r['imbudgetid']      = $src?->imbudgetid      ?? null;
+            $r['status_imbudget'] = $src?->status_imbudget ?? null;
+            return $r;
+        })->values();
     }
 }

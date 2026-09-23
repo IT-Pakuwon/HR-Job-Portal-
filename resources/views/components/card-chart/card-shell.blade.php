@@ -1,5 +1,6 @@
 @props([
     'title'    => '',
+    'titleId'  => null,
     'subtitle' => '',
     'color'    => 'violet',
     'gradient' => null,
@@ -32,7 +33,7 @@
                     <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{{ $subtitle }}</p>
                 @endif
                 @if($title)
-                    <h3 class="mt-0.5 text-sm font-bold text-slate-800 dark:text-white">{{ $title }}</h3>
+                    <h3 @if($titleId) id="{{ $titleId }}" @endif class="mt-0.5 text-sm font-bold text-slate-800 dark:text-white">{{ $title }}</h3>
                 @endif
             </div>
             @if(isset($headerEnd))

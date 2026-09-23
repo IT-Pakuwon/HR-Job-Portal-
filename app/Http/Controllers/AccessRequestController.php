@@ -9,6 +9,7 @@ use App\Models\TrAccessDetail;
 use App\Models\TrApproval;
 use App\Models\TrAttachment;
 use App\Models\TrMessage;
+use App\Models\SysUserRole;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -56,6 +57,7 @@ class AccessRequestController extends Controller
         if (
             !$user->hasRole('ITHARDWARE')
             && !$user->hasRole('ITSOFTWARE')
+            && !$user->hasFullDataScope()
         ) {
             $allQuery->whereIn('cpny_id', $cpnyIds)
                 ->whereIn('department_id', $deptIds);
@@ -71,7 +73,7 @@ class AccessRequestController extends Controller
         $reviseQuery = TrAccess::where('status', 'D');
         $finishedQuery = TrAccess::where('status', 'F');
 
-        if (!$isItRole) {
+        if (!$isItRole && !$user->hasFullDataScope()) {
             $pendingQuery->whereIn('cpny_id', $cpnyIds)->whereIn('department_id', $deptIds);
             $completedQuery->whereIn('cpny_id', $cpnyIds)->whereIn('department_id', $deptIds);
             $rejectQuery->whereIn('cpny_id', $cpnyIds)->whereIn('department_id', $deptIds);
@@ -185,6 +187,7 @@ class AccessRequestController extends Controller
         if (
             !$user->hasRole('ITHARDWARE')
             && !$user->hasRole('ITSOFTWARE')
+            && !$user->hasFullDataScope()
         ) {
             $base->whereIn('ta.cpny_id', $cpnyIds)
                 ->whereIn('ta.department_id', $deptIds);
@@ -199,15 +202,39 @@ class AccessRequestController extends Controller
             ->count('ta.docid');
 
         if ($search !== '') {
-            $base->where(function ($q) use ($search) {
+            $statusMap = [
+                'on progress' => ['P'],
+                'progress'    => ['P'],
+                'approved'    => ['C'],
+                'completed'   => ['F'],
+                'finished'    => ['F'],
+                'revise'      => ['D'],
+                'draft'       => ['D'],
+                'reject'      => ['R'],
+                'cancelled'   => ['X'],
+            ];
+
+            $matchedStatuses = [];
+            $searchLower = strtolower($search);
+            foreach ($statusMap as $keyword => $codes) {
+                if (str_contains($searchLower, $keyword)) {
+                    $matchedStatuses = array_unique(array_merge($matchedStatuses, $codes));
+                    break;
+                }
+            }
+
+            $base->where(function ($q) use ($search, $matchedStatuses) {
                 $q->where('ta.docid', 'ilike', "%{$search}%")
                     ->orWhere('ta.cpny_id', 'ilike', "%{$search}%")
                     ->orWhere('ta.department_id', 'ilike', "%{$search}%")
                     ->orWhere('ta.user_peminta', 'ilike', "%{$search}%")
                     ->orWhere('ta.user_assign', 'ilike', "%{$search}%")
                     ->orWhere('ta.keperluan', 'ilike', "%{$search}%")
-                    ->orWhere('ta.access_type', 'ilike', "%{$search}%")
-                    ->orWhere('ta.status', 'ilike', "%{$search}%");
+                    ->orWhere('ta.access_type', 'ilike', "%{$search}%");
+
+                if (!empty($matchedStatuses)) {
+                    $q->orWhereIn('ta.status', $matchedStatuses);
+                }
             });
         }
 
@@ -946,9 +973,16 @@ class AccessRequestController extends Controller
 
                 'can_approve' => TrApproval::where('refnbr', $access->docid)
                     ->where('aprv_doctype', 'ACR')
-                    ->where('aprv_username', auth()->user()->username)
                     ->where('status', 'P')
-                    ->exists(),
+                    ->get(['aprv_username'])
+                    ->contains(fn($row) => in_array(
+                        strtolower(trim(auth()->user()->username)),
+                        array_filter(array_map(
+                            fn($s) => strtolower(trim($s)),
+                            preg_split('/[;,]/', $row->aprv_username ?? '') ?: []
+                        )),
+                        true
+                    )),
 
                 'summary' => [
                     'total' => $total,
@@ -1811,6 +1845,38 @@ class AccessRequestController extends Controller
             'success' => true,
             'data' => $comments,
         ]);
+    }
+
+    public function mentionableUsers($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        abort_if(!$id, 404);
+
+        $access = TrAccess::findOrFail($id);
+
+        $approverUsernames = \App\Services\DocumentNotificationService::splitApproverUsernames(
+            TrApproval::where('refnbr', $access->docid)->pluck('aprv_username')
+        );
+
+        $roleUsernames = SysUserRole::whereIn('role_id', ['ITHARDWARE', 'ITSOFTWARE'])
+            ->where('status', 'A')
+            ->pluck('username');
+
+        $usernames = collect([$access->user_peminta, $access->created_by])
+            ->merge($approverUsernames)
+            ->merge($roleUsernames)
+            ->filter()
+            ->map(fn ($u) => strtolower(trim($u)))
+            ->unique()
+            ->reject(fn ($u) => $u === strtolower(Auth::user()->username));
+
+        $users = User::query()
+            ->whereIn(DB::raw('lower(username)'), $usernames->all())
+            ->get(['username', 'name'])
+            ->values();
+
+        return response()->json($users);
     }
 
     public function comment(Request $request, $hash)

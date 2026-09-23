@@ -1,7 +1,7 @@
 <x-app-layout>
     @include('pages.ticket.partial.style')
 
-    <div class="max-w-9xl mx-auto w-full p-2">
+    <div class="max-w-9xl mx-auto w-full overflow-x-hidden p-2">
         @php
 
             $isIT = \App\Models\MsTicketCategoryDept::query()
@@ -26,7 +26,7 @@
                 <a href="#" class="ticket-status-filter group block h-full" data-status="">
 
                     <div
-                        class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-slate-700 bg-slate-200/20 p-3 text-slate-700  dark:text-slate-400 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95">
+                        class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-slate-700 bg-slate-200/20 p-3 text-slate-700 dark:text-slate-400 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95 dark:hover:bg-slate-700">
 
                         <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
                             🎫
@@ -393,21 +393,7 @@
             <div
                 class="mt-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
 
-                <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-7">
-
-                    {{-- Search --}}
-                    <div>
-
-                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">
-
-                            Search
-
-                        </label>
-
-                        <input type="text" id="filter_search" placeholder="Ticket / Summary / PIC"
-                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-800">
-
-                    </div>
+                <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
 
                     {{-- Status --}}
                     <div>
@@ -419,23 +405,12 @@
                         </label>
 
                         <select id="filter_status"
-                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-800">
+                            class="filter-select2 w-full rounded-lg border border-gray-300 bg-white text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white">
 
-                            <option value="">
-                                All Status
-                            </option>
-
-                            <option value="P">
-                                Open
-                            </option>
-
-                            <option value="C">
-                                Completed
-                            </option>
-
-                            <option value="X">
-                                Cancelled
-                            </option>
+                            <option value="">All Status</option>
+                            <option value="P">Open</option>
+                            <option value="C">Completed</option>
+                            <option value="X">Cancelled</option>
 
                         </select>
 
@@ -451,47 +426,19 @@
                         </label>
 
                         <select id="filter_status_pekerjaan"
-                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-800">
+                            class="filter-select2 w-full rounded-lg border border-gray-300 bg-white text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white">
 
-                            <option value="">
-                                All Workflow
-                            </option>
-
-                            <option value="CREATED">
-                                Created
-                            </option>
-
-                            <option value="RESPONSE">
-                                Response
-                            </option>
-
-                            <option value="PROCESS">
-                                Process
-                            </option>
-
-                            <option value="PENDING">
-                                Pending
-                            </option>
-
-                            <option value="ENVISION">
-                                Envision
-                            </option>
-
-                            <option value="TRANSFER">
-                                Transfer
-                            </option>
-
-                            <option value="REOPEN">
-                                Reopen
-                            </option>
-
-                            <option value="COMPLETED">
-                                Completed
-                            </option>
-
-                            <option value="CANCEL">
-                                Cancelled
-                            </option>
+                            <option value="">All Workflow</option>
+                            <option value="CREATED">Created</option>
+                            <option value="RESPONSE">Response</option>
+                            <option value="PROCESS">Process</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="ENVISION">Envision</option>
+                            <option value="ENVISION CHECKED / SOLVED">Envision Solved</option>
+                            <option value="TRANSFER">Transfer</option>
+                            <option value="REOPEN">Reopen</option>
+                            <option value="COMPLETED">Completed</option>
+                            <option value="CANCEL">Cancelled</option>
 
                         </select>
 
@@ -621,7 +568,7 @@
         @endif
         {{-- Table Wrapper --}}
         <div
-            class="mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
             <div
                 class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 lg:flex-row lg:items-center lg:justify-between dark:border-white/[0.06]">
@@ -634,11 +581,11 @@
 
                 </div>
 
-                <div class="flex items-center gap-3">
+                <div class="flex flex-wrap items-center gap-2 sm:gap-3">
 
                     @if ($isITRole)
                         <button type="button" id="btn_open_so_list"
-                            class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-teal-300 bg-teal-50 px-4 text-sm font-medium text-teal-700 transition hover:bg-teal-100 dark:border-teal-700 dark:bg-teal-900/30 dark:text-teal-200 dark:hover:bg-teal-900/50">
+                            class="inline-flex h-10 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-teal-300 bg-teal-50 px-4 text-sm font-medium text-teal-700 transition hover:bg-teal-100 dark:border-teal-700 dark:bg-teal-900/30 dark:text-teal-200 dark:hover:bg-teal-900/50">
 
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -651,7 +598,7 @@
 
                     @if ($isIT)
                         <a href="{{ route('ticketsetup') }}"
-                            class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-indigo-300 bg-indigo-50 px-4 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100 dark:border-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-200 dark:hover:bg-indigo-900/50">
+                            class="inline-flex h-10 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-indigo-300 bg-indigo-50 px-4 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100 dark:border-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-200 dark:hover:bg-indigo-900/50">
 
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
@@ -670,7 +617,7 @@
 
                         </a>
                         <button type="button" id="btn_export_ticket"
-                            class="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
+                            class="inline-flex h-10 shrink-0 items-center justify-center whitespace-nowrap rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
 
                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-4 w-4" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
@@ -686,7 +633,7 @@
                     @endif
 
                     <button type="button" id="btn_create_ticket"
-                        class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
+                        class="inline-flex h-10 shrink-0 items-center justify-center whitespace-nowrap rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
 
                         <span class="mr-2 text-base">
                             +
@@ -807,7 +754,7 @@
                     </div>
 
                     <button type="button"
-                        class="btn-close-form-modal inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white">
+                        class="btn-close-form-modal inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white dark:bg-gray-800 dark:border-slate-700">
 
                         <i class="fa-solid fa-xmark text-lg"></i>
 
@@ -1148,7 +1095,7 @@
                             <div class="flex items-center justify-end gap-3">
 
                                 <button type="button"
-                                    class="btn-close-form-modal inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5">
+                                    class="btn-close-form-modal inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 dark:bg-gray-800 dark:border-slate-700">
 
                                     Cancel
 
@@ -1815,6 +1762,8 @@
 
             store: "{{ route('ticket.store') }}",
 
+            attachmentDelete: "{{ url('/attachments') }}/:id",
+
             cancel: "{{ url('/ticket/cancel') }}/:eid",
 
             response: "{{ url('/ticket/response') }}/:eid",
@@ -1844,6 +1793,8 @@
 
     <script src="{{ asset('assets/js/ticket/helper.js') }}"></script>
     <script src="{{ asset('assets/js/ticket/modal.js') }}"></script>
+
+    <script src="{{ asset('assets/js/shared/mention-autocomplete.js') }}"></script>
 
     <script src="{{ asset('assets/js/ticket/datatable.js') }}"></script>
     <script src="{{ asset('assets/js/ticket/detail-modal.js') }}"></script>

@@ -1,7 +1,7 @@
 <x-app-layout>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <div class="mx-auto max-w-7xl px-4 py-6">
+    <div class="mx-auto max-w-9xl px-4 py-6">
         <div class="rounded-xl border border-gray-200 bg-white">
             <div class="border-b border-gray-200 px-5 py-4">
                 <h1 class="text-xl font-semibold text-gray-800">IFCA Integration</h1>

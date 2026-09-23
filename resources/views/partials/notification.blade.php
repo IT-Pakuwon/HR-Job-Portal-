@@ -12,7 +12,7 @@
     </div>
 
     <!-- EMPTY -->
-    <div x-show="items.length === 0" class="text-sm text-gray-500">
+    <div x-show="items.length === 0" class="text-sm text-gray-500 dark:text-gray-400">
         No notifications 🎉
     </div>
 
@@ -35,7 +35,7 @@
                             <div>
                                 <div class="font-semibold text-gray-800 dark:text-gray-100" x-text="item.docid"></div>
 
-                                <div class="text-xs text-gray-500" x-text="item.cpnyid + ' • ' + item.departementid">
+                                <div class="text-xs text-gray-500 dark:text-gray-400" x-text="item.cpnyid + ' • ' + item.departementid">
                                 </div>
                             </div>
 
@@ -68,7 +68,7 @@
                             <div>
                                 <div class="font-semibold text-gray-800 dark:text-gray-100" x-text="item.docid"></div>
 
-                                <div class="text-xs text-gray-500" x-text="item.cpnyid + ' • ' + item.departementid">
+                                <div class="text-xs text-gray-500 dark:text-gray-400" x-text="item.cpnyid + ' • ' + item.departementid">
                                 </div>
                             </div>
 

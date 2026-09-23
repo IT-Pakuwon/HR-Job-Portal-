@@ -58,18 +58,8 @@ class SppjController extends Controller
             return redirect()->route('login');
         }
 
-        if (is_string($user->cpny_id)) {
-            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
-        } else {
-            $cpnyIds = (array) $user->cpny_id;
-        }
-
-        // department_id juga bisa multi, tapi di debug sudah "IT"
-        if (is_string($user->department_id)) {
-            $deptIds = array_map('trim', explode(',', $user->department_id));
-        } else {
-            $deptIds = (array) $user->department_id;
-        }
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $all = TrSPPJ::whereIn('cpny_id', $cpnyIds)
                     ->whereIn('department_id', $deptIds)
@@ -90,6 +80,11 @@ class SppjController extends Controller
                     ->whereIn('department_id', $deptIds)
                     ->count();
 
+        $draft = TrSPPJ::where('status', 'H')
+                    ->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
         $completed = TrSPPJ::where('status', 'C')
                     ->whereIn('cpny_id', $cpnyIds)
                     ->whereIn('department_id', $deptIds)
@@ -99,7 +94,7 @@ class SppjController extends Controller
             ->whereIn('status', ['P', 'C'])
             ->count();
 
-        return view('pages.sppjs.sppjs', compact('all', 'onProgress', 'reject', 'revise', 'completed', 'allListCount'));
+        return view('pages.sppjs.sppjs', compact('all', 'onProgress', 'reject', 'revise', 'draft', 'completed', 'allListCount'));
     }
 
     public function json(Request $request)
@@ -111,22 +106,10 @@ class SppjController extends Controller
         }
 
         // ==============================
-        // USER COMPANY
+        // USER COMPANY / DEPARTMENT
         // ==============================
-        if (is_string($user->cpny_id)) {
-            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
-        } else {
-            $cpnyIds = (array) $user->cpny_id;
-        }
-
-        // ==============================
-        // USER DEPARTMENT (NORMAL MODE ONLY)
-        // ==============================
-        if (is_string($user->department_id)) {
-            $deptIds = array_map('trim', explode(',', $user->department_id));
-        } else {
-            $deptIds = (array) $user->department_id;
-        }
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         // ==============================
         // DATATABLE PARAMETERS
@@ -162,9 +145,9 @@ class SppjController extends Controller
         // ==============================
         $base = TrSPPJ::from($baseTable.' as sppj')
             ->leftJoin('ms_request_type as rt', function ($join) {
-                $join->on('rt.requesttypeid', '=', 'sppj.requesttypeid');
+                $join->on('rt.requesttypeid', '=', 'sppj.requesttypeid')
+                     ->where('rt.doctype', 'SPPJ');
             })
-            ->where('rt.doctype', 'SPPJ')
             ->whereIn('sppj.cpny_id', $cpnyIds);
 
         // ==============================
@@ -340,6 +323,7 @@ class SppjController extends Controller
         $user = $request->user();
         $username = $user->username ?? 'system';
         $fullname = $user->name ?? 'system';
+        $isDraft = $request->boolean('is_draft');
 
         $dt = Carbon::now();
         $year = (int) $dt->year;
@@ -386,8 +370,10 @@ class SppjController extends Controller
         // ===== generate TrApproval dari MsApproval sesuai context =====
         $approvalCtl = app(ApprovalController::class);
 
-        // Pastikan line approval ada (kalau mau validasi awal sebelum simpan detail, panggil loadLines)
-        $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
+        if (!$isDraft) {
+            // Pastikan line approval ada (kalau mau validasi awal sebelum simpan detail, panggil loadLines)
+            $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
+        }
 
         DB::beginTransaction();
         try {
@@ -430,7 +416,7 @@ class SppjController extends Controller
             $header->assignpurchasing = null;
             $header->csjobs = null;
             $header->cs = null;
-            $header->status = 'P';
+            $header->status = $isDraft ? 'H' : 'P';
             $header->created_by = $username;
             $header->save();
 
@@ -557,55 +543,57 @@ class SppjController extends Controller
 
             // // === 4) copy line approval (M_approval -> T_approval) ===
 
-            // 1) Urgent → dari header field is_urgent (boolean atau "1"/"true")
-            $isUrgent = (bool) $request->input('is_urgent', false);
+            if (!$isDraft) {
+                // 1) Urgent → dari header field is_urgent (boolean atau "1"/"true")
+                $isUrgent = (bool) $request->input('is_urgent', false);
 
-            // 2) Komputer → hanya kategori pada BARIS PERTAMA yang non-empty
-            $firstCategory = null;
-            if (!empty($inventoryCategories)) {
-                foreach ($inventoryCategories as $c) {
-                    if (!empty($c)) {
-                        $firstCategory = $c;
+                // 2) Komputer → hanya kategori pada BARIS PERTAMA yang non-empty
+                $firstCategory = null;
+                if (!empty($inventoryCategories)) {
+                    foreach ($inventoryCategories as $c) {
+                        if (!empty($c)) {
+                            $firstCategory = $c;
+                            break;
+                        }
+                    }
+                }
+
+                // 3) Fixed Asset → minimal ada SATU detail dengan inventory_sub_type = Fixed Asset / FA
+                $hasFixedAssetSubtype = false;
+                foreach ((array) $inventorySubTypes as $sub) {
+                    $s = mb_strtolower((string) $sub);
+                    if ($s === 'fixed asset' || $s === 'fa') {
+                        $hasFixedAssetSubtype = true;
                         break;
                     }
                 }
-            }
 
-            // 3) Fixed Asset → minimal ada SATU detail dengan inventory_sub_type = Fixed Asset / FA
-            $hasFixedAssetSubtype = false;
-            foreach ((array) $inventorySubTypes as $sub) {
-                $s = mb_strtolower((string) $sub);
-                if ($s === 'fixed asset' || $s === 'fa') {
-                    $hasFixedAssetSubtype = true;
-                    break;
+                // 4) Build context untuk ApprovalController
+                $ctx = [
+                    'is_urgent' => $isUrgent,
+                    'first_inventory_category' => $firstCategory,
+                    'has_fixed_asset_subtype' => $hasFixedAssetSubtype,
+                    'ignore_nominal' => true,   // SPPJ diminta tidak cek nominal
+                    // 'grand_total'           => ...     // tidak dipakai di SPPJ
+                ];
+
+                // Generate TrApproval
+                [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                    $docid,
+                    $doctype,
+                    $request->cpnyid,
+                    $request->departementid,
+                    $username,
+                    $ctx,
+                    $dt
+                );
+
+                // (opsional) simpan hint approver pertama di header seperti sebelumnya
+                if ($firstApprovalUsernames) {
+                    $header->completed_by = $firstApprovalUsernames;
+                    $header->completed_at = $dt;
+                    $header->save();
                 }
-            }
-
-            // 4) Build context untuk ApprovalController
-            $ctx = [
-                'is_urgent' => $isUrgent,
-                'first_inventory_category' => $firstCategory,
-                'has_fixed_asset_subtype' => $hasFixedAssetSubtype,
-                'ignore_nominal' => true,   // SPPJ diminta tidak cek nominal
-                // 'grand_total'           => ...     // tidak dipakai di SPPJ
-            ];
-
-            // Generate TrApproval
-            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                $docid,
-                $doctype,
-                $request->cpnyid,
-                $request->departementid,
-                $username,
-                $ctx,
-                $dt
-            );
-
-            // (opsional) simpan hint approver pertama di header seperti sebelumnya
-            if ($firstApprovalUsernames) {
-                $header->completed_by = $firstApprovalUsernames;
-                $header->completed_at = $dt;
-                $header->save();
             }
 
             // === 5) attachments (opsional) ===
@@ -684,8 +672,8 @@ class SppjController extends Controller
                     $meta = [
                         'refnbr' => $docid,
                         'doctype' => $doctype,
-                        'cpnyid' => $request->input('cpnyid'),
-                        'departementid' => $request->input('departementid'),
+                        'cpny_id' => $request->input('cpnyid'),
+                        'department_id' => $request->input('departementid'),
                         'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
                         'created_by' => $user->username,
                     ];
@@ -744,18 +732,20 @@ class SppjController extends Controller
 
             $eid = Hashids::encode($header->id);
 
-            $approvalCtl->notifyFirstApprover(
-                $docid,
-                $doctype,
-                $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
-                'SPPJ',
-                url('/showsppjs/'.$eid),
-                [
-                    'info' => $request->keperluan,
-                    'createdby' => $header->created_by,
-                    'date' => $dt->toDateTimeString(),
-                ]
-            );
+            if (!$isDraft) {
+                $approvalCtl->notifyFirstApprover(
+                    $docid,
+                    $doctype,
+                    $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
+                    'SPPJ',
+                    url('/showsppjs/'.$eid),
+                    [
+                        'info' => $request->keperluan,
+                        'createdby' => $header->created_by,
+                        'date' => $dt->toDateTimeString(),
+                    ]
+                );
+            }
 
             // // === 6) kirim email ke approver pertama ===
             // $firstApproval = T_approval::where('docid', $docid)
@@ -808,11 +798,13 @@ class SppjController extends Controller
             DB::commit();
 
             return response()->json([
-                'message' => 'SPPJ created successfully',
+                'message' => $isDraft ? 'SPPJ saved as draft' : 'SPPJ created successfully',
                 'sppjid' => $docid,
                 'sppj_no' => $sppjNo,
                 'totalqty' => $totalQty,
                 'attachments' => $uploadResult,
+                'eid' => $eid,
+                'is_draft' => $isDraft,
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -954,12 +946,15 @@ class SppjController extends Controller
         $doctype = 'PJ';
         $username = $user->username ?? 'system';
         $fullname = $user->name ?? 'system';
+        $isDraft = $request->boolean('is_draft');
 
         // ===== generate TrApproval dari MsApproval sesuai context =====
         $approvalCtl = app(ApprovalController::class);
 
         // Pastikan line approval ada (kalau mau validasi awal sebelum simpan detail, panggil loadLines)
-        $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
+        if (!$isDraft) {
+            $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
+        }
 
         // helper: normalisasi angka (tahan "12.000", "1.234,56", "12,5")
         $toFloat = function ($v): ?float {
@@ -1008,7 +1003,7 @@ class SppjController extends Controller
         $header->itrecommendid = $request->itrecommendid ?: null;
         $header->ticketid = $request->ticketid ?: null;
         $header->is_urgent = $request->is_urgent;
-        $header->status = 'P';
+        $header->status = $isDraft ? 'H' : 'P';
         $header->updated_by = $username;
         $header->save();
 
@@ -1235,30 +1230,32 @@ class SppjController extends Controller
             }
 
             // 4) Build context untuk ApprovalController
-            $ctx = [
-                'is_urgent' => $isUrgent,
-                'first_inventory_category' => $firstCategory,
-                'has_fixed_asset_subtype' => $hasFixedAssetSubtype,
-                'ignore_nominal' => true,   // SPPJ diminta tidak cek nominal
-                // 'grand_total'           => ...     // tidak dipakai di SPPJ
-            ];
+            if (!$isDraft) {
+                $ctx = [
+                    'is_urgent' => $isUrgent,
+                    'first_inventory_category' => $firstCategory,
+                    'has_fixed_asset_subtype' => $hasFixedAssetSubtype,
+                    'ignore_nominal' => true,   // SPPJ diminta tidak cek nominal
+                    // 'grand_total'           => ...     // tidak dipakai di SPPJ
+                ];
 
-            // Generate TrApproval
-            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                $header->sppjid,
-                $doctype,
-                $request->cpnyid,
-                $request->departementid,
-                $username,
-                $ctx,
-                $dt
-            );
+                // Generate TrApproval
+                [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                    $header->sppjid,
+                    $doctype,
+                    $request->cpnyid,
+                    $request->departementid,
+                    $username,
+                    $ctx,
+                    $dt
+                );
 
-            // (opsional) simpan hint approver pertama di header seperti sebelumnya
-            if ($firstApprovalUsernames) {
-                $header->completed_by = $firstApprovalUsernames;
-                $header->completed_at = $dt;
-                $header->save();
+                // (opsional) simpan hint approver pertama di header seperti sebelumnya
+                if ($firstApprovalUsernames) {
+                    $header->completed_by = $firstApprovalUsernames;
+                    $header->completed_at = $dt;
+                    $header->save();
+                }
             }
 
             // attachments (tetap)
@@ -1300,8 +1297,8 @@ class SppjController extends Controller
                 $meta = [
                     'refnbr' => $header->sppjid,
                     'doctype' => $doctype,
-                    'cpnyid' => $request->cpnyid,
-                    'departementid' => $request->departementid,
+                    'cpny_id' => $request->cpnyid,
+                    'department_id' => $request->departementid,
                     'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by' => $user->username,
                 ];
@@ -1424,22 +1421,28 @@ class SppjController extends Controller
 
             $eid = Hashids::encode($header->id);
 
-            $approvalCtl->notifyFirstApprover(
-                $header->sppjid,
-                $doctype,
-                $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
-                'SPPJ',
-                url('/showsppjs/'.$eid),
-                [
-                    'info' => $request->keperluan,
-                    'createdby' => $header->created_by,
-                    'date' => $dt->toDateTimeString(),
-                ]
-            );
+            if (!$isDraft) {
+                $approvalCtl->notifyFirstApprover(
+                    $header->sppjid,
+                    $doctype,
+                    $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
+                    'SPPJ',
+                    url('/showsppjs/'.$eid),
+                    [
+                        'info' => $request->keperluan,
+                        'createdby' => $header->created_by,
+                        'date' => $dt->toDateTimeString(),
+                    ]
+                );
+            }
 
             DB::commit();
 
-            return response()->json(['message' => 'SPPJ updated successfully']);
+            return response()->json([
+                'message' => $isDraft ? 'SPPJ saved as draft' : 'SPPJ updated successfully',
+                'eid' => $eid,
+                'is_draft' => $isDraft,
+            ]);
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
@@ -1568,6 +1571,17 @@ class SppjController extends Controller
 
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload = $sppj->created_by === $loginUsername;
+
+        $isApprover = TrApproval::where('refnbr', $sppj->sppjid)
+            ->where('aprv_doctype', 'PJ')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
         $akses_cc = SysUserRole::where('username', $user->username)
             ->where('role_id', 'COSTCTRLACCESS')
             ->first();
@@ -1643,6 +1657,7 @@ class SppjController extends Controller
             'bq',
             'hash',
             'canUpload',
+            'isApprover',
             'akses_cc',
             'userCpny',
             'userBu',
@@ -2418,6 +2433,7 @@ class SppjController extends Controller
         return TrApproval::query()
             ->where('refnbr', $refnbr)
             ->where('status', '<>', 'X')
+            ->orderBy('created_at', 'asc')
             ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
             ->orderBy('id', 'asc')
             ->get()
@@ -2855,6 +2871,8 @@ class SppjController extends Controller
                 $file
             );
 
+            $this->validateImportedBqDetails($temp_id);
+
             // Simpan temp_id ke session untuk dipakai di halaman create
             session(['import_temp_id' => $temp_id]);
 
@@ -2970,6 +2988,8 @@ class SppjController extends Controller
                 $file
             );
 
+            $this->validateImportedBqDetails($temp_id);
+
             // Simpan temp_id ke session untuk dipakai di edit
             session(['import_temp_id' => $temp_id]);
 
@@ -2981,6 +3001,50 @@ class SppjController extends Controller
                 ->withInput()
                 ->with('error', 'Gagal import: '.$e->getMessage());
         }
+    }
+
+    /**
+     * Batalkan import jika baris BQ yang terisi tidak memiliki Description atau Qty.
+     */
+    private function validateImportedBqDetails(string $tempId): void
+    {
+        $details = BqDetailTemp::where('temp_id', $tempId)
+            ->orderBy('bq_line_no')
+            ->get();
+
+        $invalidRows = $details->values()->map(function ($detail, $index) {
+            $missingFields = [];
+
+            if (trim((string) $detail->bq_descr) === '') {
+                $missingFields[] = 'Description';
+            }
+
+            if ($detail->qty === null || trim((string) $detail->qty) === '') {
+                $missingFields[] = 'Qty';
+            }
+
+            if ($missingFields === []) {
+                return null;
+            }
+
+            $lineNumber = trim((string) $detail->bq_line_no);
+            $rowLabel = $lineNumber !== '' ? "Line No {$lineNumber}" : 'baris data '.($index + 1);
+
+            return $rowLabel.' ('.implode(', ', $missingFields).')';
+        })->filter()->values();
+
+        if ($invalidRows->isEmpty()) {
+            return;
+        }
+
+        // Jangan sisakan preview/import parsial ketika validasi gagal.
+        BqDetailTemp::where('temp_id', $tempId)->delete();
+
+        throw new \RuntimeException(
+            'Description dan Qty wajib diisi. Data bermasalah: '
+            .$invalidRows->implode('; ')
+            .'. Harap isi kolom tersebut atau hapus barisnya terlebih dahulu.'
+        );
     }
 
     public function importEdit_xxx(Request $request)
@@ -3163,8 +3227,8 @@ class SppjController extends Controller
                 $meta = [
                     'refnbr' => $bqid,
                     'doctype' => $doctype,
-                    'cpnyid' => $cpny_id,
-                    'departementid' => $deptid,
+                    'cpny_id' => $cpny_id,
+                    'department_id' => $deptid,
                     'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by' => $username,
                 ];
@@ -3293,8 +3357,8 @@ class SppjController extends Controller
                 $meta = [
                     'refnbr' => $bqid,
                     'doctype' => $doctype,
-                    'cpnyid' => $cpny_id,
-                    'departementid' => $deptid,
+                    'cpny_id' => $cpny_id,
+                    'department_id' => $deptid,
                     'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by' => $user->username,
                 ];

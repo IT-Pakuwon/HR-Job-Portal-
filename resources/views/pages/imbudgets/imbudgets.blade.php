@@ -96,35 +96,36 @@
             </button>
 
         </div>
-        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                {{-- Changed text-lg to text-base --}}
-                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">IMBudget</h1>
+        <div
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">IMBudget</h2>
             </div>
 
-            <div class="rounded-base relative overflow-x-auto"> {{-- Padding applied here instead of outer container --}}
-                <table id="imbudgetsTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th class="w-32 px-6 py-2 font-medium">
+            <div class="relative overflow-hidden">
+                <table id="imbudgetsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 DocID</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Date</th>
-                            <th class="w-32 px-6 py-2 font-medium">
-                                CSID</th>
-                            <th class="w-32 px-6 py-2 font-medium">
-                                SPPBJKTID</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
+                                RefNbr</th>
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Company</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 User Peminta</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="min-w-64 px-4 py-3 text-left font-medium">
+                                Keperluan</th>
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Status</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                    <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-[#0f172a]">
                         {{-- Table rows will be populated here by JavaScript/DataTables --}}
                     </tbody>
                 </table>
@@ -184,7 +185,7 @@
             if (!list) return;
 
             if (!Array.isArray(steps) || steps.length === 0) {
-                list.innerHTML = `<p class="text-sm text-gray-500">No tracking history found.</p>`;
+                list.innerHTML = `<p class="text-sm text-gray-500 dark:text-gray-400">No tracking history found.</p>`;
                 return;
             }
 
@@ -197,14 +198,14 @@
             list.className = "px-2 py-3";
 
             list.innerHTML = `
-                <div class="rounded-xl border border-gray-200 bg-white p-4">
+                <div class="rounded-xl border border-gray-200 bg-white p-4 dark:bg-gray-800 dark:border-gray-700">
 
                     <!-- HEADER -->
                     <div class="flex justify-between items-center mb-4">
-                        <div class="text-sm font-semibold text-gray-700">
+                        <div class="text-sm font-semibold text-gray-700 dark:text-gray-300">
                         Approval Tracking
                         </div>
-                        <div class="text-xs text-gray-500">
+                        <div class="text-xs text-gray-500 dark:text-gray-400">
                             ${approvedCount}/${total} Approved
                         </div>
                     </div>
@@ -274,15 +275,15 @@
 
                                     <div class="h-2 w-2 rounded-full ${dot}"></div>
 
-                                    <div class="h-8 w-8 flex items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-600">
+                                    <div class="h-8 w-8 flex items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-600 dark:bg-gray-900 dark:text-gray-400">
                                         ${initials}
                                     </div>
 
                                     <div>
-                                        <div class="text-sm font-medium text-gray-800">
+                                        <div class="text-sm font-medium text-gray-800 dark:text-gray-200">
                                             ${s.title}
                                         </div>
-                                        <div class="text-xs text-gray-500">
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">
                                             ${name}
                                         </div>
                                     </div>
@@ -310,8 +311,8 @@
         function renderApprovalTable(steps) {
             return `
             <div class="w-full overflow-x-auto">
-                <table class="min-w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
-                    <thead class="bg-gray-100 text-gray-700">
+                <table class="min-w-full text-sm border border-gray-200 rounded-lg overflow-hidden dark:border-gray-700">
+                    <thead class="bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300">
                         <tr>
                             <th class="px-3 py-2 text-left">Level</th>
                             <th class="px-3 py-2 text-left">Name</th>
@@ -336,7 +337,7 @@
                                 <td class="px-3 py-2 font-semibold ${color}">
                                     ${s.status_label}
                                 </td>
-                                <td class="px-3 py-2 text-gray-500">
+                                <td class="px-3 py-2 text-gray-500 dark:text-gray-400">
                                     ${s.at || '-'}
                                 </td>
                             </tr>`;
@@ -491,8 +492,8 @@
                     orderable: false
                 }],
                 order: [
-                    [1, 'desc'],
-                    [0, 'desc']
+                    [2, 'desc'],
+                    [1, 'desc']
                 ], // Date desc, lalu DocID desc
 
 
@@ -574,12 +575,7 @@
                         className: 'text-left'
                     },
                     {
-                        data: 'csid',
-                        className: 'text-center w-32',
-                        defaultContent: '-'
-                    },
-                    {
-                        data: 'sppbjktid',
+                        data: 'refnbr',
                         className: 'text-center w-32',
                         defaultContent: '-'
                     },
@@ -592,6 +588,21 @@
                         data: 'user_peminta',
                         className: 'text-center',
                         defaultContent: '-'
+                    },
+                    {
+                        data: 'keperluan',
+                        className: 'min-w-64 text-left',
+                        defaultContent: '-',
+                        render: function(data, type) {
+                            const text = data || '-';
+
+                            if (type !== 'display') {
+                                return text;
+                            }
+
+                            const safeText = $('<div>').text(text).html();
+                            return `<span class="block max-w-md whitespace-normal break-words" title="${safeText}">${safeText}</span>`;
+                        }
                     },
 
                     // Status (badge)

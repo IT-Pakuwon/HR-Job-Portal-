@@ -42,13 +42,10 @@ class ItemRequestController extends Controller
             return redirect()->route('login');
         }
 
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_map('trim', explode(',', $user->cpny_id))
-            : (array) $user->cpny_id;
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
-        $deptIds = is_string($user->department_id)
-            ? array_map('trim', explode(',', $user->department_id))
-            : (array) $user->department_id;
+        $isAdmin = $user->isAdmin();
 
         $q = TrItemRequest::query()
             ->whereIn('cpny_id', $cpnyIds)
@@ -60,7 +57,10 @@ class ItemRequestController extends Controller
         $revise     = (clone $q)->where('status', 'D')->count();
         $completed  = (clone $q)->where('status', 'C')->count();
 
-        return view('pages.itemrequest.itemreq', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
+        // ✅ Admin-only: total across every company/department
+        $allListCount = $isAdmin ? TrItemRequest::count() : 0;
+
+        return view('pages.itemrequest.itemreq', compact('all', 'onProgress', 'reject', 'revise', 'completed', 'isAdmin', 'allListCount'));
     }
 
     public function json(Request $request)
@@ -70,19 +70,19 @@ class ItemRequestController extends Controller
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_map('trim', explode(',', $user->cpny_id))
-            : (array) $user->cpny_id;
-
-        $deptIds = is_string($user->department_id)
-            ? array_map('trim', explode(',', $user->department_id))
-            : (array) $user->department_id;
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $draw   = (int) $request->input('draw', 1);
         $start  = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
         $search = trim((string) $request->input('search.value', ''));
         $status = (string) $request->query('status', '');
+        $mode   = (string) $request->query('mode', 'normal');
+
+        $isAdmin = $user->isAdmin();
+        // ✅ Admin viewing the all-list sees every company/department; everyone else stays scoped to their own
+        $bypassScope = $isAdmin && $mode === 'all';
 
         // Kolom untuk ordering DataTables (sesuaikan dengan kolom tabel tr_item_req)
         $columns = [
@@ -104,8 +104,8 @@ class ItemRequestController extends Controller
         $baseTable = (new TrItemRequest)->getTable();
 
         $base = TrItemRequest::from($baseTable . ' as ir')
-            ->whereIn('ir.cpny_id', $cpnyIds)
-            ->whereIn('ir.department_id', $deptIds);
+            ->when(!$bypassScope, fn ($q) => $q->whereIn('ir.cpny_id', $cpnyIds))
+            ->when(!$bypassScope, fn ($q) => $q->whereIn('ir.department_id', $deptIds));
 
         if ($status !== '') {
             $base->where('ir.status', $status);
@@ -815,12 +815,24 @@ class ItemRequestController extends Controller
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload     = ($itemReq->created_by === $loginUsername);
 
+        $isApprover = TrApproval::where('refnbr', $itemReq->irid)
+            ->where('aprv_doctype', 'SR')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
+
         return view('pages.itemrequest.showitemreq', compact(
             'itemReq',
             'itemReqDetail',
             'attachments',
             'hash',
-            'canUpload'
+            'canUpload',
+            'isApprover'
         ));
     }
 

@@ -21,6 +21,7 @@ use App\Models\MsCategory;
 use App\Models\MsSite;
 use App\Models\MsParkingKendaraan;
 use App\Models\MsKendaraan;
+use App\Models\MsParkingSettingAttach;
 
 use Mail;
 use PDF;
@@ -49,24 +50,27 @@ class ParkingRegistrationController extends Controller
             return redirect()->route('login');
         }
 
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
-            : array_filter((array) $user->cpny_id);
-
-        $deptIds = is_string($user->department_id)
-            ? array_filter(array_map('trim', explode(',', $user->department_id)))
-            : array_filter((array) $user->department_id);
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $canParkingAccess = SysUserRole::where('username', $user->username)
             ->where('role_id', 'PARKINGACCESS')
             ->where('status', 'A')
             ->exists();
 
+        $hasUserAccess = SysUserRole::where('username', $user->username)
+            ->whereIn('role_id', ['USERACCESS', 'USEROFFICEACCESS'])
+            ->where('status', 'A')
+            ->exists();
+
+        $canViewMasterKendaraan = $canParkingAccess || $hasUserAccess;
+
         $q = TrParkingRegistration::query()
             ->whereIn('cpny_id', $cpnyIds)
             ->whereIn('department_id', $deptIds);
 
         $all        = (clone $q)->count();
+        $draft      = (clone $q)->where('status', 'H')->count();
         $onProgress = (clone $q)->where('status', 'P')->count();
         $reject     = (clone $q)->where('status', 'R')->count();
         $revise     = (clone $q)->where('status', 'D')->count();
@@ -77,30 +81,45 @@ class ParkingRegistrationController extends Controller
 
         if ($canParkingAccess) {
             $allParkingCount = TrParkingRegistration::query()
-                ->whereIn('cpny_id', $cpnyIds)
-                ->count();
-
-            $masterKendaraanCount = MsParkingKendaraan::query()
                 ->whereIn('site_id_parking', $cpnyIds)
-                ->whereNull('deleted_at')
                 ->count();
         }
 
+        if ($canViewMasterKendaraan) {
+            $masterKendaraanQuery = MsParkingKendaraan::query()
+                ->whereIn('site_id_parking', $cpnyIds)
+                ->whereNull('deleted_at');
+
+            if (!$canParkingAccess) {
+                $masterKendaraanQuery->whereIn('department_id', $deptIds);
+            }
+
+            $masterKendaraanCount = $masterKendaraanQuery->count();
+        }
+
         $masterSites = collect();
+        $masterCompanies = collect();
+        $masterDepartmentOptions = collect();
         $masterDepartments = collect();
         $parkingTypes = collect();
         $workerTypes = collect();
 
-        if ($canParkingAccess) {
+        if ($canViewMasterKendaraan) {
             $masterSites = MsSite::whereIn('siteid', $cpnyIds)
                 ->where('site_parking', true)
                 ->where('status', 'A')
                 ->orderBy('siteid')
                 ->get(['siteid', 'site_name']);
 
-            $masterDepartments = MsParkingKendaraan::whereIn('site_id_parking', $cpnyIds)
+            $masterDepartmentsQuery = MsParkingKendaraan::whereIn('site_id_parking', $cpnyIds)
                 ->whereNull('deleted_at')
-                ->whereNotNull('department_id')
+                ->whereNotNull('department_id');
+
+            if (!$canParkingAccess) {
+                $masterDepartmentsQuery->whereIn('department_id', $deptIds);
+            }
+
+            $masterDepartments = $masterDepartmentsQuery
                 ->distinct()
                 ->orderBy('department_id')
                 ->pluck('department_id');
@@ -118,16 +137,31 @@ class ParkingRegistrationController extends Controller
                 ->get(['categoryid', 'category_name']);
         }
 
+        if ($canParkingAccess) {
+            $masterCompanies = MsCompany::whereIn('cpny_id', $cpnyIds)
+                ->where('status', 'A')
+                ->orderBy('cpny_id')
+                ->get(['cpny_id', 'cpny_name']);
+
+            $masterDepartmentOptions = MsDepartment::where('status', 'A')
+                ->orderBy('department_id')
+                ->get(['department_id', 'department_name']);
+        }
+
         return view('pages.parkingregistration.parkingregistration', compact(
             'all',
+            'draft',
             'onProgress',
             'reject',
             'revise',
             'completed',
             'canParkingAccess',
+            'canViewMasterKendaraan',
             'allParkingCount',
             'masterKendaraanCount',
             'masterSites',
+            'masterCompanies',
+            'masterDepartmentOptions',
             'masterDepartments',
             'parkingTypes',
             'workerTypes',
@@ -142,18 +176,20 @@ class ParkingRegistrationController extends Controller
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
-            : array_filter((array) $user->cpny_id);
-
-        $deptIds = is_string($user->department_id)
-            ? array_filter(array_map('trim', explode(',', $user->department_id)))
-            : array_filter((array) $user->department_id);
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $canParkingAccess = SysUserRole::where('username', $user->username)
             ->where('role_id', 'PARKINGACCESS')
             ->where('status', 'A')
             ->exists();
+
+        $hasUserAccess = SysUserRole::where('username', $user->username)
+            ->whereIn('role_id', ['USERACCESS', 'USEROFFICEACCESS'])
+            ->where('status', 'A')
+            ->exists();
+
+        $canViewMasterKendaraan = $canParkingAccess || $hasUserAccess;
 
         $draw   = (int) $request->input('draw', 1);
         $start  = (int) $request->input('start', 0);
@@ -166,7 +202,16 @@ class ParkingRegistrationController extends Controller
             $scope = 'my';
         }
 
-        if (in_array($scope, ['all', 'master'], true) && !$canParkingAccess) {
+        if ($scope === 'all' && !$canParkingAccess) {
+            return response()->json([
+                'draw'            => $draw,
+                'recordsTotal'    => 0,
+                'recordsFiltered' => 0,
+                'data'            => [],
+            ]);
+        }
+
+        if ($scope === 'master' && !$canViewMasterKendaraan) {
             return response()->json([
                 'draw'            => $draw,
                 'recordsTotal'    => 0,
@@ -176,7 +221,9 @@ class ParkingRegistrationController extends Controller
         }
 
         if ($scope === 'master') {
-            return $this->jsonMasterKendaraan($request, $draw, $start, $length, $search, $status, $cpnyIds);
+            $restrictDeptIds = $canParkingAccess ? [] : $deptIds;
+
+            return $this->jsonMasterKendaraan($request, $draw, $start, $length, $search, $status, $cpnyIds, $restrictDeptIds);
         }
 
         return $this->jsonParkingRegistration($request, $draw, $start, $length, $search, $status, $scope, $cpnyIds, $deptIds);
@@ -213,8 +260,13 @@ class ParkingRegistrationController extends Controller
 
         $baseTable = (new TrParkingRegistration)->getTable();
 
-        $base = TrParkingRegistration::from($baseTable . ' as pr')
-            ->whereIn('pr.cpny_id', $cpnyIds);
+        $base = TrParkingRegistration::from($baseTable . ' as pr');
+
+        if ($scope === 'all') {
+            $base->whereIn('pr.site_id_parking', $cpnyIds);
+        } else {
+            $base->whereIn('pr.cpny_id', $cpnyIds);
+        }
 
         if ($scope === 'my') {
             $base->whereIn('pr.department_id', $deptIds);
@@ -280,7 +332,8 @@ class ParkingRegistrationController extends Controller
         int $length,
         string $search,
         string $status,
-        array $cpnyIds
+        array $cpnyIds,
+        array $restrictDeptIds = []
     ) {
         $siteParking     = trim((string) $request->query('site_parking', ''));
         $parkingType     = trim((string) $request->query('parking_type', ''));
@@ -297,15 +350,16 @@ class ParkingRegistrationController extends Controller
             5  => 'mk.jenis_kendaraan',
             6  => 'mk.parking_type',
             7  => 'mk.worker_type',
-            8  => 'mk.department_id',
-            9  => 'mk.perpost',
-            10 => 'mk.startdate',
-            11 => 'mk.enddate',
-            12 => 'mk.no_kartu',
-            13 => 'mk.attach_stnk',
-            14 => 'mk.attach_idcard',
-            15 => 'mk.attach_bukti_bayar',
-            16 => 'mk.status',
+            8  => 'mk.cpny_id',
+            9  => 'mk.department_id',
+            10 => 'mk.perpost',
+            11 => 'mk.startdate',
+            12 => 'mk.enddate',
+            13 => 'mk.no_kartu',
+            14 => 'mk.attach_stnk',
+            15 => 'mk.attach_idcard',
+            16 => 'mk.attach_bukti_bayar',
+            17 => 'mk.status',
         ];
 
         $orderIdx = (int) $request->input('order.0.column', 1);
@@ -317,6 +371,10 @@ class ParkingRegistrationController extends Controller
         $base = MsParkingKendaraan::from($baseTable . ' as mk')
             ->whereIn('mk.site_id_parking', $cpnyIds)
             ->whereNull('mk.deleted_at');
+
+        if (!empty($restrictDeptIds)) {
+            $base->whereIn('mk.department_id', $restrictDeptIds);
+        }
 
         if ($status !== '') {
             $base->where('mk.status', $status);
@@ -353,6 +411,7 @@ class ParkingRegistrationController extends Controller
                     ->orWhere('mk.jenis_kendaraan', 'ilike', "%{$search}%")
                     ->orWhere('mk.parking_type', 'ilike', "%{$search}%")
                     ->orWhere('mk.worker_type', 'ilike', "%{$search}%")
+                    ->orWhere('mk.cpny_id', 'ilike', "%{$search}%")
                     ->orWhere('mk.department_id', 'ilike', "%{$search}%")
                     ->orWhere('mk.perpost', 'ilike', "%{$search}%")
                     ->orWhere('mk.no_kartu', 'ilike', "%{$search}%")
@@ -515,36 +574,62 @@ class ParkingRegistrationController extends Controller
         }
     }
 
-    private function uploadParkingFileToGcs(?UploadedFile $file, string $docid, string $folder, string $username): ?string
+    private function uploadParkingFileToGcs(?UploadedFile $file, string $docid, string $type, string $username, int $rowNo = 1): ?string
     {
-        if (!$file || !$file->isValid()) {
+        if (!$file instanceof UploadedFile || !$file->isValid()) {
             return null;
         }
 
         $bucket = $this->gcsBucket();
 
+        $doctype = 'PKR';
         $year = now()->year;
+        $baseFolder = 'att-parking-registration';
+        $folder = "{$baseFolder}/{$doctype}/{$year}";
+
+        $originalName = str_replace(['%', '\\', '/'], '', $file->getClientOriginalName());
         $ext = $file->getClientOriginalExtension();
-        $filename = md5(random_int(1, 99999999) . microtime(true)) . '.' . $ext;
+        $randomPrefix = md5(random_int(1, 99999999));
+        $filename = strtoupper($type) . '_' . $rowNo . '_' . $randomPrefix . '.' . $ext;
 
-        $gcsPath = "parking_registration/{$year}/{$docid}/{$folder}/{$filename}";
+        $gcsPath = "{$folder}/{$filename}";
 
-        $bucket->upload(
-            fopen($file->getPathname(), 'r'),
-            [
-                'name' => $gcsPath,
-                'predefinedAcl' => 'private',
-                'metadata' => [
-                    'contentType' => $file->getMimeType(),
-                    'metadata' => [
-                        'original-name' => $file->getClientOriginalName(),
-                        'uploaded-by' => $username,
+        try {
+            $bucket->upload(
+                fopen($file->getPathname(), 'r'),
+                [
+                    'name'          => $gcsPath,
+                    'predefinedAcl' => 'private',
+                    'metadata'      => [
+                        'contentType' => $file->getMimeType(),
+                        'metadata'    => [
+                            'original-name' => $originalName,
+                            'docid'         => $docid,
+                            'type'          => strtoupper($type),
+                            'row_no'        => (string) $rowNo,
+                            'created_by'    => $username,
+                        ],
                     ],
-                ],
-            ]
-        );
+                ]
+            );
 
-        return $gcsPath;
+            Log::info('Upload parking attachment sukses', [
+                'docid'   => $docid,
+                'type'    => $type,
+                'gcsPath' => $gcsPath,
+            ]);
+
+            return $gcsPath;
+        } catch (\Throwable $e) {
+            Log::error('Upload parking attachment gagal', [
+                'docid'   => $docid,
+                'type'    => $type,
+                'gcsPath' => $gcsPath,
+                'error'   => $e->getMessage(),
+            ]);
+
+            throw $e;
+        }
     }
             
     public function createParkingRegistration()
@@ -588,6 +673,24 @@ class ParkingRegistrationController extends Controller
                 'cpny_id',
             ]);
 
+        $parkingAttachSettings = MsParkingSettingAttach::query()
+            ->where('status', 'A')
+            ->get(['parking_type', 'worker_type', 'att_stnk', 'att_idcard', 'att_buktibayar'])
+            ->mapWithKeys(function ($row) {
+                $key = strtoupper(trim((string) $row->parking_type)) . '|' . strtoupper(trim((string) $row->worker_type));
+
+                $toBool = fn ($value) => in_array(strtolower(trim((string) $value)), ['1', 'true', 't', 'yes', 'y'], true);
+
+                return [
+                    $key => [
+                        'att_stnk'       => $toBool($row->att_stnk),
+                        'att_idcard'     => $toBool($row->att_idcard),
+                        'att_buktibayar' => $toBool($row->att_buktibayar),
+                    ],
+                ];
+            })
+            ->all();
+
         return view('pages.parkingregistration.createparkingregistration', compact(
             'usercpny',
             'usercpny2',
@@ -596,7 +699,8 @@ class ParkingRegistrationController extends Controller
             'workerTypes',
             'parkingTypes',
             'sites',
-            'employees'
+            'employees',
+            'parkingAttachSettings'
         ));
     }
 
@@ -609,6 +713,11 @@ class ParkingRegistrationController extends Controller
         $parkingType  = strtoupper(trim((string) $request->query('parking_type', '')));
         $workerType   = strtoupper(trim((string) $request->query('worker_type', '')));
         $search       = trim((string) $request->query('q', ''));
+        $splitCsv = function ($value) {
+            return array_values(array_filter(array_map('trim', explode(',', (string) $value))));
+        };
+        $cpnyIds = $splitCsv($cpnyId);
+        $departmentIds = $splitCsv($departmentId);
 
         /*
         |--------------------------------------------------------------------------
@@ -779,25 +888,29 @@ class ParkingRegistrationController extends Controller
             $q = User::query()
                 ->where('status', 'A');
 
-            if ($cpnyId !== '') {
+            if (!empty($cpnyIds)) {
+                $placeholders = implode(',', array_fill(0, count($cpnyIds), '?'));
+
                 $q->whereRaw(
                     "EXISTS (
                         SELECT 1
                         FROM unnest(string_to_array(COALESCE(cpny_id, ''), ',')) AS x(val)
-                        WHERE trim(x.val) = ?
+                        WHERE trim(x.val) IN ({$placeholders})
                     )",
-                    [$cpnyId]
+                    $cpnyIds
                 );
             }
 
-            if ($departmentId !== '') {
+            if (!empty($departmentIds)) {
+                $placeholders = implode(',', array_fill(0, count($departmentIds), '?'));
+
                 $q->whereRaw(
                     "EXISTS (
                         SELECT 1
                         FROM unnest(string_to_array(COALESCE(department_id, ''), ',')) AS x(val)
-                        WHERE trim(x.val) = ?
+                        WHERE trim(x.val) IN ({$placeholders})
                     )",
-                    [$departmentId]
+                    $departmentIds
                 );
             }
 
@@ -873,7 +986,9 @@ class ParkingRegistrationController extends Controller
         $parkingCountQuery = MsParkingKendaraan::query()
             ->select('username', DB::raw('COUNT(*) as jumlah'))
             ->whereNull('deleted_at')
-            ->whereIn('status', ['A', 'P']);
+            ->whereIn('status', ['A', 'P'])
+            ->whereRaw('UPPER(TRIM(parking_type)) = ?', [$parkingType])
+            ->whereRaw('UPPER(TRIM(worker_type)) = ?', [$workerType]);
 
         if ($siteParking !== '') {
             $parkingCountQuery->where('site_id_parking', $siteParking);
@@ -892,25 +1007,29 @@ class ParkingRegistrationController extends Controller
             ->where('status', 'A')
             ->whereIn(DB::raw('UPPER(TRIM(jabatan))'), array_keys($limitByJabatan));
 
-        if ($cpnyId !== '') {
+        if (!empty($cpnyIds)) {
+            $placeholders = implode(',', array_fill(0, count($cpnyIds), '?'));
+
             $q->whereRaw(
                 "EXISTS (
                     SELECT 1
                     FROM unnest(string_to_array(COALESCE(cpny_id, ''), ',')) AS x(val)
-                    WHERE trim(x.val) = ?
+                    WHERE trim(x.val) IN ({$placeholders})
                 )",
-                [$cpnyId]
+                $cpnyIds
             );
         }
 
-        if ($departmentId !== '') {
+        if (!empty($departmentIds)) {
+            $placeholders = implode(',', array_fill(0, count($departmentIds), '?'));
+
             $q->whereRaw(
                 "EXISTS (
                     SELECT 1
                     FROM unnest(string_to_array(COALESCE(department_id, ''), ',')) AS x(val)
-                    WHERE trim(x.val) = ?
+                    WHERE trim(x.val) IN ({$placeholders})
                 )",
-                [$departmentId]
+                $departmentIds
             );
         }
 
@@ -973,8 +1092,21 @@ class ParkingRegistrationController extends Controller
     }   
 
     public function storeParkingRegistration(Request $request)
-    {        
+    {
+        $isDraft = $request->boolean('is_draft');
+
         $parkingType = strtoupper(trim((string) $request->parking_type));
+        $workerType = strtoupper(trim((string) $request->worker_type));
+        $attachSetting = MsParkingSettingAttach::query()
+            ->where('status', 'A')
+            ->whereRaw('UPPER(TRIM(parking_type)) = ?', [$parkingType])
+            ->whereRaw('UPPER(TRIM(worker_type)) = ?', [$workerType])
+            ->first();
+
+        $toBool = fn ($value) => in_array(strtolower(trim((string) $value)), ['1', 'true', 't', 'yes', 'y'], true);
+        $requiresStnk = $attachSetting ? $toBool($attachSetting->att_stnk) : true;
+        $requiresIdCard = $attachSetting ? $toBool($attachSetting->att_idcard) : true;
+        $requiresBuktiBayar = $attachSetting ? $toBool($attachSetting->att_buktibayar) : true;
 
         $rules = [
             'cpny_id'          => ['required', 'string'],
@@ -984,14 +1116,14 @@ class ParkingRegistrationController extends Controller
             'parking_type'     => ['required', 'string'],
             'worker_type'      => ['required', 'string'],
 
-            'detail_name'              => ['required', 'array', 'min:1'],
-            'detail_name.*'            => ['required', 'string'],
+            'detail_name'              => [$isDraft ? 'nullable' : 'required', 'array'],
+            'detail_name.*'            => ['nullable', 'string'],
             'detail_username'          => ['nullable', 'array'],
             'detail_username.*'        => ['nullable', 'string'],
-            'detail_no_polisi'         => ['required', 'array', 'min:1'],
-            'detail_no_polisi.*'       => ['required', 'string'],
-            'detail_jenis_kendaraan'   => ['required', 'array', 'min:1'],
-            'detail_jenis_kendaraan.*' => ['required', 'string'],
+            'detail_no_polisi'         => [$isDraft ? 'nullable' : 'required', 'array'],
+            'detail_no_polisi.*'       => ['nullable', 'string'],
+            'detail_jenis_kendaraan'   => [$isDraft ? 'nullable' : 'required', 'array'],
+            'detail_jenis_kendaraan.*' => ['nullable', 'string'],
 
             'detail_nopol_lama'        => ['nullable', 'array'],
             'detail_nopol_lama.*'      => ['nullable', 'string'],
@@ -1005,20 +1137,55 @@ class ParkingRegistrationController extends Controller
             'attachments.*' => ['nullable', 'file', 'max:10240'],
         ];
 
-        if (in_array($parkingType, ['NEWREQUEST', 'TEMPREQUEST'], true)) {
-            $rules['detail_attach_stnk'] = ['required', 'array', 'min:1'];
-            $rules['detail_attach_stnk.*'] = ['required', 'file', 'max:10240'];
+        if (!$isDraft) {
+            $rules['detail_name'][] = 'min:1';
+            $rules['detail_no_polisi'][] = 'min:1';
+            $rules['detail_jenis_kendaraan'][] = 'min:1';
 
-            $rules['detail_attach_idcard'] = ['required', 'array', 'min:1'];
-            $rules['detail_attach_idcard.*'] = ['required', 'file', 'max:10240'];
-        }
+            if ($requiresStnk) {
+                $rules['detail_attach_stnk'] = ['required', 'array', 'min:1'];
+                $rules['detail_attach_stnk.*'] = ['required', 'file', 'max:10240'];
+            }
 
-        if (in_array($parkingType, ['CHANGENOPOL', 'CHANGECARD'], true)) {
-            $rules['detail_attach_stnk'] = ['required', 'array', 'min:1'];
-            $rules['detail_attach_stnk.*'] = ['required', 'file', 'max:10240'];
+            if ($requiresIdCard) {
+                $rules['detail_attach_idcard'] = ['required', 'array', 'min:1'];
+                $rules['detail_attach_idcard.*'] = ['required', 'file', 'max:10240'];
+            }
+
+            if ($requiresBuktiBayar) {
+                $rules['detail_attach_bukti_bayar'] = ['required', 'array', 'min:1'];
+                $rules['detail_attach_bukti_bayar.*'] = ['required', 'file', 'max:10240'];
+            }
         }
 
         $request->validate($rules);
+
+        $detailNames = $request->input('detail_name', []);
+
+        if (!$isDraft) {
+            foreach ($detailNames as $i => $detailName) {
+                $missing = [];
+
+                if ($requiresStnk && !$request->hasFile("detail_attach_stnk.$i")) {
+                    $missing["detail_attach_stnk.$i"] = ['Attach STNK wajib diisi.'];
+                }
+
+                if ($requiresIdCard && !$request->hasFile("detail_attach_idcard.$i")) {
+                    $missing["detail_attach_idcard.$i"] = ['Attach ID Card wajib diisi.'];
+                }
+
+                if ($requiresBuktiBayar && !$request->hasFile("detail_attach_bukti_bayar.$i")) {
+                    $missing["detail_attach_bukti_bayar.$i"] = ['Attach Bukti Bayar wajib diisi.'];
+                }
+
+                if (!empty($missing)) {
+                    return response()->json([
+                        'message' => 'Mohon periksa input.',
+                        'errors'  => $missing,
+                    ], 422);
+                }
+            }
+        }
 
         $user = $request->user();
 
@@ -1044,6 +1211,7 @@ class ParkingRegistrationController extends Controller
 
         // $startDate = Carbon::createFromDate((int) $perpost, 1, 1)->toDateString();
         // $endDate   = Carbon::createFromDate((int) $perpost, 12, 31)->toDateString();
+        $parkingTypeUpper = strtoupper(trim((string) $parkingType));
         $isEmployee = strtoupper(trim((string) $workerType)) === 'EMPLOYEE';
 
         if ($isEmployee) {
@@ -1051,13 +1219,27 @@ class ParkingRegistrationController extends Controller
             |--------------------------------------------------------------------------
             | EMPLOYEE
             |--------------------------------------------------------------------------
-            | Date range tetap otomatis dari perpost:
-            | startdate = 1 Jan perpost
-            | enddate   = 31 Dec perpost
+            | Default date range otomatis dari perpost.
+            | Khusus TEMPREQUEST memakai tanggal dari input user.
             |--------------------------------------------------------------------------
             */
-            $startDate = Carbon::createFromDate((int) $perpost, 1, 1)->toDateString();
-            $endDate   = Carbon::createFromDate((int) $perpost, 12, 31)->toDateString();
+            if ($parkingTypeUpper === 'TEMPREQUEST') {
+                if (!$isDraft && (!$request->filled('startdate') || !$request->filled('enddate'))) {
+                    return response()->json([
+                        'message' => 'Mohon periksa input.',
+                        'errors' => [
+                            'startdate' => ['Start Date wajib diisi untuk TEMPREQUEST EMPLOYEE.'],
+                            'enddate'   => ['End Date wajib diisi untuk TEMPREQUEST EMPLOYEE.'],
+                        ],
+                    ], 422);
+                }
+
+                $startDate = $request->filled('startdate') ? Carbon::parse($request->startdate)->toDateString() : null;
+                $endDate   = $request->filled('enddate') ? Carbon::parse($request->enddate)->toDateString() : null;
+            } else {
+                $startDate = Carbon::createFromDate((int) $perpost, 1, 1)->toDateString();
+                $endDate   = Carbon::createFromDate((int) $perpost, 12, 31)->toDateString();
+            }
 
             /*
             |--------------------------------------------------------------------------
@@ -1065,13 +1247,17 @@ class ParkingRegistrationController extends Controller
             | ms_category.category_name + perpost
             |--------------------------------------------------------------------------
             */
-            $parkingTypeName = MsCategory::where('doctype', 'PKR')
-                ->where('type', 'TYPE')
-                ->where('status', 'A')
-                ->where('categoryid', $parkingType)
-                ->value('category_name');
+            if (in_array($parkingTypeUpper, ['NEWREQUEST', 'TEMPREQUEST'], true)) {
+                $headerInfo = $request->info;
+            } else {
+                $parkingTypeName = MsCategory::where('doctype', 'PKR')
+                    ->where('type', 'TYPE')
+                    ->where('status', 'A')
+                    ->where('categoryid', $parkingType)
+                    ->value('category_name');
 
-            $headerInfo = trim(($parkingTypeName ?: $parkingType) . ' - ' . $perpost);
+                $headerInfo = trim(($parkingTypeName ?: $parkingType) . ' - ' . $perpost);
+            }
         } else {
             /*
             |--------------------------------------------------------------------------
@@ -1080,7 +1266,7 @@ class ParkingRegistrationController extends Controller
             | Date range wajib dari input user.
             |--------------------------------------------------------------------------
             */
-            if (!$request->filled('startdate') || !$request->filled('enddate')) {
+            if (!$isDraft && (!$request->filled('startdate') || !$request->filled('enddate'))) {
                 return response()->json([
                     'message' => 'Mohon periksa input.',
                     'errors' => [
@@ -1090,8 +1276,8 @@ class ParkingRegistrationController extends Controller
                 ], 422);
             }
 
-            $startDate = Carbon::parse($request->startdate)->toDateString();
-            $endDate   = Carbon::parse($request->enddate)->toDateString();
+            $startDate = $request->filled('startdate') ? Carbon::parse($request->startdate)->toDateString() : null;
+            $endDate   = $request->filled('enddate') ? Carbon::parse($request->enddate)->toDateString() : null;
 
             $headerInfo = $request->info;
         }
@@ -1103,8 +1289,12 @@ class ParkingRegistrationController extends Controller
             |--------------------------------------------------------------------------
             | Validasi setup approval
             |--------------------------------------------------------------------------
+            | Draft belum masuk approval, jadi skip validasi approval line.
+            |--------------------------------------------------------------------------
             */
-            $approvalCtl->loadLines($doctype, $cpnyId, $departmentId);
+            if (!$isDraft) {
+                $approvalCtl->loadLines($doctype, $cpnyId, $departmentId);
+            }
 
             DB::connection('pgsql5')->beginTransaction();
 
@@ -1142,7 +1332,7 @@ class ParkingRegistrationController extends Controller
                 'worker_type'         => $workerType,
                 'perpost'             => $perpost,
                 'info'                => $headerInfo,
-                'status'              => 'P',
+                'status'              => $isDraft ? 'H' : 'P',
                 'created_by'          => $username,
                 'created_at'          => $dt,
             ]);
@@ -1157,6 +1347,9 @@ class ParkingRegistrationController extends Controller
             foreach ($detailNames as $i => $detailName) {               
 
                 $rowNo = $i + 1;
+                $detailUsername = $this->normalizeParkingDetailUsername(
+                    $request->input("detail_username.$i")
+                );
 
                 $stnkPath = $this->uploadParkingDetailFileGcs(
                     $request->file("detail_attach_stnk.$i"),
@@ -1188,7 +1381,7 @@ class ParkingRegistrationController extends Controller
                     'worker_type'        => $workerType,
                     'nopol'              => strtoupper((string) $request->input("detail_no_polisi.$i")),
                     'jenis_kendaraan'    => $request->input("detail_jenis_kendaraan.$i"),
-                    'username'           => $request->input("detail_username.$i"),
+                    'username'           => $detailUsername,
                     'nama'               => $detailName,
                     'cpny_id'            => $cpnyId,
                     'department_id'      => $departmentId,
@@ -1209,23 +1402,21 @@ class ParkingRegistrationController extends Controller
 
                 $parkingTypeUpper = strtoupper(trim((string) $parkingType));
 
-                // $detailUsername = $request->input("detail_username.$i");
-                // $detailUsername = $detailUsername && str_contains($detailUsername, '|')
-                //     ? explode('|', $detailUsername)[0]
-                //     : $detailUsername;
-                $detailUsername = $request->input("detail_username.$i");
-
-                if ($detailUsername && str_starts_with($detailUsername, 'OPRVEHICLES|')) {
-                    $detailUsername = null;
-                } elseif ($detailUsername && str_contains($detailUsername, '|')) {
-                    $detailUsername = explode('|', $detailUsername)[0];
-                }
-
                 $detailNopol = strtoupper(trim((string) $request->input("detail_no_polisi.$i")));
                 $detailJenis = $request->input("detail_jenis_kendaraan.$i");
 
                 $detailNopolLama = strtoupper(trim((string) $request->input("detail_nopol_lama.$i")));
                 $detailJenisLama = $request->input("detail_jenis_lama.$i");
+
+                /*
+                |--------------------------------------------------------------------------
+                | Draft belum menyentuh ms_parking_kendaraan sama sekali.
+                | Mutasi master kendaraan hanya terjadi saat benar-benar submit approval.
+                |--------------------------------------------------------------------------
+                */
+                if ($isDraft) {
+                    continue;
+                }
 
                 /*
                 |--------------------------------------------------------------------------
@@ -1283,7 +1474,7 @@ class ParkingRegistrationController extends Controller
                         ->where('worker_type', $workerType)
                         // ->where('perpost', $perpost)
                         ->whereRaw('UPPER(TRIM(nopol)) = ?', [$matchNopol]);
-            
+
                     if (!empty($detailUsername)) {
                         $qKendaraan->where('username', $detailUsername);
                     } else {
@@ -1326,25 +1517,29 @@ class ParkingRegistrationController extends Controller
             |--------------------------------------------------------------------------
             | Generate Approval
             |--------------------------------------------------------------------------
+            | Draft belum masuk approval flow, jadi skip generate + notifikasi.
+            |--------------------------------------------------------------------------
             */
-            $ctx = [
-                'site_id_parking' => $siteParking,
-            ];
+            if (!$isDraft) {
+                $ctx = [
+                    'site_id_parking' => $siteParking,
+                ];
 
-            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                $docid,
-                $doctype,
-                $cpnyId,
-                $departmentId,
-                $username,
-                $ctx,
-                $dt
-            );
+                [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                    $docid,
+                    $doctype,
+                    $cpnyId,
+                    $departmentId,
+                    $username,
+                    $ctx,
+                    $dt
+                );
 
-            if ($firstApprovalUsernames) {
-                $header->completed_by = $firstApprovalUsernames;
-                $header->completed_at = $dt;
-                $header->save();
+                if ($firstApprovalUsernames) {
+                    $header->completed_by = $firstApprovalUsernames;
+                    $header->completed_at = $dt;
+                    $header->save();
+                }
             }
 
             /*
@@ -1356,8 +1551,8 @@ class ParkingRegistrationController extends Controller
                 $meta = [
                     'refnbr'        => $docid,
                     'doctype'       => $doctype,
-                    'cpnyid'        => $cpnyId,
-                    'departementid' => $departmentId,
+                    'cpny_id'       => $cpnyId,
+                    'department_id' => $departmentId,
                     'base_folder'   => 'att-parking-registration',
                     'created_by'    => $username,
                 ];
@@ -1373,29 +1568,31 @@ class ParkingRegistrationController extends Controller
             | Notify First Approver
             |--------------------------------------------------------------------------
             */
-            $approvalCtl->notifyFirstApprover(
-                $docid,
-                $doctype,
-                $header->status,
-                $docName,
-                url('/showparkingregistration/' . $eid),
-                [
-                    'info'            => $headerInfo,
-                    'createdby'       => $header->created_by,
-                    'date'            => $dt->toDateTimeString(),
-                    'cpny_id'         => $cpnyId,
-                    'department_id'   => $departmentId,
-                    'site_id_parking' => $siteParking,
-                    'parking_type'    => $parkingType,
-                    'worker_type'     => $workerType,
-                    'perpost'         => $perpost,
-                ]
-            );
+            if (!$isDraft) {
+                $approvalCtl->notifyFirstApprover(
+                    $docid,
+                    $doctype,
+                    $header->status,
+                    $docName,
+                    url('/showparkingregistration/' . $eid),
+                    [
+                        'info'            => $headerInfo,
+                        'createdby'       => $header->created_by,
+                        'date'            => $dt->toDateTimeString(),
+                        'cpny_id'         => $cpnyId,
+                        'department_id'   => $departmentId,
+                        'site_id_parking' => $siteParking,
+                        'parking_type'    => $parkingType,
+                        'worker_type'     => $workerType,
+                        'perpost'         => $perpost,
+                    ]
+                );
+            }
 
             DB::connection('pgsql5')->commit();
 
             return response()->json([
-                'message' => 'Parking Registration created successfully',
+                'message' => $isDraft ? 'Parking Registration saved as draft' : 'Parking Registration created successfully',
                 'docid'   => $docid,
                 'eid'     => $eid,
             ]);
@@ -1430,10 +1627,10 @@ class ParkingRegistrationController extends Controller
         |--------------------------------------------------------------------------
         | Optional security
         |--------------------------------------------------------------------------
-        | Biasanya edit hanya boleh saat status D / Revise.
+        | Biasanya edit hanya boleh saat status D / Revise atau H / Draft.
         |--------------------------------------------------------------------------
         */
-        if (!in_array($parkingRegistration->status, ['D'], true)) {
+        if (!in_array($parkingRegistration->status, ['D', 'H'], true)) {
             abort(403, 'Document cannot be edited.');
         }
 
@@ -1473,6 +1670,23 @@ class ParkingRegistrationController extends Controller
             ->orderBy('name')
             ->get(['username', 'name']);
 
+        $parkingAttachSettings = MsParkingSettingAttach::query()
+            ->where('status', 'A')
+            ->get(['parking_type', 'worker_type', 'att_stnk', 'att_idcard', 'att_buktibayar'])
+            ->mapWithKeys(function ($row) {
+                $key = strtoupper(trim((string) $row->parking_type)) . '|' . strtoupper(trim((string) $row->worker_type));
+                $toBool = fn ($value) => in_array(strtolower(trim((string) $value)), ['1', 'true', 't', 'yes', 'y'], true);
+
+                return [
+                    $key => [
+                        'att_stnk'       => $toBool($row->att_stnk),
+                        'att_idcard'     => $toBool($row->att_idcard),
+                        'att_buktibayar' => $toBool($row->att_buktibayar),
+                    ],
+                ];
+            })
+            ->all();
+
         /*
         |--------------------------------------------------------------------------
         | Signed URL untuk attachment detail lama
@@ -1507,6 +1721,7 @@ class ParkingRegistrationController extends Controller
             'parkingTypes',
             'workerTypes',
             'employees',
+            'parkingAttachSettings',
             'hash'
         ));
     }
@@ -1533,15 +1748,27 @@ class ParkingRegistrationController extends Controller
             ], 404);
         }
 
-        if (!in_array($parking->status, ['D'], true)) {
+        if (!in_array($parking->status, ['D', 'H'], true)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Only revised document can be edited.',
+                'message' => 'Only revised or draft document can be edited.',
             ], 403);
         }
 
+        $isDraft = $request->boolean('is_draft');
+
         $parkingType = strtoupper(trim((string) $request->parking_type));
         $workerType = strtoupper(trim((string) $request->worker_type));
+        $attachSetting = MsParkingSettingAttach::query()
+            ->where('status', 'A')
+            ->whereRaw('UPPER(TRIM(parking_type)) = ?', [$parkingType])
+            ->whereRaw('UPPER(TRIM(worker_type)) = ?', [$workerType])
+            ->first();
+
+        $toBool = fn ($value) => in_array(strtolower(trim((string) $value)), ['1', 'true', 't', 'yes', 'y'], true);
+        $requiresStnk = $attachSetting ? $toBool($attachSetting->att_stnk) : true;
+        $requiresIdCard = $attachSetting ? $toBool($attachSetting->att_idcard) : true;
+        $requiresBuktiBayar = $attachSetting ? $toBool($attachSetting->att_buktibayar) : true;
 
         $rules = [
             'cpny_id'          => ['required', 'string'],
@@ -1555,14 +1782,14 @@ class ParkingRegistrationController extends Controller
             'enddate'          => ['nullable', 'date', 'after_or_equal:startdate'],
             'info'             => ['nullable', 'string'],
 
-            'detail_name'              => ['required', 'array', 'min:1'],
-            'detail_name.*'            => ['required', 'string'],
+            'detail_name'              => [$isDraft ? 'nullable' : 'required', 'array'],
+            'detail_name.*'            => ['nullable', 'string'],
             'detail_username'          => ['nullable', 'array'],
             'detail_username.*'        => ['nullable', 'string'],
-            'detail_no_polisi'         => ['required', 'array', 'min:1'],
-            'detail_no_polisi.*'       => ['required', 'string'],
-            'detail_jenis_kendaraan'   => ['required', 'array', 'min:1'],
-            'detail_jenis_kendaraan.*' => ['required', 'string'],
+            'detail_no_polisi'         => [$isDraft ? 'nullable' : 'required', 'array'],
+            'detail_no_polisi.*'       => ['nullable', 'string'],
+            'detail_jenis_kendaraan'   => [$isDraft ? 'nullable' : 'required', 'array'],
+            'detail_jenis_kendaraan.*' => ['nullable', 'string'],
 
             'detail_nopol_lama'        => ['nullable', 'array'],
             'detail_nopol_lama.*'      => ['nullable', 'string'],
@@ -1581,7 +1808,40 @@ class ParkingRegistrationController extends Controller
             'detail_attach_bukti_bayar.*' => ['nullable', 'file', 'max:10240'],
         ];
 
+        if (!$isDraft) {
+            $rules['detail_name'][] = 'min:1';
+            $rules['detail_no_polisi'][] = 'min:1';
+            $rules['detail_jenis_kendaraan'][] = 'min:1';
+        }
+
         $request->validate($rules);
+
+        $detailNames = $request->input('detail_name', []);
+
+        if (!$isDraft) {
+            foreach ($detailNames as $i => $detailName) {
+                $missing = [];
+
+                if ($requiresStnk && !$request->hasFile("detail_attach_stnk.$i") && trim((string) $request->input("old_attach_stnk.$i")) === '') {
+                    $missing["detail_attach_stnk.$i"] = ['Attach STNK wajib diisi.'];
+                }
+
+                if ($requiresIdCard && !$request->hasFile("detail_attach_idcard.$i") && trim((string) $request->input("old_attach_idcard.$i")) === '') {
+                    $missing["detail_attach_idcard.$i"] = ['Attach ID Card wajib diisi.'];
+                }
+
+                if ($requiresBuktiBayar && !$request->hasFile("detail_attach_bukti_bayar.$i") && trim((string) $request->input("old_attach_bukti_bayar.$i")) === '') {
+                    $missing["detail_attach_bukti_bayar.$i"] = ['Attach Bukti Bayar wajib diisi.'];
+                }
+
+                if (!empty($missing)) {
+                    return response()->json([
+                        'message' => 'Mohon periksa input.',
+                        'errors'  => $missing,
+                    ], 422);
+                }
+            }
+        }
 
         $dt = Carbon::now();
         $username = $user->username;
@@ -1591,21 +1851,41 @@ class ParkingRegistrationController extends Controller
         $siteParking = $request->site_id_parking;
         $perpost = $request->perpost;
 
+        $parkingTypeUpper = strtoupper(trim((string) $parkingType));
         $isEmployee = $workerType === 'EMPLOYEE';
 
         if ($isEmployee) {
-            $startDate = Carbon::createFromDate((int) $perpost, 1, 1)->toDateString();
-            $endDate = Carbon::createFromDate((int) $perpost, 12, 31)->toDateString();
+            if ($parkingTypeUpper === 'TEMPREQUEST') {
+                if (!$isDraft && (!$request->filled('startdate') || !$request->filled('enddate'))) {
+                    return response()->json([
+                        'message' => 'Mohon periksa input.',
+                        'errors' => [
+                            'startdate' => ['Start Date wajib diisi untuk TEMPREQUEST EMPLOYEE.'],
+                            'enddate'   => ['End Date wajib diisi untuk TEMPREQUEST EMPLOYEE.'],
+                        ],
+                    ], 422);
+                }
 
-            $parkingTypeName = MsCategory::where('doctype', 'PKR')
-                ->where('type', 'TYPE')
-                ->where('status', 'A')
-                ->where('categoryid', $parkingType)
-                ->value('category_name');
+                $startDate = $request->filled('startdate') ? Carbon::parse($request->startdate)->toDateString() : null;
+                $endDate = $request->filled('enddate') ? Carbon::parse($request->enddate)->toDateString() : null;
+            } else {
+                $startDate = Carbon::createFromDate((int) $perpost, 1, 1)->toDateString();
+                $endDate = Carbon::createFromDate((int) $perpost, 12, 31)->toDateString();
+            }
 
-            $headerInfo = trim(($parkingTypeName ?: $parkingType) . ' - ' . $perpost);
+            if (in_array($parkingTypeUpper, ['NEWREQUEST', 'TEMPREQUEST'], true)) {
+                $headerInfo = $request->info;
+            } else {
+                $parkingTypeName = MsCategory::where('doctype', 'PKR')
+                    ->where('type', 'TYPE')
+                    ->where('status', 'A')
+                    ->where('categoryid', $parkingType)
+                    ->value('category_name');
+
+                $headerInfo = trim(($parkingTypeName ?: $parkingType) . ' - ' . $perpost);
+            }
         } else {
-            if (!$request->filled('startdate') || !$request->filled('enddate')) {
+            if (!$isDraft && (!$request->filled('startdate') || !$request->filled('enddate'))) {
                 return response()->json([
                     'message' => 'Mohon periksa input.',
                     'errors' => [
@@ -1615,8 +1895,8 @@ class ParkingRegistrationController extends Controller
                 ], 422);
             }
 
-            $startDate = Carbon::parse($request->startdate)->toDateString();
-            $endDate = Carbon::parse($request->enddate)->toDateString();
+            $startDate = $request->filled('startdate') ? Carbon::parse($request->startdate)->toDateString() : null;
+            $endDate = $request->filled('enddate') ? Carbon::parse($request->enddate)->toDateString() : null;
             $headerInfo = $request->info;
         }
 
@@ -1675,7 +1955,7 @@ class ParkingRegistrationController extends Controller
                 'worker_type'         => $workerType,
                 'perpost'             => $perpost,
                 'info'                => $headerInfo,
-                'status'              => 'P',
+                'status'              => $isDraft ? 'H' : 'P',
                 'updated_by'          => $username,
                 'updated_at'          => $dt,
             ]);
@@ -1690,11 +1970,10 @@ class ParkingRegistrationController extends Controller
             $names = $request->input('detail_name', []);
 
             foreach ($names as $i => $detailName) {
-                $detailUsername = $request->input("detail_username.$i");
-
-                if ($detailUsername && str_contains($detailUsername, '|')) {
-                    $detailUsername = explode('|', $detailUsername)[0];
-                }
+                $rowNo = $i + 1;
+                $detailUsername = $this->normalizeParkingDetailUsername(
+                    $request->input("detail_username.$i")
+                );
 
                 $detailNopol = strtoupper(trim((string) $request->input("detail_no_polisi.$i")));
                 $detailJenis = $request->input("detail_jenis_kendaraan.$i");
@@ -1709,22 +1988,25 @@ class ParkingRegistrationController extends Controller
                 $stnkPath = $this->uploadParkingFileToGcs(
                     $request->file("detail_attach_stnk.$i"),
                     $parking->docid,
-                    'stnk',
-                    $username
+                    'STNK',
+                    $username,
+                    $rowNo
                 ) ?: $oldStnk;
 
                 $idCardPath = $this->uploadParkingFileToGcs(
                     $request->file("detail_attach_idcard.$i"),
                     $parking->docid,
-                    'idcard',
-                    $username
+                    'IDCARD',
+                    $username,
+                    $rowNo
                 ) ?: $oldIdcard;
 
                 $buktiBayarPath = $this->uploadParkingFileToGcs(
                     $request->file("detail_attach_bukti_bayar.$i"),
                     $parking->docid,
-                    'bukti_bayar',
-                    $username
+                    'BUKTIBAYAR',
+                    $username,
+                    $rowNo
                 ) ?: $oldBuktiBayar;
 
                 TrParkingRegistrationDetail::create([
@@ -1753,6 +2035,15 @@ class ParkingRegistrationController extends Controller
                     'updated_by'         => $username,
                     'updated_at'         => $dt,
                 ]);
+
+                /*
+                |--------------------------------------------------------------------------
+                | Draft belum menyentuh ms_parking_kendaraan sama sekali.
+                |--------------------------------------------------------------------------
+                */
+                if ($isDraft) {
+                    continue;
+                }
 
                 /*
                 |--------------------------------------------------------------------------
@@ -1810,64 +2101,61 @@ class ParkingRegistrationController extends Controller
                 }
             }
 
+            $eid = Hashids::encode($parking->id);
+
             /*
             |--------------------------------------------------------------------------
             | Generate ulang approval
             |--------------------------------------------------------------------------
-            | Sesuaikan dengan struktur ApprovalController kamu.
+            | Draft belum masuk approval flow, jadi skip generate + notifikasi.
             |--------------------------------------------------------------------------
             */
-            // DB::connection('pgsql')->table('tr_approval')
-            //     ->where('refnbr', $parking->docid)
-            //     ->where('doctype', 'PKR')
-            //     ->delete();
+            if (!$isDraft) {
+                $approvalCtl = app(\App\Http\Controllers\ApprovalController::class);
 
-            $approvalCtl = app(\App\Http\Controllers\ApprovalController::class);
-
-            $ctx = [
-                'site_id_parking' => $siteParking,
-            ];
-
-            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                $parking->docid,
-                'PKR',
-                $cpnyId,
-                $departmentId,
-                $username,
-                $ctx,
-                $dt
-            );
-
-            if ((int) $linesCount < 1) {
-                throw new \Exception('Approval line belum di-setup, Please contact IT!');
-            }
-
-            $eid = Hashids::encode($parking->id);
-
-            $approvalCtl->notifyFirstApprover(
-                $parking->docid,
-                'PKR',
-                'P',
-                'Parking Registration',
-                url('/showparkingregistration/' . $eid),
-                [
-                    'info'            => $parking->info,
-                    'createdby'       => $parking->created_by,
-                    'date'            => $dt->toDateTimeString(),
-                    'cpny_id'         => $cpnyId,
-                    'department_id'   => $departmentId,
+                $ctx = [
                     'site_id_parking' => $siteParking,
-                    'parking_type'    => $parkingType,
-                    'worker_type'     => $workerType,
-                    'perpost'         => $perpost,
-                ]
-            );
+                ];
+
+                [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                    $parking->docid,
+                    'PKR',
+                    $cpnyId,
+                    $departmentId,
+                    $username,
+                    $ctx,
+                    $dt
+                );
+
+                if ((int) $linesCount < 1) {
+                    throw new \Exception('Approval line belum di-setup, Please contact IT!');
+                }
+
+                $approvalCtl->notifyFirstApprover(
+                    $parking->docid,
+                    'PKR',
+                    'P',
+                    'Parking Registration',
+                    url('/showparkingregistration/' . $eid),
+                    [
+                        'info'            => $parking->info,
+                        'createdby'       => $parking->created_by,
+                        'date'            => $dt->toDateTimeString(),
+                        'cpny_id'         => $cpnyId,
+                        'department_id'   => $departmentId,
+                        'site_id_parking' => $siteParking,
+                        'parking_type'    => $parkingType,
+                        'worker_type'     => $workerType,
+                        'perpost'         => $perpost,
+                    ]
+                );
+            }
 
             DB::connection('pgsql5')->commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Parking Registration updated and submitted successfully.',
+                'message' => $isDraft ? 'Parking Registration saved as draft' : 'Parking Registration updated and submitted successfully.',
                 'docid'   => $parking->docid,
             ]);
         } catch (\Throwable $e) {
@@ -2017,6 +2305,17 @@ class ParkingRegistrationController extends Controller
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload = ($parkingRegistration->created_by === $loginUsername);
 
+        $isApprover = TrApproval::where('refnbr', $parkingRegistration->docid)
+            ->where('aprv_doctype', 'PKR')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
+
         $siteParkingName = MsSite::where('siteid', $parkingRegistration->site_id_parking)
             ->value('site_name');
 
@@ -2036,6 +2335,7 @@ class ParkingRegistrationController extends Controller
             'attachments',
             'hash',
             'canUpload',
+            'isApprover',
             'siteParkingName',
             'parkingTypeName',
             'workerTypeName'
@@ -2135,6 +2435,9 @@ class ParkingRegistrationController extends Controller
                         ? strtoupper(trim((string) $detail->nopol_lama))
                         : strtoupper(trim((string) $detail->nopol));
 
+                    $matchNopolClean = strtoupper(preg_replace('/\s+/', '', $matchNopol));
+                    $detailUsername = $this->normalizeParkingDetailUsername($detail->username);
+
                     /*
                     |--------------------------------------------------------------------------
                     | Query master kendaraan pending
@@ -2143,13 +2446,14 @@ class ParkingRegistrationController extends Controller
                     $q = MsParkingKendaraan::query()
                         ->where('status', 'P')
                         ->where('site_id_parking', $detail->site_id_parking)
-                        ->where('parking_type', $detail->parking_type)
                         ->where('worker_type', $detail->worker_type)
-                        ->where('perpost', $detail->perpost)
-                        ->whereRaw('UPPER(TRIM(nopol)) = ?', [$matchNopol]);
+                        ->whereRaw(
+                            "UPPER(REGEXP_REPLACE(TRIM(nopol), '\\s+', '', 'g')) = ?",
+                            [$matchNopolClean]
+                        );
 
-                    if (!empty($detail->username)) {
-                        $q->where('username', $detail->username);
+                    if (!empty($detailUsername)) {
+                        $q->where('username', $detailUsername);
                     } else {
                         $q->where('nama', $detail->nama);
                     }
@@ -2204,7 +2508,7 @@ class ParkingRegistrationController extends Controller
                         'worker_type'     => $detail->worker_type,
                         'site_id_parking' => $detail->site_id_parking,
                         'perpost'         => $detail->perpost,
-                        'username'        => $detail->username,
+                        'username'        => $detailUsername,
                         'nama'            => $detail->nama,
                         'match_nopol'     => $matchNopol,
                         'new_nopol'       => $detail->nopol,
@@ -2964,6 +3268,24 @@ class ParkingRegistrationController extends Controller
         ]);
     }
 
+    private function normalizeParkingDetailUsername($value): ?string
+    {
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        $parts = explode('|', $value, 2);
+        $username = trim($parts[0]);
+
+        if (in_array(strtoupper($username), ['PARKING', 'OPRVEHICLES'], true)) {
+            return null;
+        }
+
+        return $username !== '' ? $username : null;
+    }
+
     public function toggleStatusParkingKendaraan(Request $request, $id)
     {
         // dd($id);
@@ -3064,6 +3386,86 @@ class ParkingRegistrationController extends Controller
             'success' => true,
             'message' => 'No Kartu berhasil disimpan.',
             'no_kartu' => $row->no_kartu,
+        ]);
+    }
+
+    public function updateCompanyDepartmentParkingKendaraan(Request $request, $id)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 401);
+        }
+
+        $hasAccess = SysUserRole::where('username', $user->username)
+            ->where('role_id', 'PARKINGACCESS')
+            ->where('status', 'A')
+            ->exists();
+
+        if (!$hasAccess) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not allowed to update parking master.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'cpny_id' => ['required', 'string', 'max:50'],
+            'department_id' => ['required', 'string', 'max:50'],
+        ]);
+
+        $cpnyIds = is_string($user->cpny_id)
+            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
+            : array_filter((array) $user->cpny_id);
+
+        if (!in_array($validated['cpny_id'], $cpnyIds, true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Company tidak tersedia untuk user ini.',
+            ], 422);
+        }
+
+        $companyExists = MsCompany::where('cpny_id', $validated['cpny_id'])
+            ->where('status', 'A')
+            ->exists();
+
+        $departmentExists = MsDepartment::where('department_id', $validated['department_id'])
+            ->where('status', 'A')
+            ->exists();
+
+        if (!$companyExists || !$departmentExists) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Company atau department tidak valid.',
+            ], 422);
+        }
+
+        $row = MsParkingKendaraan::where('id', $id)
+            ->whereNull('deleted_at')
+            ->first();
+
+        if (!$row) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data kendaraan tidak ditemukan.',
+            ], 404);
+        }
+
+        $row->update([
+            'cpny_id' => $validated['cpny_id'],
+            'department_id' => $validated['department_id'],
+            'updated_by' => $user->username,
+            'updated_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Company dan department berhasil diupdate.',
+            'cpny_id' => $row->cpny_id,
+            'department_id' => $row->department_id,
         ]);
     }
 

@@ -152,7 +152,7 @@
                                 d="M21.75 6.75v10.5A2.25 2.25 0 0119.5 19.5h-15A2.25 2.25 0 012.25 17.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15A2.25 2.25 0 002.25 6.75m19.5 0L12 13.5 2.25 6.75" />
                         </svg>
 
-                        <span class="mt-3 text-sm font-medium text-gray-700">
+                        <span class="mt-3 text-sm font-medium text-gray-700 dark:text-gray-300">
                             Email
                         </span>
                     </a>
@@ -166,7 +166,7 @@
                                 d="M3 3v18h18M7.5 15v-6m4.5 6V6m4.5 9v-3" />
                         </svg>
 
-                        <span class="mt-3 text-sm font-medium text-gray-700">
+                        <span class="mt-3 text-sm font-medium text-gray-700 dark:text-gray-300">
                             ISort
                         </span>
                     </a>

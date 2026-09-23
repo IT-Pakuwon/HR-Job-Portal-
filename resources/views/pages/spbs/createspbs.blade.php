@@ -39,6 +39,7 @@
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
                 <form id="spbForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                     @csrf
+                    <input type="hidden" name="is_draft" id="isDraftField" value="0">
                     <div class="flex w-full flex-col gap-4 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                         <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create SPB</h2>
@@ -152,10 +153,10 @@
                                 <summary
                                     class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                     <span>SPB Detail</span>
-                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
                                         details &rarr;</span>
                                     <span
-                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                                         details &darr;</span>
                                 </summary>
                                 <div class="flex h-auto flex-col justify-start">
@@ -643,10 +644,10 @@
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
                                     details &rarr;</span>
                                 <span
-                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                                     details &darr;</span>
                             </summary>
                             <div class="flex flex-col pt-6">
@@ -674,7 +675,7 @@
                         <div
                             class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
                             <button id="backBtn" onclick="history.back()"
-                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-300">
 
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -684,6 +685,11 @@
                                 <span>Back</span>
                             </button>
                             <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                <button type="button" id="saveDraftBtn"
+                                    class="flex items-center gap-2 rounded-md bg-gray-500 px-4 py-2 text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                    <span id="draftBtnText">Save as Draft</span>
+                                </button>
+
                                 <button type="submit" id="submitBtn"
                                     class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                     <span id="btnText">Submit Approval</span>
@@ -841,38 +847,34 @@
                 return true;
             }
 
-            $('#spbForm').on('submit', function(e) {
-                e.preventDefault();
-
+            function submitSpbForm(isDraft) {
                 clearAllErrors(); // pastikan ini dipanggil
+                $('#isDraftField').val(isDraft ? '1' : '0');
 
-                // ✅ VALIDASI JENIS PEKERJAAN
-                const wt = ($('#worktypeid').val() || '').trim();
-                const swt = ($('#subworktypeid').val() || '').trim();
+                if (!isDraft) {
+                    // ✅ VALIDASI JENIS PEKERJAAN
+                    const wt = ($('#worktypeid').val() || '').trim();
+                    const swt = ($('#subworktypeid').val() || '').trim();
 
-                if (!wt || !swt) {
-                    const $display = $('#jenis_pekerjaan_display');
+                    if (!wt || !swt) {
+                        const $display = $('#jenis_pekerjaan_display');
 
-                    addError($display, 'Jenis Pekerjaan wajib dipilih.');
-                    toastr.error('Jenis Pekerjaan wajib dipilih.');
+                        addError($display, 'Jenis Pekerjaan wajib dipilih.');
+                        toastr.error('Jenis Pekerjaan wajib dipilih.');
 
-                    $('html,body').animate({
-                        scrollTop: $display.offset().top - 120
-                    }, 300);
+                        $('html,body').animate({
+                            scrollTop: $display.offset().top - 120
+                        }, 300);
 
-                    return;
+                        return;
+                    }
+
+                    // ✅ validasi WO dulu
+                    if (!validateWoidRequirement()) return;
+
+                    // Validasi detail dulu
+                    if (!validateDetails()) return;
                 }
-
-
-                // if (!$('#worktypeid').val() || !$('#subworktypeid').val()) {
-                //     alert('Silakan pilih Jenis Pekerjaan dulu.');
-                // }
-
-                // ✅ validasi WO dulu
-                if (!validateWoidRequirement()) return;
-
-                // Validasi detail dulu
-                if (!validateDetails()) return;
 
                 // konversi qty: koma → titik setelah lolos validasi
                 $('.qtyField').each(function() {
@@ -881,10 +883,14 @@
 
                 // --- Lock UI
                 $('#submitBtn').prop('disabled', true);
+                $('#saveDraftBtn').prop('disabled', true);
                 $('#cancelBtn').prop('disabled', true);
-                $('#btnText').text('Processing...');
-                // $('#loadingSpinner').removeClass('hidden');
-                showOverlay('Submitting');
+                if (isDraft) {
+                    $('#draftBtnText').text('Saving...');
+                } else {
+                    $('#btnText').text('Processing...');
+                }
+                showOverlay(isDraft ? 'Saving Draft' : 'Submitting');
 
                 const formData = new FormData(document.getElementById('spbForm'));
 
@@ -896,7 +902,9 @@
                         contentType: false
                     })
                     .done(function(res) {
-                        toastr.success(res.message || "Spb Requisition Submit Successfully!");
+                        toastr.success(res.message || (isDraft ?
+                            "Spb Requisition Saved as Draft!" :
+                            "Spb Requisition Submit Successfully!"));
                         window.location.href = "/spbs";
                     })
                     .fail(function(xhr) {
@@ -916,13 +924,25 @@
                     .always(function() {
                         // --- Unlock UI
                         $('#submitBtn').prop('disabled', false);
+                        $('#saveDraftBtn').prop('disabled', false);
                         $('#cancelBtn').prop('disabled', false);
                         $('#btnText').text('Submit Approval');
-                        // $('#loadingSpinner').addClass('hidden');
+                        $('#draftBtnText').text('Save as Draft');
                         hideOverlay();
                     });
+            }
 
-                function validateWoidRequirement() {
+            $('#spbForm').on('submit', function(e) {
+                e.preventDefault();
+                submitSpbForm(false);
+            });
+
+            $('#saveDraftBtn').on('click', function(e) {
+                e.preventDefault();
+                submitSpbForm(true);
+            });
+
+            function validateWoidRequirement() {
                     const wt = ($('#worktypeid').val() || '').trim().toUpperCase();
                     const woVisible = !$('#woSection').hasClass('hidden'); // tampil?
 
@@ -944,7 +964,6 @@
                     }
                     return true;
                 }
-            });
         });
     </script>
 
@@ -1184,9 +1203,9 @@
                             <td class="border p-2">${item.siteid || ''}</td>
                             <td class="border p-2">${formatNumber(item.stock)}</td>
                             <td class="border p-2 text-center">
-                            <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100"
+                            <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                                 data-id="${item.inventoryid}"
-                                data-name="${$('<div>').text(item.inventory_descr).html()}"
+                                data-name="${$('<div>').text(item.inventory_descr).html().replace(/"/g, '&quot;')}"
                                 data-stock_unit="${item.stock_unit || ''}"
                                 data-item_type="${$('<div>').text(item.item_type || '').html()}"
                                 data-purchase_unit="${item.purchase_unit || item.purchaseunit || ''}"
@@ -1490,7 +1509,7 @@
             function loadCoa() {
                 $coaTbody.html('<tr><td colspan="6" class="p-3 text-center">Loading...</td></tr>');
 
-                const esc = v => $('<div>').text(v ?? '').html();
+                const esc = v => $('<div>').text(v ?? '').html().replace(/"/g, '&quot;');
 
                 const url = coaState.woid ?
                     "{{ route('coa.byWoSPB') }}" :
@@ -1557,7 +1576,7 @@
                                     </td>
 
                                     <td class="border p-2 text-center">
-                                        <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
+                                        <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                                             data-id="${esc(accId)}"
                                             data-activity_id="${esc(item.activity_id)}"
                                             data-business_unit_id="${esc(item.business_unit_id)}"
@@ -1760,7 +1779,7 @@
                     <td class="border p-2">${md}</td>
                     <td class="border p-2">${rate}</td>
                     <td class="border p-2 text-center">
-                    <button type="button" class="chooseUom rounded border px-2 py-1 hover:bg-gray-100"
+                    <button type="button" class="chooseUom rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                             data-from="${$('<div>').text(from).html()}"
                             data-to="${$('<div>').text(to).html()}"
                             data-md="${$('<div>').text(md).html()}"

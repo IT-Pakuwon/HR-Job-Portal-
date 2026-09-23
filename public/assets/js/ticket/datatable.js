@@ -1,5 +1,4 @@
 let ticketStatusFilter = "";
-let ticketSearchTimeout;
 
 const isIT = window.isIT || false;
 
@@ -35,7 +34,14 @@ const ticketTable = $("#ticketTable").DataTable({
 
     searching: true,
 
-    dom: "lrtip",
+    dom: '<"dt-toolbar"lf>rtip',
+
+    searchDelay: 500,
+
+    language: {
+        search: "",
+        searchPlaceholder: "Ticket / Summary / PIC",
+    },
 
     ordering: true,
 
@@ -47,7 +53,7 @@ const ticketTable = $("#ticketTable").DataTable({
         data: function (d) {
             d.status = ticketStatusFilter;
 
-            d.search = $("#filter_search").val();
+            d.search = d.search.value;
 
             d.status_filter = $("#filter_status").val();
 
@@ -941,41 +947,106 @@ $(document).on("click", ".ticket-status-filter", function (e) {
 
     ticketStatusFilter = $(this).data("status");
 
+    saveFilterState();
     ticketTable.ajax.reload();
 });
 
-$(document).on("keyup", "#filter_search", function () {
-    clearTimeout(ticketSearchTimeout);
+const TICKET_FILTER_KEY = 'ticketFilterState';
 
-    ticketSearchTimeout = setTimeout(function () {
-        ticketTable.ajax.reload();
-    }, 500);
-});
+function saveFilterState() {
+    const state = {
+        search:            ticketTable.search(),
+        status:            $('#filter_status').val(),
+        status_pekerjaan:  $('#filter_status_pekerjaan').val(),
+        category_id:       $('#filter_category_id').val(),
+        company_id:        $('#filter_company_id').val(),
+        date_from:         $('#filter_date_from').val(),
+        date_to:           $('#filter_date_to').val(),
+        statusFilter:      ticketStatusFilter,
+    };
+    sessionStorage.setItem(TICKET_FILTER_KEY, JSON.stringify(state));
+}
 
-$(document).on("change", "#filter_category_id", function () {
-    ticketTable.ajax.reload();
-});
+function restoreFilterState() {
+    const raw = sessionStorage.getItem(TICKET_FILTER_KEY);
+    if (!raw) return;
+
+    try {
+        const state = JSON.parse(raw);
+
+        ticketTable.search(state.search || '');
+        $('#ticketTable_wrapper .dataTables_filter input').val(state.search || '');
+
+        if ($.fn.select2) {
+            $('#filter_status').val(state.status || '').trigger('change');
+            $('#filter_status_pekerjaan').val(state.status_pekerjaan || '').trigger('change');
+        } else {
+            $('#filter_status').val(state.status || '');
+            $('#filter_status_pekerjaan').val(state.status_pekerjaan || '');
+        }
+
+        $('#filter_category_id').val(state.category_id || '');
+        $('#filter_company_id').val(state.company_id || '');
+        $('#filter_date_from').val(state.date_from || '');
+        $('#filter_date_to').val(state.date_to || '');
+
+        ticketStatusFilter = state.statusFilter || '';
+
+        if (ticketStatusFilter) {
+            $(`.ticket-status-filter[data-status="${ticketStatusFilter}"]`)
+                .find('.ticket-status-card')
+                .addClass('active');
+        }
+    } catch (e) {
+        sessionStorage.removeItem(TICKET_FILTER_KEY);
+    }
+}
 
 $(document).on('click', '#btn_apply_filter', function () {
+    saveFilterState();
     ticketTable.ajax.reload();
+});
+
+$(document).on('search', '#ticketTable', function () {
+    saveFilterState();
 });
 
 $(document).on('click', '#btn_reset_filter', function () {
-    $('#filter_search').val('');
-    $('#filter_status').val('');
-    $('#filter_status_pekerjaan').val('');
-    $('#filter_category_id').val('');
-    $('#filter_company_id').val('');
+    sessionStorage.removeItem(TICKET_FILTER_KEY);
+    $('#ticketTable_wrapper .dataTables_filter input').val('');
+    $('#filter_status').val('').trigger('change');
+    $('#filter_status_pekerjaan').val('').trigger('change');
+    $('#filter_category_id').val('').trigger('change');
+    $('#filter_company_id').val('').trigger('change');
     $('#filter_date_from').val('');
     $('#filter_date_to').val('');
     ticketStatusFilter = '';
     $('.ticket-status-card').removeClass('active');
-    ticketTable.ajax.reload();
+    ticketTable.search('').ajax.reload();
+});
+
+$(document).ready(function () {
+    if ($.fn.select2) {
+        $('.filter-select2').select2({
+            theme: 'default',
+            width: '100%',
+            allowClear: true,
+            placeholder: function () {
+                return $(this).find('option[value=""]').text() || 'Select...';
+            },
+        });
+    }
+
+    restoreFilterState();
+
+    if (sessionStorage.getItem(TICKET_FILTER_KEY)) {
+        ticketTable.ajax.reload();
+    }
 });
 
 function doExportTicket() {
     const params = new URLSearchParams({
-        search:      $('#filter_search').val() || '',
+        search:      ticketTable.search() || '',
         status:      $('#filter_status_pekerjaan').val() || '',
         category_id: $('#filter_category_id').val() || '',
         date_from:   $('#filter_date_from').val() || '',

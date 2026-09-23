@@ -21,10 +21,36 @@ use App\Models\SysUserRole;
 use App\Models\TrRfpNonPurchDetail;
 use App\Models\MsCompany;
 use App\Models\MsPurchSetting;
+use App\Models\MsTax;
+use App\Models\BudgetDetail;
 
 class CalrNonPurchController extends Controller
 {
     use HasAutonbr;
+
+    private function rfpNonPurchaseTaxes()
+    {
+        return MsTax::query()
+            ->where(function ($q) {
+                $q->where('is_rfp_nonpurchase', true)
+                    ->orWhere('is_rfp_nonpurchase', 't')
+                    ->orWhere('is_rfp_nonpurchase', 1);
+            })
+            ->where('status', 'A')
+            ->orderBy('taxrate')
+            ->orderBy('taxid')
+            ->get(['taxid', 'taxrate', 'descr'])
+            ->map(function ($row) {
+                $taxId = trim((string) $row->taxid);
+
+                return (object) [
+                    'taxid' => $taxId,
+                    'taxrate' => (float) $row->taxrate,
+                    'descr' => trim((string) ($row->descr ?: $taxId)),
+                ];
+            })
+            ->values();
+    }
 
     public function index()
     {
@@ -36,13 +62,8 @@ class CalrNonPurchController extends Controller
 
         $u = $user->username ?? '';
 
-        $cpnyList = is_string($user->cpny_id)
-            ? array_values(array_filter(array_map('trim', explode(',', $user->cpny_id))))
-            : (array) $user->cpny_id;
-
-        $deptList = is_string($user->department_id)
-            ? array_values(array_filter(array_map('trim', explode(',', $user->department_id))))
-            : (array) $user->department_id;
+        $cpnyList = $user->scopedCompanyIds();
+        $deptList = $user->scopedDepartmentIds();
 
         $isFinanceAccess = SysUserRole::where('username', $u)
             ->where('role_id', 'FINACCESS')
@@ -74,15 +95,12 @@ class CalrNonPurchController extends Controller
         |--------------------------------------------------------------------------
         | Normal CALR List
         |--------------------------------------------------------------------------
-        | Non FINACCESS hanya lihat dokumen sendiri.
-        | FINACCESS bisa lihat semua sesuai company + department.
+        | Filter card normal hanya berdasarkan company + department.
+        | created_by tidak difilter.
         */
         $baseCalr = TrCalrNonPurch::query()
             ->whereIn('cpny_id', $cpnyList)
-            ->whereIn('department_id', $deptList)
-            ->when(!$isFinanceAccess, function ($q) use ($u) {
-                $q->where('created_by', $u);
-            });
+            ->whereIn('department_id', $deptList);
 
         $all = (clone $baseCalr)->count();
         $onProgress = (clone $baseCalr)->where('status', 'P')->count();
@@ -102,8 +120,13 @@ class CalrNonPurchController extends Controller
         | - tanpa created_by
         */
         $calrFinance = 0;
+        $calrAll = 0;
 
         if ($isFinanceAccess) {
+            $calrAll = TrCalrNonPurch::query()
+                ->whereIn('cpny_id', $cpnyList)
+                ->count();
+
             $calrFinance = TrCalrNonPurch::query()
                 ->whereIn('cpny_id', $cpnyList)
                 ->where('status', 'C')
@@ -118,6 +141,7 @@ class CalrNonPurchController extends Controller
             'rejected',
             'revise',
             'calrFinance',
+            'calrAll',
             'isFinanceAccess',
             'hasApFinAccess',
             'hasApTreAccess'
@@ -274,13 +298,8 @@ class CalrNonPurchController extends Controller
         $scope = strtolower((string) $req->query('scope', 'calrjobs'));
         $u = $user->username ?? '';
 
-        $cpnyList = is_string($user->cpny_id)
-            ? array_values(array_filter(array_map('trim', explode(',', $user->cpny_id))))
-            : (array) $user->cpny_id;
-
-        $deptList = is_string($user->department_id)
-            ? array_values(array_filter(array_map('trim', explode(',', $user->department_id))))
-            : (array) $user->department_id;
+        $cpnyList = $user->scopedCompanyIds();
+        $deptList = $user->scopedDepartmentIds();
 
         $draw = (int) $req->input('draw', 1);
         $start = (int) $req->input('start', 0);
@@ -373,9 +392,9 @@ class CalrNonPurchController extends Controller
             |
             | scope lain:
             | - filter department
-            | - non FINACCESS filter created_by
+            | - tanpa filter created_by
             */
-            if ($scope === 'calrfinance') {
+            if (in_array($scope, ['calrfinance', 'calrall'], true)) {
                 if (!$isFinanceAccess) {
                     return response()->json([
                         'draw' => $draw,
@@ -385,13 +404,16 @@ class CalrNonPurchController extends Controller
                     ]);
                 }
 
-                $base->where('status', 'C');
+                if ($scope === 'calrfinance') {
+                    $base->where('status', 'C');
+                } else {
+                    $status = strtoupper(trim((string) $req->input('status', '')));
+                    if ($status !== '') {
+                        $base->where('status', $status);
+                    }
+                }
             } else {
                 $base->whereIn('department_id', $deptList);
-
-                if (!$isFinanceAccess) {
-                    $base->where('created_by', $u);
-                }
 
                 if ($scope === 'onprogress') {
                     $base->where('status', 'P');
@@ -883,7 +905,9 @@ class CalrNonPurchController extends Controller
             })
             ->firstOrFail();
 
-        return view('pages.calrnonpurch.createcalrnonpurch', compact('header'));
+        $rfpNonPurchaseTaxes = $this->rfpNonPurchaseTaxes();
+
+        return view('pages.calrnonpurch.createcalrnonpurch', compact('header', 'rfpNonPurchaseTaxes'));
     }
 
     public function storeCalrNonPurch(Request $request)
@@ -955,8 +979,9 @@ class CalrNonPurchController extends Controller
             'rfpnonpurchaseid' => ['required', 'string'],
             'description' => ['required', 'array', 'min:1'],
             'description.*' => ['required', 'string'],
-            'price' => ['required', 'array', 'min:1'],
-            'price.*' => ['required'],
+            'price' => ['nullable', 'array'],
+            'taxcodeid' => ['required', 'array', 'min:1'],
+            'taxcodeid.*' => ['required', 'string'],
         ]);
 
         $approvalCtl = app(ApprovalController::class);
@@ -1004,7 +1029,7 @@ class CalrNonPurchController extends Controller
                 'CALR Non Purchase'
             );
 
-            $docid = $doctype . substr($year, 2) . $month . sprintf('%03d', $auto['next']);
+            $docid = $doctype . substr($year, 2) . $month . sprintf('%04d', $auto['next']);
 
             /*
             |--------------------------------------------------------------------------
@@ -1013,19 +1038,30 @@ class CalrNonPurchController extends Controller
             */
             $descs = $request->description ?? [];
             $prices = $request->price ?? [];
+            $taxCodeIds = $request->taxcodeid ?? [];
+            $taxMap = $this->rfpNonPurchaseTaxes()->keyBy('taxid');
 
             $amountSettlement = 0;
             $validRows = 0;
 
             foreach ($descs as $i => $desc) {
                 $desc = trim((string) ($desc ?? ''));
-                $priceRaw = $prices[$i] ?? null;
+                $priceRaw = $prices[$i] ?? 0;
 
-                if ($desc === '' || $priceRaw === null || $priceRaw === '') {
+                if ($desc === '') {
                     continue;
                 }
 
-                $price = $toFloat($priceRaw);
+                $price = $toFloat($priceRaw === '' ? 0 : $priceRaw);
+                $taxCodeId = trim((string) ($taxCodeIds[$i] ?? ''));
+
+                if ($taxCodeId === '') {
+                    throw new \Exception('Tax wajib diisi pada detail baris ' . ($i + 1) . '.');
+                }
+
+                if (!$taxMap->has($taxCodeId)) {
+                    throw new \Exception('Tax tidak valid pada detail baris ' . ($i + 1) . '.');
+                }
 
                 $amountSettlement += $price;
                 $validRows++;
@@ -1085,19 +1121,30 @@ class CalrNonPurchController extends Controller
             */
             $budgetRfca = TrRfpNonPurchDetail::query()
                 ->where('rfpnonpurchaseid', $rfp->rfpnonpurchaseid)
-                ->where('refid', 'BUDGET-RFCA')
+                ->where('rfpnonpurch_budget_type', 'BUDGET-RCA')
                 ->orderBy('id')
                 ->first();
 
+            $hasBudgetRfca = (float) $amountSettlement > (float) $amountRfp;
+
             foreach ($descs as $i => $desc) {
                 $desc = trim((string) ($desc ?? ''));
-                $priceRaw = $prices[$i] ?? null;
+                $priceRaw = $prices[$i] ?? 0;
 
-                if ($desc === '' || $priceRaw === null || $priceRaw === '') {
+                if ($desc === '') {
                     continue;
                 }
 
-                $price = $toFloat($priceRaw);
+                $price = $toFloat($priceRaw === '' ? 0 : $priceRaw);
+                $taxCodeId = trim((string) ($taxCodeIds[$i] ?? ''));
+                $tax = $taxMap->get($taxCodeId);
+                $rate = (float) ($tax->taxrate ?? 0);
+                $amountDpp = $rate > 0
+                    ? round($price * 100 / (100 + $rate), 2)
+                    : $price;
+                $amountTax = $rate > 0
+                    ? round($amountDpp * $rate / 100, 2)
+                    : 0;
 
                 TrRfpNonPurchDetail::create([
                     'rfpnonpurchaseid' => $rfp->rfpnonpurchaseid,
@@ -1108,10 +1155,13 @@ class CalrNonPurchController extends Controller
 
                     // price dari CALR detail
                     'amount_request_penyelesaian' => $price,
+                    'amount_request_dpp' => $amountDpp,
+                    'taxcodeid' => $taxCodeId,
+                    'amount_request_taxamt' => $amountTax,
 
                     /*
                     |--------------------------------------------------------------------------
-                    | Budget diambil dari detail RCA awal refid = BUDGET-RFCA
+                    | Budget diambil dari detail RCA awal rfpnonpurch_budget_type = BUDGET-RCA
                     |--------------------------------------------------------------------------
                     | Jika tidak ketemu, fallback ke default lama.
                     |--------------------------------------------------------------------------
@@ -1126,6 +1176,7 @@ class CalrNonPurchController extends Controller
 
                     // refid untuk menandai detail ini milik CAR/CALR mana
                     'refid' => $docid,
+                    'rfpnonpurch_budget_type' => 'BUDGET-CAR',
 
                     'status' => 'P',
                     'created_by' => $username,
@@ -1142,6 +1193,17 @@ class CalrNonPurchController extends Controller
             $rfp->updated_by = $username;
             $rfp->updated_at = $dt;
             $rfp->save();
+
+            if ($hasBudgetRfca) {
+                $this->reserveBudget(
+                    $doctype,
+                    $docid,
+                    $request->cpnyid ?? $rfp->cpny_id,
+                    'Submit',
+                    $username
+                );                
+
+            }
 
             /*
             |--------------------------------------------------------------------------
@@ -1272,10 +1334,78 @@ class CalrNonPurchController extends Controller
             ->orderBy('id', 'asc')
             ->get();
 
+        $budgets = BudgetDetail::leftJoin('ms_coa', function ($join) {
+                $join->on('ms_budget.account_id', '=', 'ms_coa.account_id')
+                    ->on('ms_budget.cpny_id', '=', 'ms_coa.cpny_id');
+            })
+            ->where('ms_budget.status', 'C')
+            ->select(
+                'ms_budget.cpny_id',
+                'ms_budget.business_unit_id',
+                'ms_budget.department_fin_id',
+                'ms_budget.account_id',
+                'ms_budget.activity_id',
+                'ms_budget.activity_descr',
+                'ms_budget.perpost',
+                'ms_budget.totalbudget',
+                'ms_budget.totalbudget_add',
+                'ms_budget.total_reserve',
+                'ms_budget.total_used',
+                'ms_coa.account_descr as account_descr'
+            )
+            ->get();
+
+        $budgetMap = [];
+
+        foreach ($budgets as $b) {
+            $key = implode('|', [
+                (string) $b->cpny_id,
+                (string) $b->business_unit_id,
+                (string) $b->department_fin_id,
+                (string) $b->account_id,
+                (string) $b->activity_descr,
+                (string) $b->perpost,
+            ]);
+
+            $budgetMap[$key] = $b;
+        }
+
+        foreach ($details as $item) {
+            $key = implode('|', [
+                (string) $item->budget_cpny_id,
+                (string) $item->budget_business_unit_id,
+                (string) $item->budget_department_fin_id,
+                (string) $item->budget_account_id,
+                (string) $item->budget_activity_descr,
+                (string) $item->budget_perpost,
+            ]);
+
+            $budget = $budgetMap[$key] ?? null;
+
+            $item->budget_data = $budget;
+            $item->account_descr = $budget->account_descr ?? null;
+        }
+
+        $taxDescriptions = $this->rfpNonPurchaseTaxes()
+            ->mapWithKeys(fn ($tax) => [$tax->taxid => $tax->descr])
+            ->all();
+
         $doctype = 'CAR';
         $refnbr = $calr->calrnonpurchaseid;
 
         $canUpload = in_array($calr->status, ['P', 'D']);
+
+        $loginUsername = $user->username ?? $user->name ?? null;
+        $isApprover = TrApproval::where('refnbr', $calr->calrnonpurchaseid)
+            ->where('aprv_doctype', 'CAR')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
 
         /*
         |--------------------------------------------------------------------------
@@ -1283,28 +1413,9 @@ class CalrNonPurchController extends Controller
         |--------------------------------------------------------------------------
         | Source dari TrCalrNonPurch.
         */
-        $calrnonpurchSteps = [
+        $calrnonpurchSteps = [           
             [
                 'order' => 1,
-                'description' => 'CALR Created',
-                'user' => $calr->created_by ?? '-',
-                'date' => $calr->created_at,
-                'status' => 'Done',
-            ],
-            [
-                'order' => 2,
-                'description' => 'CALR Approval',
-                'user' => $calr->completed_by ?? '-',
-                'date' => $calr->completed_at,
-                'status' => match ($calr->status) {
-                    'C' => 'Done',
-                    'R' => 'Rejected',
-                    'D' => 'Revise',
-                    default => 'Pending',
-                },
-            ],
-            [
-                'order' => 3,
                 'description' => 'Finance Received',
                 'user' => $calr->userreceive ?? '-',
                 'date' => $calr->receivedate,
@@ -1313,7 +1424,7 @@ class CalrNonPurchController extends Controller
                     : 'Pending',
             ],
             [
-                'order' => 4,
+                'order' => 2,
                 'description' => 'Treasury Payment',
                 'user' => $calr->userpayment ?? '-',
                 'date' => $calr->paymentdate,
@@ -1331,7 +1442,9 @@ class CalrNonPurchController extends Controller
             'hash',
             'doctype',
             'refnbr',
-            'canUpload'
+            'canUpload',
+            'isApprover',
+            'taxDescriptions'
         ));
     }   
 
@@ -1369,10 +1482,10 @@ class CalrNonPurchController extends Controller
             $user->username,
             $user->name,
 
-            function (string $refnbr, \Carbon\Carbon $now) use ($calr, $fullname, $docUrl, $doctype) {
+            function (string $refnbr, \Carbon\Carbon $now) use ($calr, $fullname, $docUrl, $doctype, $request, $user) {
 
                 $calr->status = 'R';
-                $calr->completed_by = auth()->user()->username;
+                $calr->completed_by = $user->username;
                 $calr->completed_at = $now;
                 $calr->save();
 
@@ -1387,16 +1500,24 @@ class CalrNonPurchController extends Controller
                     ->where('rfpnonpurchaseid', $calr->rfpnonpurchaseid)
                     ->update([
                         'status' => 'R',
-                        'updated_by' => auth()->user()->username,
+                        'updated_by' => $user->username,
                         'updated_at' => $now,
                     ]);
 
                 \App\Models\TrRfpNonPurch::where('calrid', $calr->calrnonpurchaseid)                    
                     ->update([
                         'calrid' => '',
-                        'updated_by' => auth()->user()->username,
+                        'updated_by' => $user->username,
                         'updated_at' => $now,
                     ]);
+
+                $this->reserveBudget(
+                    $doctype,
+                    $calr->calrnonpurchaseid,
+                    $request->cpnyid ?? $calr->cpny_id,
+                    'Reject',
+                    $user->username
+                );
 
                 app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
                     $calr->calrnonpurchaseid,
@@ -1489,6 +1610,14 @@ class CalrNonPurchController extends Controller
                 $calr->updated_by = $user->username;
                 $calr->updated_at = $now;
                 $calr->save();
+
+                $this->reserveBudget(
+                    $doctype,
+                    $calr->calrnonpurchaseid,
+                    $request->cpnyid ?? $calr->cpny_id,
+                    'Revise',
+                    $user->username
+                );
 
                 /*
                 |--------------------------------------------------------------------------
@@ -2150,6 +2279,7 @@ class CalrNonPurchController extends Controller
             ->get();
 
         $calr_eid = Hashids::encode((string) $calr->id);
+        $rfpNonPurchaseTaxes = $this->rfpNonPurchaseTaxes();
 
         return view('pages.calrnonpurch.editcalrnonpurch', [
             'calr' => $calr,
@@ -2158,6 +2288,7 @@ class CalrNonPurchController extends Controller
             'calr_eid' => $calr_eid,
             'hash' => $hash,
             'attachments' => $attachments,
+            'rfpNonPurchaseTaxes' => $rfpNonPurchaseTaxes,
         ]);
     }
 
@@ -2220,6 +2351,8 @@ class CalrNonPurchController extends Controller
             'description.*' => ['required', 'string'],
             'price' => ['required', 'array', 'min:1'],
             'price.*' => ['required'],
+            'taxcodeid' => ['required', 'array', 'min:1'],
+            'taxcodeid.*' => ['required', 'string'],
         ]);
 
         DB::connection('pgsql')->beginTransaction();
@@ -2247,6 +2380,8 @@ class CalrNonPurchController extends Controller
 
             $descs = $request->description ?? [];
             $prices = $request->price ?? [];
+            $taxCodeIds = $request->taxcodeid ?? [];
+            $taxMap = $this->rfpNonPurchaseTaxes()->keyBy('taxid');
 
             $amountSettlement = 0;
             $validRows = 0;
@@ -2260,6 +2395,15 @@ class CalrNonPurchController extends Controller
                 }
 
                 $price = $toFloat($priceRaw);
+                $taxCodeId = trim((string) ($taxCodeIds[$i] ?? ''));
+
+                if ($taxCodeId === '') {
+                    throw new \Exception('Tax wajib diisi pada detail baris ' . ($i + 1) . '.');
+                }
+
+                if (!$taxMap->has($taxCodeId)) {
+                    throw new \Exception('Tax tidak valid pada detail baris ' . ($i + 1) . '.');
+                }
 
                 $amountSettlement += $price;
                 $validRows++;
@@ -2309,6 +2453,14 @@ class CalrNonPurchController extends Controller
                 ->where('refid', $calr->calrnonpurchaseid)
                 ->delete();
 
+            $budgetRfca = TrRfpNonPurchDetail::query()
+                ->where('rfpnonpurchaseid', $calr->rfpnonpurchaseid)
+                ->where('rfpnonpurch_budget_type', 'BUDGET-RCA')
+                ->orderBy('id')
+                ->first();
+
+            $hasBudgetRfca = (float) $amountSettlement > (float) $amountRfp;
+
             foreach ($descs as $i => $desc) {
                 $desc = trim((string) ($desc ?? ''));
                 $priceRaw = $prices[$i] ?? null;
@@ -2318,28 +2470,51 @@ class CalrNonPurchController extends Controller
                 }
 
                 $price = $toFloat($priceRaw);
+                $taxCodeId = trim((string) ($taxCodeIds[$i] ?? ''));
+                $tax = $taxMap->get($taxCodeId);
+                $rate = (float) ($tax->taxrate ?? 0);
+                $amountDpp = $rate > 0
+                    ? round($price * 100 / (100 + $rate), 2)
+                    : $price;
+                $amountTax = $rate > 0
+                    ? round($amountDpp * $rate / 100, 2)
+                    : 0;
 
                 TrRfpNonPurchDetail::create([
                     'rfpnonpurchaseid' => $calr->rfpnonpurchaseid,
                     'keperluan_detail' => $desc,
                     'amount_request' => 0,
                     'amount_request_penyelesaian' => $price,
+                    'amount_request_dpp' => $amountDpp,
+                    'taxcodeid' => $taxCodeId,
+                    'amount_request_taxamt' => $amountTax,
 
-                    'budget_perpost' => $dt->year,
-                    'budget_cpny_id' => $calr->cpny_id,
-                    'budget_business_unit_id' => null,
-                    'budget_department_fin_id' => null,
-                    'budget_account_id' => null,
-                    'budget_activity_id' => null,
-                    'budget_activity_descr' => null,
+                    'budget_perpost' => $budgetRfca->budget_perpost ?? $dt->year,
+                    'budget_cpny_id' => $budgetRfca->budget_cpny_id ?? $calr->cpny_id,
+                    'budget_business_unit_id' => $budgetRfca->budget_business_unit_id ?? null,
+                    'budget_department_fin_id' => $budgetRfca->budget_department_fin_id ?? null,
+                    'budget_account_id' => $budgetRfca->budget_account_id ?? null,
+                    'budget_activity_id' => $budgetRfca->budget_activity_id ?? null,
+                    'budget_activity_descr' => $budgetRfca->budget_activity_descr ?? null,
 
                     'refid' => $calr->calrnonpurchaseid,
+                    'rfpnonpurch_budget_type' => 'BUDGET-CAR',
                     'status' => 'P',
                     'created_by' => $username,
                     'created_at' => $dt,
                     'updated_by' => $username,
                     'updated_at' => $dt,
                 ]);
+            }
+
+            if ($hasBudgetRfca) {
+                $this->reserveBudget(
+                    $doctype,
+                    $docid,
+                    $request->cpnyid ?? $calr->cpny_id,
+                    'Submit',
+                    $username
+                );
             }
 
             /*
@@ -2369,7 +2544,7 @@ class CalrNonPurchController extends Controller
                 $doctype,
                 $calr->cpny_id,
                 $calr->department_id,
-                $username,
+                $calr->created_by ?? $username,
                 $ctx,
                 $dt
             );
@@ -2754,7 +2929,7 @@ class CalrNonPurchController extends Controller
                 'aprv_duration' => $lastApproval->aprv_duration ?? null,
                 'aprv_purpose' => $request->message,
                 'status' => 'D',
-                'created_by' => $user->username,
+                'created_by' => $calr->created_by,
                 'updated_by' => $user->username,
             ]);
 
@@ -2928,6 +3103,10 @@ class CalrNonPurchController extends Controller
             return $this->terbilang($angka / 1000) . " Ribu" . $this->terbilang($angka % 1000);
         } elseif ($angka < 1000000000) {
             return $this->terbilang($angka / 1000000) . " Juta" . $this->terbilang($angka % 1000000);
+        } elseif ($angka < 1000000000000) {
+            return $this->terbilang($angka / 1000000000) . " Milyar" . $this->terbilang($angka % 1000000000);
+        } elseif ($angka < 1000000000000000) {
+            return $this->terbilang($angka / 1000000000000) . " Triliun" . $this->terbilang($angka % 1000000000000);
         } else {
             return "Terlalu Besar";
         }
@@ -2939,6 +3118,16 @@ class CalrNonPurchController extends Controller
             strtolower(trim((string) $value)),
             ['1', 'true', 't', 'yes', 'y', 'on'],
             true
+        );
+    }
+
+    private function reserveBudget(string $doctype, string $docid, string $cpnyId, string $activity, string $username): void
+    {
+        // Panggil PostgreSQL Stored Procedure: sp_process_budget(doctype, docid, activity, user)
+        // Contoh: CALL sp_process_budget('CS','CS25120001','Submit','williemhalim');
+        DB::connection('pgsql')->statement(
+            'CALL public.sp_process_budget(?, ?, ?, ?,?)',
+            [strtoupper($doctype), $docid, $cpnyId, $activity, $username]
         );
     }
 }

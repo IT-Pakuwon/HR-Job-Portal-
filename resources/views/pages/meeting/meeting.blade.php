@@ -55,6 +55,21 @@
             overflow: auto !important;
         }
 
+        /* 🔥 wrap event text in Month view instead of clipping it */
+        .fc-daygrid-event {
+            white-space: normal !important;
+        }
+
+        .fc-daygrid-event .fc-event-title,
+        .fc-daygrid-event .fc-event-room,
+        .fc-daygrid-event .fc-event-meta {
+            display: block !important;
+            overflow: visible !important;
+            max-width: 100% !important;
+            white-space: normal !important;
+            word-break: break-word;
+        }
+
     </style>
     <div class="max-w-9xl mx-auto flex h-screen min-h-0 w-full flex-col overflow-hidden p-2">
         {{-- HEADER --}}
@@ -134,7 +149,7 @@
                         Teams / Zoom
                     </a>
 
-                    @if (auth()->check() && auth()->user()->user_role === 'admin')
+                    @if (auth()->check() && auth()->user()->isAdmin())
                         <a href="{{ route('meetingroom.setup.index') }}"
                             class="{{ request()->is('meetingroom/setup*')
                                 ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'
@@ -160,7 +175,7 @@
         </div>
                 {{-- CALENDAR --}}
         <div
-            class="dark:border-white/1 flex h-full flex-1 flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm min-h-0">
+            class="dark:border-white/1 flex h-full flex-1 flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm min-h-0 dark:bg-gray-800">
 
             <div class="relative flex-1 min-h-0 overflow-hidden">
 
@@ -209,13 +224,13 @@
 
                                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                                         <div>
-                                            <label class="req text-xs text-gray-500">Start</label>
+                                            <label class="req text-xs text-gray-500 dark:text-gray-400">Start</label>
                                             <input type="text" id="start_datetime" name="start_datetime"
                                                 class="mt-1 w-full rounded-md border px-3 py-2 text-sm" required>
                                         </div>
 
                                         <div>
-                                            <label class="req text-xs text-gray-500">End</label>
+                                            <label class="req text-xs text-gray-500 dark:text-gray-400">End</label>
                                             <input type="text" id="end_datetime" name="end_datetime"
                                                 class="mt-1 w-full rounded-md border px-3 py-2 text-sm" required>
                                         </div>
@@ -294,16 +309,16 @@
                                 </div>
                                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div class='flex-1'>
-                                        <label class="req text-xs font-medium text-gray-500">
+                                        <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
                                             Internal PIC Name
                                         </label>
                                         <input type="text" id="internal_pic" name="internal_pic"
                                             value="{{ auth()->user()->name }}" readonly
-                                            class="mt-1 w-full rounded-md border bg-gray-100 px-3 py-2 text-sm"
+                                            class="mt-1 w-full rounded-md border bg-gray-100 px-3 py-2 text-sm dark:bg-gray-900"
                                             required>
                                     </div>
                                     <div class="flex-1">
-                                        <label class="req mt-3 block text-xs font-medium text-gray-500">
+                                        <label class="req mt-3 block text-xs font-medium text-gray-500 dark:text-gray-400">
                                             Email To
                                         </label>
                                         <select id="username" name="username[]" multiple>
@@ -322,7 +337,7 @@
                             {{-- EXTERNAL TOGGLE --}}
                             <div class="flex items-center gap-2">
                                 <input type="checkbox" id="is_external_participant" name="external_participant"
-                                    value="1" class="h-4 w-4 rounded border-gray-300">
+                                    value="1" class="h-4 w-4 rounded border-gray-300 dark:border-gray-700">
                                 <label class="text-sm text-gray-600 dark:text-gray-300">
                                     External Participant
                                 </label>
@@ -332,7 +347,7 @@
                             <div id="externalParticipantSection" class="hidden space-y-4">
 
                                 <table class="w-full overflow-hidden rounded-lg border text-sm">
-                                    <thead class="bg-gray-100">
+                                    <thead class="bg-gray-100 dark:bg-gray-900">
                                         <tr>
                                             <th class="p-2 text-left">Name</th>
                                             <th class="p-2 text-left">Email</th>
@@ -396,7 +411,7 @@
                             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
                                 Meeting Detail
                             </h2>
-                            <p class="text-xs text-gray-500">Full meeting information</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Full meeting information</p>
                         </div>
 
                         <!-- STATUS BADGE -->
@@ -451,7 +466,7 @@
                                 </div>
 
                                 <div>
-                                    <p class="text-[11px] uppercase text-gray-400">Teams</p>
+                                    <p class="text-[11px] uppercase text-gray-400">Meeting Type</p>
                                     <p id="view_teams"></p>
                                 </div>
 
@@ -462,6 +477,31 @@
                                 <p id="view_descr"
                                     class="whitespace-pre-line text-[11px] text-gray-700 dark:text-gray-300">
                                 </p>
+                            </div>
+
+                            <!-- ZOOM MEETING DETAILS (Meeting ID + Passcode) — Zoom only -->
+                            <div id="zoomDetailsBlock"
+                                class="hidden rounded-xl border border-purple-200 bg-purple-50 p-4 dark:border-purple-900/40 dark:bg-purple-900/10">
+
+                                <div class="mb-2 flex items-center justify-between">
+                                    <p class="text-xs font-semibold uppercase text-purple-700">Zoom Meeting Details</p>
+                                    <button id="copyZoomInlineBtn"
+                                        class="rounded border border-purple-300 px-2 py-1 text-xs text-purple-700 hover:bg-purple-100">
+                                        Copy Details
+                                    </button>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3 text-sm">
+                                    <div>
+                                        <p class="text-[11px] uppercase text-gray-400">Meeting ID</p>
+                                        <p id="view_zoom_id" class="font-mono"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-[11px] uppercase text-gray-400">Passcode</p>
+                                        <p id="view_zoom_password" class="font-mono"></p>
+                                    </div>
+                                </div>
+
                             </div>
 
                         </div>
@@ -484,19 +524,25 @@
                 </div>
 
 
-                <!-- TEAMS LINK BAR -->
+                <!-- ONLINE MEETING LINK BAR (Teams or Zoom) -->
                 <div id="teamsBar" class="flex hidden items-center justify-between border-t bg-blue-50 px-6 py-3">
 
-                    <span class="text-sm font-medium text-blue-700">
+                    <span id="teamsBarLabel" class="text-sm font-medium text-blue-700">
                         💬 Microsoft Teams Meeting
                     </span>
 
                     <div class="flex items-center gap-2">
 
-                        <!-- COPY BUTTON -->
+                        <!-- COPY LINK BUTTON -->
                         <button id="copyTeamsBtn"
                             class="rounded border border-blue-300 px-3 py-1.5 text-sm text-blue-700 hover:bg-blue-100">
                             Copy Link
+                        </button>
+
+                        <!-- COPY FULL ZOOM DETAILS (meeting ID + link + password) — Zoom only -->
+                        <button id="copyZoomDetailsBtn" class="hidden
+                            rounded border border-purple-300 px-3 py-1.5 text-sm text-purple-700 hover:bg-purple-100">
+                            Copy Zoom Details
                         </button>
 
                         <!-- JOIN BUTTON -->
@@ -509,10 +555,10 @@
                 </div>
 
                 <!-- FOOTER -->
-                <div class="flex items-center justify-between border-t bg-gray-50 px-6 py-4">
+                <div class="flex items-center justify-between border-t bg-gray-50 px-6 py-4 dark:bg-gray-900">
 
                     <button id="closeEventModal2"
-                        class="rounded-md border px-4 py-2 text-sm text-gray-600 hover:bg-gray-100">
+                        class="rounded-md border px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-400">
                         Close
                     </button>
 
@@ -682,7 +728,9 @@
                 const user = arg.event.extendedProps.user;
                 const room = arg.event.extendedProps.room;
                 const type = arg.event.extendedProps.type;
-                const isTeams = arg.event.extendedProps.isTeams;
+                const hasLink = arg.event.extendedProps.isTeams; // has ANY online link (Teams or Zoom share this flag)
+                const isZoomMeeting = !arg.event.extendedProps.accTeamsEnabled && arg.event.extendedProps.accZoomEnabled;
+                const providerLabel = !hasLink ? 'Pending' : (isZoomMeeting ? 'Zoom' : 'Teams');
 
                 const viewType = arg.view.type;
 
@@ -724,7 +772,7 @@
 
                     <div class="fc-event-meta">
                         ${type === 'external' ? 'External' : 'Internal'} •
-                        ${isTeams ? 'Teams' : 'No Teams'}
+                        ${providerLabel}
                     </div>
 
                 </div>
@@ -746,26 +794,27 @@
                 if (p.status === 'X') {
                     status = '❌ Cancelled';
                 } else if (!p.teams_url) {
-                    status = '🎥 No Teams/Zoom';
+                    status = '⏳ Generating link...';
                 } else {
-                    status = p.isTeams ? '💬 Teams Ready' : '🎥 Zoom Ready';
+                    const isZoomMeeting = !p.accTeamsEnabled && p.accZoomEnabled;
+                    status = isZoomMeeting ? '🎥 Zoom Ready' : '💬 Teams Ready';
                 }
 
                 const html = `
                 <div class="text-xs space-y-2">
 
-                    <div class="font-semibold text-gray-900">
+                    <div class="font-semibold text-gray-900 dark:text-gray-100">
                         ${info.event.title}
                     </div>
 
-                    <div class="text-gray-500">
+                    <div class="text-gray-500 dark:text-gray-400">
                         ${start} → ${end}
                     </div>
 
                     <div>📍 ${p.room || '-'}</div>
                     <div>👤 ${p.user || '-'}</div>
 
-                    <div class="text-[11px] px-2 py-1 rounded bg-gray-100 inline-block">
+                    <div class="text-[11px] px-2 py-1 rounded bg-gray-100 inline-block dark:bg-gray-900">
                         ${status}
                     </div>
 
@@ -831,9 +880,12 @@
                 document.getElementById('view_type').innerText =
                     props.type === 'external' ? 'External' : 'Internal';
 
-                const total = props.participant ?? 0;
+                const total = props.participant_count ?? 0;
 
                 document.getElementById('view_count').innerText =
+                    `${total} ${total > 1 ? 'Participants' : 'Participant'}`;
+
+                document.getElementById('view_count_badge').innerText =
                     `${total} ${total > 1 ? 'Participants' : 'Participant'}`;
 
                 // =========================
@@ -870,14 +922,6 @@
                         type: isExternal ? 'external' : 'internal'
                     };
                 });
-
-                const totalParticipants = merged.length;
-
-                document.getElementById('view_count').innerText =
-                    totalParticipants;
-
-                document.getElementById('view_count_badge').innerText =
-                    `${totalParticipants} Participants`;
 
                 // 🔥 SPLIT INTERNAL / EXTERNAL
                 const internal = participantsList.filter(p => p.type === 'internal');
@@ -929,20 +973,72 @@
                 // document.getElementById('view_teams').innerText =
                 //     props.isTeams ? 'Available (Teams)' : 'Not Available';
                 const teamsBar = document.getElementById('teamsBar');
+                const teamsBarLabel = document.getElementById('teamsBarLabel');
                 const teamsLink = document.getElementById('teamsLink');
+                const copyTeamsBtn = document.getElementById('copyTeamsBtn');
+                const copyZoomDetailsBtn = document.getElementById('copyZoomDetailsBtn');
+                const zoomDetailsBlock = document.getElementById('zoomDetailsBlock');
+                const viewZoomId = document.getElementById('view_zoom_id');
+                const viewZoomPassword = document.getElementById('view_zoom_password');
                 const teamsText = document.getElementById('view_teams');
 
                 // reset
                 teamsBar.classList.add('hidden');
                 teamsLink.href = '#';
+                copyZoomDetailsBtn.classList.add('hidden');
+                zoomDetailsBlock.classList.add('hidden');
+                window.currentZoomDetails = null;
 
-                // ✅ PRIORITY 1: TEAMS LINK
+                const BAR_STYLES = {
+                    teams: {
+                        bar: 'flex items-center justify-between border-t bg-blue-50 px-6 py-3',
+                        label: 'text-sm font-medium text-blue-700',
+                        copyBtn: 'rounded border border-blue-300 px-3 py-1.5 text-sm text-blue-700 hover:bg-blue-100',
+                        joinBtn: 'rounded bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700',
+                        text: '💬 Microsoft Teams Meeting',
+                    },
+                    zoom: {
+                        bar: 'flex items-center justify-between border-t bg-purple-50 px-6 py-3',
+                        label: 'text-sm font-medium text-purple-700',
+                        copyBtn: 'rounded border border-purple-300 px-3 py-1.5 text-sm text-purple-700 hover:bg-purple-100',
+                        joinBtn: 'rounded bg-purple-600 px-3 py-1.5 text-sm text-white hover:bg-purple-700',
+                        text: '🎥 Zoom Meeting',
+                    },
+                };
+
+                // ✅ PRIORITY 1: ONLINE MEETING LINK (Teams or Zoom — the same
+                // join-link field is shared, so use the accessory's toggle to
+                // label it correctly)
                 if (props.isTeams && props.teams_url) {
 
-                    teamsBar.classList.remove('hidden');
+                    const isZoomMeeting = !props.accTeamsEnabled && props.accZoomEnabled;
+                    const style = isZoomMeeting ? BAR_STYLES.zoom : BAR_STYLES.teams;
+
+                    teamsBar.className = style.bar;
+                    teamsBarLabel.className = style.label;
+                    teamsBarLabel.textContent = style.text;
+                    copyTeamsBtn.className = style.copyBtn;
+                    teamsLink.className = style.joinBtn;
                     teamsLink.href = props.teams_url;
 
-                    teamsText.innerHTML = `
+                    if (isZoomMeeting) {
+                        copyZoomDetailsBtn.classList.remove('hidden');
+                        window.currentZoomDetails = {
+                            id: props.zoom_id,
+                            joinUrl: props.teams_url,
+                            password: props.zoom_password,
+                        };
+
+                        viewZoomId.textContent = props.zoom_id || '-';
+                        viewZoomPassword.textContent = props.zoom_password || '-';
+                        zoomDetailsBlock.classList.remove('hidden');
+                    }
+
+                    teamsText.innerHTML = isZoomMeeting ? `
+                        <span class="flex items-center gap-2 text-sm text-purple-700 font-medium">
+                            🎥 Zoom Meeting
+                        </span>
+                    ` : `
                         <span class="flex items-center gap-2 text-sm text-blue-700 font-medium">
                             💬 Microsoft Teams Meeting
                         </span>
@@ -952,8 +1048,8 @@
                 } else if (props.accessories && props.accessories.length) {
 
                     teamsText.innerHTML = `
-                        <span class="flex items-center gap-2 text-sm text-gray-700 font-medium">
-                            🎧 ${props.accessories.join(', ')}
+                        <span class="flex items-center gap-2 text-sm text-gray-700 font-medium dark:text-gray-300">
+                            🎧 ${props.accessories.map(a => a.name).join(', ')}
                         </span>
                     `;
 
@@ -1008,7 +1104,7 @@
 
                         const badge = p.type === 'external' ?
                             `<span class="text-[10px] px-2 py-0.5 rounded bg-blue-100 text-blue-600">External</span>` :
-                            `<span class="text-[10px] px-2 py-0.5 rounded bg-gray-200 text-gray-700">Internal</span>`;
+                            `<span class="text-[10px] px-2 py-0.5 rounded bg-gray-200 text-gray-700 dark:text-gray-300">Internal</span>`;
 
                         container.innerHTML += `
                 <div class="flex items-center gap-3 bg-white dark:bg-gray-900 p-2 rounded-lg border">
@@ -1026,7 +1122,7 @@
                             ${badge}
                         </div>
 
-                        ${p.email ? `<p class="text-xs text-gray-500">${p.email}</p>` : ''}
+                        ${p.email ? `<p class="text-xs text-gray-500 dark:text-gray-400">${p.email}</p>` : ''}
                         ${p.company ? `<p class="text-xs text-gray-400">${p.company}</p>` : ''}
 
                     </div>
@@ -1591,9 +1687,27 @@
             const link = document.getElementById('teamsLink').href;
             if (!link || link === '#') return;
             navigator.clipboard.writeText(link)
-                .then(() => Swal.fire({ icon: 'success', title: 'Copied!', text: 'Teams link copied to clipboard', timer: 1500, showConfirmButton: false }))
+                .then(() => Swal.fire({ icon: 'success', title: 'Copied!', text: 'Link copied to clipboard', timer: 1500, showConfirmButton: false }))
                 .catch(() => Swal.fire({ icon: 'error', title: 'Failed', text: 'Could not copy link' }));
         });
+
+        function copyZoomDetailsToClipboard() {
+            const d = window.currentZoomDetails;
+            if (!d || !d.joinUrl) return;
+
+            const lines = [
+                d.id ? `Meeting ID: ${d.id}` : null,
+                `Join link: ${d.joinUrl}`,
+                d.password ? `Passcode: ${d.password}` : null,
+            ].filter(Boolean);
+
+            navigator.clipboard.writeText(lines.join('\n'))
+                .then(() => Swal.fire({ icon: 'success', title: 'Copied!', text: 'Zoom details copied to clipboard', timer: 1500, showConfirmButton: false }))
+                .catch(() => Swal.fire({ icon: 'error', title: 'Failed', text: 'Could not copy Zoom details' }));
+        }
+
+        document.getElementById('copyZoomDetailsBtn')?.addEventListener('click', copyZoomDetailsToClipboard);
+        document.getElementById('copyZoomInlineBtn')?.addEventListener('click', copyZoomDetailsToClipboard);
 
         document.getElementById('cancelMeetingBtn')?.addEventListener('click', function() {
 
@@ -1877,7 +1991,7 @@
 
         if (!Array.isArray(participants)) participants = [];
 
-        document.getElementById('participant').value = participants.length;
+        document.getElementById('participant').value = props.participant_count ?? '';
 
         const internalList = participants.filter(p => p.type !== 'external');
         const externalList = participants.filter(p => p.type === 'external');
@@ -2010,7 +2124,7 @@
             <td class="p-3">
                 <input name="external_name[]" value="${name}"
                     placeholder="Full name"
-                    class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm dark:bg-gray-900 dark:border-gray-700">
             </td>
 
             <td class="p-3">
@@ -2021,14 +2135,14 @@
                     placeholder="example@gmail.com"
                     required
                     pattern="^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"
-                    class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm"
+                    class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm dark:bg-gray-900 dark:border-gray-700"
                 >
             </td>
 
             <td class="p-3">
                 <input name="external_company[]" value="${company}"
                     placeholder="Company"
-                    class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm dark:bg-gray-900 dark:border-gray-700">
             </td>
 
             <td class="p-3 text-center">

@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Application for Employment - Pakuwon Group</title>
+    <title>Application Form _ {{ $full_name }}</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -18,23 +18,30 @@
         .header {
             text-align: center;
             padding-bottom: 14px;
-            border-bottom: 2px solid #1a2744;
+            border-bottom: 2.5px solid #1a2744;
             margin-bottom: 16px;
         }
         .header-company {
-            font-size: 17px;
+            font-size: 18px;
             font-weight: bold;
-            letter-spacing: 3px;
+            letter-spacing: 4px;
             color: #1a2744;
         }
         .header-sub {
-            font-size: 10px;
-            color: #666;
-            letter-spacing: 2px;
-            margin-top: 3px;
+            font-size: 9px;
+            color: #888;
+            letter-spacing: 3px;
+            margin-top: 4px;
+            text-transform: uppercase;
+        }
+        .header-line {
+            width: 40px;
+            height: 2px;
+            background: #4f6eb0;
+            margin: 6px auto 0;
         }
 
-        /* ── Section wrapper ── */
+        /* ── Section ── */
         .section { margin-bottom: 14px; page-break-inside: avoid; }
 
         .section-title {
@@ -45,19 +52,21 @@
             letter-spacing: 1.5px;
             text-transform: uppercase;
             padding: 5px 10px;
+            border-left: 3px solid #4f6eb0;
         }
 
         .sub-title {
-            background: #eaecf4;
+            background: #edf0f8;
             color: #1a2744;
             font-size: 8.5px;
             font-weight: bold;
             letter-spacing: 0.8px;
             padding: 4px 10px;
             border-bottom: 1px solid #d5d8e8;
+            border-left: 3px solid #4f6eb0;
         }
 
-        /* ── Info table (label / value pairs) ── */
+        /* ── Info table ── */
         .info-tbl {
             width: 100%;
             border-collapse: collapse;
@@ -71,30 +80,33 @@
         .info-tbl tr:last-child td { border-bottom: none; }
         .lbl {
             font-size: 8.5px;
-            color: #777;
+            color: #888;
             font-style: italic;
             white-space: nowrap;
             width: 16%;
         }
         .val {
             font-size: 10px;
+            font-weight: bold;
             color: #1a1a1a;
         }
 
-        /* ── Data table (rows of data with header) ── */
+        /* ── Data table ── */
         .data-tbl {
             width: 100%;
             border-collapse: collapse;
             border: 1px solid #e0e3ee;
         }
         .data-tbl th {
-            background: #f0f2f9;
+            background: #edf0f8;
             color: #1a2744;
-            font-size: 8.5px;
+            font-size: 8px;
             font-weight: bold;
             text-align: center;
             padding: 5px 8px;
             border: 1px solid #d5d8e8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .data-tbl td {
             font-size: 9.5px;
@@ -103,51 +115,98 @@
             border: 1px solid #edf0f7;
             color: #333;
         }
+        .data-tbl td.td-left { text-align: left; padding-left: 10px; }
         .data-tbl tr:nth-child(even) td { background: #fafbfe; }
-        .empty-row { color: #aaa; font-style: italic; }
+        .empty-row td { color: #aaa; font-style: italic; text-align: center; }
 
         /* ── Photo ── */
         .photo-cell {
-            width: 115px;
+            width: 110px;
             text-align: center;
             vertical-align: top;
             padding: 10px;
             border-left: 1px solid #e0e3ee;
         }
         .photo-wrap {
-            width: 95px;
-            height: 127px;
+            width: 88px;
+            height: 118px;
             border: 1px solid #c8cce0;
             overflow: hidden;
             margin: 0 auto 4px auto;
+            background: #f5f6fb;
         }
         .photo-wrap img { width: 100%; height: 100%; object-fit: cover; }
         .photo-placeholder {
             width: 100%;
             height: 100%;
-            background: #f2f3f9;
-            text-align: center;
-            padding-top: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 8.5px;
-            color: #aaa;
+            color: #bbb;
         }
-        .photo-label { font-size: 8px; color: #aaa; }
+        .photo-label { font-size: 8px; color: #aaa; margin-top: 3px; }
+
+        /* ── Badge ── */
+        .badge-s {
+            background: #d1fae5;
+            color: #065f46;
+            border-radius: 3px;
+            padding: 1px 6px;
+            font-size: 8px;
+            font-weight: bold;
+        }
+        .badge-w {
+            background: #fee2e2;
+            color: #991b1b;
+            border-radius: 3px;
+            padding: 1px 6px;
+            font-size: 8px;
+            font-weight: bold;
+        }
+        .badge-active {
+            background: #d1fae5;
+            color: #065f46;
+            border-radius: 3px;
+            padding: 1px 6px;
+            font-size: 8px;
+            font-weight: bold;
+        }
+        .badge-inactive {
+            background: #f3f4f6;
+            color: #6b7280;
+            border-radius: 3px;
+            padding: 1px 6px;
+            font-size: 8px;
+        }
+
+        /* ── Salary highlight ── */
+        .salary-val {
+            font-size: 10px;
+            font-weight: bold;
+            color: #065f46;
+        }
     </style>
 </head>
 <body>
 
+@php
+    $isSby = $isSby ?? false;
+    $yn = fn($v) => in_array(strtolower((string) $v), ['y', 'yes', '1', 'true'], true) ? 'Yes' : 'No';
+@endphp
+
 {{-- ═══════════════════════════════════════════════════════ HEADER ══ --}}
 <div class="header">
     <div class="header-company">PAKUWON GROUP</div>
-    <div class="header-sub">APPLICATION FOR EMPLOYMENT</div>
+    <div class="header-sub">Application for Employment</div>
+    <div class="header-line"></div>
 </div>
 
-{{-- ═══════════════════════════════════════════════ PERSONAL INFORMATION ══ --}}
+{{-- ═══════════════════════════════════════════ PERSONAL INFORMATION ══ --}}
 <div class="section">
     <div class="section-title">Personal Information</div>
     <table style="width:100%; border-collapse:collapse; border:1px solid #e0e3ee;">
         <tr>
-            {{-- Left: field pairs --}}
             <td style="vertical-align:top; padding:0; width:78%;">
                 <table class="info-tbl" style="border:none;">
                     <tr>
@@ -160,17 +219,17 @@
                         <td class="lbl">Date of Birth</td>
                         <td class="val">{{ $applicant->birth_place }}, {{ \Carbon\Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y') }}</td>
                         <td class="lbl">Age</td>
-                        <td class="val">{{ $applicant->age }} yrs</td>
+                        <td class="val">{{ $applicant->age ?: ($applicant->date_of_birth ? \Carbon\Carbon::parse($applicant->date_of_birth)->age : '-') }} yrs</td>
                     </tr>
                     <tr>
                         <td class="lbl">Gender</td>
-                        <td class="val">{{ $applicant->gender }}</td>
+                        <td class="val">{{ $applicant->gender ?: '-' }}</td>
                         <td class="lbl">Religion</td>
-                        <td class="val">{{ $applicant->religion }}</td>
+                        <td class="val">{{ $applicant->religion ?: '-' }}</td>
                     </tr>
                     <tr>
                         <td class="lbl">Nationality</td>
-                        <td class="val">{{ $applicant->citizenship }}</td>
+                        <td class="val">{{ $applicant->citizenship ?: '-' }}</td>
                         <td class="lbl">Blood Type</td>
                         <td class="val">{{ $applicant->blood_type ?: '-' }}</td>
                     </tr>
@@ -194,7 +253,6 @@
                     </tr>
                 </table>
             </td>
-            {{-- Right: photo --}}
             <td class="photo-cell">
                 <div class="photo-wrap">
                     @if($photo)
@@ -208,6 +266,31 @@
         </tr>
     </table>
 </div>
+
+@if($isSby)
+{{-- ═══════════════════════════════════ ADDITIONAL INFORMATION ══ --}}
+<div class="section">
+    <div class="section-title">Additional Information</div>
+    <table class="info-tbl">
+        <tr>
+            <td class="lbl">NPWP Number</td>
+            <td class="val">{{ optional($applicant_additional)->npwp_id ?: '-' }}</td>
+            <td class="lbl">BPJS Number</td>
+            <td class="val">{{ optional($applicant_additional)->bpjs_id ?: '-' }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">Preferred Job</td>
+            <td class="val">{{ optional($applicant_additional)->preferred_job ?: '-' }}</td>
+            <td class="lbl">Preferred Work Environment</td>
+            <td class="val">{{ optional($applicant_additional)->preferred_work_environment ?: '-' }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">Other Education &amp; Self-Development</td>
+            <td class="val" colspan="3">{{ optional($applicant_additional)->additional_education_and_training ?: '-' }}</td>
+        </tr>
+    </table>
+</div>
+@endif
 
 {{-- ══════════════════════════════════════════════════════ CONTACT ══ --}}
 <div class="section">
@@ -251,7 +334,7 @@
         </thead>
         <tbody>
             <tr>
-                <td>{{ $applicant->urgent_contact_name ?: '-' }}</td>
+                <td class="td-left">{{ $applicant->urgent_contact_name ?: '-' }}</td>
                 <td>{{ $applicant->urgent_phone ?: '-' }}</td>
                 <td>{{ $applicant->urgent_contact_relation ?: '-' }}</td>
             </tr>
@@ -265,8 +348,10 @@
     <table class="data-tbl">
         <thead>
             <tr>
-                <th>Name</th>
+                <th style="text-align:left; padding-left:10px;">Name</th>
                 <th>Relation</th>
+                <th>Gender</th>
+                <th>Date of Birth</th>
                 <th>Education</th>
                 <th>Profession</th>
             </tr>
@@ -274,13 +359,15 @@
         <tbody>
             @forelse($applicant_family as $p)
             <tr>
-                <td>{{ $p->family_name }}</td>
+                <td class="td-left">{{ $p->family_name }}</td>
                 <td>{{ $p->family_type }}</td>
-                <td>{{ $p->family_education }}</td>
-                <td>{{ $p->family_profession }}</td>
+                <td>{{ $p->family_gender ?: '-' }}</td>
+                <td>{{ $p->family_birt_of_date ?: '-' }}</td>
+                <td>{{ $p->family_education ?: '-' }}</td>
+                <td>{{ $p->family_profession ?: '-' }}</td>
             </tr>
             @empty
-            <tr><td colspan="4" class="empty-row">No data recorded</td></tr>
+            <tr class="empty-row"><td colspan="6">No data recorded</td></tr>
             @endforelse
         </tbody>
     </table>
@@ -298,22 +385,32 @@
     <table class="data-tbl">
         <thead>
             <tr>
-                <th>Name</th>
+                <th style="text-align:left; padding-left:10px;">Name</th>
                 <th>Relation</th>
+                <th>Gender</th>
+                <th>Date of Birth</th>
                 <th>Education</th>
                 <th>Profession</th>
+                @if($isSby)
+                <th>Place of Birth</th>
+                @endif
             </tr>
         </thead>
         <tbody>
             @forelse($applicant_marital as $p)
             <tr>
-                <td>{{ $p->core_family_name }}</td>
+                <td class="td-left">{{ $p->core_family_name }}</td>
                 <td>{{ $p->core_family_type }}</td>
-                <td>{{ $p->core_family_education }}</td>
-                <td>{{ $p->core_family_profession }}</td>
+                <td>{{ $p->core_family_gender ?: '-' }}</td>
+                <td>{{ $p->core_family_birt_of_date ?: '-' }}</td>
+                <td>{{ $p->core_family_education ?: '-' }}</td>
+                <td>{{ $p->core_family_profession ?: '-' }}</td>
+                @if($isSby)
+                <td>{{ $p->core_family_place_of_birth ?: '-' }}</td>
+                @endif
             </tr>
             @empty
-            <tr><td colspan="4" class="empty-row">No data recorded</td></tr>
+            <tr class="empty-row"><td colspan="{{ $isSby ? 7 : 6 }}">No data recorded</td></tr>
             @endforelse
         </tbody>
     </table>
@@ -321,82 +418,110 @@
 
 {{-- ══════════════════════════════════════ EDUCATION & SKILLS ══ --}}
 <div class="section">
-    <div class="section-title">Education & Skills</div>
-
-    <div class="sub-title">1. Formal Education</div>
-    <table class="data-tbl" style="margin-bottom:8px;">
+    <div class="section-title">Formal Education</div>
+    <table class="data-tbl">
         <thead>
             <tr>
-                <th>Institution</th>
+                <th style="text-align:left; padding-left:10px;">Institution</th>
                 <th>Type</th>
                 <th>Start Year</th>
                 <th>End Year</th>
                 <th>GPA / Score</th>
+                @if($isSby)
+                <th>Faculty</th>
+                <th>Financed By</th>
+                @endif
             </tr>
         </thead>
         <tbody>
             @forelse($applicant_education as $p)
             <tr>
-                <td>{{ $p->education_name }}</td>
+                <td class="td-left">{{ $p->education_name }}</td>
                 <td>{{ $p->education_type ?: '-' }}</td>
                 <td>{{ $p->start_year }}</td>
                 <td>{{ $p->end_year }}</td>
-                <td>{{ $p->education_score ?: '-' }}</td>
+                <td style="font-weight:bold; color:#1a2744;">{{ $p->education_score ?: '-' }}</td>
+                @if($isSby)
+                <td>{{ $p->education_faculty ?: '-' }}</td>
+                <td>{{ $p->education_cost ?: '-' }}</td>
+                @endif
             </tr>
             @empty
-            <tr><td colspan="5" class="empty-row">No data recorded</td></tr>
+            <tr class="empty-row"><td colspan="{{ $isSby ? 7 : 5 }}">No data recorded</td></tr>
             @endforelse
         </tbody>
     </table>
+</div>
 
-    <div class="sub-title">2. Non-Formal / Training</div>
-    <table class="data-tbl" style="margin-bottom:8px;">
+<div class="section">
+    <div class="section-title">Non-Formal / Training</div>
+    <table class="data-tbl">
         <thead>
             <tr>
-                <th>Course / Training Name</th>
+                <th style="text-align:left; padding-left:10px;">Course / Training Name</th>
                 <th>Type</th>
                 <th>Start Year</th>
                 <th>End Year</th>
+                @if($isSby)
+                <th>Certificate No</th>
+                <th>Funded By</th>
+                <th>Score</th>
+                @endif
             </tr>
         </thead>
         <tbody>
             @forelse($applicant_course as $p)
             <tr>
-                <td>{{ $p->course_name }}</td>
+                <td class="td-left">{{ $p->course_name }}</td>
                 <td>{{ $p->course_type ?: '-' }}</td>
                 <td>{{ $p->start_year }}</td>
                 <td>{{ $p->end_year }}</td>
+                @if($isSby)
+                <td>{{ $p->course_certificate ?: '-' }}</td>
+                <td>{{ $p->course_cost ?: '-' }}</td>
+                <td>{{ $p->course_score ?: '-' }}</td>
+                @endif
             </tr>
             @empty
-            <tr><td colspan="4" class="empty-row">No data recorded</td></tr>
+            <tr class="empty-row"><td colspan="{{ $isSby ? 7 : 4 }}">No data recorded</td></tr>
             @endforelse
         </tbody>
     </table>
+</div>
 
-    <div class="sub-title">3. Language Proficiency</div>
-    <table class="data-tbl" style="margin-bottom:8px;">
+<div class="section">
+    <div class="section-title">Language Proficiency</div>
+    <table class="data-tbl">
         <thead>
-            <tr><th style="text-align:left; padding-left:12px;">Language</th></tr>
+            <tr>
+                <th style="text-align:left; padding-left:10px; width:60%;">Language</th>
+                <th>Proficiency Level</th>
+            </tr>
         </thead>
         <tbody>
             @forelse($applicant_language as $p)
-            <tr><td style="text-align:left; padding-left:12px;">{{ $p->language_descr }}</td></tr>
+            <tr>
+                <td class="td-left">{{ $p->language_descr }}</td>
+                <td>{{ $p->language_score ?: '-' }}</td>
+            </tr>
             @empty
-            <tr><td class="empty-row">No data recorded</td></tr>
+            <tr class="empty-row"><td colspan="2">No data recorded</td></tr>
             @endforelse
         </tbody>
     </table>
+</div>
 
-    <div class="sub-title">4. Skills</div>
+<div class="section">
+    <div class="section-title">Skills</div>
     <table class="data-tbl">
         <thead>
-            <tr><th style="text-align:left; padding-left:12px;">Skill Description</th></tr>
+            <tr><th style="text-align:left; padding-left:10px;">Skill Description</th></tr>
         </thead>
         <tbody>
             @forelse($applicant_skill as $p)
-            <tr><td style="text-align:left; padding-left:12px;">{{ $p->skill_descr }}</td></tr>
+            <tr><td class="td-left">{{ $p->skill_descr }}</td></tr>
             @empty
-            <tr><td class="empty-row">No data recorded</td></tr>
+            <tr class="empty-row"><td>No data recorded</td></tr>
             @endforelse
         </tbody>
     </table>
@@ -408,18 +533,24 @@
     <table class="data-tbl">
         <thead>
             <tr>
-                <th style="width:20%;">Type</th>
-                <th>Description</th>
+                <th style="width:15%;">Type</th>
+                <th style="text-align:left; padding-left:10px;">Description</th>
             </tr>
         </thead>
         <tbody>
             @forelse($applicant_sw as $p)
             <tr>
-                <td>{{ $p->sw_type }}</td>
-                <td style="text-align:left; padding-left:12px;">{{ $p->sw_descr }}</td>
+                <td>
+                    @if($p->sw_type === 'Strengths')
+                        <span class="badge-s">Strength</span>
+                    @else
+                        <span class="badge-w">Weakness</span>
+                    @endif
+                </td>
+                <td class="td-left">{{ $p->sw_descr }}</td>
             </tr>
             @empty
-            <tr><td colspan="2" class="empty-row">No data recorded</td></tr>
+            <tr class="empty-row"><td colspan="2">No data recorded</td></tr>
             @endforelse
         </tbody>
     </table>
@@ -431,30 +562,73 @@
     <table class="data-tbl">
         <thead>
             <tr>
-                <th>Company</th>
-                <th>Job Title</th>
+                <th style="text-align:left; padding-left:10px;">Company</th>
+                <th style="text-align:left; padding-left:10px;">Job Title</th>
                 <th>Start</th>
                 <th>End</th>
-                <th>Superior</th>
-                <th>Reason for Leaving</th>
+                <th>Last THP</th>
+                <th style="text-align:left; padding-left:8px;">Superior</th>
+                <th style="text-align:left; padding-left:8px;">Reason for Leaving</th>
+                @if($isSby)
+                <th style="text-align:left; padding-left:8px;">Job Description</th>
+                @endif
             </tr>
         </thead>
         <tbody>
             @forelse($applicant_working as $p)
             <tr>
-                <td>{{ $p->company_name }}</td>
-                <td>{{ $p->job_title }}</td>
+                <td class="td-left">{{ $p->company_name }}</td>
+                <td class="td-left">{{ $p->job_title }}</td>
                 <td>{{ $p->start_date }}</td>
-                <td>{{ $p->is_current ? 'Present' : $p->end_date }}</td>
-                <td>{{ $p->superior_name ?: '-' }}</td>
-                <td style="text-align:left; padding-left:8px;">{{ $p->reason_for_leaving ?: '-' }}</td>
+                <td>{{ $p->is_current ? 'Present' : ($p->end_date ?: '-') }}</td>
+                <td style="color:#065f46; font-weight:bold;">{{ $p->last_thp ? 'Rp '.number_format((int)$p->last_thp,0,',','.') : '-' }}</td>
+                <td class="td-left">{{ $p->superior_name ?: '-' }}</td>
+                <td class="td-left">{{ $p->reason_for_leaving ?: '-' }}</td>
+                @if($isSby)
+                <td class="td-left">{{ $p->task_summary ?: '-' }}</td>
+                @endif
             </tr>
             @empty
-            <tr><td colspan="6" class="empty-row">No data recorded</td></tr>
+            <tr class="empty-row"><td colspan="{{ $isSby ? 8 : 7 }}">No data recorded</td></tr>
             @endforelse
         </tbody>
     </table>
 </div>
+
+@if($isSby)
+{{-- ══════════════════════════════════════════════════ ORGANIZATION ══ --}}
+<div class="section">
+    <div class="section-title">Organization</div>
+    <table class="info-tbl" style="margin-bottom:6px;">
+        <tr>
+            <td class="lbl">Have you been part of an organization?</td>
+            <td class="val" colspan="3">{{ $yn(optional($applicant_additional)->has_exp_organization) }}</td>
+        </tr>
+    </table>
+    <table class="data-tbl">
+        <thead>
+            <tr>
+                <th style="text-align:left; padding-left:10px;">Organization Name</th>
+                <th>Type</th>
+                <th>Year</th>
+                <th>Position</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($applicant_organization as $org)
+            <tr>
+                <td class="td-left">{{ $org->organization_name }}</td>
+                <td>{{ $org->organization_type ?: '-' }}</td>
+                <td>{{ $org->organization_year ?: '-' }}</td>
+                <td>{{ $org->organization_position ?: '-' }}</td>
+            </tr>
+            @empty
+            <tr class="empty-row"><td colspan="4">No data recorded</td></tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
+@endif
 
 {{-- ══════════════════════════════════════ DRIVER LICENSE ══ --}}
 @if(isset($applicant_driver_license) && $applicant_driver_license->count() > 0)
@@ -462,11 +636,23 @@
     <div class="section-title">Driver License</div>
     <table class="data-tbl">
         <thead>
-            <tr><th style="text-align:left; padding-left:12px;">License Type</th></tr>
+            <tr>
+                <th style="text-align:left; padding-left:10px; width:70%;">License Type</th>
+                <th>Status</th>
+            </tr>
         </thead>
         <tbody>
             @foreach($applicant_driver_license as $dl)
-            <tr><td style="text-align:left; padding-left:12px;">{{ $dl->driver_license_descr }}</td></tr>
+            <tr>
+                <td class="td-left">SIM {{ $dl->driver_license_descr }}</td>
+                <td>
+                    @if($dl->status)
+                        <span class="badge-active">Active</span>
+                    @else
+                        <span class="badge-inactive">Inactive</span>
+                    @endif
+                </td>
+            </tr>
             @endforeach
         </tbody>
     </table>
@@ -479,14 +665,85 @@
     <table class="info-tbl">
         <tr>
             <td class="lbl">Expected Salary (THP)</td>
-            <td class="val" colspan="3">Rp {{ isset($applicant->expected_thp) ? number_format((int)$applicant->expected_thp, 0, ',', '.') : '-' }}</td>
+            <td class="salary-val" colspan="3">Rp {{ isset($applicant->expected_thp) && $applicant->expected_thp ? number_format((int)$applicant->expected_thp, 0, ',', '.') : '-' }}</td>
         </tr>
         <tr>
             <td class="lbl">Career Achievement</td>
-            <td class="val" colspan="3">{{ $applicant->career_achievement ?: '-' }}</td>
+            <td class="val" colspan="3">{{ $applicant->applicant_achievement ?: '-' }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">Source of Information</td>
+            <td class="val" colspan="3">{{ $applicant->source_information ?: '-' }}</td>
         </tr>
     </table>
 </div>
+
+{{-- ══════════════════════════════════════════════════ ILLNESS HISTORY ══ --}}
+<div class="section">
+    <div class="section-title">Illness History</div>
+    <table class="info-tbl">
+        <tr>
+            <td class="lbl">Do you have a history of severe illness?</td>
+            <td class="val" colspan="3">{{ $yn(optional($applicant_additional)->has_severe_illness_history) }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">Year</td>
+            <td class="val">{{ optional($applicant_additional)->illness_year ?: '-' }}</td>
+            <td class="lbl">Illness Name</td>
+            <td class="val">{{ optional($applicant_additional)->illness_name ?: '-' }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">Duration</td>
+            <td class="val">{{ optional($applicant_additional)->illness_duration ?: '-' }}</td>
+            <td class="lbl">Treatment Location</td>
+            <td class="val">{{ optional($applicant_additional)->treatment_location ?: '-' }}</td>
+        </tr>
+    </table>
+</div>
+
+{{-- ══════════════════════════════════════════════════ CRIMINAL HISTORY ══ --}}
+<div class="section">
+    <div class="section-title">Criminal History</div>
+    <table class="info-tbl">
+        <tr>
+            <td class="lbl">Do you have a criminal history?</td>
+            <td class="val" colspan="3">{{ $yn(optional($applicant_additional)->has_criminal_history) }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">Description</td>
+            <td class="val" colspan="3">{{ optional($applicant_additional)->incident_description ?: '-' }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">Year</td>
+            <td class="val">{{ optional($applicant_additional)->incident_year ?: '-' }}</td>
+            <td class="lbl">Consequence</td>
+            <td class="val">{{ optional($applicant_additional)->incident_consequence ?: '-' }}</td>
+        </tr>
+    </table>
+</div>
+
+@if($isSby)
+{{-- ══════════════════════════════════════════════════ ACCIDENT HISTORY ══ --}}
+<div class="section">
+    <div class="section-title">Accident History</div>
+    <table class="info-tbl">
+        <tr>
+            <td class="lbl">Do you have a history of traffic accidents?</td>
+            <td class="val" colspan="3">{{ $yn(optional($applicant_additional)->has_traffic_accident_history) }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">Year</td>
+            <td class="val">{{ optional($applicant_additional)->accident_year ?: '-' }}</td>
+            <td class="lbl">Accident</td>
+            <td class="val">{{ optional($applicant_additional)->accident_name ?: '-' }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">Impact</td>
+            <td class="val" colspan="3">{{ optional($applicant_additional)->accident_impact ?: '-' }}</td>
+        </tr>
+    </table>
+</div>
+@endif
 
 {{-- ════════════════════════════════════ RELATIVE & REFERENCE ══ --}}
 <div class="section">
@@ -496,15 +753,15 @@
     <table class="data-tbl" style="margin-bottom:8px;">
         <thead>
             <tr>
-                <th>Name</th>
-                <th>Division</th>
+                <th style="text-align:left; padding-left:10px;">Name</th>
+                <th style="text-align:left; padding-left:10px;">Division</th>
                 <th>Work Status</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td>{{ $applicant->relative_work_name ?: '-' }}</td>
-                <td>{{ $applicant->relative_work_division ?: '-' }}</td>
+                <td class="td-left">{{ $applicant->relative_work_name ?: '-' }}</td>
+                <td class="td-left">{{ $applicant->relative_work_division ?: '-' }}</td>
                 <td>{{ $applicant->relative_work_status ?: '-' }}</td>
             </tr>
         </tbody>
@@ -514,29 +771,39 @@
     <table class="data-tbl">
         <thead>
             <tr>
-                <th>Name</th>
-                <th>Division</th>
-                <th>Contact</th>
+                <th style="text-align:left; padding-left:10px;">Name</th>
+                <th style="text-align:left; padding-left:10px;">Company</th>
+                <th style="text-align:left; padding-left:10px;">Position</th>
+                <th>Relation</th>
+                <th>Phone</th>
+                @if($isSby)
+                <th style="text-align:left; padding-left:10px;">Address</th>
+                @endif
             </tr>
         </thead>
         <tbody>
+            @forelse($applicant_reference as $ref)
             <tr>
-                <td>{{ $applicant->reference_name ?: '-' }}</td>
-                <td>{{ $applicant->reference_division ?: '-' }}</td>
-                <td>{{ $applicant->reference_contact_number ?: '-' }}</td>
+                <td class="td-left">{{ $ref->reference_name }}</td>
+                <td class="td-left">{{ $ref->reference_company_name ?: '-' }}</td>
+                <td class="td-left">{{ $ref->reference_job_position ?: '-' }}</td>
+                <td>{{ $ref->reference_relation ?: '-' }}</td>
+                <td>{{ $ref->reference_phone_number ?: '-' }}</td>
+                @if($isSby)
+                <td class="td-left">{{ $ref->reference_address ?: '-' }}</td>
+                @endif
             </tr>
+            @empty
+            <tr class="empty-row"><td colspan="{{ $isSby ? 6 : 5 }}">No data recorded</td></tr>
+            @endforelse
         </tbody>
     </table>
 </div>
 
-{{-- ═════════════════════════════════════ APPLICATION CLOSURE ══ --}}
+{{-- ═══════════════════════════════════ APPLICATION DETAILS ══ --}}
 <div class="section">
-    <div class="section-title">Application Closure</div>
+    <div class="section-title">Application Details</div>
     <table class="info-tbl">
-        <tr>
-            <td class="lbl">Source of Information</td>
-            <td class="val" colspan="3">{{ $applicant->source_information ?: '-' }}</td>
-        </tr>
         <tr>
             <td class="lbl">Applying Elsewhere?</td>
             <td class="val">{{ $applicant->apply_other_on_progress == 1 ? 'Yes' : 'No' }}</td>
@@ -550,18 +817,65 @@
     </table>
 </div>
 
-{{-- ═════════════════════════════════════════════ SIGNATURE ══ --}}
-<table style="width:100%; border-collapse:collapse; margin-top:30px;">
-    <tr>
-        <td style="width:65%;"></td>
-        <td style="text-align:center; font-size:9px; color:#555;">
-            <div>{{ now()->format('d F Y') }}</div>
-            <div style="margin-top:50px; border-top:1px solid #333; padding-top:4px;">
-                {{ $applicant->full_name }}
-            </div>
-        </td>
-    </tr>
-</table>
+@if($isSby)
+{{-- ══════════════════════════════════════════════════ APPLICATION QUESTIONS ══ --}}
+<div class="section">
+    <div class="section-title">Application Questions</div>
+    <table class="info-tbl">
+        <tr>
+            <td class="lbl" style="width:22%;">Tell us about yourself</td>
+            <td class="val" colspan="3">{{ optional($applicant_additional)->about_me ?: '-' }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">Why are you a good fit for this position?</td>
+            <td class="val" colspan="3">{{ optional($applicant_additional)->applied_position_description ?: '-' }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">Achievements &amp; accomplishments</td>
+            <td class="val" colspan="3">{{ optional($applicant_additional)->achievements_and_accomplishments ?: '-' }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">Challenge &amp; solution</td>
+            <td class="val" colspan="3">{{ optional($applicant_additional)->challenges_and_solutions ?: '-' }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">Life lessons learned</td>
+            <td class="val" colspan="3">{{ optional($applicant_additional)->life_lessons_learned ?: '-' }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">Role model</td>
+            <td class="val" colspan="3">{{ optional($applicant_additional)->role_model ?: '-' }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">5-year career goals</td>
+            <td class="val" colspan="3">{{ optional($applicant_additional)->five_year_career_goals ?: '-' }}</td>
+        </tr>
+    </table>
+</div>
+
+{{-- ══════════════════════════════════════════════ CONSENT & AVAILABILITY ══ --}}
+<div class="section">
+    <div class="section-title">Consent &amp; Availability</div>
+    <table class="info-tbl">
+        <tr>
+            <td class="lbl">Available to join immediately?</td>
+            <td class="val">{{ $yn(optional($applicant_additional)->joining_date_availability) }}</td>
+            <td class="lbl">Willing to undergo medical check-up?</td>
+            <td class="val">{{ $yn(optional($applicant_additional)->willing_for_medical_check) }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">Willing to resign if medically unfit?</td>
+            <td class="val">{{ $yn(optional($applicant_additional)->willing_to_resign_if_unfit) }}</td>
+            <td class="lbl">Willing to register for NPWP?</td>
+            <td class="val">{{ $yn(optional($applicant_additional)->willing_to_make_npwp) }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">Allow reference/background check?</td>
+            <td class="val" colspan="3">{{ $yn(optional($applicant_additional)->allow_reference_check) }}</td>
+        </tr>
+    </table>
+</div>
+@endif
 
 </body>
 </html>

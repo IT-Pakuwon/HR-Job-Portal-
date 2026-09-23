@@ -1,35 +1,48 @@
-<x-app-layout>
+﻿<x-app-layout>
     <div class="max-w-9xl mx-auto p-2">
-        <div class="mb-4 flex items-center justify-end">
-            <div class="flex gap-3">
-                <button id="approveBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200">
-                    Approve
-                </button>
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'RFP', 'url' => route('rfp')],
+            ['label' => 'Show Details'],
+        ]">
+            <x-approval-actions
+                :status="$rfp->status"
+                :is-approver="$isApprover"
+                :has-blocking-im="$hasBlockingIM"
+                :im-blocking-id="$imBlockingId"
+                :im-blocking-status="$imBlockingStatus"
+                :edit-url="url('/editrfpkontrakbudget/' . $hash)"
+            />
+        </x-breadcrumb>
 
-                <button id="reviseBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-600">
-                    Revise
-                </button>
-{{--
-                <button id="rejectBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200">
-                    Reject
-                </button> --}}
-            </div>
-        </div>
+        @php
+            $typePoText = trim((string) ($rfp->type_po ?? ''));
+            $typePoKey = strtoupper($typePoText);
+            $isKontrak = $typePoKey === 'KONTRAK';
+            $typePoClasses = match ($typePoKey) {
+                'KONTRAK' => 'bg-indigo-100 text-indigo-700 dark:bg-indigo-800/30 dark:text-indigo-300',
+                'PO' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300',
+                'NON PO' => 'bg-orange-100 text-orange-700 dark:bg-orange-800/30 dark:text-orange-300',
+                'SPK' => 'bg-sky-100 text-sky-700 dark:bg-sky-800/30 dark:text-sky-300',
+                default => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200',
+            };
+        @endphp
 
-         <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
+         <div class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
              <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
 
                 {{-- LEFT CARD --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-1 flex-col gap-6">
+                    <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                     <header class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
                             <span class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
                                 ID
                             </span>
                             {{ $rfp->rfp_id }}
+                            <span class="{{ $typePoClasses }} inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold">
+                                {{ $typePoText !== '' ? $typePoText : '-' }}
+                            </span>
                         </h1>
 
                         @php
@@ -39,6 +52,7 @@
                                 'C' => 'Completed',
                                 'X' => 'Cancelled',
                                 'R' => 'Rejected',
+                                'H' => 'Hold',
                                 default => 'Unknown',
                             };
 
@@ -46,6 +60,7 @@
                                 'D' => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
                                 'P' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300',
                                 'C' => 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-300',
+                                'H' => 'bg-orange-100 text-orange-700 dark:bg-orange-800/30 dark:text-orange-300',
                                 'X', 'R' => 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300',
                                 default => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
                             };
@@ -58,12 +73,19 @@
                                 {{ $statusText }}
                             </span>
 
-                            <a href="{{ url('/pdf_rfp') }}/{{ $hash }}" target="_blank">
-                                    <button
-                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                            @if ($rfp->status === 'H')
+                                <button type="button" disabled title="Cannot print PDF while document is on Hold"
+                                    class="inline-flex cursor-not-allowed items-center gap-2 rounded-full bg-gray-300 px-4 py-1 text-sm font-semibold text-gray-500 dark:bg-gray-600 dark:text-gray-400">
                                     Print PDF
                                 </button>
-                            </a>
+                            @else
+                                <a href="{{ url('/pdf_rfp') }}/{{ $hash }}" target="_blank">
+                                        <button
+                                        class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                        Print PDF
+                                    </button>
+                                </a>
+                            @endif
 
                         </div>
                     </header>
@@ -86,18 +108,37 @@
                                 ? 'Rp ' . number_format((float) $rfp->rfp_amount, 2, ',', '.')
                                 : '-';
 
+                            $createdUserValue = $isKontrak
+                                ? ($rfp->user_peminta ?: '-')
+                                : ($rfp->created_by ?: '-');
+
                             $fields = [
                                 ['label' => 'Company', 'value' => $rfp->cpny_id ?: '-'],
                                 ['label' => 'Department', 'value' => $rfp->department_id ?: '-'],
                                 ['label' => 'RP Date', 'value' => $rfp->rfp_date ? \Carbon\Carbon::parse($rfp->rfp_date)->format('d M Y') : '-'],
-                                ['label' => 'Created User', 'value' => optional($rfp->creator)->name ?: $rfp->created_by ?: '-'],
+                                ['label' => 'Submit Date', 'value' => !empty($submitDate) ? \Carbon\Carbon::parse($submitDate)->format('d M Y H:i:s') : '-'],
+                                ['label' => 'Created User', 'value' => e($createdUserValue)],
                                 ['label' => 'Vendor ID', 'value' => $rfp->vendor_id ?: '-'],
                                 ['label' => 'Vendor Name', 'value' => $rfp->vendor_name ?: '-'],
-                                ['label' => 'PO No',
-                                'value' => !empty($poUrl)
-                                    ? '<a href="' . e($poUrl) . '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">' . e($rfp->ponbr) . '</a>'
-                                    : e($rfp->ponbr ?: '-')],
-                                ['label' => 'Contract ID', 'value' => $rfp->kontrak_id ?: '-'],
+                            ];
+
+                            if (trim((string) ($rfp->ponbr ?? '')) !== '') {
+                                $fields[] = [
+                                    'label' => 'PO No',
+                                    'value' => !empty($poUrl)
+                                        ? '<a href="' . e($poUrl) . '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">' . e($rfp->ponbr) . '</a>'
+                                        : e($rfp->ponbr),
+                                ];
+                            }
+
+                            if (trim((string) ($rfp->kontrak_id ?? '')) !== '') {
+                                $fields[] = [
+                                    'label' => 'Contract ID',
+                                    'value' => e($rfp->kontrak_id),
+                                ];
+                            }
+
+                            $fields = array_merge($fields, [
                                 ['label' => 'CS ID',
                                 'value' => !empty($csUrl)
                                     ? '<a href="' . e($csUrl) . '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">' . e($rfp->cs_id) . '</a>'
@@ -113,7 +154,6 @@
                                 ['label' => 'IR ID', 'value' => $rfp->ir_id ?: '-'],
                                 ['label' => 'IR Date', 'value' => $rfp->ir_date ? \Carbon\Carbon::parse($rfp->ir_date)->format('d M Y H:i:s') : '-'],
                                 ['label' => 'IR Submit Date', 'value' => $rfp->ir_submit_date ? \Carbon\Carbon::parse($rfp->ir_submit_date)->format('d M Y H:i:s') : '-'],
-                                ['label' => 'Type PO', 'value' => $rfp->type_po ?: '-'],
                                 ['label' => 'Type Payment', 'value' => e($typepayment ?: '-')],
                                 ['label' => 'Payment Period', 'value' => $rfp->period_payment ?: '-'],
                                 ['label' => 'Base Amount', 'value' => $baseAmount],
@@ -121,8 +161,23 @@
                                 ['label' => 'Total Amount', 'value' => $totalAmount],
                                 ['label' => 'Payment Type', 'value' => $rfp->payment_type ?: '-'],
                                 ['label' => 'Amount Payment', 'value' => is_numeric($rfp->amount_payment ?? null) ? 'Rp ' . number_format((float) $rfp->amount_payment, 2, ',', '.') : '-'],
-                                ['label' => 'Terbilang', 'value' => $rfp->terbilang ?: '-'],
-                            ];
+                                ['label' => 'Terbilang', 'value' => $terbilang ?: '-'],
+                            ]);
+
+                            if (trim((string) ($rfp->imbudgetid ?? '')) !== '') {
+                                $fields[] = [
+                                    'label' => 'IM Budget',
+                                    'value' => !empty($imbudgetUrl)
+                                        ? '<a href="' . e($imbudgetUrl) . '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">' . e($rfp->imbudgetid) . '</a>'
+                                        : e($rfp->imbudgetid),
+                                ];
+                            }
+
+                            $irNoteValue = trim((string) ($rfp->ir_note ?? ''));
+                            $purposeValue = trim((string) ($rfp->keperluan ?? ''));
+                            $showIrNote = mb_strlen($irNoteValue) >= 5;
+                            $noteLabel = $showIrNote ? 'IR Note' : 'Purpose';
+                            $noteValue = $showIrNote ? $irNoteValue : $purposeValue;
                         @endphp
 
                         <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
@@ -137,29 +192,182 @@
                         </div>
 
                         <div class="col-span-2 mt-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                            <div class="flex items-center gap-2 text-gray-500">
-                                <span class="text-sm font-medium">Purpose</span>
+                            <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                                <span class="text-sm font-medium">{{ $noteLabel }}</span>
                             </div>
                             <span class="whitespace-pre-line break-words font-medium text-gray-900 dark:text-gray-300 text-sm">
-                                {{ $rfp->keperluan ?: '-' }}
-                            </span>
-                        </div>
-
-                        <div class="col-span-2 mt-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                            <div class="flex items-center gap-2 text-gray-500">
-                                <span class="text-sm font-medium">IR Note</span>
-                            </div>
-                            <span class="whitespace-pre-line break-words font-medium text-gray-900 dark:text-gray-300 text-sm">
-                                {{ $rfp->ir_note ?: '-' }}
+                                {{ $noteValue ?: '-' }}
                             </span>
                         </div>
                     </div>
+                    </div>
+
+                    @if ($isKontrak)
+                    <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                        <header class="flex items-center justify-between border-b px-6 py-2 bg-gray-50 dark:bg-gray-700">
+                            <div class="flex items-center gap-3">
+                                <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                                    Detail Kontrak Budget
+                                </h2>
+
+                                <span class="rounded-full bg-indigo-100 px-2.5 py-0.5 text-sm font-semibold text-indigo-700">
+                                    {{ $kontrakBudgets->count() }} row
+                                </span>
+                            </div>
+                        </header>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full min-w-160 table-fixed text-sm">
+                                <colgroup>
+                                    <col class="w-[50px]">
+                                    <col class="w-auto">
+                                    <col class="w-40">
+                                </colgroup>
+
+                                <thead class="border-b text-gray-600 dark:text-gray-300">
+                                    <tr>
+                                        <th class="p-2 text-center">No</th>
+                                        <th class="p-2 text-left">Budget</th>
+                                        <th class="p-2 text-right">Amount</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody class="divide-y dark:divide-gray-700">
+                                    @forelse ($kontrakBudgets as $i => $budget)
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                            <td class="p-2 text-center">{{ $i + 1 }}</td>
+                                            <td class="p-2">
+                                                <div class="group relative inline-block cursor-help">
+                                                    @php
+                                                        $budgetData = $budget->budget_data ?? null;
+
+                                                        $budgetValue = (float) ($budgetData->totalbudget ?? 0);
+                                                        $additional = (float) ($budgetData->totalbudget_add ?? 0);
+                                                        $reserved = (float) ($budgetData->total_reserve ?? 0);
+                                                        $used = (float) ($budgetData->total_used ?? 0);
+                                                        $totalBudget = $budgetValue + $additional;
+                                                        $available = $totalBudget - $reserved - $used;
+                                                    @endphp
+
+                                                    <div class="budget-trigger"
+                                                        data-budget="{{ $budgetValue }}"
+                                                        data-additional="{{ $additional }}"
+                                                        data-reserved="{{ $reserved }}"
+                                                        data-used="{{ $used }}"
+                                                        data-available="{{ $available }}"
+                                                        data-desc="{{ $budget->budget_activity_descr ?: $budget->budget_activity_id ?: '-' }}"
+                                                        data-account="{{ $budget->budget_account_id ?: '-' }}"
+                                                        data-coa="{{ optional($budgetData)->account_descr ?: '-' }}"
+                                                        data-bu="{{ $budget->budget_business_unit_id ?: '-' }}">
+
+                                                        <div class="flex flex-wrap items-center gap-2 text-sm">
+                                                            @if (!empty($budget->budget_department_fin_id))
+                                                                <span class="rounded-md bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-800/30 dark:text-indigo-300">
+                                                                    {{ $budget->budget_department_fin_id }}
+                                                                </span>
+                                                            @endif
+
+                                                            @if (!empty($budget->budget_business_unit_id))
+                                                                <span class="rounded-md bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700 dark:bg-purple-800/30 dark:text-purple-300">
+                                                                    {{ $budget->budget_business_unit_id }}
+                                                                </span>
+                                                            @endif
+
+                                                            <span class="font-semibold text-gray-700 dark:text-gray-200">
+                                                                {{ $budget->budget_account_id ?: '-' }}
+                                                            </span>
+
+                                                            <span class="text-gray-400 dark:text-gray-500">|</span>
+
+                                                            <span class="max-w-[240px] truncate text-gray-500 dark:text-gray-400">
+                                                                {{ $budget->budget_activity_descr ?: $budget->budget_activity_id ?: '-' }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="p-2 text-right">
+                                                {{ is_numeric($budget->rfp_base_amount ?? null) ? 'Rp ' . number_format((float) $budget->rfp_base_amount, 2, ',', '.') : '-' }}
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="3" class="text-center text-gray-500 italic p-3 dark:text-gray-400">
+                                                Detail kontrak budget belum tersedia.
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+
+                                @if ($kontrakBudgets->count() > 0)
+                                    <tfoot class="border-t text-gray-700 dark:border-gray-700 dark:text-gray-200">
+                                        <tr>
+                                            <td colspan="2" class="p-2 text-right font-semibold">Total</td>
+                                            <td class="p-2 text-right font-semibold">
+                                                Rp {{ number_format((float) $kontrakBudgets->sum('rfp_base_amount'), 2, ',', '.') }}
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                @endif
+                            </table>
+
+                            @if ($kontrakBudgets->count() > 0)
+                                <div id="budgetTooltip"
+                                    class="fixed z-[9999] hidden w-72 rounded-xl border border-gray-200 bg-white p-4 text-sm shadow-lg dark:border-gray-700 dark:bg-gray-900">
+
+                                    <div class="space-y-1">
+                                        <div id="ttDesc" class="font-semibold text-gray-900 dark:text-white"></div>
+
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                                            <span id="ttAccount"></span>
+                                            <span class="mx-1 text-gray-300">|</span>
+                                            <span id="ttCoa"></span>
+                                            <span class="mx-1 text-gray-300">|</span>
+                                            <span id="ttBU"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="my-3 border-t border-gray-200 dark:border-gray-700"></div>
+
+                                    <div class="space-y-1.5">
+                                        <div class="flex justify-between text-gray-600 dark:text-gray-400">
+                                            <span>Budget</span>
+                                            <span id="ttBudget"></span>
+                                        </div>
+
+                                        <div class="flex justify-between text-gray-600 dark:text-gray-400">
+                                            <span>Additional</span>
+                                            <span id="ttAdditional"></span>
+                                        </div>
+
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-500 dark:text-gray-400">Reserved</span>
+                                            <span id="ttReserved" class="text-red-500"></span>
+                                        </div>
+
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-500 dark:text-gray-400">Used</span>
+                                            <span id="ttUsed" class="text-red-500"></span>
+                                        </div>
+
+                                        <div class="my-2 border-t border-gray-200 dark:border-gray-700"></div>
+
+                                        <div class="flex justify-between font-semibold">
+                                            <span class="text-gray-700 dark:text-gray-300">Available</span>
+                                            <span id="ttAvailable"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
                 </div>
 
                 {{-- RIGHT CARD --}}
                 <div class="flex flex-1 flex-col gap-6">
                     <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
-                        <div x-data="{ activeTab: 'attachment' }" class="flex max-h-[100%] flex-1 flex-col overflow-y-auto">
+                        <div x-data="{ activeTab: 'attachment', tabsOpen: true }" class="flex max-h-[100%] flex-1 flex-col overflow-y-auto">
                             <header class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                                 <nav class="flex flex-grow">
                                     <button @click="activeTab = 'attachment'"
@@ -184,9 +392,13 @@
                                         Comments
                                     </button>
                                 </nav>
+                                <button type="button" @click="tabsOpen = !tabsOpen"
+                                    class="ml-3 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-indigo-300 via-indigo-400 to-indigo-500 text-[10px] font-bold leading-none text-indigo-950 shadow-[0_1px_2px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.6),inset_0_-1px_1px_rgba(0,0,0,0.15)] transition hover:brightness-110 dark:from-indigo-400 dark:via-indigo-500 dark:to-indigo-600 dark:text-indigo-50 dark:shadow-[0_1px_2px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.4),inset_0_-1px_1px_rgba(0,0,0,0.25)]"
+                                    x-text="tabsOpen ? '−' : '+'" :title="tabsOpen ? 'Minimize' : 'Restore'">
+                                </button>
                             </header>
 
-                            <div class="flex flex-1 flex-col">
+                            <div class="flex flex-1 flex-col" :class="{ hidden: !tabsOpen }">
                                 <div x-show="activeTab === 'approval'" class="flex-1 overflow-y-auto px-4">
                                     <table class="w-full text-sm">
                                         <thead>
@@ -250,7 +462,7 @@
                                 <div x-show="activeTab === 'comments'" class="flex-1 overflow-y-auto px-4">
                                     <div class="flex h-full flex-col">
                                         <div id="commentList" class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
-                                            <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                            <p class="py-4 text-center italic text-gray-500 dark:text-gray-400">Loading comments...</p>
                                         </div>
                                         <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
                                             <input id="commentInput" type="text"
@@ -278,6 +490,84 @@
                                     Type: RFP Purchase
                                 </span>
                             </div>
+
+                            @if ($hasApFinAccess || $hasApTreAccess)
+                                @php
+                                    $isReceiveCompleted = $rfp->status_receive === 'C'
+                                        || (!empty($rfp->user_receive) && !empty($rfp->receive_date));
+                                    $isPaymentCompleted = $rfp->status_payment === 'C'
+                                        || (!empty($rfp->user_payment) && !empty($rfp->payment_date));
+
+                                    if ($isPaymentCompleted) {
+                                        $finFlowStatus = 'Treasury Received';
+                                    } elseif ($isReceiveCompleted) {
+                                        $finFlowStatus = 'Finance Received';
+                                    } else {
+                                        $finFlowStatus = 'Waiting User';
+                                    }
+                                @endphp
+
+                                <div class="relative">
+                                    <button type="button" id="btnProgressAction"
+                                        class="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700">
+                                        Action
+                                    </button>
+
+                                    <div id="progressActionDropdown"
+                                        class="absolute right-0 top-full z-50 mt-1 hidden w-52 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+
+                                        @if ($hasApTreAccess && $isReceiveCompleted)
+                                            @php
+                                                $treAction = $isPaymentCompleted ? 'rollback' : 'update';
+                                                $treText = $isPaymentCompleted ? 'Rollback Treasury' : 'Update Treasury';
+                                            @endphp
+                                            <button type="button"
+                                                class="progress-action-item block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                data-mode="treasury"
+                                                data-action="{{ $treAction }}"
+                                                data-user="{{ $rfp->user_payment ?? '' }}"
+                                                data-date="{{ $rfp->payment_date ?? '' }}"
+                                                data-button-text="{{ $treText }}">
+                                                {{ $treText }}
+                                            </button>
+                                        @elseif ($hasApFinAccess && in_array($finFlowStatus, ['Waiting User', 'Finance Received']))
+                                            @php
+                                                $finAction = $isReceiveCompleted ? 'rollback' : 'update';
+                                                $finText = $isReceiveCompleted ? 'Rollback Received' : 'Update Received';
+                                            @endphp
+                                            <button type="button"
+                                                class="progress-action-item block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                data-mode="received"
+                                                data-action="{{ $finAction }}"
+                                                data-user="{{ $rfp->user_receive ?? '' }}"
+                                                data-date="{{ $rfp->receive_date ?? '' }}"
+                                                data-button-text="{{ $finText }}">
+                                                {{ $finText }}
+                                            </button>
+                                        @endif
+
+                                        <button type="button"
+                                            class="progress-action-item block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            data-mode="revise"
+                                            data-action="update"
+                                            data-user=""
+                                            data-date=""
+                                            data-button-text="Submit Revise">
+                                            Revise
+                                        </button>
+
+                                        <button type="button"
+                                            class="progress-action-item block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            data-mode="reminder"
+                                            data-action="update"
+                                            data-user=""
+                                            data-date=""
+                                            data-button-text="Send Reminder">
+                                            Reminder
+                                        </button>
+                                    </div>
+                                </div>
+                            @endif
                         </header>
 
                         <div class="overflow-x-auto">
@@ -323,7 +613,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="5" class="text-center text-gray-500 italic p-3">
+                                            <td colspan="5" class="text-center text-gray-500 italic p-3 dark:text-gray-400">
                                                 No progress yet
                                             </td>
                                         </tr>
@@ -332,6 +622,42 @@
                             </table>
                         </div>
                     </div>
+
+                </div>
+            </div>
+        </div>
+
+        {{-- Finance Action Modal (Progress Steps) --}}
+        <div id="rfpProgressActionModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+            <div class="w-full max-w-lg rounded-xl bg-white p-6 dark:bg-gray-800">
+                <h2 id="progressActionTitle" class="mb-4 text-lg font-semibold text-gray-800 dark:text-white">Action</h2>
+
+                <div class="space-y-3 text-sm">
+                    <div><strong>RFP ID:</strong> {{ $rfp->rfp_id }}</div>
+                    <div><strong>Keperluan:</strong> {{ $rfp->keperluan ?: '-' }}</div>
+                    <div><strong>Amount:</strong> Rp {{ number_format((float) $rfp->rfp_amount, 2, ',', '.') }}</div>
+                    <div><strong id="progressModalUserLabel">User:</strong> <span id="progressModalUserValue">-</span></div>
+                    <div><strong id="progressModalDateLabel">Date:</strong> <span id="progressModalDateValue">-</span></div>
+
+                    <div id="progressModalMessageWrapper" class="hidden">
+                        <label id="progressModalMessageLabel" class="mb-1 block font-semibold text-gray-700 dark:text-gray-200">
+                            Message
+                        </label>
+                        <textarea id="progressModalMessage" rows="4"
+                            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                            placeholder="Input message..."></textarea>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-2">
+                    <button type="button" id="closeProgressActionModal"
+                        class="rounded border border-gray-300 px-4 py-2 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700">
+                        Cancel
+                    </button>
+                    <button type="button" id="submitProgressActionBtn"
+                        class="rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
+                        Update
+                    </button>
                 </div>
             </div>
         </div>
@@ -352,7 +678,7 @@
                     placeholder="Enter rejection reason..."></textarea>
 
                 <div class="mt-4 flex justify-between">
-                    <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                    <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
                         Cancel
                     </button>
                     <button id="confirmRejectBtn" class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600">
@@ -369,10 +695,10 @@
                     placeholder="Enter revise reason..."></textarea>
 
                 <div class="mt-4 flex justify-between">
-                    <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                    <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
                         Cancel
                     </button>
-                    <button id="confirmReviseBtn" class="rounded-lg bg-gray-500 px-4 py-2 text-white hover:bg-gray-600">
+                    <button id="confirmReviseBtn" class="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
                         Revise
                     </button>
                 </div>
@@ -384,11 +710,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/plugin/relativeTime.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="{{ asset('assets/js/shared/mention-autocomplete.js') }}"></script>
 
     <script>
         dayjs.extend(dayjs_plugin_relativeTime);
 
         const rfpid = @json($rfp->rfp_id);
+        const rfpHash = @json($hash);
         const doctype = "RP";
         const csrf = @json(csrf_token());
 
@@ -455,7 +783,7 @@
 
         function loadComments(refnbr, doctype) {
             let commentList = $('#commentList');
-            commentList.html('<p class="text-gray-500 italic">Loading comments...</p>');
+            commentList.html('<p class="text-gray-500 italic dark:text-gray-400">Loading comments...</p>');
 
             $.ajax({
                 url: `/comments/${doctype}/${refnbr}`,
@@ -464,7 +792,7 @@
                     commentList.empty();
 
                     if (!response.comments || response.comments.length === 0) {
-                        commentList.append('<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>');
+                        commentList.append('<p class="text-gray-500 text-sm italic dark:text-gray-400">No comments yet. Be the first to comment!</p>');
                         return;
                     }
 
@@ -476,9 +804,9 @@
                             <div class="px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
                                 <p class="text-sm font-semibold">
                                     ${comment.username}
-                                    <span class="text-sm text-gray-500">(${timeAgo})</span>
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">(${timeAgo})</span>
                                 </p>
-                                <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
+                                <p class="text-gray-800 dark:text-gray-200">${highlightMentions(comment.message)}</p>
                             </div>
                         `);
                     });
@@ -548,6 +876,11 @@
             loadApproval(rfpid, doctype);
             loadComments(rfpid, doctype);
 
+            attachMentionAutocomplete({
+                inputSelector: '#commentInput',
+                fetchUrlFn: () => `/mentionable-users/${doctype}/${rfpid}`,
+            });
+
             $('#postCommentBtn').on('click', function(e) {
                 e.preventDefault();
                 addComment();
@@ -561,26 +894,104 @@
             });
 
             $(document).on("click", "#approveBtn", function() {
+                approveRfpWithIMCheck(rfpid);
+            });
+
+            function approveRfpWithIMCheck(rfpid, confirmGenerateIM = false) {
+                const $spinner = $("#loadingSpinnerContainer");
+
+                $("#approveBtn")
+                    .prop("disabled", true)
+                    .addClass("pointer-events-none opacity-60");
+
+                $spinner.fadeIn();
+
                 $.ajax({
-                    url: `/rfp/${rfpid}/approve`,
+                    url: `/rfp/${encodeURIComponent(rfpid)}/approve`,
                     type: "POST",
                     data: {
                         _token: csrf,
-                        rfpid: rfpid
+                        rfpid: rfpid,
+                        confirm_generate_im: confirmGenerateIM ? 1 : 0
                     },
                     success: function(response) {
-                        if (response.success) {
-                            toastr.success("RP approved successfully!");
+                        if (response?.need_confirm_generate_im) {
+                            $spinner.fadeOut();
+
+                            $("#approveBtn")
+                                .prop("disabled", false)
+                                .removeClass("pointer-events-none opacity-60");
+
+                            Swal.fire({
+                                title: 'Generate IM Budget?',
+                                text: response.message || 'Dokumen ini membutuhkan IM Budget. Generate sekarang?',
+                                icon: 'question',
+                                showCancelButton: true,
+                                confirmButtonText: 'Yes, generate',
+                                cancelButtonText: 'No'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    approveRfpWithIMCheck(rfpid, true);
+                                }
+                            });
+
+                            return;
+                        }
+
+                        if (response?.code === 'IM_IN_PROGRESS') {
+                            $spinner.fadeOut();
+
+                            $("#approveBtn")
+                                .prop("disabled", false)
+                                .removeClass("pointer-events-none opacity-60");
+
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Tidak bisa approve',
+                                text: response.message || 'Masih On Progress IM Budget.'
+                            });
+
+                            return;
+                        }
+
+                        if (response?.code === 'IM_CREATED_HOLD') {
+                            $spinner.fadeOut();
+
+                            toastr.success(response.message || 'IM Budget berhasil dibuat.');
+
+                            if (response.imbudget_show_url) {
+                                window.location.href = response.imbudget_show_url;
+                            } else {
+                                closeOrRedirect("/rfp");
+                            }
+
+                            return;
+                        }
+
+                        $spinner.fadeOut();
+
+                        if (response?.success) {
+                            toastr.success(response.message || "RP approved successfully!");
                             closeOrRedirect("/rfp");
                         } else {
-                            toastr.error(response.message || "Failed to approve RP.");
+                            $("#approveBtn")
+                                .prop("disabled", false)
+                                .removeClass("pointer-events-none opacity-60");
+
+                            toastr.error(response?.message || "Failed to approve RP.");
                         }
                     },
                     error: function(xhr) {
+                        $spinner.fadeOut();
+
+                        $("#approveBtn")
+                            .prop("disabled", false)
+                            .removeClass("pointer-events-none opacity-60");
+
                         toastr.error(xhr.responseJSON?.message || "Unable to approve RP.");
                     }
                 });
-            });
+            }
 
             $(document).on("click", "#rejectBtn", function() {
                 checkApproval(rfpid, "reject");
@@ -655,6 +1066,148 @@
                     error: function(xhr) {
                         toastr.error(xhr.responseJSON?.message || "Unable to revise RP.");
                     }
+                });
+            });
+
+            function formatNow() {
+                const now = new Date();
+                const day = String(now.getDate()).padStart(2, '0');
+                const month = now.toLocaleString('en-US', { month: 'short' });
+                const year = now.getFullYear();
+                const time = now.toTimeString().slice(0, 8);
+
+                return `${day} ${month} ${year} ${time}`;
+            }
+
+            let progressActionMode = null;
+            let progressActionType = null;
+
+            $('#btnProgressAction').on('click', function(e) {
+                e.stopPropagation();
+                $('#progressActionDropdown').toggleClass('hidden');
+            });
+
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('#btnProgressAction, #progressActionDropdown').length) {
+                    $('#progressActionDropdown').addClass('hidden');
+                }
+            });
+
+            $(document).on('click', '.progress-action-item', function() {
+                $('#progressActionDropdown').addClass('hidden');
+
+                progressActionMode = $(this).data('mode');
+                progressActionType = $(this).data('action');
+
+                const user = $(this).data('user') || '';
+                const date = $(this).data('date') || '';
+                const buttonText = $(this).data('button-text') || 'Update';
+
+                $('#progressModalMessageWrapper').addClass('hidden');
+                $('#progressModalMessage').val('');
+
+                if (progressActionMode === 'received') {
+                    $('#progressActionTitle').text(progressActionType === 'rollback' ? 'Rollback Received Finance' : 'Received Finance');
+                    $('#progressModalUserLabel').text('User Receive:');
+                    $('#progressModalDateLabel').text('Date Receive:');
+                    $('#progressModalUserValue').text(user || '-');
+                    $('#progressModalDateValue').text(date || '-');
+                } else if (progressActionMode === 'treasury') {
+                    $('#progressActionTitle').text(progressActionType === 'rollback' ? 'Rollback Treasury' : 'Received Treasury');
+                    $('#progressModalUserLabel').text('User Payment:');
+                    $('#progressModalDateLabel').text('Date Payment:');
+                    $('#progressModalUserValue').text(user || '-');
+                    $('#progressModalDateValue').text(date || '-');
+                } else if (progressActionMode === 'revise') {
+                    $('#progressActionTitle').text('Revise RFP');
+                    $('#progressModalUserLabel').text('Action:');
+                    $('#progressModalDateLabel').text('Date:');
+                    $('#progressModalUserValue').text('Revise');
+                    $('#progressModalDateValue').text(formatNow());
+                    $('#progressModalMessageWrapper').removeClass('hidden');
+                    $('#progressModalMessage').attr('placeholder', 'Input revise reason/message...');
+                } else if (progressActionMode === 'reminder') {
+                    $('#progressActionTitle').text('Send Reminder');
+                    $('#progressModalUserLabel').text('Action:');
+                    $('#progressModalDateLabel').text('Date:');
+                    $('#progressModalUserValue').text('Reminder');
+                    $('#progressModalDateValue').text(formatNow());
+                    $('#progressModalMessageWrapper').removeClass('hidden');
+                    $('#progressModalMessage').attr('placeholder', 'Input reminder message...');
+                }
+
+                $('#submitProgressActionBtn')
+                    .text(buttonText)
+                    .removeClass('bg-indigo-600 hover:bg-indigo-700 bg-red-600 hover:bg-red-700 bg-yellow-600 hover:bg-yellow-700')
+                    .addClass(
+                        progressActionType === 'rollback' ? 'bg-red-600 hover:bg-red-700' :
+                        progressActionMode === 'revise' ? 'bg-yellow-600 hover:bg-yellow-700' :
+                        'bg-indigo-600 hover:bg-indigo-700'
+                    );
+
+                $('#rfpProgressActionModal').removeClass('hidden').addClass('flex');
+            });
+
+            $('#closeProgressActionModal').on('click', function() {
+                $('#rfpProgressActionModal').addClass('hidden').removeClass('flex');
+            });
+
+            $('#submitProgressActionBtn').on('click', function() {
+                if (!progressActionMode) {
+                    return;
+                }
+
+                let message = '';
+                if (progressActionMode === 'revise' || progressActionMode === 'reminder') {
+                    message = ($('#progressModalMessage').val() || '').trim();
+
+                    if (!message) {
+                        toastr.error('Message wajib diisi.');
+                        $('#progressModalMessage').focus();
+                        return;
+                    }
+                }
+
+                const urlMap = {
+                    received: `/rfp/${rfpHash}/received`,
+                    treasury: `/rfp/${rfpHash}/treasury`,
+                    revise: `/rfp/${rfpHash}/finance-revise`,
+                    reminder: `/rfp/${rfpHash}/reminder`,
+                };
+
+                const url = urlMap[progressActionMode];
+                if (!url) {
+                    toastr.error('Invalid action.');
+                    return;
+                }
+
+                $('#submitProgressActionBtn').prop('disabled', true).text('Processing...');
+
+                $.ajax({
+                    url,
+                    type: 'POST',
+                    data: {
+                        _token: csrf,
+                        action_type: progressActionType,
+                        message,
+                        comment: message,
+                        reason: message,
+                    },
+                    success: function(res) {
+                        if (res.success) {
+                            toastr.success(res.message || 'Action processed successfully.');
+                            $('#rfpProgressActionModal').addClass('hidden').removeClass('flex');
+                            setTimeout(() => location.reload(), 800);
+                        } else {
+                            toastr.error(res.message || 'Action failed.');
+                        }
+                    },
+                    error: function(xhr) {
+                        toastr.error(xhr.responseJSON?.error || xhr.responseJSON?.message || 'Action failed.');
+                    },
+                    complete: function() {
+                        $('#submitProgressActionBtn').prop('disabled', false);
+                    },
                 });
             });
         });
@@ -771,6 +1324,66 @@
             $('#btnResetRfpAttachment').on('click', function() {
                 $('#rfpAttachFiles').val('');
             });
+        });
+    </script>
+    <script>
+        function formatBudgetNumber(value) {
+            value = Number(value || 0);
+
+            return value.toLocaleString('id-ID', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        $(document).on('mouseenter', '.budget-trigger', function() {
+            const $el = $(this);
+            const $tooltip = $('#budgetTooltip');
+
+            $('#ttDesc').text($el.data('desc') || '-');
+            $('#ttAccount').text($el.data('account') || '-');
+            $('#ttCoa').text($el.data('coa') || '-');
+            $('#ttBU').text($el.data('bu') || '-');
+
+            $('#ttBudget').text(formatBudgetNumber($el.data('budget')));
+            $('#ttAdditional').text(formatBudgetNumber($el.data('additional')));
+            $('#ttReserved').text(formatBudgetNumber($el.data('reserved')));
+            $('#ttUsed').text(formatBudgetNumber($el.data('used')));
+
+            const available = Number($el.data('available') || 0);
+            $('#ttAvailable')
+                .text(formatBudgetNumber(available))
+                .removeClass('text-red-600 text-emerald-600')
+                .addClass(available < 0 ? 'text-red-600' : 'text-emerald-600');
+
+            $tooltip.removeClass('hidden');
+        });
+
+        $(document).on('mousemove', '.budget-trigger', function(e) {
+            const $tooltip = $('#budgetTooltip');
+
+            let left = e.clientX + 16;
+            let top = e.clientY + 16;
+
+            const tooltipWidth = $tooltip.outerWidth() || 288;
+            const tooltipHeight = $tooltip.outerHeight() || 220;
+
+            if (left + tooltipWidth > window.innerWidth) {
+                left = e.clientX - tooltipWidth - 16;
+            }
+
+            if (top + tooltipHeight > window.innerHeight) {
+                top = e.clientY - tooltipHeight - 16;
+            }
+
+            $tooltip.css({
+                left: left + 'px',
+                top: top + 'px'
+            });
+        });
+
+        $(document).on('mouseleave', '.budget-trigger', function() {
+            $('#budgetTooltip').addClass('hidden');
         });
     </script>
 </x-app-layout>

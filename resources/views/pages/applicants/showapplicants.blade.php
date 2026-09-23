@@ -1,5 +1,11 @@
-<x-app-layout>
-    <div class="max-w-9xl mx-auto w-full py-1">
+﻿<x-app-layout>
+    <div class="max-w-9xl mx-auto w-full p-2">
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'Applicants', 'url' => route('applicants')],
+            ['label' => 'Show Details'],
+        ]" />
+
         <div class="grid">
             <div class="max-w-9xl mx-auto w-full px-2 py-1 sm:px-6 lg:px-2">
                 <div class="gap">
@@ -133,7 +139,7 @@
                                                                         class="text-sm text-gray-500 dark:text-gray-400">Age</span>
                                                                     <p
                                                                         class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                                        {{ $applicant->age }}</p>
+                                                                        {{ $applicant->age ?: ($applicant->date_of_birth ? \Carbon\Carbon::parse($applicant->date_of_birth)->age : '-') }}</p>
                                                                 </div>
                                                             </div>
                                                             <div class="flex items-center gap-2">
@@ -433,7 +439,7 @@
                                                                             Yes
                                                                         </span>
                                                                     @else
-                                                                        <span class="px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded">
+                                                                        <span class="px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded dark:bg-gray-900 dark:text-gray-400">
                                                                             No
                                                                         </span>
                                                                     @endif

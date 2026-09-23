@@ -114,6 +114,7 @@ class ReportWarehouseController extends Controller
                 'd.inventoryid',
                 'd.inventory_descr',
                 'd.issue_qty',
+                'd.uom',
                 'd.siteid',
 
                 'd.budget_business_unit_id',
@@ -288,7 +289,7 @@ class ReportWarehouseController extends Controller
     private function applyFilters($query, Request $request, $report = 'spb')
     {
         $user = auth()->user();
-        $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
+        $cpnyIds = $user->scopedCompanyIds();
 
         // ✅ COMPANY FILTER
         if ($report === 'movement') {
@@ -808,6 +809,8 @@ class ReportWarehouseController extends Controller
 
                 'Qty Issued' => number_format($row->issue_qty ?? 0,3,'.',''),
 
+                'UOM' => $row->uom ?? '',
+
                 'Issued By' => $users[$row->issue_created_by] ?? $row->issue_created_by,
 
                 'Issued Department' => $departments[$row->issue_department] ?? '',
@@ -930,7 +933,7 @@ class ReportWarehouseController extends Controller
             ->table('v_inventory_movement_detail');
 
         $user = auth()->user();
-        $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
+        $cpnyIds = $user->scopedCompanyIds();
 
         $query->whereIn('cpny_id', $cpnyIds);
 

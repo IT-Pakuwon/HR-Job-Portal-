@@ -18,17 +18,22 @@ class IssueListController extends Controller
         if (!$user) return redirect()->route('login');
 
         $u       = $user->username ?? '';
-        $cpny_id = $user->cpny_id ?? '';
+        // user->cpny_id bisa "AW" atau "AW,GPS,..."
+        $cpnyRaw  = $user->cpny_id ?? '';
+        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
 
         // Count untuk header/kartu ringkasan
         $onProgress = TrIssue::where('created_by', $u)->where('status', 'P')->count();
         $completed  = TrIssue::where('created_by', $u)->where('status', 'C')->count();
-        $all        = TrIssue::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))->count();
+        $all        = TrIssue::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))->count();
         $rejected   = TrIssue::where('created_by', $u)->where('status','R')->count();
         $revise     = TrIssue::where('created_by', $u)->where('status','D')->count();
+        $issueAll   = TrIssue::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
+            ->where('status', '!=', 'X')
+            ->count();
 
         // Return Jobs: status C + issuetype 'RI'
-        $returnjobs = TrIssue::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
+        $returnjobs = TrIssue::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
             ->where('status', 'C')
             ->where('issuetype', 'IS')
             ->count();
@@ -39,7 +44,8 @@ class IssueListController extends Controller
             'all',
             'rejected',
             'revise',
-            'returnjobs'
+            'returnjobs',
+            'issueAll'
         ));
     }
 
@@ -49,7 +55,8 @@ class IssueListController extends Controller
         $scope   = strtolower((string) $req->query('scope', 'all'));
         $user    = Auth::user();
         $u       = $user->username ?? '';
-        $cpny_id = $user->cpny_id ?? '';
+        $cpnyRaw  = $user->cpny_id ?? '';
+        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
 
         $draw   = (int) $req->input('draw', 1);
         $start  = (int) $req->input('start', 0);
@@ -64,12 +71,13 @@ class IssueListController extends Controller
 
         // === TrIssue untuk semua scope (onprogress/completed/rejected/revise/returnjobs/all) ===
         $base = TrIssue::query()
-            ->when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
+            ->when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
             ->when($scope === 'onprogress', fn($q) => $q->where('created_by', $u)->where('status', 'P'))
             ->when($scope === 'completed',  fn($q) => $q->where('created_by', $u)->where('status', 'C'))
             ->when($scope === 'rejected',   fn($q) => $q->where('created_by', $u)->where('status', 'R'))
             ->when($scope === 'revise',     fn($q) => $q->where('created_by', $u)->where('status', 'D'))
             ->when($scope === 'returnjobs', fn($q) => $q->where('status', 'C')->where('issuetype', 'IS'))
+            ->when($scope === 'issueall',   fn($q) => $q->where('status', '!=', 'X'))
             // scope 'all' tidak tambahan filter lagi
             ->select([
                 'id', 'issueid', 'issuedate', 'issuetype', 'spbid', 'cpny_id', 'created_by', 'status',
@@ -86,6 +94,9 @@ class IssueListController extends Controller
             7 => 'status',
         ];
 
+        // Hitung total sebelum filter search diterapkan
+        $recordsTotal = (clone $base)->count();
+
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
                 $q->where('issueid', 'ilike', "%{$search}%")
@@ -95,12 +106,12 @@ class IssueListController extends Controller
                   ->orWhere('cpny_id', 'ilike', "%{$search}%")
                   ->orWhere('created_by', 'ilike', "%{$search}%")
                   ->orWhere('status', 'ilike', "%{$search}%")
+                  ->orWhereRaw("CASE WHEN status='D' THEN 'Revise' WHEN status='P' THEN 'On Progress' WHEN status='C' THEN 'Completed' WHEN status='X' THEN 'Cancel' WHEN status='R' THEN 'Rejected' ELSE status END ILIKE ?", ["%{$search}%"])
                   ->orWhereRaw("TO_CHAR(issuedate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
             });
         }
 
-        // Hitung total dan filtered
-        $recordsTotal    = (clone $base)->count();
+        // Hitung filtered setelah search diterapkan
         $recordsFiltered = (clone $base)->count();
 
         // Ordering

@@ -42,6 +42,8 @@ use App\Models\TrWO;
 use App\Models\TrSPB;
 use App\Models\TrRfpNonPurch;
 use App\Models\TrRfpNonPurchDetail;
+use App\Models\TrRfp;
+use App\Models\TrRfpKontrakBudget;
 use App\Models\TrCalrNonPurch;
 
 
@@ -56,11 +58,8 @@ class IMBudgetController extends Controller
         }
 
         $u        = $user->username ?? '';
-        $cpnyRaw  = $user->cpny_id ?? '';
-        $deptRaw  = $user->department_id ?? '';
-
-        $cpnyList = $cpnyRaw !== '' ? array_values(array_filter(array_map('trim', explode(',', $cpnyRaw)))) : [];
-        $deptList = $deptRaw !== '' ? array_values(array_filter(array_map('trim', explode(',', $deptRaw)))) : [];
+        $cpnyList = $user->scopedCompanyIds();
+        $deptList = $user->scopedDepartmentIds();
 
         $isFinanceAccess = SysUserRole::where('username', $u)
             ->where('role_id', 'FINACCESS')
@@ -127,11 +126,8 @@ class IMBudgetController extends Controller
         }
 
         $u        = $user->username ?? '';
-        $cpnyRaw  = $user->cpny_id ?? '';
-        $deptRaw  = $user->department_id ?? '';
-
-        $cpnyList = $cpnyRaw !== '' ? array_values(array_filter(array_map('trim', explode(',', $cpnyRaw)))) : [];
-        $deptList = $deptRaw !== '' ? array_values(array_filter(array_map('trim', explode(',', $deptRaw)))) : [];
+        $cpnyList = $user->scopedCompanyIds();
+        $deptList = $user->scopedDepartmentIds();
 
         $isFinanceAccess = SysUserRole::where('username', $u)
             ->where('role_id', 'FINACCESS')
@@ -147,12 +143,13 @@ class IMBudgetController extends Controller
 
         $columns = [
             0 => 'imb.imbudgetid',
-            1 => 'imb.imbudgetdate',
-            2 => 'imb.csid',
-            3 => 'imb.sppbjktid',
+            1 => 'imb.imbudgetid',
+            2 => 'imb.imbudgetdate',
+            3 => 'imb.imbudgetid',
             4 => 'imb.cpny_id',
             5 => 'imb.user_peminta',
-            6 => 'imb.status',
+            6 => 'imb.keperluan',
+            7 => 'imb.status',
         ];
 
         $orderIdx = (int) $request->input('order.0.column', 1);
@@ -182,8 +179,14 @@ class IMBudgetController extends Controller
                 $q->where('imb.imbudgetid', 'ilike', $like)
                     ->orWhere('imb.csid', 'ilike', $like)
                     ->orWhere('imb.sppbjktid', 'ilike', $like)
+                    ->orWhere('imb.spbid', 'ilike', $like)
+                    ->orWhere('imb.issueid', 'ilike', $like)
+                    ->orWhere('imb.rfp_id', 'ilike', $like)
+                    ->orWhere('imb.rfpnonpurchaseid', 'ilike', $like)
+                    ->orWhere('imb.calrnonpurchaseid', 'ilike', $like)
                     ->orWhere('imb.cpny_id', 'ilike', $like)
                     ->orWhere('imb.user_peminta', 'ilike', $like)
+                    ->orWhere('imb.keperluan', 'ilike', $like)
                     ->orWhere('imb.status', 'ilike', $like);
             });
         }
@@ -196,8 +199,14 @@ class IMBudgetController extends Controller
                 'imb.imbudgetdate',
                 'imb.csid',
                 'imb.sppbjktid',
+                'imb.spbid',
+                'imb.issueid',
+                'imb.rfp_id',
+                'imb.rfpnonpurchaseid',
+                'imb.calrnonpurchaseid',
                 'imb.cpny_id',
                 'imb.user_peminta',
+                'imb.keperluan',
                 'imb.status',
                 'imb.created_by'
             )
@@ -219,6 +228,19 @@ class IMBudgetController extends Controller
             if (!$row->eid && $row->imbudgetid) {
                 $row->eid = rawurlencode($row->imbudgetid);
             }
+
+            $row->refnbr = collect([
+                    $row->csid,
+                    $row->sppbjktid,
+                    $row->spbid,
+                    $row->issueid,
+                    $row->rfp_id,
+                    $row->rfpnonpurchaseid,
+                    $row->calrnonpurchaseid,
+                ])
+                ->map(fn ($value) => trim((string) $value))
+                ->filter()
+                ->implode(' - ');
 
             unset($row->rid);
             return $row;
@@ -431,7 +453,7 @@ class IMBudgetController extends Controller
                 | budget_needed/requested = selisih expense - budget_remain.
                 |--------------------------------------------------------------------------
                 */
-                $budgetRemain = max(0.0, $remain);
+                $budgetRemain = max(0.0, $remain + $expense);
                 $needed = max(0.0, $expense - $budgetRemain);
                 $requested = $needed;
 
@@ -860,13 +882,13 @@ class IMBudgetController extends Controller
         |--------------------------------------------------------------------------
         | Ambil detail source
         |--------------------------------------------------------------------------
-        | RCA: ambil detail budget awal saja, refid = BUDGET-RFCA
+        | RCA: ambil detail budget awal saja, refid = BUDGET-RCA
         |--------------------------------------------------------------------------
         */
         $rows = TrRfpNonPurchDetail::query()
             ->where('rfpnonpurchaseid', $sourceDocid)
             ->when($imdoctype === 'RCA', function ($q) {
-                $q->where('refid', 'BUDGET-RFCA');
+                $q->where('rfpnonpurch_budget_type', 'BUDGET-RCA');
             })
             ->orderBy('id')
             ->get();
@@ -1056,7 +1078,7 @@ class IMBudgetController extends Controller
                 | budget_needed/requested = selisih expense - budget_remain.
                 |--------------------------------------------------------------------------
                 */
-                $budgetRemain = max(0.0, $remain);
+                $budgetRemain = max(0.0, $remain + $expense);
                 $needed = max(0.0, $expense - $budgetRemain);
                 $requested = $needed;
 
@@ -1269,6 +1291,339 @@ class IMBudgetController extends Controller
         }
     }
 
+    public function generateIMBudgetFromRfp(TrRfp $rfp, $user = null, $dt = null)
+    {
+        $dt = $dt ?: Carbon::now();
+
+        $username = $user->username
+            ?? auth()->user()->username
+            ?? 'system';
+
+        $sourceDocid = trim((string) $rfp->rfp_id);
+
+        if ($sourceDocid === '') {
+            throw new \Exception('RFP ID tidak ditemukan.');
+        }
+
+        $imdoctype = 'RP';
+
+        $existingBySource = TrIMBudget::query()
+            ->where('rfp_id', $sourceDocid)
+            ->where('doctype', $imdoctype)
+            ->whereIn('status', ['H', 'P', 'C'])
+            ->orderByDesc('id')
+            ->first();
+
+        if ($existingBySource) {
+            return $existingBySource;
+        }
+
+        $rows = TrRfpKontrakBudget::query()
+            ->where('rfp_id', $sourceDocid)
+            ->where('status', '<>', 'X')
+            ->orderBy('id')
+            ->get();
+
+        if ($rows->isEmpty()) {
+            throw new \Exception("Detail kontrak budget RFP {$sourceDocid} tidak ditemukan.");
+        }
+
+        $toFloat = function ($v): ?float {
+            if ($v === null || $v === '') {
+                return null;
+            }
+
+            $s = preg_replace('/\s+/', '', (string) $v);
+            $hasComma = strpos($s, ',') !== false;
+            $hasDot = strpos($s, '.') !== false;
+
+            if ($hasComma && $hasDot) {
+                $lastComma = strrpos($s, ',');
+                $lastDot = strrpos($s, '.');
+
+                if ($lastComma > $lastDot) {
+                    $s = str_replace('.', '', $s);
+                    $s = str_replace(',', '.', $s);
+                } else {
+                    $s = str_replace(',', '', $s);
+                }
+            } elseif ($hasComma) {
+                $s = str_replace(',', '.', $s);
+            } elseif ($hasDot && substr_count($s, '.') > 1) {
+                $s = str_replace('.', '', $s);
+            }
+
+            return is_numeric($s) ? (float) $s : null;
+        };
+
+        $cpnyid = $rfp->cpny_id;
+        $departementid = $rfp->department_id;
+        $perpost = $rows->pluck('budget_perpost')->filter()->first();
+        $userPeminta = $rfp->user_peminta ?: $rfp->created_by ?: $username;
+        $keperluan = $rfp->keperluan;
+
+        DB::connection('pgsql')->beginTransaction();
+
+        try {
+            $groups = [];
+
+            foreach ($rows as $d) {
+                $gPerpost = $d->budget_perpost ?: $perpost;
+                $gCpny = $d->budget_cpny_id ?: $cpnyid;
+                $gBu = $d->budget_business_unit_id ?: null;
+                $gDeptFin = $d->budget_department_fin_id ?: null;
+                $gAccount = $d->budget_account_id ?: null;
+                $gActivity = $d->budget_activity_id ?: null;
+                $gActdescr = $d->budget_activity_descr ?: null;
+                $amount = $toFloat($d->rfp_base_amount ?? 0) ?? 0.0;
+
+                if ($amount <= 0) {
+                    continue;
+                }
+
+                $key = implode('|', [
+                    (string) $gPerpost,
+                    (string) $gCpny,
+                    (string) $gBu,
+                    (string) $gDeptFin,
+                    (string) $gAccount,
+                    (string) $gActivity,
+                    (string) $gActdescr,
+                ]);
+
+                if (!isset($groups[$key])) {
+                    $groups[$key] = [
+                        'sum' => 0.0,
+                        'perpost' => $gPerpost,
+                        'cpny' => $gCpny,
+                        'bu' => $gBu,
+                        'deptfin' => $gDeptFin,
+                        'account' => $gAccount,
+                        'activity' => $gActivity,
+                        'actdescr' => $gActdescr,
+                    ];
+                }
+
+                $groups[$key]['sum'] += $amount;
+            }
+
+            if (empty($groups)) {
+                throw new \Exception("Tidak ada nilai expense yang valid untuk RFP {$sourceDocid}.");
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Helper ambil remain budget
+            |--------------------------------------------------------------------------
+            */
+            $getBudgetRemain = function ($perpost, $cpny, $bu, $deptfin, $account, $activity, $actdescr): float {
+                $q = BudgetDetail::query()
+                    ->where('perpost', $perpost)
+                    ->where('cpny_id', $cpny)
+                    ->where('status', 'C')
+                    ->when($bu, fn ($q) => $q->where('business_unit_id', $bu))
+                    ->when($deptfin, fn ($q) => $q->where('department_fin_id', $deptfin))
+                    ->when($account, fn ($q) => $q->where('account_id', $account))
+                    ->when($actdescr, fn ($q) => $q->where('activity_descr', $actdescr))
+                    ->when($activity, fn ($q) => $q->where('activity_id', $activity));
+
+                $row = $q->first();
+
+                if (!$row) {
+                    return 0.0;
+                }
+
+                $totalBudget = (float) ($row->totalbudget ?? 0);
+                $totalAdditional = (float) ($row->totalbudget_add ?? 0);
+                $totalReserve = (float) ($row->total_reserve ?? 0);
+                $totalUsed = (float) ($row->total_used ?? 0);
+
+                return ($totalBudget + $totalAdditional) - ($totalReserve + $totalUsed);
+            };
+
+            $needDetails = [];
+            $sumExpense = 0.0;
+            $sumRemain = 0.0;
+            $sumNeeded = 0.0;
+            $sumRequested = 0.0;
+
+            foreach ($groups as $g) {
+                $expense = round((float) $g['sum'], 2);
+                $remain = round((float) $getBudgetRemain(
+                    $g['perpost'],
+                    $g['cpny'],
+                    $g['bu'],
+                    $g['deptfin'],
+                    $g['account'],
+                    $g['activity'],
+                    $g['actdescr']
+                ), 2);
+
+                $budgetRemain = max(0.0, $remain + $expense);
+                $needed = max(0.0, $expense - $budgetRemain);
+                $requested = $needed;
+
+                if ($needed <= 0) {
+                    continue;
+                }
+
+                $needDetails[] = [
+                    'budget_perpost' => $g['perpost'],
+                    'budget_cpny_id' => $g['cpny'],
+                    'budget_business_unit_id' => $g['bu'],
+                    'budget_department_fin_id' => $g['deptfin'],
+                    'budget_account_id' => $g['account'],
+                    'budget_activity_id' => $g['activity'],
+                    'budget_activity_descr' => $g['actdescr'],
+                    'amount_expense' => $expense,
+                    'budget_remain' => $budgetRemain,
+                    'budget_needed' => $needed,
+                    'budget_requested' => $requested,
+                ];
+
+                $sumExpense += $expense;
+                $sumRemain += $budgetRemain;
+                $sumNeeded += $needed;
+                $sumRequested += $requested;
+            }
+
+            if ($sumNeeded <= 0 || empty($needDetails)) {
+                throw new \Exception("Tidak ada kekurangan budget untuk RFP {$sourceDocid}.");
+            }
+
+            $doctype = 'IM';
+            $year = (int) $dt->year;
+            $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+
+            $auto = $this->nextAutonbr(
+                $doctype,
+                $year,
+                $month,
+                $username,
+                'IMBudget'
+            );
+
+            $urutan = (int) $auto['next'];
+            $tglbln = substr((string) $year, 2) . $month;
+            $docid = $doctype . $tglbln . sprintf('%04d', $urutan);
+
+            $header = new TrIMBudget();
+            $header->imbudgetid = $docid;
+            $header->imbudgetdate = $dt->toDateString();
+            $header->doctype = $imdoctype;
+            $header->csid = null;
+            $header->sppbjktid = null;
+            $header->spbid = null;
+            $header->issueid = null;
+            $header->rfp_id = $sourceDocid;
+            $header->rfpnonpurchaseid = null;
+            $header->calrnonpurchaseid = null;
+            $header->cpny_id = $cpnyid;
+            $header->department_id = $departementid;
+            $header->user_peminta = $userPeminta;
+            $header->keperluan = $keperluan;
+            $header->imbudgetnote = null;
+            $header->budget_perpost = $perpost;
+            $header->total_amount_expense = round($sumExpense, 2);
+            $header->total_budget_remain = round($sumRemain, 2);
+            $header->total_budget_needed = round($sumNeeded, 2);
+            $header->total_budget_requested = round($sumRequested, 2);
+            $header->status = 'H';
+            $header->created_by = $username;
+            $header->created_at = $dt;
+            $header->save();
+
+            foreach ($needDetails as $d) {
+                $detail = new TrIMBudgetdetail();
+                $detail->imbudgetid = $docid;
+                $detail->doctype = $imdoctype;
+                $detail->csid = null;
+                $detail->sppbjktid = null;
+                $detail->spbid = null;
+                $detail->issueid = null;
+                $detail->rfp_id = $sourceDocid;
+                $detail->rfpnonpurchaseid = null;
+                $detail->calrnonpurchaseid = null;
+                $detail->budget_perpost = $d['budget_perpost'];
+                $detail->budget_cpny_id = $d['budget_cpny_id'];
+                $detail->budget_business_unit_id = $d['budget_business_unit_id'];
+                $detail->budget_department_fin_id = $d['budget_department_fin_id'];
+                $detail->budget_account_id = $d['budget_account_id'];
+                $detail->budget_activity_id = $d['budget_activity_id'];
+                $detail->budget_activity_descr = $d['budget_activity_descr'];
+                $detail->amount_expense = $d['amount_expense'];
+                $detail->budget_remain = $d['budget_remain'];
+                $detail->budget_needed = $d['budget_needed'];
+                $detail->budget_requested = $d['budget_requested'];
+                $detail->note = null;
+                $detail->status = 'P';
+                $detail->created_by = $username;
+                $detail->created_at = $dt;
+                $detail->save();
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Update Source RFP Purchase
+            |--------------------------------------------------------------------------
+            */
+            $rfp->imbudgetid = $header->imbudgetid;
+            $rfp->status_imbudget = 'H';
+            $rfp->updated_by = $username;
+            $rfp->updated_at = $dt;
+            $rfp->save();
+
+            $eid = Hashids::encode($header->id);
+
+            $data = [
+                'docid' => $docid,
+                'cpnyid' => $header->cpny_id,
+                'deptname' => $header->department_id,
+                'date' => $header->imbudgetdate,
+                'name' => (string) $header->user_peminta,
+                'createdby' => $username,
+                'info' => "Request IM Budget RFP {$sourceDocid} - Dept {$header->department_id}",
+                'status' => $header->status,
+                'docname' => 'IM Budget',
+                'url' => url('/editimbudgets/' . $eid),
+            ];
+
+            $recipientUsernames = array_values(array_filter(array_map(
+                fn ($x) => trim((string) $x),
+                explode(',', (string) $header->user_peminta)
+            )));
+
+            if (empty($recipientUsernames) && !empty($rfp->created_by)) {
+                $recipientUsernames = [$rfp->created_by];
+            }
+
+            $emails = User::query()
+                ->whereIn('username', $recipientUsernames)
+                ->where('status', 'A')
+                ->pluck('notification_email')
+                ->filter(fn ($e) => trim((string) $e) !== '')
+                ->unique()
+                ->values();
+
+            foreach ($emails as $email) {
+                Mail::send('emails.mailapprovehold', $data, function ($message) use ($email, $data) {
+                    $message->to($email)
+                        ->subject($data['docid'] . ' - On Hold IM Budget')
+                        ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+                });
+            }
+
+            DB::connection('pgsql')->commit();
+
+            return $header;
+        } catch (\Throwable $e) {
+            DB::connection('pgsql')->rollBack();
+            report($e);
+
+            throw $e;
+        }
+    }
+
     public function generateIMBudgetFromCalrNonPurch(TrCalrNonPurch $calr, $user = null, $dt = null)
     {
         $dt = $dt ?: Carbon::now();
@@ -1278,9 +1633,14 @@ class IMBudgetController extends Controller
             ?? 'system';
 
         $sourceDocid = trim((string) $calr->calrnonpurchaseid);
+        $rfpNonPurchaseId = trim((string) $calr->rfpnonpurchaseid);
 
         if ($sourceDocid === '') {
             throw new \Exception('CALR Non Purchase ID tidak ditemukan.');
+        }
+
+        if ($rfpNonPurchaseId === '') {
+            throw new \Exception("RFP/RCA Non Purchase ID untuk CALR {$sourceDocid} tidak ditemukan.");
         }
 
         /*
@@ -1332,7 +1692,7 @@ class IMBudgetController extends Controller
         |--------------------------------------------------------------------------
         */
         $rows = TrRfpNonPurchDetail::query()
-            ->where('rfpnonpurchaseid', $calr->rfpnonpurchaseid)
+            ->where('rfpnonpurchaseid', $rfpNonPurchaseId)
             ->where('refid', $sourceDocid)
             ->orderBy('id')
             ->get();
@@ -1465,6 +1825,15 @@ class IMBudgetController extends Controller
                 throw new \Exception("Tidak ada nilai expense yang valid untuk CALR Non Purchase {$sourceDocid}.");
             }
 
+            $calrBudgetRemain = max(0.0, round(
+                (float) ($calr->amountsettlement ?? 0) - (float) ($calr->amountrfp ?? 0),
+                2
+            ));
+
+            if ($calrBudgetRemain <= 0) {
+                throw new \Exception("Tidak ada selisih settlement untuk CALR Non Purchase {$sourceDocid}.");
+            }
+
             /*
             |--------------------------------------------------------------------------
             | Helper ambil remain budget
@@ -1509,9 +1878,14 @@ class IMBudgetController extends Controller
             $sumRemain = 0.0;
             $sumNeeded = 0.0;
             $sumRequested = 0.0;
+            $calrDifferenceApplied = false;
 
             foreach ($groups as $g) {
-                $expense = round((float) $g['sum'], 2);
+                if ($calrDifferenceApplied) {
+                    continue;
+                }
+
+                $expense = $calrBudgetRemain;
 
                 $remain = round((float) $getBudgetRemain(
                     $g['perpost'],
@@ -1529,9 +1903,10 @@ class IMBudgetController extends Controller
                 |--------------------------------------------------------------------------
                 | budget_remain = sisa budget yang tersedia (jika minus dibulatkan ke 0).
                 | budget_needed/requested = selisih expense - budget_remain.
+                | Khusus CALR Non Purchase, expense memakai selisih settlement - RFP.
                 |--------------------------------------------------------------------------
                 */
-                $budgetRemain = max(0.0, $remain);
+                $budgetRemain = max(0.0, $remain + $expense);
                 $needed = max(0.0, $expense - $budgetRemain);
                 $requested = $needed;
 
@@ -1557,6 +1932,7 @@ class IMBudgetController extends Controller
                 $sumRemain += $budgetRemain;
                 $sumNeeded += $needed;
                 $sumRequested += $requested;
+                $calrDifferenceApplied = true;
             }
 
             /*
@@ -1607,7 +1983,7 @@ class IMBudgetController extends Controller
             $header->spbid = null;
             $header->issueid = null;
             $header->rfp_id = null;
-            $header->rfpnonpurchaseid = null;
+            $header->rfpnonpurchaseid = $rfpNonPurchaseId;
             $header->calrnonpurchaseid = $sourceDocid;
 
             $header->cpny_id = $cpnyid;
@@ -1642,7 +2018,7 @@ class IMBudgetController extends Controller
                 $detail->spbid = null;
                 $detail->issueid = null;
                 $detail->rfp_id = null;
-                $detail->rfpnonpurchaseid = null;
+                $detail->rfpnonpurchaseid = $rfpNonPurchaseId;
                 $detail->calrnonpurchaseid = $sourceDocid;
 
                 $detail->budget_perpost = $d['budget_perpost'];
@@ -2687,12 +3063,24 @@ class IMBudgetController extends Controller
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload = $imbudget->user_peminta === $loginUsername;
 
+        $isApprover = TrApproval::where('refnbr', $imbudget->imbudgetid)
+            ->where('aprv_doctype', 'IM')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
+
         return view('pages.imbudgets.showimbudgets', compact(
             'imbudget',
             'attachments',
             'imbudgetdetail',
             'hash',
             'canUpload',
+            'isApprover',
             'eid_cs',
             'eid_sppbjkt',
             'eid_rfp',
@@ -3296,6 +3684,55 @@ class IMBudgetController extends Controller
             'success' => true,
             'message' => 'IMBudget revised successfully',
         ]);
+    }
+
+    public function cancelIMBudget(Request $request, string $hash)
+    {
+        $decoded = Hashids::decode($hash);
+        abort_if(empty($decoded), 404, 'Invalid document');
+
+        $id = $decoded[0];
+        $imbudget = TrIMBudget::findOrFail($id);
+
+        DB::beginTransaction();
+        try {
+            $username = Auth::user()->username ?? Auth::id();
+            $now = now();
+
+            $imbudget->status = 'X';
+            $imbudget->updated_by = $username;
+            $imbudget->updated_at = $now;
+            $imbudget->save();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Update status IM ke source document
+            |--------------------------------------------------------------------------
+            | CS / SPB / Issue / RFP / RFP Non Purchase / CALR Non Purchase
+            |--------------------------------------------------------------------------
+            */
+            $this->updateSourceIMBudgetStatus(
+                $imbudget,
+                'X',
+                $username,
+                $now
+            );
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Document canceled.',
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to cancel document.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function rejectIMBudget_xxx(Request $request, $docid)
@@ -3973,7 +4410,13 @@ class IMBudgetController extends Controller
         string $username,
         \Carbon\Carbon $now
     ): void {
-        // TODO: isi nanti kalau model/table RFP sudah diberikan.
+        TrRfp::where('rfp_id', $rfpId)
+            ->update([
+                'imbudgetid' => $imbudgetid,
+                'status_imbudget' => $statusIm,
+                'updated_by' => $username,
+                'updated_at' => $now,
+            ]);
     }
 
 

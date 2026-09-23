@@ -13,6 +13,6 @@ class Autonbr extends Model
     public $timestamps = false;   // <--- ini penting kalau kolom ts tidak ada
 
     protected $fillable = [
-        'doctype','doctype_descr','year','month','number','status','created_by','updated_by',
+        'doctype','doctype_descr','year','month','cpny_id','number','status','created_by','updated_by',
     ];
 }

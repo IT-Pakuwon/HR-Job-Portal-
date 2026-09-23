@@ -18,6 +18,8 @@ use App\Models\Jobposting;
 use App\Models\JobpostingResponsiblities;
 use App\Models\JobpostingQualification;
 use App\Models\AutonbrJobportal;
+use App\Models\TrApproval;
+use App\Models\TrAttachment;
 use Mail;
 
 
@@ -53,7 +55,7 @@ class JobpostingController extends Controller
     public function showJobposting($id)
     {
         $jobposting = Jobposting::findOrFail($id);
-        $approval = T_approval::where('docid', $jobposting->docid)
+        $approval = TrApproval::where('docid', $jobposting->docid)
             ->where('status','<>','X')
             ->orderBy('created_at')
             ->orderBy('aprvid')
@@ -63,19 +65,23 @@ class JobpostingController extends Controller
             ->get();
         $jobqua = JobpostingQualification::where('docid', $jobposting->docid)
             ->get();
-        $attachment = Attachment::where('docid', $jobposting->docid)
+        $attachment = TrAttachment::where('docid', $jobposting->docid)
             ->where('status','A')
             ->get();
 
         return view('pages.jobpostings.showjobpostings', compact('jobposting','jobres','jobqua','approval','attachment'));
     }
 
-    public function list()
+    public function list(Request $request)
     {
+        $groupCompanyId = strtoupper(trim((string) ($request->user()->group_cpny_id ?? '')));
+
         return DB::connection('mysql3')
             ->table('hr_trx_jobposting as jp')
             ->select(
                 'jp.docid',
+                'jp.status',
+                'jp.group_cpny_id',
                 DB::raw("
                     CONCAT(
                         IFNULL(jp.name_job, IFNULL(jp.job_title,'-')),
@@ -85,7 +91,9 @@ class JobpostingController extends Controller
                     ) as job_name
                 ")
             )
-            ->where('jp.status', 'P')
+            ->where('jp.group_cpny_id', $groupCompanyId)
+            ->whereIn('jp.status', ['P', 'U'])
+            ->orderByDesc('jp.id')
             ->get();
     }
 

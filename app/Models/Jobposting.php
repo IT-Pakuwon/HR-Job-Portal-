@@ -12,6 +12,7 @@ class Jobposting extends Model
         'docid',
         'refid',
         'cpnyid',
+        'group_cpny_id',
         'departementid',
         'division_id',
         'locationname',

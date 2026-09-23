@@ -87,6 +87,27 @@
         font-weight: bold;
     }
 
+    /* DomPDF tidak selalu menerapkan lebar dari colgroup. */
+    .items-table .col-no {
+        width: 5% !important;
+        padding-left: 2px;
+        padding-right: 2px;
+        text-align: center;
+    }
+
+    .items-table .col-description {
+        width: 35% !important;
+    }
+
+    .items-table .col-qty {
+        width: 12% !important;
+    }
+
+    .items-table .col-location,
+    .items-table .col-budget {
+        width: 24% !important;
+    }
+
     .text-center {
         text-align: center;
     }
@@ -189,7 +210,7 @@
             <td class="meta-label">Nama Tenant</td>
             <td>{{ $nama_tenant }}</td>
 
-            <td class="meta-label">No Unit Tenant</td>
+            <td class="meta-label">Floor - Store No</td>
             <td>{{ $no_unit_tenant }}</td>
         </tr>
 
@@ -214,22 +235,29 @@
 </table>
 
 <table class="items-table">
+    <colgroup>
+        <col style="width: 5%;">
+        <col style="width: 35%;">
+        <col style="width: 12%;">
+        <col style="width: 24%;">
+        <col style="width: 24%;">
+    </colgroup>
     <thead>
         <tr>
-            <th style="width:25px;">No</th>
-            <th>Description / Note</th>
-            <th style="width:70px;">Qty / UoM</th>
-            <th style="width:140px;">Location</th>
-            <th style="width:140px;">Budget Department</th>
+            <th class="col-no" width="5%">No</th>
+            <th class="col-description" width="35%">Description / Note</th>
+            <th class="col-qty" width="12%">Qty / UoM</th>
+            <th class="col-location" width="24%">Location</th>
+            <th class="col-budget" width="24%">Budget Department</th>
         </tr>
     </thead>
 
     <tbody>
         @forelse($detail as $i => $dt)
             <tr>
-                <td class="text-center">{{ $i + 1 }}</td>
+                <td class="col-no" width="5%">{{ $i + 1 }}</td>
 
-                <td>
+                <td class="col-description" width="35%">
                     {{ $dt->inventory_descr ?? $dt->description ?? $dt->work_description ?? '-' }}
 
                     @if(!empty($dt->inventoryid))
@@ -244,7 +272,7 @@
                     @endif
                 </td>
 
-                <td class="text-right">
+                <td class="col-qty text-right" width="12%">
                     {{ number_format((float) ($dt->qty ?? 0), 2) }}
 
                     @if(!empty($dt->uom))
@@ -255,7 +283,7 @@
                     @endif
                 </td>
 
-                <td>
+                <td class="col-location" width="24%">
                     {{ optional($dt->location)->location_name }}
 
                     @if(optional($dt->subLocation)->sub_location_name)
@@ -263,7 +291,7 @@
                     @endif
                 </td>
 
-                <td>
+                <td class="col-budget" width="24%">
                     {{ $dt->budget_account_id ?? '-' }}
 
                     @if(!empty($dt->budget_activity_descr))

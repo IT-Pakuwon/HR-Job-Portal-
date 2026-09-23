@@ -56,19 +56,8 @@ class SpptController extends Controller
             return redirect()->route('login');
         }
 
-        // Paksa ke array supaya aman jika nanti multi company/dept
-        if (is_string($user->cpny_id)) {
-            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
-        } else {
-            $cpnyIds = (array) $user->cpny_id;
-        }
-
-        // department_id juga bisa multi, tapi di debug sudah "IT"
-        if (is_string($user->department_id)) {
-            $deptIds = array_map('trim', explode(',', $user->department_id));
-        } else {
-            $deptIds = (array) $user->department_id;
-        }
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $all = TrSPPT::whereIn('cpny_id', $cpnyIds)
                     ->whereIn('department_id', $deptIds)
@@ -89,6 +78,11 @@ class SpptController extends Controller
                     ->whereIn('department_id', $deptIds)
                     ->count();
 
+        $draft = TrSPPT::where('status', 'H')
+                    ->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
         $completed = TrSPPT::where('status', 'C')
                     ->whereIn('cpny_id', $cpnyIds)
                     ->whereIn('department_id', $deptIds)
@@ -97,7 +91,7 @@ class SpptController extends Controller
             ->whereIn('status', ['P', 'C'])
             ->count();
 
-        return view('pages.sppts.sppts', compact('all', 'onProgress', 'reject', 'revise', 'completed', 'allListCount'));
+        return view('pages.sppts.sppts', compact('all', 'onProgress', 'reject', 'revise', 'draft', 'completed', 'allListCount'));
     }
 
     public function json(Request $request)
@@ -109,22 +103,10 @@ class SpptController extends Controller
         }
 
         // ==============================
-        // USER COMPANY
+        // USER COMPANY / DEPARTMENT
         // ==============================
-        if (is_string($user->cpny_id)) {
-            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
-        } else {
-            $cpnyIds = (array) $user->cpny_id;
-        }
-
-        // ==============================
-        // USER DEPARTMENT (NORMAL MODE ONLY)
-        // ==============================
-        if (is_string($user->department_id)) {
-            $deptIds = array_map('trim', explode(',', $user->department_id));
-        } else {
-            $deptIds = (array) $user->department_id;
-        }
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         // ==============================
         // DATATABLE PARAMETERS
@@ -159,10 +141,10 @@ class SpptController extends Controller
         // ==============================
         $base = TrSPPT::from($baseTable.' as sppt')
             ->leftJoin('ms_request_type as rt', function ($join) {
-                $join->on('rt.requesttypeid', '=', 'sppt.requesttypeid');
+                $join->on('rt.requesttypeid', '=', 'sppt.requesttypeid')
+                     ->where('rt.doctype', 'SPPT');
             })
-            ->whereIn('sppt.cpny_id', $cpnyIds)
-            ->where('rt.doctype', 'SPPT');
+            ->whereIn('sppt.cpny_id', $cpnyIds);
 
         // ==============================
         // MODE LOGIC
@@ -323,6 +305,7 @@ class SpptController extends Controller
         $user = $request->user();
         $username = $user->username ?? 'system';
         $fullname = $user->name ?? 'system';
+        $isDraft = $request->boolean('is_draft');
 
         $dt = Carbon::now();
         $year = (int) $dt->year;
@@ -383,8 +366,10 @@ class SpptController extends Controller
         // ===== generate TrApproval dari MsApproval sesuai context =====
         $approvalCtl = app(ApprovalController::class);
 
-        // Pastikan line approval ada (kalau mau validasi awal sebelum simpan detail, panggil loadLines)
-        $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
+        if (!$isDraft) {
+            // Pastikan line approval ada (kalau mau validasi awal sebelum simpan detail, panggil loadLines)
+            $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
+        }
 
         DB::beginTransaction();
         try {
@@ -453,7 +438,7 @@ class SpptController extends Controller
             $header->assignpurchasing = null;
             $header->csjobs = null;
             $header->cs = null;
-            $header->status = 'P';
+            $header->status = $isDraft ? 'H' : 'P';
             $header->created_by = $username;
             $header->save();
 
@@ -629,97 +614,66 @@ class SpptController extends Controller
             //     $header->save();
             // }
 
-            // 1) Urgent → dari header field is_urgent (boolean atau "1"/"true")
-            $isUrgent = (bool) $request->input('is_urgent', false);
+            if (!$isDraft) {
+                // 1) Urgent → dari header field is_urgent (boolean atau "1"/"true")
+                $isUrgent = (bool) $request->input('is_urgent', false);
 
-            // 2) Komputer → hanya kategori pada BARIS PERTAMA yang non-empty
-            $firstCategory = null;
-            if (!empty($inventoryCategories)) {
-                foreach ($inventoryCategories as $c) {
-                    if (!empty($c)) {
-                        $firstCategory = $c;
+                // 2) Komputer → hanya kategori pada BARIS PERTAMA yang non-empty
+                $firstCategory = null;
+                if (!empty($inventoryCategories)) {
+                    foreach ($inventoryCategories as $c) {
+                        if (!empty($c)) {
+                            $firstCategory = $c;
+                            break;
+                        }
+                    }
+                }
+
+                // 3) Fixed Asset → minimal ada SATU detail dengan inventory_sub_type = Fixed Asset / FA
+                $hasFixedAssetSubtype = false;
+                foreach ((array) $inventorySubTypes as $sub) {
+                    $s = mb_strtolower((string) $sub);
+                    if ($s === 'fixed asset' || $s === 'fa') {
+                        $hasFixedAssetSubtype = true;
                         break;
                     }
                 }
-            }
 
-            // 3) Fixed Asset → minimal ada SATU detail dengan inventory_sub_type = Fixed Asset / FA
-            $hasFixedAssetSubtype = false;
-            foreach ((array) $inventorySubTypes as $sub) {
-                $s = mb_strtolower((string) $sub);
-                if ($s === 'fixed asset' || $s === 'fa') {
-                    $hasFixedAssetSubtype = true;
-                    break;
+                // 4) Build context untuk ApprovalController
+                $ctx = [
+                    'is_urgent' => $isUrgent,
+                    'first_inventory_category' => $firstCategory,
+                    'has_fixed_asset_subtype' => $hasFixedAssetSubtype,
+                    'ignore_nominal' => true,   // SPPT diminta tidak cek nominal
+                    // 'grand_total'           => ...     // tidak dipakai di SPPT
+                ];
+
+                // Generate TrApproval
+                [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                    $docid,
+                    $doctype,
+                    $request->cpnyid,
+                    $request->departementid,
+                    $username,
+                    $ctx,
+                    $dt
+                );
+
+                // (opsional) simpan hint approver pertama di header seperti sebelumnya
+                if ($firstApprovalUsernames) {
+                    $header->completed_by = $firstApprovalUsernames;
+                    $header->completed_at = $dt;
+                    $header->save();
                 }
             }
 
-            // 4) Build context untuk ApprovalController
-            $ctx = [
-                'is_urgent' => $isUrgent,
-                'first_inventory_category' => $firstCategory,
-                'has_fixed_asset_subtype' => $hasFixedAssetSubtype,
-                'ignore_nominal' => true,   // SPPT diminta tidak cek nominal
-                // 'grand_total'           => ...     // tidak dipakai di SPPT
-            ];
-
-            // Generate TrApproval
-            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                $docid,
-                $doctype,
-                $request->cpnyid,
-                $request->departementid,
-                $username,
-                $ctx,
-                $dt
-            );
-
-            // (opsional) simpan hint approver pertama di header seperti sebelumnya
-            if ($firstApprovalUsernames) {
-                $header->completed_by = $firstApprovalUsernames;
-                $header->completed_at = $dt;
-                $header->save();
-            }
-
             // === 5) attachments (opsional) ===
-            // if ($request->hasfile('attachments')) {
-            //     foreach ($request->file('attachments') as $file) {
-            //         $randomNumber = random_int(10000000, 99999999);
-            //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-
-            //         $originalName = str_replace('%', '', $file->getClientOriginalName());
-            //         $ext        = $file->getClientOriginalExtension();
-            //         $attachfile = md5($randomNumber) . '.' . $ext;
-
-            //         //attach to folder
-            //         $folder_attach = public_path() . '/attachments/'.$year;
-            //         $config['upload_path'] = $folder_attach;
-            //         if(!is_dir($folder_attach))
-            //         {
-            //             mkdir($folder_attach, 0777);
-            //         }
-
-            //         $folder_upload = $folder_attach;
-            //         // $folder_upload = public_path() . '/attachments';
-            //         $file->move($folder_upload, $attachfile);
-
-            //         //insert to table attachments
-            //         $attach = new Attachment();
-            //         $attach->docid = $docid;
-            //         $attach->name = $filename;
-            //         $attach->attachfile = $attachfile;
-            //         $attach->status = 'A';
-            //         $attach->extention = $file->getClientOriginalExtension();
-            //         $attach->created_user = $user->username;
-            //         $attach->save();
-            //     }
-            // }
-
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr' => $docid,
                     'doctype' => $doctype,
-                    'cpnyid' => $request->input('cpnyid'),
-                    'departementid' => $request->input('departementid'),
+                    'cpny_id' => $request->input('cpnyid'),
+                    'department_id' => $request->input('departementid'),
                     'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by' => $user->username,
                 ];
@@ -792,27 +746,31 @@ class SpptController extends Controller
 
             $eid = Hashids::encode($header->id);
 
-            $approvalCtl->notifyFirstApprover(
-                $docid,
-                $doctype,
-                $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
-                'SPPT',
-                url('/showsppts/'.$eid),
-                [
-                    'info' => $request->keperluan,
-                    'createdby' => $header->created_by,
-                    'date' => $dt->toDateTimeString(),
-                ]
-            );
+            if (!$isDraft) {
+                $approvalCtl->notifyFirstApprover(
+                    $docid,
+                    $doctype,
+                    $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
+                    'SPPT',
+                    url('/showsppts/'.$eid),
+                    [
+                        'info' => $request->keperluan,
+                        'createdby' => $header->created_by,
+                        'date' => $dt->toDateTimeString(),
+                    ]
+                );
+            }
 
             DB::commit();
 
             return response()->json([
-                'message' => 'SPPT created successfully',
+                'message' => $isDraft ? 'SPPT saved as draft' : 'SPPT created successfully',
                 'spptid' => $docid,
                 'sppt_no' => $spptNo,
                 'totalqty' => $totalQty,
                 'attachments' => $uploadResult,
+                'eid' => $eid,
+                'is_draft' => $isDraft,
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -973,12 +931,15 @@ class SpptController extends Controller
         $doctype = 'PT';
         $username = $user->username ?? 'system';
         $fullname = $user->name ?? 'system';
+        $isDraft = $request->boolean('is_draft');
 
         // ===== generate TrApproval dari MsApproval sesuai context =====
         $approvalCtl = app(ApprovalController::class);
 
         // Pastikan line approval ada (kalau mau validasi awal sebelum simpan detail, panggil loadLines)
-        $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
+        if (!$isDraft) {
+            $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
+        }
 
         // helper: normalisasi angka (tahan "12.000", "1.234,56", "12,5")
         $toFloat = function ($v): ?float {
@@ -1025,7 +986,7 @@ class SpptController extends Controller
         $header->budget_perpost = $request->perpost;
         $header->woid = $request->woid;
         $header->is_urgent = $request->is_urgent;
-        $header->status = 'P';
+        $header->status = $isDraft ? 'H' : 'P';
         $header->updated_by = $username;
         $header->save();
 
@@ -1252,30 +1213,32 @@ class SpptController extends Controller
             }
 
             // 4) Build context untuk ApprovalController
-            $ctx = [
-                'is_urgent' => $isUrgent,
-                'first_inventory_category' => $firstCategory,
-                'has_fixed_asset_subtype' => $hasFixedAssetSubtype,
-                'ignore_nominal' => true,   // SPPT diminta tidak cek nominal
-                // 'grand_total'           => ...     // tidak dipakai di SPPT
-            ];
+            if (!$isDraft) {
+                $ctx = [
+                    'is_urgent' => $isUrgent,
+                    'first_inventory_category' => $firstCategory,
+                    'has_fixed_asset_subtype' => $hasFixedAssetSubtype,
+                    'ignore_nominal' => true,   // SPPT diminta tidak cek nominal
+                    // 'grand_total'           => ...     // tidak dipakai di SPPT
+                ];
 
-            // Generate TrApproval
-            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                $header->spptid,
-                $doctype,
-                $request->cpnyid,
-                $request->departementid,
-                $username,
-                $ctx,
-                $dt
-            );
+                // Generate TrApproval
+                [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                    $header->spptid,
+                    $doctype,
+                    $request->cpnyid,
+                    $request->departementid,
+                    $username,
+                    $ctx,
+                    $dt
+                );
 
-            // (opsional) simpan hint approver pertama di header seperti sebelumnya
-            if ($firstApprovalUsernames) {
-                $header->completed_by = $firstApprovalUsernames;
-                $header->completed_at = $dt;
-                $header->save();
+                // (opsional) simpan hint approver pertama di header seperti sebelumnya
+                if ($firstApprovalUsernames) {
+                    $header->completed_by = $firstApprovalUsernames;
+                    $header->completed_at = $dt;
+                    $header->save();
+                }
             }
 
             // attachments (tetap)
@@ -1317,8 +1280,8 @@ class SpptController extends Controller
                 $meta = [
                     'refnbr' => $header->spptid,
                     'doctype' => $doctype,
-                    'cpnyid' => $request->cpnyid,
-                    'departementid' => $request->departementid,
+                    'cpny_id' => $request->cpnyid,
+                    'department_id' => $request->departementid,
                     'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by' => $user->username,
                 ];
@@ -1386,22 +1349,28 @@ class SpptController extends Controller
 
             $eid = Hashids::encode($header->id);
 
-            $approvalCtl->notifyFirstApprover(
-                $header->spptid,
-                $doctype,
-                $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
-                'SPPT',
-                url('/showsppts/'.$eid),
-                [
-                    'info' => $request->keperluan,
-                    'createdby' => $header->created_by,
-                    'date' => $dt->toDateTimeString(),
-                ]
-            );
+            if (!$isDraft) {
+                $approvalCtl->notifyFirstApprover(
+                    $header->spptid,
+                    $doctype,
+                    $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
+                    'SPPT',
+                    url('/showsppts/'.$eid),
+                    [
+                        'info' => $request->keperluan,
+                        'createdby' => $header->created_by,
+                        'date' => $dt->toDateTimeString(),
+                    ]
+                );
+            }
 
             DB::commit();
 
-            return response()->json(['message' => 'SPPT updated successfully']);
+            return response()->json([
+                'message' => $isDraft ? 'SPPT saved as draft' : 'SPPT updated successfully',
+                'eid' => $eid,
+                'is_draft' => $isDraft,
+            ]);
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
@@ -1436,7 +1405,7 @@ class SpptController extends Controller
         $sppt = TrSPPT::with([
             'requestType:requesttypeid,requesttype_name',
             'creator:username,name',
-            'tenantname:id,store_name',
+            'tenantname:id,store_name,floor_id,store_no',
             'pic:username,name',
         ])
         ->findOrFail($id);
@@ -1578,6 +1547,18 @@ class SpptController extends Controller
 
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload = $sppt->created_by === $loginUsername;
+
+        $isApprover = TrApproval::where('refnbr', $sppt->spptid)
+            ->where('aprv_doctype', 'PT')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
+
         $akses_cc = SysUserRole::where('username', $user->username)
             ->where('role_id', 'COSTCTRLACCESS')
             ->first();
@@ -1617,7 +1598,7 @@ class SpptController extends Controller
             }
         }
 
-        return view('pages.sppts.showsppts', compact('sppt', 'attachmentPT', 'attachmentWO', 'spptdetail', 'bq', 'hash', 'canUpload', 'akses_cc', 'userCpny', 'userBu', 'userDeptFin', 'woData', 'woHash'));
+        return view('pages.sppts.showsppts', compact('sppt', 'attachmentPT', 'attachmentWO', 'spptdetail', 'bq', 'hash', 'canUpload', 'isApprover', 'akses_cc', 'userCpny', 'userBu', 'userDeptFin', 'woData', 'woHash'));
     }
 
     public function exportDetail($id)
@@ -2957,6 +2938,7 @@ class SpptController extends Controller
         return TrApproval::query()
             ->where('refnbr', $refnbr)
             ->where('status', '<>', 'X')
+            ->orderBy('created_at', 'asc')
             ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
             ->orderBy('id', 'asc')
             ->get()
@@ -2974,66 +2956,66 @@ class SpptController extends Controller
     }
 
     public function showBQ($hash)
-{
-    $id = Hashids::decode($hash)[0] ?? null;
-    abort_if(!$id, 404);
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
 
-    $user = Auth::user();
-    if (!$user) {
-        return redirect()->route('login');
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $bq = Bq::with(['creator:username,name'])->findOrFail($id);
+
+        $loginUsername = $user->username ?? $user->name ?? null;
+
+        // 1) Cek approval level 1 masih exist & pending
+        $approvalLevel1Exists = TrApproval::where('refnbr', $bq->sppjtid)
+            ->whereIn('aprv_leveling', ['1', '1.00'])
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->exists();
+
+        // 2) Approver level 1 boleh edit jika user termasuk approver
+        $canApproveEdit = TrApproval::where('refnbr', $bq->sppjtid)
+            ->whereIn('aprv_leveling', ['1', '1.00'])
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->where(function ($q) use ($loginUsername) {
+                $u = $loginUsername;
+
+                $q->where('aprv_username', $u)
+                    ->orWhere('aprv_username', 'ilike', $u . ',%')
+                    ->orWhere('aprv_username', 'ilike', '%,' . $u . ',%')
+                    ->orWhere('aprv_username', 'ilike', '%,' . $u);
+            })
+            ->exists();
+
+        // 3) Creator boleh edit hanya jika approval level 1 MASIH EXIST
+        $isCreator = $bq->created_by === $loginUsername;
+        $canCreatorEdit = $isCreator && $approvalLevel1Exists;
+
+        // 4) Final
+        $canEdit = $canApproveEdit || $canCreatorEdit;
+
+        $bqdetail = BqDetail::where('bqid', $bq->bqid)
+            ->orderByRaw("
+                CASE 
+                    WHEN bq_line_no ~ '^[0-9]+$' THEN 0
+                    ELSE 1
+                END ASC
+            ")
+            ->orderByRaw("
+                CASE 
+                    WHEN bq_line_no ~ '^[0-9]+$' THEN bq_line_no::int
+                    ELSE NULL
+                END ASC
+            ")
+            ->orderBy('bq_line_no', 'ASC')
+            ->get();
+
+        return view('pages.sppts.showbqsppts', compact('bq', 'bqdetail', 'canEdit', 'hash'));
     }
-
-    $bq = Bq::with(['creator:username,name'])->findOrFail($id);
-
-    $loginUsername = $user->username ?? $user->name ?? null;
-
-    // 1) Cek approval level 1 masih exist & pending
-    $approvalLevel1Exists = TrApproval::where('refnbr', $bq->sppjtid)
-        ->whereIn('aprv_leveling', ['1', '1.00'])
-        ->where('status', 'P')
-        ->whereNotNull('aprv_datebefore')
-        ->exists();
-
-    // 2) Approver level 1 boleh edit jika user termasuk approver
-    $canApproveEdit = TrApproval::where('refnbr', $bq->sppjtid)
-        ->whereIn('aprv_leveling', ['1', '1.00'])
-        ->where('status', 'P')
-        ->whereNotNull('aprv_datebefore')
-        ->where(function ($q) use ($loginUsername) {
-            $u = $loginUsername;
-
-            $q->where('aprv_username', $u)
-                ->orWhere('aprv_username', 'ilike', $u . ',%')
-                ->orWhere('aprv_username', 'ilike', '%,' . $u . ',%')
-                ->orWhere('aprv_username', 'ilike', '%,' . $u);
-        })
-        ->exists();
-
-    // 3) Creator boleh edit hanya jika approval level 1 MASIH EXIST
-    $isCreator = $bq->created_by === $loginUsername;
-    $canCreatorEdit = $isCreator && $approvalLevel1Exists;
-
-    // 4) Final
-    $canEdit = $canApproveEdit || $canCreatorEdit;
-
-    $bqdetail = BqDetail::where('bqid', $bq->bqid)
-        ->orderByRaw("
-            CASE 
-                WHEN bq_line_no ~ '^[0-9]+$' THEN 0
-                ELSE 1
-            END ASC
-        ")
-        ->orderByRaw("
-            CASE 
-                WHEN bq_line_no ~ '^[0-9]+$' THEN bq_line_no::int
-                ELSE NULL
-            END ASC
-        ")
-        ->orderBy('bq_line_no', 'ASC')
-        ->get();
-
-    return view('pages.sppts.showbqsppts', compact('bq', 'bqdetail', 'canEdit', 'hash'));
-}
 
     public function showBQ_xxx($hash)
     {
@@ -3165,6 +3147,8 @@ class SpptController extends Controller
         $sppt = TrSPPT::with([
             'requestType:requesttypeid,requesttype_name',
             'creator:username,name',
+            'tenantname:id,store_name,floor_id,store_no',
+            'pic:username,name',
         ])
             ->findOrFail($id);
 
@@ -3237,8 +3221,8 @@ class SpptController extends Controller
             'spptdate' => \Carbon\Carbon::parse($sppt->spptdate)->format('d F Y'),
             // konten
             'bqid' => $sppt->bqid,
-            'nama_tenant' => optional($sppt->tenantname)->tenant,
-            'no_unit_tenant' => $sppt->no_unit_tenant,
+            'nama_tenant' => optional($sppt->tenantname)->store_name,
+            'no_unit_tenant' => $sppt->tenant_unit_label ?: $sppt->no_unit_tenant,
             'pic_pengawas' => ucwords(strtolower(optional($sppt->pic)->name)),
             'condition_unit' => $sppt->condition_unit,
             'beban' => $sppt->beban,
@@ -3335,6 +3319,8 @@ class SpptController extends Controller
                 $file
             );
 
+            $this->validateImportedBqDetails($temp_id);
+
             // Simpan temp_id ke session untuk dipakai di halaman create
             session(['import_temp_id' => $temp_id]);
 
@@ -3405,6 +3391,8 @@ class SpptController extends Controller
                 $file
             );
 
+            $this->validateImportedBqDetails($temp_id);
+
             // Simpan temp_id ke session untuk dipakai di halaman edit
             session(['import_temp_id' => $temp_id]);
 
@@ -3416,6 +3404,50 @@ class SpptController extends Controller
                 ->withInput()
                 ->with('error', 'Gagal import: '.$e->getMessage());
         }
+    }
+
+    /**
+     * Batalkan import jika baris BQ yang terisi tidak memiliki Description atau Qty.
+     */
+    private function validateImportedBqDetails(string $tempId): void
+    {
+        $details = BqDetailTemp::where('temp_id', $tempId)
+            ->orderBy('bq_line_no')
+            ->get();
+
+        $invalidRows = $details->values()->map(function ($detail, $index) {
+            $missingFields = [];
+
+            if (trim((string) $detail->bq_descr) === '') {
+                $missingFields[] = 'Description';
+            }
+
+            if ($detail->qty === null || trim((string) $detail->qty) === '') {
+                $missingFields[] = 'Qty';
+            }
+
+            if ($missingFields === []) {
+                return null;
+            }
+
+            $lineNumber = trim((string) $detail->bq_line_no);
+            $rowLabel = $lineNumber !== '' ? "Line No {$lineNumber}" : 'baris data '.($index + 1);
+
+            return $rowLabel.' ('.implode(', ', $missingFields).')';
+        })->filter()->values();
+
+        if ($invalidRows->isEmpty()) {
+            return;
+        }
+
+        // Jangan sisakan preview/import parsial ketika validasi gagal.
+        BqDetailTemp::where('temp_id', $tempId)->delete();
+
+        throw new \RuntimeException(
+            'Description dan Qty wajib diisi. Data bermasalah: '
+            .$invalidRows->implode('; ')
+            .'. Harap isi kolom tersebut atau hapus barisnya terlebih dahulu.'
+        );
     }
 
     public function importCreate_xxx(Request $request)
@@ -3639,8 +3671,8 @@ class SpptController extends Controller
                 $meta = [
                     'refnbr' => $bqid,
                     'doctype' => $doctype,
-                    'cpnyid' => $cpny_id,
-                    'departementid' => $deptid,
+                    'cpny_id' => $cpny_id,
+                    'department_id' => $deptid,
                     'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by' => $username,
                 ];
@@ -3770,8 +3802,8 @@ class SpptController extends Controller
                 $meta = [
                     'refnbr' => $bqid,
                     'doctype' => $doctype,
-                    'cpnyid' => $cpny_id,
-                    'departementid' => $deptid,
+                    'cpny_id' => $cpny_id,
+                    'department_id' => $deptid,
                     'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by' => $user->username,
                 ];

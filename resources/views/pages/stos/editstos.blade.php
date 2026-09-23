@@ -68,10 +68,10 @@
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Attachments</span>
-                                <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
                                     details &rarr;</span>
                                 <span
-                                    class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                                     details &darr;</span>
                             </summary>
                             <div class="flex max-h-[125px] flex-col overflow-y-auto pt-6">
@@ -131,9 +131,9 @@
                     <summary
                         class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                         <span>ORG Chart Visualization</span>
-                        <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden">See details
+                        <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See details
                             &rarr;</span>
-                        <span class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline">Hide
+                        <span class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                             details &darr;</span>
                     </summary>
                     <div class="relative mt-4">
@@ -242,7 +242,7 @@
                             {{-- <h3 class="text-sm font-semibold">Employee List</h3> --}}
                             <div class="mb-4 flex items-center justify-between">
                                 <h4 class="text-sm font-semibold">Parent Department: <span id="parentDeptLabel"
-                                        class="text-sm font-semibold text-gray-800"></span></h4>
+                                        class="text-sm font-semibold text-gray-800 dark:text-gray-200"></span></h4>
                                 <button id="btnChangeParentDept"
                                     class="flex items-center gap-1 rounded px-3 py-1.5 text-xs text-black dark:text-white">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -255,7 +255,7 @@
                             </div>
 
                             <div class="mb-4 flex items-center justify-between">
-                                <h4 id="departmentLabel" class="text-sm font-semibold text-gray-800">
+                                <h4 id="departmentLabel" class="text-sm font-semibold text-gray-800 dark:text-gray-200">
                                     Dept: <!-- Dynamic text will be inserted via JS -->
                                 </h4>
                                 <button id="btnChangeDept"
@@ -438,7 +438,7 @@
                                     @endforeach
                                 </select> --}}
                                 <input type="text" id="position" name="position"
-                                    class="mt-1 block w-full rounded-md border-gray-300 bg-gray-200 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-800 dark:text-gray-400"
+                                    class="mt-1 block w-full rounded-md border-gray-300 bg-gray-200 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700"
                                     readonly>
 
 
@@ -816,7 +816,7 @@
 
                     if (!Array.isArray(nodes) || nodes.length === 0) {
                         $('.chart-container').html(
-                            '<div class="text-center text-gray-500 mt-10">No data available for this department.</div>'
+                            '<div class="text-center text-gray-500 mt-10 dark:text-gray-400">No data available for this department.</div>'
                         );
                         return;
                     }
@@ -880,7 +880,7 @@
                     $('.chart-container').empty();
                     if (xhr.status === 404) {
                         $('.chart-container').html(
-                            '<div class="text-center text-gray-500 mt-10">Department not found.</div>'
+                            '<div class="text-center text-gray-500 mt-10 dark:text-gray-400">Department not found.</div>'
                         );
                     } else {
                         $('.chart-container').html(
@@ -1115,7 +1115,7 @@
 
                     if (!Array.isArray(nodes) || nodes.length === 0) {
                         $('.chart-container').html(
-                            '<div class="text-center text-gray-500 mt-10">No data available for this department.</div>'
+                            '<div class="text-center text-gray-500 mt-10 dark:text-gray-400">No data available for this department.</div>'
                         );
                         return;
                     }
@@ -1177,7 +1177,7 @@
                     $('.chart-container').empty();
                     if (xhr.status === 404) {
                         $('.chart-container').html(
-                            '<div class="text-center text-gray-500 mt-10">Department not found.</div>'
+                            '<div class="text-center text-gray-500 mt-10 dark:text-gray-400">Department not found.</div>'
                         );
                     } else {
                         $('.chart-container').html(

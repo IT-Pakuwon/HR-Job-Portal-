@@ -3,10 +3,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-            <div class="border-b border-gray-200 p-4 dark:border-gray-700">
+        <div
+            class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div class="border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Last Order</h1>
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Last Order</h2>
 
                     <div class="flex gap-2">
                         <button type="button" data-tab="inv"
@@ -22,33 +23,26 @@
             </div>
 
             {{-- TAB Inventory --}}
-            <div id="tab-inv" class="rounded-base relative overflow-x-auto p-4">
-                <table id="invTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th
-                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+            <div id="tab-inv" class="relative overflow-hidden">
+                <table id="invTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th class="px-4 py-3 text-left font-medium">
                                 PONbr</th>
-                            <th class="w-32 px-6 py-2 font-medium">PO Date</th>
-                            <th
-                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                            <th class="w-32 px-4 py-3 text-left font-medium">PO Date</th>
+                            <th class="px-4 py-3 text-left font-medium">
                                 CSID</th>
-                            <th
-                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                            <th class="px-4 py-3 text-left font-medium">
                                 Vendor</th>
-                            <th
-                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                            <th class="px-4 py-3 text-left font-medium">
                                 Inventory ID</th>
-                            <th
-                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                            <th class="px-4 py-3 text-left font-medium">
                                 Description</th>
-                            <th
-                                class="px-6 py-3 text-right text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                            <th class="px-4 py-3 text-left font-medium">
                                 Unit Cost</th>
-                            <th
-                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                            <th class="px-4 py-3 text-left font-medium">
                                 Purchaser</th>
                         </tr>
                     </thead>
@@ -57,32 +51,25 @@
             </div>
 
             {{-- TAB BQ --}}
-            <div id="tab-bq" class="rounded-base relative hidden overflow-x-auto p-4">
-                <table id="bqTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th
-                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+            <div id="tab-bq" class="relative hidden overflow-hidden">
+                <table id="bqTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th class="px-4 py-3 text-left font-medium">
                                 BQID</th>
-                            <th
-                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                            <th class="px-4 py-3 text-left font-medium">
                                 CSID</th>
-                            <th
-                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                            <th class="px-4 py-3 text-left font-medium">
                                 Vendor</th>
-                            <th
-                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                            <th class="px-4 py-3 text-left font-medium">
                                 Description</th>
-                            <th
-                                class="px-6 py-3 text-right text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                            <th class="px-4 py-3 text-left font-medium">
                                 Product Price</th>
-                            <th
-                                class="px-6 py-3 text-right text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                            <th class="px-4 py-3 text-left font-medium">
                                 Jasa Price</th>
-                            <th
-                                class="px-6 py-3 text-right text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                            <th class="px-4 py-3 text-left font-medium">
                                 Total</th>
                         </tr>
                     </thead>

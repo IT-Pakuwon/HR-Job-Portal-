@@ -6,7 +6,7 @@
             <div class="w-full">
 
                 <div class="mb-8 border-b">
-                    <h2 class="mb-4 bg-white text-lg font-bold">Create Personnel Requisition</h2>
+                    <h2 class="mb-4 bg-white text-lg font-bold dark:bg-gray-800">Create Personnel Requisition</h2>
                 </div>
                 <form id="personnelForm" enctype="multipart/form-data">
                     @csrf
@@ -110,7 +110,7 @@
                         <div class="flex items-center justify-between">
                             <label class="block text-sm font-semibold">Job Responsibilities</label>
                             <button type="button" id="addResponsibilities"
-                                class="hover: flex items-center gap-2 rounded px-4 py-2 text-gray-700 hover:border-red-800">
+                                class="hover: flex items-center gap-2 rounded px-4 py-2 text-gray-700 hover:border-red-800 dark:text-gray-300">
                                 + Add
                             </button>
                         </div>
@@ -143,7 +143,7 @@
                         <div class="flex items-center justify-between">
                             <label class="block text-sm font-semibold">Job Qualification</label>
                             <button type="button" id="addQualification"
-                                class="hover: flex items-center gap-2 rounded px-4 py-2 text-gray-700 hover:border-red-800">+
+                                class="hover: flex items-center gap-2 rounded px-4 py-2 text-gray-700 hover:border-red-800 dark:text-gray-300">+
                                 Add</button>
                         </div>
                         <table class="mb-10 mt-3 w-full">

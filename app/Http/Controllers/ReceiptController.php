@@ -455,6 +455,17 @@ class ReceiptController extends Controller
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload     = $rcp->created_by === $loginUsername;
 
+        $isApprover = TrApproval::where('refnbr', $rcp->receiptnbr)
+            ->where('aprv_doctype', 'GR')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
+
         return view('pages.receipt.showreceipt', [
             'rcp'            => $rcp,
             'rcpdetail'      => $rcpdetail,
@@ -464,6 +475,7 @@ class ReceiptController extends Controller
             'sppbUrl'        => $sppbUrl,
             'csUrl'          => $csUrl,
             'canUpload'      => $canUpload,
+            'isApprover'     => $isApprover,
         ]);
     }
 
@@ -1415,10 +1427,30 @@ class ReceiptController extends Controller
             ->orderBy('receipt_no', 'asc')
             ->get();
 
+        // if ($po) {
+        //     $poNotes = TrPOdetail::where('ponbr', $po->ponbr)
+        //         ->pluck('ponote_detail', 'po_no');
+        //     $rcpdetails->each(fn($d) => $d->ponote_detail = $poNotes[$d->po_no] ?? null);
+        // }
+
         if ($po) {
+
             $poNotes = TrPOdetail::where('ponbr', $po->ponbr)
-                ->pluck('ponote_detail', 'po_no');
-            $rcpdetails->each(fn($d) => $d->ponote_detail = $poNotes[$d->po_no] ?? null);
+                ->whereIn(
+                    'budget_cpny_id',
+                    $rcpdetails->pluck('budget_cpny_id')->filter()->unique()->values()
+                )
+                ->get()
+                ->mapWithKeys(function ($row) {
+                    return [
+                        $row->po_no . '|' . $row->budget_cpny_id => $row->ponote_detail
+                    ];
+                });
+        
+            $rcpdetails->each(function ($d) use ($poNotes) {
+                $key = $d->po_no . '|' . $d->budget_cpny_id;
+                $d->ponote_detail = $poNotes[$key] ?? null;
+            });
         }
 
         $company = MsCompany::where('cpny_id', $rcp->cpny_id)->first();
@@ -1466,10 +1498,13 @@ class ReceiptController extends Controller
         |--------------------------------------------------------------------------
         */
 
+        $printedBy = Auth::user()->name ?? Auth::user()->username ?? '-';
+        $printedAt = now()->format('d/m/Y H:i:s');
+
         // ===== 1️⃣ ASLI =====
         $pdfAsli = Pdf::loadView(
             'pages.receipt.pdf_receipt',
-            compact('rcp','po','rcpdetails','company')
+            compact('rcp','po','rcpdetails','company','printedBy','printedAt')
         )->setPaper('A4','portrait');
 
         $domAsli = $pdfAsli->getDomPDF();
@@ -1494,7 +1529,7 @@ class ReceiptController extends Controller
         // ===== 2️⃣ COPY =====
         $pdfCopy = Pdf::loadView(
             'pages.receipt.pdf_receipt_copy',
-            compact('rcp','po','rcpdetails','company')
+            compact('rcp','po','rcpdetails','company','printedBy','printedAt')
         )->setPaper('A4','portrait');
 
         $domCopy = $pdfCopy->getDomPDF();
@@ -1608,10 +1643,42 @@ class ReceiptController extends Controller
             // Siapkan map detail PO (per company budget)
             $poDetailRows = TrPOdetail::where('ponbr', $rcp->ponbr)
                 ->where('budget_cpny_id', $rcp->cpny_id)
+                ->lockForUpdate()
                 ->get();
 
-            $poByKey       = $poDetailRows->keyBy(fn ($row) => ($row->inventoryid ?? '') . '|' . ($row->uom ?? ''));
-            $poByInventory = $poDetailRows->groupBy('inventoryid');
+            // inventoryid + uom bukan identitas baris PO: satu PO dapat memiliki item/UoM
+            // yang sama pada beberapa baris (misalnya dibedakan oleh PO note). po_no disalin
+            // dari TrPOdetail saat receipt dibuat, sehingga gunakan nomor baris tersebut.
+            $poByLine = $poDetailRows
+                ->filter(fn ($row) => $row->po_no !== null && $row->po_no !== '')
+                ->keyBy(fn ($row) => (string) $row->po_no);
+
+            $resolvePoDetail = function (TrReceiptdetail $rd) use ($poByLine, $poDetailRows): TrPOdetail {
+                if ($rd->po_no !== null && $rd->po_no !== '') {
+                    $poDet = $poByLine->get((string) $rd->po_no);
+                    if ($poDet) {
+                        return $poDet;
+                    }
+                }
+
+                // Fallback hanya untuk data receipt lama yang belum menyimpan po_no.
+                // Jangan memilih baris pertama bila kandidatnya ambigu karena itu yang
+                // menyebabkan qty dua baris masuk ke satu TrPOdetail.
+                $candidates = $poDetailRows->filter(function ($row) use ($rd) {
+                    return (string) ($row->inventoryid ?? '') === (string) ($rd->inventoryid ?? '')
+                        && (string) ($row->uom ?? '') === (string) ($rd->uom ?? '')
+                        && (string) ($row->siteid ?? '') === (string) ($rd->siteid ?? '');
+                });
+
+                if ($candidates->count() === 1) {
+                    return $candidates->first();
+                }
+
+                throw new \RuntimeException(
+                    "PO Detail untuk receipt line {$rd->receipt_no} (item {$rd->inventoryid}) " .
+                    'tidak ditemukan atau ambigu. Pastikan po_no detail receipt terisi.'
+                );
+            };
 
             // Helper: recalc status baris PO (fulfilled = net received + completed)
             $recalcPoDetStatus = function (TrPOdetail $poDet) use ($uname) {
@@ -1671,9 +1738,7 @@ class ReceiptController extends Controller
             // =========================
             if ($rcp->receipttype === 'PR') {
                 foreach ($rcpdetails as $rd) {
-                    $key   = ($rd->inventoryid ?? '') . '|' . ($rd->uom ?? '');
-                    $poDet = $poByKey->get($key) ?: optional($poByInventory->get($rd->inventoryid))->first();
-                    if (!$poDet) continue;
+                    $poDet = $resolvePoDetail($rd);
 
                     $qtyRec     = (float) ($rd->qty_received ?? 0);
                     $baseQtyRec = (float) ($rd->base_qty_received ?? 0);
@@ -1715,9 +1780,7 @@ class ReceiptController extends Controller
             // =========================
             if ($rcp->receipttype === 'RR') {
                 foreach ($rcpdetails as $rd) {
-                    $key   = ($rd->inventoryid ?? '') . '|' . ($rd->uom ?? '');
-                    $poDet = $poByKey->get($key) ?: optional($poByInventory->get($rd->inventoryid))->first();
-                    if (!$poDet) continue;
+                    $poDet = $resolvePoDetail($rd);
 
                     $qtyRet     = (float) ($rd->qty_return ?? 0);
                     $baseQtyRet = (float) ($rd->base_qty_return ?? 0);

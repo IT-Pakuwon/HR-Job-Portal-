@@ -18,21 +18,33 @@
                 data-tab="all">
                 All Kontrak
             </button>
+
+            @if ($hasCostCtrlAccess)
+                <button type="button" id="tabFinance" class="kontrak-tab rounded-lg border px-4 py-2 text-sm font-semibold"
+                    data-tab="finance">
+                    Kontrak Finance
+                </button>
+            @endif
         </div>
 
-        <div class="mt-2 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                <h1 class="text-base font-extrabold text-gray-700 dark:text-white" id="kontrakTitle">Kontrak</h1>
+        <div
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-col gap-3 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
+                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100" id="kontrakTitle">
+                    Kontrak</h2>
 
                 {{-- ===== Filters ===== --}}
-                <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                <div class="flex flex-wrap items-center gap-3">
 
                     {{-- Company --}}
-                    <div class="flex items-center gap-2">
-                        <label class="text-sm font-medium text-gray-600 dark:text-gray-300">Company</label>
+                    <div class="relative">
+                        <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400 dark:text-gray-500">
+                            <i class="fas fa-building text-xs"></i>
+                        </span>
                         <select id="filterCompany"
-                            class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                            <option value="">All</option>
+                            class="rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-6 text-sm font-medium text-gray-700 shadow-sm transition-colors focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <option value="">All Company</option>
                             @foreach ($companies as $c)
                                 <option value="{{ $c }}">{{ $c }}</option>
                             @endforeach
@@ -40,42 +52,53 @@
                     </div>
 
                     {{-- Status (HANYA My) --}}
-                    <div class="flex items-center gap-2" id="wrapStatus" style="display:none;">
-                        <label class="text-sm font-medium text-gray-600 dark:text-gray-300">Status</label>
+                    <div class="relative" id="wrapStatus" style="display:none;">
+                        <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400 dark:text-gray-500">
+                            <i class="fas fa-check-circle text-xs"></i>
+                        </span>
                         <select id="filterStatus"
-                            class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                            <option value="">All</option>
+                            class="rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-6 text-sm font-medium text-gray-700 shadow-sm transition-colors focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <option value="">All Status</option>
                             <option value="H">Unsend</option>
                             <option value="P">On Progress</option>
                             <option value="C">Completed</option>
                         </select>
                     </div>
 
+                    <div class="relative" id="wrapBudgetStatus" style="display:none;">
+                        <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400 dark:text-gray-500">
+                            <i class="fas fa-wallet text-xs"></i>
+                        </span>
+                        <select id="filterBudgetStatus"
+                            class="rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-6 text-sm font-medium text-gray-700 shadow-sm transition-colors focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <option value="need">Need Budget</option>
+                            <option value="done">Done Budget</option>
+                        </select>
+                    </div>
+
                     <button type="button" id="btnReset"
-                        class="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600">
-                        Reset
+                        class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-600 shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                        <i class="fas fa-rotate-right pr-1.5 text-xs"></i>Reset
                     </button>
                 </div>
             </div>
 
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="kontrakTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr class="transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
-                            <th class="dtr-control"></th>
-                            <th
-                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                Kontrak ID</th>
-                            <th class="w-32 px-6 py-2 font-medium">Kontrak Date</th>
-                            <th class="w-24 px-6 py-2 font-medium">Company</th>
-                            <th class="w-24 px-6 py-2 font-medium">Type</th>
-                            <th class="w-28 px-6 py-2 font-medium">Category</th>
-                            <th class="px-6 py-2 font-medium">Vendor</th>
-                            <th class="w-32 px-6 py-2 font-medium">Start Date</th>
-                            <th class="w-32 px-6 py-2 font-medium">End Date</th>
-                            <th class="w-32 px-6 py-2 font-medium">Created By</th>
-                            <th class="w-28 px-6 py-2 font-medium">Status</th>
+            <div class="relative overflow-hidden">
+                <table id="kontrakTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="dtr-control w-10 px-4 py-3"></th>
+                            <th class="px-4 py-3 text-left font-medium">Kontrak ID</th>
+                            <th class="w-32 px-4 py-3 text-left font-medium">Kontrak Date</th>
+                            <th class="w-24 px-4 py-3 text-left font-medium">Company</th>
+                            <th class="w-24 px-4 py-3 text-left font-medium">Type</th>
+                            <th class="w-28 px-4 py-3 text-left font-medium">Category</th>
+                            <th class="px-4 py-3 text-left font-medium">Vendor</th>
+                            <th class="w-32 px-4 py-3 text-left font-medium">Start Date</th>
+                            <th class="w-32 px-4 py-3 text-left font-medium">End Date</th>
+                            <th class="w-32 px-4 py-3 text-left font-medium">Created By</th>
+                            <th class="w-28 px-4 py-3 text-left font-medium">Status</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -88,6 +111,7 @@
     <script>
         $(document).ready(function() {
             const isFinanceAccess = @json($isFinanceAccess);
+            const hasCostCtrlAccess = @json($hasCostCtrlAccess);
 
             // default tab:
             // - FINACCESS: all
@@ -96,6 +120,7 @@
 
             if (isFinanceAccess && activeTab === 'my') activeTab = 'all';
             if (!document.querySelector('.kontrak-tab[data-tab="my"]') && activeTab === 'my') activeTab = 'all';
+            if (!hasCostCtrlAccess && activeTab === 'finance') activeTab = isFinanceAccess ? 'all' : 'my';
 
             const $title = $('#kontrakTitle');
 
@@ -119,10 +144,19 @@
 
                 if (tab === 'my') {
                     $('#wrapStatus').show();
+                    $('#wrapBudgetStatus').hide();
+                    $('#filterBudgetStatus').val('need');
                     $title.text('Kontrak - My Kontrak');
+                } else if (tab === 'finance') {
+                    $('#wrapStatus').hide();
+                    $('#filterStatus').val('');
+                    $('#wrapBudgetStatus').show();
+                    $title.text('Kontrak - Kontrak Finance');
                 } else {
                     $('#wrapStatus').hide();
                     $('#filterStatus').val('');
+                    $('#wrapBudgetStatus').hide();
+                    $('#filterBudgetStatus').val('need');
                     $title.text('Kontrak - All Kontrak');
                 }
             }
@@ -232,6 +266,7 @@
                         d.company = ($('#filterCompany').val() || '');
                         d.creator = ($('#filterCreator').val() || '');
                         d.status = ($('#filterStatus').val() || '');
+                        d.budget_status = ($('#filterBudgetStatus').val() || 'need');
                     }
                 },
                 columns: [{
@@ -306,7 +341,7 @@
                 reloadAndResetState();
             });
 
-            $('#filterCompany, #filterStatus').on('change', function() {
+            $('#filterCompany, #filterStatus, #filterBudgetStatus').on('change', function() {
                 reloadAndResetState();
             });
 
@@ -318,6 +353,7 @@
             $('#btnReset').on('click', function() {
                 $('#filterCompany').val('');
                 $('#filterStatus').val('');
+                $('#filterBudgetStatus').val('need');
                 @if ($isFinanceAccess)
                     $('#filterCreator').val('');
                 @endif

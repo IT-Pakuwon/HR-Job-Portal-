@@ -1,0 +1,3414 @@
+<x-app-layout>
+    <div class="max-w-9xl mx-auto w-full p-2">
+        <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
+            <div>
+                <h1 class="text-base font-bold text-gray-800 dark:text-white">🎓 Training List</h1>
+                <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">Browse open trainings and manage your registrations.</p>
+            </div>
+
+            {{-- Tabs --}}
+            <div class="flex w-full flex-wrap gap-1 rounded-xl bg-gray-100 p-1 dark:bg-gray-900/60">
+                <button class="tabBtn active flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-semibold transition" data-tab="available">
+                    <span>🎓</span> Available Trainings
+                </button>
+                <button class="tabBtn flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-semibold text-gray-500 transition hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="mine">
+                    <span>📝</span> Registration List
+                </button>
+                @if (Auth::user()->hasRole('HCDEVACCESS'))
+                    <button class="tabBtn flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-semibold text-gray-500 transition hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="allregs">
+                        <span>📋</span> List Registration
+                    </button>
+                @endif
+            </div>
+
+            {{-- Available Trainings --}}
+            <div id="tab-available" class="tab-panel space-y-3">
+                <div class="flex flex-wrap items-center gap-2">
+                    <select id="filterLevel" class="rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                        <option value="">All Levels</option>
+                    </select>
+                    <select id="filterCategory" class="rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                        <option value="">All Categories</option>
+                    </select>
+                    <select id="filterMandatory" class="rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                        <option value="">Mandatory: All</option>
+                        <option value="1">Mandatory Only</option>
+                        <option value="0">Non-Mandatory Only</option>
+                    </select>
+                    <select id="filterStatus" class="rounded-lg border border-gray-300 py-1.5 pl-2.5 pr-8 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                        <option value="open">Available Trainings</option>
+                        <option value="closed">Closed Training</option>
+                        <option value="all">All Trainings</option>
+                    </select>
+                    <button id="filterResetBtn" class="text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white">Reset</button>
+                </div>
+
+                <div id="availableEmpty" class="hidden rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
+                    No open trainings right now.
+                </div>
+                <div id="availableList" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"></div>
+            </div>
+
+            {{-- Registration List: sub-tabbed into the caller's own
+                 registrations and their approval activity (waiting +
+                 already decided) as an approver on other employees' rows. --}}
+            <div id="tab-mine" class="tab-panel hidden">
+                <div class="mb-3 flex border-b border-gray-200 dark:border-gray-700">
+                    <button class="subTabBtn flex-1 border-b-2 border-gray-900 px-2.5 py-1.5 text-center text-sm font-semibold text-gray-900 dark:border-white dark:text-white" data-subtab="myreg">
+                        My Registration
+                    </button>
+                    <button class="subTabBtn flex-1 border-b-2 border-transparent px-2.5 py-1.5 text-center text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-subtab="approval">
+                        Approval
+                    </button>
+                </div>
+
+                {{-- My Registration --}}
+                <div id="subtab-myreg" class="sub-tab-panel">
+                    <div class="overflow-x-auto">
+                        <table class="responsive-table min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                            <thead>
+                                <tr class="text-left text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                    <th class="py-2 pr-4">Doc ID</th>
+                                    <th class="py-2 pr-4">Training</th>
+                                    <th class="py-2 pr-4">Level</th>
+                                    <th class="py-2 pr-4">Speaker</th>
+                                    <th class="py-2 pr-4">Date</th>
+                                    <th class="py-2 pr-4">Status</th>
+                                    <th class="py-2 pr-4">Attendance</th>
+                                    <th class="py-2 pr-4">Stars</th>
+                                    <th class="py-2 pr-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mineBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
+                        </table>
+                        <div id="mineEmpty" class="hidden rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
+                            You have no registrations yet.
+                        </div>
+                        <div id="minePagination"></div>
+                    </div>
+                </div>
+
+                {{-- Approval: every registration the caller is/was an approver
+                     on — currently waiting on them, or already decided by them. --}}
+                <div id="subtab-approval" class="sub-tab-panel hidden space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                        <div class="flex flex-1 flex-wrap items-center gap-4">
+                            <span id="approvalCount" class="text-sm font-medium text-gray-500 dark:text-gray-400"></span>
+                            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                <label for="approvalStatusFilter">Status</label>
+                                <select id="approvalStatusFilter" class="rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-8 text-sm text-gray-700 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                                    <option value="">All</option>
+                                    <option value="P">Waiting Approval</option>
+                                    <option value="A">Approved</option>
+                                    <option value="R">Rejected</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                <label for="approvalTrainingFilter">Training</label>
+                                <select id="approvalTrainingFilter" class="rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-8 text-sm text-gray-700 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                                    <option value="">All Trainings</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                <label for="approvalCompanyFilter">Company</label>
+                                <select id="approvalCompanyFilter" class="rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-8 text-sm text-gray-700 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                                    <option value="">All Companies</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                <label for="approvalPageSize">Show</label>
+                                <select id="approvalPageSize" class="rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-8 text-sm text-gray-700 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                                    <option value="10">10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                    <option value="all">All</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="relative w-full sm:w-72">
+                            <i class="fa-solid fa-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400"></i>
+                            <input id="approvalSearch" type="text" placeholder="Search employee, doc ID, or training..."
+                                class="w-full rounded-lg border border-gray-300 bg-white py-2 pl-8 pr-3 text-sm text-gray-700 placeholder:text-gray-400 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:placeholder:text-gray-500 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="responsive-table min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                            <thead>
+                                <tr class="text-left text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                    <th class="approvalSortTh py-2 pr-4" data-field="docid">Doc ID</th>
+                                    <th class="approvalSortTh py-2 pr-4" data-field="name">Employee</th>
+                                    <th class="py-2 pr-4">Company / Dept</th>
+                                    <th class="approvalSortTh py-2 pr-4" data-field="training_name">Training</th>
+                                    <th class="approvalSortTh py-2 pr-4" data-field="schedule_date">Schedule Date</th>
+                                    <th class="approvalSortTh py-2 pr-4" data-field="approval_status">Status</th>
+                                    <th class="approvalSortTh py-2 pr-4" data-field="action_date">Date</th>
+                                    <th class="py-2 pr-4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="approvalBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
+                        </table>
+                        <div id="approvalEmpty" class="hidden rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
+                            Nothing to show for this status.
+                        </div>
+                        <div id="approvalPagination"></div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- List Registration (HCDEVACCESS) --}}
+            @if (Auth::user()->hasRole('HCDEVACCESS'))
+                <div id="tab-allregs" class="tab-panel hidden space-y-4">
+                    {{-- Filters — Training Event also rescopes the summary cards below --}}
+                    <div class="rounded-2xl border border-gray-200 bg-linear-to-br from-gray-50 to-cyan-50/30 p-6 shadow-sm dark:border-gray-700 dark:from-gray-800/40 dark:to-cyan-900/10">
+                        <div class="grid grid-cols-1 items-end gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+
+                            <div class="space-y-1">
+                                <label class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                    <i class="fa-solid fa-chalkboard-user mr-1 text-gray-400"></i> Training Event
+                                </label>
+                                <select id="allRegsTrainingFilter" class="w-full">
+                                    <option value="">All Training Events</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                    <i class="fa-solid fa-layer-group mr-1 text-gray-400"></i> Level
+                                </label>
+                                <select id="allRegsLevelFilter" class="w-full">
+                                    <option value="">All Levels</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                    <i class="fa-solid fa-calendar-days mr-1 text-gray-400"></i> Schedule Date
+                                </label>
+                                <select id="allRegsScheduleFilter" class="w-full">
+                                    <option value="">All Dates</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                    <i class="fa-solid fa-list-check mr-1 text-gray-400"></i> Status
+                                </label>
+                                <select id="allRegsStatusFilter" class="w-full">
+                                    <option value="">All Statuses</option>
+                                    <option value="P">Waiting Approval</option>
+                                    <option value="C">Approved</option>
+                                    <option value="R">Rejected</option>
+                                    <option value="W">Waiting List</option>
+                                    <option value="O">Slot Offered</option>
+                                    <option value="X">Cancelled</option>
+                                </select>
+                            </div>
+
+                            <div class="flex gap-2">
+                                <button type="button" id="allRegsExportBtn" class="flex w-full items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-black hover:shadow active:scale-[0.98] dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-white">
+                                    <i class="fa-solid fa-file-arrow-down"></i> Export
+                                </button>
+                                <button type="button" id="allRegsResetBtn" class="flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 shadow-sm transition hover:border-gray-400 hover:bg-gray-50 active:scale-[0.98] dark:border-gray-600 dark:bg-transparent dark:text-gray-200 dark:hover:bg-gray-700/40">
+                                    <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {{-- Summary — stat cards + quota, collapsible; open by default --}}
+                    <div x-data="{ summaryOpen: true }" class="space-y-3">
+                        <button type="button" @click="summaryOpen = !summaryOpen"
+                            class="flex w-full items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-left text-sm font-semibold text-gray-700 transition hover:border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:border-gray-600">
+                            <span><i class="fa-solid fa-chart-simple mr-2 text-gray-400"></i>Summary</span>
+                            <svg class="h-4 w-4 shrink-0 text-gray-400 transition-transform" :class="{ 'rotate-180': summaryOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        <div x-show="summaryOpen" x-transition class="space-y-3">
+                            <div class="grid grid-cols-2 gap-3 sm:grid-cols-5">
+                                <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                                    <p class="text-sm font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400">Waiting Approval</p>
+                                    <p id="statWaitingApproval" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
+                                </div>
+                                <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                                    <p class="text-sm font-bold uppercase tracking-wide text-sky-600 dark:text-sky-400">Waiting List</p>
+                                    <p id="statWaitingList" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
+                                </div>
+                                <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                                    <p class="text-sm font-bold uppercase tracking-wide text-green-600 dark:text-green-400">Approved</p>
+                                    <p id="statApproved" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
+                                </div>
+                                <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                                    <p class="text-sm font-bold uppercase tracking-wide text-red-600 dark:text-red-400">Rejected</p>
+                                    <p id="statRejected" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
+                                </div>
+                                <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                                    <p class="text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">Cancelled</p>
+                                    <p id="statCancelled" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
+                                </div>
+                            </div>
+
+                            <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
+                                <div class="flex items-center justify-between gap-2">
+                                    <p class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Reserved / Total Quota</p>
+                                    <span id="quotaOverallValue" class="text-sm font-bold text-gray-800 dark:text-white">-</span>
+                                </div>
+                                <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                                    <div id="quotaOverallBar" class="h-full rounded-full bg-gray-900 dark:bg-white" style="width:0%"></div>
+                                </div>
+
+                                <p class="mb-2 mt-4 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Per Company</p>
+                                <div id="quotaByCompany" class="flex flex-nowrap gap-2 overflow-x-auto pb-1"></div>
+                                <p id="quotaByCompanyEmpty" class="hidden text-sm text-gray-400">No quota configured for this training.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                        <div class="flex flex-1 flex-wrap items-center gap-4">
+                            <span id="allRegsCount" class="text-sm font-medium text-gray-500 dark:text-gray-400"></span>
+                            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                <label for="allRegsPageSize">Show</label>
+                                <select id="allRegsPageSize" class="rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-8 text-sm text-gray-700 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                                    <option value="10">10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                    <option value="all">All</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="relative w-full sm:w-72">
+                            <i class="fa-solid fa-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400"></i>
+                            <input id="allRegsSearch" type="text" placeholder="Search employee or doc ID..."
+                                class="w-full rounded-lg border border-gray-300 bg-white py-2 pl-8 pr-3 text-sm text-gray-700 placeholder:text-gray-400 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:placeholder:text-gray-500 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="responsive-table min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                            <thead>
+                                <tr class="text-left text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                    <th class="allRegsSortTh py-2 pr-4" data-field="docid">Doc ID</th>
+                                    <th class="allRegsSortTh py-2 pr-4" data-field="name">Employee</th>
+                                    <th class="py-2 pr-4">Company / Dept</th>
+                                    <th class="allRegsSortTh py-2 pr-4" data-field="training_name">Training</th>
+                                    <th class="allRegsSortTh py-2 pr-4" data-field="grade_name">Level</th>
+                                    <th class="allRegsSortTh py-2 pr-4" data-field="schedule_date">Schedule Date</th>
+                                    <th class="allRegsSortTh py-2 pr-4" data-field="schedule_status">Training Status</th>
+                                    <th class="allRegsSortTh py-2 pr-4" data-field="registered_at">Registered On</th>
+                                    <th class="allRegsSortTh py-2 pr-4" data-field="status">Status</th>
+                                    <th class="py-2 pr-4">Approval</th>
+                                    <th class="allRegsSortTh py-2 pr-4" data-field="queue_no">Queue #</th>
+                                    <th class="py-2 pr-4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allRegsBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
+                        </table>
+                        <div id="allRegsEmpty" class="hidden rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
+                            No registrations found.
+                        </div>
+                        <div id="allRegsPagination"></div>
+                    </div>
+                </div>
+            @endif
+        </div>
+
+        {{-- Training Detail modal --}}
+        <div id="detailModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+            <div class="relative flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-800 sm:min-h-140 sm:flex-row">
+                <button type="button" id="closeDetailModalX"
+                    class="absolute right-4 top-4 z-20 rounded-lg bg-white/90 p-1.5 text-gray-500 shadow transition hover:bg-white hover:text-gray-900 dark:bg-gray-900/80 dark:text-gray-300">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+
+                {{-- Poster panel — bg-cover fills the panel edge-to-edge (the
+                     Full Preview button is there for anyone who wants the
+                     uncropped poster). Sits left of the scrollable content on
+                     sm+, on top of it on mobile. Full Preview lives top-left
+                     of the panel so it never collides with the modal's own
+                     top-right close X. --}}
+                <div id="detailHeroWrap" class="relative h-72 w-full shrink-0 bg-gray-200 dark:bg-gray-700 sm:h-auto sm:w-80 md:w-96">
+                    <div id="detailHeroPoster" class="absolute inset-0 bg-cover bg-center bg-no-repeat"></div>
+                    <button type="button" id="detailHeroFullPreviewBtn"
+                        class="absolute left-3 top-3 z-10 hidden items-center gap-1 rounded-lg bg-white/90 px-2.5 py-1.5 text-sm font-semibold text-gray-700 shadow transition hover:bg-white dark:bg-gray-900/80 dark:text-gray-200">
+                        🖼️ Full Preview
+                    </button>
+                </div>
+
+                <div class="min-h-0 flex-1 overflow-y-auto">
+                    {{-- Sticky so the title/description stay in view while a
+                         long schedule list scrolls beneath it. --}}
+                    <div class="sticky top-0 z-10 border-b border-gray-100 bg-white/95 px-5 pb-4 pt-5 backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/95">
+                        <div id="detailHeroBadges" class="mb-2 flex flex-wrap justify-start gap-1.5"></div>
+                        <h2 id="detailHeroTitle" class="wrap-break-word text-xl font-bold text-gray-800 dark:text-white sm:text-2xl"></h2>
+                        <p id="detailHeroMeta" class="mt-1 text-sm text-gray-500 dark:text-gray-400"></p>
+                        <p id="detailDescriptionText" class="mt-3 hidden rounded-lg bg-gray-50 p-3 text-sm leading-relaxed text-gray-600 dark:bg-gray-900/40 dark:text-gray-300"></p>
+                    </div>
+
+                    <div class="p-5 pt-4">
+                        <h3 class="mb-3 flex items-center gap-1.5 text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                            🗓 Schedules
+                        </h3>
+                        <div id="detailScheduleList" class="flex flex-col gap-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .tabBtn.active {
+            background: #ffffff;
+            color: #111827;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.06);
+        }
+        html.dark .tabBtn.active {
+            background: #374151;
+            color: #ffffff;
+        }
+
+        /* Below 640px, data tables stack into label/value cards instead of
+           squeezing every column into an unreadably narrow cell — the
+           overflow-x-auto scroll wrapper alone still left headers/badges
+           wrapping mid-word. Each <td> needs a data-label attribute (set in
+           the JS render functions) for the ::before to pick up. */
+        @media (max-width: 640px) {
+            .responsive-table thead {
+                display: none;
+            }
+            .responsive-table, .responsive-table tbody {
+                display: block;
+                width: 100%;
+            }
+            .responsive-table tbody > * + * {
+                border-top-width: 0 !important;
+            }
+            /* Grid instead of plain block stacking so Doc ID can share a row
+               with its table's date cell (pinned via grid-row/grid-column
+               below) while every other cell still spans the full width. */
+            .responsive-table tr {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px 12px;
+                margin-bottom: 10px;
+                padding: 10px 12px;
+                border: 1px solid #e5e7eb;
+                border-radius: 12px;
+            }
+            html.dark .responsive-table tr {
+                border-color: #374151;
+            }
+            .responsive-table td {
+                grid-column: 1 / -1;
+                padding: 0 !important;
+                border: none !important;
+            }
+            .responsive-table td[data-label]::before {
+                content: attr(data-label);
+                display: block;
+                font-size: 10px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: .03em;
+                color: #9ca3af;
+                margin-bottom: 2px;
+            }
+            /* Doc ID pairs with its table's date column on one row — pinned
+               to explicit row/column so it holds regardless of where the
+               date cell actually falls in DOM/source order. The Approval
+               sub-tab has two date columns (Schedule Date + decision Date)
+               so it's left out here and just stacks normally. */
+            #subtab-myreg .responsive-table td[data-label="Doc ID"],
+            #tab-allregs .responsive-table td[data-label="Doc ID"] {
+                grid-row: 1;
+                grid-column: 1;
+            }
+            #subtab-myreg .responsive-table td[data-label="Date"],
+            #tab-allregs .responsive-table td[data-label="Schedule Date"] {
+                grid-row: 1;
+                grid-column: 2;
+            }
+            /* Actions/Action cells hold tap targets — stack them full-width
+               and enlarge instead of leaving them at desktop's compact
+               inline-row size, which reads as cramped on a touch screen. */
+            .responsive-table td[data-label="Actions"] > div,
+            .responsive-table td[data-label="Action"] > div {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .responsive-table td[data-label="Actions"] button,
+            .responsive-table td[data-label="Actions"] a,
+            .responsive-table td[data-label="Action"] button,
+            .responsive-table td[data-label="Action"] a {
+                width: 100%;
+                padding-top: 11px;
+                padding-bottom: 11px;
+                font-size: 13px;
+                text-align: center;
+            }
+        }
+        .allRegsSortTh,
+        .approvalSortTh {
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+        .allRegsSortTh:hover,
+        .approvalSortTh:hover {
+            color: #111827;
+        }
+        html.dark .allRegsSortTh:hover,
+        html.dark .approvalSortTh:hover {
+            color: #f3f4f6;
+        }
+        .allRegsSortTh .sortArrow,
+        .approvalSortTh .sortArrow {
+            display: inline-block;
+            margin-left: 3px;
+            opacity: .3;
+            font-size: 10px;
+        }
+        .allRegsSortTh.sortActive .sortArrow,
+        .approvalSortTh.sortActive .sortArrow {
+            opacity: 1;
+        }
+        .select2-container--default .select2-selection--single {
+            height: 38px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 4px 0;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            font-size: 13px;
+            line-height: 28px;
+            color: #111827;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 36px;
+        }
+        .select2-container {
+            width: 100% !important;
+        }
+        .select2-filter .select2-selection--single {
+            height: 38px !important;
+            padding: 0 !important;
+            border-radius: 8px;
+            border-color: #d1d5db;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .select2-filter .select2-selection--single:hover {
+            border-color: #9ca3af;
+        }
+        .select2-filter .select2-selection--single .select2-selection__rendered {
+            font-size: 13px !important;
+            line-height: 36px !important;
+            padding-left: 12px;
+            padding-right: 36px;
+        }
+        .select2-filter .select2-selection--single .select2-selection__arrow {
+            height: 36px !important;
+        }
+        .select2-filter .select2-selection--single .select2-selection__clear {
+            top: 0 !important;
+            bottom: 0 !important;
+            right: 32px !important;
+            height: 18px !important;
+            line-height: 18px !important;
+            margin: auto 0 !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+        .select2-filter.select2-container--focus .select2-selection--single,
+        .select2-filter.select2-container--open .select2-selection--single {
+            border-color: #9ca3af;
+            box-shadow: 0 0 0 2px #e5e7eb;
+            outline: none;
+        }
+        html.dark .select2-filter .select2-selection--single {
+            background: #1f2937;
+            border-color: #4b5563;
+        }
+        html.dark .select2-filter .select2-selection--single:hover {
+            border-color: #6b7280;
+        }
+        html.dark .select2-filter .select2-selection--single .select2-selection__rendered {
+            color: #e5e7eb;
+        }
+        html.dark .select2-filter.select2-container--focus .select2-selection--single,
+        html.dark .select2-filter.select2-container--open .select2-selection--single {
+            border-color: #6b7280;
+            box-shadow: 0 0 0 2px #374151;
+        }
+        html.dark .select2-filter .select2-dropdown {
+            background: #1f2937;
+            border-color: #4b5563;
+        }
+        html.dark .select2-filter .select2-results__option {
+            color: #e5e7eb;
+        }
+        html.dark .select2-filter .select2-search--dropdown .select2-search__field {
+            background: #111827;
+            border-color: #4b5563;
+            color: #e5e7eb;
+        }
+        .dateCardOption {
+            cursor: pointer;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 10px 14px;
+            min-width: 0;
+            transition: border-color .15s ease, background .15s ease, transform .1s ease;
+        }
+        .dateCardOption:hover {
+            border-color: #9ca3af;
+            transform: translateY(-1px);
+        }
+        .dateCardOption.selected {
+            border-color: #111827;
+            background: #f9fafb;
+            box-shadow: 0 0 0 1px #111827;
+        }
+        .ticketConfirmBtn {
+            background: #111827 !important;
+            color: #fff !important;
+            border: none !important;
+            padding: 11px 0 !important;
+            width: 100%;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            border-radius: 8px !important;
+            box-shadow: none !important;
+        }
+        .ticketConfirmBtn:hover {
+            background: #374151 !important;
+        }
+        .ticketCancelBtn {
+            background: transparent !important;
+            color: #6b7280 !important;
+            box-shadow: none !important;
+            font-weight: 500 !important;
+            font-size: 12.5px !important;
+            padding: 4px 0 !important;
+            margin: 0 !important;
+        }
+        .ticketCancelBtn:hover {
+            color: #111827 !important;
+            text-decoration: underline;
+        }
+        .swal2-actions {
+            flex-direction: column;
+            width: 100%;
+            gap: 4px;
+        }
+        .ticketModalPopup {
+            padding: 0 !important;
+            border-radius: 16px !important;
+            max-width: calc(100vw - 32px) !important;
+        }
+        .ticketModalPopup .swal2-html-container {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .ticketModalPopup .swal2-actions {
+            margin: 0 !important;
+            padding: 16px 24px 20px !important;
+            border-top: 1px solid #f0f1f3;
+            background: #fafafa;
+            border-radius: 0 0 16px 16px;
+        }
+        .ticketModal-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 20px 24px;
+            border-bottom: 1px solid #f0f1f3;
+            border-radius: 16px 16px 0 0;
+        }
+        .ticketModal-thumb {
+            width: 56px;
+            height: 56px;
+            border-radius: 10px;
+            flex-shrink: 0;
+            object-fit: cover;
+        }
+        .ticketModal-thumbFallback {
+            width: 56px;
+            height: 56px;
+            border-radius: 10px;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #374151, #111827);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+        .ticketModal-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #111827;
+            margin: 0;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+        .ticketModal-subtitle {
+            font-size: 11px;
+            color: #6b7280;
+            margin: 3px 0 0;
+        }
+        .ticketModal-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 5px;
+        }
+        .ticketModal-badge {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 9999px;
+            padding: 2px 9px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        .ticketModal-badge.neutral {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        .ticketModal-badge.info {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        .ticketModal-badge.mandatory {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+        .ticketModal-body {
+            padding: 20px 24px 24px;
+            text-align: left;
+        }
+        .ticketModal-label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .03em;
+            text-transform: uppercase;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+        .ticketModal-sessionGrid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+        @media (max-width: 420px) {
+            .ticketModal-sessionGrid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .ticketModal-card {
+            margin-top: 16px;
+            padding: 16px;
+            border-radius: 12px;
+            background: #f9fafb;
+            border: 1px solid #f0f1f3;
+        }
+        .ticketModal-card:first-child {
+            margin-top: 0;
+        }
+        .ticketModal-pickerGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+        }
+        .ticketModal-field {
+            min-width: 0;
+        }
+        .ticketModal-select {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 9px 12px;
+            font-size: 13px;
+            color: #111827;
+            background: #fff;
+        }
+        .ticketModal-capacity {
+            margin-top: 14px;
+        }
+        .ticketModal-pickerGrid + .ticketModal-capacity {
+            margin-top: 14px;
+        }
+        .posterPreviewPopup {
+            padding: 0 !important;
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+        .posterPreviewPopup .swal2-image {
+            margin: 0 !important;
+            border-radius: 12px;
+            max-height: 85vh;
+            width: 100%;
+            object-fit: contain;
+        }
+        .approveModalPopup {
+            padding: 0 !important;
+            border-radius: 16px !important;
+            width: 380px !important;
+            max-width: calc(100vw - 32px) !important;
+        }
+        .approveModalPopup .swal2-html-container {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .approveModalPopup .swal2-actions {
+            flex-direction: column;
+            width: 100%;
+            gap: 8px;
+            margin: 0 !important;
+            padding: 16px 24px 20px !important;
+            border-top: 1px solid #f0f1f3;
+            background: #fafafa;
+            border-radius: 0 0 16px 16px;
+        }
+        .approveModal-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 28px 24px 20px;
+        }
+        .approveModal-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
+        .approveModal-icon.approve {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        .approveModal-icon.reject {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .approveModal-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #111827;
+            margin: 0;
+        }
+        .approveModal-card {
+            margin: 0 24px 24px;
+            padding: 6px 16px;
+            border-radius: 12px;
+            background: #f9fafb;
+            border: 1px solid #f0f1f3;
+            text-align: left;
+        }
+        .approveModal-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 12px;
+            padding: 9px 0;
+        }
+        .approveModal-row + .approveModal-row {
+            border-top: 1px solid #eef0f2;
+        }
+        .approveModal-key {
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: .03em;
+            text-transform: uppercase;
+            color: #9ca3af;
+            flex-shrink: 0;
+        }
+        .approveModal-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: #111827;
+            text-align: right;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+        .approveConfirmBtn {
+            background: #16a34a !important;
+            color: #fff !important;
+            border: none !important;
+            padding: 11px 0 !important;
+            width: 100%;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            border-radius: 8px !important;
+            box-shadow: none !important;
+        }
+        .approveConfirmBtn:hover {
+            background: #15803d !important;
+        }
+        .rejectConfirmBtn {
+            background: #dc2626 !important;
+            color: #fff !important;
+            border: none !important;
+            padding: 11px 0 !important;
+            width: 100%;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            border-radius: 8px !important;
+            box-shadow: none !important;
+        }
+        .rejectConfirmBtn:hover {
+            background: #b91c1c !important;
+        }
+        .feedbackModalPopup {
+            padding: 0 !important;
+            border-radius: 16px !important;
+            width: 560px !important;
+            max-width: calc(100vw - 32px) !important;
+        }
+        .feedbackModalPopup .swal2-html-container {
+            margin: 0 !important;
+            padding: 0 !important;
+            max-height: none !important;
+        }
+        .feedbackModalPopup .swal2-actions {
+            flex-direction: column;
+            width: 100%;
+            gap: 4px;
+            margin: 0 !important;
+            padding: 16px 24px 20px !important;
+            border-top: 1px solid #f0f1f3;
+            background: #fafafa;
+            border-radius: 0 0 16px 16px;
+        }
+        .feedbackModal-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 20px 24px;
+            border-bottom: 1px solid #f0f1f3;
+        }
+        .feedbackModal-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #374151, #111827);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .feedbackModal-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #111827;
+            margin: 0;
+            text-align: left;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+        .feedbackModal-subtitle {
+            font-size: 11px;
+            color: #6b7280;
+            margin: 3px 0 0;
+        }
+        .feedbackModal-body {
+            padding: 20px 24px 24px;
+            text-align: left;
+            max-height: 58vh;
+            overflow-y: auto;
+        }
+        .feedbackModal-notice {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            color: #92400e;
+            font-size: 12px;
+            margin-bottom: 16px;
+        }
+        .feedbackModal-question {
+            padding: 16px;
+            border-radius: 12px;
+            background: #f9fafb;
+            border: 1px solid #f0f1f3;
+        }
+        .feedbackModal-question + .feedbackModal-question {
+            margin-top: 12px;
+        }
+        .feedbackModal-qHead {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .feedbackModal-qNum {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #111827;
+            color: #fff;
+            font-size: 10.5px;
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .feedbackModal-qText {
+            font-size: 13px;
+            font-weight: 600;
+            color: #111827;
+            line-height: 1.4;
+        }
+        .feedbackModal-choiceGroup {
+            display: flex;
+            gap: 8px;
+        }
+        .feedbackModal-choice {
+            position: relative;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 9px 12px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            cursor: pointer;
+            transition: border-color .15s, background .15s, color .15s;
+        }
+        .feedbackModal-choice input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .feedbackModal-choice:has(input:checked) {
+            border-color: #111827;
+            background: #111827;
+            color: #fff;
+        }
+        .feedbackModal-choice:has(input:disabled) {
+            cursor: not-allowed;
+        }
+        .feedbackModal-choice:has(input:disabled):not(:has(input:checked)) {
+            opacity: .5;
+        }
+        .feedbackModal-ratingGroup {
+            display: flex;
+            gap: 8px;
+        }
+        .feedbackModal-ratingItem {
+            position: relative;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            color: #374151;
+            cursor: pointer;
+            transition: border-color .15s, background .15s, color .15s;
+        }
+        .feedbackModal-ratingItem input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .feedbackModal-ratingItem:has(input:checked) {
+            border-color: #f59e0b;
+            background: #fffbeb;
+            color: #b45309;
+        }
+        .feedbackModal-ratingItem:has(input:disabled) {
+            cursor: not-allowed;
+        }
+        .feedbackModal-ratingItem:has(input:disabled):not(:has(input:checked)) {
+            opacity: .5;
+        }
+        .feedbackModal-ratingScale {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 6px;
+            font-size: 10.5px;
+            color: #9ca3af;
+        }
+        .feedbackModal-textarea {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 9px 12px;
+            font-size: 13px;
+            color: #111827;
+            background: #fff;
+            resize: vertical;
+            min-height: 60px;
+            font-family: inherit;
+        }
+        .feedbackModal-textarea:focus {
+            outline: none;
+            border-color: #111827;
+            box-shadow: 0 0 0 3px rgba(17, 24, 39, .08);
+        }
+        .feedbackModal-textarea:disabled {
+            background: #f9fafb;
+            color: #6b7280;
+            cursor: not-allowed;
+        }
+        .feedbackConfirmBtn {
+            background: #111827 !important;
+            color: #fff !important;
+            border: none !important;
+            padding: 11px 0 !important;
+            width: 100%;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            border-radius: 8px !important;
+            box-shadow: none !important;
+        }
+        .feedbackConfirmBtn:hover {
+            background: #374151 !important;
+        }
+        .viewModalPopup {
+            padding: 0 !important;
+            border-radius: 16px !important;
+            width: 480px !important;
+            max-width: calc(100vw - 32px) !important;
+        }
+        .viewModalPopup .swal2-html-container {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .viewModalPopup .swal2-actions {
+            margin: 0 !important;
+            padding: 16px 24px 20px !important;
+            border-top: 1px solid #f0f1f3;
+            background: #fafafa;
+            border-radius: 0 0 16px 16px;
+        }
+        .viewModal-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 20px 24px;
+            border-bottom: 1px solid #f0f1f3;
+        }
+        .viewModal-statusChip {
+            flex-shrink: 0;
+        }
+        .viewModal-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #374151, #111827);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .viewModal-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #111827;
+            margin: 0;
+            text-align: left;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+        .viewModal-subtitle {
+            font-size: 11px;
+            color: #6b7280;
+            margin: 3px 0 0;
+            text-align: left;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        .viewModal-body {
+            padding: 20px 24px 24px;
+            text-align: left;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        .viewModal-card {
+            padding: 4px 14px;
+            border-radius: 12px;
+            background: #f9fafb;
+            border: 1px solid #f0f1f3;
+        }
+        .viewModal-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 12px;
+            padding: 8px 0;
+        }
+        .viewModal-row + .viewModal-row {
+            border-top: 1px solid #eef0f2;
+        }
+        .viewModal-key {
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: .03em;
+            text-transform: uppercase;
+            color: #9ca3af;
+            flex-shrink: 0;
+        }
+        .viewModal-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: #111827;
+            text-align: right;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+        .viewModal-sectionTitle {
+            margin: 20px 0 10px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .03em;
+            text-transform: uppercase;
+            color: #6b7280;
+        }
+        .viewModal-participant {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #eef2ff, #f5f3ff);
+            border: 1px solid #e0e7ff;
+            margin-bottom: 12px;
+        }
+        .viewModal-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .viewModal-participant-name {
+            margin: 0;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #111827;
+            text-align: left;
+        }
+        .viewModal-participant-label {
+            margin: 2px 0 0;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            color: #6366f1;
+        }
+        .viewModal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .viewModal-gridItem {
+            display: flex;
+            gap: 9px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: #f9fafb;
+            border: 1px solid #f0f1f3;
+            min-width: 0;
+        }
+        .viewModal-gridIcon {
+            font-size: 15px;
+            line-height: 1.4;
+            flex-shrink: 0;
+        }
+        .viewModal-gridKey {
+            margin: 0;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .03em;
+            text-transform: uppercase;
+            color: #9ca3af;
+            text-align: left;
+        }
+        .viewModal-gridValue {
+            margin: 2px 0 0;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #111827;
+            text-align: left;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+        .viewModal-actionsRow {
+            display: flex;
+            gap: 8px;
+            margin: 14px 0 6px;
+        }
+        .viewModal-actionsRow:last-child {
+            margin-bottom: 16px;
+        }
+        .viewModal-actionsRow button {
+            flex: 1;
+            padding: 11px 0;
+            font-size: 13.5px;
+            font-weight: 600;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+        }
+        .modalApproveBtn {
+            background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+            color: #fff !important;
+            box-shadow: 0 2px 8px rgba(22,163,74,.3) !important;
+        }
+        .modalApproveBtn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 14px rgba(22,163,74,.38) !important;
+        }
+        .modalRejectBtn {
+            background: #fef2f2 !important;
+            color: #dc2626 !important;
+            border: 1px solid #fecaca !important;
+        }
+        .modalRejectBtn:hover {
+            background: #fee2e2 !important;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(220,38,38,.15) !important;
+        }
+        .viewModal-offerBanner {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            border: 1px solid #fde68a;
+            margin: 14px 0;
+        }
+        .viewModal-offerIcon {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(217,119,6,.35);
+        }
+        .viewModal-offerText {
+            margin: 0;
+            font-size: 12px;
+            font-weight: 600;
+            color: #92400e;
+            text-align: left;
+            line-height: 1.45;
+        }
+        .viewModal-offerText strong {
+            color: #78350f;
+        }
+        .approvalStepList {
+            display: flex;
+            flex-direction: column;
+        }
+        .approvalStep {
+            display: flex;
+            gap: 10px;
+            position: relative;
+            padding-bottom: 12px;
+        }
+        .approvalStep:last-child {
+            padding-bottom: 0;
+        }
+        .approvalStep::before {
+            content: '';
+            position: absolute;
+            left: 12.5px;
+            top: 26px;
+            bottom: 2px;
+            width: 2px;
+            background: #eef0f2;
+        }
+        .approvalStep:last-child::before {
+            display: none;
+        }
+        .approvalStep-marker {
+            flex-shrink: 0;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            z-index: 1;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 1px #f0f1f3;
+        }
+        .approvalStep-marker.approved {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        .approvalStep-marker.rejected {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .approvalStep-marker.pending {
+            background: #fef9c3;
+            color: #a16207;
+        }
+        .approvalStep-marker.neutral {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+        .approvalStep-body {
+            min-width: 0;
+            flex: 1;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: #f9fafb;
+            border: 1px solid #f0f1f3;
+        }
+        .approvalStep-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .approvalStep-level {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            color: #9ca3af;
+        }
+        .approvalStep-badge {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .02em;
+            text-transform: uppercase;
+            padding: 2px 8px;
+            border-radius: 999px;
+        }
+        .approvalStep-badge.approved { background: #dcfce7; color: #16a34a; }
+        .approvalStep-badge.rejected { background: #fee2e2; color: #dc2626; }
+        .approvalStep-badge.pending { background: #fef9c3; color: #a16207; }
+        .approvalStep-badge.neutral { background: #f3f4f6; color: #6b7280; }
+        .approvalStep-name {
+            margin-top: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #111827;
+        }
+        .approvalStep-nameList {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 5px;
+        }
+        .approvalStep-nameChip {
+            font-size: 11.5px;
+            font-weight: 600;
+            color: #111827;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            padding: 2px 9px;
+            border-radius: 999px;
+        }
+        .approvalStep-when {
+            margin-top: 5px;
+            font-size: 11px;
+            color: #9ca3af;
+        }
+    </style>
+    <script>
+        const jsonUrl = "{{ route('training-list.json') }}";
+        const myUrl = "{{ route('training-list.my') }}";
+        const certificateUrl = "{{ route('training-list.certificate', ['id' => '__ID__']) }}";
+        const myViewUrlTpl = "{{ route('training-list.my.show', ['eid' => '__EID__'], false) }}";
+        const feedbackUrlTpl = "{{ route('training-list.feedback.open', ['eid' => '__EID__'], false) }}";
+        const trainingListPath = "{{ route('training-list', [], false) }}";
+        const cancelUrlTpl = "{{ route('training-list.cancel', ['scheduleId' => '__ID__']) }}";
+        const colleaguesUrl = "{{ route('training-list.colleagues') }}";
+        const pendingApprovalsUrl = "{{ route('training-list.pending-approvals') }}";
+        const approvalUrlTpl = "{{ route('approval.get', ['refnbr' => '__REF__', 'doctype' => 'TRN']) }}";
+        const isHcdevaccess = @json(Auth::user()->hasRole('HCDEVACCESS'));
+        @if (Auth::user()->hasRole('HCDEVACCESS'))
+        const allRegistrationsUrl = "{{ route('training-list.all-registrations') }}";
+        const registrationSummaryUrl = "{{ route('training-list.registration-summary') }}";
+        const allRegistrationsExportUrl = "{{ route('training-list.all-registrations.export') }}";
+        const allRegsViewUrlTpl = "{{ route('training-list.allregs.show', ['eid' => '__EID__'], false) }}";
+        @endif
+        const csrfHeaders = { 'X-CSRF-TOKEN': '{{ csrf_token() }}' };
+        const initialEid = @json($initialEid);
+        const initialMyEid = @json($initialMyEid ?? null);
+        const initialAllRegsEid = @json($initialAllRegsEid ?? null);
+        const initialApprovalEid = @json($initialApprovalEid ?? null);
+        const initialFeedbackEid = @json($initialFeedbackEid ?? null);
+
+        const statusLabels = {
+            P: ['Waiting Approval', 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'],
+            C: ['Approved', 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'],
+            R: ['Rejected', 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'],
+            X: ['Cancelled', 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'],
+            W: ['Waiting List', 'bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300'],
+            O: ['Slot Offered', 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300'],
+        };
+
+        function statusBadge(status) {
+            const [label, cls] = statusLabels[status] || [status, 'bg-gray-100 text-gray-600'];
+            return `<span class="inline-flex rounded-full px-2 py-0.5 text-sm font-semibold ${cls}">${label}</span>`;
+        }
+
+        // Approved registrations read as plain text ("Registration Approved")
+        // rather than a colored pill, everywhere a per-schedule/my-status chip
+        // is shown — the colored badge is reserved for statuses that need to
+        // stand out (pending, rejected, waitlisted, offered).
+        function myStatusChip(status) {
+            if (status === 'C') {
+                return '<span class="text-sm text-gray-400">Registration Approved</span>';
+            }
+            return statusBadge(status);
+        }
+
+        // ms_lnd_training_schedule.status: single-letter codes (see
+        // TrainingRegistrationController::SCHEDULE_*).
+        const scheduleStatusLabels = {
+            D: ['Draft', 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'],
+            P: ['Published', 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'],
+            C: ['Closed', 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'],
+            X: ['Cancelled', 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'],
+        };
+
+        function scheduleStatusBadge(status) {
+            const [label, cls] = scheduleStatusLabels[status] || [status ?? '-', 'bg-gray-100 text-gray-600'];
+            return `<span class="inline-flex rounded-full px-2 py-0.5 text-sm font-semibold ${cls}">${label}</span>`;
+        }
+
+        function fmtDate(d) {
+            if (!d) return '-';
+            return new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        // Calendar-day comparison against a 'Y-m-d' string (matches the
+        // schedule_date < today check in TrainingRegistrationController::cancel())
+        // — same-day is not "passed" yet, only strictly earlier dates are.
+        function isDateStrPast(dateStr) {
+            if (!dateStr) return false;
+            const now = new Date();
+            const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            return dateStr < todayStr;
+        }
+
+        const PAGE_SIZE = 10;
+
+        // Slices a filtered row array down to one page, clamping the given
+        // page number into range (e.g. after a filter shrinks the result set
+        // below the previously-viewed page). pageSize defaults to the shared
+        // PAGE_SIZE but the List Registration tab passes its own (10/25/50/
+        // 100/all, via its "Show" selector) without affecting other tabs.
+        function paginateRows(rows, page, pageSize = PAGE_SIZE) {
+            const size = pageSize === Infinity ? Math.max(1, rows.length) : pageSize;
+            const totalPages = Math.max(1, Math.ceil(rows.length / size));
+            const clamped = Math.min(Math.max(1, page), totalPages);
+            const start = (clamped - 1) * size;
+            return { pageRows: rows.slice(start, start + size), page: clamped, totalPages };
+        }
+
+        function renderPagination(containerId, totalItems, page, totalPages, onChange, pageSize = PAGE_SIZE) {
+            const $el = $('#' + containerId);
+
+            if (totalPages <= 1) {
+                $el.empty();
+                return;
+            }
+
+            const size = pageSize === Infinity ? Math.max(1, totalItems) : pageSize;
+            const start = totalItems === 0 ? 0 : (page - 1) * size + 1;
+            const end = Math.min(page * size, totalItems);
+
+            $el.html(`
+                <div class="flex flex-wrap items-center justify-between gap-2 pt-3 text-sm text-gray-500 dark:text-gray-400">
+                    <span>Showing ${start}-${end} of ${totalItems}</span>
+                    <div class="flex items-center gap-1">
+                        <button type="button" class="paginationPrevBtn rounded-lg px-2.5 py-1 font-semibold text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:text-gray-300 dark:hover:bg-gray-800" ${page <= 1 ? 'disabled' : ''}>Prev</button>
+                        <span class="px-1 font-medium text-gray-600 dark:text-gray-300">Page ${page} of ${totalPages}</span>
+                        <button type="button" class="paginationNextBtn rounded-lg px-2.5 py-1 font-semibold text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:text-gray-300 dark:hover:bg-gray-800" ${page >= totalPages ? 'disabled' : ''}>Next</button>
+                    </div>
+                </div>
+            `);
+
+            $el.find('.paginationPrevBtn').on('click', () => onChange(page - 1));
+            $el.find('.paginationNextBtn').on('click', () => onChange(page + 1));
+        }
+
+        // Always shows the field (so a single-option pick reads as "already
+        // decided for you" rather than vanishing) and only disables it —
+        // never omits it — when there's nothing to actually choose.
+        function pickerFieldHtml(icon, label, id, options) {
+            if (!options.length) return '';
+            const opts = options.map((o) => `<option value="${o.id}">${o.name}</option>`).join('');
+            const disabled = options.length === 1 ? ' disabled' : '';
+            return `
+                <div class="ticketModal-field">
+                    <label class="ticketModal-label">${icon} ${label}</label>
+                    <select id="${id}" class="ticketModal-select"${disabled}>${opts}</select>
+                </div>
+            `;
+        }
+
+        // Deterministic color per category/training name, so the same
+        // training always gets the same card-icon tile color across reloads
+        // instead of a random one each render.
+        const cardPalettes = [
+            ['#eef2ff', '#4338ca'],
+            ['#ecfeff', '#0e7490'],
+            ['#f0fdf4', '#15803d'],
+            ['#fff7ed', '#c2410c'],
+            ['#fdf2f8', '#be185d'],
+            ['#f5f3ff', '#6d28d9'],
+            ['#fefce8', '#a16207'],
+        ];
+
+        function paletteFor(key) {
+            const str = key || '';
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
+            }
+            return cardPalettes[hash % cardPalettes.length];
+        }
+
+        $('.tabBtn').on('click', function () {
+            const tab = $(this).data('tab');
+            $('.tabBtn').removeClass('active').addClass('text-gray-500 dark:text-gray-400');
+            $(this).addClass('active').removeClass('text-gray-500 dark:text-gray-400');
+            $('.tab-panel').addClass('hidden');
+            $('#tab-' + tab).removeClass('hidden');
+
+            if (tab === 'mine') loadMine();
+            if (tab === 'allregs') loadAllRegistrations();
+        });
+
+        function toast(icon, title) {
+            Swal.fire({ toast: true, position: 'top-end', icon, title, showConfirmButton: false, timer: 2500, timerProgressBar: true });
+        }
+
+        let cardsByDocid = {};
+        let deptOptionsGlobal = [];
+        let allTrainingRows = [];
+        let myCompanyNameGlobal = '';
+        let myDepartmentNameGlobal = '';
+
+        function populateFilterOptions(rows) {
+            const $level = $('#filterLevel');
+            const $category = $('#filterCategory');
+            const selectedLevel = $level.val();
+            const selectedCategory = $category.val();
+
+            const levels = [...new Set(rows.flatMap((r) => r.levels))].sort();
+            const categories = [...new Set(rows.map((r) => r.category_name).filter(Boolean))].sort();
+
+            $level.find('option:not(:first)').remove();
+            levels.forEach((l) => $level.append(new Option(l, l)));
+            $level.val(levels.includes(selectedLevel) ? selectedLevel : '');
+
+            $category.find('option:not(:first)').remove();
+            categories.forEach((c) => $category.append(new Option(c, c)));
+            $category.val(categories.includes(selectedCategory) ? selectedCategory : '');
+        }
+
+        // A card is "closed" once every schedule in its batch is no longer
+        // open (registration deadline passed and/or the schedule date is
+        // over) — mirrors the per-schedule `is_open` the backend already
+        // computes, just rolled up to the card level.
+        function isTrainingClosed(r) {
+            return r.schedules.length > 0 && r.schedules.every((s) => !s.is_open);
+        }
+
+        function applyFilters() {
+            const level = $('#filterLevel').val();
+            const category = $('#filterCategory').val();
+            const mandatory = $('#filterMandatory').val();
+            const status = $('#filterStatus').val();
+
+            const filtered = allTrainingRows.filter((r) => {
+                if (level && !r.levels.includes(level)) return false;
+                if (category && r.category_name !== category) return false;
+                if (mandatory === '1' && !r.is_mandatory) return false;
+                if (mandatory === '0' && r.is_mandatory) return false;
+                const closed = isTrainingClosed(r);
+                if (status === 'open' && closed) return false;
+                if (status === 'closed' && !closed) return false;
+                return true;
+            });
+
+            renderTrainingCards(filtered);
+        }
+
+        $('#filterLevel, #filterCategory, #filterMandatory, #filterStatus').on('change', applyFilters);
+        $('#filterResetBtn').on('click', function () {
+            $('#filterLevel, #filterCategory, #filterMandatory').val('');
+            $('#filterStatus').val('open');
+            applyFilters();
+        });
+
+        function loadAvailable() {
+            $.get(jsonUrl, function (res) {
+                const rows = res.data || [];
+                deptOptionsGlobal = res.department_options || [];
+                allTrainingRows = rows;
+                myCompanyNameGlobal = res.my_company_name || '';
+                myDepartmentNameGlobal = res.my_department_name || '';
+
+                cardsByDocid = {};
+                rows.forEach((r) => { cardsByDocid[r.docid] = r; });
+
+                populateFilterOptions(rows);
+                applyFilters();
+
+                if (!initialEidHandled && initialEid) {
+                    initialEidHandled = true;
+                    const match = Object.values(cardsByDocid).find((g) => g.eid === initialEid);
+                    if (match) openDetailModal(match);
+                }
+            });
+        }
+
+        function renderTrainingCards(rows) {
+            $('#availableEmpty').toggleClass('hidden', rows.length > 0);
+            const $list = $('#availableList').empty();
+
+            rows.forEach(function (r) {
+
+                    const levelLabel = r.levels.length ? r.levels.join(', ') : null;
+                    const firstSched = r.schedules[0] || {};
+
+                    const metaParts = [];
+                    if (r.schedule_count === 1 && firstSched.schedule_date) {
+                        metaParts.push(`🗓 ${fmtDate(firstSched.schedule_date)} · ${firstSched.start_time ?? ''}-${firstSched.end_time ?? ''}`);
+                    } else if (r.schedule_count > 1) {
+                        metaParts.push(`🗓 ${r.schedule_count} dates`);
+                    }
+                    if (r.speakers.length) metaParts.push(`🗣️ ${r.speakers.join(', ')}`);
+                    const metaLine = metaParts.length
+                        ? `<p class="mt-0.5 wrap-break-word text-sm text-gray-500 dark:text-gray-400">${metaParts.join(' &nbsp;·&nbsp; ')}</p>`
+                        : '';
+
+                    // Representative mode/location — schedules within one docid batch
+                    // (one "Add Schedule" transaction) share a venue, so the earliest
+                    // schedule's mode/location stands in for the whole card.
+                    const locationLabel = firstSched.mode
+                        ? `📍 ${firstSched.mode}${firstSched.location || firstSched.platform ? ' · ' + (firstSched.location || firstSched.platform) : ''}`
+                        : null;
+                    const locationLine = locationLabel
+                        ? `<p class="mt-0.5 wrap-break-word text-sm text-gray-500 dark:text-gray-400">${locationLabel}</p>`
+                        : '';
+
+                    // "already registered" only hides the button if every open date is
+                    // covered — otherwise the employee can still register for another date.
+                    // Past-deadline dates are excluded here (not registerable) but still
+                    // count toward schedule_count and appear in View Detail as informational.
+                    // Per-schedule status (Approved/Rejected/Waitlisted/etc.) is shown
+                    // inside View Detail rather than duplicated here on the card.
+                    const openSchedules = r.schedules.filter((s) => !s.my_status && s.is_open && s.level_match);
+
+                    let registerBtnHtml = '';
+                    if (!r.eligible) {
+                        const reasonText = r.level_eligible ? 'Not available for your company' : 'Your level can\'t register to this training';
+                        registerBtnHtml = `<span class="flex items-center justify-center rounded-lg border border-dashed border-gray-200 px-2 py-1.5 text-center text-sm text-gray-400 dark:border-gray-700">${reasonText}</span>`;
+                    } else if (openSchedules.length > 0) {
+                        const anyAvailable = openSchedules.some((s) => s.eligible_companies.some((c) => c.available > 0));
+                        const btnCls = anyAvailable ? 'bg-gray-900 hover:bg-gray-700 dark:bg-white dark:text-gray-900' : 'bg-sky-600 hover:bg-sky-500 text-white';
+                        const btnText = anyAvailable ? 'Register' : 'Join Waiting List';
+                        registerBtnHtml = `<button class="registerBtn rounded-lg px-3 py-1.5 text-sm font-semibold text-white ${btnCls}" data-docid="${r.docid}">${btnText}</button>`;
+                    }
+
+                    // grid-cols-2 fits both actions side by side; when there's only one
+                    // (no register action applies), it spans both columns instead of
+                    // leaving an empty cell next to it.
+                    const detailBtn = r.eid
+                        ? `<button class="viewDetailBtn${registerBtnHtml === '' ? ' col-span-2' : ''} rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-docid="${r.docid}">View Detail</button>`
+                        : '';
+
+                    const [tileBg, tileFg] = paletteFor(r.category_name || r.training_name);
+                    const iconTile = `<div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg" style="background:${tileBg};color:${tileFg};">🎓</div>`;
+
+                $list.append(`
+                    <div class="flex flex-col gap-2.5 rounded-xl border border-gray-200 bg-white p-3.5 transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-900">
+                        <div class="flex items-start gap-3">
+                            ${iconTile}
+                            <div class="min-w-0 flex-1">
+                                <h3 class="wrap-break-word text-sm font-semibold leading-snug text-gray-800 dark:text-white">${r.training_name ?? '-'}</h3>
+                                <div class="mt-1 flex flex-wrap items-center gap-1">
+                                    ${levelLabel ? `<span class="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-sm font-semibold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">${levelLabel}</span>` : ''}
+                                    ${r.is_mandatory ? `<span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-sm font-semibold text-red-700 dark:bg-red-900/40 dark:text-red-300">Mandatory</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        ${metaLine}
+                        ${locationLine}
+                        <div class="mt-auto grid grid-cols-2 gap-2 pt-1">
+                            ${detailBtn}
+                            ${registerBtnHtml}
+                        </div>
+                    </div>
+                `);
+            });
+        }
+
+        let initialEidHandled = false;
+
+        function capacityBar(c) {
+            const used = (c.reserved || 0) + (c.used || 0);
+            const filled = c.quota_pax > 0 ? Math.min(100, Math.round((used / c.quota_pax) * 100)) : 0;
+            const barColor = filled >= 100 ? '#dc2626' : '#111827';
+            return `
+                <div class="border-t border-dashed border-gray-200 py-1.5 dark:border-gray-700">
+                    <div class="flex items-center justify-between gap-2 text-sm">
+                        <span class="text-gray-600 dark:text-gray-300">${c.cpny_name}</span>
+                        <span class="font-medium text-gray-500 dark:text-gray-400">${c.available}/${c.quota_pax} avail &nbsp;·&nbsp; ${c.reserved} rsvp</span>
+                    </div>
+                    <div class="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                        <div class="h-full rounded-full" style="width:${filled}%;background:${barColor};"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function openDetailModal(training) {
+            if (training.poster_url) {
+                $('#detailHeroPoster').css('background-image', `url('${training.poster_url}')`);
+                $('#detailHeroFullPreviewBtn').removeClass('hidden').addClass('flex').data('poster', training.poster_url);
+            } else {
+                $('#detailHeroPoster').css('background-image', '');
+                $('#detailHeroFullPreviewBtn').addClass('hidden').removeClass('flex').removeData('poster');
+            }
+
+            $('#detailHeroTitle').text(training.training_name ?? '-');
+            $('#detailHeroMeta').text(training.schedule_count > 1 ? `🗓 ${training.schedule_count} schedules available` : '');
+
+            const badges = [];
+            if (training.category_name) {
+                badges.push(`<span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-sm font-semibold text-gray-700 dark:bg-gray-700 dark:text-gray-200">${training.category_name}</span>`);
+            }
+            if (training.training_type) {
+                badges.push(`<span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-sm font-semibold text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">${training.training_type}</span>`);
+            }
+            if (training.is_mandatory) {
+                badges.push('<span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-1 text-sm font-semibold text-red-700 dark:bg-red-900/40 dark:text-red-300">Mandatory</span>');
+            }
+            $('#detailHeroBadges').html(badges.join(''));
+
+            if (training.description) {
+                $('#detailDescriptionText').text(training.description).removeClass('hidden');
+            } else {
+                $('#detailDescriptionText').addClass('hidden');
+            }
+
+            const $list = $('#detailScheduleList').empty();
+
+            // Group by docid (a distinct HR "Add Schedule" batch — same level,
+            // speaker, poster) rather than a flat date list, since two batches
+            // can share a level but are still separate schedules with their
+            // own docid/quota.
+            const groups = new Map();
+            (training.schedules || []).forEach((s) => {
+                const key = s.docid || 'unknown';
+                if (!groups.has(key)) groups.set(key, []);
+                groups.get(key).push(s);
+            });
+
+            groups.forEach((scheds, docid) => {
+                const $group = $(`
+                    <div class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+                        <div class="flex items-center justify-between gap-2 bg-gray-50 px-4 py-2 dark:bg-gray-900">
+                            <h4 class="text-sm font-bold text-gray-800 dark:text-white">${scheds[0].grade_name ?? '-'}</h4>
+                            <span class="text-sm font-medium text-gray-400">${docid} &nbsp;·&nbsp; ${scheds.length} schedule(s)</span>
+                        </div>
+                        <div class="divide-y divide-gray-100 dark:divide-gray-700"></div>
+                    </div>
+                `);
+                const $rows = $group.find('.divide-y');
+
+                scheds.forEach((s) => {
+                    const d = new Date(s.schedule_date);
+                    const day = d.toLocaleDateString('en-US', { day: '2-digit' });
+                    const month = d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+                    const year = d.getFullYear();
+
+                    const quotaHtml = !s.level_match
+                        ? '<p class="text-sm text-gray-400">Your level can\'t register to this training</p>'
+                        : s.eligible_companies.length
+                            ? s.eligible_companies.map((c) => capacityBar(c)).join('')
+                            : '<p class="text-sm text-gray-400">Not available for your company</p>';
+
+                    let actionHtml;
+                    if (s.my_status) {
+                        actionHtml = myStatusChip(s.my_status);
+                    } else if (!s.is_open) {
+                        actionHtml = '<span class="text-sm text-gray-400">Registration closed</span>';
+                    } else if (!s.level_match || !s.eligible_companies.length) {
+                        actionHtml = '';
+                    } else {
+                        const anyAvailable = s.eligible_companies.some((c) => c.available > 0);
+                        const btnCls = anyAvailable ? 'bg-gray-900 hover:bg-gray-700 dark:bg-white dark:text-gray-900' : 'bg-sky-600 hover:bg-sky-500 text-white';
+                        const btnText = anyAvailable ? 'Register' : 'Join Waiting List';
+                        actionHtml = `<button class="registerScheduleBtn rounded-lg px-4 py-2 text-sm font-semibold text-white ${btnCls}" data-id="${s.id}" data-docid="${training.docid}">${btnText}</button>`;
+                    }
+
+                    $rows.append(`
+                        <div class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+                            <div class="flex shrink-0 flex-col items-center justify-center rounded-lg bg-gray-50 px-4 py-2 dark:bg-gray-900">
+                                <span class="text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">${month}</span>
+                                <span class="text-2xl font-bold leading-tight text-gray-800 dark:text-white">${day}</span>
+                                <span class="text-sm text-gray-400">${year}</span>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <span class="text-sm font-semibold text-gray-800 dark:text-white">${s.start_time ?? ''}-${s.end_time ?? ''}</span>
+                                <div class="mt-1 flex items-center justify-between gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                    <span>📍 ${s.mode ?? '-'}${s.location || s.platform ? ' · ' + (s.location || s.platform) : ''}</span>
+                                    <span>🗣️ ${s.speaker_name ?? '-'}</span>
+                                </div>
+                                <div class="mt-2">${quotaHtml}</div>
+                            </div>
+                            <div class="flex shrink-0 items-center justify-end sm:w-40">${actionHtml}</div>
+                        </div>
+                    `);
+                });
+
+                $list.append($group);
+            });
+
+            const targetPath = '/training-list/' + training.eid;
+            if (location.pathname !== targetPath) {
+                history.pushState({ trainingList: true }, '', targetPath);
+            }
+            $('#detailModal').removeClass('hidden').addClass('flex');
+        }
+
+        function closeDetailModal() {
+            $('#detailModal').addClass('hidden').removeClass('flex');
+            if (location.pathname !== '{{ route('training-list', [], false) }}') {
+                history.pushState({ trainingList: true }, '', '{{ route('training-list', [], false) }}');
+            }
+        }
+
+        $(document).on('click', '.viewDetailBtn', function () {
+            const training = cardsByDocid[$(this).data('docid')];
+            if (training) openDetailModal(training);
+        });
+
+        $('#closeDetailModalX').on('click', closeDetailModal);
+        window.addEventListener('popstate', function () {
+            if (!$('#detailModal').hasClass('hidden')) closeDetailModal();
+        });
+
+        $('#detailHeroFullPreviewBtn').on('click', function () {
+            const posterUrl = $(this).data('poster');
+            if (!posterUrl) return;
+
+            Swal.fire({
+                imageUrl: posterUrl,
+                imageAlt: 'Training poster',
+                showConfirmButton: false,
+                showCloseButton: true,
+                width: 'min(90vw, 720px)',
+                customClass: { popup: 'posterPreviewPopup' },
+            });
+        });
+
+        const selfUsername = @json(Auth::user()->username);
+
+        function submitRegistration(scheduleId, participants, closeDetail) {
+            $.ajax({
+                url: `/training-list/${scheduleId}/register`,
+                method: 'POST',
+                headers: csrfHeaders,
+                data: { participants: participants },
+                success: function (res) {
+                    toast(res.success ? 'success' : 'error', res.message);
+                    if (res.success) {
+                        loadAvailable();
+                        if (closeDetail) closeDetailModal();
+                    }
+                },
+                error: function (xhr) {
+                    toast('error', xhr.responseJSON?.message || 'Gagal melakukan registrasi');
+                },
+            });
+        }
+
+        // Batch registration modal: you are always included, plus any
+        // colleagues from the same origin company & department (searchable).
+        // A live preview lists everyone before the batch is submitted.
+        function openColleaguePicker(training, sched, closeDetail) {
+            const thumbHtml = training.poster_url
+                ? `<img class="ticketModal-thumb" src="${training.poster_url}">`
+                : `<div class="ticketModal-thumbFallback">🎓</div>`;
+
+            const hint = myCompanyNameGlobal && myDepartmentNameGlobal
+                ? ` (${myCompanyNameGlobal} · ${myDepartmentNameGlobal})`
+                : '';
+
+            const html = `
+                <div class="ticketModal-header">
+                    ${thumbHtml}
+                    <div style="min-width:0;">
+                        <h3 class="ticketModal-title">${training.training_name ?? ''}</h3>
+                        <p class="ticketModal-subtitle">${fmtDate(sched.schedule_date)} · ${sched.grade_name ?? ''} · ${sched.mode ?? ''}</p>
+                    </div>
+                </div>
+                <div class="ticketModal-body">
+                    <div class="ticketModal-card">
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                            <input type="checkbox" id="swalAddColleagues" style="width:16px;height:16px;">
+                            <span class="ticketModal-label" style="margin:0;">👥 Also register colleagues${hint}</span>
+                        </label>
+                        <div id="swalColleaguesWrap" style="margin-top:10px;display:none;">
+                            <select id="swalColleagues" multiple></select>
+                            <p style="font-size:11px;color:#6b7280;margin-top:8px;">
+                                Search and add colleagues to register them in the same batch.
+                            </p>
+                        </div>
+                        <div id="swalPreview" class="ticketModal-capacity"></div>
+                    </div>
+                </div>
+            `;
+
+            Swal.fire({
+                html,
+                width: 480,
+                showCancelButton: true,
+                confirmButtonText: 'Confirm Registration',
+                cancelButtonText: 'Cancel',
+                customClass: { popup: 'ticketModalPopup', confirmButton: 'ticketConfirmBtn', cancelButton: 'ticketCancelBtn' },
+                didOpen: () => {
+                    const $popup = $(Swal.getPopup());
+                    const $toggle = $popup.find('#swalAddColleagues');
+                    const $wrap = $popup.find('#swalColleaguesWrap');
+                    const $sel = $popup.find('#swalColleagues');
+
+                    $sel.select2({
+                        dropdownParent: $popup,
+                        width: '100%',
+                        multiple: true,
+                        placeholder: 'Search colleagues...',
+                        allowClear: true,
+                        minimumInputLength: 1,
+                        ajax: {
+                            url: colleaguesUrl,
+                            dataType: 'json',
+                            delay: 250,
+                            data: (params) => ({ q: params.term || '' }),
+                            processResults: (res) => ({
+                                results: (res.data || []).map((c) => ({
+                                    id: c.username,
+                                    text: `${c.name} (${c.username})`,
+                                })),
+                            }),
+                        },
+                    });
+
+                    const renderPreview = () => {
+                        const list = $toggle.is(':checked') ? [selfUsername, ...($sel.val() || [])] : [selfUsername];
+                        $popup.find('#swalPreview').html(list.map((u) => `
+                            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border:1px solid #f0f1f3;border-radius:8px;margin-top:6px;background:#f9fafb;">
+                                <span style="font-size:12px;font-weight:600;color:#111827;">${u}</span>
+                                <span style="font-size:10px;color:#6b7280;">${u === selfUsername ? 'You' : 'Colleague'}</span>
+                            </div>
+                        `).join(''));
+                    };
+
+                    // Colleague search stays hidden/inert until the checkbox is ticked,
+                    // so nothing can be picked without deliberately opting in first.
+                    $toggle.on('change', () => {
+                        const checked = $toggle.is(':checked');
+                        $wrap.toggle(checked);
+                        if (!checked) $sel.val(null).trigger('change');
+                        renderPreview();
+                    });
+
+                    $sel.on('change', renderPreview);
+                    renderPreview();
+                },
+                preConfirm: () => {
+                    const $popup = $(Swal.getPopup());
+                    const $sel = $popup.find('#swalColleagues');
+                    const addColleagues = $popup.find('#swalAddColleagues').is(':checked');
+                    return { participants: addColleagues ? [selfUsername, ...($sel.val() || [])] : [selfUsername] };
+                },
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+                submitRegistration(sched.id, result.value.participants, closeDetail);
+            });
+        }
+
+        $(document).on('click', '.registerScheduleBtn', function () {
+            const scheduleId = $(this).data('id');
+            const training = cardsByDocid[$(this).data('docid')];
+            if (!training) return;
+            const sched = (training.schedules || []).find((s) => String(s.id) === String(scheduleId));
+            if (!sched) return;
+
+            openColleaguePicker(training, sched, true);
+        });
+
+        $(document).on('click', '.registerBtn', function () {
+            const docid = $(this).data('docid');
+            const training = cardsByDocid[docid];
+            if (!training) return;
+
+            const openSchedules = training.schedules.filter((s) => !s.my_status && s.is_open && s.level_match);
+
+            const thumbHtml = training.poster_url
+                ? `<img class="ticketModal-thumb" src="${training.poster_url}">`
+                : `<div class="ticketModal-thumbFallback">🎓</div>`;
+
+            const badges = [];
+            if (training.category_name) {
+                badges.push(`<span class="ticketModal-badge neutral">${training.category_name}</span>`);
+            }
+            if (training.training_type) {
+                badges.push(`<span class="ticketModal-badge info">${training.training_type}</span>`);
+            }
+            if (training.is_mandatory) {
+                badges.push('<span class="ticketModal-badge mandatory">Mandatory</span>');
+            }
+
+            const dateCardsHtml = openSchedules.map((s, idx) => {
+                const totalAvail = s.eligible_companies.reduce((sum, c) => sum + c.available, 0);
+                const anyAvail = totalAvail > 0;
+                const availLabel = !s.eligible_companies.length
+                    ? '<span style="color:#9ca3af;">Not for your company</span>'
+                    : anyAvail
+                        ? `<span style="color:#15803d;">🟢 ${totalAvail} seats left</span>`
+                        : '<span style="color:#b45309;">🟡 Waitlist only</span>';
+
+                return `
+                    <div class="dateCardOption${idx === 0 ? ' selected' : ''}" data-id="${s.id}">
+                        <div style="font-size:13px;font-weight:700;color:#111827;">${fmtDate(s.schedule_date)}</div>
+                        <div style="font-size:11px;color:#6b7280;margin-top:1px;">${s.start_time ?? ''}-${s.end_time ?? ''} · ${s.grade_name ?? ''}</div>
+                        <div style="font-size:11px;font-weight:700;margin-top:5px;">${availLabel}</div>
+                    </div>
+                `;
+            }).join('');
+
+            let html = `
+                <div class="ticketModal-header">
+                    ${thumbHtml}
+                    <div style="min-width:0;">
+                        <h3 class="ticketModal-title">${training.training_name ?? ''}</h3>
+                        <div class="ticketModal-badges">${badges.join('')}</div>
+                    </div>
+                </div>
+
+                <div class="ticketModal-body">
+                    <label class="ticketModal-label">🎟️ Select a Session</label>
+                    <div id="swalDateCards" class="ticketModal-sessionGrid">${dateCardsHtml}</div>
+                    <input type="hidden" id="swalDate" value="${openSchedules[0]?.id ?? ''}">
+                </div>
+            `;
+
+            Swal.fire({
+                html,
+                width: 480,
+                showCancelButton: true,
+                confirmButtonText: 'Next',
+                cancelButtonText: 'Cancel',
+                buttonsStyling: true,
+                reverseButtons: false,
+                customClass: { popup: 'ticketModalPopup', confirmButton: 'ticketConfirmBtn', cancelButton: 'ticketCancelBtn' },
+                didOpen: () => {
+                    const $popup = $(Swal.getPopup());
+                    $popup.find('.dateCardOption').on('click', function () {
+                        $popup.find('.dateCardOption').removeClass('selected');
+                        $(this).addClass('selected');
+                        $popup.find('#swalDate').val($(this).data('id'));
+                    });
+                },
+                preConfirm: () => {
+                    const scheduleId = document.getElementById('swalDate').value;
+                    const sched = openSchedules.find((s) => String(s.id) === scheduleId);
+                    return { sched };
+                },
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+                openColleaguePicker(training, result.value.sched, false);
+            });
+        });
+
+        let myRegistrationsRows = [];
+
+        function feedbackMenuItem(r) {
+            if (r.can_fill_feedback) {
+                const label = r.feedback_submitted ? 'Edit Feedback' : 'Fill Feedback';
+                return `<button type="button" class="fillFeedbackBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-indigo-600 transition hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/20" data-id="${r.id}">📝 ${label}</button>`;
+            }
+            if (r.feedback_submitted) {
+                return `<button type="button" class="fillFeedbackBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">👁 View Feedback</button>`;
+            }
+            if (r.has_attended) {
+                return `<span class="block px-3 py-2 text-sm text-gray-400">Feedback not open yet</span>`;
+            }
+            return '';
+        }
+
+        function starsBadge(r) {
+            if (!r.has_attended) return '<span class="text-sm text-gray-400">-</span>';
+            const title = r.is_late_attendance ? 'Attended (late)' : 'Attended (on time)';
+            return `<span title="${title}" class="inline-flex items-center gap-1 text-sm font-semibold text-amber-500">⭐ ${r.stars}</span>`;
+        }
+
+        function attendanceBadge(r) {
+            if (!r.has_attended) return '<span class="text-sm text-gray-400">-</span>';
+            return r.is_late_attendance
+                ? '<span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">⏰ Late</span>'
+                : '<span class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">✅ Not Late</span>';
+        }
+
+        function certificateMenuItem(r) {
+            if (r.can_view_certificate) {
+                return `<a href="${certificateUrl.replace('__ID__', r.id)}" target="_blank" class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-amber-700 transition hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-900/20">🎓 Certificate</a>`;
+            }
+            if (r.has_attended) {
+                return `<span class="block px-3 py-2 text-sm text-gray-400">Certificate not available yet</span>`;
+            }
+            return '';
+        }
+
+        let minePage = 1;
+        let initialMyEidHandled = false;
+        let initialFeedbackEidHandled = false;
+
+        function loadMine() {
+            $.get(myUrl, function (res) {
+                myRegistrationsRows = res.data || [];
+                minePage = 1;
+                renderMine();
+
+                if (!initialMyEidHandled && initialMyEid) {
+                    initialMyEidHandled = true;
+                    const match = myRegistrationsRows.find((row) => row.eid === initialMyEid);
+                    if (match) openMyViewModal(match, { pushUrl: false, showOfferActions: match.status === 'O' });
+                }
+
+                if (!initialFeedbackEidHandled && initialFeedbackEid) {
+                    initialFeedbackEidHandled = true;
+                    const match = myRegistrationsRows.find((row) => row.eid === initialFeedbackEid);
+                    if (match && (match.can_fill_feedback || match.feedback_submitted)) openFeedbackModal(match, { pushUrl: false });
+                }
+            });
+        }
+
+        function renderMine() {
+            const rows = myRegistrationsRows;
+            $('#mineEmpty').toggleClass('hidden', rows.length > 0);
+            const $body = $('#mineBody').empty();
+
+            const { pageRows, page, totalPages } = paginateRows(rows, minePage);
+            minePage = page;
+
+            pageRows.forEach(function (r) {
+                const cancelHtml = (isHcdevaccess && !['R', 'X'].includes(r.status) && !r.has_attended && !isDateStrPast(r.schedule_date))
+                    ? `<button type="button" class="cancelBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${r.id}">🗑 Cancel</button>`
+                    : '';
+                const feedbackHtml = feedbackMenuItem(r);
+                const certificateHtml = certificateMenuItem(r);
+                const viewHtml = `<button type="button" class="viewRegBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">👁 View</button>`;
+                const offerActionsHtml = r.status === 'O' ? `
+                    <button type="button" class="mineAcceptOfferBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-green-600 transition hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20" data-id="${r.id}">✅ Accept Slot</button>
+                    <button type="button" class="mineDeclineOfferBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${r.id}">✕ Decline Slot</button>
+                ` : '';
+
+                $body.append(`
+                    <tr>
+                        <td class="py-2 pr-4" data-label="Doc ID"><button type="button" class="viewRegBtn inline-flex items-center gap-1 rounded-lg border border-gray-300 px-2.5 py-1 font-mono text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">${r.docid}</button></td>
+                        <td class="py-2 pr-4 wrap-break-word text-sm text-gray-800 dark:text-gray-100" data-label="Training">${r.training_name ?? '-'}</td>
+                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Level">${r.grade_name ?? '-'}</td>
+                        <td class="py-2 pr-4 wrap-break-word" data-label="Speaker">${r.speaker_name ?? '-'}</td>
+                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Date">${fmtDate(r.schedule_date)}</td>
+                        <td class="py-2 pr-4" data-label="Status">${statusBadge(r.status)}</td>
+                        <td class="py-2 pr-4" data-label="Attendance">${attendanceBadge(r)}</td>
+                        <td class="py-2 pr-4" data-label="Stars">${starsBadge(r)}</td>
+                        <td class="py-2 pr-4" data-label="Actions">
+                            <div class="relative inline-block text-left" x-data="{ open: false, top: 0, left: 0 }" @click.outside="open = false">
+                                <button type="button" @click="
+                                        const b = \$el.getBoundingClientRect();
+                                        top = b.bottom + window.scrollY + 4;
+                                        left = b.right + window.scrollX - 192;
+                                        open = !open;
+                                    "
+                                    class="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-2.5 py-1 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                                    Actions
+                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                                </button>
+                                <template x-teleport="body">
+                                    <div x-show="open" x-transition style="display:none;" @click="open = false"
+                                        :style="'position:absolute; top:' + top + 'px; left:' + left + 'px;'"
+                                        class="z-50 w-48 origin-top-right overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                                        ${viewHtml}
+                                        ${offerActionsHtml}
+                                        ${feedbackHtml}
+                                        ${certificateHtml}
+                                        ${cancelHtml}
+                                    </div>
+                                </template>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            });
+
+            renderPagination('minePagination', rows.length, page, totalPages, (p) => {
+                minePage = p;
+                renderMine();
+            });
+        }
+
+        $('.subTabBtn').on('click', function () {
+            const sub = $(this).data('subtab');
+            $('.subTabBtn').removeClass('border-gray-900 text-gray-900 dark:border-white dark:text-white')
+                .addClass('border-transparent text-gray-500 dark:text-gray-400');
+            $(this).removeClass('border-transparent text-gray-500 dark:text-gray-400')
+                .addClass('border-gray-900 text-gray-900 dark:border-white dark:text-white');
+            $('.sub-tab-panel').addClass('hidden');
+            $('#subtab-' + sub).removeClass('hidden');
+
+            if (sub === 'approval') loadApprovalHistory();
+        });
+
+        let approvalRows = [];
+        let approvalPage = 1;
+        let approvalPageSize = 10;
+        let approvalSortField = null;
+        let approvalSortDir = 'asc';
+        let initialApprovalEidHandled = false;
+
+        // Every TRN document the caller is/was an approver on — status 'P'
+        // (still waiting on them) as well as 'A'/'R' (already decided by
+        // them), so the Approval sub-tab doubles as a history view. The
+        // status filter select narrows what renderApprovalHistory() shows.
+        function loadApprovalHistory() {
+            $.get(pendingApprovalsUrl, function (res) {
+                approvalRows = res.data || [];
+                approvalPage = 1;
+                populateApprovalFilterOptions(approvalRows);
+                renderApprovalHistory();
+
+                if (!initialApprovalEidHandled && initialApprovalEid) {
+                    initialApprovalEidHandled = true;
+                    const match = approvalRows.find((row) => row.eid === initialApprovalEid);
+                    if (match) {
+                        openMyViewModal(match, { pushUrl: false, showApprovalActions: match.approval_status === 'P' });
+
+                        // ?tab=approvals only exists so the server knew which
+                        // tab to open on this initial load — once the modal's
+                        // up, drop it so the address bar matches the plain
+                        // /training-list/my/{eid} shape used everywhere else.
+                        const cleanPath = myViewUrlTpl.replace('__EID__', initialApprovalEid);
+                        if (location.pathname + location.search !== cleanPath) {
+                            history.replaceState({ trainingMyView: true }, '', cleanPath);
+                        }
+                    }
+                }
+            });
+        }
+
+        // Rebuilds the Training/Company filter option lists from whatever
+        // approvalRows actually contains, preserving the current selection
+        // when it's still valid (same pattern as populateFilterOptions()
+        // for the Available Trainings level/category filters).
+        function populateApprovalFilterOptions(rows) {
+            const $training = $('#approvalTrainingFilter');
+            const $company = $('#approvalCompanyFilter');
+            const selectedTraining = $training.val();
+            const selectedCompany = $company.val();
+
+            const trainings = [...new Set(rows.map((r) => r.training_name).filter(Boolean))].sort();
+            const companies = new Map();
+            rows.forEach((r) => {
+                if (r.cpny_id != null) companies.set(String(r.cpny_id), r.cpny_name ?? r.cpny_id);
+            });
+            const companyEntries = [...companies.entries()].sort((a, b) => String(a[1]).localeCompare(String(b[1])));
+
+            $training.find('option:not(:first)').remove();
+            trainings.forEach((t) => $training.append(new Option(t, t)));
+            $training.val(trainings.includes(selectedTraining) ? selectedTraining : '');
+
+            $company.find('option:not(:first)').remove();
+            companyEntries.forEach(([id, name]) => $company.append(new Option(name, id)));
+            $company.val(companies.has(selectedCompany) ? selectedCompany : '');
+        }
+
+        function approvalRowStatusBadge(status) {
+            const meta = approvalStatusMeta(status);
+            const clsMap = {
+                approved: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300',
+                rejected: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
+                pending: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
+                neutral: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
+            };
+            return `<span class="inline-flex rounded-full px-2 py-0.5 text-sm font-semibold ${clsMap[meta.cls] || clsMap.neutral}">${meta.label}</span>`;
+        }
+
+        function renderApprovalHistory() {
+            const statusFilterVal = $('#approvalStatusFilter').val();
+            const trainingFilterVal = $('#approvalTrainingFilter').val();
+            const companyFilterVal = $('#approvalCompanyFilter').val();
+            const search = ($('#approvalSearch').val() || '').toLowerCase().trim();
+
+            let rows = approvalRows.filter((r) => {
+                if (statusFilterVal && r.approval_status !== statusFilterVal) return false;
+                if (trainingFilterVal && r.training_name !== trainingFilterVal) return false;
+                if (companyFilterVal && String(r.cpny_id) !== companyFilterVal) return false;
+                if (search) {
+                    const haystack = `${r.docid} ${r.name ?? ''} ${r.username ?? ''} ${r.training_name ?? ''}`.toLowerCase();
+                    if (!haystack.includes(search)) return false;
+                }
+                return true;
+            });
+
+            if (approvalSortField) {
+                const field = approvalSortField;
+                const dir = approvalSortDir === 'desc' ? -1 : 1;
+                rows = rows.slice().sort((a, b) => {
+                    let va = a[field];
+                    let vb = b[field];
+                    if (va == null && vb == null) return 0;
+                    if (va == null) return 1;
+                    if (vb == null) return -1;
+                    if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * dir;
+                    return String(va).localeCompare(String(vb), undefined, { numeric: true, sensitivity: 'base' }) * dir;
+                });
+            }
+
+            $('#approvalEmpty').toggleClass('hidden', rows.length > 0);
+            $('#approvalCount').text(`${rows.length} item${rows.length === 1 ? '' : 's'}`);
+            const $body = $('#approvalBody').empty();
+
+            const { pageRows, page, totalPages } = paginateRows(rows, approvalPage, approvalPageSize);
+            approvalPage = page;
+
+            pageRows.forEach(function (r) {
+                const actionHtml = r.approval_status === 'P'
+                    ? `
+                        <button class="approveRegBtn rounded-lg bg-green-600 px-2.5 py-1 text-sm font-semibold text-white hover:bg-green-700" data-id="${r.id}">Approve</button>
+                        <button class="rejectRegBtn rounded-lg border border-red-200 px-2.5 py-1 text-sm font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${r.id}">Reject</button>
+                    `
+                    : '';
+
+                $body.append(`
+                    <tr>
+                        <td class="py-2 pr-4 font-mono text-sm" data-label="Doc ID">${r.docid}</td>
+                        <td class="py-2 pr-4" data-label="Employee">
+                            <span class="block text-sm font-semibold text-gray-800 dark:text-gray-100">${r.name ?? r.username}</span>
+                            <span class="block text-sm text-gray-400">${r.username}</span>
+                        </td>
+                        <td class="py-2 pr-4" data-label="Company / Dept">${r.cpny_name ?? r.cpny_id} / ${r.department_name ?? r.department_id}</td>
+                        <td class="py-2 pr-4" data-label="Training">${r.training_name ?? '-'}</td>
+                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Schedule Date">${fmtDate(r.schedule_date)}</td>
+                        <td class="py-2 pr-4" data-label="Status">${approvalRowStatusBadge(r.approval_status)}</td>
+                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Date">${fmtDate(r.action_date)}</td>
+                        <td class="py-2 pr-4" data-label="Action">
+                            <div class="flex items-center gap-1.5">
+                                <button class="viewRegBtn rounded-lg border border-gray-300 px-2.5 py-1 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">View</button>
+                                ${actionHtml}
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            });
+
+            renderPagination('approvalPagination', rows.length, page, totalPages, (p) => {
+                approvalPage = p;
+                renderApprovalHistory();
+            }, approvalPageSize);
+        }
+
+        $('#approvalStatusFilter, #approvalTrainingFilter, #approvalCompanyFilter').on('change', function () {
+            approvalPage = 1;
+            renderApprovalHistory();
+        });
+
+        $('#approvalPageSize').on('change', function () {
+            const val = $(this).val();
+            approvalPageSize = val === 'all' ? Infinity : parseInt(val, 10);
+            approvalPage = 1;
+            renderApprovalHistory();
+        });
+
+        $('#approvalSearch').on('input', function () {
+            approvalPage = 1;
+            renderApprovalHistory();
+        });
+
+        $('.approvalSortTh').on('click', function () {
+            const field = $(this).data('field');
+            if (approvalSortField === field) {
+                approvalSortDir = approvalSortDir === 'asc' ? 'desc' : 'asc';
+            } else {
+                approvalSortField = field;
+                approvalSortDir = 'asc';
+            }
+
+            $('.approvalSortTh').removeClass('sortActive').find('.sortArrow').remove();
+            $(this).addClass('sortActive').append(`<span class="sortArrow">${approvalSortDir === 'asc' ? '▲' : '▼'}</span>`);
+
+            approvalPage = 1;
+            renderApprovalHistory();
+        });
+
+        $(document).on('click', '.cancelBtn', function () {
+            const id = $(this).data('id');
+
+            Swal.fire({
+                title: 'Cancel this registration?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, cancel it',
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                $.ajax({
+                    url: cancelUrlTpl.replace('__ID__', id),
+                    method: 'POST',
+                    headers: csrfHeaders,
+                    success: function (res) {
+                        toast(res.success ? 'success' : 'error', res.message);
+                        if (res.success) loadMine();
+                    },
+                    error: function (xhr) {
+                        toast('error', xhr.responseJSON?.message || 'Gagal membatalkan registrasi');
+                    },
+                });
+            });
+        });
+
+        function approvalStatusMeta(status) {
+            switch (status) {
+                case 'A': return { label: 'Approved', cls: 'approved', icon: '✓' };
+                case 'R': return { label: 'Rejected', cls: 'rejected', icon: '✕' };
+                case 'P': return { label: 'Waiting', cls: 'pending', icon: '…' };
+                default: return { label: status || '-', cls: 'neutral', icon: '•' };
+            }
+        }
+
+        function fmtDateTime(d) {
+            if (!d) return null;
+            return new Date(d).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        function renderApprovalLineHtml(rows) {
+            if (!rows.length) {
+                return `<p class="text-sm text-gray-400">No approval line configured for this document.</p>`;
+            }
+            return rows.map((step) => {
+                const meta = approvalStatusMeta(step.status);
+                const whenLabel = (step.status === 'A' || step.status === 'R')
+                    ? fmtDateTime(step.aprv_dateafter)
+                    : (step.aprv_datebefore ? 'Since ' + fmtDateTime(step.aprv_datebefore) : null);
+
+                const names = (step.aprv_name ?? '-').split(',').map(n => n.trim()).filter(Boolean);
+                const namesHtml = names.length > 1
+                    ? `<div class="approvalStep-nameList">${names.map(n => `<span class="approvalStep-nameChip">${n}</span>`).join('')}</div>`
+                    : `<div class="approvalStep-name">${names[0] ?? '-'}</div>`;
+
+                return `
+                    <div class="approvalStep">
+                        <div class="approvalStep-marker ${meta.cls}">${meta.icon}</div>
+                        <div class="approvalStep-body">
+                            <div class="approvalStep-top">
+                                <span class="approvalStep-level">Level ${step.aprv_leveling}</span>
+                                <span class="approvalStep-badge ${meta.cls}">${meta.label}</span>
+                            </div>
+                            ${namesHtml}
+                            ${whenLabel ? `<div class="approvalStep-when">🕒 ${whenLabel}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        let myViewModalActive = false;
+
+        function openMyViewModal(r, { pushUrl = true, urlTpl = myViewUrlTpl, showApprovalActions = false, showOfferActions = false } = {}) {
+            if (pushUrl && r.eid) {
+                const targetPath = urlTpl.replace('__EID__', r.eid);
+                if (location.pathname !== targetPath) {
+                    history.pushState({ trainingMyView: true }, '', targetPath);
+                }
+            }
+            myViewModalActive = true;
+
+            const scheduleLabel = r.start_time
+                ? `${fmtDate(r.schedule_date)} · ${r.start_time}-${r.end_time ?? ''}`
+                : fmtDate(r.schedule_date);
+            const modeLabel = r.mode
+                ? `${r.mode}${r.location || r.platform ? ' · ' + (r.location || r.platform) : ''}`
+                : '-';
+
+            const participantName = r.name || r.username;
+            const initials = participantName
+                ? participantName.trim().split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase() || '').join('')
+                : '';
+            const participantHtml = participantName ? `
+                <div class="viewModal-participant">
+                    <div class="viewModal-avatar">${initials}</div>
+                    <div>
+                        <p class="viewModal-participant-name">${participantName}</p>
+                        <p class="viewModal-participant-label">Participant</p>
+                    </div>
+                </div>
+            ` : '';
+
+            const gridItems = [
+                ['📅', 'Schedule', scheduleLabel, true],
+                ['📍', 'Mode / Location', modeLabel, true],
+                ['🎤', 'Speaker', r.speaker_name || '-', false],
+                ['🏷️', 'Level', r.grade_name || '-', false],
+            ];
+            const gridHtml = gridItems.map(([icon, key, value, full]) => `
+                <div class="viewModal-gridItem"${full ? ' style="grid-column:1 / -1;"' : ''}>
+                    <span class="viewModal-gridIcon">${icon}</span>
+                    <div style="min-width:0;">
+                        <p class="viewModal-gridKey">${key}</p>
+                        <p class="viewModal-gridValue">${value}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            Swal.fire({
+                html: `
+                    <div class="viewModal-header">
+                        <div class="viewModal-icon">🎓</div>
+                        <div style="min-width:0; flex:1;">
+                            <p class="viewModal-title">${r.training_name ?? '-'}</p>
+                            <p class="viewModal-subtitle">${r.docid}</p>
+                        </div>
+                        <div class="viewModal-statusChip">${statusBadge(r.status)}</div>
+                    </div>
+                    <div class="viewModal-body">
+                        ${participantHtml}
+                        <div class="viewModal-grid">${gridHtml}</div>
+                        ${showApprovalActions ? `
+                            <div class="viewModal-actionsRow">
+                                <button type="button" class="modalApproveBtn" data-id="${r.id}">✓ Approve</button>
+                                <button type="button" class="modalRejectBtn" data-id="${r.id}">✕ Reject</button>
+                            </div>
+                        ` : ''}
+                        ${showOfferActions ? `
+                            ${r.offer_expires_at ? `
+                                <div class="viewModal-offerBanner">
+                                    <div class="viewModal-offerIcon">⏳</div>
+                                    <p class="viewModal-offerText">A seat opened up for you.<br>Confirm by <strong>${fmtDateTime(r.offer_expires_at)}</strong> or it goes to the next person on the waiting list.</p>
+                                </div>
+                            ` : ''}
+                            <div class="viewModal-actionsRow">
+                                <button type="button" class="modalApproveBtn modalAcceptOfferBtn" data-id="${r.id}">✓ Accept Slot</button>
+                                <button type="button" class="modalRejectBtn modalDeclineOfferBtn" data-id="${r.id}">✕ Decline</button>
+                            </div>
+                        ` : ''}
+                        ${!showOfferActions ? `
+                            <h4 class="viewModal-sectionTitle">Approval Line</h4>
+                            <div id="viewModalApprovalList" class="approvalStepList">
+                                <p class="text-sm text-gray-400">Loading…</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                `,
+                confirmButtonText: 'Close',
+                showCancelButton: false,
+                customClass: { popup: 'viewModalPopup', confirmButton: 'ticketConfirmBtn' },
+                didOpen: () => {
+                    // A slot offer is only ever made after approval is already fully
+                    // complete (see offerIfSlotAlreadyFree()/nextWaitlisted() in
+                    // TrainingRegistrationService), so the approval line would always
+                    // render as "all approved" here — skip both the section and the
+                    // fetch, it's not decision-relevant for accept/decline.
+                    if (showOfferActions) return;
+
+                    $.get(approvalUrlTpl.replace('__REF__', r.docid))
+                        .done((res) => {
+                            $('#viewModalApprovalList').html(renderApprovalLineHtml(res.data || []));
+                        })
+                        .fail(() => {
+                            $('#viewModalApprovalList').html('<p class="text-sm text-red-500">Failed to load approval line.</p>');
+                        });
+                },
+                didClose: () => {
+                    myViewModalActive = false;
+                    if (location.pathname !== trainingListPath) {
+                        history.pushState({ trainingList: true }, '', trainingListPath);
+                    }
+                },
+            });
+        }
+
+        $(document).on('click', '.viewRegBtn', function () {
+            const id = $(this).data('id');
+            const mine = myRegistrationsRows.find((row) => row.id === id);
+            const r = mine || approvalRows.find((row) => String(row.id) === String(id));
+            if (!r) return;
+            openMyViewModal(r, {
+                showApprovalActions: r.approval_status === 'P',
+                // Only offer actions on the participant's own row (myRegistrationsRows) —
+                // never when an approver is viewing someone else's registration.
+                showOfferActions: !!mine && r.status === 'O',
+            });
+        });
+
+        window.addEventListener('popstate', function () {
+            if (myViewModalActive) Swal.close();
+            if (feedbackModalActive) Swal.close();
+        });
+
+        // Shared by the Approval sub-tab row buttons and the Approve/Reject
+        // buttons inside the view modal — same confirm dialog, same AJAX call.
+        function confirmApproveReject(id, isApprove) {
+            const r = approvalRows.find((x) => String(x.id) === String(id));
+
+            Swal.fire({
+                html: `
+                    <div class="approveModal-header">
+                        <div class="approveModal-icon ${isApprove ? 'approve' : 'reject'}">${isApprove ? '✓' : '✕'}</div>
+                        <h3 class="approveModal-title">${isApprove ? 'Approve this registration?' : 'Reject this registration?'}</h3>
+                    </div>
+                    ${r ? `
+                        <div class="approveModal-card">
+                            <div class="approveModal-row"><span class="approveModal-key">Doc ID</span><span class="approveModal-value">${r.docid}</span></div>
+                            <div class="approveModal-row"><span class="approveModal-key">Employee</span><span class="approveModal-value">${r.name ?? r.username}</span></div>
+                            <div class="approveModal-row"><span class="approveModal-key">Training</span><span class="approveModal-value">${r.training_name ?? '-'}</span></div>
+                        </div>
+                    ` : ''}
+                `,
+                showCancelButton: true,
+                buttonsStyling: false,
+                confirmButtonText: isApprove ? 'Yes, approve' : 'Yes, reject',
+                cancelButtonText: 'Cancel',
+                customClass: {
+                    popup: 'approveModalPopup',
+                    confirmButton: isApprove ? 'approveConfirmBtn' : 'rejectConfirmBtn',
+                    cancelButton: 'ticketCancelBtn',
+                },
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                $.ajax({
+                    url: `/training-list/${id}/${isApprove ? 'approve' : 'reject'}`,
+                    method: 'POST',
+                    headers: csrfHeaders,
+                    success: function (res) {
+                        const message = isApprove
+                            ? (res.completed ? 'Registrasi disetujui sepenuhnya' : 'Disetujui, menunggu approver berikutnya')
+                            : 'Registrasi ditolak';
+                        toast('success', message);
+                        loadApprovalHistory();
+                    },
+                    error: function (xhr) {
+                        toast('error', xhr.responseJSON?.message || 'Gagal memproses approval');
+                    },
+                });
+            });
+        }
+
+        $(document).on('click', '.approveRegBtn, .rejectRegBtn', function () {
+            confirmApproveReject($(this).data('id'), $(this).hasClass('approveRegBtn'));
+        });
+
+        $(document).on('click', '.modalApproveBtn, .modalRejectBtn', function () {
+            // .modalAcceptOfferBtn/.modalDeclineOfferBtn also carry .modalApproveBtn/.modalRejectBtn
+            // for shared styling — this delegate must not double-fire confirmApproveReject for them.
+            if ($(this).is('.modalAcceptOfferBtn, .modalDeclineOfferBtn')) return;
+
+            const id = $(this).data('id');
+            const isApprove = $(this).hasClass('modalApproveBtn');
+            Swal.close();
+            confirmApproveReject(id, isApprove);
+        });
+
+        // Shared by the "My Registrations" row Actions menu and the Accept/Decline
+        // buttons inside the view modal — same confirm dialog, same AJAX call.
+        function confirmOfferAction(id, accept) {
+            const r = myRegistrationsRows.find((x) => String(x.id) === String(id));
+
+            Swal.fire({
+                html: `
+                    <div class="approveModal-header">
+                        <div class="approveModal-icon ${accept ? 'approve' : 'reject'}">${accept ? '✓' : '✕'}</div>
+                        <h3 class="approveModal-title">${accept ? 'Accept this slot?' : 'Decline this slot?'}</h3>
+                    </div>
+                    ${r ? `
+                        <div class="approveModal-card">
+                            <div class="approveModal-row"><span class="approveModal-key">Doc ID</span><span class="approveModal-value">${r.docid}</span></div>
+                            <div class="approveModal-row"><span class="approveModal-key">Training</span><span class="approveModal-value">${r.training_name ?? '-'}</span></div>
+                            <div class="approveModal-row"><span class="approveModal-key">Date</span><span class="approveModal-value">${fmtDate(r.schedule_date)}</span></div>
+                        </div>
+                        ${!accept ? `<p style="font-size:12px;color:#6b7280;margin-top:8px;">This frees the slot for the next person on the waiting list.</p>` : ''}
+                    ` : ''}
+                `,
+                showCancelButton: true,
+                buttonsStyling: false,
+                confirmButtonText: accept ? 'Yes, accept' : 'Yes, decline',
+                cancelButtonText: 'Cancel',
+                customClass: {
+                    popup: 'approveModalPopup',
+                    confirmButton: accept ? 'approveConfirmBtn' : 'rejectConfirmBtn',
+                    cancelButton: 'ticketCancelBtn',
+                },
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                $.ajax({
+                    url: `/training-list/${id}/offer/${accept ? 'accept' : 'decline'}`,
+                    method: 'POST',
+                    headers: csrfHeaders,
+                    success: function (res) {
+                        toast(res.success ? 'success' : 'error', res.message);
+                        if (res.success) {
+                            if (myViewModalActive) Swal.close();
+                            loadMine();
+                        }
+                    },
+                    error: function (xhr) {
+                        toast('error', xhr.responseJSON?.message || 'Gagal memproses slot ini');
+                    },
+                });
+            });
+        }
+
+        $(document).on('click', '.mineAcceptOfferBtn, .mineDeclineOfferBtn, .modalAcceptOfferBtn, .modalDeclineOfferBtn', function () {
+            const id = $(this).data('id');
+            const accept = !$(this).hasClass('mineDeclineOfferBtn') && !$(this).hasClass('modalDeclineOfferBtn');
+            if ($(this).is('.modalAcceptOfferBtn, .modalDeclineOfferBtn')) Swal.close();
+            confirmOfferAction(id, accept);
+        });
+
+        function renderFeedbackQuestion(q, readOnly) {
+            const name = `feedback_q_${q.question_order}`;
+
+            let inputHtml = '';
+            if (q.question_type === 'Single Choice') {
+                inputHtml = `<div class="feedbackModal-choiceGroup">` + (q.options || []).map((opt) => `
+                    <label class="feedbackModal-choice">
+                        <input type="radio" name="${name}" value="${opt}" ${q.answer_text === opt ? 'checked' : ''} ${readOnly ? 'disabled' : ''}>
+                        ${opt}
+                    </label>
+                `).join('') + `</div>`;
+            } else if (q.question_type === 'Rating') {
+                const options = q.options || [];
+                inputHtml = `
+                    <div class="feedbackModal-ratingGroup">` + options.map((opt) => `
+                        <label class="feedbackModal-ratingItem">
+                            <input type="radio" name="${name}" value="${opt}" ${String(q.answer_number ?? '') === String(opt) ? 'checked' : ''} ${readOnly ? 'disabled' : ''}>
+                            ${opt}
+                        </label>
+                    `).join('') + `</div>
+                    <div class="feedbackModal-ratingScale">
+                        <span>Sangat tidak puas</span>
+                        <span>Sangat puas</span>
+                    </div>
+                `;
+            } else {
+                inputHtml = `<textarea class="feedbackModal-textarea" name="${name}" rows="2" ${readOnly ? 'disabled' : ''}>${q.answer_text ?? ''}</textarea>`;
+            }
+
+            return `
+                <div class="feedbackModal-question">
+                    <div class="feedbackModal-qHead">
+                        <span class="feedbackModal-qNum">${q.question_order}</span>
+                        <span class="feedbackModal-qText">${q.question_text}${readOnly ? '' : ' <span class="text-red-500">*</span>'}</span>
+                    </div>
+                    ${inputHtml}
+                </div>
+            `;
+        }
+
+        let feedbackModalActive = false;
+
+        function openFeedbackModal(row, { pushUrl = true } = {}) {
+            if (pushUrl && row.eid) {
+                const targetPath = feedbackUrlTpl.replace('__EID__', row.eid);
+                if (location.pathname !== targetPath) {
+                    history.pushState({ trainingFeedback: true }, '', targetPath);
+                }
+            }
+            feedbackModalActive = true;
+
+            $.get(`/training-list/my/${row.id}/feedback`, function (res) {
+                const readOnly = !res.is_open;
+                const questions = res.questions || [];
+                const questionsHtml = questions.map((q) => renderFeedbackQuestion(q, readOnly)).join('');
+                const notice = readOnly
+                    ? `<div class="feedbackModal-notice">⚠️ Feedback window is currently closed — showing your submitted answers (read only).</div>`
+                    : '';
+
+                Swal.fire({
+                    html: `
+                        <div class="feedbackModal-header">
+                            <div class="feedbackModal-icon">📝</div>
+                            <div>
+                                <h3 class="feedbackModal-title">${readOnly ? 'Feedback' : 'Fill Feedback'}</h3>
+                                <p class="feedbackModal-subtitle">${row.training_name ?? ''}</p>
+                            </div>
+                        </div>
+                        <div class="feedbackModal-body">
+                            ${notice}
+                            <div>${questionsHtml}</div>
+                        </div>
+                    `,
+                    showCancelButton: !readOnly,
+                    buttonsStyling: false,
+                    confirmButtonText: readOnly ? 'Close' : 'Submit',
+                    cancelButtonText: 'Cancel',
+                    customClass: {
+                        popup: 'feedbackModalPopup',
+                        confirmButton: 'feedbackConfirmBtn',
+                        cancelButton: 'ticketCancelBtn',
+                    },
+                    preConfirm: () => {
+                        if (readOnly) return true;
+
+                        const answers = questions.map((q) => {
+                            const name = `feedback_q_${q.question_order}`;
+                            const el = document.querySelector(`input[name="${name}"]:checked, textarea[name="${name}"]`);
+                            return { question_order: q.question_order, value: el ? el.value : null };
+                        });
+
+                        const unanswered = answers.some((a) => a.value === null || String(a.value).trim() === '');
+                        if (unanswered) {
+                            Swal.showValidationMessage('Mohon jawab semua pertanyaan sebelum submit');
+                            return false;
+                        }
+
+                        return answers;
+                    },
+                }).then((result) => {
+                    feedbackModalActive = false;
+                    if (location.pathname !== trainingListPath) {
+                        history.pushState({ trainingList: true }, '', trainingListPath);
+                    }
+
+                    if (readOnly || !result.isConfirmed) return;
+
+                    $.ajax({
+                        url: `/training-list/my/${row.id}/feedback`,
+                        method: 'POST',
+                        headers: csrfHeaders,
+                        data: { answers: result.value },
+                        success: function (subRes) {
+                            toast(subRes.success ? 'success' : 'error', subRes.message);
+                            if (subRes.success) loadMine();
+                        },
+                        error: function (xhr) {
+                            toast('error', xhr.responseJSON?.message || 'Gagal menyimpan feedback');
+                        },
+                    });
+                });
+            }).fail(function (xhr) {
+                feedbackModalActive = false;
+                if (location.pathname !== trainingListPath) {
+                    history.pushState({ trainingList: true }, '', trainingListPath);
+                }
+                toast('error', xhr.responseJSON?.message || 'Gagal memuat feedback');
+            });
+        }
+
+        $(document).on('click', '.fillFeedbackBtn', function () {
+            const id = $(this).data('id');
+            const row = myRegistrationsRows.find((r) => String(r.id) === String(id));
+            if (row) openFeedbackModal(row);
+        });
+
+        @if (Auth::user()->hasRole('HCDEVACCESS'))
+        $('#allRegsTrainingFilter').select2({
+            containerCssClass: 'select2-filter',
+            dropdownCssClass: 'select2-filter',
+            placeholder: 'All Training Events',
+            allowClear: true,
+            width: '100%',
+            // Full name as a title tooltip since long training names truncate
+            // in the box itself.
+            templateSelection: (data) => $('<span></span>').text(data.text).attr('title', data.text),
+        });
+        $('#allRegsStatusFilter').select2({
+            containerCssClass: 'select2-filter',
+            dropdownCssClass: 'select2-filter',
+            minimumResultsForSearch: -1,
+            width: '100%',
+        });
+        $('#allRegsLevelFilter').select2({
+            containerCssClass: 'select2-filter',
+            dropdownCssClass: 'select2-filter',
+            placeholder: 'All Levels',
+            allowClear: true,
+            width: '100%',
+        });
+        $('#allRegsScheduleFilter').select2({
+            containerCssClass: 'select2-filter',
+            dropdownCssClass: 'select2-filter',
+            placeholder: 'All Dates',
+            allowClear: true,
+            width: '100%',
+        });
+
+        let allRegistrationRows = [];
+        let allRegsPage = 1;
+        let allRegsPageSize = 10;
+        let allRegsSortField = null;
+        let allRegsSortDir = 'asc';
+        let initialAllRegsEidHandled = false;
+
+        function loadAllRegistrations() {
+            $.get(allRegistrationsUrl, function (res) {
+                allRegistrationRows = res.data || [];
+                allRegsPage = 1;
+                renderAllRegistrations();
+
+                if (!initialAllRegsEidHandled && initialAllRegsEid) {
+                    initialAllRegsEidHandled = true;
+                    const match = allRegistrationRows.find((row) => row.eid === initialAllRegsEid);
+                    if (match) openMyViewModal(match, { pushUrl: false, urlTpl: allRegsViewUrlTpl });
+                }
+            });
+            loadRegistrationSummary();
+        }
+
+        // Level/Schedule Date options come from the training's own master
+        // config (ms_lnd_training_detail / ms_lnd_training_schedule) via the
+        // summary endpoint below, not from whatever registrations happen to
+        // exist — a level or date with zero registrations so far is still
+        // pickable this way.
+        function populateLevelAndScheduleOptions(levels, dates) {
+            const $level = $('#allRegsLevelFilter');
+            const currentLevel = $level.val();
+            $level.find('option:not(:first)').remove();
+            (levels || []).forEach((l) => $level.append(new Option(l, l)));
+            if (currentLevel && levels.includes(currentLevel)) $level.val(currentLevel);
+            $level.trigger('change.select2');
+
+            const $sched = $('#allRegsScheduleFilter');
+            const currentSched = $sched.val();
+            $sched.find('option:not(:first)').remove();
+            (dates || []).forEach((d) => $sched.append(new Option(fmtDate(d), d)));
+            if (currentSched && dates.includes(currentSched)) $sched.val(currentSched);
+            $sched.trigger('change.select2');
+        }
+
+        // Cards + Level/Schedule Date options are scoped only by the Training
+        // Event/Level/Schedule Date filters (a dedicated backend fetch
+        // against master data) — search/status stay table-only filters so
+        // this stays a stable overview of whatever training+level+date is
+        // currently picked, rather than the whole training's totals.
+        function loadRegistrationSummary() {
+            const trainingId = $('#allRegsTrainingFilter').val();
+            const level = $('#allRegsLevelFilter').val();
+            const scheduleDate = $('#allRegsScheduleFilter').val();
+
+            const params = {};
+            if (trainingId) params.training_id = trainingId;
+            if (level) params.level = level;
+            if (scheduleDate) params.schedule_date = scheduleDate;
+
+            $.get(registrationSummaryUrl, params, function (res) {
+                populateTrainingFilterOptions(res.trainings || []);
+                populateLevelAndScheduleOptions(res.levels || [], res.schedule_dates || []);
+                renderSummaryCards(res);
+            });
+        }
+
+        function populateTrainingFilterOptions(trainings) {
+            const $select = $('#allRegsTrainingFilter');
+            const current = $select.val();
+
+            $select.find('option:not(:first)').remove();
+            trainings.forEach((t) => $select.append(new Option(t.training_name, t.training_id)));
+
+            if (current && trainings.some((t) => String(t.training_id) === current)) {
+                $select.val(current);
+            }
+
+            // Re-sync select2's rendered box after the underlying <select>'s
+            // options changed programmatically — namespaced so it doesn't
+            // re-fire the plain 'change' handler below (which would re-fetch
+            // the summary and recurse back into this function).
+            $select.trigger('change.select2');
+        }
+
+        function renderSummaryCards(res) {
+            const counts = res.status_counts || {};
+            $('#statWaitingApproval').text(counts.waiting_approval ?? 0);
+            $('#statWaitingList').text(counts.waiting_list ?? 0);
+            $('#statApproved').text(counts.approved ?? 0);
+            $('#statRejected').text(counts.rejected ?? 0);
+            $('#statCancelled').text(counts.cancelled ?? 0);
+
+            const overall = res.overall || { reserved: 0, total_quota: 0 };
+            const overallPct = overall.total_quota > 0 ? Math.min(100, Math.round((overall.reserved / overall.total_quota) * 100)) : 0;
+            $('#quotaOverallValue').text(`${overall.reserved} / ${overall.total_quota}`);
+            $('#quotaOverallBar').css('width', `${overallPct}%`).css('background', overallPct >= 100 ? '#dc2626' : '');
+
+            const byCompany = res.by_company || [];
+            $('#quotaByCompanyEmpty').toggleClass('hidden', byCompany.length > 0);
+            const $grid = $('#quotaByCompany').empty();
+
+            byCompany.forEach((c) => {
+                const pct = c.total_quota > 0 ? Math.min(100, Math.round((c.reserved / c.total_quota) * 100)) : 0;
+                const barColor = pct >= 100 ? '#dc2626' : '#111827';
+                $grid.append(`
+                    <div class="min-w-40 flex-1 rounded-lg border border-gray-100 p-2.5 dark:border-gray-700">
+                        <div class="flex items-center justify-between gap-2 text-sm">
+                            <span class="truncate font-semibold text-gray-700 dark:text-gray-200" title="${c.cpny_name}">${c.cpny_name}</span>
+                            <span class="shrink-0 font-medium text-gray-500 dark:text-gray-400">${c.reserved}/${c.total_quota}</span>
+                        </div>
+                        <div class="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                            <div class="h-full rounded-full" style="width:${pct}%;background:${barColor};"></div>
+                        </div>
+                    </div>
+                `);
+            });
+        }
+
+        function renderAllRegistrations() {
+            const search = ($('#allRegsSearch').val() || '').toLowerCase().trim();
+            const statusFilter = $('#allRegsStatusFilter').val();
+            const trainingFilter = $('#allRegsTrainingFilter').val();
+            const levelFilter = $('#allRegsLevelFilter').val();
+            const scheduleFilter = $('#allRegsScheduleFilter').val();
+
+            let rows = allRegistrationRows.filter((r) => {
+                if (statusFilter && r.status !== statusFilter) return false;
+                if (trainingFilter && String(r.training_id) !== trainingFilter) return false;
+                if (levelFilter && r.grade_name !== levelFilter) return false;
+                if (scheduleFilter && r.schedule_date !== scheduleFilter) return false;
+                if (search) {
+                    const haystack = `${r.docid} ${r.name} ${r.username} ${r.training_name ?? ''}`.toLowerCase();
+                    if (!haystack.includes(search)) return false;
+                }
+                return true;
+            });
+
+            if (allRegsSortField) {
+                const field = allRegsSortField;
+                const dir = allRegsSortDir === 'desc' ? -1 : 1;
+                rows = rows.slice().sort((a, b) => {
+                    let va = a[field];
+                    let vb = b[field];
+                    if (va == null && vb == null) return 0;
+                    if (va == null) return 1;
+                    if (vb == null) return -1;
+                    if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * dir;
+                    return String(va).localeCompare(String(vb), undefined, { numeric: true, sensitivity: 'base' }) * dir;
+                });
+            }
+
+            $('#allRegsEmpty').toggleClass('hidden', rows.length > 0);
+            $('#allRegsCount').text(`${rows.length} registration${rows.length === 1 ? '' : 's'}`);
+            const $body = $('#allRegsBody').empty();
+
+            const { pageRows, page, totalPages } = paginateRows(rows, allRegsPage, allRegsPageSize);
+            allRegsPage = page;
+
+            pageRows.forEach(function (r) {
+                const viewHtml = `<button type="button" class="allRegsViewBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">👁 View</button>`;
+
+                const acceptHtml = r.can_accept
+                    ? `<button type="button" class="allRegsAcceptBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-green-600 transition hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20" data-id="${r.id}">✅ Accept</button>`
+                    : '';
+
+                // Same guard as TrainingRegistrationController::cancel(): a
+                // Rejected/already-Cancelled row has nothing left to cancel,
+                // an already-attended row can't be backed out of, and a past
+                // schedule date can no longer be cancelled either.
+                const canCancel = !['R', 'X'].includes(r.status) && !r.has_attended && !isDateStrPast(r.schedule_date);
+                const cancelHtml = canCancel
+                    ? `<button type="button" class="allRegsCancelBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${r.id}">🗑 Cancel</button>`
+                    : '';
+
+                // Approval progress, distinct from the combined Status column —
+                // this is what decides whether Accept can show up at all for a
+                // waitlisted row (see can_accept in allRegistrations()).
+                const approvalHtml = r.approval_status === 'C'
+                    ? '<span class="text-sm font-semibold text-green-600 dark:text-green-400">Approved</span>'
+                    : r.approval_status === 'R'
+                        ? '<span class="text-sm font-semibold text-red-600 dark:text-red-400">Rejected</span>'
+                        : '<span class="text-sm text-amber-600 dark:text-amber-400">Pending</span>';
+
+                $body.append(`
+                    <tr>
+                        <td class="py-2 pr-4 font-mono text-sm" data-label="Doc ID">${r.docid}</td>
+                        <td class="py-2 pr-4" data-label="Employee">
+                            <span class="block text-sm font-semibold text-gray-800 dark:text-gray-100">${r.name ?? r.username}</span>
+                            <span class="block text-sm text-gray-400">${r.username}</span>
+                        </td>
+                        <td class="py-2 pr-4" data-label="Company / Dept">${r.cpny_name ?? r.cpny_id} / ${r.department_name ?? r.department_id}</td>
+                        <td class="py-2 pr-4" data-label="Training">${r.training_name ?? '-'}</td>
+                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Level">${r.grade_name ?? '-'}</td>
+                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Schedule Date">${fmtDate(r.schedule_date)}</td>
+                        <td class="py-2 pr-4" data-label="Training Status">${scheduleStatusBadge(r.schedule_status)}</td>
+                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Registered On">${fmtDate(r.registered_at)}</td>
+                        <td class="py-2 pr-4" data-label="Status">${statusBadge(r.status)}</td>
+                        <td class="py-2 pr-4" data-label="Approval">${approvalHtml}</td>
+                        <td class="py-2 pr-4 text-center" data-label="Queue #">${r.queue_no ? `<span class="inline-flex items-center rounded-full bg-sky-100 px-2 py-0.5 text-sm font-semibold text-sky-700 dark:bg-sky-900/40 dark:text-sky-300">#${r.queue_no}</span>` : '-'}</td>
+                        <td class="py-2 pr-4" data-label="Action">
+                            <div class="relative inline-block text-left" x-data="{ open: false, top: 0, left: 0 }" @click.outside="open = false">
+                                <button type="button" @click="
+                                        const b = \$el.getBoundingClientRect();
+                                        top = b.bottom + window.scrollY + 4;
+                                        left = b.right + window.scrollX - 192;
+                                        open = !open;
+                                    "
+                                    class="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-2.5 py-1 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                                    Actions
+                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                                </button>
+                                <template x-teleport="body">
+                                    <div x-show="open" x-transition style="display:none;" @click="open = false"
+                                        :style="'position:absolute; top:' + top + 'px; left:' + left + 'px;'"
+                                        class="z-50 w-48 origin-top-right overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                                        ${viewHtml}
+                                        ${acceptHtml}
+                                        ${cancelHtml}
+                                    </div>
+                                </template>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            });
+
+            renderPagination('allRegsPagination', rows.length, page, totalPages, (p) => {
+                allRegsPage = p;
+                renderAllRegistrations();
+            }, allRegsPageSize);
+        }
+
+        $('.allRegsSortTh').on('click', function () {
+            const field = $(this).data('field');
+            if (allRegsSortField === field) {
+                allRegsSortDir = allRegsSortDir === 'asc' ? 'desc' : 'asc';
+            } else {
+                allRegsSortField = field;
+                allRegsSortDir = 'asc';
+            }
+
+            $('.allRegsSortTh').removeClass('sortActive').find('.sortArrow').remove();
+            $(this).addClass('sortActive').append(`<span class="sortArrow">${allRegsSortDir === 'asc' ? '▲' : '▼'}</span>`);
+
+            allRegsPage = 1;
+            renderAllRegistrations();
+        });
+
+        $('#allRegsPageSize').on('change', function () {
+            const val = $(this).val();
+            allRegsPageSize = val === 'all' ? Infinity : parseInt(val, 10);
+            allRegsPage = 1;
+            renderAllRegistrations();
+        });
+
+        $(document).on('click', '.allRegsViewBtn', function () {
+            const id = $(this).data('id');
+            const r = allRegistrationRows.find((row) => row.id === id);
+            if (!r) return;
+            openMyViewModal(r, { urlTpl: allRegsViewUrlTpl });
+        });
+
+        $(document).on('click', '.allRegsCancelBtn', function () {
+            const id = $(this).data('id');
+
+            Swal.fire({
+                title: 'Cancel this registration?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, cancel it',
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                $.ajax({
+                    url: cancelUrlTpl.replace('__ID__', id),
+                    method: 'POST',
+                    headers: csrfHeaders,
+                    success: function (res) {
+                        toast(res.success ? 'success' : 'error', res.message);
+                        if (res.success) loadAllRegistrations();
+                    },
+                    error: function (xhr) {
+                        toast('error', xhr.responseJSON?.message || 'Gagal membatalkan registrasi');
+                    },
+                });
+            });
+        });
+
+        $(document).on('click', '.allRegsAcceptBtn', function () {
+            const id = $(this).data('id');
+            const r = allRegistrationRows.find((row) => String(row.id) === String(id));
+            if (!r) return;
+
+            const opts = (r.quota_options || []).map((q) => {
+                const sel = q.cpny_id === r.cpny_id ? ' selected' : '';
+                const label = `${q.cpny_name} — ${q.available}/${q.quota_pax} seats`;
+                return `<option value="${q.cpny_id}"${sel}>${label}</option>`;
+            }).join('');
+
+            Swal.fire({
+                title: `Accept ${r.name ?? r.username}?`,
+                html: `
+                    <div style="text-align:left;font-size:13px;">
+                        <p><strong>Doc ID:</strong> ${r.docid}</p>
+                        <p><strong>Training:</strong> ${r.training_name ?? '-'}</p>
+                        <p><strong>Date:</strong> ${fmtDate(r.schedule_date)}</p>
+                        <div style="margin-top:12px;">
+                            <label class="ticketModal-label">🏢 Use Quota From</label>
+                            <select id="swalAllRegsAcceptCpny" class="ticketModal-select">${opts}</select>
+                            <p style="font-size:11px;color:#6b7280;margin-top:6px;">
+                                Defaults to the participant's own company (${r.cpny_id}). Pick another company to consume its quota instead.
+                            </p>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Yes, accept',
+                cancelButtonText: 'Cancel',
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                const cpnyId = document.getElementById('swalAllRegsAcceptCpny')?.value ?? r.cpny_id;
+
+                $.ajax({
+                    url: `/training-list/${id}/manual-accept`,
+                    method: 'POST',
+                    headers: csrfHeaders,
+                    data: { cpny_id: cpnyId },
+                    success: function (res) {
+                        toast(res.success ? 'success' : 'error', res.message);
+                        if (res.success) loadAllRegistrations();
+                    },
+                    error: function (xhr) {
+                        toast('error', xhr.responseJSON?.message || 'Gagal menerima peserta');
+                    },
+                });
+            });
+        });
+
+        $('#allRegsSearch').on('input', function () {
+            allRegsPage = 1;
+            renderAllRegistrations();
+        });
+        $('#allRegsStatusFilter').on('change', function () {
+            allRegsPage = 1;
+            renderAllRegistrations();
+        });
+        $('#allRegsLevelFilter').on('change', function () {
+            allRegsPage = 1;
+            renderAllRegistrations();
+            loadRegistrationSummary();
+        });
+        $('#allRegsScheduleFilter').on('change', function () {
+            allRegsPage = 1;
+            renderAllRegistrations();
+            loadRegistrationSummary();
+        });
+        $('#allRegsTrainingFilter').on('change', function () {
+            allRegsPage = 1;
+            renderAllRegistrations();
+            loadRegistrationSummary();
+        });
+        $('#allRegsResetBtn').on('click', function () {
+            $('#allRegsSearch').val('');
+            $('#allRegsStatusFilter').val('').trigger('change.select2');
+            $('#allRegsTrainingFilter').val('').trigger('change.select2');
+            $('#allRegsLevelFilter').val('').trigger('change.select2');
+            $('#allRegsScheduleFilter').val('').trigger('change.select2');
+            $('#allRegsPageSize').val('10');
+            allRegsPageSize = 10;
+            allRegsSortField = null;
+            allRegsSortDir = 'asc';
+            $('.allRegsSortTh').removeClass('sortActive').find('.sortArrow').remove();
+            allRegsPage = 1;
+            renderAllRegistrations();
+            loadRegistrationSummary();
+        });
+
+        // Same filters as the table — the download matches what's currently
+        // on screen, not just the current page (sorting/page size are
+        // display-only and don't affect what rows get exported).
+        $('#allRegsExportBtn').on('click', function () {
+            const params = new URLSearchParams();
+            const trainingId = $('#allRegsTrainingFilter').val();
+            const status = $('#allRegsStatusFilter').val();
+            const search = ($('#allRegsSearch').val() || '').trim();
+            const level = $('#allRegsLevelFilter').val();
+            const scheduleDate = $('#allRegsScheduleFilter').val();
+
+            if (trainingId) params.set('training_id', trainingId);
+            if (status) params.set('status', status);
+            if (search) params.set('search', search);
+            if (level) params.set('level', level);
+            if (scheduleDate) params.set('schedule_date', scheduleDate);
+
+            const qs = params.toString();
+            window.location.href = allRegistrationsExportUrl + (qs ? '?' + qs : '');
+        });
+        @endif
+
+        loadAvailable();
+
+        if (initialMyEid || initialApprovalEid || initialFeedbackEid) {
+            $('.tabBtn[data-tab="mine"]').trigger('click');
+        }
+        if (initialApprovalEid) {
+            $('.subTabBtn[data-subtab="approval"]').trigger('click');
+        }
+        if (initialAllRegsEid) {
+            $('.tabBtn[data-tab="allregs"]').trigger('click');
+        }
+    </script>
+</x-app-layout>

@@ -10,9 +10,20 @@
 
     @php
         // Fallback variabel agar tidak error jika tidak dikirim dari controller
+        $docid = $docid ?? '-';
         $docname = $docname ?? 'SPPB';
         $name = $name ?? ($name ?? 'User');
         $status = strtoupper($status ?? 'P'); // P,R,D,A,C
+        $info = $info ?? '-';
+        $cpnyid = $cpnyid ?? '-';
+        $deptname = $deptname ?? '-';
+        $date = $date ?? '-';
+        $createdby = $createdby ?? '-';
+        $actionby = $actionby ?? null;
+        $url = $url ?? '#';
+        $tenant = $tenant ?? null;
+        $voucherLines = $voucher_lines ?? [];
+        $showNominal = !empty($voucherLines) && array_key_exists('nominal', $voucherLines[0]);
 
         $map = [
             'P' => [
@@ -49,6 +60,13 @@
                 'btnText' => 'View Document →',
                 'btnColor' => '#10b981',
                 'intro' => "Dokumen {$docname} telah selesai diproses.",
+            ],
+            'X' => [
+                'title' => 'Cancelled',
+                'banner' => '#6b7280', // gray
+                'btnText' => 'View Document →',
+                'btnColor' => '#6b7280',
+                'intro' => "Dokumen {$docname} telah dibatalkan.",
             ],
         ];
         $cfg = $map[$status] ?? $map['P'];
@@ -101,6 +119,12 @@
                                     <td style="background:#f9fafb; font-weight:bold;">Department</td>
                                     <td>{{ $deptname }}</td>
                                 </tr>
+                                @if($tenant)
+                                <tr>
+                                    <td style="background:#f9fafb; font-weight:bold;">Tenant</td>
+                                    <td>{{ $tenant }}</td>
+                                </tr>
+                                @endif
                                 <tr>
                                     <td style="background:#f9fafb; font-weight:bold;">Date</td>
                                     <td>{{ $date }}</td>
@@ -109,8 +133,40 @@
                                     <td style="background:#f9fafb; font-weight:bold;">Created By</td>
                                     <td>{{ $createdby }}</td>
                                 </tr>
+                                @if($actionby)
+                                <tr>
+                                    <td style="background:#f9fafb; font-weight:bold;">{{ $status === 'X' ? 'Cancelled By' : ($status === 'D' ? 'Revised By' : 'Action By') }}</td>
+                                    <td>{{ $actionby }}</td>
+                                </tr>
+                                @endif
 
                             </table>
+
+                            @if(count($voucherLines))
+                            <table cellspacing="0" cellpadding="6" style="width:100%; margin:0 0 20px; border-collapse:collapse;">
+                                <tr>
+                                    <td colspan="{{ $showNominal ? 4 : 3 }}" style="font-weight:bold; padding:0 0 8px; border:none;">Voucher Detail</td>
+                                </tr>
+                                <tr>
+                                    <td style="background:#f3f4f6; font-weight:bold; border:1px solid #e5e7eb;">Voucher</td>
+                                    <td style="background:#f3f4f6; font-weight:bold; border:1px solid #e5e7eb;">Qty</td>
+                                    @if($showNominal)
+                                    <td style="background:#f3f4f6; font-weight:bold; border:1px solid #e5e7eb;">Total Nominal</td>
+                                    @endif
+                                    <td style="background:#f3f4f6; font-weight:bold; border:1px solid #e5e7eb;">Exp Date</td>
+                                </tr>
+                                @foreach($voucherLines as $line)
+                                <tr>
+                                    <td style="border:1px solid #e5e7eb;">{{ $line['name'] }}</td>
+                                    <td style="border:1px solid #e5e7eb;">{{ $line['qty'] }}</td>
+                                    @if($showNominal)
+                                    <td style="border:1px solid #e5e7eb;">Rp {{ $line['nominal'] }}</td>
+                                    @endif
+                                    <td style="border:1px solid #e5e7eb;">{{ $line['exp'] }}</td>
+                                </tr>
+                                @endforeach
+                            </table>
+                            @endif
 
                             <p style="text-align:center; margin:30px 0;">
                                 <a href="{{ $url }}" target="_blank"

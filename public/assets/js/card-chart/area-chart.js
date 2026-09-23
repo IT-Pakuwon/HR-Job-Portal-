@@ -51,6 +51,17 @@
                 gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.05, stops: [0, 100] },
             },
             markers: { size: 0, hover: { size: 5 } },
+            dataLabels: {
+                enabled: true,
+                formatter: function(val, opt) {
+                    var idx = opt.dataPointIndex;
+                    var last = opt.w.globals.series[opt.seriesIndex].length - 1;
+                    return idx === last ? val.toLocaleString() : '';
+                },
+                style: { fontSize: '11px', fontWeight: 700, colors: [dark ? '#F8FAFC' : '#0F172A'] },
+                background: { enabled: true, foreColor: dark ? '#0F172A' : '#fff', opacity: 0.9, borderWidth: 0, padding: 4, borderRadius: 4 },
+                dropShadow: { enabled: false },
+            },
             xaxis: {
                 categories: categories,
                 axisBorder: { show: false }, axisTicks: { show: false },
@@ -61,7 +72,7 @@
             tooltip: { theme: dark ? 'dark' : 'light', y: { formatter: function(v) { return v.toLocaleString(); } } },
             legend: {
                 show: series.length > 1, position: 'top', horizontalAlign: 'right',
-                fontSize: '12px', markers: { radius: 6 },
+                fontSize: '12px', markers: { shape: 'circle', size: 6 },
             },
         });
         chart.render();
@@ -72,6 +83,10 @@
                 chart: { foreColor: d ? '#94A3B8' : '#64748B' },
                 grid:  { borderColor: d ? '#1E293B' : '#F1F5F9' },
                 tooltip: { theme: d ? 'dark' : 'light' },
+                dataLabels: {
+                    style: { colors: [d ? '#F8FAFC' : '#0F172A'] },
+                    background: { foreColor: d ? '#0F172A' : '#fff' },
+                },
             });
         }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     }

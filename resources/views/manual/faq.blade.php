@@ -1,6 +1,19 @@
-<div x-data="{ open: null }" class="max-w-9xl mx-auto space-y-6 p-2">
+<div x-data="{
+        open: null,
+        page: 1,
+        perPage: 10,
+        totalItems: 19,
+        get totalPages() { return Math.ceil(this.totalItems / this.perPage); },
+        visible(i) { return Math.ceil(i / this.perPage) === this.page; },
+        goToPage(p) {
+            if (p < 1 || p > this.totalPages) return;
+            this.page = p;
+            this.open = null;
+            document.getElementById('faq-top')?.scrollIntoView({ behavior: 'smooth' });
+        }
+    }" class="max-w-9xl mx-auto space-y-6 p-2">
     <!-- HEADER -->
-    <div class="mb-10">
+    <div id="faq-top" class="mb-10">
         <h1 class="text-3xl font-bold tracking-tight text-gray-800 dark:text-white">
             Frequently Asked Questions
         </h1>
@@ -13,7 +26,7 @@
     <div class="space-y-3">
 
         {{-- 1 --}}
-        <div class="faq-card">
+        <div class="faq-card" x-show="visible(1)">
             <button @click="open === 1 ? open = null : open = 1" class="faq-question">
                 1. Credential yang digunakan? Jika belum punya?
             </button>
@@ -30,7 +43,7 @@
         </div>
 
         {{-- 2 --}}
-        <div class="faq-card">
+        <div class="faq-card" x-show="visible(2)">
             <button @click="open === 2 ? open = null : open = 2" class="faq-question">
                 2. Jika muncul approval belum di-set IT?
             </button>
@@ -45,7 +58,7 @@
 
 
         {{-- 3 --}}
-        <div class="faq-card">
+        <div class="faq-card" x-show="visible(3)">
             <button @click="open === 3 ? open = null : open = 3" class="faq-question">
                 3. Jika ada approval yang ingin diubah?
             </button>
@@ -59,7 +72,7 @@
         </div>
 
         {{-- 4 --}}
-        <div class="faq-card">
+        <div class="faq-card" x-show="visible(4)">
             <button @click="open === 4 ? open = null : open = 4" class="faq-question">
                 4. Jika ada pertanyaan mengenai budget yang tidak ada / project dadakan?
             </button>
@@ -75,7 +88,7 @@
         </div>
 
         {{-- 5 --}}
-        <div class="faq-card">
+        <div class="faq-card" x-show="visible(5)">
             <button @click="open === 5 ? open = null : open = 5" class="faq-question">
                 5. Jika kode barang tidak ada?
             </button>
@@ -91,7 +104,7 @@
         </div>
 
         {{-- 6 --}}
-        <div class="faq-card">
+        <div class="faq-card" x-show="visible(6)">
             <button @click="open === 6 ? open = null : open = 6" class="faq-question">
                 6. Jika tidak tahu WO menggunakan budget siapa?
             </button>
@@ -106,7 +119,7 @@
         </div>
 
         {{-- 7 --}}
-        <div class="faq-card">
+        <div class="faq-card" x-show="visible(7)">
             <button @click="open === 7 ? open = null : open = 7" class="faq-question">
                 7. Jika ingin mengecek SPPBJK/SPB di mana?
             </button>
@@ -120,7 +133,7 @@
         </div>
 
         {{-- 8 --}}
-        <div class="faq-card">
+        <div class="faq-card" x-show="visible(8)">
             <button @click="open === 8 ? open = null : open = 8" class="faq-question">
                 8. Jika budget yang sudah di-submit salah, bolehkah import ulang file yang sama?
             </button>
@@ -139,7 +152,7 @@
         </div>
 
         {{-- 9 --}}
-        <div class="faq-card">
+        <div class="faq-card" x-show="visible(9)">
             <button @click="open === 9 ? open = null : open = 9" class="faq-question">
                 9. Jika ada penambahan row budget baru, apakah harus import semua data lagi?
             </button>
@@ -157,7 +170,7 @@
         </div>
 
         {{-- 10 --}}
-        <div class="faq-card">
+        <div class="faq-card" x-show="visible(10)">
             <button @click="open === 10 ? open = null : open = 10" class="faq-question">
                 10. Mengapa file budget tidak dapat di-import?
             </button>
@@ -176,7 +189,7 @@
         </div>
 
         {{-- 11 --}}
-        <div class="faq-card">
+        <div class="faq-card" x-show="visible(11)">
             <button @click="open === 11 ? open = null : open = 11" class="faq-question">
                 11. BQ SPPJ atau SPPT dibuat di mana?
             </button>
@@ -194,7 +207,7 @@
         </div>
 
         {{-- 12 --}}
-        <div class="faq-card">
+        <div class="faq-card" x-show="visible(12)">
             <button @click="open === 12 ? open = null : open = 12" class="faq-question">
                 12. Apakah CS bisa di-approve jika budget kurang?
             </button>
@@ -214,7 +227,7 @@
         </div>
 
         {{-- 13 --}}
-        <div class="faq-card">
+        <div class="faq-card" x-show="visible(13)">
             <button @click="open === 13 ? open = null : open = 13" class="faq-question">
                 13. Apakah BQ bisa di-edit?
             </button>
@@ -232,7 +245,7 @@
         </div>
 
         {{-- 14 --}}
-        <div class="faq-card">
+        <div class="faq-card" x-show="visible(14)">
             <button @click="open === 14 ? open = null : open = 14" class="faq-question">
                 14. Apakah attachment bisa dihapus setelah di-upload?
             </button>
@@ -250,7 +263,7 @@
         </div>
 
         {{-- 15 --}}
-        <div class="faq-card">
+        <div class="faq-card" x-show="visible(15)">
             <button @click="open === 15 ? open = null : open = 15" class="faq-question">
                 15. Jika membuat PRF namun belum ada approval?
             </button>
@@ -267,5 +280,108 @@
             </div>
         </div>
 
+        {{-- 16 --}}
+        <div class="faq-card" x-show="visible(16)">
+            <button @click="open === 16 ? open = null : open = 16" class="faq-question">
+                16. Apakah pembuatan Event di Event Calendar perlu approval?
+            </button>
+            <div x-show="open === 16" x-collapse class="faq-answer">
+                <p><strong>EN:</strong>
+                    No. An event is saved immediately once you submit the form — there is no approval step.
+                    Please make sure the details (dates, location, status) are correct before saving.
+                </p>
+
+                <p class="mt-2"><strong>ID:</strong>
+                    Tidak. Event akan langsung tersimpan setelah form di-submit — tidak ada proses approval.
+                    Pastikan detail (tanggal, lokasi, status) sudah benar sebelum menyimpan.
+                </p>
+            </div>
+        </div>
+
+        {{-- 17 --}}
+        <div class="faq-card" x-show="visible(17)">
+            <button @click="open === 17 ? open = null : open = 17" class="faq-question">
+                17. Kenapa lokasi event yang saya pilih tidak bisa dibooking?
+            </button>
+            <div x-show="open === 17" x-collapse class="faq-answer">
+                <p><strong>EN:</strong>
+                    A single location can only hold up to 5 active events with overlapping dates at the same
+                    time. If the location already has 5 overlapping events, please choose a different date
+                    or location.
+                </p>
+
+                <p class="mt-2"><strong>ID:</strong>
+                    Satu lokasi hanya dapat menampung maksimal 5 event aktif dengan tanggal yang saling
+                    tumpang tindih dalam waktu yang sama. Jika lokasi tersebut sudah memiliki 5 event yang
+                    tumpang tindih, silakan pilih tanggal atau lokasi lain.
+                </p>
+            </div>
+        </div>
+
+        {{-- 18 --}}
+        <div class="faq-card" x-show="visible(18)">
+            <button @click="open === 18 ? open = null : open = 18" class="faq-question">
+                18. Apa perbedaan Ticket Support di menu Operation Teknik dengan IT Support?
+            </button>
+            <div x-show="open === 18" x-collapse class="faq-answer">
+                <p><strong>EN:</strong>
+                    IT Support handles computer, software, and network issues. Operation Teknik Ticket
+                    Support handles Engineering, Building Service, Front Office, and Berita Acara (BA)
+                    matters. Its workflow also differs: once the assigned technician marks the ticket as
+                    Complete, it moves to Awaiting Approval and only becomes Completed after the assigned
+                    approver(s) approve it.
+                </p>
+
+                <p class="mt-2"><strong>ID:</strong>
+                    IT Support menangani kendala komputer, software, dan jaringan. Ticket Support pada menu
+                    Operation Teknik menangani hal-hal Engineering, Building Service, Front Office, dan
+                    Berita Acara (BA). Alur kerjanya juga berbeda: setelah teknisi yang ditugaskan menandai
+                    tiket sebagai Complete, tiket berpindah ke status Awaiting Approval dan baru menjadi
+                    Completed setelah disetujui oleh approver yang ditugaskan.
+                </p>
+            </div>
+        </div>
+
+        {{-- 19 --}}
+        <div class="faq-card" x-show="visible(19)">
+            <button @click="open === 19 ? open = null : open = 19" class="faq-question">
+                19. Berapa lama saya bisa reopen tiket Operation Teknik yang sudah Completed?
+            </button>
+            <div x-show="open === 19" x-collapse class="faq-answer">
+                <p><strong>EN:</strong>
+                    As the requester, you can reopen a completed ticket yourself within 7 days after it was
+                    completed. After that window, please create a new ticket instead.
+                </p>
+
+                <p class="mt-2"><strong>ID:</strong>
+                    Sebagai requester, Anda dapat membuka kembali tiket yang sudah selesai dalam waktu 7 hari
+                    setelah tiket tersebut selesai. Setelah lewat batas waktu tersebut, silakan buat tiket baru.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- PAGINATION -->
+    <div class="flex items-center justify-between border-t border-gray-200 pt-4 dark:border-gray-700"
+        x-show="totalPages > 1">
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+            Page <span x-text="page"></span> of <span x-text="totalPages"></span>
+        </p>
+        <div class="flex items-center gap-1">
+            <button @click="goToPage(page - 1)" :disabled="page === 1"
+                class="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+                Prev
+            </button>
+            <template x-for="p in totalPages" :key="p">
+                <button @click="goToPage(p)"
+                    :class="p === page ? 'bg-gray-900 text-white dark:bg-blue-600' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'"
+                    class="h-8 w-8 rounded-lg text-sm font-medium transition" x-text="p"></button>
+            </template>
+            <button @click="goToPage(page + 1)" :disabled="page === totalPages"
+                class="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+                Next
+            </button>
+        </div>
     </div>
 </div>

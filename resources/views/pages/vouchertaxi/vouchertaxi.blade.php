@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="mb-4 rounded-lg border border-gray-200 bg-white px-5 py-4 shadow-sm">
+    <div class="mb-4 rounded-lg border border-gray-200 bg-white px-5 py-4 shadow-sm dark:bg-gray-800 dark:border-gray-700">
 
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
@@ -20,7 +20,7 @@
                         Taxi Booking
                     </h1>
 
-                    <p class="mt-0.5 text-sm text-gray-500">
+                    <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
                         Manage booking requests and taxi vouchers
                     </p>
 
@@ -96,12 +96,6 @@
                     <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                         <span class="h-2.5 w-2.5 rounded-full bg-amber-500"></span> Revised
                     </span>
-                    <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                        <span class="h-2.5 w-2.5 rounded-full bg-red-500"></span> Rejected
-                    </span>
-                    <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                        <span class="h-2.5 w-2.5 rounded-full bg-slate-400"></span> Cancelled
-                    </span>
                 </div>
             </div>
 
@@ -157,17 +151,20 @@
                 <!-- Filter -->
 
                 <div class="mt-4 flex flex-wrap gap-2">
-                    <button class="voucher-filter active-filter" data-filter="P">Waiting Approval</button>
-                    <button class="voucher-filter" data-filter="D">Revise</button>
-                    <button class="voucher-filter" data-filter="R">Rejected</button>
+                    <button class="voucher-filter active-filter" data-filter="ALL">All</button>
+                    @if (auth()->check() && auth()->user()->isAdmin())
+                        <button class="voucher-filter" data-filter="ALL_TRANSACTIONS">All Transaction</button>
+                    @endif
+                    <button class="voucher-filter" data-filter="P">Waiting Approval</button>
                     <button class="voucher-filter" data-filter="C">Completed</button>
                     @if (auth()->check() && auth()->user()->hasRole('GAACCESS'))
                         <button class="voucher-filter" data-filter="C">
                             Waiting Process
                         </button>
                     @endif
+                    <button class="voucher-filter" data-filter="D">Revise</button>
+                    <button class="voucher-filter" data-filter="R">Rejected</button>
                     <button class="voucher-filter" data-filter="X">Cancelled</button>
-                    <button class="voucher-filter" data-filter="ALL">All</button>
 
                 </div>
 
@@ -296,7 +293,7 @@
 
                                 @if (count($userdept) === 1)
 
-                                    <input type="text" value="{{ $userdept[0]->department_id }}" readonly
+                                    <input type="text" value="{{ $userdept[0]->department_name ?? $userdept[0]->department_id }}" readonly
                                         class="h-11 w-full rounded-lg border border-slate-200 bg-slate-100 px-4 text-sm dark:border-white/10 dark:bg-white/[0.04]">
 
                                     <input type="hidden" id="department_id" name="department_id"
@@ -310,7 +307,7 @@
 
                                         @foreach ($userdept as $p)
                                             <option value="{{ $p->department_id }}">
-                                                {{ $p->department_id }}
+                                                {{ $p->department_name ?? $p->department_id }}
                                             </option>
                                         @endforeach
 
@@ -603,7 +600,7 @@
 
                                     @foreach ($userdept as $p)
                                         <option value="{{ $p->department_id }}">
-                                            {{ $p->department_id }}
+                                            {{ $p->department_name ?? $p->department_id }}
                                         </option>
                                     @endforeach
 
@@ -886,6 +883,13 @@
 
                 <div class="flex items-center gap-3">
 
+                    <button type="button" id="privateNoteVoucherBtn"
+                        class="hidden h-10 rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08]">
+
+                        🗒️ Private Note
+
+                    </button>
+
                     <a id="printVoucherBtn" href="#" target="_blank"
                         class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-red-600 px-4 text-sm font-semibold text-white transition hover:bg-red-500">
 
@@ -918,7 +922,7 @@
 
                             <div>
 
-                                <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                                <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                                     Requester
                                 </div>
 
@@ -937,31 +941,31 @@
                         <div class="grid grid-cols-2 gap-5 p-5">
 
                             <div>
-                                <div class="text-xs text-slate-500">Date Used</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400">Date Used</div>
                                 <div id="view_date"
                                     class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100"></div>
                             </div>
 
                             <div>
-                                <div class="text-xs text-slate-500">Trip Type</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400">Trip Type</div>
                                 <div id="view_type_trip"
                                     class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100"></div>
                             </div>
 
                             <div>
-                                <div class="text-xs text-slate-500">Origin</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400">Origin</div>
                                 <div id="view_origin"
                                     class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100"></div>
                             </div>
 
                             <div>
-                                <div class="text-xs text-slate-500">Destination</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400">Destination</div>
                                 <div id="view_destination"
                                     class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100"></div>
                             </div>
 
                             <div>
-                                <div class="text-xs text-slate-500">Company — Company Expense</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400">Company — Company Expense</div>
                                 <div
                                     class="mt-1 flex items-center gap-1 text-sm font-medium text-slate-900 dark:text-slate-100">
                                     <span id="view_cpny"></span>
@@ -971,13 +975,13 @@
                             </div>
 
                             <div>
-                                <div class="text-xs text-slate-500">Department</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400">Department</div>
                                 <div id="view_dept"
                                     class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100"></div>
                             </div>
 
                             <div>
-                                <div class="text-xs text-slate-500">Top Up User</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400">Top Up User</div>
                                 <div id="view_topup_user"
                                     class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100"></div>
                             </div>
@@ -1097,7 +1101,7 @@
                                 </button>
 
                                 <button type="button" id="reviseBtn"
-                                    class="flex-1 rounded-lg bg-yellow-400 px-4 py-2 text-xs font-semibold text-black transition hover:bg-yellow-300">
+                                    class="flex-1 rounded-lg bg-yellow-400 px-4 py-2 text-xs font-semibold text-black transition hover:bg-yellow-300 dark:text-white">
                                     <i class="fa-solid fa-rotate-left mr-1"></i>
                                     Revise
                                 </button>
@@ -1250,42 +1254,42 @@
                         <div class="grid grid-cols-2 gap-x-8 gap-y-3 p-4">
 
                             <div>
-                                <span class="text-xs text-slate-500">Requester</span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">Requester</span>
                                 <div id="process_requester" class="text-sm font-semibold">
                                     -
                                 </div>
                             </div>
 
                             <div>
-                                <span class="text-xs text-slate-500">Date Used</span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">Date Used</span>
                                 <div id="process_date" class="text-sm font-semibold">
                                     -
                                 </div>
                             </div>
 
                             <div>
-                                <span class="text-xs text-slate-500">Company</span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">Company</span>
                                 <div id="process_company" class="text-sm font-semibold">
                                     -
                                 </div>
                             </div>
 
                             <div>
-                                <span class="text-xs text-slate-500">Department</span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">Department</span>
                                 <div id="process_department" class="text-sm font-semibold">
                                     -
                                 </div>
                             </div>
 
                             <div>
-                                <span class="text-xs text-slate-500">Trip Type</span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">Trip Type</span>
                                 <div id="process_trip" class="text-sm font-semibold">
                                     -
                                 </div>
                             </div>
 
                             <div>
-                                <span class="text-xs text-slate-500">Route</span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">Route</span>
                                 <div id="process_route" class="text-sm font-bold text-emerald-600">
                                     -
                                 </div>
@@ -1293,13 +1297,13 @@
 
                         </div>
 
-                        <div class="border-t border-slate-200 px-4 py-3">
+                        <div class="border-t border-slate-200 px-4 py-3 dark:border-slate-700">
 
-                            <div class="text-xs text-slate-500">
+                            <div class="text-xs text-slate-500 dark:text-slate-400">
                                 Purpose
                             </div>
 
-                            <div id="process_purpose" class="mt-1 text-sm text-slate-700">
+                            <div id="process_purpose" class="mt-1 text-sm text-slate-700 dark:text-slate-300">
                                 -
                             </div>
 
@@ -1354,7 +1358,7 @@
 
                                 </div>
 
-                                <p class="mt-2 text-xs text-slate-500">
+                                <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
                                     Actual amount paid for this transportation voucher.
                                 </p>
 
@@ -1367,7 +1371,7 @@
                                 <label class="flex cursor-pointer items-start gap-3">
 
                                     <input type="checkbox" id="changeExpenseOwner" name="change_expense_owner"
-                                        value="1" class="mt-1 rounded border-slate-300">
+                                        value="1" class="mt-1 rounded border-slate-300 dark:border-slate-700">
 
                                     <div>
 
@@ -1415,7 +1419,7 @@
                                         </label>
 
                                         <select id="process_cpny_id_expense" name="cpny_id_expense"
-                                            class="select2-process h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm">
+                                            class="select2-process h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:bg-gray-800 dark:border-slate-700">
 
                                             <option value="">
                                                 Select Company
@@ -1443,7 +1447,7 @@
                                         </label>
 
                                         <select id="process_department_id_expense" name="department_id_expense"
-                                            class="select2-process h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm">
+                                            class="select2-process h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:bg-gray-800 dark:border-slate-700">
 
                                             <option value="">
                                                 Select Department
@@ -1471,7 +1475,7 @@
                                         </label>
 
                                         <select id="process_user_peminta_expense" name="user_peminta_expense"
-                                            class="select2-process h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm">
+                                            class="select2-process h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:bg-gray-800 dark:border-slate-700">
                                             <option value="">Select Employee</option>
                                         </select>
 
@@ -1518,6 +1522,9 @@
         </div>
 
     </div>
+
+    @include('partials.private-note-widget', ['doctype' => 'VCR', 'floatingButton' => false, 'akses_cc' => $isGA ?? false])
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script src="{{ asset('assets/js/vouchertaxi/core.js') }}"></script>

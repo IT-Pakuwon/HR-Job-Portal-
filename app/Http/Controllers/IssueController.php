@@ -384,13 +384,25 @@ class IssueController extends Controller
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload     = $iss->created_by === $loginUsername;
 
+        $isApprover = TrApproval::where('refnbr', $iss->issueid)
+            ->where('aprv_doctype', 'IS')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
+
         return view('pages.issue.showissue', [
             'iss'         => $iss,
             'issdetail'   => $issdetail,
             'hash'        => $hash,
             'eid_issueid' => $eid_issueid,
             'spbUrl'      => $spbUrl,
-            'canUpload'      => $canUpload,
+            'canUpload'   => $canUpload,
+            'isApprover'  => $isApprover,
         ]);
     }
 
@@ -1294,10 +1306,10 @@ class IssueController extends Controller
             $spb->totalsppbqty     = (float) $agg->total_sppbqty;
             $spb->totalcompleteqty = (float) $agg->total_completeqty;
 
-            // status_issue berdasarkan fulfilled (totalcompleteqty)
-            if ($spb->totalcompleteqty <= 0) {
+            // Status issue mengikuti NET issue; SPPB/manual close bukan qty yang di-issue.
+            if ($spb->totalissueqty <= 0) {
                 $spb->status_issue = 'Open';
-            } elseif ($spb->totalspbqty > 0 && $spb->totalcompleteqty >= $spb->totalspbqty) {
+            } elseif ($spb->totalspbqty > 0 && $spb->totalissueqty >= $spb->totalspbqty) {
                 $spb->status_issue = 'Completed';
             } else {
                 $spb->status_issue = 'Partial';

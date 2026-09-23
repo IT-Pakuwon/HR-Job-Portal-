@@ -1,28 +1,27 @@
   <div class="space-y-4">
 
       {{-- FILTER PANEL --}}
-    <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm">
+    <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800/40">
 
         {{-- GRID --}}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
 
             {{-- DATE FROM --}}
             <div class="space-y-1">
-                <label class="text-xs font-medium text-gray-500">Date From</label>
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">Date From</label>
                 <input type="date" id="date_from" class="form-input w-full">
             </div>
 
             {{-- DATE TO --}}
             <div class="space-y-1">
-                <label class="text-xs font-medium text-gray-500">Date To</label>
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">Date To</label>
                 <input type="date" id="date_to" class="form-input w-full">
             </div>
 
             {{-- ROOM --}}
             <div class="space-y-1">
-                <label class="text-xs font-medium text-gray-500">Room</label>
-                <select id="room" class="form-input w-full">
-                    <option value="">All Rooms</option>
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">Room</label>
+                <select id="room" class="form-input w-full" multiple>
                     @foreach ($rooms as $room)
                         <option value="{{ $room->room_name }}">
                             {{ $room->room_name }}
@@ -33,13 +32,13 @@
 
             {{-- REQUESTER --}}
             <div class="space-y-1">
-                <label class="text-xs font-medium text-gray-500">Requester</label>
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">Requester</label>
                 <input type="text" id="requester" placeholder="Search user..." class="form-input w-full">
             </div>
 
             {{-- STATUS --}}
             <div class="space-y-1">
-                <label class="text-xs font-medium text-gray-500">Status</label>
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">Status</label>
                 <select id="status" class="form-input w-full">
                     <option value="">All Status</option>
                     <option value="A">Active</option>
@@ -56,12 +55,12 @@
                 </button>
 
                 <button id="resetBtn"
-                    class="px-4 py-2 text-sm font-medium border border-gray-300 bg-white rounded-lg hover:bg-gray-50 transition">
+                    class="px-4 py-2 text-sm font-medium border border-gray-300 bg-white rounded-lg hover:bg-gray-50 transition dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-700">
                     Reset
                 </button>
 
                 <button id="exportExcelBtn"
-                    class="px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition">
+                    class="px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20">
                     Excel
                 </button>
 
@@ -77,10 +76,10 @@
     </div>
 
       {{-- TABLE --}}
-      <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
+      <div class="rounded-2xl border border-gray-200 bg-white shadow-sm dark:bg-gray-800 dark:border-gray-700">
 
           <div class="border-b px-6 py-4">
-              <h2 class="text-sm font-semibold text-gray-800">
+              <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">
                   Meeting Room Report
               </h2>
           </div>
@@ -88,7 +87,7 @@
           <div class="overflow-x-auto p-5">
               <table id="meetingRoomTable" class="min-w-full text-sm">
 
-                  <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+                  <thead class="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-gray-900 dark:text-gray-400">
                       <tr>
                           <th>Doc ID</th>
                           <th>Date</th>
@@ -113,10 +112,19 @@
       </div>
 
   </div>
+  {{-- Select2 CDN --}}
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
   <script>
       $(function() {
 
           let type = 'meeting-room';
+
+          $('#room').select2({
+              width: '100%',
+              placeholder: 'All Rooms',
+              allowClear: true
+          });
 
           let table = $('#meetingRoomTable').DataTable({
               processing: true,
@@ -138,6 +146,11 @@
                       d.status = $('#status').val();
                   }
               },
+
+               lengthMenu: [
+                    [10, 25, 50, 100, 250, -1],
+                    [10, 25, 50, 100, 250, 'All']
+                ],
 
               columns: [{
                       data: 'docid'
@@ -192,10 +205,16 @@
           $('#filterBtn').click(() => table.ajax.reload());
 
           $('#resetBtn').click(() => {
-              $('#date_from, #date_to, #room, #requester').val('');
+              $('#date_from, #date_to, #requester').val('');
+              $('#room').val(null).trigger('change');
               $('#status').val('');
               table.ajax.reload();
           });
+
+            function buildRoomQuery() {
+                let rooms = $('#room').val() || [];
+                return rooms.map(r => '&room[]=' + encodeURIComponent(r)).join('');
+            }
 
             $('#exportExcelBtn').click(() => {
 
@@ -203,7 +222,7 @@
 
                 url += '?date_from=' + $('#date_from').val();
                 url += '&date_to=' + $('#date_to').val();
-                url += '&room=' + $('#room').val();
+                url += buildRoomQuery();
                 url += '&requester=' + $('#requester').val();
                 url += '&status=' + $('#status').val();
 
@@ -216,7 +235,7 @@
 
                 url += '?date_from=' + $('#date_from').val();
                 url += '&date_to=' + $('#date_to').val();
-                url += '&room=' + $('#room').val();
+                url += buildRoomQuery();
                 url += '&requester=' + $('#requester').val();
                 url += '&status=' + $('#status').val();
 

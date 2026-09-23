@@ -1,5 +1,11 @@
-<x-app-layout>
-    <div class="max-w-9xl mx-auto w-full py-1">
+﻿<x-app-layout>
+    <div class="max-w-9xl mx-auto w-full p-2">
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'News', 'url' => route('news')],
+            ['label' => 'Show Details'],
+        ]" />
+
         <div class="grid">
             <div class="max-w-9xl mx-auto w-full px-2 py-1 sm:px-6 lg:px-2">
                 <div class="gap-1">
@@ -7,7 +13,7 @@
                         class="flex w-full flex-col gap-2 overflow-hidden sm:col-span-1 lg:row-span-2 xl:row-span-2 xl:flex-row">
                         <div class="flex w-full flex-col rounded-xl bg-white shadow-sm dark:bg-gray-800">
                             <header
-                                class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-600">
+                                class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-600 dark:bg-gray-900">
                                 <div class="flex max-w-5xl justify-end gap-2">
                                     <h1 class="text-base font-semibold text-gray-700 dark:text-gray-100">🆔
                                         {{ $news->docid }}</h1>
@@ -222,7 +228,7 @@
                                                             </div>
                                                         </template>
                                                         <p x-show="comments.length === 0"
-                                                            class="animate-pulse italic text-gray-500">No comments
+                                                            class="animate-pulse italic text-gray-500 dark:text-gray-400">No comments
                                                             yet...</p>
                                                     </div>
                                                     <div
@@ -289,7 +295,7 @@
 
                     <div class="mt-4 flex justify-between">
                         <button id="cancelRejectBtn"
-                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
                             Cancel
                         </button>
                         <button id="confirmRejectBtn"
@@ -308,7 +314,7 @@
 
                     <div class="mt-4 flex justify-between">
                         <button id="cancelReviseBtn"
-                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
                             Cancel
                         </button>
                         <button id="confirmReviseBtn"
@@ -333,7 +339,7 @@
                     function loadComments(docid) {
                         console.log("Loading comments for Doc ID:", docid);
                         let commentList = $('#commentList');
-                        commentList.html('<p class="text-gray-500 italic">Loading comments...</p>'); // Loader
+                        commentList.html('<p class="text-gray-500 italic dark:text-gray-400">Loading comments...</p>'); // Loader
 
                         $.ajax({
                             url: `/news/${docid}/comments`,
@@ -344,7 +350,7 @@
 
                                 if (response.comments.length === 0) {
                                     commentList.append(
-                                        '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
+                                        '<p class="text-gray-500 text-sm italic dark:text-gray-400">No comments yet. Be the first to comment!</p>'
                                     );
                                 } else {
                                     response.comments.forEach(comment => {
@@ -353,8 +359,8 @@
 
                                         commentList.append(`
                                     <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-                                        <p class=" text-sm  font-semibold">${comment.username} 
-                                            <span class=" text-sm  text-gray-500">(${timeAgo})</span>
+                                        <p class=" text-sm  font-semibold">${comment.username}
+                                            <span class="text-sm text-gray-500 dark:text-gray-400">(${timeAgo})</span>
                                         </p>
                                         <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
                                     </div>
@@ -424,7 +430,7 @@
             </script>
             <script>
                 $(document).on("click", "#approveBtn", function() {
-                    let docid = "{{ $news->docid }}"; // Ambil Task ID dari modal        
+                    let docid = "{{ $news->docid }}"; // Ambil Task ID dari modal
                     approveNews(docid);
                 });
 
@@ -501,7 +507,7 @@
                             return;
                         }
 
-                        let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                        let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                         // Tampilkan spinner di kanan bawah
                         $spinner.fadeIn();
 
@@ -568,7 +574,7 @@
                             toastr.error("Please provide a reason for revise.");
                             return;
                         }
-                        let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                        let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                         // Tampilkan spinner di kanan bawah
                         $spinner.fadeIn();
 

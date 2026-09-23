@@ -131,10 +131,10 @@
                                 <summary
                                     class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                     <span>📝 IMBudget Detail</span>
-                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
                                         details &rarr;</span>
                                     <span
-                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                                         details &darr;</span>
                                 </summary>
 
@@ -238,7 +238,7 @@
                                                 @empty
                                                     <tr class="imbudget-row">
                                                         <td colspan="14"
-                                                            class="border p-4 text-center text-sm text-gray-500">
+                                                            class="border p-4 text-center text-sm text-gray-500 dark:text-gray-400">
                                                             No budget detail. (Generated from CS when approving.)
                                                         </td>
                                                     </tr>
@@ -258,10 +258,10 @@
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
                                     details &rarr;</span>
                                 <span
-                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                                     details &darr;</span>
                             </summary>
 
@@ -339,7 +339,7 @@
                         <div
                             class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
                             <button id="backBtn" onclick="history.back()"
-                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-300">
 
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -352,9 +352,9 @@
 
                             <!-- Cancel Button-->
                             <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                                <button id="cancelBtn"
+                                <button type="button" id="cancelBtn"
                                     class="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
-                                    <span id="cancelText">Cancel</span>
+                                    <span id="cancelText">Cancel IM Budget</span>
                                     <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10"
@@ -472,16 +472,20 @@
             // Minimal 1 baris "aktif" (punya COA) dan budget_requested >= 0
             let anyActive = false;
             let anyInvalid = false;
+            let hasRequestedBelowNeeded = false;
+            let requestedBelowNeededMessage = '';
 
             $('#imbudgetTable tr.imbudget-row').each(function() {
                 const $tr = $(this);
                 const $coa = $tr.find('input[name="budget_account_id[]"]');
                 const $reqVis = $tr.find('input[name="budget_requested[]"]');
+                const $neededVis = $tr.find('.budgetNeededField');
 
                 const hasCoa = ($coa.val() || '').trim() !== '';
 
                 // normalisasi input req (ganti tampilan -> hidden numeric)
                 const reqNum = toNumber($reqVis.val());
+                const neededNum = toNumber($neededVis.val());
                 $reqVis.val($reqVis.val().replace(/\./g, '').replace(/,/g,
                     ',')); // biar tampilan tetap id (opsional)
 
@@ -491,11 +495,37 @@
                     $reqVis.addClass('is-invalid').after(
                         '<small class="error-feedback">Budget Requested tidak boleh negatif.</small>');
                     anyInvalid = true;
+                } else if (hasCoa && reqNum < neededNum) {
+                    const rowNo = $.trim($tr.find('td:first').text()) || '-';
+                    $reqVis.addClass('is-invalid').after(
+                        '<small class="error-feedback">Budget Requested tidak boleh lebih kecil dari Budget Needed.</small>');
+                    anyInvalid = true;
+                    hasRequestedBelowNeeded = true;
+
+                    if (!requestedBelowNeededMessage) {
+                        requestedBelowNeededMessage =
+                            `Baris ${rowNo}: Budget Requested (${formatID(reqNum)}) harus minimal sama dengan Budget Needed (${formatID(neededNum)}).`;
+                    }
                 }
             });
 
             if (!anyActive) {
                 toastr.error('Minimal ada 1 baris detail dengan COA terisi.');
+                return;
+            }
+            if (hasRequestedBelowNeeded) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Budget Requested tidak valid',
+                    text: requestedBelowNeededMessage || 'Budget Requested tidak boleh lebih kecil dari Budget Needed.',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#2563eb',
+                });
+
+                const $first = $('#imbudgetTable .is-invalid').first();
+                if ($first.length) $('html,body').animate({
+                    scrollTop: $first.offset().top - 120
+                }, 300);
                 return;
             }
             if (anyInvalid) {
@@ -692,14 +722,46 @@
         });
 
         // ===== Cancel Button =====
-        $('#cancelBtn').click(function() {
-            const confirmed = confirm("Are you sure you want to cancel? Unsaved changes will be lost.");
-            if (confirmed) {
-                $('#cancelBtn').prop('disabled', true);
-                $('#cancelText').text('Cancelling...');
-                $('#cancelSpinner').removeClass('hidden');
-                window.location.href = "{{ route('imbudgets') }}";
-            }
+        $('#cancelBtn').click(async function() {
+            const confirmed = await Swal.fire({
+                icon: 'warning',
+                title: 'Cancel IM Budget?',
+                text: 'Are you sure you want to cancel this document? This action cannot be undone.',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, cancel it',
+                cancelButtonText: 'No',
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                reverseButtons: true,
+                focusCancel: true,
+            });
+
+            if (!confirmed.isConfirmed) return;
+
+            $('#cancelBtn').prop('disabled', true);
+            $('#cancelText').text('Cancelling...');
+            $('#cancelSpinner').removeClass('hidden');
+            showOverlay('Cancelling');
+
+            $.ajax({
+                url: "{{ route('imbudgets.cancel', $hash) }}",
+                type: 'POST',
+                data: {
+                    _method: 'PUT',
+                    _token: "{{ csrf_token() }}"
+                },
+                success: function(res) {
+                    toastr.success(res.message || 'Document cancelled.');
+                    window.location.href = "{{ route('imbudgets') }}";
+                },
+                error: function(xhr) {
+                    toastr.error(xhr.responseJSON?.message || 'Failed to cancel document.');
+                    $('#cancelBtn').prop('disabled', false);
+                    $('#cancelText').text('Cancel IM Budget');
+                    $('#cancelSpinner').addClass('hidden');
+                    hideOverlay();
+                }
+            });
         });
     </script>
 

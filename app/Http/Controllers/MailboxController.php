@@ -1,0 +1,679 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\MailboxAccount;
+use App\Models\MailboxEmail;
+use App\Models\SysUserRole;
+use App\Services\MailboxService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+class MailboxController extends Controller
+{
+    protected const PER_PAGE_OPTIONS = [10, 25, 50, 100];
+    protected const DEFAULT_PER_PAGE = 25;
+
+    public function index(Request $request)
+    {
+        $data = $this->buildViewData($request);
+
+        // No account yet → the "connect" experience lives at /mailbox/settings
+        // now, not here, so this URL is only ever the actual inbox.
+        if (!$data['account']) {
+            return redirect()->route('mailbox.settings');
+        }
+
+        return view('pages.mailbox.index', $data);
+    }
+
+    /**
+     * Same page as index(), but auto-opens the connect/settings modal on load —
+     * the landing spot for the "Connect your Email" prompt in the header, so a
+     * user with no MailboxAccount yet (and therefore no MAILACCESS role, so no
+     * sidebar menu item) still has a direct link to get connected.
+     */
+    public function settings(Request $request)
+    {
+        $data = $this->buildViewData($request);
+        $data['autoOpenSettings'] = true;
+
+        return view('pages.mailbox.index', $data);
+    }
+
+    /**
+     * Same data as index(), rendered as just the folder-sidebar + email-list
+     * markup (no layout). Used for AJAX folder switches, search, pagination,
+     * and per-page changes so the URL still updates via pushState but the
+     * page doesn't do a full reload.
+     */
+    public function panel(Request $request)
+    {
+        $data = $this->buildViewData($request);
+        abort_if(!$data['account'], 422, 'Connect a mailbox first.');
+
+        return view('pages.mailbox._panel', $data);
+    }
+
+    protected function buildViewData(Request $request): array
+    {
+        $account = $this->currentAccount($request);
+
+        if (!$account) {
+            return [
+                'account'      => null,
+                'emails'       => null,
+                'folders'      => [],
+                'folder'       => MailboxService::DEFAULT_FOLDER,
+                'folderCounts' => collect(),
+                'search'       => '',
+                'perPage'      => self::DEFAULT_PER_PAGE,
+                'imapError'    => null,
+            ];
+        }
+
+        // A flaky/unreachable mail server used to bubble up as an uncaught
+        // exception here, breaking not just the Sync button (which already
+        // guards itself) but every normal folder click, search, and
+        // pagination request too — falling back to an empty folder list
+        // still lets the rest of this method run against whatever's already
+        // cached locally in mailbox_emails.
+        $imapError = null;
+        try {
+            $folders = MailboxService::listFolders($account);
+        } catch (\Throwable $e) {
+            $folders = [];
+            $imapError = 'Could not reach your mail server right now — showing previously synced messages.';
+        }
+
+        // Path segment on the index route ("/mailbox/Drafts") takes priority;
+        // the panel endpoint (AJAX, no {folder} route param) still uses ?folder=.
+        $folder = $request->route('folder') ?? $request->get('folder', MailboxService::DEFAULT_FOLDER);
+        // Only enforce "must be a known folder" when the folder list actually
+        // loaded — with $imapError set, $folders is empty and this would
+        // otherwise always force every folder back to INBOX.
+        if ($imapError === null && !in_array($folder, $folders, true)) {
+            $folder = $folders[0] ?? MailboxService::DEFAULT_FOLDER;
+        }
+
+        $search = trim((string) $request->get('q'));
+
+        $perPage = (int) $request->get('per_page', self::DEFAULT_PER_PAGE);
+        if (!in_array($perPage, self::PER_PAGE_OPTIONS, true)) {
+            $perPage = self::DEFAULT_PER_PAGE;
+        }
+
+        $emails = MailboxEmail::query()
+            ->where('username', $account->username)
+            ->where('folder', $folder)
+            ->when($search !== '', function ($q) use ($search) {
+                $q->where(function ($q) use ($search) {
+                    $q->where('subject', 'like', "%{$search}%")
+                        ->orWhere('from_address', 'like', "%{$search}%")
+                        ->orWhere('from_name', 'like', "%{$search}%");
+                });
+            })
+            ->orderByDesc('email_date')
+            // Only the columns the list view actually renders — body_html/body_text
+            // are long-text blobs (a full email's HTML) that were otherwise getting
+            // pulled for every row just to show a list, even though the list never
+            // displays them.
+            ->select(['id', 'subject', 'from_address', 'from_name', 'email_date', 'body_preview', 'is_read'])
+            ->paginate($perPage)
+            // Force the resolved state (not just whatever happened to be in the
+            // incoming URL) onto every pagination link, and always point them at
+            // /mailbox — this endpoint is also hit as /mailbox/panel for the AJAX
+            // partial, whose own request URL must never leak into these links.
+            // Folder rides in the path itself (withPath); only q/per_page are
+            // appended as query string.
+            ->appends(array_filter([
+                'per_page' => $perPage !== self::DEFAULT_PER_PAGE ? $perPage : null,
+                'q'        => $search !== '' ? $search : null,
+            ]))
+            ->withPath(route('mailbox.index', $folder !== MailboxService::DEFAULT_FOLDER ? ['folder' => $folder] : []));
+
+        $folderCounts = MailboxEmail::query()
+            ->where('username', $account->username)
+            ->select('folder')
+            ->selectRaw('count(*) as total')
+            ->selectRaw('sum(case when is_read = ? then 1 else 0 end) as unread', [false])
+            ->groupBy('folder')
+            ->get()
+            ->keyBy('folder');
+
+        return compact('account', 'emails', 'search', 'folders', 'folder', 'folderCounts', 'perPage', 'imapError');
+    }
+
+    /**
+     * Current account's connection settings (no password) for the settings modal.
+     */
+    public function accountSettings(Request $request)
+    {
+        $account = $this->currentAccount($request);
+
+        // Every mailbox on this domain sits behind the same mail servers, so
+        // host/port/encryption are pre-filled with those defaults for a new
+        // (not-yet-connected) account — only email/username/password are
+        // actually specific to the person connecting.
+        return response()->json([
+            'connected' => (bool) $account,
+            'email'          => $account?->email ?? '',
+            'imap_host'      => $account?->imap_host ?? MailboxService::DEFAULT_IMAP_HOST,
+            'imap_port'      => $account?->imap_port ?? MailboxService::DEFAULT_IMAP_PORT,
+            'imap_encryption' => $account?->imap_encryption ?? MailboxService::DEFAULT_IMAP_ENCRYPTION,
+            'imap_username'  => $account?->imap_username ?? '',
+            'smtp_host'      => $account?->smtp_host ?? MailboxService::DEFAULT_SMTP_HOST,
+            'smtp_port'      => $account?->smtp_port ?? MailboxService::DEFAULT_SMTP_PORT,
+            'smtp_encryption' => $account?->smtp_encryption ?? MailboxService::DEFAULT_SMTP_ENCRYPTION,
+        ]);
+    }
+
+    public function saveAccountSettings(Request $request)
+    {
+        $data = $request->validate([
+            'email'           => 'required|email',
+            'imap_host'       => 'required|string|max:255',
+            'imap_port'       => 'required|integer|min:1|max:65535',
+            'imap_encryption' => 'required|in:ssl,tls,notls,starttls',
+            'imap_username'   => 'required|string|max:255',
+            'imap_password'   => 'nullable|string|max:255',
+            'smtp_host'       => 'required|string|max:255',
+            'smtp_port'       => 'required|integer|min:1|max:65535',
+            'smtp_encryption' => 'required|in:ssl,tls,notls,starttls',
+        ]);
+
+        $username = $request->user()->username;
+        $existing = MailboxAccount::where('username', $username)->first();
+
+        if (empty($data['imap_password']) && !$existing) {
+            return response()->json(['success' => false, 'message' => 'A mailbox password is required to connect.'], 422);
+        }
+
+        $testConfig = [
+            'host'          => $data['imap_host'],
+            'port'          => $data['imap_port'],
+            'encryption'    => $data['imap_encryption'],
+            'validate_cert' => true,
+            'username'      => $data['imap_username'],
+            'password'      => $data['imap_password'] ?: $existing?->imap_password,
+            'authentication' => null,
+            'proxy' => ['socket' => null, 'request_fulluri' => false, 'username' => null, 'password' => null],
+            'timeout' => 30,
+            'extensions' => [],
+        ];
+
+        $error = MailboxService::testConnection($testConfig);
+        if ($error) {
+            return response()->json(['success' => false, 'message' => 'Could not connect: ' . $error], 422);
+        }
+
+        $payload = [
+            'email'           => $data['email'],
+            'imap_host'       => $data['imap_host'],
+            'imap_port'       => $data['imap_port'],
+            'imap_encryption' => $data['imap_encryption'],
+            'imap_validate_cert' => true,
+            'imap_username'   => $data['imap_username'],
+            'smtp_host'       => $data['smtp_host'],
+            'smtp_port'       => $data['smtp_port'],
+            'smtp_encryption' => $data['smtp_encryption'],
+            'status'       => true,
+        ];
+        if (!empty($data['imap_password'])) {
+            $payload['imap_password'] = $data['imap_password'];
+        }
+
+        // Both writes must land together — a role grant left uncommitted
+        // after the account itself saves would show the mailbox as
+        // "connected" while the MAILACCESS sidebar link never appears.
+        DB::connection('pgsql2')->transaction(function () use ($username, $payload) {
+            MailboxAccount::updateOrCreate(['username' => $username], $payload);
+
+            // The Mailbox sidebar menu is granted only to MAILACCESS — connecting
+            // here is what earns a user that role (see disconnectAccount() for the
+            // reverse). Reactivates a previously-revoked grant instead of
+            // duplicating the row if the user disconnected and is reconnecting.
+            $userRole = SysUserRole::firstOrNew(['username' => $username, 'role_id' => 'MAILACCESS']);
+            $userRole->status = 'A';
+            $userRole->updated_by = $username;
+            if (!$userRole->exists) {
+                $userRole->created_by = $username;
+            }
+            $userRole->save();
+        });
+
+        return response()->json(['success' => true, 'message' => 'Mailbox connected.']);
+    }
+
+    /**
+     * Disconnect the current user's mailbox: drop the stored IMAP/SMTP
+     * credentials and the locally cached copy of their messages, so they
+     * start clean the next time they connect (like logging out).
+     */
+    public function disconnectAccount(Request $request)
+    {
+        $account = $this->requireAccount($request);
+
+        // All three writes must land together — a failure partway through
+        // used to risk leaving the account deleted but the role still
+        // granted (or vice versa), an inconsistent state that's confusing
+        // to unwind by hand.
+        DB::connection('pgsql2')->transaction(function () use ($account) {
+            MailboxEmail::where('username', $account->username)->delete();
+            $account->delete();
+
+            // Revoke (not delete) so reconnecting later just flips this back to 'A'
+            // instead of re-creating the row.
+            SysUserRole::where('username', $account->username)
+                ->where('role_id', 'MAILACCESS')
+                ->update(['status' => 'I', 'updated_by' => $account->username]);
+        });
+
+        return response()->json(['success' => true, 'message' => 'Mailbox disconnected.']);
+    }
+
+    /**
+     * Email content for the read/edit-draft modal (AJAX). Marks the message
+     * as read, unless it's a draft (drafts don't have a read state).
+     */
+    public function content(Request $request, MailboxEmail $email)
+    {
+        $this->authorizeOwner($request, $email);
+
+        if (!$email->is_read && strcasecmp($email->folder, MailboxService::DRAFTS_FOLDER) !== 0) {
+            $email->update(['is_read' => true]);
+        }
+
+        return response()->json([
+            'id'           => $email->id,
+            'folder'       => $email->folder,
+            'subject'      => $email->subject ?: '(no subject)',
+            'from_name'    => $email->from_name,
+            'from_address' => $email->from_address,
+            'to_address'   => $email->to_address,
+            'cc_address'   => $email->cc_address,
+            'bcc_address'  => $email->bcc_address,
+            'date'         => optional($email->email_date)->format('d M Y H:i'),
+            'body_html'    => $email->body_html,
+            'body_text'    => $email->body_text,
+            'has_attachments' => $email->has_attachments,
+            'message_id'   => $email->message_id ?: null,
+        ]);
+    }
+
+    /**
+     * Attachment metadata (name/size/mime) for a live message — fetched from
+     * IMAP on demand, not stored locally, since attachment bytes aren't
+     * persisted in mailbox_emails.
+     */
+    public function attachments(Request $request, MailboxEmail $email)
+    {
+        $account = $this->requireAccount($request);
+        $this->authorizeOwner($request, $email);
+
+        $items = MailboxService::loadAttachments($account, $email->folder, $email->uid);
+
+        return response()->json([
+            'attachments' => collect($items)->map(fn ($a) => [
+                'index' => $a['index'],
+                'name'  => $a['name'],
+                'size'  => $a['size'],
+                'mime'  => $a['mime'],
+            ])->values(),
+        ]);
+    }
+
+    public function downloadAttachment(Request $request, MailboxEmail $email, int $index)
+    {
+        $account = $this->requireAccount($request);
+        $this->authorizeOwner($request, $email);
+
+        $items = MailboxService::loadAttachments($account, $email->folder, $email->uid, [$index]);
+        $attachment = collect($items)->first();
+        abort_if(!$attachment, 404);
+
+        return response($attachment['content'], 200, [
+            'Content-Type'        => $attachment['mime'],
+            'Content-Disposition' => 'attachment; filename="' . str_replace('"', '', $attachment['name']) . '"',
+        ]);
+    }
+
+    public function send(Request $request)
+    {
+        $account = $this->requireAccount($request);
+        $data = $this->validateCompose($request, requireTo: true, account: $account);
+
+        try {
+            MailboxService::send($account, $data['subject'], $data['body'], $data['to'], $data['cc'], $data['bcc'], $data['existingDraft'], $data['attachments'], $data['keepFromDraftIndexes'], $data['attachmentSource'], $data['inReplyTo']);
+            return response()->json(['success' => true, 'message' => 'Email sent.']);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Send failed: ' . $e->getMessage()], 422);
+        }
+    }
+
+    public function saveDraft(Request $request)
+    {
+        $account = $this->requireAccount($request);
+        $data = $this->validateCompose($request, requireTo: false, account: $account);
+
+        try {
+            MailboxService::saveDraft($account, $data['subject'], $data['body'], $data['to'], $data['cc'], $data['bcc'], $data['existingDraft'], $data['attachments'], $data['keepFromDraftIndexes'], $data['attachmentSource']);
+            return response()->json(['success' => true, 'message' => 'Draft saved.']);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Save draft failed: ' . $e->getMessage()], 422);
+        }
+    }
+
+    public function archive(Request $request, MailboxEmail $email)
+    {
+        $account = $this->requireAccount($request);
+        $this->authorizeOwner($request, $email);
+
+        try {
+            if (!MailboxService::archiveMessage($account, $email)) {
+                return response()->json(['success' => false, 'message' => 'Archive failed: the message could not be found on the server.'], 422);
+            }
+            return response()->json(['success' => true, 'message' => 'Email archived.']);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Archive failed: ' . $e->getMessage()], 422);
+        }
+    }
+
+    /**
+     * Move a message to another folder (the "Move to..." menu on each row).
+     * Archive/Delete are just this same operation with a fixed target
+     * folder — see MailboxService::archiveMessage()/deleteMessage().
+     */
+    public function move(Request $request, MailboxEmail $email)
+    {
+        $account = $this->requireAccount($request);
+        $this->authorizeOwner($request, $email);
+
+        $data = $request->validate(['folder' => 'required|string|max:500']);
+
+        // Guard against moving into a folder that doesn't actually exist on
+        // the server (e.g. a stale value from a client that hasn't reloaded
+        // the folder list) rather than letting the IMAP error surface raw.
+        if (!in_array($data['folder'], MailboxService::listFolders($account), true)) {
+            return response()->json(['success' => false, 'message' => 'Unknown folder.'], 422);
+        }
+
+        try {
+            if (!MailboxService::moveMessage($account, $email, $data['folder'])) {
+                return response()->json(['success' => false, 'message' => 'Move failed: the message could not be found on the server.'], 422);
+            }
+            return response()->json(['success' => true, 'message' => 'Email moved.']);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Move failed: ' . $e->getMessage()], 422);
+        }
+    }
+
+    public function destroy(Request $request, MailboxEmail $email)
+    {
+        $account = $this->requireAccount($request);
+        $this->authorizeOwner($request, $email);
+
+        $wasInTrash = strcasecmp($email->folder, MailboxService::TRASH_FOLDER) === 0;
+
+        try {
+            if (!MailboxService::deleteMessage($account, $email)) {
+                return response()->json(['success' => false, 'message' => 'Delete failed: the message could not be found on the server.'], 422);
+            }
+            return response()->json([
+                'success' => true,
+                'message' => $wasInTrash ? 'Email permanently deleted.' : 'Email moved to Trash.',
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Delete failed: ' . $e->getMessage()], 422);
+        }
+    }
+
+    /**
+     * Scoped to the currently open folder (not fetchAll's every-folder walk)
+     * — a manual sync used to pull up to 200 messages per folder across every
+     * folder in one request, and with inline-image-embedded HTML bodies that
+     * can each run several MB, that was enough to exhaust PHP-FPM's memory
+     * limit on a single click. Combined with MailboxService::DEFAULT_FETCH_LIMIT
+     * (25, matching one list page) that same worst case is now roughly 8x
+     * smaller. The background mailbox:fetch scheduler still covers every
+     * folder every 5 minutes, running via CLI rather than a request-bound
+     * process.
+     */
+    public function sync(Request $request)
+    {
+        $account = $this->currentAccount($request);
+        if (!$account) {
+            return response()->json(['success' => false, 'message' => 'Connect a mailbox first.'], 422);
+        }
+
+        $folders = MailboxService::listFolders($account);
+        $folder = $request->get('folder', MailboxService::DEFAULT_FOLDER);
+        if (!in_array($folder, $folders, true)) {
+            return response()->json(['success' => false, 'message' => 'Unknown folder.'], 422);
+        }
+
+        try {
+            $count = MailboxService::fetchNew($account, $folder);
+            return response()->json(['success' => true, 'message' => "Synced {$count} message(s)."]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Sync failed: ' . $e->getMessage()], 422);
+        }
+    }
+
+    /**
+     * Pull the next page of older messages for one folder from the mail
+     * server (see MailboxService::fetchOlder docblock) — triggered by the
+     * "Load older messages" button rather than the regular Sync action.
+     */
+    public function loadMore(Request $request)
+    {
+        $account = $this->currentAccount($request);
+        if (!$account) {
+            return response()->json(['success' => false, 'message' => 'Connect a mailbox first.'], 422);
+        }
+
+        $folders = MailboxService::listFolders($account);
+        $folder = $request->get('folder', MailboxService::DEFAULT_FOLDER);
+        if (!in_array($folder, $folders, true)) {
+            return response()->json(['success' => false, 'message' => 'Unknown folder.'], 422);
+        }
+
+        try {
+            $result = MailboxService::fetchOlder($account, $folder);
+            $message = $result['fetched'] > 0
+                ? "Loaded {$result['fetched']} older message(s)."
+                : 'No older messages found.';
+            return response()->json(['success' => true, 'message' => $message] + $result);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Load failed: ' . $e->getMessage()], 422);
+        }
+    }
+
+    /**
+     * Folder paths whose behavior the app itself depends on (send/save-draft
+     * append into Sent/Drafts by name, delete falls back to Trash, archive
+     * to Archive, the {folder?} route defaults to INBOX) — never deletable
+     * from here, regardless of nesting depth.
+     */
+    protected const PROTECTED_FOLDERS = [
+        MailboxService::DEFAULT_FOLDER,
+        MailboxService::SENT_FOLDER,
+        MailboxService::DRAFTS_FOLDER,
+        MailboxService::TRASH_FOLDER,
+        MailboxService::ARCHIVE_FOLDER,
+    ];
+
+    /**
+     * Create a folder, optionally nested under an existing one (the sidebar's
+     * "+ New Folder" action, offered both at the top level and per-folder).
+     */
+    public function createFolder(Request $request)
+    {
+        $account = $this->requireAccount($request);
+
+        $data = $request->validate([
+            'name'   => ['required', 'string', 'max:255', 'regex:/^[^\/]+$/'],
+            'parent' => 'nullable|string|max:500',
+        ], [
+            'name.regex' => 'Folder name cannot contain "/".',
+        ]);
+
+        $path = $data['parent'] ? $data['parent'] . '/' . $data['name'] : $data['name'];
+
+        if (in_array($path, MailboxService::listFolders($account), true)) {
+            return response()->json(['success' => false, 'message' => 'That folder already exists.'], 422);
+        }
+
+        try {
+            MailboxService::createFolder($account, $path);
+            return response()->json(['success' => true, 'message' => 'Folder created.', 'folder' => $path]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Create folder failed: ' . $e->getMessage()], 422);
+        }
+    }
+
+    /**
+     * Delete a folder. Refuses the folders the app itself relies on
+     * (PROTECTED_FOLDERS) and any folder that still has subfolders — most
+     * IMAP servers reject that anyway, but checking here first gives a
+     * clear message instead of a raw server error.
+     */
+    public function deleteFolder(Request $request, string $folder)
+    {
+        $account = $this->requireAccount($request);
+
+        $isProtected = collect(self::PROTECTED_FOLDERS)->contains(fn ($p) => strcasecmp($p, $folder) === 0);
+        if ($isProtected) {
+            return response()->json(['success' => false, 'message' => 'This folder cannot be deleted.'], 422);
+        }
+
+        $folders = MailboxService::listFolders($account);
+        if (!in_array($folder, $folders, true)) {
+            return response()->json(['success' => false, 'message' => 'Unknown folder.'], 422);
+        }
+
+        $hasChildren = collect($folders)->contains(fn ($f) => str_starts_with($f, $folder . '/'));
+        if ($hasChildren) {
+            return response()->json(['success' => false, 'message' => 'Delete the subfolders inside it first.'], 422);
+        }
+
+        try {
+            MailboxService::deleteFolder($account, $folder);
+            return response()->json(['success' => true, 'message' => 'Folder deleted.']);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Delete folder failed: ' . $e->getMessage()], 422);
+        }
+    }
+
+    public function unreadCount(Request $request)
+    {
+        $account = $this->currentAccount($request);
+        if (!$account) {
+            return response()->json(['count' => 0]);
+        }
+
+        return response()->json([
+            'count' => MailboxEmail::where('username', $account->username)->where('is_read', false)->count(),
+        ]);
+    }
+
+    protected function currentAccount(Request $request): ?MailboxAccount
+    {
+        $username = $request->user()?->username;
+        if (!$username) {
+            return null;
+        }
+
+        return MailboxAccount::where('username', $username)->where('status', true)->first();
+    }
+
+    protected function requireAccount(Request $request): MailboxAccount
+    {
+        $account = $this->currentAccount($request);
+        abort_if(!$account, 422, 'Connect a mailbox first.');
+
+        return $account;
+    }
+
+    protected function authorizeOwner(Request $request, MailboxEmail $email): void
+    {
+        abort_unless($email->username === $request->user()?->username, 403);
+    }
+
+    protected function validateCompose(Request $request, bool $requireTo, MailboxAccount $account): array
+    {
+        $request->validate([
+            'to'                          => $requireTo ? 'required|string' : 'nullable|string',
+            'cc'                          => 'nullable|string',
+            'bcc'                         => 'nullable|string',
+            'subject'                     => 'nullable|string|max:500',
+            'body'                        => 'nullable|string|max:200000',
+            'draft_id'                    => 'nullable|integer',
+            // The message whose attachments 'keep_attachment_indexes' refers to
+            // — the draft being re-saved, or the message being forwarded.
+            // Separate from draft_id because a forward has no draft to replace.
+            'source_id'                   => 'nullable|integer',
+            'in_reply_to'                 => 'nullable|string|max:998',
+            'attachments'                 => 'nullable|array|max:10',
+            'attachments.*'               => 'file|max:5120', // 5MB per file
+            'keep_attachment_indexes'     => 'nullable|array',
+            'keep_attachment_indexes.*'   => 'integer|min:0',
+        ]);
+
+        $parseAddresses = function (?string $raw) {
+            if (!$raw) {
+                return [];
+            }
+
+            return collect(preg_split('/[,;]+/', $raw))
+                ->map(fn ($a) => trim($a))
+                ->filter(fn ($a) => $a !== '' && filter_var($a, FILTER_VALIDATE_EMAIL))
+                ->values()
+                ->all();
+        };
+
+        $to = $parseAddresses($request->input('to'));
+        if ($requireTo && empty($to)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'to' => 'Enter at least one valid recipient email address.',
+            ]);
+        }
+
+        $existingDraft = null;
+        if ($request->filled('draft_id')) {
+            $existingDraft = MailboxEmail::where('id', $request->integer('draft_id'))
+                ->where('username', $account->username)
+                ->first();
+        }
+
+        $attachmentSource = null;
+        if ($request->filled('source_id')) {
+            $attachmentSource = MailboxEmail::where('id', $request->integer('source_id'))
+                ->where('username', $account->username)
+                ->first();
+        }
+
+        $attachments = collect($request->file('attachments', []))
+            ->filter()
+            ->map(fn ($f) => [
+                'path' => $f->getRealPath(),
+                'name' => $f->getClientOriginalName(),
+                'mime' => $f->getClientMimeType(),
+            ])
+            ->values()
+            ->all();
+
+        return [
+            'to'                    => $to,
+            'cc'                    => $parseAddresses($request->input('cc')),
+            'bcc'                   => $parseAddresses($request->input('bcc')),
+            'subject'               => (string) $request->input('subject', ''),
+            'body'                  => (string) $request->input('body', ''),
+            'existingDraft'         => $existingDraft,
+            'attachmentSource'      => $attachmentSource,
+            'inReplyTo'             => $request->input('in_reply_to') ?: null,
+            'attachments'           => $attachments,
+            'keepFromDraftIndexes'  => array_map('intval', $request->input('keep_attachment_indexes', [])),
+        ];
+    }
+}

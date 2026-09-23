@@ -156,12 +156,12 @@
             </div>
             <div id="modalForm"
                 class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50   ">
-                <div class="relative w-full max-w-5xl rounded-lg bg-white p-4">
+                <div class="relative w-full max-w-5xl rounded-lg bg-white p-4 dark:bg-gray-800">
                     <div class="flex justify-end p-1">
-                        <button onclick="closeModal()" class="text-sm text-gray-500">close</button>
+                        <button onclick="closeModal()" class="text-sm text-gray-500 dark:text-gray-400">close</button>
                     </div>
                     <!-- Tab -->
-                    <div class="mb-4 border-b border-gray-200">
+                    <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
                         <ul class="flex flex-wrap text-center text-xs font-medium" id="tabs">
                             <li class="mr-2">
                                 <button type="button"
@@ -170,12 +170,12 @@
                             </li>
                             <li class="mr-2">
                                 <button type="button"
-                                    class="tab-button px-4 py-2 text-sm text-gray-600 hover:border-blue-600 hover:text-blue-600"
+                                    class="tab-button px-4 py-2 text-sm text-gray-600 hover:border-blue-600 hover:text-blue-600 dark:text-gray-400"
                                     onclick="switchTab('employee')">Add Employee</button>
                             </li>
                             <li class="mr-2">
                                 <button type="button"
-                                    class="tab-button px-4 py-2 text-sm text-gray-600 hover:border-blue-600 hover:text-blue-600"
+                                    class="tab-button px-4 py-2 text-sm text-gray-600 hover:border-blue-600 hover:text-blue-600 dark:text-gray-400"
                                     onclick="switchTab('departement')">Add Sub Departement</button>
                             </li>
                         </ul>
@@ -184,7 +184,7 @@
                     <!-- Tab Content: View Employee -->
                     <div id="tab-view" class="tab-content hidden">
                         <h3 class="mb-4 text-sm font-semibold">Employee List</h3>
-                        <table class="w-full border text-xs text-black">
+                        <table class="w-full border text-xs text-black dark:text-white">
                             <thead class="bg-gray-300/10">
                                 <tr class="text-left">
                                     <th class="border px-2 py-1">No</th>
@@ -214,7 +214,7 @@
                             {{-- <input type="hidden" name="full_name" value="Vacant">        --}}
                             <input type="hidden" name="sto_id" value="{{ $sto->sto_id }}">
                             <div class="mb-4">
-                                <label class="block text-xs font-medium text-gray-700">Company</label>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Company</label>
                                 <select
                                     class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
                                     name="cpnyid" required>
@@ -228,7 +228,7 @@
                             <div class="mb-4">
                                 <label class="inline-flex items-center">
                                     <input type="checkbox" id="vacantCheckbox" class="form-checkbox text-blue-600">
-                                    <span class="ml-2 text-xs text-gray-700">Set as Vacant</span>
+                                    <span class="ml-2 text-xs text-gray-700 dark:text-gray-300">Set as Vacant</span>
                                 </label>
                             </div>
 
@@ -236,16 +236,16 @@
                             <input type="hidden" name="full_name" id="hiddenFullName" value="Vacant">
 
                             <div class="mb-4" id="fullNameGroup">
-                                <label class="block text-xs font-medium text-gray-700">Name</label>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Name</label>
                                 <select id="full_name"
-                                    class="mt-1 block w-full rounded-md border border-gray-300 p-2">
+                                    class="mt-1 block w-full rounded-md border border-gray-300 p-2 dark:border-gray-700">
                                     @foreach ($users as $p)
                                         <option value="{{ $p->name }}">{{ $p->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
                             <div class="mb-4">
-                                <label class="block text-xs font-medium text-gray-700">Position</label>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Position</label>
                                 <select
                                     class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
                                     name="job_position" required>
@@ -255,14 +255,14 @@
                                 </select>
                             </div>
                             <div class="mb-4" id="imageGroup">
-                                <label class="block text-xs font-medium text-gray-700">Image</label>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Image</label>
                                 <input type="file" name="image" id="imageInput" accept="image/*"
-                                    class="mt-1 block w-full rounded-md border border-gray-300 p-2">
+                                    class="mt-1 block w-full rounded-md border border-gray-300 p-2 dark:border-gray-700">
                             </div>
                             <div class="mb-4" id="qtyGroup">
-                                <label class="block text-xs font-medium text-gray-700">Qty</label>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Qty</label>
                                 <input type="number" name="qty" id="qty"
-                                    class="mt-1 block w-full rounded-md border border-gray-300 p-2"
+                                    class="mt-1 block w-full rounded-md border border-gray-300 p-2 dark:border-gray-700"
                                     value="{{ old('qty', 1) }}" required>
                             </div>
                             <input type="hidden" name="status_talenta" value="Active">
@@ -281,13 +281,13 @@
                             <input type="hidden" name="approval_line" id="modalApprovalLine">
                             <input type="hidden" name="sto_id" value="{{ $sto->sto_id }}">
                             <div class="mb-4">
-                                <label class="block text-xs font-medium text-gray-700">Sub Departement</label>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Sub Departement</label>
                                 <input type="text" name="departement_name"
-                                    class="mt-1 block w-full rounded-md border border-gray-300 p-2" required>
+                                    class="mt-1 block w-full rounded-md border border-gray-300 p-2 dark:border-gray-700" required>
                             </div>
                             {{-- <div class="mb-4">
-                                    <label class="block text-xs font-medium text-gray-700">Departement</label>
-                                    <select id="departement_name_select" name="departement_name" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+                                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Departement</label>
+                                    <select id="departement_name_select" name="departement_name" class="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:border-gray-700" required>
                                         @foreach ($departements as $dept)
                                             <option value="{{ $dept->deptname }}">{{ $dept->deptname }}</option>
                                         @endforeach
@@ -302,9 +302,9 @@
                     </div>
                     <div id="editModal"
                         class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black bg-opacity-30">
-                        <div class="relative w-full max-w-lg rounded-lg bg-white p-6">
+                        <div class="relative w-full max-w-lg rounded-lg bg-white p-6 dark:bg-gray-800">
                             <button onclick="closeEditModal()"
-                                class="absolute right-2 top-2 text-lg text-gray-500">&times;</button>
+                                class="absolute right-2 top-2 text-lg text-gray-500 dark:text-gray-400">&times;</button>
                             <h3 class="mb-4 text-sm font-bold">Edit Employee</h3>
                             <form id="editEmployeeForm" enctype="multipart/form-data">
                                 @csrf

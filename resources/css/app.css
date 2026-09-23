@@ -3,6 +3,8 @@
 /* @import "./additional-styles/style.css"; */
 @import "./additional-styles/utility-patterns.css" layer(components);
 
+@source "../views/**/*.blade.php";
+
 @plugin "@tailwindcss/forms" {
     strategy: base;
 }
@@ -87,7 +89,7 @@
 
     --font-inter: "Inter", "sans-serif";
 
-    --text-xs: 10px;
+    --text-xs: 12px;
     --text-xs--line-height: 1.5;
     --text-sm: 12px;
     --text-sm--line-height: 1.5715;
@@ -101,7 +103,7 @@
     --text-xl--line-height: 1.5;
     --text-xl--letter-spacing: -0.01em;
     --text-smm: 11.5px;
-    /* 
+    /*
     --text-2xl: 1.5rem;
     --text-2xl--line-height: 1.33;
     --text-2xl--letter-spacing: -0.01em;
@@ -137,6 +139,8 @@
     ::file-selector-button {
         border-color: var(--color-gray-200, currentColor);
     }
+
+    [x-cloak] { display: none !important; }
 }
 
 /* Select2 — push the clear × to the far right */

@@ -3,7 +3,7 @@
     @php
         $user = auth()->user();
 
-        $hasWoAllAccess = $user->user_role === 'admin';
+        $hasWoAllAccess = $user->isAdmin();
 
         $xlCols = 6;
 
@@ -13,7 +13,7 @@
     @endphp
     <div class="max-w-9xl mx-auto w-full p-2">
         {{-- <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6"> --}}
-            <div
+        <div
                 class="xl:grid-cols-{{ $xlCols }} grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
 
             {{-- Bast Jobs --}}
@@ -105,7 +105,7 @@
                     <p class="shrink-0 text-base font-bold">{{ $all }}</p>
                 </div>
             </button>
-            @if (auth()->user()->user_role === 'admin')
+            @if (auth()->user()->isAdmin())
                 <button type="button" class="scope-filter group block h-full" data-scope="allactive">
                     <div
                         class="scope-card flex h-full items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-md active:scale-95">
@@ -121,35 +121,37 @@
                 </button>
             @endif
         </div>
-        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
+        <div
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Bast</h1>
             </div>
 
-            <div class="mb-4 grid grid-cols-1 gap-3 md:grid-cols-5">
+            <div class="grid grid-cols-1 gap-3 px-5 pt-4 md:grid-cols-5">
 
-                <select id="filter_vendor" class="w-full rounded border px-3 py-2 text-sm">
+                <select id="filter_vendor" class="w-full rounded border px-3 py-2 text-sm dark:border-white/6 dark:bg-[#0f172a] dark:text-white">
                     <option value="">All Vendor</option>
                 </select>
 
-                <select id="filter_terms" class="w-full rounded border px-3 py-2 text-sm">
+                <select id="filter_terms" class="w-full rounded border px-3 py-2 text-sm dark:border-white/6 dark:bg-[#0f172a] dark:text-white">
                     <option value="">All Terms</option>
                 </select>
 
                 {{-- Start Date --}}
-                <input type="date" id="filter_start" class="w-full rounded border px-3 py-2 text-sm">
+                <input type="date" id="filter_start" class="w-full rounded border px-3 py-2 text-sm scheme-light dark:border-white/6 dark:bg-[#0f172a] dark:text-white dark:scheme-dark">
 
                 {{-- End Date --}}
-                <input type="date" id="filter_end" class="w-full rounded border px-3 py-2 text-sm">
+                <input type="date" id="filter_end" class="w-full rounded border px-3 py-2 text-sm scheme-light dark:border-white/6 dark:bg-[#0f172a] dark:text-white dark:scheme-dark">
 
-                <button onclick="resetFilters()" class="rounded bg-gray-500 px-3 py-2 text-white">
+                <button type="button" id="reset_filters" class="rounded bg-gray-500 px-3 py-2 text-white hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700">
                     Reset
                 </button>
             </div>
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="bastTable" class="text-body w-full text-left text-sm rtl:text-right">
+            <div class="relative mt-4 overflow-hidden">
+                <table id="bastTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                         <tr id="thead-row"></tr>
                     </thead>
                     <tbody>
@@ -215,6 +217,8 @@
                             <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">PO Nbr</th>
                             <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">SPPB/J/K/T</th>
                             <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Company</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Vendor</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Terms</th>
                             <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Created By</th>
                             <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Status</th>
                         `;
@@ -305,6 +309,15 @@
                     },
                     {
                         data: 'cpny_id',
+                        className: 'text-left'
+                    },
+                    {
+                        data: 'vendorname',
+                        className: 'text-left'
+                    },
+                    {
+                        data: 'terms_name',
+                        defaultContent: '-',
                         className: 'text-left'
                     },
                     {
@@ -430,70 +443,59 @@
 
                 table.on('xhr', function() {
                     const json = table.ajax.json();
-                    if (!json || !json.data) return;
+                    if (!json) return;
 
-                    const vendors = new Set();
-
-                    json.data.forEach(row => {
-                        if (row.vendorname) {
-                            vendors.add(row.vendorname);
-                        }
-                    });
-
-                    const $vendor = $('#filter_vendor');
-
-                    // prevent re-append
-                    if ($vendor.children().length <= 1) {
-                        vendors.forEach(v => {
-                            $vendor.append(`<option value="${v}">${v}</option>`);
-                        });
-                    }
+                    populateFilterOptions($('#filter_vendor'), json.vendorOptions, 'All Vendor');
+                    populateFilterOptions($('#filter_terms'), json.termsOptions, 'All Terms');
                 });
 
             }
+
+            function initSelect2($el, placeholder) {
+                if ($el.hasClass('select2-hidden-accessible')) {
+                    $el.select2('destroy');
+                }
+                $el.select2({
+                    placeholder: placeholder,
+                    allowClear: true,
+                    width: '100%'
+                });
+            }
+
+            function populateFilterOptions($el, options, allLabel) {
+                const current = $el.val();
+                $el.empty().append(`<option value="">${allLabel}</option>`);
+
+                (options || []).forEach(v => {
+                    $el.append(`<option value="${v}">${v}</option>`);
+                });
+
+                if (current && options && options.includes(current)) {
+                    $el.val(current);
+                }
+
+                initSelect2($el, allLabel);
+            }
+
+            initSelect2($('#filter_vendor'), 'All Vendor');
+            initSelect2($('#filter_terms'), 'All Terms');
 
             $('#filter_vendor, #filter_terms, #filter_start, #filter_end')
                 .on('change keyup', function() {
                     table.ajax.reload();
                 });
-            $('#filter_vendor').on('change', function() {
-                const selectedVendor = $(this).val();
-
-                const json = table.ajax.json();
-                const termsSet = new Set();
-
-                json.data.forEach(row => {
-                    if (!selectedVendor || row.vendorname === selectedVendor) {
-                        if (row.terms_name) {
-                            termsSet.add(row.terms_name);
-                        }
-                    }
-                });
-
-                const $terms = $('#filter_terms');
-                $terms.empty().append('<option value="">All Terms</option>');
-
-                termsSet.forEach(t => {
-                    $terms.append(`<option value="${t}">${t}</option>`);
-                });
-
-                table.ajax.reload();
-            });
-
-            $('#filter_vendor, #filter_terms, #filter_start, #filter_end')
-                .on('change', function() {
-                    table.ajax.reload();
-                });
 
 
             function resetFilters() {
-                $('#filter_vendor').val('');
-                $('#filter_terms').val('');
+                $('#filter_vendor').val(null).trigger('change.select2');
+                $('#filter_terms').val(null).trigger('change.select2');
                 $('#filter_start').val('');
                 $('#filter_end').val('');
 
                 table.ajax.reload();
             }
+
+            $('#reset_filters').on('click', resetFilters);
 
             function renderPlusCreate(row) {
                 // create BAST → kirim hash id PO (hasil mapping di controller)

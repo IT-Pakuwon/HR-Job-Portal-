@@ -1,7 +1,7 @@
 @php
     $name = $name ?? 'Candidate';
     $job = $job_title ?? 'your application';
-    $company = $company ?? 'Pakuwon Group Jakarta';
+    $company = $company ?? 'Pakuwon Group';
 @endphp
 
 <p>Dear <strong>{{ $name }}</strong>,</p>

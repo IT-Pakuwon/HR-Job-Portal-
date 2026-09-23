@@ -26,6 +26,18 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->runInBackground();
 
+        // Retry Microsoft Teams link creation for bookings that failed to get one
+        $schedule->command('meeting:retry-teams-links')
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/retry-teams-links.log'));
+
+        // Retry Zoom link creation for bookings that failed to get one
+        $schedule->command('meeting:retry-zoom-links')
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/retry-zoom-links.log'));
+
         // Sync ENVISION tickets → ENVISION CHECKED/SOLVED every 5 minutes
         $schedule->command('ticket:sync-envision-solved')
             ->everyFiveMinutes()
@@ -43,6 +55,25 @@ class Kernel extends ConsoleKernel
         $schedule->command('email:approval-declined')
             ->days($days)
             ->at('07:05')
+            ->withoutOverlapping();
+
+        // Email reminder submit RFP Kontrak
+        $schedule->command('email:rfp-kontrak-submit-reminder')
+            ->days($days)
+            ->at('07:10')
+            ->withoutOverlapping();
+
+        // Remind permit requesters at H-90, H-75, H-60, H-45, and H-30.
+        // The command stops reminders once a renewal references the source permit.
+        $schedule->command('email:perizinan-renewal-reminder')
+            ->dailyAt('07:15')
+            ->timezone('Asia/Jakarta')
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/perizinan-renewal-reminder.log'));
+
+        // Email reminder H-7 for Paid events (PIC internal, creator, GMACCESS)
+        $schedule->command('email:event-h7-paid-reminder')
+            ->dailyAt('07:15')
             ->withoutOverlapping();
 
         // Auto Process IFCA Supplier
@@ -75,11 +106,56 @@ class Kernel extends ConsoleKernel
         //     ->withoutOverlapping()
         //     ->appendOutputTo(storage_path('logs/staging.log'));
 
-        // $schedule->command('staging:vms-rfp')
-        //     ->dailyAt('11:00')
-        //     ->withoutOverlapping()
-        //     ->runInBackground()
-        //     ->appendOutputTo(storage_path('logs/staging_vms_rfp.log'));
+        $schedule->command('staging:vms-rfp')
+            ->dailyAt('11:00')
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/staging_vms_rfp.log'));
+
+        // Mirror IFCA's view_contract_agreement into staging_contract_agreement —
+        // the source view is too slow/fragile to query live from a web request.
+        $schedule->command('staging:contract-agreement')
+            ->dailyAt('02:30')
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/staging_contract_agreement.log'));
+
+        // Legal Agreement follow-up cycle: Surat 1 (H+14 from delivery),
+        // Surat 2 (H+14 from Surat 1), auto-escalation (H+7 from Surat 2).
+        $schedule->command('agreement:process-followups')
+            ->dailyAt('07:30')
+            ->timezone('Asia/Jakarta')
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/agreement-process-followups.log'));
+
+        // Expire training waitlist offers past their 24h window, cascade to next
+        $schedule->command('training:expire-waitlist-offers')
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/training-expire-waitlist-offers.log'));
+
+        // Auto-close training registrations past their H-3 deadline
+        $schedule->command('training:close-registrations')
+            ->dailyAt('01:00')
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/training-close-registrations.log'));
+
+        // Email attendees once their certificate crosses the H+1 eligibility window
+        $schedule->command('training:notify-certificate-ready')
+            ->dailyAt('06:00')
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/training-notify-certificate-ready.log'));
+
+        // Pull new inbox mail into mailbox_emails
+        $schedule->command('mailbox:fetch')
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/mailbox-fetch.log'));
+
+        // Refresh Dashboard PGTrek materialized views (point/time, personnel, alert point)
+        $schedule->command('pgtrek:refresh-views')
+            ->everyThirtyMinutes()
+            ->withoutOverlapping()
+            ->runInBackground()
+            ->appendOutputTo(storage_path('logs/pgtrek-refresh-views.log'));
     }
 
     /**

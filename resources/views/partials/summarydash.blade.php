@@ -1,10 +1,10 @@
-<div class="w-full rounded-xl border bg-white px-5 py-4">
+<div class="w-full rounded-xl border bg-white px-5 py-4 dark:bg-gray-800">
 
     <!-- HEADER -->
     <div class="mb-5 flex items-start justify-between">
         <div>
             <h3 class="text-lg font-semibold">Today’s Summary</h3>
-            <p class="text-sm text-gray-500">
+            <p class="text-sm text-gray-500 dark:text-gray-400">
                 Choose up to 5 analytics cards
             </p>
             <p id="dashboardCardCounter" class="mt-1 text-xs text-gray-400">
@@ -28,11 +28,11 @@
 <!-- MODAL -->
 <div id="addDashboardCardModal" class="fixed inset-0 z-50 hidden bg-black/40">
     <div class="flex min-h-screen items-center justify-center p-4">
-        <div class="w-full max-w-lg rounded-xl bg-white p-5">
+        <div class="w-full max-w-lg rounded-xl bg-white p-5 dark:bg-gray-800">
             <h3 class="mb-1 text-lg font-semibold">
                 Add Analytics Card
             </h3>
-            <p class="mb-4 text-sm text-gray-500">
+            <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
                 Select cards to show on dashboard
             </p>
 
@@ -281,8 +281,7 @@
             $('#dashboardCardContainer .empty-state').remove();
 
             const base = `
-<div class="dashboard-card group relative rounded-2xl bg-white p-5
-            shadow-sm ring-1 ring-gray-100 transition hover:shadow-md"
+<div class="dashboard-card group relative rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100 transition hover:shadow-md dark:bg-gray-800"
      data-id="${cardId}">
 
     <button
@@ -309,7 +308,7 @@
 
                 $('#dashboardCardContainer').append(`
         ${base}
-        <div class="mt-2 text-3xl font-semibold text-gray-900">
+        <div class="mt-2 text-3xl font-semibold text-gray-900 dark:text-gray-100">
             ${value}
         </div>
         <div class="mt-1 text-xs text-gray-400">

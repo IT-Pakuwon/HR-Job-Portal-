@@ -8,6 +8,7 @@
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
                 <form id="spptForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                     @csrf
+                    <input type="hidden" name="is_draft" id="isDraftField" value="0">
                     <div class="w-full rounded-xl bg-white p-4 dark:bg-gray-800">
 
                         <!-- Header -->
@@ -197,7 +198,7 @@
 
                                 <div class="flex items-center gap-2">
                                     <input type="checkbox" id="is_urgent" name="is_urgent" value="1"
-                                        class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                        class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-700">
                                     <label for="is_urgent" class="text-sm text-gray-700 dark:text-gray-300">
                                         Tandai sebagai emergency
                                     </label>
@@ -245,10 +246,10 @@
                                     class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                     <span>SPPT Detail</span>
                                     <span
-                                        class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                        class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
                                         details &rarr;</span>
                                     <span
-                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                                         details &darr;</span>
                                 </summary>
                                 <div class="flex h-auto flex-col justify-start">
@@ -303,7 +304,7 @@
                                                     <!-- UoM auto-filled -->
                                                     {{-- <td class="border p-3">
                                     <input type="text" name="stock_unit[]" readonly
-                                            class="stock_unitField w-full cursor-not-allowed border-none bg-gray-50 p-2 text-gray-600 focus:outline-none"
+                                            class="stock_unitField w-full cursor-not-allowed border-none bg-gray-50 p-2 text-gray-600 focus:outline-none dark:bg-gray-900 dark:text-gray-400"
                                             placeholder="-">
                                              <button type="button"
                                                 class="openUomModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -764,10 +765,10 @@
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span class="req">Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
                                     details &rarr;</span>
                                 <span
-                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                                     details &darr;</span>
                             </summary>
                             <div class="flex flex-col pt-6">
@@ -794,7 +795,7 @@
                         <div
                             class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
                             <button id="backBtn" onclick="history.back()"
-                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-300">
 
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -805,7 +806,12 @@
                                 <span>Back</span>
                             </button>
 
-                            <div class="flex justify-start md:justify-end">
+                            <div class="flex justify-start gap-3 md:justify-end">
+                                <button type="button" id="saveDraftBtn"
+                                    class="flex items-center gap-2 rounded-md bg-gray-500 px-4 py-2 text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                    <span id="draftBtnText">Save as Draft</span>
+                                </button>
+
                                 <button type="submit" id="submitBtn"
                                     class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                     <span id="btnText">Submit Approval</span>
@@ -966,59 +972,61 @@
                 return true;
             }
 
-            $('#spptForm').on('submit', function(e) {
-                e.preventDefault();
+            function submitSpptForm(isDraft) {
+                $('#isDraftField').val(isDraft ? '1' : '0');
 
-                const $rtHidden = $('#requesttypeid'); // hidden input
-                const $rtDisplay = $('#requesttype_name_display'); // readonly display
+                if (!isDraft) {
+                    const $rtHidden = $('#requesttypeid'); // hidden input
+                    const $rtDisplay = $('#requesttype_name_display'); // readonly display
 
-                if (!$rtHidden.val() || !$rtHidden.val().trim()) {
-                    addError($rtDisplay, 'Request Type wajib dipilih.');
-                    toastr.error('Request Type wajib dipilih.');
-                    $('html,body').animate({
-                        scrollTop: $rtDisplay.offset().top - 120
-                    }, 300);
-                    return;
-                }
-
-                const $tenantHidden = $('#tenant_id');
-                const $tenantDisplay = $('#tenant_name_display');
-
-                if (!$tenantHidden.val() || !$tenantHidden.val().trim()) {
-                    addError($tenantDisplay, 'Nama Tenant wajib dipilih.');
-                    toastr.error('Nama Tenant wajib dipilih.');
-                    $('html,body').animate({
-                        scrollTop: $tenantDisplay.offset().top - 120
-                    }, 300);
-                    return;
-                }
-
-                // =========================
-                // Attachment validation
-                // =========================
-                let attachmentOk = false;
-
-                $('#attachmentsContainer input[type="file"]').each(function() {
-                    if (this.files && this.files.length > 0) {
-                        attachmentOk = true;
-                        return false; // stop loop
+                    if (!$rtHidden.val() || !$rtHidden.val().trim()) {
+                        addError($rtDisplay, 'Request Type wajib dipilih.');
+                        toastr.error('Request Type wajib dipilih.');
+                        $('html,body').animate({
+                            scrollTop: $rtDisplay.offset().top - 120
+                        }, 300);
+                        return;
                     }
-                });
 
-                if (!attachmentOk) {
-                    toastr.error('Minimal 1 attachment wajib diupload.');
+                    const $tenantHidden = $('#tenant_id');
+                    const $tenantDisplay = $('#tenant_name_display');
 
-                    const $firstFile = $('#attachmentsContainer input[type="file"]').first();
-                    $firstFile.addClass('is-invalid');
+                    if (!$tenantHidden.val() || !$tenantHidden.val().trim()) {
+                        addError($tenantDisplay, 'Nama Tenant wajib dipilih.');
+                        toastr.error('Nama Tenant wajib dipilih.');
+                        $('html,body').animate({
+                            scrollTop: $tenantDisplay.offset().top - 120
+                        }, 300);
+                        return;
+                    }
 
-                    $('html,body').animate({
-                        scrollTop: $firstFile.offset().top - 120
-                    }, 300);
+                    // =========================
+                    // Attachment validation
+                    // =========================
+                    let attachmentOk = false;
 
-                    return;
+                    $('#attachmentsContainer input[type="file"]').each(function() {
+                        if (this.files && this.files.length > 0) {
+                            attachmentOk = true;
+                            return false; // stop loop
+                        }
+                    });
+
+                    if (!attachmentOk) {
+                        toastr.error('Minimal 1 attachment wajib diupload.');
+
+                        const $firstFile = $('#attachmentsContainer input[type="file"]').first();
+                        $firstFile.addClass('is-invalid');
+
+                        $('html,body').animate({
+                            scrollTop: $firstFile.offset().top - 120
+                        }, 300);
+
+                        return;
+                    }
+                    // Validasi detail dulu
+                    if (!validateDetails()) return;
                 }
-                // Validasi detail dulu
-                if (!validateDetails()) return;
 
                 // konversi qty: koma → titik setelah lolos validasi
                 $('.qtyField').each(function() {
@@ -1027,10 +1035,14 @@
 
                 // --- Lock UI
                 $('#submitBtn').prop('disabled', true);
+                $('#saveDraftBtn').prop('disabled', true);
                 $('#cancelBtn').prop('disabled', true);
-                $('#btnText').text('Processing...');
-                // $('#loadingSpinner').removeClass('hidden');
-                showOverlay('Submitting');
+                if (isDraft) {
+                    $('#draftBtnText').text('Saving...');
+                } else {
+                    $('#btnText').text('Processing...');
+                }
+                showOverlay(isDraft ? 'Saving Draft' : 'Submitting');
 
                 const formData = new FormData(document.getElementById('spptForm'));
 
@@ -1042,7 +1054,9 @@
                         contentType: false
                     })
                     .done(function(res) {
-                        toastr.success(res.message || "Sppt Requisition Submit Successfully!");
+                        toastr.success(res.message || (isDraft ?
+                            "Sppt Requisition Saved as Draft!" :
+                            "Sppt Requisition Submit Successfully!"));
                         window.location.href = "/sppts";
                     })
                     .fail(function(xhr) {
@@ -1062,12 +1076,24 @@
                     .always(function() {
                         // --- Unlock UI
                         $('#submitBtn').prop('disabled', false);
+                        $('#saveDraftBtn').prop('disabled', false);
                         $('#cancelBtn').prop('disabled', false);
                         $('#btnText').text('Submit Approval');
-                        // $('#loadingSpinner').addClass('hidden');
+                        $('#draftBtnText').text('Save as Draft');
                         hideOverlay();
                     });
+            }
+
+            $('#spptForm').on('submit', function(e) {
+                e.preventDefault();
+                submitSpptForm(false);
             });
+
+            $('#saveDraftBtn').on('click', function(e) {
+                e.preventDefault();
+                submitSpptForm(true);
+            });
+
             $(document).on('change', '#attachmentsContainer input[type="file"]', function() {
                 if (this.files.length > 0) {
                     $(this).removeClass('is-invalid');
@@ -1271,7 +1297,7 @@
                     <td class="border p-2">${item.stock_unit || ''}</td>
                     <td class="border p-2">${item.item_sub_type || ''} - ${item.item_category || ''}</td>
                     <td class="border p-2 text-center">
-                    <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100"
+                    <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                         data-id="${item.inventoryid}"
                         data-name="${$('<div>').text(item.inventory_descr).html()}"
                         data-stock_unit="${item.stock_unit || ''}"
@@ -1523,7 +1549,7 @@
                 <td class="border p-2">${item.location_id}</td>
                 <td class="border p-2">${item.location_name || item.locationname || ''}</td>
                 <td class="border p-2 text-center">
-                    <button type="button" class="chooseLocation rounded border px-2 py-1 hover:bg-gray-100"
+                    <button type="button" class="chooseLocation rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                     data-id="${item.location_id}"
                     data-name="${$('<div>').text(item.location_name || item.locationname || '').html()}">Choose</button>
                 </td>
@@ -1692,7 +1718,7 @@
                     <td class="border p-2">${id}</td>
                     <td class="border p-2">${name}</td>
                     <td class="border p-2 text-center">
-                    <button type="button" class="chooseSubLocation rounded border px-2 py-1 hover:bg-gray-100"
+                    <button type="button" class="chooseSubLocation rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                         data-id="${id}" data-name="${$('<div>').text(name).html()}">Choose</button>
                     </td>
                 </tr>
@@ -1921,6 +1947,8 @@
                 $.getJSON(url, params)
                     .done(function(res) {
 
+                        const escAttr = (v) => $('<div>').text(v ?? '').html().replace(/"/g, '&quot;');
+
                         const rows = (res.data || []).map(item => {
 
                             const id = item.account_id ?? '';
@@ -1947,13 +1975,13 @@
                                     </td>
                                     <td class="border p-2 text-center">
                                         <button type="button"
-                                            class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
-                                            data-id="${id}"
-                                            data-activity_id="${actId}"
-                                            data-business_unit_id="${buId}"
-                                            data-department_fin_id="${deptFinId}"
-                                            data-activity_descr="${actDescr}"
-                                            data-label="${$('<div>').text(id).html()}">
+                                            class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            data-id="${escAttr(id)}"
+                                            data-activity_id="${escAttr(actId)}"
+                                            data-business_unit_id="${escAttr(buId)}"
+                                            data-department_fin_id="${escAttr(deptFinId)}"
+                                            data-activity_descr="${escAttr(actDescr)}"
+                                            data-label="${escAttr(id)}">
                                             Choose
                                         </button>
                                     </td>
@@ -2122,7 +2150,7 @@
                     <td class="border p-2">${md}</td>
                     <td class="border p-2">${rate}</td>
                     <td class="border p-2 text-center">
-                    <button type="button" class="chooseUom rounded border px-2 py-1 hover:bg-gray-100"
+                    <button type="button" class="chooseUom rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                             data-from="${$('<div>').text(from).html()}"
                             data-to="${$('<div>').text(to).html()}"
                             data-md="${$('<div>').text(md).html()}"

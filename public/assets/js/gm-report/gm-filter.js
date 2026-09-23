@@ -183,6 +183,7 @@
 
     // ── API: Department list for the filter panel ──────────────────────────────
     function loadDepartments() {
+        if (!routes.departments) return; // page doesn't render/need the Department filter
         var params = '?date_from=' + encodeURIComponent(state.dateFrom)
             + '&date_to='   + encodeURIComponent(state.dateTo)
             + (state.cpnyId ? '&cpny_id=' + encodeURIComponent(state.cpnyId) : '');
@@ -229,6 +230,16 @@
             loadDepartments();
             window.gmDispatchFilter();
         });
+
+        // Ticket Type dropdown (single-select — only rendered on pages that pass :ticketTypes)
+        var ticketType = document.getElementById('gmTicketTypeFilter');
+        if (ticketType) {
+            state.ticketType = ticketType.value;
+            ticketType.addEventListener('change', function () {
+                state.ticketType = this.value;
+                window.gmDispatchFilter();
+            });
+        }
 
         // Date panel toggle
         var dateBtn = document.getElementById('gmDateBtn');

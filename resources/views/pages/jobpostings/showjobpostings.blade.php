@@ -1,5 +1,11 @@
-<x-app-layout>
-    <div class="max-w-9xl mx-auto w-full py-1">
+﻿<x-app-layout>
+    <div class="max-w-9xl mx-auto w-full p-2">
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'Job Postings', 'url' => route('jobpostings')],
+            ['label' => 'Show Details'],
+        ]" />
+
         <div class="grid">
             <div class="max-w-9xl mx-auto w-full px-2 py-1 sm:px-6 lg:px-2">
                 <div class="gap-1">
@@ -7,7 +13,7 @@
                         class="flex w-full flex-col gap-2 overflow-hidden sm:col-span-1 lg:row-span-2 xl:row-span-2 xl:flex-col">
                         <div class="flex w-full flex-col rounded-xl bg-white shadow-sm dark:bg-gray-800">
                             <header
-                                class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-600">
+                                class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-600 dark:bg-gray-900">
                                 <div class="flex max-w-5xl justify-end gap-2">
                                     <h1 class="text-base font-semibold text-gray-700 dark:text-gray-100">🆔
                                         {{ $jobposting->docid }}</h1>
@@ -99,7 +105,7 @@
                                                     ['label' => 'Actual Number', 'value' => $jobposting->total_actual],
                                                 ];
                                             @endphp
-                                
+
                                             @foreach ($jobNumbers as $job)
                                                 <div class="flex flex-col items-center p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-700">
                                                     <span class=" text-sm  text-gray-500 dark:text-gray-400">{{ $job['label'] }}</span>
@@ -129,7 +135,7 @@
                                             <span x-text="isOpen ? 'Closed' : 'See Details'"></span>
                                         </button>
                                     </header>
-                                    <div class="flex-grow overflow-y-auto rounded-b-2xl bg-white p-4 px-4">
+                                    <div class="flex-grow overflow-y-auto rounded-b-2xl bg-white p-4 px-4 dark:bg-gray-800">
                                         <ul x-show="isOpen" x-transition.opacity
                                             class="space-y-2 text-gray-700 dark:text-gray-300">
                                             @foreach ($jobres as $jr)
@@ -153,7 +159,7 @@
                                             <span x-text="isOpen ? 'Closed' : 'See Details'"></span>
                                         </button>
                                     </header>
-                                    <div class="flex-grow overflow-y-auto rounded-b-2xl bg-white p-4 px-4">
+                                    <div class="flex-grow overflow-y-auto rounded-b-2xl bg-white p-4 px-4 dark:bg-gray-800">
                                         <ul x-show="isOpen" x-transition.opacity
                                             class="space-y-2 text-gray-700 dark:text-gray-300">
                                             <div class="flex flex-row gap-2">

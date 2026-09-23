@@ -32,20 +32,27 @@ class ReceiptListController extends Controller
         }
 
         $u = $user->username ?? '';
-        $cpny_id = $user->cpny_id ?? '';
+        // user->cpny_id bisa "AW" atau "AW,GPS,..."
+        $cpnyRaw = $user->cpny_id ?? '';
+        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
 
-        $receiptjobs = vPoPending::when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))->count();
+        $hasReceiptAllAccess = $user->isAdmin() || $user->hasRole('FINACCESS');
+
+        $receiptjobs = vPoPending::when(!empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))->count();
         $onProgress = TrReceipt::where('created_by', $u)->where('status', 'P')->count();
         $completed = TrReceipt::where('created_by', $u)->where('status', 'C')->count();
-        $all = TrReceipt::when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))->count();
+        $all = TrReceipt::when(!empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))->count();
         $rejected = TrReceipt::where('created_by', $u)->where('status', 'R')->count();
         $revise = TrReceipt::where('created_by', $u)->where('status', 'D')->count();
+        $receiptAll = TrReceipt::when(!empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
+            ->where('status', '!=', 'X')
+            ->count();
 
         // ✅ Return Jobs: PR completed yang masih ada sisa return
         $returnAgg = $this->returnAggSubquery();
 
         $returnjobs = TrReceipt::query()
-            ->when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
+            ->when(!empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
             ->where('status', 'C')
             ->where('receipttype', 'PR')
             ->leftJoinSub($returnAgg, 'rr', function ($join) {
@@ -55,7 +62,7 @@ class ReceiptListController extends Controller
             ->count();
 
         return view('pages.receipt.receiptlist', compact(
-            'receiptjobs', 'onProgress', 'completed', 'all', 'returnjobs', 'rejected', 'revise'
+            'receiptjobs', 'onProgress', 'completed', 'all', 'returnjobs', 'rejected', 'revise', 'receiptAll', 'hasReceiptAllAccess'
         ));
     }
 
@@ -64,7 +71,8 @@ class ReceiptListController extends Controller
         $scope = strtolower((string) $req->query('scope', 'receiptjobs'));
         $user = Auth::user();
         $u = $user->username ?? '';
-        $cpny_id = $user->cpny_id ?? '';
+        $cpnyRaw = $user->cpny_id ?? '';
+        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
 
         $draw = (int) $req->input('draw', 1);
         $start = (int) $req->input('start', 0);
@@ -77,7 +85,7 @@ class ReceiptListController extends Controller
 
         if ($scope === 'receiptjobs') {
             $base = vPoPending::with('creator')
-                ->when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
+                ->when(!empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
                 ->select([
                     'id',
                     'ponbr',
@@ -129,11 +137,12 @@ class ReceiptListController extends Controller
             }
         } else {
             $base = TrReceipt::query()
-                ->when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
+                ->when(!empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
                 ->when($scope === 'onprogress', fn ($q) => $q->where('created_by', $u)->where('status', 'P'))
                 ->when($scope === 'completed', fn ($q) => $q->where('created_by', $u)->where('status', 'C'))
                 ->when($scope === 'rejected', fn ($q) => $q->where('created_by', $u)->where('status', 'R'))
                 ->when($scope === 'revise', fn ($q) => $q->where('created_by', $u)->where('status', 'D'))
+                ->when($scope === 'receiptall', fn ($q) => $q->where('status', '!=', 'X'))
                 ->select(['id', 'receiptnbr', 'receiptdate', 'receipttype', 'ponbr', 'sppbjktid', 'cpny_id', 'created_by', 'status', 'vendorname']);
 
             if ($ponbr !== '') {

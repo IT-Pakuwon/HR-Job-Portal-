@@ -59,9 +59,23 @@ class AcumVmsPoSubmitController extends Controller
                 $materialService = $po->potype;
             }
 
+            $businessUnitId = TrPOdetail::query()
+                ->where('ponbr', $ponbr)
+                ->where('budget_cpny_id', $cpnyId)
+                ->whereNotNull('budget_business_unit_id')
+                ->distinct()
+                ->orderBy('budget_business_unit_id')
+                ->pluck('budget_business_unit_id')
+                ->map(fn ($value) => trim((string) $value))
+                ->filter(fn ($value) => $value !== '')
+                ->unique()
+                ->values()
+                ->implode(',');
+
             $poPayload = [[
                 'ponbr'            => $po->ponbr,
                 'cpny_id'          => $po->cpny_id,
+                'business_unit_id' => $businessUnitId !== '' ? $businessUnitId : null,
                 'podate'           => $po->podate,
                 'vendor_id'        => $po->vendorid,
                 'vendorname'       => $po->vendorname,
@@ -81,6 +95,7 @@ class AcumVmsPoSubmitController extends Controller
                 $poPayload,
                 ['ponbr', 'cpny_id'],
                 [
+                    'business_unit_id',
                     'podate',
                     'vendor_id',
                     'vendorname',

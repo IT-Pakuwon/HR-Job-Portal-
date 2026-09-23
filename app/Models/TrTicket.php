@@ -3,10 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TrTicket extends Model
 {
-    // use SoftDeletes;
+    use SoftDeletes;
 
     protected $connection = 'pgsql5';
 
@@ -87,9 +88,19 @@ class TrTicket extends Model
         return $this->belongsTo(MsLocation::class, 'location_id', 'location_id');
     }
 
+    public function site()
+    {
+        return $this->belongsTo(MsSite::class, 'location_id', 'siteid');
+    }
+
     public function subLocation()
     {
         return $this->belongsTo(MsSubLocation::class, 'sub_location_id', 'sub_location_id');
+    }
+
+    public function company()
+    {
+        return $this->belongsTo(MsCompany::class, 'cpny_id', 'cpny_id');
     }
 
     public function serviceOrders()

@@ -37,16 +37,6 @@
             background: rgba(148, 163, 184, .35);
             border-radius: 999px;
         }
-
-        .dataTables_wrapper .dataTables_length,
-        .dataTables_wrapper .dataTables_filter{
-            padding:16px 18px;
-        }
-
-        .dataTables_wrapper .dataTables_info,
-        .dataTables_wrapper .dataTables_paginate{
-            padding:14px 18px;
-        }
     </style>
 
     <div class="max-w-9xl mx-auto w-full p-2">
@@ -156,7 +146,7 @@
 
         {{-- ── Table ───────────────────────────────────────────────────────── --}}
         <div id="mainTableWrapper"
-            class="mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
             <div
                 class="flex flex-col gap-3 border-b border-gray-100 px-5 py-3 lg:flex-row lg:items-center lg:justify-between dark:border-white/[0.06]">
@@ -542,7 +532,7 @@
                                     Expired?</label>
                                 <label class="inline-flex h-11 cursor-pointer items-center gap-3">
                                     <input type="checkbox" id="f_has_expired" name="has_expired" value="1"
-                                        class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900 dark:border-white/20">
+                                        class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900 dark:border-white/20 dark:text-slate-100">
                                     <span class="text-sm text-slate-600 dark:text-slate-300">Warranty expired</span>
                                 </label>
                             </div>

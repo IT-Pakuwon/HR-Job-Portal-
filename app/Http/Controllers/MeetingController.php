@@ -10,6 +10,7 @@ use App\Models\MsMeetingRoomAccess;
 use App\Models\SysUserRole;
 use App\Models\TrMeeting;
 use App\Models\User;
+use App\Services\ZoomApi;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,6 +21,13 @@ use Vinkla\Hashids\Facades\Hashids;
 
 class MeetingController extends Controller
 {
+    protected ZoomApi $zoomApi;
+
+    public function __construct(ZoomApi $zoomApi)
+    {
+        $this->zoomApi = $zoomApi;
+    }
+
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -40,10 +48,6 @@ class MeetingController extends Controller
             ->where('status', 'A')
             ->orderByRaw('CAST(room_id AS INTEGER) ASC')
             ->get();
-
-        $roomColors = MsMeetingRoom::pluck('eventcolor', 'room_id');
-
-        $roomMap = MsMeetingRoom::pluck('room_name', 'room_id');
 
         /*
         |--------------------------------------------------------------------------
@@ -85,45 +89,6 @@ class MeetingController extends Controller
             ->orderBy('acc_name')
             ->get();
 
-        $meetings = TrMeeting::query()
-            ->where('status', '!=', 'X')
-            ->whereBetween('start_meeting_time', [
-                now()->subMonths(6),
-                now()->addMonths(6),
-            ])
-            ->orderByRaw('CAST(room_id AS INTEGER) ASC')
-            ->orderBy('start_meeting_time')
-            ->get()
-
-            ->map(function ($m) use ($roomMap) {
-                return [
-                    'hash' => Hashids::encode($m->id),
-
-                    'room_id' => $m->room_id,
-
-                    'room_name' => $roomMap[$m->room_id] ?? null,
-
-                    'start' => Carbon::parse($m->start_meeting_time)
-                        ->format('Y-m-d H:i:s'),
-
-                    'end' => Carbon::parse($m->end_meeting_time)
-                        ->format('Y-m-d H:i:s'),
-
-                    'title' => trim(
-                        ($m->user_peminta
-                            ? $m->user_peminta.' - '
-                            : '').
-                        $m->meeting_title
-                    ),
-
-                    'type' => $m->external_participant
-                        ? 'external'
-                        : 'internal',
-
-                    'isTeams' => !empty($m->msteams_join_url),
-                ];
-            });
-
         $users = User::query()
             ->where('status', 'A')
             ->orderBy('name')
@@ -164,7 +129,7 @@ class MeetingController extends Controller
 
         if ($date_block && !empty($date_block->setting_value_string)) {
             $maxBookingDate = now()
-                ->addDays((int) $date_block->setting_value_string)
+                ->modify($date_block->setting_value_string)
                 ->endOfDay();
         }
 
@@ -172,10 +137,6 @@ class MeetingController extends Controller
             'selectedDate' => $date,
 
             'rooms' => $rooms,
-
-            'roomMap' => $roomMap,
-
-            'meetings' => $meetings,
 
             'users' => $users,
 
@@ -210,12 +171,27 @@ class MeetingController extends Controller
           ->orderByRaw('CAST(room_id AS INTEGER) ASC')
             ->get();
 
-        $meetings = TrMeeting::query()
-            ->where('status', '!=', 'X')
-            ->whereBetween('start_meeting_time', [now()->subMonths(6), now()->addMonths(6)])
-          ->orderByRaw('CAST(room_id AS INTEGER) ASC')
-            ->orderBy('start_meeting_time')
-            ->get();
+        // A 'T'/'Z' room is only actually bookable while its linked accessory
+        // still has that provider switched on — otherwise it's a disabled
+        // shell that shouldn't show up as a resource on this calendar.
+        $accessoriesByRoom = MsMeetingAccessories::query()
+            ->where('status', 'A')
+            ->get(['room_id', 'status_teams', 'status_zoom'])
+            ->groupBy(fn ($a) => (string) $a->room_id);
+
+        $rooms = $rooms->filter(function ($room) use ($accessoriesByRoom) {
+            $accs = $accessoriesByRoom->get((string) $room->room_id, collect());
+
+            if ($room->status === 'T') {
+                return $accs->contains(fn ($a) => $a->status_teams === 'A');
+            }
+
+            if ($room->status === 'Z') {
+                return $accs->contains(fn ($a) => $a->status_zoom === 'A');
+            }
+
+            return true;
+        })->values();
 
         $users = User::query()
             ->where('status', 'A')
@@ -253,7 +229,6 @@ class MeetingController extends Controller
         return view('pages.meeting.meetingteams', [
             'selectedDate' => $date,
             'rooms' => $rooms,
-            'meetings' => $meetings,
             'users' => $users,
             'dateblock' => $dateblock,
             'user' => $user,
@@ -277,9 +252,25 @@ class MeetingController extends Controller
             ->where('room_id', $id)
             ->where('status', 'A')
             ->orderBy('acc_name')
-            ->pluck('acc_name', 'acc_id');
+            ->get(['acc_id', 'acc_name', 'status_teams', 'status_zoom']);
 
-        return response()->json($accessories);
+        // Append the currently active provider so the booking dropdown always
+        // reflects the live Teams/Zoom toggle, not just the stored (and easily
+        // stale) accessory name.
+        $labeled = $accessories->mapWithKeys(function ($row) {
+            $providers = collect([
+                $row->status_teams === 'A' ? 'Teams' : null,
+                $row->status_zoom === 'A' ? 'Zoom' : null,
+            ])->filter();
+
+            $label = $providers->isNotEmpty()
+                ? $row->acc_name.' ('.$providers->implode(' + ').')'
+                : $row->acc_name;
+
+            return [$row->acc_id => $label];
+        });
+
+        return response()->json($labeled);
     }
 
     public function calendarJson(Request $request)
@@ -292,24 +283,45 @@ class MeetingController extends Controller
         $users = User::pluck('name', 'username');
 
         $accMap = MsMeetingAccessories::pluck('acc_name', 'acc_id');
+        $accProviderMap = MsMeetingAccessories::query()
+            ->get(['acc_id', 'status_teams', 'status_zoom'])
+            ->keyBy('acc_id');
+
+        try {
+            $rangeStart = $request->filled('start') ? Carbon::parse($request->input('start')) : now()->subMonths(6);
+        } catch (\Throwable $e) {
+            $rangeStart = now()->subMonths(6);
+        }
+
+        try {
+            $rangeEnd = $request->filled('end') ? Carbon::parse($request->input('end')) : now()->addMonths(6);
+        } catch (\Throwable $e) {
+            $rangeEnd = now()->addMonths(6);
+        }
+
+        $meetings = TrMeeting::where('status', '!=', 'X')
+            ->whereBetween('start_meeting_time', [$rangeStart, $rangeEnd])
+            ->get();
+
+        $participantsByDocid = DB::connection('pgsql5')
+            ->table('tr_meeting_participant')
+            ->whereIn('docid', $meetings->pluck('docid')->filter()->unique())
+            ->get()
+            ->map(function ($p) {
+                return [
+                    'docid' => $p->docid,
+                    'name' => $p->name_participant,
+                    'email' => $p->email_participant,
+                    'company' => $p->company_participant,
+                    'type' => $p->external_participant ? 'external' : 'internal',
+                ];
+            })
+            ->groupBy('docid');
 
         return response()->json(
-            TrMeeting::where('status', '!=', 'X')
-                ->whereBetween('start_meeting_time', [now()->subMonths(6), now()->addMonths(6)])
-                ->get()
-                ->map(function ($m) use ($roomMap, $roomColors, $roomStatus, $users, $accMap) {
-                    $participants = DB::connection('pgsql5')
-                        ->table('tr_meeting_participant')
-                        ->where('docid', $m->docid)
-                        ->get()
-                        ->map(function ($p) {
-                            return [
-                                'name' => $p->name_participant,
-                                'email' => $p->email_participant,
-                                'company' => $p->company_participant,
-                                'type' => $p->external_participant ? 'external' : 'internal',
-                            ];
-                        });
+            $meetings
+                ->map(function ($m) use ($roomMap, $roomColors, $roomStatus, $users, $accMap, $accProviderMap, $participantsByDocid) {
+                    $participants = ($participantsByDocid[$m->docid] ?? collect())->values();
 
                     // ✅ FIX ACCESSORIES HERE
                     $ids = collect(explode(',', (string) $m->acc_id))
@@ -324,6 +336,13 @@ class MeetingController extends Controller
                         ])
                         ->filter(fn ($a) => $a['name'])
                         ->values();
+
+                    // Which online provider is switched on for the accessory
+                    // (physical room / online account) this meeting was booked with.
+                    $accTeamsEnabled = $ids->contains(fn ($id) => ($accProviderMap[$id]->status_teams ?? null) === 'A');
+                    $accZoomEnabled = $ids->contains(fn ($id) => ($accProviderMap[$id]->status_zoom ?? null) === 'A');
+
+                    $zoomInfo = json_decode((string) $m->info_zoom, true) ?: [];
 
                     return [
                         'id' => Hashids::encode($m->id),
@@ -346,6 +365,10 @@ class MeetingController extends Controller
                             'teams_url' => $m->msteams_join_url,
                             'description' => $m->meeting_descr,
                             'roomStatus' => $roomStatus[$m->room_id] ?? null,
+                            'accTeamsEnabled' => $accTeamsEnabled,
+                            'accZoomEnabled' => $accZoomEnabled,
+                            'zoom_id' => $m->zoom_id,
+                            'zoom_password' => $zoomInfo['password'] ?? null,
 
                             // ✅ NOW RETURNS NAMES (not IDs)
                             'accessories' => $accessories,
@@ -445,9 +468,9 @@ class MeetingController extends Controller
         $maxBookingDate = now()->addDays(15)->endOfDay();
 
         if ($bookingSetting && !empty($bookingSetting->setting_value_string)) {
-            // example: "+15 days"
+            // supports relative formats like "+15 days" or "+2 month"
             $maxBookingDate = now()
-                ->addDays((int) $bookingSetting->setting_value_string)
+                ->modify($bookingSetting->setting_value_string)
                 ->endOfDay();
         }
 
@@ -546,30 +569,39 @@ class MeetingController extends Controller
             ->values()
             ->implode(',');
 
-        $conflict = TrMeeting::on('pgsql5')
-            ->where('room_id', $request->room_id)
-            ->where('status', '!=', 'X')
-            ->where(function ($q) use ($startMeeting, $endMeeting) {
-                $q->where('start_meeting_time', '<', $endMeeting)
-                ->where('end_meeting_time', '>', $startMeeting);
-            })
-            ->exists();
-
-        if ($conflict) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Selected time is unavailable. Room is already booked on '
-                    .$startMeeting->format('d M Y')
-                    .' at '
-                    .$startMeeting->format('H:i')
-                    .' - '
-                    .$endMeeting->format('H:i'),
-            ], 422);
-        }
-
         DB::connection('pgsql5')->beginTransaction();
 
         try {
+            // Serialize concurrent booking requests for the same room so the
+            // conflict check below can't race with another request's insert.
+            DB::connection('pgsql5')->statement(
+                'SELECT pg_advisory_xact_lock(hashtext(?))',
+                [$request->room_id]
+            );
+
+            $conflict = TrMeeting::on('pgsql5')
+                ->where('room_id', $request->room_id)
+                ->where('status', '!=', 'X')
+                ->where(function ($q) use ($startMeeting, $endMeeting) {
+                    $q->where('start_meeting_time', '<', $endMeeting)
+                    ->where('end_meeting_time', '>', $startMeeting);
+                })
+                ->exists();
+
+            if ($conflict) {
+                DB::connection('pgsql5')->rollBack();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Selected time is unavailable. Room is already booked on '
+                        .$startMeeting->format('d M Y')
+                        .' at '
+                        .$startMeeting->format('H:i')
+                        .' - '
+                        .$endMeeting->format('H:i'),
+                ], 422);
+            }
+
             $docid = $this->generateMeetingDocId($year, $month, $username);
 
             $meeting = TrMeeting::on('pgsql5')->create([
@@ -658,6 +690,21 @@ class MeetingController extends Controller
                     $meeting->msteams_meetingid = $teamsResult['msteams_meetingid'];
                 }
 
+                $meeting->updated_by = $authUser->username ?? $username;
+                $meeting->updated_at = now();
+                $meeting->save();
+            }
+
+            $zoomResult = $this->createZoomMeetingFromAccessory($meeting);
+
+            if (!empty($zoomResult['success'])) {
+                $meeting->zoom_id = $zoomResult['zoom_id'] ?? null;
+                $meeting->zoom_account = $zoomResult['zoom_account'] ?? null;
+                $meeting->msteams_join_url = $zoomResult['zoom_join_url'] ?? null;
+                $meeting->info_zoom = json_encode([
+                    'password' => $zoomResult['zoom_password'] ?? null,
+                    'start_url' => $zoomResult['zoom_start_url'] ?? null,
+                ]);
                 $meeting->updated_by = $authUser->username ?? $username;
                 $meeting->updated_at = now();
                 $meeting->save();
@@ -800,6 +847,10 @@ class MeetingController extends Controller
                     'id' => $meeting->id,
                     'docid' => $meeting->docid,
                 ],
+                'teams_ready' => !empty($teamsResult['success']),
+                'teams_message' => empty($teamsResult['success'])
+                    ? ($teamsResult['message'] ?? null)
+                    : null,
             ]);
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
@@ -820,8 +871,11 @@ class MeetingController extends Controller
                 'room_id' => ['required', 'string', 'max:50'],
                 'title' => ['required', 'string', 'max:255'],
                 'descr' => ['required', 'string'],
-                'acc_id' => ['nullable', 'array'],
-                'acc_id.*' => ['nullable', 'string'],
+                // Required: without an accessory, findZoomAccessoryConflict()
+                // below has nothing to check and Zoom double-booking slips
+                // through silently.
+                'acc_id' => ['required', 'array', 'min:1'],
+                'acc_id.*' => ['required', 'string'],
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
@@ -863,9 +917,9 @@ class MeetingController extends Controller
         $maxBookingDate = now()->addDays(15)->endOfDay();
 
         if ($bookingSetting && !empty($bookingSetting->setting_value_string)) {
-            // example: "+15 days"
+            // supports relative formats like "+15 days" or "+2 month"
             $maxBookingDate = now()
-                ->addDays((int) $bookingSetting->setting_value_string)
+                ->modify($bookingSetting->setting_value_string)
                 ->endOfDay();
         }
 
@@ -911,11 +965,25 @@ class MeetingController extends Controller
         $department = explode(',', (string) $authUser->department_id);
         $firstDepartment = trim($department[0] ?? '');
 
-        $accList = collect($request->acc_id ?? [])
+        $accIdList = collect($request->acc_id ?? [])
             ->filter()
             ->unique()
-            ->values()
-            ->implode(',');
+            ->values();
+
+        $accList = $accIdList->implode(',');
+
+        // ✅ Teams bookings intentionally allow overlapping requests on the
+        // same room (see banner on meetingteams.blade.php). Zoom is different:
+        // the account is tied to one license, so it can't run two meetings
+        // at once — block overlaps for Zoom-enabled accessories only.
+        $zoomConflict = $this->findZoomAccessoryConflict($accIdList->all(), $startMeeting, $endMeeting);
+
+        if ($zoomConflict) {
+            return response()->json([
+                'success' => false,
+                'message' => $zoomConflict,
+            ], 422);
+        }
 
         DB::connection('pgsql5')->beginTransaction();
 
@@ -954,10 +1022,27 @@ class MeetingController extends Controller
                 $meeting->save();
             }
 
+            // ✅ 2b. CREATE ZOOM MEETING (only fires if the selected accessory
+            // has Zoom switched on — mutually exclusive with Teams in practice
+            // since each accessory usually only has one provider toggled on)
+            $zoomResult = $this->createZoomMeetingFromAccessory($meeting);
+
+            if (!empty($zoomResult['success'])) {
+                $meeting->zoom_id = $zoomResult['zoom_id'] ?? null;
+                $meeting->zoom_account = $zoomResult['zoom_account'] ?? null;
+                $meeting->msteams_join_url = $zoomResult['zoom_join_url'] ?? null;
+                $meeting->info_zoom = json_encode([
+                    'password' => $zoomResult['zoom_password'] ?? null,
+                    'start_url' => $zoomResult['zoom_start_url'] ?? null,
+                ]);
+                $meeting->updated_at = now();
+                $meeting->save();
+            }
+
             // ✅ 3. COMMIT DB
             DB::connection('pgsql5')->commit();
 
-            // ✅ 4. SEND EMAIL (AFTER TEAMS READY)
+            // ✅ 4. SEND EMAIL (AFTER TEAMS/ZOOM READY)
             $this->sendTeamsEmail($meeting, 'create');
 
             return response()->json([
@@ -967,6 +1052,10 @@ class MeetingController extends Controller
                     'id' => $meeting->id,
                     'docid' => $meeting->docid,
                 ],
+                'teams_ready' => !empty($teamsResult['success']) || !empty($zoomResult['success']),
+                'teams_message' => (empty($teamsResult['success']) && empty($zoomResult['success']))
+                    ? ($teamsResult['message'] ?? $zoomResult['message'] ?? null)
+                    : null,
             ]);
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
@@ -999,6 +1088,80 @@ class MeetingController extends Controller
             'success' => true,
             'message' => 'Zoom link saved',
         ]);
+    }
+
+    /**
+     * Zoom accounts are tied to a single license/device, so the same Zoom-enabled
+     * accessory can't host two overlapping meetings — unlike Teams, which is left
+     * unrestricted (see the banner on meetingteams.blade.php). Returns a
+     * human-readable conflict message, or null if the slot is free.
+     */
+    protected function findZoomAccessoryConflict(array $accIds, Carbon $start, Carbon $end, ?int $excludeMeetingId = null): ?string
+    {
+        if (empty($accIds)) {
+            return null;
+        }
+
+        $zoomAccIds = MsMeetingAccessories::on('pgsql5')
+            ->whereIn('acc_id', $accIds)
+            ->where('status_zoom', 'A')
+            ->pluck('acc_id')
+            ->map(fn ($id) => (string) $id)
+            ->all();
+
+        if (empty($zoomAccIds)) {
+            return null;
+        }
+
+        $candidates = TrMeeting::on('pgsql5')
+            ->where('status', '!=', 'X')
+            ->where('start_meeting_time', '<', $end->format('Y-m-d H:i:s'))
+            ->where('end_meeting_time', '>', $start->format('Y-m-d H:i:s'))
+            ->whereNotNull('acc_id')
+            ->where('acc_id', '!=', '')
+            ->when($excludeMeetingId, fn ($q) => $q->where('id', '!=', $excludeMeetingId))
+            ->get(['id', 'acc_id', 'meeting_title', 'start_meeting_time', 'end_meeting_time']);
+
+        foreach ($candidates as $c) {
+            $cIds = collect(explode(',', (string) $c->acc_id))
+                ->map(fn ($x) => trim($x))
+                ->filter();
+
+            $conflictingAccId = $cIds->intersect($zoomAccIds)->first();
+
+            if ($conflictingAccId) {
+                $accName = MsMeetingAccessories::on('pgsql5')
+                    ->where('acc_id', $conflictingAccId)
+                    ->value('acc_name');
+
+                return "The Zoom account for \"{$accName}\" is already booked (\"{$c->meeting_title}\", "
+                    .Carbon::parse($c->start_meeting_time)->format('H:i').'-'
+                    .Carbon::parse($c->end_meeting_time)->format('H:i').'). Zoom slots cannot overlap — pick a different time or accessory.';
+            }
+        }
+
+        return null;
+    }
+
+    protected function isZoomMeeting($meeting): bool
+    {
+        $accIds = collect(explode(',', (string) $meeting->acc_id))
+            ->map(fn ($x) => trim($x))
+            ->filter()
+            ->values();
+
+        if ($accIds->isEmpty()) {
+            return false;
+        }
+
+        $accessories = MsMeetingAccessories::on('pgsql5')
+            ->whereIn('acc_id', $accIds)
+            ->get(['status_teams', 'status_zoom']);
+
+        $teamsEnabled = $accessories->contains(fn ($a) => $a->status_teams === 'A');
+        $zoomEnabled = $accessories->contains(fn ($a) => $a->status_zoom === 'A');
+
+        return !$teamsEnabled && $zoomEnabled;
     }
 
     protected function sendMeetingEmail($meeting, $type = 'create')
@@ -1115,13 +1278,22 @@ class MeetingController extends Controller
 ";
 
         if (!empty($meeting->msteams_join_url)) {
+            $isZoom = $this->isZoomMeeting($meeting);
+            $zoomPassword = $isZoom
+                ? (json_decode((string) $meeting->info_zoom, true)['password'] ?? null)
+                : null;
+
+            $providerLabel = $isZoom ? 'Zoom Meeting' : 'Microsoft Teams Meeting';
+            $linkColor = $isZoom ? '#7c3aed' : '#2563eb';
+
             $htmlBody .= "
     <p>
-        <strong>Microsoft Teams Meeting:</strong><br>
+        <strong>{$providerLabel}:</strong><br>
         <a href='{$meeting->msteams_join_url}' target='_blank'
-        style='color:#2563eb; text-decoration:underline;'>
+        style='color:{$linkColor}; text-decoration:underline;'>
             Join Meeting
-        </a>
+        </a>".($zoomPassword ? "<br>
+        <strong>Password:</strong> {$zoomPassword}" : '')."
     </p>
 
     <br>
@@ -1216,12 +1388,24 @@ class MeetingController extends Controller
         $end = Carbon::parse($meeting->end_meeting_time);
 
         // ==========================
+        // 🔥 PROVIDER (Teams or Zoom — same join-link field is shared)
+        // ==========================
+        $isZoom = $this->isZoomMeeting($meeting);
+        $zoomPassword = $isZoom
+            ? (json_decode((string) $meeting->info_zoom, true)['password'] ?? null)
+            : null;
+
+        $providerLabel = $isZoom ? 'Zoom Meeting' : 'Microsoft Teams Meeting';
+        $providerTag = $isZoom ? 'ZOOM' : 'TEAMS';
+        $accentColor = $isZoom ? '#7c3aed' : '#2563eb';
+
+        // ==========================
         // 🔥 SUBJECT PREFIX
         // ==========================
         $subjectPrefix = match ($type) {
-            'update' => '[TEAMS UPDATED]',
-            'cancel' => '[TEAMS CANCELLED]',
-            default => '[TEAMS INVITATION]',
+            'update' => "[{$providerTag} UPDATED]",
+            'cancel' => "[{$providerTag} CANCELLED]",
+            default => "[{$providerTag} INVITATION]",
         };
 
         // ==========================
@@ -1240,7 +1424,7 @@ class MeetingController extends Controller
             <p>Dear Sir/Madam,</p>
 
             <p>
-                You are invited to a <strong>Microsoft Teams Meeting</strong>.
+                You are invited to a <strong>{$providerLabel}</strong>.
             </p>
 
             <table cellpadding='6' cellspacing='0'>
@@ -1253,13 +1437,14 @@ class MeetingController extends Controller
             <br>
 
             <div style='padding:12px;background:#f3f4f6;border-radius:8px;'>
-                <p><strong>Join Microsoft Teams Meeting</strong></p>
+                <p><strong>Join {$providerLabel}</strong></p>
                 <a href='{$teamsLink}' target='_blank'
                     style='display:inline-block;padding:10px 16px;
-                    background:#2563eb;color:#fff;border-radius:6px;
+                    background:{$accentColor};color:#fff;border-radius:6px;
                     text-decoration:none;font-weight:600;'>
                     Join Meeting
-                </a>
+                </a>".($zoomPassword ? "
+                <p style='margin-top:10px;'><strong>Password:</strong> {$zoomPassword}</p>" : '')."
             </div>
 
             <br>
@@ -1332,7 +1517,18 @@ class MeetingController extends Controller
         $desc  = $escapeIcs($meeting->meeting_descr);
 
         if (!empty($meeting->msteams_join_url)) {
-            $desc .= "\\nJoin Teams: {$meeting->msteams_join_url}";
+            $isZoom = $this->isZoomMeeting($meeting);
+            $desc .= $isZoom
+                ? "\\nJoin Zoom: {$meeting->msteams_join_url}"
+                : "\\nJoin Teams: {$meeting->msteams_join_url}";
+
+            if ($isZoom) {
+                $zoomPassword = json_decode((string) $meeting->info_zoom, true)['password'] ?? null;
+
+                if ($zoomPassword) {
+                    $desc .= "\\nPassword: {$zoomPassword}";
+                }
+            }
         }
 
         return "BEGIN:VCALENDAR\r\n".
@@ -1854,9 +2050,9 @@ class MeetingController extends Controller
         $maxBookingDate = now()->addDays(15)->endOfDay();
 
         if ($bookingSetting && !empty($bookingSetting->setting_value_string)) {
-            // example: "+15 days"
+            // supports relative formats like "+15 days" or "+2 month"
             $maxBookingDate = now()
-                ->addDays((int) $bookingSetting->setting_value_string)
+                ->modify($bookingSetting->setting_value_string)
                 ->endOfDay();
         }
 
@@ -2283,9 +2479,9 @@ class MeetingController extends Controller
         $maxBookingDate = now()->addDays(15)->endOfDay();
 
         if ($bookingSetting && !empty($bookingSetting->setting_value_string)) {
-            // example: "+15 days"
+            // supports relative formats like "+15 days" or "+2 month"
             $maxBookingDate = now()
-                ->addDays((int) $bookingSetting->setting_value_string)
+                ->modify($bookingSetting->setting_value_string)
                 ->endOfDay();
         }
 
@@ -2316,6 +2512,21 @@ class MeetingController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'End time harus lebih besar dari start time.',
+            ], 422);
+        }
+
+        $accIds = collect(explode(',', (string) $meeting->acc_id))
+            ->map(fn ($x) => trim($x))
+            ->filter()
+            ->values()
+            ->all();
+
+        $zoomConflict = $this->findZoomAccessoryConflict($accIds, $startMeeting, $endMeeting, $meeting->id);
+
+        if ($zoomConflict) {
+            return response()->json([
+                'success' => false,
+                'message' => $zoomConflict,
             ], 422);
         }
 
@@ -2358,6 +2569,24 @@ class MeetingController extends Controller
                         'success' => false,
                         'message' => $teamsResult['message']
                             ?? 'Failed updating Teams meeting',
+                    ], 500);
+                }
+            }
+
+            // =========================
+            // UPDATE ZOOM
+            // =========================
+
+            if (!empty($meeting->zoom_id)) {
+                $zoomResult = $this->updateZoomMeeting($meeting);
+
+                if (empty($zoomResult['success'])) {
+                    DB::connection('pgsql5')->rollBack();
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => $zoomResult['message']
+                            ?? 'Failed updating Zoom meeting',
                     ], 500);
                 }
             }
@@ -2471,6 +2700,131 @@ class MeetingController extends Controller
             ];
         }
     }
+
+    public function createZoomMeetingFromAccessory($meeting): array
+    {
+        $accIds = collect(explode(',', (string) $meeting->acc_id))
+            ->map(fn ($x) => trim($x))
+            ->filter()
+            ->values()
+            ->all();
+
+        if (empty($accIds)) {
+            return [
+                'success' => false,
+                'message' => 'Accessory meeting kosong.',
+            ];
+        }
+
+        $accessory = MsMeetingAccessories::on('pgsql5')
+            ->whereIn('acc_id', $accIds)
+            ->whereNotNull('userid_zoom')
+            ->where('status_zoom', 'A')
+            ->first();
+
+        if (!$accessory) {
+            return [
+                'success' => false,
+                'message' => 'Accessory tidak ditemukan / userid_zoom kosong / Zoom tidak diaktifkan.',
+            ];
+        }
+
+        $account = $accessory->zoom_account ?: 'business';
+
+        try {
+            $duration = Carbon::parse($meeting->start_meeting_time)
+                ->diffInMinutes(Carbon::parse($meeting->end_meeting_time));
+
+            $result = $this->zoomApi->createMeeting([
+                'topic' => $meeting->meeting_title ?: ('Meeting '.$meeting->docid),
+                'type' => 2, // scheduled meeting
+                'start_time' => $meeting->start_meeting_time,
+                'duration' => max((int) $duration, 1),
+                'agenda' => $meeting->meeting_descr,
+            ], $accessory->userid_zoom, $account);
+
+            if (empty($result->join_url)) {
+                return [
+                    'success' => false,
+                    'message' => 'Zoom meeting was created but no join link was returned.',
+                ];
+            }
+
+            return [
+                'success' => true,
+                'zoom_id' => $result->id ?? null,
+                'zoom_account' => $account,
+                'zoom_join_url' => $result->join_url,
+                'zoom_password' => $result->password ?? null,
+                'zoom_start_url' => $result->start_url ?? null,
+            ];
+        } catch (\Throwable $e) {
+            Log::error('createZoomMeetingFromAccessory exception', [
+                'docid' => $meeting->docid,
+                'message' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Failed to create Zoom meeting: '.$e->getMessage(),
+            ];
+        }
+    }
+
+    protected function updateZoomMeeting($meeting): array
+    {
+        if (!$meeting->zoom_id) {
+            return ['success' => false, 'message' => 'No existing Zoom meeting'];
+        }
+
+        try {
+            $duration = Carbon::parse($meeting->start_meeting_time)
+                ->diffInMinutes(Carbon::parse($meeting->end_meeting_time));
+
+            $this->zoomApi->updateMeeting($meeting->zoom_id, [
+                'topic' => $meeting->meeting_title ?: ('Meeting '.$meeting->docid),
+                'type' => 2,
+                'start_time' => $meeting->start_meeting_time,
+                'duration' => max((int) $duration, 1),
+                'agenda' => $meeting->meeting_descr,
+            ], $meeting->zoom_account ?: 'business');
+
+            return ['success' => true];
+        } catch (\Throwable $e) {
+            Log::error('updateZoomMeeting exception', [
+                'docid' => $meeting->docid,
+                'message' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => $e->getMessage(),
+            ];
+        }
+    }
+
+    protected function deleteZoomMeeting($meeting): array
+    {
+        if (!$meeting->zoom_id) {
+            return ['success' => false, 'message' => 'No Zoom meeting'];
+        }
+
+        try {
+            $this->zoomApi->deletezoom($meeting->zoom_id, $meeting->zoom_account ?: 'business');
+
+            return ['success' => true];
+        } catch (\Throwable $e) {
+            Log::error('deleteZoomMeeting exception', [
+                'docid' => $meeting->docid,
+                'message' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => $e->getMessage(),
+            ];
+        }
+    }
     // public function cancelMeeting($id)
     // {
     //     $meeting = TrMeeting::on('pgsql5')->find($id);
@@ -2527,6 +2881,10 @@ class MeetingController extends Controller
             $this->deleteMicrosoftTeamsMeeting($meeting);
         }
 
+        if (!empty($meeting->zoom_id)) {
+            $this->deleteZoomMeeting($meeting);
+        }
+
         $this->sendMeetingEmail($meeting, 'cancel');
 
         return response()->json([
@@ -2545,7 +2903,7 @@ class MeetingController extends Controller
 
         if ($bookingSetting && !empty($bookingSetting->setting_value_string)) {
             $maxBookingDate = now()
-                ->addDays((int) $bookingSetting->setting_value_string)
+                ->modify($bookingSetting->setting_value_string)
                 ->endOfDay();
         }
 
@@ -2611,7 +2969,7 @@ class MeetingController extends Controller
         }
     }
 
-    protected function createTeamsMeetingFromAccessory($meeting): array
+    public function createTeamsMeetingFromAccessory($meeting): array
     {
         // pecah acc_id jadi array
         $accIds = collect(explode(',', (string) $meeting->acc_id))
@@ -2630,12 +2988,13 @@ class MeetingController extends Controller
         $accessory = MsMeetingAccessories::on('pgsql5')
             ->whereIn('acc_id', $accIds)
             ->whereNotNull('userid_msteams')
+            ->where('status_teams', 'A')
             ->first();
 
         if (!$accessory) {
             return [
                 'success' => false,
-                'message' => 'Accessory tidak ditemukan / userid_msteams kosong.',
+                'message' => 'Accessory tidak ditemukan / userid_msteams kosong / Teams tidak diaktifkan.',
             ];
         }
 
@@ -2670,6 +3029,7 @@ class MeetingController extends Controller
         $accessory = MsMeetingAccessories::on('pgsql5')
             ->whereIn('acc_id', $accIds)
             ->whereNotNull('userid_msteams')
+            ->where('status_teams', 'A')
             ->first();
 
         return $accessory->userid_msteams ?? null;
@@ -2753,11 +3113,28 @@ class MeetingController extends Controller
 
             $json = $response->json();
 
+            $joinUrl = data_get($json, 'onlineMeeting.joinUrl')
+                ?: ($json['onlineMeetingUrl'] ?? null);
+
+            if (empty($joinUrl)) {
+                Log::error('MS Graph event created without online meeting join info', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                    'userId' => $userId,
+                    'eventId' => $json['id'] ?? null,
+                ]);
+
+                return [
+                    'success' => false,
+                    'message' => 'Teams event was created but Microsoft Graph did not return a join link.',
+                    'msteams_event_id' => $json['id'] ?? null,
+                ];
+            }
+
             return [
                 'success' => true,
                 'msteams_event_id' => $json['id'] ?? null,
-                'msteams_join_url' => data_get($json, 'onlineMeeting.joinUrl')
-                    ?: ($json['onlineMeetingUrl'] ?? null),
+                'msteams_join_url' => $joinUrl,
                 'msteams_passcode' => data_get($json, 'onlineMeeting.joinMeetingIdSettings.passcode'),
                 'msteams_meetingid' => data_get($json, 'onlineMeeting.joinMeetingIdSettings.joinMeetingId')
                     ?: data_get($json, 'onlineMeeting.conferenceId'),

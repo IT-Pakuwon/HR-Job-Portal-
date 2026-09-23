@@ -11,6 +11,8 @@ class Trchecklist extends Model
     protected $table = "hr_trx_doc_checklist";   
     protected $fillable = [  
         'docid',
+        'cpnyid',
+        'group_cpny_id',
         'jobapply_id',
         'jobid',
         'applicant_id',

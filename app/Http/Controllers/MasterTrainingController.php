@@ -2,300 +2,257 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Traits\HasAutonbr;
+use App\Models\MsCategory;
+use App\Models\MsTrainingEvent;
+use App\Models\MsLndTrainingSchedule;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Vinkla\Hashids\Facades\Hashids;
 
 class MasterTrainingController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | INDEX
-    |--------------------------------------------------------------------------
-    */
+    use HasAutonbr;
+
+    protected const DOCTYPE = 'TE';
+
     public function index()
     {
-        $trainings = session()->get('master_trainings', []);
-
-        foreach ($trainings as &$training) {
-            $this->calculateTrainingStatus($training);
-            $this->calculateSessionSummary($training);
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
         }
 
-        session()->put('master_trainings', $trainings);
-
-        return view('pages.master_training.master', compact('trainings'));
+        return view('pages.master_training.master');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | CREATE PAGE
-    |--------------------------------------------------------------------------
-    */
-    public function create()
+    public function json()
     {
-        return view('pages.master_training.createmaster');
+        $rows = MsTrainingEvent::select([
+                'id',
+                'training_id',
+                'training_name',
+                'category_id',
+                'is_mandatory',
+                'training_description',
+                'training_type',
+                'status',
+            ])
+            ->orderByDesc('id')
+            ->get();
+
+        // One row per dated schedule (ms_lnd_training_schedule), aggregated
+        // per training via its header table — avoids an N+1 query per row.
+        $scheduleCounts = DB::connection('pgsql5')
+            ->table('ms_lnd_training_detail as h')
+            ->join('ms_lnd_training_schedule as d', 'd.training_detail_id', '=', 'h.training_detail_id')
+            ->select('h.training_id', DB::raw('count(*) as cnt'))
+            ->groupBy('h.training_id')
+            ->pluck('cnt', 'training_id');
+
+        $rows->each(function ($row) use ($scheduleCounts) {
+            $row->eid = Hashids::encode($row->id);
+            $row->schedule_count = (int) ($scheduleCounts[$row->training_id] ?? 0);
+        });
+
+        return response()->json([
+            'data' => $rows,
+        ]);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | STORE (MATCH CREATE BLADE)
-    |--------------------------------------------------------------------------
-    */
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required',
-            'type' => 'required|in:MANDATORY,NON_MANDATORY',
-            'category' => 'required_if:type,NON_MANDATORY',
-            'trainer' => 'required',
-            'poster' => 'required|image|max:2048',
-            'sessions' => 'required|array|min:1',
-            'sessions.*.start_date' => 'required|date',
-            'sessions.*.start_time' => 'required',
-            'sessions.*.end_time' => 'required',
-            'sessions.*.mode' => 'required|in:ONLINE,OFFLINE,HYBRID',
-            'sessions.*.quota' => 'required|integer|min:1',
+            'training_name'         => 'required|string|max:255',
+            'category_id'           => 'required|string|max:50',
+            'is_mandatory'          => 'nullable|boolean',
+            'training_description'  => 'nullable|string',
+            'training_type'         => 'required|in:INTERNAL,EXTERNAL',
         ]);
 
-        $trainings = session()->get('master_trainings', []);
+        DB::connection('pgsql5')->beginTransaction();
 
-        // Upload poster
-        $posterPath = $request->file('poster')->store('training_posters', 'public');
+        try {
+            $user = Auth::user();
+            $now = now();
+            $createdBy = $user->username ?? 'system';
 
-        $trainingId = count($trainings) + 1;
+            $trainingId = $this->generateTrainingCode($createdBy);
 
-        $newTraining = [
-            'id' => $trainingId,
-            'name' => $request->name,
-            'type' => $request->type,
-            'category' => $request->category,
-            'trainer' => $request->trainer,
-            'description' => $request->description,
-            'poster' => $posterPath,
-            'applies_to_specific' => $request->applies_to_specific ? true : false,
-            'is_active' => $request->is_active ? true : false,
-            'created_at' => now()->toDateTimeString(),
-            'status' => 'DRAFT',
-            'sessions' => []
-        ];
+            $row = MsTrainingEvent::create([
+                'training_id'           => $trainingId,
+                'training_name'         => trim($request->training_name),
+                'category_id'           => trim($request->category_id),
+                'is_mandatory'          => $request->boolean('is_mandatory'),
+                'training_description'  => $request->filled('training_description') ? trim($request->training_description) : null,
+                'training_type'         => $request->training_type,
+                'status'                => 'A',
+                'created_by'            => $createdBy,
+                'created_at'            => $now,
+            ]);
 
-        foreach ($request->sessions as $index => $session) {
+            DB::connection('pgsql5')->commit();
 
-            $closeDate = Carbon::parse($session['start_date'])
-                ->subDays(3)
-                ->toDateString();
+            return response()->json([
+                'success' => true,
+                'data'    => $row,
+                'message' => 'Training berhasil disimpan',
+            ]);
+        } catch (\Throwable $e) {
+            DB::connection('pgsql5')->rollBack();
 
-            $newTraining['sessions'][] = [
-                'id' => $index + 1,
-                'level' => $session['level'] ?? null,
-                'start_date' => $session['start_date'],
-                'start_time' => $session['start_time'],
-                'end_time' => $session['end_time'],
-                'mode' => $session['mode'],
-                'location' => $session['location'] ?? null,
-                'platform' => $session['platform'] ?? null,
-                'meeting_link' => $session['meeting_link'] ?? null,
-                'quota' => $session['quota'],
-                'approved_count' => 0,
-                'waitlist_count' => 0,
-                'available_quota' => $session['quota'],
-                'close_date' => $closeDate,
-                'is_active' => isset($session['is_active'])
-            ];
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyimpan training',
+                'error'   => $e->getMessage(),
+            ], 500);
         }
-
-        $trainings[] = $newTraining;
-
-        session()->put('master_trainings', $trainings);
-
-        return redirect()
-            ->route('mastertraining.index')
-            ->with('success', 'Training created successfully');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | SHOW
-    |--------------------------------------------------------------------------
-    */
-    public function show($id)
-    {
-        $trainings = session()->get('master_trainings', []);
-
-        $training = collect($trainings)->firstWhere('id', (int)$id);
-
-        abort_if(!$training, 404);
-
-        return view('pages.master_training.showtraining', compact('training'));
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | EDIT
-    |--------------------------------------------------------------------------
-    */
     public function edit($id)
     {
-        $trainings = session()->get('master_trainings', []);
+        $row = MsTrainingEvent::findOrFail($id);
 
-        $training = collect($trainings)->firstWhere('id', (int)$id);
-
-        abort_if(!$training, 404);
-
-        return view('pages.master_training.editmaster', compact('training'));
+        return response()->json([
+            'id'                     => $row->id,
+            'training_id'            => $row->training_id,
+            'training_name'          => $row->training_name,
+            'category_id'            => $row->category_id,
+            'is_mandatory'           => $row->is_mandatory,
+            'training_description'   => $row->training_description,
+            'training_type'          => $row->training_type,
+            'status'                 => $row->status,
+        ]);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | UPDATE
-    |--------------------------------------------------------------------------
-    */
     public function update(Request $request, $id)
     {
+        $row = MsTrainingEvent::findOrFail($id);
+
         $request->validate([
-            'name' => 'required',
-            'type' => 'required|in:MANDATORY,NON_MANDATORY',
-            'category' => 'required_if:type,NON_MANDATORY',
-            'trainer' => 'required',
-            'sessions' => 'required|array|min:1',
-            'sessions.*.start_date' => 'required|date',
-            'sessions.*.start_time' => 'required',
-            'sessions.*.end_time' => 'required',
-            'sessions.*.mode' => 'required|in:ONLINE,OFFLINE,HYBRID',
-            'sessions.*.quota' => 'required|integer|min:1',
+            'training_name'         => 'required|string|max:255',
+            'category_id'           => 'required|string|max:50',
+            'is_mandatory'          => 'nullable|boolean',
+            'training_description'  => 'nullable|string',
+            'training_type'         => 'required|in:INTERNAL,EXTERNAL',
         ]);
 
-        $trainings = session()->get('master_trainings', []);
+        DB::connection('pgsql5')->beginTransaction();
 
-        foreach ($trainings as &$training) {
+        try {
+            $user = Auth::user();
+            $now = now();
+            $updatedBy = $user->username ?? 'system';
 
-            if ($training['id'] != $id) continue;
+            $row->update([
+                'training_name'         => trim($request->training_name),
+                'category_id'           => trim($request->category_id),
+                'is_mandatory'          => $request->boolean('is_mandatory'),
+                'training_description'  => $request->filled('training_description') ? trim($request->training_description) : null,
+                'training_type'         => $request->training_type,
+                'updated_by'            => $updatedBy,
+                'updated_at'            => $now,
+            ]);
 
-            /* =============================
-            UPDATE HEADER
-            ============================== */
+            DB::connection('pgsql5')->commit();
 
-            $training['name'] = $request->name;
-            $training['type'] = $request->type;
-            $training['category'] = $request->category;
-            $training['trainer'] = $request->trainer;
-            $training['description'] = $request->description;
-            $training['applies_to_specific'] = $request->applies_to_specific ? true : false;
-            $training['is_active'] = $request->is_active ? true : false;
+            return response()->json([
+                'success' => true,
+                'message' => 'Training berhasil diupdate',
+            ]);
+        } catch (\Throwable $e) {
+            DB::connection('pgsql5')->rollBack();
 
-            /* =============================
-            UPDATE POSTER (IF NEW)
-            ============================== */
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal update training',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
 
-            if ($request->hasFile('poster')) {
-                $posterPath = $request->file('poster')
-                    ->store('training_posters', 'public');
+    public function toggleStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:A,X',
+        ]);
 
-                $training['poster'] = $posterPath;
+        $row = MsTrainingEvent::findOrFail($id);
+        $user = Auth::user();
+
+        if ($request->status === 'X') {
+            // ms_lnd_training_schedule.status is stored as a single-letter code
+            // (see TrainingSessionController::STATUS_CODE_MAP) — 'C' = Closed,
+            // 'X' = Cancelled. Anything else (Draft/Published) counts as open.
+            $hasOpenSchedule = MsLndTrainingSchedule::whereHas('schedule', function ($q) use ($row) {
+                    $q->where('training_id', $row->training_id);
+                })
+                ->whereNotIn('status', ['C', 'X'])
+                ->exists();
+
+            if ($hasOpenSchedule) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Training tidak dapat dinonaktifkan karena masih memiliki schedule yang belum berstatus Closed',
+                ], 422);
             }
-
-            /* =============================
-            REBUILD SESSIONS COMPLETELY
-            ============================== */
-
-            $training['sessions'] = [];
-
-            foreach ($request->sessions as $index => $session) {
-
-                $closeDate = Carbon::parse($session['start_date'])
-                    ->subDays(3)
-                    ->toDateString();
-
-                $training['sessions'][] = [
-                    'id' => $index + 1,
-                    'level' => $session['level'] ?? null,
-                    'start_date' => $session['start_date'],
-                    'start_time' => $session['start_time'],
-                    'end_time' => $session['end_time'],
-                    'mode' => $session['mode'],
-                    'location' => $session['location'] ?? null,
-                    'platform' => $session['platform'] ?? null,
-                    'meeting_link' => $session['meeting_link'] ?? null,
-                    'quota' => $session['quota'],
-                    'approved_count' => 0,
-                    'waitlist_count' => 0,
-                    'available_quota' => $session['quota'],
-                    'close_date' => $closeDate,
-                    'is_active' => isset($session['is_active'])
-                ];
-            }
         }
 
-        session()->put('master_trainings', $trainings);
+        $row->update([
+            'status'     => $request->status,
+            'updated_by' => $user->username ?? 'system',
+            'updated_at' => now(),
+        ]);
 
-        return redirect()
-            ->route('mastertraining.index')
-            ->with('success', 'Training updated successfully');
+        return response()->json([
+            'success' => true,
+            'status'  => $request->status,
+            'message' => 'Status berhasil diupdate',
+        ]);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | DELETE
-    |--------------------------------------------------------------------------
-    */
-    public function destroy($id)
+    public function categorySearch(Request $request)
     {
-        $trainings = session()->get('master_trainings', []);
+        $search = trim((string) $request->get('q', ''));
 
-        $trainings = collect($trainings)
-            ->reject(fn($t) => $t['id'] == $id)
-            ->values()
-            ->toArray();
+        $query = MsCategory::query()
+            ->where('doctype', self::DOCTYPE)
+            ->where('status', 'A');
 
-        session()->put('master_trainings', $trainings);
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('categoryid', 'ilike', "%{$search}%")
+                    ->orWhere('category_name', 'ilike', "%{$search}%");
+            });
+        }
 
-        return back()->with('success', 'Training deleted');
+        $rows = $query->orderBy('category_name')->limit(50)->get();
+
+        return response()->json([
+            'results' => $rows->map(fn ($row) => [
+                'id'   => $row->categoryid,
+                'text' => $row->category_name,
+            ]),
+        ]);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | STATUS CALCULATION
-    |--------------------------------------------------------------------------
-    */
-    private function calculateTrainingStatus(&$training)
+    private function generateTrainingCode(string $username): string
     {
-        if (!$training['is_active']) {
-            $training['status'] = 'DRAFT';
-            return;
-        }
+        $year = (int) Carbon::now()->year;
+        $month = Carbon::now()->format('m');
 
-        if (empty($training['sessions'])) {
-            $training['status'] = 'DRAFT';
-            return;
-        }
+        $auto = $this->nextAutonbr(
+            self::DOCTYPE,
+            $year,
+            $month,
+            $username,
+            'Training Event'
+        );
 
-        $earliest = collect($training['sessions'])
-            ->sortBy('start_date')
-            ->first();
+        $yy = substr((string) $year, 2, 2);
 
-        $closeDate = Carbon::parse($earliest['start_date'])->subDays(3);
-
-        if (now()->lessThanOrEqualTo($closeDate)) {
-            $training['status'] = 'OPEN';
-        } elseif (now()->greaterThan(Carbon::parse($earliest['start_date']))) {
-            $training['status'] = 'FINISHED';
-        } else {
-            $training['status'] = 'CLOSED';
-        }
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | SESSION SUMMARY
-    |--------------------------------------------------------------------------
-    */
-    private function calculateSessionSummary(&$training)
-    {
-        foreach ($training['sessions'] as &$session) {
-            $session['available_quota'] = max(
-                0,
-                $session['quota'] - $session['approved_count']
-            );
-        }
+        return self::DOCTYPE . $yy . $month . sprintf('%04d', $auto['next']);
     }
 }

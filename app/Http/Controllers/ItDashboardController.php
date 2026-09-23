@@ -107,6 +107,7 @@ class ItDashboardController extends Controller
                 'pic_ticket',
                 'status',
             ])
+            ->with('category:ticket_categoryid,ticket_category_name')
             ->where('status', 'P')
             ->whereNotIn(DB::raw('UPPER(status_pekerjaan)'), ['CANCEL', 'COMPLETED'])
             ->whereIn('ticket_categoryid', $assignedCategoryIds)
@@ -138,6 +139,7 @@ class ItDashboardController extends Controller
                 'ticket_duedate' => optional($row->ticket_duedate)->format('d M Y H:i'),
                 'ticket_type' => $row->ticket_type,
                 'ticket_categoryid' => $row->ticket_categoryid,
+                'ticket_category_name' => $row->category->ticket_category_name ?? $row->ticket_categoryid,
                 'ticket_subcategoryid' => $row->ticket_subcategoryid,
                 'user_peminta' => $row->user_peminta,
                 'issue_summary' => $row->issue_summary,
@@ -163,7 +165,7 @@ class ItDashboardController extends Controller
         $isSoftware = $user->hasRole('ITSOFTWARE');
 
         $query = TrAccess::query()
-            ->select(['id', 'docid', 'access_date', 'cpny_id', 'department_id', 'user_peminta', 'access_type', 'keperluan', 'status', 'created_at'])
+            ->select(['id', 'docid', 'access_date', 'cpny_id', 'department_id', 'user_peminta', 'user_assign', 'access_type', 'keperluan', 'status', 'created_at'])
             ->where('status', 'C');
 
         if ($isHardware && !$isSoftware) {
@@ -186,6 +188,7 @@ class ItDashboardController extends Controller
                     'eid' => Hashids::encode($row->id),
                     'docid' => $row->docid,
                     'user_peminta' => $row->user_peminta,
+                    'user_assign' => $row->user_assign,
                     'access_type' => $row->access_type,
                     'keperluan' => $row->keperluan,
                     'groups' => $groups,

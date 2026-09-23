@@ -23,6 +23,7 @@ use App\Models\User;
 use App\Models\JobApplySch;
 use App\Models\JobApply;
 use App\Models\JobApplyStep;
+use App\Models\Career;
 use App\Models\Jobposting;
 use App\Models\Applicant;
 use App\Models\Meeting;
@@ -35,6 +36,7 @@ use App\Models\Viewtrxmeeting;
 use Spatie\IcalendarGenerator\Components\Calendar;
 use Spatie\IcalendarGenerator\Components\Event;
 use App\Models\TrApproval;
+use App\Models\MJobApplyStep;
 use Vinkla\Hashids\Facades\Hashids;
 use App\Http\Controllers\Traits\HasAutonbr;
 
@@ -129,11 +131,70 @@ class AgendaController extends Controller
             'cpnyid' => 'required|string',
             'departementid' => 'required|string',
             'title' => 'required|string',
+            'reftype' => 'required|in:IH,IU,IHU',
             'startdate' => 'nullable|date',
             'enddate' => 'nullable|date|after_or_equal:startdate',
             'attachments.*' => 'file|max:2048' // Validasi file, max 2MB
         ]);
 
+        // Guard: if the track this reftype would approve is already fully resolved
+        // (approved earlier, or skipped because the other track was used instead),
+        // refuse up front instead of silently creating an agenda with no matching
+        // step change — see storeAgenda's step-skip logic further below.
+        $guardUser = request()->user();
+        $guardGroupCompanyId = strtoupper(trim((string) $guardUser->group_cpny_id));
+
+        // Some companies (e.g. SBY) don't run a standalone "Interview HC" track — their
+        // IHC step is inactive in hr_ms_job_step. Reject plain IH here with a clear
+        // message instead of falling through to the generic "already resolved" guard
+        // below, which would be misleading (the step was never active, not resolved).
+        // IHU is NOT blocked by this: for a company with no HC step, IHU still resolves
+        // to just the User track further below (the HC half of it is simply a no-op),
+        // so it's equivalent to picking IU — no reason to refuse it.
+        if ($request->reftype === 'IH') {
+            $hcTrackActive = MJobApplyStep::where('group_cpny_id', $guardGroupCompanyId)
+                ->where('step_id', 'IHC')
+                ->where('status', 'A')
+                ->exists();
+
+            if (!$hcTrackActive) {
+                return response()->json([
+                    'error' => 'This company does not run an Interview HC track — choose Interview User instead.',
+                ], 422);
+            }
+        }
+
+        $guardJobApply = JobApply::where('docid', $request->refid)
+            ->where('group_cpny_id', $guardGroupCompanyId)
+            ->first();
+
+        if ($guardJobApply) {
+            $stepOrdersByInterviewTypeGuard = [
+                'IH' => [3, 4],
+                'IHU' => [3, 4, 5, 6],
+                'IU' => [5, 6],
+            ];
+
+            $hasPendingStep = JobApplyStep::where('docid', $guardJobApply->docid)
+                ->where('jobid', $guardJobApply->jobid)
+                ->where('cpnyid', $request->cpnyid)
+                ->where('group_cpny_id', $guardGroupCompanyId)
+                ->whereIn('step_order', $stepOrdersByInterviewTypeGuard[$request->reftype])
+                ->where('status', 'P')
+                ->exists();
+
+            if (!$hasPendingStep) {
+                $trackLabel = [
+                    'IH' => 'Interview HC',
+                    'IHU' => 'Interview HC & User',
+                    'IU' => 'Interview User',
+                ][$request->reftype];
+
+                return response()->json([
+                    'error' => "{$trackLabel} track for this applicant is already resolved (approved or skipped) — undo that first if you really need to schedule it again.",
+                ], 422);
+            }
+        }
 
         DB::beginTransaction();
         try {
@@ -215,6 +276,7 @@ class AgendaController extends Controller
             $agenda = Agenda::create([
                 'docid' => $docid,
                 'cpnyid' => $request->cpnyid,
+                'group_cpny_id' => strtoupper(trim((string) $user->group_cpny_id)),
                 'departementid' => $request->departementid,
                 'agendadate' => $datenow,
                 'title' => $request->title,
@@ -232,38 +294,85 @@ class AgendaController extends Controller
                 'participant'       => $participantCsv,
             ]);
 
-            // Simpan Attachments ke attachments
-            // if ($request->hasfile('attachments')) {
-            //     foreach ($request->file('attachments') as $file) {
-            //         $randomNumber = random_int(10000000, 99999999);
-            //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
+            $jobapply = JobApply::where('docid', $agenda->refid)
+                ->where('group_cpny_id', $groupCompanyId)
+                ->firstOrFail();
 
-            //         $originalName = str_replace('%', '', $file->getClientOriginalName());
-            //         $attachfile = md5($randomNumber) . '-' . $originalName;
+            // Only the "Create Schedule" checkpoint step is auto-approved by creating the
+            // schedule — it just means a schedule now exists. The actual interview outcome
+            // step (Interview HC / Interview User) is left pending on purpose, so HC/User
+            // still has to genuinely Approve or Reject it after the interview actually
+            // happens, instead of it being auto-approved the moment a schedule is created.
+            $stepOrdersByInterviewType = [
+                'IH' => [3],
+                'IHU' => [3, 5],
+                'IU' => [5],
+            ];
 
-            //         //attach to folder
-            //         $folder_attach = public_path() . '/attachments/'.$year;
-            //         $config['upload_path'] = $folder_attach;
-            //         if(!is_dir($folder_attach))
-            //         {
-            //             mkdir($folder_attach, 0777);
-            //         }
+            // When the recruiter picks a single-track interview type (IH or IU),
+            // that choice means the other track is not required for this applicant.
+            // Without this, the untouched track's gate step stays 'P' forever and
+            // blocks every step after it (see approval.blade.php gate check).
+            $stepOrdersToSkip = [
+                'IH' => [5, 6],
+                'IHU' => [],
+                'IU' => [3, 4],
+            ];
 
-            //         $folder_upload = $folder_attach;
-            //         // $folder_upload = public_path() . '/attachments';
-            //         $file->move($folder_upload, $attachfile);
+            $stepsToApprove = JobApplyStep::where('docid', $jobapply->docid)
+                ->where('jobid', $jobapply->jobid)
+                ->where('cpnyid', $request->cpnyid)
+                ->where('group_cpny_id', $groupCompanyId)
+                ->whereIn('step_order', $stepOrdersByInterviewType[$request->reftype])
+                ->where('status', 'P')
+                ->orderBy('step_order', 'ASC')
+                ->get();
 
-            //         //insert to table attachments
-            //         $attach = new Attachment();
-            //         $attach->docid = $docid;
-            //         $attach->name = $filename;
-            //         $attach->attachfile = $attachfile;
-            //         $attach->status = 'A';
-            //         $attach->extention = $file->getClientOriginalExtension();
-            //         $attach->created_user = $user->username;
-            //         $attach->save();
-            //     }
-            // }
+            if ($stepsToApprove->isNotEmpty()) {
+                JobApplyStep::whereIn('id', $stepsToApprove->pluck('id'))
+                    ->update([
+                        'status' => 'A',
+                        'aprvusername' => $user->username,
+                        'aprvuserdate' => $datestamp,
+                        'updated_user' => $user->username,
+                    ]);
+
+                JobApplyStep::where('docid', $jobapply->docid)
+                    ->where('jobid', $jobapply->jobid)
+                    ->where('cpnyid', $request->cpnyid)
+                    ->where('group_cpny_id', $groupCompanyId)
+                    ->whereIn('step_order', $stepOrdersToSkip[$request->reftype])
+                    ->where('status', 'P')
+                    ->update([
+                        'status' => 'X',
+                        'updated_user' => $user->username,
+                    ]);
+
+                // Update apply_step & prev_apply_step di Career, sama seperti di approveCareer()
+                $career = Career::where('docid', $jobapply->docid)->first();
+
+                if ($career) {
+                    $lastApprovedStep = $stepsToApprove->last();
+
+                    $t_approval_next = JobApplyStep::where('docid', $jobapply->docid)
+                        ->where('jobid', $jobapply->jobid)
+                        ->where('group_cpny_id', $groupCompanyId)
+                        ->where('status', 'P')
+                        ->orderBy('step_order', 'ASC')
+                        ->first();
+
+                    if ($t_approval_next) {
+                        $career->apply_step = $t_approval_next->step_id;
+                    }
+
+                    $career->prev_apply_step = $lastApprovedStep->step_id;
+                    $career->updated_user = $user->username;
+                    $career->updated_at = $datestamp;
+                    $career->save();
+                }
+            }
+
 
             $docidagenda = $docid;
 
@@ -276,26 +385,7 @@ class AgendaController extends Controller
             }else{
 
 
-                // if (!empty($participants)) {
-                //     $rows = [];
-                //     foreach ($participants as $i => $uname) {
-                //         $rows[] = [
-                //             'docid'          => $docid,
-                //             'aprvid'         => 1, // atau ($i+1) kalau ingin urut 1..n
-                //             'aprvdoctype'    => 'AGD',
-                //             'aprvcpnyid'     => $request->cpnyid,        // <- pastikan tidak terbalik
-                //             'aprvdeptid'     => $request->departementid, // <-
-                //             'aprvusername'   => $uname,                                  // username
-                //             'name'           => $userMap->get($uname, $uname),           // NAMA LENGKAP
-                //             'aprvtotalday'   => 1,
-                //             // 'aprvdatebefore' => $datestamp,
-                //             'status'         => 'P',
-                //             'created_user'   => $user->username,
-
-                //         ];
-                //     }
-                //     T_approval::insert($rows); // lebih efisien daripada create() di-loop
-                // }
+                
                 if (!empty($participants)) {
                     $rows = [];
                     foreach ($participants as $i => $uname) {
@@ -325,57 +415,18 @@ class AgendaController extends Controller
 
                 // $this->insert_JobApplySch($agenda, $user);
 
-                $jobapply = JobApply::where('docid', $agenda->refid)->first();
-                $applicant = Applicant::where('applicant_id', $jobapply->applicant_id)->first();
-                $jobposting = Jobposting::where('docid', $jobapply->jobid)->first();
-
-                $step3 = JobApplyStep::where('docid', $jobapply->docid)
-                    ->where('status', 'P')
-                    ->where('step_order', 3)
+                $applicant = Applicant::where('applicant_id', $jobapply->applicant_id)
+                    ->where('group_cpny_id', $groupCompanyId)
+                    ->first();
+                $jobposting = Jobposting::where('docid', $jobapply->jobid)
+                    ->where('group_cpny_id', $groupCompanyId)
                     ->first();
 
-                if($step3){
-                    $step3->status = 'A';
-                    $step3->aprvuserdate = $datestamp;
-                    $step3->aprvusername = $user->username;
-                    $step3->save();
-                }
-
-                $step4 = JobApplyStep::where('docid', $jobapply->docid)
-                    ->where('status', 'A')
-                    ->where('step_order', 4)
-                    ->first();
-
-                if($step4){
-                    $step5 = JobApplyStep::where('docid', $jobapply->docid)
-                        ->where('status', 'P')
-                        ->where('step_order', 5)
-                        ->first();
-
-
-                    if($step5){
-
-                        $step5->status = 'A';
-                        $step5->aprvuserdate = $datestamp;
-                        $step5->aprvusername = $user->username;
-                        $step5->save();
-                    }else{
-
-                    }
-
-                }
-
-
-
-                // $t_approval_all = T_approval::where('docid', $docid)
-                //     ->where('status', 'P')
-                //     ->orderby('aprvid', 'ASC')
-                //     ->get();
 
                 $t_approval_all = TrApproval::where('refnbr', $docid)
-                ->where('status', 'P')
-                ->orderBy('aprv_leveling', 'ASC')
-                ->get();
+                    ->where('status', 'P')
+                    ->orderBy('aprv_leveling', 'ASC')
+                    ->get();
 
 
                 if (!$t_approval_all->isEmpty()) {
@@ -775,8 +826,11 @@ class AgendaController extends Controller
             // }
 
 
-            $jobapply = JobApply::where('docid', $agenda->refid)->first();
+            // $agenda->refid is a JAP docid, only unique WITHIN a group_cpny_id — pair with
+            // $agenda->group_cpny_id or this can pull another group's job apply.
+            $jobapply = JobApply::where('docid', $agenda->refid)->where('group_cpny_id', $agenda->group_cpny_id)->first();
             $jobapplystep = JobApplyStep::where('docid', $jobapply->docid)
+                ->where('group_cpny_id', $agenda->group_cpny_id)
                 ->where('status','A')
                 ->orderby('step_order','DESC')
                 ->first();
@@ -1048,15 +1102,27 @@ class AgendaController extends Controller
 
     public function sendemail_interview($agenda, $user)
     {
+        // $agenda->refid is a JAP docid, which is only unique WITHIN a group_cpny_id
+        // (unlike Agenda's own docid, which uses a global sequence) — so it must be
+        // paired with $agenda->group_cpny_id or this can pull another group's step.
+        $jobstep = JobApplyStep::where('docid', $agenda->refid)
+            ->where('group_cpny_id', $agenda->group_cpny_id)
+            ->first();
 
-        $jobstep = JobApplyStep::where('docid', $agenda->refid)->first();
-
-        $applicant = Applicant::where('applicant_id', $jobstep->applicant_id)->first();
+        $applicant = Applicant::where('applicant_id', $jobstep->applicant_id)->where('group_cpny_id', $agenda->group_cpny_id)->first();
         $jobposting = Jobposting::where('docid', $jobstep->jobid)->first();
 
         if (!$applicant || empty($applicant->email_address)) {
             return response()->json(['error' => 'Applicant email not found.'], 404);
         }
+
+        $pic = User::where('username', $agenda->created_user)->first();
+
+        $scheduleTypeLabel = [
+            'IH' => 'Interview HC',
+            'IHU' => 'Interview HC & User',
+            'IU' => 'Interview User',
+        ][$agenda->reftype] ?? 'User Interview & Psychotest';
 
         $data = [
             'name' => $applicant->full_name ?? 'Pelamar',
@@ -1067,6 +1133,9 @@ class AgendaController extends Controller
             'starttime' => Carbon::parse($agenda->startdate)->format('H:i'), // e.g., 09:00
             'endtime'   => Carbon::parse($agenda->enddate)->format('H:i'),   // e.g., 10:00
             'jobtitle' => $jobposting->job_title ?? '',
+            'pic_recruitment' => $pic->name ?? $agenda->created_user,
+            'schedule_type' => $scheduleTypeLabel,
+            'group_cpny_id' => $agenda->group_cpny_id,
         ];
 
         Mail::send('emails.mailinterview', $data, function ($message) use ($applicant,$data) {
@@ -1172,7 +1241,7 @@ class AgendaController extends Controller
             }
 
             $tglbln = substr($year, 2) . $month;
-            $docid = $doctype . $tglbln . sprintf("%03d", $urutan);
+            $docid = $doctype . $tglbln . sprintf("%04d", $urutan);
 
             $participantUsernames = explode(',', $agenda->participant);
 
@@ -1262,6 +1331,7 @@ class AgendaController extends Controller
             ->where('id',$meeting->acc_id)
             ->first();
         $user_idzoom = $accessories->user_idzoom;
+        $zoomAccount = $accessories->zoom_account ?: 'business';
 
 
         $data = [
@@ -1276,10 +1346,11 @@ class AgendaController extends Controller
             ]
         ];
 
-        $api_zoom = $this->zoomApi->createMeeting($data,$user_idzoom);
-        $getinvitation = $this->zoomApi->getinvitation($api_zoom->id);
+        $api_zoom = $this->zoomApi->createMeeting($data,$user_idzoom,$zoomAccount);
+        $getinvitation = $this->zoomApi->getinvitation($api_zoom->id,$zoomAccount);
 
         $meeting->zoom_id = $api_zoom->id;
+        $meeting->zoom_account = $zoomAccount;
         $meeting->info_zoom = $getinvitation['invitation'];
         $meeting->save();
 
@@ -1374,7 +1445,15 @@ class AgendaController extends Controller
 
     public function getBySite($site)
     {
-        $address = CompanyAddress::where('site', $site)->first();
+        $user = Auth::user();
+
+        abort_unless($user, 401);
+
+        $address = CompanyAddress::where('site', $site)
+            ->where('group_cpny_id', strtoupper(trim((string) $user->group_cpny_id)))
+            ->where('status', 'A')
+            ->first();
+
         return response()->json($address);
     }
 

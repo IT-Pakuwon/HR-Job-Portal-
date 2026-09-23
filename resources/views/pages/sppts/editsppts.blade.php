@@ -8,6 +8,7 @@
                     action="{{ route('sppts.update', $hash) }}" method="POST">
                     @csrf
                     @method('PUT')
+                    <input type="hidden" name="is_draft" id="isDraftField" value="0">
 
                     <div class="w-full rounded-xl bg-white p-4 dark:bg-gray-800">
 
@@ -101,7 +102,7 @@
 
                                     <input type="text" id="requesttype_name_display" readonly
                                         value="{{ $selectedRTName }}"
-                                        class="... w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                        class="... w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                                         placeholder="Select request type...">
 
 
@@ -257,7 +258,7 @@
 
                                 <div class="flex items-center gap-2">
                                     <input type="checkbox" id="is_urgent" name="is_urgent" value="1"
-                                        class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                        class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-700"
                                         {{ $sppt->is_urgent ? 'checked' : '' }}>
                                     <label for="is_urgent" class="text-sm text-gray-700 dark:text-gray-300">Tandai
                                         emergency</label>
@@ -305,10 +306,10 @@
                                     class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                     <span>SPPT Detail</span>
                                     <span
-                                        class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                        class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
                                         details &rarr;</span>
                                     <span
-                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                                         details &darr;</span>
                                 </summary>
 
@@ -992,10 +993,10 @@
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span class="req">Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
                                     details &rarr;</span>
                                 <span
-                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                                     details &darr;</span>
                             </summary>
 
@@ -1074,7 +1075,7 @@
                         <div
                             class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
                             <button id="backBtn" onclick="history.back()"
-                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-300">
 
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -1094,6 +1095,10 @@
                                             stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
                                     </svg>
+                                </button>
+                                <button type="button" id="saveDraftBtn"
+                                    class="flex items-center gap-2 rounded-md bg-gray-500 px-4 py-2 text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                    <span id="draftBtnText">Save as Draft</span>
                                 </button>
                                 <button type="submit" id="submitBtn"
                                     class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
@@ -1300,153 +1305,158 @@
                 }
             }
 
-            $('#spptForm').on('submit', function(e) {
-                e.preventDefault();
+            function submitSpptForm(isDraft) {
+                $('#isDraftField').val(isDraft ? '1' : '0');
 
-                // ==============================
-                // ✅ ATTACHMENT REQUIRED CHECK
-                // ==============================
-                let hasAttachment = false;
+                if (!isDraft) {
+                    // ==============================
+                    // ✅ ATTACHMENT REQUIRED CHECK
+                    // ==============================
+                    let hasAttachment = false;
 
-                $('#attachmentsContainer input[type="file"]').each(function() {
-                    if (this.files && this.files.length > 0) {
-                        hasAttachment = true;
-                        return false; // break loop
+                    $('#attachmentsContainer input[type="file"]').each(function() {
+                        if (this.files && this.files.length > 0) {
+                            hasAttachment = true;
+                            return false; // break loop
+                        }
+                    });
+
+                    // If edit mode: also check existing attachment rows
+                    if (!hasAttachment) {
+                        const existingCount = $('.attachment-row[data-id]').length;
+                        if (existingCount > 0) {
+                            hasAttachment = true;
+                        }
                     }
-                });
 
-                // If edit mode: also check existing attachment rows
-                if (!hasAttachment) {
-                    const existingCount = $('.attachment-row[data-id]').length;
-                    if (existingCount > 0) {
-                        hasAttachment = true;
+                    if (!hasAttachment) {
+                        const $firstFile = $('#attachmentsContainer input[type="file"]').first();
+
+                        toastr.error('Minimal 1 attachment wajib diupload.');
+
+                        if ($firstFile.length) {
+                            $firstFile.addClass('is-invalid');
+                            $('html,body').animate({
+                                scrollTop: $firstFile.offset().top - 120
+                            }, 300);
+                        }
+
+                        return;
+                    }
+                    // ==============================
+
+                    // validasi minimal 1 detail valid (punya product & qty>0)
+                    const hasValid = $('#spptTable tr.sppt-row').toArray().some(tr => {
+                        const $tr = $(tr);
+                        const invId = ($tr.find('.inventoryIdField').val() || '').trim();
+                        const qty = parseFloat(($tr.find('input[name="qty[]"]').val() || '0')
+                            .replace(',', '.'));
+                        return invId !== '' && qty > 0;
+                    });
+                    if (!hasValid) {
+                        toastr.error('Minimal 1 item detail harus dipilih (Product Name & Qty > 0).');
+                        return;
+                    }
+
+                    // ===== VALIDASI SETIAP BARIS (wajib: Product, Qty, UoM, Location, Sub Location, Budget) =====
+                    clearDetailErrors();
+                    let anyInvalid = false;
+
+                    $('#spptTable tr.sppt-row').each(function() {
+                        const $tr = $(this);
+
+                        const $prodHidden = $tr.find('.inventoryIdField');
+                        const $prodVis = $tr.find('.productNameField');
+
+                        const $qty = $tr.find('input[name="qty[]"]');
+
+                        const $uomVis = $tr.find('.stock_unitField'); // yang terlihat
+                        const $uomTo = $tr.find('.uomToField'); // hidden (hasil pilih UoM)
+
+                        const $locHidden = $tr.find('.locationIdField');
+                        const $locVis = $tr.find('.locationNameField');
+
+                        const $subHidden = $tr.find('.subLocationIdField');
+                        const $subVis = $tr.find('.subLocationNameField');
+
+                        const $coaHidden = $tr.find('.coaIdField');
+                        const $coaVis = $tr.find('.coaNameField');
+
+                        // Anggap baris "aktif" kalau ada salah satu kolom terisi
+                        const active = [
+                            $prodHidden.val(), $qty.val(),
+                            $locHidden.val(), $subHidden.val(), $coaHidden.val()
+                        ].some(v => (v || '').toString().trim() !== '');
+
+                        if (!active) return; // baris kosong → lewati
+
+                        // Product
+                        if (($prodHidden.val() || '').trim() === '') {
+                            addDetailError($prodVis, 'Product wajib dipilih.');
+                            anyInvalid = true;
+                        }
+
+                        // Qty
+                        const qNum = parseFloat(($qty.val() || '').replace(',', '.'));
+                        if (!(qNum > 0)) {
+                            addDetailError($qty, 'Qty harus > 0.');
+                            anyInvalid = true;
+                        }
+
+                        // UoM (cek visible & hidden)
+                        const uomText = ($uomVis.val() || '').trim();
+                        if ((uomText === '' || uomText === '-') && (($uomTo.val() || '').trim() ===
+                                '')) {
+                            addDetailError($uomVis, 'UoM wajib dipilih.');
+                            anyInvalid = true;
+                        }
+
+                        // Location
+                        if (($locHidden.val() || '').trim() === '') {
+                            addDetailError($locVis, 'Location wajib dipilih.');
+                            anyInvalid = true;
+                        }
+
+                        // Sub Location
+                        if (($subHidden.val() || '').trim() === '') {
+                            addDetailError($subVis, 'Sub Location wajib dipilih.');
+                            anyInvalid = true;
+                        }
+
+                        // Budget
+                        if (($coaHidden.val() || '').trim() === '') {
+                            addDetailError($coaVis, 'Budget wajib dipilih.');
+                            anyInvalid = true;
+                        }
+                    });
+
+                    if (anyInvalid) {
+                        const $first = $('#spptTable .is-invalid').first();
+                        if ($first.length) {
+                            $('html,body').animate({
+                                scrollTop: $first.offset().top - 120
+                            }, 300);
+                            $first.trigger('focus');
+                        }
+                        toastr.error('Mohon lengkapi field wajib di SPPT Detail (bertanda *).');
+                        return;
                     }
                 }
-
-                if (!hasAttachment) {
-                    const $firstFile = $('#attachmentsContainer input[type="file"]').first();
-
-                    toastr.error('Minimal 1 attachment wajib diupload.');
-
-                    if ($firstFile.length) {
-                        $firstFile.addClass('is-invalid');
-                        $('html,body').animate({
-                            scrollTop: $firstFile.offset().top - 120
-                        }, 300);
-                    }
-
-                    return;
-                }
-                // ==============================
-
 
                 // normalisasi qty (koma -> titik)
                 $('.qtyField').each(function() {
                     if (this.value.includes(',')) this.value = this.value.replace(',', '.');
                 });
 
-                // validasi minimal 1 detail valid (punya product & qty>0)
-                const hasValid = $('#spptTable tr.sppt-row').toArray().some(tr => {
-                    const $tr = $(tr);
-                    const invId = ($tr.find('.inventoryIdField').val() || '').trim();
-                    const qty = parseFloat(($tr.find('input[name="qty[]"]').val() || '0').replace(
-                        ',', '.'));
-                    return invId !== '' && qty > 0;
-                });
-                if (!hasValid) {
-                    toastr.error('Minimal 1 item detail harus dipilih (Product Name & Qty > 0).');
-                    return;
-                }
-
-                // ===== VALIDASI SETIAP BARIS (wajib: Product, Qty, UoM, Location, Sub Location, Budget) =====
-                clearDetailErrors();
-                let anyInvalid = false;
-
-                $('#spptTable tr.sppt-row').each(function() {
-                    const $tr = $(this);
-
-                    const $prodHidden = $tr.find('.inventoryIdField');
-                    const $prodVis = $tr.find('.productNameField');
-
-                    const $qty = $tr.find('input[name="qty[]"]');
-
-                    const $uomVis = $tr.find('.stock_unitField'); // yang terlihat
-                    const $uomTo = $tr.find('.uomToField'); // hidden (hasil pilih UoM)
-
-                    const $locHidden = $tr.find('.locationIdField');
-                    const $locVis = $tr.find('.locationNameField');
-
-                    const $subHidden = $tr.find('.subLocationIdField');
-                    const $subVis = $tr.find('.subLocationNameField');
-
-                    const $coaHidden = $tr.find('.coaIdField');
-                    const $coaVis = $tr.find('.coaNameField');
-
-                    // Anggap baris "aktif" kalau ada salah satu kolom terisi
-                    const active = [
-                        $prodHidden.val(), $qty.val(),
-                        $locHidden.val(), $subHidden.val(), $coaHidden.val()
-                    ].some(v => (v || '').toString().trim() !== '');
-
-                    if (!active) return; // baris kosong → lewati
-
-                    // Product
-                    if (($prodHidden.val() || '').trim() === '') {
-                        addDetailError($prodVis, 'Product wajib dipilih.');
-                        anyInvalid = true;
-                    }
-
-                    // Qty
-                    const qNum = parseFloat(($qty.val() || '').replace(',', '.'));
-                    if (!(qNum > 0)) {
-                        addDetailError($qty, 'Qty harus > 0.');
-                        anyInvalid = true;
-                    }
-
-                    // UoM (cek visible & hidden)
-                    const uomText = ($uomVis.val() || '').trim();
-                    if ((uomText === '' || uomText === '-') && (($uomTo.val() || '').trim() ===
-                            '')) {
-                        addDetailError($uomVis, 'UoM wajib dipilih.');
-                        anyInvalid = true;
-                    }
-
-                    // Location
-                    if (($locHidden.val() || '').trim() === '') {
-                        addDetailError($locVis, 'Location wajib dipilih.');
-                        anyInvalid = true;
-                    }
-
-                    // Sub Location
-                    if (($subHidden.val() || '').trim() === '') {
-                        addDetailError($subVis, 'Sub Location wajib dipilih.');
-                        anyInvalid = true;
-                    }
-
-                    // Budget
-                    if (($coaHidden.val() || '').trim() === '') {
-                        addDetailError($coaVis, 'Budget wajib dipilih.');
-                        anyInvalid = true;
-                    }
-                });
-
-                if (anyInvalid) {
-                    const $first = $('#spptTable .is-invalid').first();
-                    if ($first.length) {
-                        $('html,body').animate({
-                            scrollTop: $first.offset().top - 120
-                        }, 300);
-                        $first.trigger('focus');
-                    }
-                    toastr.error('Mohon lengkapi field wajib di SPPT Detail (bertanda *).');
-                    return;
-                }
-
                 // ============== lock UI ==============
-                $('#submitBtn, #cancelBtn').prop('disabled', true);
-                $('#btnText').text('Processing...');
+                $('#submitBtn, #saveDraftBtn, #cancelBtn').prop('disabled', true);
+                if (isDraft) {
+                    $('#draftBtnText').text('Saving...');
+                } else {
+                    $('#btnText').text('Processing...');
+                }
                 // $('#loadingSpinner').removeClass('hidden');
-                showOverlay('Submitting');
+                showOverlay(isDraft ? 'Saving Draft' : 'Submitting');
 
                 // Kirim ke route update (pakai action form sendiri)
                 const form = document.getElementById('spptForm');
@@ -1460,7 +1470,9 @@
                     processData: false,
                     contentType: false,
                     success: function(res) {
-                        toastr.success(res.message || "SPPT updated successfully!");
+                        toastr.success(res.message || (isDraft ?
+                            "SPPT saved as draft!" :
+                            "SPPT updated successfully!"));
                         window.location.href = "/sppts";
                     },
                     error: function(xhr) {
@@ -1478,12 +1490,23 @@
                         }
                     },
                     complete: function() {
-                        $('#submitBtn, #cancelBtn').prop('disabled', false);
+                        $('#submitBtn, #saveDraftBtn, #cancelBtn').prop('disabled', false);
                         $('#btnText').text('Submit Approval');
+                        $('#draftBtnText').text('Save as Draft');
                         // $('#loadingSpinner').addClass('hidden');
                         hideOverlay();
                     }
                 });
+            }
+
+            $('#spptForm').on('submit', function(e) {
+                e.preventDefault();
+                submitSpptForm(false);
+            });
+
+            $('#saveDraftBtn').on('click', function(e) {
+                e.preventDefault();
+                submitSpptForm(true);
             });
 
             $(document).on('change', '#attachmentsContainer input[type="file"]', function() {
@@ -1598,7 +1621,7 @@
                     <td class="border p-2">${item.stock_unit || ''}</td>
                     <td class="border p-2">${item.item_sub_type || ''} - ${item.item_category || ''}</td>
                     <td class="border p-2 text-center">
-                    <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100"
+                    <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                         data-id="${item.inventoryid}"
                         data-name="${$('<div>').text(item.inventory_descr).html()}"
                         data-stock_unit="${item.stock_unit || ''}"
@@ -1877,7 +1900,7 @@
                 <td class="border p-2">${item.location_id}</td>
                 <td class="border p-2">${item.location_name || item.locationname || ''}</td>
                 <td class="border p-2 text-center">
-                    <button type="button" class="chooseLocation rounded border px-2 py-1 hover:bg-gray-100"
+                    <button type="button" class="chooseLocation rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                     data-id="${item.location_id}"
                     data-name="${$('<div>').text(item.location_name || item.locationname || '').html()}">Choose</button>
                 </td>
@@ -2040,7 +2063,7 @@
                     <td class="border p-2">${id}</td>
                     <td class="border p-2">${name}</td>
                     <td class="border p-2 text-center">
-                    <button type="button" class="chooseSubLocation rounded border px-2 py-1 hover:bg-gray-100"
+                    <button type="button" class="chooseSubLocation rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                         data-id="${id}" data-name="${$('<div>').text(name).html()}">Choose</button>
                     </td>
                 </tr>
@@ -2266,6 +2289,8 @@
                 $.getJSON(url, params)
                     .done(function(res) {
 
+                        const escAttr = (v) => $('<div>').text(v ?? '').html().replace(/"/g, '&quot;');
+
                         const rows = (res.data || []).map(item => {
 
                             const id = item.account_id ?? '';
@@ -2292,13 +2317,13 @@
                                     </td>
                                     <td class="border p-2 text-center">
                                         <button type="button"
-                                            class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
-                                            data-id="${id}"
-                                            data-activity_id="${actId}"
-                                            data-business_unit_id="${buId}"
-                                            data-department_fin_id="${deptFinId}"
-                                            data-activity_descr="${actDescr}"
-                                            data-label="${$('<div>').text(id).html()}">
+                                            class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            data-id="${escAttr(id)}"
+                                            data-activity_id="${escAttr(actId)}"
+                                            data-business_unit_id="${escAttr(buId)}"
+                                            data-department_fin_id="${escAttr(deptFinId)}"
+                                            data-activity_descr="${escAttr(actDescr)}"
+                                            data-label="${escAttr(id)}">
                                             Choose
                                         </button>
                                     </td>
@@ -2464,7 +2489,7 @@
                     <td class="border p-2">${md}</td>
                     <td class="border p-2">${rate}</td>
                     <td class="border p-2 text-center">
-                    <button type="button" class="chooseUom rounded border px-2 py-1 hover:bg-gray-100"
+                    <button type="button" class="chooseUom rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                             data-from="${$('<div>').text(from).html()}"
                             data-to="${$('<div>').text(to).html()}"
                             data-md="${$('<div>').text(md).html()}"
@@ -2522,7 +2547,7 @@
             // helper tampilan item tenant
             function formatTenant(item) {
                 if (!item.id) return item.text;
-                const unit = item.unit_label ? `<span class="text-gray-500"> — ${item.unit_label}</span>` : '';
+                const unit = item.unit_label ? `<span class="text-gray-500 dark:text-gray-400"> — ${item.unit_label}</span>` : '';
                 return $(`<span>${item.text}${unit}</span>`);
             }
 
@@ -2640,7 +2665,7 @@
             // Format tampilan item di dropdown
             function formatTenant(item) {
                 if (!item.id) return item.text;
-                const unit = item.unit_label ? `<span class="text-gray-500"> — ${item.unit_label}</span>` : '';
+                const unit = item.unit_label ? `<span class="text-gray-500 dark:text-gray-400"> — ${item.unit_label}</span>` : '';
                 return $(`<span>${item.text}${unit}</span>`);
             }
 

@@ -6,7 +6,7 @@
 
         $xlCols = 5;
         if ($hasRfpAllAccess) {
-            $xlCols++;
+            $xlCols += 2;
         }
     @endphp
 
@@ -68,21 +68,89 @@
                     <div class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
                         <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🌐</div>
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">RFP Finance</p>
+                            <p class="break-words text-sm font-medium">RFP / RFCA All</p>
                         </div>
                         <p class="shrink-0 text-base font-extrabold">{{ $rfpAll ?? 0 }}</p>
+                    </div>
+                </a>
+
+                <a href="#" class="status-filter group block h-full" data-scope="rfp_finance">
+                    <div class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
+                        <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">💰</div>
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="break-words text-sm font-medium">RFP / RFCA Job</p>
+                        </div>
+                        <p class="shrink-0 text-base font-extrabold">{{ $rfpFinance ?? 0 }}</p>
                     </div>
                 </a>
             @endif
         </div>
 
-        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">        
-             <div class="flex flex-row items-center justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 id="pageTitle" class="text-base font-extrabold text-gray-700 dark:text-white">
-                    Request For Payment
-                </h1>
+        <div
+            class="mt-3 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+                <div class="flex flex-wrap items-center gap-3">
+                    <h2 id="pageTitle" class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
+                        Request For Payment
+                    </h2>
 
-                <div class="flex items-center gap-4">                  
+                    {{-- Type Filter: RFP / RCA --}}
+                    <div id="typeFilterWrapper" class="inline-flex rounded-lg border border-gray-200 bg-gray-100 p-1 dark:border-gray-600 dark:bg-gray-700/60">
+                        <button type="button" class="type-filter type-filter-active rounded-md px-3 py-1.5 text-xs font-semibold transition-all duration-200" data-type="">All</button>
+                        <button type="button" class="type-filter rounded-md px-3 py-1.5 text-xs font-semibold transition-all duration-200 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" data-type="RFP">RFP</button>
+                        <button type="button" class="type-filter rounded-md px-3 py-1.5 text-xs font-semibold transition-all duration-200 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" data-type="RCA">RCA</button>
+                    </div>
+
+                    {{-- RFP All: Status Filter --}}
+                    <div id="rfpAllStatusFilterWrapper" class="hidden items-center gap-2">
+                        <div class="relative">
+                            <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400 dark:text-gray-500">
+                                <i class="fas fa-filter text-xs"></i>
+                            </span>
+                            <select id="rfpAllStatusFilter"
+                                class="rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-6 text-sm font-medium text-gray-700 shadow-sm transition-colors focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                <option value="">All Status</option>
+                                <option value="P">On Progress</option>
+                                <option value="D">Revise</option>
+                                <option value="C">Completed</option>
+                                <option value="R">Rejected</option>
+                                <option value="X">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {{-- RFP Finance: Company + Status Filters --}}
+                    <div id="rfpFinanceFilterWrapper" class="hidden flex-wrap items-center gap-3">
+                        <div class="relative">
+                            <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400 dark:text-gray-500">
+                                <i class="fas fa-building text-xs"></i>
+                            </span>
+                            <select id="rfpFinanceCpnyFilter"
+                                class="rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-6 text-sm font-medium text-gray-700 shadow-sm transition-colors focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                <option value="">All Company</option>
+                                @foreach ($cpnyIds as $cpnyId)
+                                    <option value="{{ $cpnyId }}">{{ $cpnyId }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="relative">
+                            <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400 dark:text-gray-500">
+                                <i class="fas fa-check-circle text-xs"></i>
+                            </span>
+                            <select id="rfpFinanceStatusFilter"
+                                class="rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-6 text-sm font-medium text-gray-700 shadow-sm transition-colors focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                <option value="">All Finance Status</option>
+                                <option value="waiting_user">Waiting User</option>
+                                <option value="finance_received">Finance Received</option>
+                                <option value="treasury_received">Treasury Received</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4">
                     <a id="createBtn" href="{{ url('/createrfpnonpurch') }}"
                         class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
                         <i class="fas fa-plus pr-2"></i>Create
@@ -90,25 +158,26 @@
                 </div>
             </div>
 
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="rfpTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th>RFP ID</th>
-                            <th>Date</th>
-                            <th>Company</th>
-                            <th>Department</th>
-                            <th>Requester</th>
-                            <th>Group Biaya</th>
-                            <th>Please Pay To</th>
-                            <th>Keperluan</th>
-                            <th>Total Amount</th>
-                            <th>Action</th>
-                            <th>Status</th>
+            <div class="relative overflow-hidden">
+                <table id="rfpTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th class="min-w-[130px] whitespace-nowrap px-4 py-3 text-left font-medium">RFP ID</th>
+                            <th class="px-4 py-3 text-left font-medium">Date</th>
+                            <th class="px-4 py-3 text-left font-medium">Company</th>
+                            <th class="px-4 py-3 text-left font-medium">Department</th>
+                            <th class="px-4 py-3 text-left font-medium">Requester</th>
+                            <th class="px-4 py-3 text-left font-medium">Group Biaya</th>
+                            <th class="px-4 py-3 text-left font-medium">Please Pay To</th>
+                            <th class="px-4 py-3 text-left font-medium">Keperluan</th>
+                            <th class="px-4 py-3 text-left font-medium">Total Amount</th>
+                            <th class="px-4 py-3 text-left font-medium">Action</th>
+                            <th class="px-4 py-3 text-left font-medium">Status</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
+                    <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-[#0f172a]"></tbody>
                 </table>
 
                 <div id="rfpActionModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
@@ -151,10 +220,24 @@
             </div>
         </div>
     </div>
+    <style>
+        .type-filter-active {
+            background-color: #fff;
+            color: #1f2937;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / .1), 0 1px 2px -1px rgb(0 0 0 / .1);
+        }
+        .dark .type-filter-active {
+            background-color: #4b5563;
+            color: #fff;
+        }
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
 
     <script>
         let scopeFilter = '';
+        let financeCpnyFilter = '';
+        let financeStatusFilter = '';
+        let typeFilter = '';
         var currentUser = "{{ auth()->user()->username }}";
         const hasApFinAccess = @json($hasApFinAccess ?? false);
         const hasApTreAccess = @json($hasApTreAccess ?? false);
@@ -252,6 +335,11 @@
                         width: '28px',
                         className: 'dtr-control',
                         orderable: false
+                    },
+                    {
+                        targets: 1,
+                        width: '140px',
+                        className: 'min-w-[140px] whitespace-nowrap'
                     }
                 ],
                 ajax: {
@@ -260,6 +348,9 @@
                     data: function(d) {
                         d.status = statusFilter ?? '';
                         d.scope = scopeFilter ?? '';
+                        d.finance_cpny = financeCpnyFilter ?? '';
+                        d.finance_status = financeStatusFilter ?? '';
+                        d.type = typeFilter ?? '';
                     }
                 },
                 order: [[1, 'desc']],
@@ -271,11 +362,11 @@
                         render: function(data, type, row) {
 
                             let url = `/showrfpnonpurch/${row.eid}`;
-                            let cls = 'shrink-0 px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700 text-sm';
+                            let cls = 'inline-flex min-w-[112px] shrink-0 justify-center whitespace-nowrap px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-700 text-sm font-semibold';
 
                             if (row.status === 'D' && row.created_by === currentUser) {
                                 url = `/editrfpnonpurch/${row.eid}`;
-                                cls = 'shrink-0 px-3 py-1.5 bg-yellow-500 text-white rounded hover:bg-yellow-700 text-sm';
+                                cls = 'inline-flex min-w-[112px] shrink-0 justify-center whitespace-nowrap px-3 py-1.5 bg-yellow-500 text-white rounded hover:bg-yellow-700 text-sm font-semibold';
                             }
 
                             return `
@@ -307,13 +398,13 @@
                                 maximumFractionDigits: 2
                             });
                         }
-                    },                
+                    },
                     {
                         data: null,
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
-                            if (scopeFilter !== 'rfp_all') {
+                            if (scopeFilter !== 'rfp_finance') {
                                 return '';
                             }
 
@@ -470,7 +561,7 @@
                         render: function(data, type, row) {
 
                             // 🔥 CASE 1: RFP Finance
-                            if (scopeFilter === 'rfp_all') {
+                            if (scopeFilter === 'rfp_finance') {
 
                                 const statusText = row.finance_flow_status_text || '-';
 
@@ -513,8 +604,13 @@
                 ],
                 searchDelay: 400,
                 stateSave: true,
+                stateLoadParams: function(settings, data) {
+                    data.order = [[1, 'desc']];
+                },
                 responsive: true
             });
+
+            table.column(10).visible(false);
 
             $('.status-filter').on('click', function(e) {
                 e.preventDefault();
@@ -524,21 +620,80 @@
 
                 if (scope === 'rfp_all') {
                     scopeFilter = scope;
-                    statusFilter = '';
+                    statusFilter = $('#rfpAllStatusFilter').val() || '';
+                    financeCpnyFilter = '';
+                    financeStatusFilter = '';
 
-                    // tampilkan kolom Action hanya saat RFP Finance
+                    $('#rfpAllStatusFilterWrapper').removeClass('hidden').addClass('flex');
+                    $('#rfpFinanceFilterWrapper').addClass('hidden').removeClass('flex');
+                    $('#rfpFinanceCpnyFilter, #rfpFinanceStatusFilter').val('');
+                    $('#createBtn').hide();
+                    table.column(10).visible(false);
+                } else if (scope === 'rfp_finance') {
+                    scopeFilter = scope;
+                    statusFilter = '';
+                    financeCpnyFilter = $('#rfpFinanceCpnyFilter').val() || '';
+                    financeStatusFilter = $('#rfpFinanceStatusFilter').val() || '';
+
+                    $('#rfpAllStatusFilterWrapper').addClass('hidden').removeClass('flex');
+                    $('#rfpAllStatusFilter').val('');
+                    $('#rfpFinanceFilterWrapper').removeClass('hidden').addClass('flex');
+                    $('#createBtn').hide();
                     table.column(10).visible(true);
                 } else {
                     statusFilter = status ?? '';
                     scopeFilter = '';
+                    financeCpnyFilter = '';
+                    financeStatusFilter = '';
 
+                    $('#rfpAllStatusFilterWrapper').addClass('hidden').removeClass('flex');
+                    $('#rfpAllStatusFilter').val('');
+                    $('#rfpFinanceFilterWrapper').addClass('hidden').removeClass('flex');
+                    $('#rfpFinanceCpnyFilter, #rfpFinanceStatusFilter').val('');
+                    $('#createBtn').show();
                     // hide kolom Action untuk All, On Progress, Reject, Draft, Completed
                     table.column(10).visible(false);
                 }
 
                 table.ajax.reload(null, true);
             });
-            
+
+            $('#rfpAllStatusFilter').on('change', function() {
+                if (scopeFilter !== 'rfp_all') {
+                    return;
+                }
+
+                statusFilter = $(this).val() || '';
+                table.ajax.reload(null, true);
+            });
+
+            $('#rfpFinanceCpnyFilter, #rfpFinanceStatusFilter').on('change', function() {
+                if (scopeFilter !== 'rfp_finance') {
+                    return;
+                }
+
+                financeCpnyFilter = $('#rfpFinanceCpnyFilter').val() || '';
+                financeStatusFilter = $('#rfpFinanceStatusFilter').val() || '';
+                table.ajax.reload(null, true);
+            });
+
+            function setTypeFilterActive($btn) {
+                $('.type-filter')
+                    .removeClass('type-filter-active bg-white text-gray-800 shadow dark:bg-gray-600 dark:text-white')
+                    .addClass('text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200');
+                $btn
+                    .removeClass('text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200')
+                    .addClass('type-filter-active bg-white text-gray-800 shadow dark:bg-gray-600 dark:text-white');
+            }
+
+            setTypeFilterActive($('.type-filter[data-type=""]'));
+
+            $(document).on('click', '.type-filter', function() {
+                typeFilter = $(this).data('type');
+                setTypeFilterActive($(this));
+                table.ajax.reload(null, true);
+            });
+
             document.querySelectorAll('.status-filter').forEach(btn => {
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -546,17 +701,17 @@
                     this.classList.add('active');
                 });
             });
-     
+
             function formatRupiah(num) {
                 return parseFloat(num || 0).toLocaleString('id-ID', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
-            }          
+            }
 
             let selectedActionHash = null;
             let selectedActionMode = null;
-            let selectedActionType = null;           
+            let selectedActionType = null;
 
             $(document).on('click', function(e) {
                 if (!$(e.target).closest('.rfp-action-wrap').length) {

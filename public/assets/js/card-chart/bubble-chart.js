@@ -87,7 +87,7 @@
             },
             legend: {
                 show: true, position: 'top', horizontalAlign: 'right',
-                fontSize: '12px', markers: { radius: 6 },
+                fontSize: '12px', markers: { shape: 'circle', size: 6 },
             },
         });
         chart.render();

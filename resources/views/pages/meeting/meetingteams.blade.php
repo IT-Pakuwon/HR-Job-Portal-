@@ -135,7 +135,7 @@
                         Teams / Zoom
                     </a>
 
-                    @if (auth()->check() && auth()->user()->user_role === 'admin')
+                    @if (auth()->check() && auth()->user()->isAdmin())
 
                         <a href="{{ route('meetingroom.setup.index') }}"
                             class="{{ request()->is('meetingroom/setup*')
@@ -161,12 +161,12 @@
             </div>
 
             <div class="mt-4 rounded-lg bg-blue-50 px-4 py-3 text-sm text-blue-700 border border-blue-100">
-                ℹ️ Multiple bookings are allowed — you can proceed even if the slot is already booked.
+                ℹ️ Multiple overlapping bookings are allowed for Teams. Zoom accounts cannot be double-booked — an overlapping time on a Zoom-enabled accessory will be rejected.
             </div>
         </div>
 
         <div
-            class="dark:border-white/1 flex h-full flex-1 flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm min-h-0">
+            class="dark:border-white/1 flex h-full flex-1 flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm min-h-0 dark:bg-gray-800">
 
             <div class="relative flex-1 min-h-0 overflow-hidden">
 
@@ -196,7 +196,7 @@
                             </div>
 
                             <button type="button" id="closeScheduleModal"
-                                class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 dark:hover:bg-gray-800">
+                                class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-400">
                                 ✕
                             </button>
                         </div>
@@ -258,7 +258,7 @@
                                         </label>
                                         <select id="acc_id" name="acc_id[]"
                                             class="meeting-multi mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                                            multiple>
+                                            multiple required>
                                         </select>
                                     </div>
 
@@ -308,11 +308,11 @@
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
                             Meeting Details
                         </h2>
-                        <p class="text-xs text-gray-500">Teams / Zoom Booking</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Teams / Zoom Booking</p>
                     </div>
 
                     <button onclick="closeViewModal()"
-                        class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
+                        class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-400">
                         ✕
                     </button>
                 </div>
@@ -323,7 +323,7 @@
                     <!-- TITLE -->
                     <div>
                         <h2 id="view_title" class="text-xl font-semibold text-gray-900 dark:text-white"></h2>
-                        <p id="view_time" class="mt-1 text-sm text-gray-500"></p>
+                        <p id="view_time" class="mt-1 text-sm text-gray-500 dark:text-gray-400"></p>
                     </div>
 
                     <!-- META GRID (NOTION STYLE) -->
@@ -354,7 +354,7 @@
                     </div>
 
                     <!-- MEETING LINK (🔥 CLEAN NOTION STYLE) -->
-                    <div class="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:bg-gray-800">
+                    <div class="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:bg-gray-800 dark:border-gray-700">
 
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-medium uppercase tracking-wide text-gray-400">
@@ -365,7 +365,7 @@
 
                         <div id="view_teams"></div>
 
-                        @if (auth()->user()->user_role === 'admin')
+                        @if (auth()->user()->isAdmin())
                             <div id="link_action_area"></div>
                         @endif
 
@@ -376,8 +376,8 @@
                 <!-- FOOTER -->
                 <div class="flex items-center justify-between border-t px-6 py-4 dark:border-gray-700">
 
-                    <button onclick="cancelMeeting()"
-                        class="rounded-lg bg-red-500 px-4 py-2 text-sm text-white hover:bg-red-600">
+                    <button id="cancelMeetingBtn" onclick="cancelMeeting()"
+                        class="hidden rounded-lg bg-red-500 px-4 py-2 text-sm text-white hover:bg-red-600">
                         Cancel Meeting
                     </button>
 
@@ -406,6 +406,9 @@
     <script>
         let calendarInstance = null;
         let currentEventId = null;
+
+        window.currentUserId = @json(auth()->user()->username);
+        window.hasCSACCESS = @json($hasCsAccess ?? false);
 
         document.addEventListener('DOMContentLoaded', function() {
             const calendarEl = document.getElementById('calendar');
@@ -604,6 +607,20 @@
             $('#meetingForm').on('submit', function(e) {
                 e.preventDefault();
 
+                // Accessory pick is what findZoomAccessoryConflict() checks
+                // server-side — skip it and a Zoom account can get booked
+                // twice for the same slot without any warning.
+                const selectedAcc = accTom ? accTom.getValue() : $('#acc_id').val();
+
+                if (!selectedAcc || selectedAcc.length === 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Accessories required',
+                        text: 'Please select at least one accessory before creating the meeting.'
+                    });
+                    return;
+                }
+
                 const $form = $(this);
                 let formData = $form.serialize();
 
@@ -691,10 +708,20 @@
             const action = document.getElementById('link_action_area');
 
             const isAdmin = !!action;
-            // Use roomStatus ('T' = Teams, 'Z' = Zoom) to determine type,
-            // so a Teams room pending link doesn't fall through to Zoom UI.
-            const isTeams = props.roomStatus === 'T';
-            const isZoom  = props.roomStatus === 'Z';
+
+            // Which provider to show is driven by the Teams/Zoom toggle on the
+            // accessory the meeting was booked with (Meeting Accessories admin
+            // screen). Fall back to the legacy per-room T/Z status only when
+            // the accessory carries no toggle info at all.
+            let isTeams, isZoom;
+
+            if (props.accTeamsEnabled || props.accZoomEnabled) {
+                isTeams = !!props.accTeamsEnabled;
+                isZoom = !isTeams && !!props.accZoomEnabled;
+            } else {
+                isTeams = props.roomStatus === 'T';
+                isZoom = props.roomStatus === 'Z';
+            }
 
             // =========================
             // 🟦 TEAMS (AUTO - NO PROCESS)
@@ -777,25 +804,64 @@
 
                     const encodedText = btoa(unescape(encodeURIComponent(rawMeetingText)));
 
+                    const meetingTitle = document.getElementById('view_title').innerText;
+                    const meetingTime = document.getElementById('view_time').innerText;
+
+                    let detailsText = `${meetingTitle}\n${meetingTime}\n\n`;
+                    if (props.zoom_id) detailsText += `Meeting ID: ${props.zoom_id}\n`;
+                    if (props.zoom_password) detailsText += `Passcode: ${props.zoom_password}\n`;
+                    detailsText += `Join Zoom Meeting\n${extractedUrl}`;
+
+                    const encodedDetails = btoa(unescape(encodeURIComponent(detailsText)));
+
                     container.innerHTML = `
-                        <div class="space-y-3">
+                        <div class="space-y-4">
 
-                            <div class="flex items-center justify-between">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
 
-                                <a href="${extractedUrl}" target="_blank"
-                                    class="text-purple-600 font-medium hover:underline">
+                                <a href="${extractedUrl}" target="_blank" rel="noopener noreferrer"
+                                    class="inline-flex items-center gap-2 rounded-lg bg-purple-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-purple-700">
+                                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10l5-3v10l-5-3"/><rect x="3" y="6" width="12" height="12" rx="2"/></svg>
                                     Open Zoom
                                 </a>
 
-                                <button onclick="copyLink('${encodedText}', true)"
-                                    class="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300">
-                                    Copy
-                                </button>
+                                <div class="flex items-center gap-2">
+
+                                    <button onclick="copyLink('${encodedDetails}', true)"
+                                        class="inline-flex items-center gap-1.5 rounded-lg border border-purple-200 bg-purple-50 px-3 py-2 text-xs font-medium text-purple-700 transition hover:bg-purple-100 dark:border-purple-800 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50">
+                                        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                        Copy Details
+                                    </button>
+
+                                    <button onclick="copyLink('${encodedText}', true)"
+                                        class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-600 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800">
+                                        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 0 0 7.07 7.07l1.5-1.5"/></svg>
+                                        Copy Link
+                                    </button>
+
+                                </div>
 
                             </div>
 
+                            ${(props.zoom_id || props.zoom_password) ? `
+                                <div class="grid grid-cols-2 gap-3">
+                                    ${props.zoom_id ? `
+                                        <div class="rounded-lg border border-gray-200 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900">
+                                            <div class="text-[10px] font-medium uppercase tracking-wide text-gray-400">Meeting ID</div>
+                                            <div class="mt-0.5 font-mono text-sm font-semibold text-gray-800 dark:text-gray-100">${escapeHtml(String(props.zoom_id))}</div>
+                                        </div>
+                                    ` : ''}
+                                    ${props.zoom_password ? `
+                                        <div class="rounded-lg border border-gray-200 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900">
+                                            <div class="text-[10px] font-medium uppercase tracking-wide text-gray-400">Passcode</div>
+                                            <div class="mt-0.5 font-mono text-sm font-semibold text-gray-800 dark:text-gray-100">${escapeHtml(String(props.zoom_password))}</div>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            ` : ''}
+
                             ${isLongText ? `
-                                <pre class="whitespace-pre-wrap text-xs bg-white border rounded-lg p-3 overflow-auto max-h-64">${safeMeetingText}</pre>
+                                <pre class="whitespace-pre-wrap text-xs bg-white border rounded-lg p-3 overflow-auto max-h-64 dark:bg-gray-800">${safeMeetingText}</pre>
                             ` : ''}
 
                         </div>
@@ -810,7 +876,7 @@
                     if (isAdmin) {
                         action.innerHTML = `
                             <button onclick="enableEdit()"
-                                class="mt-2 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded">
+                                class="mt-2 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded dark:bg-gray-900 dark:hover:bg-gray-700">
                                 Edit
                             </button>
                         `;
@@ -820,22 +886,22 @@
 
                     container.innerHTML = `
                         <div class="text-gray-400 text-sm">
-                            Waiting Zoom link
+                            Auto generating Zoom link...
                         </div>
                     `;
 
                     badge.innerHTML = `
                         <span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-700 rounded">
-                            Pending
+                            Generating
                         </span>
                     `;
 
-                    // ✅ ONLY ZOOM SHOW PROCESS
+                    // Fallback only: use if auto-generation failed (e.g. Zoom API error)
                     if (isAdmin) {
                         action.innerHTML = `
                             <button onclick="enableZoomProcess()"
-                                class="mt-2 px-3 py-1 text-sm bg-blue-600 text-white rounded">
-                                Process Zoom
+                                class="mt-2 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded dark:bg-gray-900 dark:hover:bg-gray-700">
+                                Paste Zoom link manually
                             </button>
                         `;
                     }
@@ -851,7 +917,7 @@
                 <div class="space-y-3">
 
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">
+                        <label class="block text-xs text-gray-500 mb-1 dark:text-gray-400">
                             Zoom Meeting Link
                         </label>
 
@@ -901,7 +967,7 @@
                 <div class="space-y-4">
 
                     <div>
-                        <label class="block mb-1 text-xs text-gray-500">
+                        <label class="block mb-1 text-xs text-gray-500 dark:text-gray-400">
                             Meeting Title
                         </label>
 
@@ -917,7 +983,7 @@
                     <div class="grid grid-cols-2 gap-4">
 
                         <div>
-                            <label class="block mb-1 text-xs text-gray-500">
+                            <label class="block mb-1 text-xs text-gray-500 dark:text-gray-400">
                                 Start Time
                             </label>
 
@@ -930,7 +996,7 @@
                         </div>
 
                         <div>
-                            <label class="block mb-1 text-xs text-gray-500">
+                            <label class="block mb-1 text-xs text-gray-500 dark:text-gray-400">
                                 End Time
                             </label>
 
@@ -945,7 +1011,7 @@
                     </div>
 
                     <div>
-                        <label class="block mb-1 text-xs text-gray-500">
+                        <label class="block mb-1 text-xs text-gray-500 dark:text-gray-400">
                             Description
                         </label>
 
@@ -1248,6 +1314,10 @@ function copyLink(link, encoded = false) {
             }
 
             document.getElementById('view_participants').innerHTML = participantsHtml;
+
+            const isCreator = props.username === window.currentUserId;
+            const cancelBtn = document.getElementById('cancelMeetingBtn');
+            cancelBtn.classList.toggle('hidden', !(isCreator || window.hasCSACCESS));
 
             const teamsEl = document.getElementById('view_teams');
             const badge = document.getElementById('link_status_badge');

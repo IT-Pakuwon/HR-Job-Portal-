@@ -89,10 +89,10 @@
                                 <summary
                                     class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                     <span>Issue Detail</span>
-                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
                                         details &rarr;</span>
                                     <span
-                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                                         details &darr;</span>
                                 </summary>
 
@@ -190,7 +190,7 @@
                                                 </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="7" class="px-4 py-4 text-center text-gray-500">No
+                                                    <td colspan="7" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">No
                                                         SPB detail</td>
                                                 </tr>
                                             @endforelse
@@ -207,10 +207,10 @@
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
                                     details &rarr;</span>
                                 <span
-                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                                     details &darr;</span>
                             </summary>
 
@@ -482,11 +482,25 @@
                     title: 'Completed Qty SPB?',
                     text: 'Apakah Anda yakin ingin meng-complete seluruh qty sisa SPB ini?',
                     icon: 'warning',
+                    input: 'textarea',
+                    inputLabel: 'Reason',
+                    inputPlaceholder: 'Masukkan reason complete qty SPB...',
+                    inputAttributes: {
+                        'aria-label': 'Reason complete qty SPB',
+                        maxlength: 500
+                    },
+                    inputValidator: (value) => {
+                        if (!value || !value.trim()) {
+                            return 'Reason wajib diisi.';
+                        }
+                    },
                     showCancelButton: true,
                     confirmButtonText: 'Ya, Complete',
                     cancelButtonText: 'Batal'
                 }).then((result) => {
                     if (!result.isConfirmed) return;
+
+                    const reason = result.value.trim();
 
                     showOverlay('Completing remaining...');
 
@@ -494,7 +508,8 @@
                             url: url,
                             type: 'POST',
                             data: {
-                                _token: '{{ csrf_token() }}'
+                                _token: '{{ csrf_token() }}',
+                                reason: reason
                             }
                         })
                         .done(function(res) {

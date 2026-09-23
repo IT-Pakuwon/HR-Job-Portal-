@@ -182,10 +182,10 @@
                         <summary
                             class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                             <span>CALR Detail</span>
-                            <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">
+                            <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">
                                 See details &rarr;
                             </span>
-                            <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">
+                            <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">
                                 Hide details &darr;
                             </span>
                         </summary>
@@ -196,7 +196,9 @@
                                     <tr>
                                         <th class="w-12 border p-3 text-center">No</th>
                                         <th class="req border p-3">Description</th>
-                                        <th class="req w-[220px] border p-3 text-right">Price</th>
+                                        <th class="w-[220px] border p-3 text-right">Amount DPP</th>
+                                        <th class="req w-[220px] border p-3 text-left">Tax</th>
+                                        <th class="w-[220px] border p-3 text-right">Total Amount</th>
                                         <th class="w-16 border p-3 text-center"></th>
                                     </tr>
                                 </thead>
@@ -212,9 +214,31 @@
                                         </td>
 
                                         <td class="border p-3">
+                                            <input type="text" name="amount_request_dpp[]"
+                                                class="amountDppField w-full border-none bg-gray-100 p-2 text-right focus:outline-none focus:ring-0 dark:bg-gray-900"
+                                                value="0,00" placeholder="0,00" readonly>
+                                            <input type="hidden" name="amount_request_taxamt[]" class="taxAmountField" value="0">
+                                        </td>
+
+                                        <td class="border p-3">
+                                            <select name="taxcodeid[]"
+                                                class="taxCodeField w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                                required>
+                                                @forelse ($rfpNonPurchaseTaxes as $tax)
+                                                    <option value="{{ $tax->taxid }}" data-rate="{{ (float) $tax->taxrate }}"
+                                                        {{ $tax->taxid === 'NONTAX' ? 'selected' : '' }}>
+                                                        {{ $tax->descr ?: $tax->taxid }}
+                                                    </option>
+                                                @empty
+                                                    <option value="">Tax tidak ditemukan</option>
+                                                @endforelse
+                                            </select>
+                                        </td>
+
+                                        <td class="border p-3">
                                             <input type="text" name="price[]"
                                                 class="priceField w-full border-none bg-transparent p-2 text-right focus:outline-none focus:ring-0"
-                                                placeholder="0,00" required>
+                                                value="0,00" placeholder="0,00">
                                         </td>
 
                                         <td class="border p-3 text-center">
@@ -249,10 +273,10 @@
                                 </div>
 
                                 <div class="flex items-center justify-between border-t pt-2">
-                                    <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                                        Sisa / (Kurang) Pembayaran
+                                    <span id="diffLabel" class="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                        Lebih Kasbon
                                     </span>
-                                    <span id="diffDisplay" class="text-lg font-bold text-red-600">
+                                    <span id="diffDisplay" class="text-lg font-bold text-green-600">
                                         0,00
                                     </span>
                                 </div>
@@ -279,7 +303,7 @@
                 {{-- <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
                     <div class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
                         <button type="button" onclick="history.back()"
-                            class="flex items-center justify-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                            class="flex items-center justify-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-300">
                             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -299,10 +323,10 @@
                         <summary
                             class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                             <span class="req">Attachments</span>
-                            <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                            <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
                                 details &rarr;</span>
                             <span
-                                class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                                 details &darr;</span>
                         </summary>
                         <div class="flex flex-col pt-6">
@@ -329,7 +353,7 @@
                     <div
                         class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
                         <button id="backBtn" onclick="history.back()"
-                            class="flex items-center justify-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                            class="flex items-center justify-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-300">
                             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -446,10 +470,11 @@
                 });
 
                 const amountRfp = parseNumber($('#amountRfpValue').val());
-                const diff = settlement - amountRfp;
+                const diff = amountRfp - settlement;
 
                 $('#settlementDisplay').text(formatNumber(settlement));
                 $('#diffDisplay').text(formatNumber(diff));
+                $('#diffLabel').text(diff < 0 ? 'Kurang Kasbon' : 'Lebih Kasbon');
 
                 $('#amountSettlementInput').val(settlement.toFixed(2));
                 $('#amountDiffInput').val(diff.toFixed(2));
@@ -459,6 +484,39 @@
                 } else {
                     $('#diffDisplay').removeClass('text-red-600').addClass('text-green-600');
                 }
+            }
+
+            const rfpNonPurchaseTaxes = @json($rfpNonPurchaseTaxes ?? []);
+
+            function taxOptionsHtml(selectedTaxId = 'NONTAX') {
+                if (!rfpNonPurchaseTaxes.length) {
+                    return '<option value="">Tax tidak ditemukan</option>';
+                }
+
+                return rfpNonPurchaseTaxes.map(tax => {
+                    const taxId = String(tax.taxid || '');
+                    const rate = Number(tax.taxrate || 0);
+                    const descr = String(tax.descr || taxId);
+                    const selected = taxId === String(selectedTaxId || 'NONTAX') ? 'selected' : '';
+
+                    return `<option value="${taxId}" data-rate="${rate}" ${selected}>${descr}</option>`;
+                }).join('');
+            }
+
+            function calculateRowTax($row) {
+                const totalAmount = parseNumber($row.find('.priceField').val());
+                const rate = Number($row.find('.taxCodeField option:selected').data('rate') || 0);
+                const amountDpp = rate > 0 ? (totalAmount * 100 / (100 + rate)) : totalAmount;
+                const taxAmount = rate > 0 ? (amountDpp * rate / 100) : 0;
+
+                $row.find('.amountDppField').val(formatNumber(amountDpp));
+                $row.find('.taxAmountField').val(taxAmount.toFixed(2));
+            }
+
+            function calculateAllRowTaxes() {
+                $('#calrNonPurchDetailTable tr.calr-detail-row').each(function() {
+                    calculateRowTax($(this));
+                });
             }
 
             function newRowTemplate(no) {
@@ -473,9 +531,24 @@
                         </td>
 
                         <td class="border p-3">
+                            <input type="text" name="amount_request_dpp[]"
+                                class="amountDppField w-full border-none bg-gray-100 p-2 text-right focus:outline-none focus:ring-0 dark:bg-gray-900"
+                                value="0,00" placeholder="0,00" readonly>
+                            <input type="hidden" name="amount_request_taxamt[]" class="taxAmountField" value="0">
+                        </td>
+
+                        <td class="border p-3">
+                            <select name="taxcodeid[]"
+                                class="taxCodeField w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                required>
+                                ${taxOptionsHtml()}
+                            </select>
+                        </td>
+
+                        <td class="border p-3">
                             <input type="text" name="price[]"
                                 class="priceField w-full border-none bg-transparent p-2 text-right focus:outline-none focus:ring-0"
-                                placeholder="0,00" required>
+                                value="0,00" placeholder="0,00">
                         </td>
 
                         <td class="border p-3 text-center">
@@ -495,6 +568,7 @@
                 updateRowNumbers();
                 updateRemoveButtons();
                 calculateTotal();
+                calculateAllRowTaxes();
             });
 
             $(document).on('click', '.removeCalrDetail', function() {
@@ -503,6 +577,7 @@
                 updateRowNumbers();
                 updateRemoveButtons();
                 calculateTotal();
+                calculateAllRowTaxes();
             });
 
             $(document).on('input', '.priceField', function() {
@@ -533,6 +608,11 @@
                 this.value = value;
 
                 calculateTotal();
+                calculateRowTax($(this).closest('.calr-detail-row'));
+            });
+
+            $(document).on('change', '.taxCodeField', function() {
+                calculateRowTax($(this).closest('.calr-detail-row'));
             });
 
             $(document).on('keypress', '.priceField', function(e) {
@@ -572,9 +652,10 @@
 
             $(document).on('blur', '.priceField', function() {
                 const value = parseNumber($(this).val());
-                $(this).val(value ? formatNumber(value) : '');
+                $(this).val(formatNumber(value));
 
                 calculateTotal();
+                calculateRowTax($(this).closest('.calr-detail-row'));
             });
 
             function validateDetails() {
@@ -588,9 +669,10 @@
 
                     const $desc = $row.find('.descriptionField');
                     const $price = $row.find('.priceField');
+                    const $tax = $row.find('.taxCodeField');
 
                     const desc = ($desc.val() || '').trim();
-                    const price = parseNumber($price.val());
+                    const taxCodeId = ($tax.val() || '').trim();
 
                     let rowErr = false;
 
@@ -600,11 +682,9 @@
                         rowErr = true;
                     }
 
-                    const priceRaw = ($price.val() || '').trim();
-
-                    if (priceRaw === '' || priceRaw === '-') {
-                        $price.addClass('is-invalid');
-                        $price.after('<small class="error-feedback text-red-500">Price wajib diisi.</small>');
+                    if (!taxCodeId) {
+                        $tax.addClass('is-invalid');
+                        $tax.after('<small class="error-feedback text-red-500">Tax wajib diisi.</small>');
                         rowErr = true;
                     }
 
@@ -634,7 +714,7 @@
                 return true;
             }
 
-            $(document).on('input change', '#calrNonPurchForm input, #calrNonPurchForm textarea', function() {
+            $(document).on('input change', '#calrNonPurchForm input, #calrNonPurchForm textarea, #calrNonPurchForm select', function() {
                 $(this).removeClass('is-invalid');
                 $(this).next('.error-feedback').remove();
             });
@@ -666,6 +746,8 @@
 
                     return;
                 }
+
+                calculateAllRowTaxes();
 
                 $('.priceField').each(function() {
                     this.value = (this.value || '')
@@ -719,6 +801,7 @@
             updateRowNumbers();
             updateRemoveButtons();
             calculateTotal();
+            calculateAllRowTaxes();
         });
     </script>
 

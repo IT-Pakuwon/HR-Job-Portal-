@@ -25,12 +25,12 @@ class ApprovalController extends Controller
         'C' => 'Completed',
     ];
 
-    protected function orderByLevel($query)
+    public function orderByLevel($query)
     {
         return $query->orderByRaw("CAST(aprv_leveling AS numeric) ASC");
     }
 
-    protected function normalizeApproverList(?string $raw): array
+    public function normalizeApproverList(?string $raw): array
     {
         if (!$raw) return [];
         $arr = preg_split('/[;,]/', $raw) ?: [];
@@ -383,13 +383,19 @@ class ApprovalController extends Controller
         | CEK EXISTING APPROVAL
         |--------------------------------------------------------------------------
         | Kalau approval untuk dokumen ini sudah ada, jangan create ulang.
+        | Jika onlyType diberikan (misal 'Condition'), cek hanya untuk tipe itu
+        | agar tidak diblokir oleh Normal-type approval yang masih pending.
         */
         $existingQuery = TrApproval::query()
             ->where('refnbr', $refnbr)
             ->where('aprv_doctype', $doctype)
             ->where('status', 'P');
 
-        $existingCount = (clone $existingQuery)->count();
+        $dupCheckQuery = $onlyType !== null
+            ? (clone $existingQuery)->whereRaw("LOWER(TRIM(aprv_type)) = ?", [strtolower($onlyType)])
+            : clone $existingQuery;
+
+        $existingCount = $dupCheckQuery->count();
 
         if ($existingCount > 0) {
             $firstPending = (clone $existingQuery);
@@ -600,14 +606,23 @@ class ApprovalController extends Controller
         string $actorUsername,
         string $actorName,
         \Closure $onComplete,
-        ?\Closure $onNotifyNext = null
+        ?\Closure $onNotifyNext = null,
+        ?\Closure $onNotifyComplete = null
     ): array {
         $now = Carbon::now();
 
         [$ok, $current, $msg] = $this->assertUserCanAct($refnbr, $doctype, 'approve', $actorUsername);
         if (!$ok) return ['ok' => false, 'message' => $msg];
 
-        DB::beginTransaction();
+        // TrApproval lives on pgsql2 — the transaction must be opened on that
+        // same connection, otherwise DB::beginTransaction() protects an unrelated
+        // (default) connection and this rollback never actually undoes anything.
+        $conn = $current->getConnectionName();
+        DB::connection($conn)->beginTransaction();
+
+        $completed = false;
+        $next = null;
+
         try {
             $current->status         = 'A';
             $current->aprv_dateafter = $now;
@@ -622,37 +637,55 @@ class ApprovalController extends Controller
                 ->count();
 
             if ($pendingCount === 0) {
+                $completed = true;
                 $onComplete($refnbr, $now);
-                DB::commit();
-                return ['ok' => true, 'completed' => true];
+            } else {
+                $next = TrApproval::query()
+                    ->where('refnbr', $refnbr)
+                    ->where('aprv_doctype', $doctype)
+                    ->where('status', 'P');
+
+                $this->orderByLevel($next);
+                $next = $next->first();
+
+                if ($next && empty($next->aprv_datebefore)) {
+                    $next->aprv_datebefore = $now;
+                    $next->save();
+                }
             }
 
-            $next = TrApproval::query()
-                ->where('refnbr', $refnbr)
-                ->where('aprv_doctype', $doctype)
-                ->where('status', 'P');
-
-            $this->orderByLevel($next);
-            $next = $next->first();
-
-            if ($next && empty($next->aprv_datebefore)) {
-                $next->aprv_datebefore = $now;
-                $next->save();
-            }
-
-            DB::commit();
-
-            if ($onNotifyNext) {
-                $onNotifyNext($next, $now);
-            }
-
-            return ['ok' => true, 'completed' => false];
+            DB::connection($conn)->commit();
 
         } catch (\Throwable $e) {
-            DB::rollBack();
+            DB::connection($conn)->rollBack();
             report($e);
             return ['ok' => false, 'message' => 'Approve failed'];
         }
+
+        // Notification runs after the commit, outside the transaction's
+        // try/catch: a mail failure here must not be reported back as an
+        // approve failure — the approval itself already succeeded and can't
+        // be rolled back at this point.
+        if ($completed) {
+            if ($onNotifyComplete) {
+                try {
+                    $onNotifyComplete($refnbr, $now);
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            }
+            return ['ok' => true, 'completed' => true];
+        }
+
+        if ($onNotifyNext) {
+            try {
+                $onNotifyNext($next, $now);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        return ['ok' => true, 'completed' => false];
     }
 
     public function rejectStep(
@@ -660,15 +693,25 @@ class ApprovalController extends Controller
         string $doctype,
         string $actorUsername,
         string $actorName,
-        \Closure $onAfter
+        \Closure $onAfter,
+        ?\Closure $onBeforeCommit = null
     ): array {
         $now = Carbon::now();
 
         [$ok, $current, $msg] = $this->assertUserCanAct($refnbr, $doctype, 'reject', $actorUsername);
         if (!$ok) return ['ok' => false, 'message' => $msg];
 
-        DB::beginTransaction();
+        // See approveStep(): the transaction must open on TrApproval's own
+        // connection (pgsql2), not the unqualified default one.
+        $conn = $current->getConnectionName();
+        DB::connection($conn)->beginTransaction();
         try {
+            // Run pre-commit hook inside transaction window so a failure here
+            // still rolls back the approval changes (e.g. release reserved stock)
+            if ($onBeforeCommit) {
+                $onBeforeCommit($refnbr, $now);
+            }
+
             $current->status         = 'R';
             $current->aprv_dateafter = $now;
             $current->aprv_username  = $actorUsername;
@@ -681,14 +724,14 @@ class ApprovalController extends Controller
                 ->where('status', 'P')
                 ->update(['status' => 'X']);
 
-            DB::commit();
+            DB::connection($conn)->commit();
 
             $onAfter($refnbr, $now);
 
             return ['ok' => true];
 
         } catch (\Throwable $e) {
-            DB::rollBack();
+            DB::connection($conn)->rollBack();
             report($e);
             return ['ok' => false, 'message' => 'Reject failed'];
         }
@@ -706,7 +749,10 @@ class ApprovalController extends Controller
         [$ok, $current, $msg] = $this->assertUserCanAct($refnbr, $doctype, 'revise', $actorUsername);
         if (!$ok) return ['ok' => false, 'message' => $msg];
 
-        DB::beginTransaction();
+        // See approveStep(): the transaction must open on TrApproval's own
+        // connection (pgsql2), not the unqualified default one.
+        $conn = $current->getConnectionName();
+        DB::connection($conn)->beginTransaction();
         try {
             $current->status         = 'D';
             $current->aprv_dateafter = $now;
@@ -720,14 +766,14 @@ class ApprovalController extends Controller
                 ->where('status', 'P')
                 ->update(['status' => 'X']);
 
-            DB::commit();
+            DB::connection($conn)->commit();
 
             $onAfter($refnbr, $now);
 
             return ['ok' => true];
 
         } catch (\Throwable $e) {
-            DB::rollBack();
+            DB::connection($conn)->rollBack();
             report($e);
             $msg = config('app.debug') ? $e->getMessage() : 'Revise failed';
             return ['ok' => false, 'message' => $msg];

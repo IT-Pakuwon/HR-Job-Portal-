@@ -1,13 +1,13 @@
 <div class="space-y-4">
 
     {{-- FILTER PANEL --}}
-    <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm">
+    <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800/40">
 
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-8 items-end">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-9 items-end">
 
             {{-- DATE FROM --}}
             <div class="space-y-1">
-                <label class="text-xs font-medium text-gray-500">
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
                     Date From
                 </label>
 
@@ -19,7 +19,7 @@
 
             {{-- DATE TO --}}
             <div class="space-y-1">
-                <label class="text-xs font-medium text-gray-500">
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
                     Date To
                 </label>
 
@@ -31,7 +31,7 @@
 
             {{-- REQUESTER --}}
             <div class="space-y-1">
-                <label class="text-xs font-medium text-gray-500">
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
                     Requester
                 </label>
 
@@ -44,7 +44,7 @@
 
             {{-- STATUS --}}
             <div class="space-y-1">
-                <label class="text-xs font-medium text-gray-500">
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
                     Status
                 </label>
 
@@ -76,11 +76,19 @@
                         Cancelled
                     </option>
 
+                    <option value="F">
+                        Processed
+                    </option>
+
+                    <option value="U">
+                        Unprocessed
+                    </option>
+
                 </select>
             </div>
             {{-- DRIVER --}}
             <div class="space-y-1">
-                <label class="text-xs font-medium text-gray-500">
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
                     Driver
                 </label>
 
@@ -103,7 +111,7 @@
 
             {{-- VEHICLE --}}
             <div class="space-y-1">
-                <label class="text-xs font-medium text-gray-500">
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
                     Vehicle
                 </label>
 
@@ -124,6 +132,29 @@
                 </select>
             </div>
 
+            {{-- COMPANY --}}
+            <div class="space-y-1">
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                    Company
+                </label>
+
+                <select
+                    id="company_bookingcar"
+                    class="form-input w-full">
+
+                    <option value="">
+                        All Company
+                    </option>
+
+                    @foreach ($companies as $cpny)
+                        <option value="{{ $cpny->cpny_id }}">
+                            {{ $cpny->cpny_name }}
+                        </option>
+                    @endforeach
+
+                </select>
+            </div>
+
             {{-- ACTION BUTTONS --}}
             <div class="flex items-end justify-end gap-2">
 
@@ -135,13 +166,13 @@
 
                 <button
                     id="resetBtnBookingCar"
-                    class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium transition hover:bg-gray-50">
+                    class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-700">
                     Reset
                 </button>
 
                 <button
                     id="exportBtnBookingCar"
-                    class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100">
+                    class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20">
                     Export
                 </button>
 
@@ -152,10 +183,10 @@
     </div>
 
     {{-- TABLE --}}
-    <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
+    <div class="rounded-2xl border border-gray-200 bg-white shadow-sm dark:bg-gray-800 dark:border-gray-700">
 
         <div class="border-b px-6 py-4">
-            <h2 class="text-sm font-semibold text-gray-800">
+            <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">
                 Booking Car Report
             </h2>
         </div>
@@ -166,7 +197,7 @@
                 id="bookingCarTable"
                 class="min-w-full text-sm">
 
-                <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+                <thead class="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-gray-900 dark:text-gray-400">
                     <tr>
                         <th>Doc ID</th>
                         <th>Booking Date</th>
@@ -174,6 +205,8 @@
                         <th>End</th>
                         <th>Requester</th>
                         <th>Department</th>
+                        <th>Company</th>
+                        <th>Company Expense</th>
                         <th>Purpose</th>
                         <th>Route</th>
                         <th>Passenger</th>
@@ -203,6 +236,11 @@
             responsive: true,
             searching: false,
 
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, 'All']
+            ],
+
             dom:
                 "<'flex items-center justify-between mb-3'<'text-sm'l>>" +
                 'rt' +
@@ -223,6 +261,8 @@
                     d.driver = $('#driver_bookingcar').val();
 
                     d.vehicle = $('#vehicle_bookingcar').val();
+
+                    d.company = $('#company_bookingcar').val();
                 }
             },
 
@@ -244,6 +284,12 @@
                 },
                 {
                     data: 'department'
+                },
+                {
+                    data: 'company'
+                },
+                {
+                    data: 'company_expense'
                 },
                 {
                     data: 'purpose_descr'
@@ -290,6 +336,8 @@
 
             $('#vehicle_bookingcar').val('');
 
+            $('#company_bookingcar').val('');
+
             table.ajax.reload();
         });
 
@@ -309,9 +357,10 @@
 
             url += '&vehicle=' + $('#vehicle_bookingcar').val();
 
+            url += '&company=' + $('#company_bookingcar').val();
+
             window.location.href = url;
         });
 
     });
 </script>
-```

@@ -45,10 +45,46 @@ class ReportCanvassSheetController extends Controller
 
             // ->leftJoin('tr_po as po', 'po.csid', '=', 'h.csid')
 
+            ->leftJoin('tr_sppb as b', 'b.sppbid', '=', 'h.sppbjktid')
+            ->leftJoin('tr_sppj as j', 'j.sppjid', '=', 'h.sppbjktid')
+            ->leftJoin('tr_sppk as k', 'k.sppkid', '=', 'h.sppbjktid')
+            ->leftJoin('tr_sppt as t', 't.spptid', '=', 'h.sppbjktid')
+
+            ->leftJoin(DB::raw("
+                (
+                    select cpny_id, ponbr, csid, sppbjktid,
+                           string_agg(DISTINCT bastid, ', ') as bastid
+                    from tr_po_term
+                    where progress_pct = 100
+                      and terms_type not in ('Retensi', 'DP')
+                    group by cpny_id, ponbr, csid, sppbjktid
+                ) as bast
+            "), function ($j) {
+                $j->on('bast.cpny_id', '=', 'h.cpny_id')
+                    ->on('bast.csid', '=', 'h.csid')
+                    ->on('bast.sppbjktid', '=', 'h.sppbjktid')
+                    ->on('bast.ponbr', '=', 'd.ponbr');
+            })
+
             ->select([
+                DB::raw('h.id as cs_pk'),
                 'h.csid',
                 'h.csdate',
                 'h.sppbjktid',
+                DB::raw('bast.bastid as bast_number'),
+
+                DB::raw("
+                    CASE
+                        WHEN h.sppbjktid ILIKE 'PB%' THEN 'SPPB'
+                        WHEN h.sppbjktid ILIKE 'PJ%' THEN 'SPPJ'
+                        WHEN h.sppbjktid ILIKE 'PK%' THEN 'SPPK'
+                        WHEN h.sppbjktid ILIKE 'PT%' THEN 'SPPT'
+                        ELSE NULL
+                    END as doc_type
+                "),
+
+                DB::raw('COALESCE(b.id, j.id, k.id, t.id) as doc_id'),
+
                 'h.keperluan',
                 'h.department_id',
                 'h.created_by',
@@ -118,7 +154,7 @@ class ReportCanvassSheetController extends Controller
     private function applyFilters($query, Request $request)
     {
         $user = auth()->user();
-        $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
+        $cpnyIds = $user->scopedCompanyIds();
 
         $query->whereIn('h.cpny_id', $cpnyIds);
 
@@ -150,6 +186,10 @@ class ReportCanvassSheetController extends Controller
             $query->where('h.status', $request->status);
         }
 
+        if ($request->department) {
+            $query->where('h.department_id', $request->department);
+        }
+
         return $query;
     }
 
@@ -160,18 +200,20 @@ class ReportCanvassSheetController extends Controller
         $isCostCtrl = $user->hasRole('COSTCTRLACCESS');
         $isPurch = $user->hasRole('PURCHACCESS');
 
-        $isGlobalAccess = $isCostCtrl || $isPurch;
+        $isGlobalAccess = $isCostCtrl || $isPurch || $user->hasFullDataScope();
 
         /*
         |------------------------------------------------
-        | Company scope
+        | Company scope (skipped for full-scope roles like DIRECTORACCESS)
         |------------------------------------------------
         */
 
-        $companyIds = \App\Models\Usercpny::where('username', $user->username)
-            ->pluck('cpny_id');
+        if (!$user->hasFullDataScope()) {
+            $companyIds = \App\Models\Usercpny::where('username', $user->username)
+                ->pluck('cpny_id');
 
-        $query->whereIn('h.cpny_id', $companyIds);
+            $query->whereIn('h.cpny_id', $companyIds);
+        }
 
         /*
         |------------------------------------------------
@@ -319,6 +361,12 @@ class ReportCanvassSheetController extends Controller
             )
 
             ->addColumn('department_name', fn ($row) => $departments[$row->department_id] ?? ''
+            )
+
+            ->addColumn('cs_hash', fn ($row) => \Hashids::encode($row->cs_pk)
+            )
+
+            ->addColumn('doc_hash', fn ($row) => $row->doc_id ? \Hashids::encode($row->doc_id) : null
             )
 
             ->make(true);
@@ -980,6 +1028,8 @@ class ReportCanvassSheetController extends Controller
 
                 'SPPBJKT' => $row->sppbjktid,
 
+                'BAST No' => $row->bast_number ?? '',
+
                 'Purchasing' => $users[$row->cs_created_by] ?? $row->cs_created_by,
 
                 'Department' => $departments[$row->department_id] ?? '',
@@ -1010,7 +1060,7 @@ class ReportCanvassSheetController extends Controller
 
                 'Budget Business Unit' => $row->budget_business_unit_id ?? '',
 
-                'Budget Department' => $departments[$row->budget_department_fin_id] ?? '',
+                'Budget Department' => $row->budget_department_fin_id ?? '',
 
                 'Activity Account' => $row->budget_account_id ?? '',
 

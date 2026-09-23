@@ -1,13 +1,13 @@
 <div class="space-y-4">
 
     {{-- FILTER PANEL --}}
-    <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm">
+    <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800/40">
 
-        <div class="grid grid-cols-1 items-end gap-4 md:grid-cols-2 lg:grid-cols-6">
+        <div class="grid grid-cols-1 items-end gap-4 md:grid-cols-2 lg:grid-cols-7">
 
             {{-- DATE FROM --}}
             <div class="space-y-1">
-                <label class="text-xs font-medium text-gray-500">
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
                     Date From
                 </label>
 
@@ -16,7 +16,7 @@
 
             {{-- DATE TO --}}
             <div class="space-y-1">
-                <label class="text-xs font-medium text-gray-500">
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
                     Date To
                 </label>
 
@@ -25,7 +25,7 @@
 
             {{-- REQUESTER --}}
             <div class="space-y-1">
-                <label class="text-xs font-medium text-gray-500">
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
                     Requester
                 </label>
 
@@ -35,7 +35,7 @@
 
             {{-- TYPE TRIP --}}
             <div class="space-y-1">
-                <label class="text-xs font-medium text-gray-500">
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
                     Type Trip
                 </label>
 
@@ -58,7 +58,7 @@
 
             {{-- STATUS --}}
             <div class="space-y-1">
-                <label class="text-xs font-medium text-gray-500">
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
                     Status
                 </label>
 
@@ -91,6 +91,27 @@
                 </select>
             </div>
 
+            {{-- COMPANY --}}
+            <div class="space-y-1">
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                    Company
+                </label>
+
+                <select id="voucher_company" class="form-input w-full">
+
+                    <option value="">
+                        All Company
+                    </option>
+
+                    @foreach ($companies as $cpny)
+                        <option value="{{ $cpny->cpny_id }}">
+                            {{ $cpny->cpny_name }}
+                        </option>
+                    @endforeach
+
+                </select>
+            </div>
+
             {{-- ACTION --}}
             <div class="flex items-end justify-end gap-2">
 
@@ -101,13 +122,13 @@
                 </button>
 
                 <button id="voucherResetBtn"
-                    class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium transition hover:bg-gray-50">
+                    class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-700">
 
                     Reset
                 </button>
 
                 <button id="voucherExportBtn"
-                    class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100">
+                    class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20">
 
                     Export
                 </button>
@@ -119,10 +140,10 @@
     </div>
 
     {{-- TABLE --}}
-    <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
+    <div class="rounded-2xl border border-gray-200 bg-white shadow-sm dark:bg-gray-800 dark:border-gray-700">
 
         <div class="border-b px-6 py-4">
-            <h2 class="text-sm font-semibold text-gray-800">
+            <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">
                 Voucher Taxi Report
             </h2>
         </div>
@@ -131,14 +152,16 @@
 
             <table id="voucherTaxiTable" class="min-w-full text-sm">
 
-                <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+                <thead class="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-gray-900 dark:text-gray-400">
                     <tr>
                         <th>Doc ID</th>
                         <th>Date</th>
+                        <th>Date Used</th>
                         <th>Created User</th>
                         <th>Requester</th>
                         <th>Department</th>
                         <th>Company</th>
+                        <th>Company Expense</th>
                         <th>Origin</th>
                         <th>Destination</th>
                         <th>Purpose</th>
@@ -167,6 +190,12 @@
             responsive: true,
             searching: false,
 
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, 'All']
+            ],
+
+
             dom: "<'flex items-center justify-between mb-3'<'text-sm'l>>" +
                 'rt' +
                 "<'flex items-center justify-between mt-3'<'text-sm'i><'text-sm'p>>",
@@ -190,6 +219,9 @@
 
                     d.status =
                         $('#voucher_status').val();
+
+                    d.company =
+                        $('#voucher_company').val();
                 }
             },
 
@@ -200,6 +232,10 @@
                 {
                     data: 'voucher_date',
                     name: 'voucher_date'
+                },
+                {
+                    data: 'date_used',
+                    name: 'date_used'
                 },
                 {
                     data: 'created_by',
@@ -218,6 +254,11 @@
                 {
                     data: 'company',
                     name: 'company',
+                    orderable: false
+                },
+                {
+                    data: 'company_expense',
+                    name: 'company_expense',
                     orderable: false
                 },
                 {
@@ -265,6 +306,7 @@
             $('#voucher_requester').val('');
             $('#voucher_type_trip').val('');
             $('#voucher_status').val('');
+            $('#voucher_company').val('');
 
             table.ajax.reload();
         });
@@ -293,6 +335,10 @@
             url +=
                 '&status=' +
                 $('#voucher_status').val();
+
+            url +=
+                '&company=' +
+                $('#voucher_company').val();
 
             window.location.href = url;
         });

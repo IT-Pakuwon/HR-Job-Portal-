@@ -2,88 +2,1818 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Carbon;
-use Vinkla\Hashids\Facades\Hashids;
-
-use App\Models\TrTrainingRegistration;
-use App\Models\MsTraining;
+use App\Exports\TrainingAllRegistrationsExport;
+use App\Http\Controllers\Traits\HasAttendanceWindow;
+use App\Http\Controllers\Traits\HasAutonbr;
+use App\Http\Controllers\Traits\UploadsToGcs;
+use App\Models\CompanyAddress;
+use App\Models\MsCategory;
+use App\Models\MsCompany;
+use App\Models\MsDepartment;
+use App\Models\MsLndPlaces;
+use App\Models\MsLndTrainingDetail;
+use App\Models\MsLndTrainingQuota;
+use App\Models\MsLndTrainingSchedule;
+use App\Models\MsTrainingEvent;
+use App\Models\StoGrading;
+use App\Models\StoSubGradingJobLevel;
+use App\Models\TrApproval;
+use App\Models\TrLndTrainingFeedbackAnswer;
+use App\Models\TrLndTrainingRegistration;
+use App\Models\TrMessage;
 use App\Models\User;
-use App\Http\Controllers\ApprovalController;
+use App\Models\ViewUsersTalenta;
+use App\Services\TrainingRegistrationService;
+use App\Services\TrainingWaitlistNotifier;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
+use Picqer\Barcode\BarcodeGeneratorPNG;
+use Vinkla\Hashids\Facades\Hashids;
 
 class TrainingRegistrationController extends Controller
 {
-    protected $doctype = 'TR';
+    use HasAutonbr;
+    use HasAttendanceWindow;
+    use UploadsToGcs;
 
-    /*
-    |--------------------------------------------------------------------------
-    | INDEX PAGE
-    |--------------------------------------------------------------------------
-    */
+    protected const DOCTYPE = 'TRN';
+
+    /**
+     * ms_lnd_training_schedule.status is varchar(1) — single-letter codes
+     * (DRAFT/PUBLISHED/CLOSED/CANCELLED). The legacy registration code
+     * compared against full words, which never matched anything.
+     */
+    protected const SCHEDULE_DRAFT = 'D';
+    protected const SCHEDULE_PUBLISHED = 'P';
+    protected const SCHEDULE_CLOSED = 'C';
+    protected const SCHEDULE_CANCELLED = 'X';
+
     public function index()
     {
-        $trainings = [];
-
-        for ($i = 1; $i <= 10; $i++) {
-
-            $startDate = now()->addDays(rand(-10, 15));
-            $quota = rand(10, 40);
-            $approved = rand(0, $quota);
-
-            if ($approved >= $quota) {
-                $status = 'FULL';
-            } elseif ($startDate->isPast()) {
-                $status = 'FINISHED';
-            } elseif ($startDate->diffInDays(now()) <= 3 && $startDate->isFuture()) {
-                $status = 'CLOSED';
-            } else {
-                $status = 'OPEN';
-            }
-
-            $trainings[] = [
-                'id' => $i,
-                'name' => "Training Program {$i}",
-                'poster' => null,
-                'is_active' => true,
-                'applies_to_specific' => rand(0,1),
-                'status' => $status,
-                'sessions' => [
-                    [
-                        'start_date' => $startDate->toDateString(),
-                        'quota' => $quota,
-                        'approved_count' => $approved,
-                        'level' => collect(['EXECUTIVE','SR_MANAGER','OFFICER'])->random(),
-                        'is_active' => true,
-                    ]
-                ]
-            ];
-        }
-
-        return view('pages.training.training', compact('trainings'));
+        return view('pages.training_list.index', ['initialEid' => null, 'initialMyEid' => null, 'initialAllRegsEid' => null, 'initialApprovalEid' => null]);
     }
 
-    public function showRegister($id)
+    /**
+     * Same browse page, but with a specific training's detail modal
+     * auto-opened on load — gives the modal a real, shareable/bookmarkable
+     * URL (same hash-id convention as mastertraining.view) without making
+     * the detail view its own full page navigation.
+     */
+    public function show($eid)
     {
-        $trainings = session()->get('master_trainings', []);
-        $training = collect($trainings)->firstWhere('id', $id);
+        $id = Hashids::decode($eid)[0] ?? null;
+        abort_if(!$id, 404);
 
-        abort_if(!$training, 404);
+        MsTrainingEvent::findOrFail($id);
 
-        $availableSessions = collect($training['sessions'])
-            ->where('is_active', true)
-            ->values()
-            ->map(function($session, $index){
-                $session['index'] = $index;
-                return $session;
-            });
+        return view('pages.training_list.index', ['initialEid' => $eid, 'initialMyEid' => null, 'initialAllRegsEid' => null, 'initialApprovalEid' => null]);
+    }
 
-        return view('pages.training.register', [
-            'training' => $training,
-            'availableSessions' => $availableSessions
+    /**
+     * Same browse page, but with a specific one of the caller's own
+     * registrations' view modal auto-opened — same hash-id/shareable-URL
+     * convention as show() above, scoped to the Registration List tab instead.
+     *
+     * Also viewable by any USERACCESS holder regardless of status, so an
+     * approver can open a Pending registration to review/approve it (not
+     * only after it's already Approved).
+     *
+     * ?tab=approvals (used by approval widget/notification links, since an
+     * approver isn't the registrant and so wouldn't find this eid via the
+     * plain myRegistrations() call) tells the page's Registration List tab
+     * to also check pendingApprovals() to find and open this row.
+     */
+    public function showMy($eid, Request $request)
+    {
+        $id = Hashids::decode($eid)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = Auth::user();
+
+        $query = TrLndTrainingRegistration::where('id', $id);
+
+        if (!$user->hasRole('USERACCESS')) {
+            $query->where('user_registration', $user->username);
+        }
+
+        $registration = $query->firstOrFail();
+
+        // Determined from actual ownership rather than the ?tab=approvals
+        // query flag alone — that flag gets stripped from the address bar
+        // once the modal opens (see openMyViewModal()'s history.replaceState
+        // call), so a plain refresh of the resulting clean URL would
+        // otherwise fall back to "My Registration" and fail to find an
+        // approver's (not the registrant's) row.
+        $isApprovalTab = $request->query('tab') === 'approvals'
+            || $registration->user_registration !== $user->username;
+
+        return view('pages.training_list.index', [
+            'initialEid' => null,
+            'initialMyEid' => $isApprovalTab ? null : $eid,
+            'initialAllRegsEid' => null,
+            'initialApprovalEid' => $isApprovalTab ? $eid : null,
         ]);
     }
 
+    /**
+     * Same shareable-URL convention as showMy() above, but auto-opens the
+     * Fill Feedback modal instead of the view modal — used by the "please
+     * fill feedback" reminder link. Strictly the registrant's own eid, same
+     * ownership rule TrainingFeedbackController::show()/submit() enforce.
+     */
+    public function showFeedback($eid)
+    {
+        $id = Hashids::decode($eid)[0] ?? null;
+        abort_if(!$id, 404);
 
+        $user = Auth::user();
+
+        TrLndTrainingRegistration::where('id', $id)
+            ->where('user_registration', $user->username)
+            ->firstOrFail();
+
+        return view('pages.training_list.index', [
+            'initialEid' => null,
+            'initialMyEid' => null,
+            'initialAllRegsEid' => null,
+            'initialApprovalEid' => null,
+            'initialFeedbackEid' => $eid,
+        ]);
+    }
+
+    /**
+     * Same shareable-URL convention as showMy() above, but for the
+     * HCDEVACCESS-only List Registration tab — any employee's registration,
+     * not just the caller's own (showMy()'s ownership check would 404 an HR
+     * admin trying to open someone else's).
+     */
+    public function showAllRegs($eid)
+    {
+        if (!Auth::user()->hasRole('HCDEVACCESS')) {
+            abort(403, 'You do not have HCDEVACCESS access');
+        }
+
+        $id = Hashids::decode($eid)[0] ?? null;
+        abort_if(!$id, 404);
+
+        TrLndTrainingRegistration::findOrFail($id);
+
+        return view('pages.training_list.index', ['initialEid' => null, 'initialMyEid' => null, 'initialAllRegsEid' => $eid, 'initialApprovalEid' => null]);
+    }
+
+    /**
+     * Open (PUBLISHED, not-yet-deadline) schedules with per-company quota
+     * availability, grouped one row per training batch (training_detail_id).
+     *
+     * Company/department for the whole registration flow come from the
+     * participant's origin org (ms_user.origin_cpny_id / origin_department_id),
+     * so every published schedule's quota pool is filtered to the caller's own
+     * origin company(s).
+     *
+     * Optional ?training_id= narrows to a single training (used by the
+     * dedicated event page instead of the full browse list).
+     */
+    public function json(Request $request)
+    {
+        $user = Auth::user();
+        $userCpnyIds = $this->splitMulti($user->origin_cpny_id);
+        $userDeptIds = $this->splitMulti($user->origin_department_id);
+        $onlyTrainingId = $request->query('training_id');
+
+        $details = MsLndTrainingSchedule::query()
+            ->where('status', self::SCHEDULE_PUBLISHED)
+            ->when($onlyTrainingId, fn ($q) => $q->where('training_id', $onlyTrainingId))
+            ->with([
+                'schedule.training',
+                'quota' => fn ($q) => $q->whereIn('cpny_id', $userCpnyIds),
+            ])
+            ->orderBy('schedule_date')
+            ->get();
+
+        $scheduleIds = $details->pluck('schedule_id');
+
+        $myRegs = TrLndTrainingRegistration::whereIn('schedule_id', $scheduleIds)
+            ->where('user_registration', $user->username)
+            ->where(function ($q) {
+                $q->where(fn ($q2) => $q2->whereNull('status_registration')->whereNotNull('status'))
+                    ->orWhereIn('status_registration', [
+                        TrLndTrainingRegistration::REG_STATUS_WAITLISTED,
+                        TrLndTrainingRegistration::REG_STATUS_OFFERED,
+                    ]);
+            })
+            ->orderBy('created_at')
+            ->get()
+            ->keyBy('schedule_id');
+
+        $usage = TrLndTrainingRegistration::whereIn('schedule_id', $scheduleIds)
+            ->where(function ($q) {
+                $q->whereNull('status_registration')
+                    ->orWhere('status_registration', TrLndTrainingRegistration::REG_STATUS_OFFERED);
+            })
+            ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
+            ->select('schedule_id', 'cpny_id', DB::raw('count(*) as cnt'))
+            ->groupBy('schedule_id', 'cpny_id')
+            ->get()
+            ->groupBy('schedule_id');
+
+        $companyNames = MsCompany::whereIn('cpny_id', $userCpnyIds)->pluck('cpny_name', 'cpny_id');
+        $myLevelGroup = $this->jobLevelGroupsFor(collect([$user]))->get($user->username);
+        $levelLabels = StoGrading::labelsFor($details->pluck('schedule.job_level'));
+        $speakerNames = User::whereIn('username', $details->pluck('training_speaker_username')->filter()->unique())
+            ->pluck('name', 'username');
+        $placeNames = MsLndPlaces::whereIn('places_id', $details->pluck('places_id')->filter()->unique())
+            ->pluck('places_name', 'places_id');
+
+        // One signed URL per distinct poster object, not per schedule row —
+        // several dates in a batch share the same training_poster.
+        $posterUrls = $details->pluck('schedule.training_poster')->filter()->unique()
+            ->mapWithKeys(fn ($path) => [$path => $this->gcsSignedUrl($path)]);
+
+        $scheduleOptions = $details->map(function ($d) use ($myRegs, $usage, $companyNames, $myLevelGroup, $levelLabels, $placeNames, $posterUrls) {
+            $grouped = $usage->get($d->schedule_id, collect());
+
+            $eligibleCompanies = $d->quota->map(function ($q) use ($grouped, $companyNames) {
+                $seatCount = (int) $grouped->where('cpny_id', $q->cpny_id)->sum('cnt');
+
+                return [
+                    'cpny_id' => $q->cpny_id,
+                    'cpny_name' => $companyNames[$q->cpny_id] ?? $q->cpny_id,
+                    'quota_pax' => $q->quota_pax,
+                    'reserved' => 0,
+                    'used' => $seatCount,
+                    'available' => max(0, $q->quota_pax - $seatCount),
+                ];
+            })->values();
+
+            $mine = $myRegs->get($d->schedule_id);
+
+            // Schedules created before the Level picker switched to
+            // group_job_level still hold a legacy numeric grade_id — there's
+            // no equivalent group to compare against, so the gate doesn't
+            // apply to those. Unresolved caller level (null) is also treated
+            // as a match — HR-maintained level mapping may not cover every
+            // employee yet, and that gap shouldn't silently lock people out.
+            // A batch created via the multi-select stores several levels
+            // comma-joined in that same field — matching any one of them
+            // is enough, since they all share this batch's dates/quota.
+            $scheduleLevels = $this->splitMulti($d->schedule->job_level);
+            $isLegacyLevel = $scheduleLevels->count() === 1 && ctype_digit($scheduleLevels->first());
+            $levelMatch = $isLegacyLevel || $myLevelGroup === null || $scheduleLevels->contains($myLevelGroup);
+
+            return [
+                'id' => $d->schedule_id,
+                'training_id' => $d->training_id,
+                'training_name' => $d->schedule->training->training_name ?? null,
+                'docid' => $d->training_detail_id,
+                'schedule_date' => $d->schedule_date?->format('Y-m-d'),
+                'start_time' => $d->schedule_start_time,
+                'end_time' => $d->schedule_end_time,
+                'mode' => $d->training_mode,
+                'location' => $d->places_id ? ($placeNames[$d->places_id] ?? $d->places_id) : null,
+                'platform' => $d->training_platform,
+                'meeting_link' => $d->training_meeting_link,
+                'poster_url' => $d->schedule->training_poster ? ($posterUrls[$d->schedule->training_poster] ?? null) : null,
+                'grade_id' => $d->schedule->job_level,
+                'grade_name' => $levelLabels[$d->schedule->job_level] ?? $d->schedule->job_level,
+                'level_match' => $levelMatch,
+                'speaker_name' => $d->training_speaker_name ?: $d->training_ext_speaker_name,
+                'registration_deadline' => $d->registration_deadline,
+                'is_open' => (!$d->registration_deadline || !Carbon::parse($d->registration_deadline)->isPast()) && !$d->is_schedule_over,
+                'eligible_companies' => $eligibleCompanies,
+                'my_status' => $mine ? $mine->effective_status : null,
+                'my_registration_id' => $mine->id ?? null,
+            ];
+        });
+
+        $trainingsById = $details->pluck('schedule.training')->filter()->unique('training_id')->keyBy('training_id');
+        $categoryNames = MsCategory::where('doctype', 'TE')
+            ->whereIn('categoryid', $trainingsById->pluck('category_id')->filter()->unique())
+            ->pluck('category_name', 'categoryid');
+
+        // One card per batch (training_detail_id — a distinct HR "Add
+        // Schedule" batch with one level/speaker/poster). Different batches
+        // are different cards even when they share a training name.
+        $rows = $scheduleOptions->groupBy('docid')->map(function ($schedules) use ($trainingsById, $categoryNames) {
+            $first = $schedules->first();
+            $training = $trainingsById->get($first['training_id']);
+
+            return [
+                'docid' => $first['docid'],
+                'training_id' => $first['training_id'],
+                'eid' => $training ? Hashids::encode($training->id) : null,
+                'training_name' => $first['training_name'],
+                'poster_url' => $first['poster_url'],
+                'description' => $training->training_description ?? null,
+                'category_name' => $categoryNames[$training->category_id ?? null] ?? null,
+                'training_type' => $training->training_type ?? null,
+                'is_mandatory' => (bool) ($training->is_mandatory ?? false),
+                'levels' => $schedules->pluck('grade_name')->filter()->unique()->values(),
+                'speakers' => $schedules->pluck('speaker_name')->filter()->unique()->values(),
+                'schedule_count' => $schedules->count(),
+                'level_eligible' => $schedules->contains(fn ($s) => $s['level_match']),
+                'eligible' => $schedules->contains(fn ($s) => count($s['eligible_companies']) > 0 && $s['level_match']),
+                'schedules' => $schedules->values(),
+            ];
+        })->values();
+
+        $departmentNames = MsDepartment::whereIn('department_id', $userDeptIds)->pluck('department_name', 'department_id');
+        $companyNamesAll = MsCompany::whereIn('cpny_id', $userCpnyIds)->pluck('cpny_name', 'cpny_id');
+
+        return response()->json([
+            'data' => $rows,
+            'department_options' => $userDeptIds->map(fn ($id) => [
+                'id' => $id,
+                'name' => $departmentNames[$id] ?? $id,
+            ])->values(),
+            'my_company_name' => $companyNamesAll[$user->origin_cpny_id] ?? $user->origin_cpny_id,
+            'my_department_name' => $departmentNames[$user->origin_department_id] ?? $user->origin_department_id,
+        ]);
+    }
+
+    private function splitMulti(?string $raw): \Illuminate\Support\Collection
+    {
+        return collect(explode(',', (string) $raw))
+            ->map(fn ($v) => trim($v))
+            ->filter()
+            ->values();
+    }
+
+    /**
+     * Each user's own level group (the same group_job_level bucket a
+     * schedule's job_level is now set to) — resolved via ms_user.npk ->
+     * view_users_talenta.employee_id -> job_level title -> matched against
+     * hr_ms_sto_subgrading_joblevel.job_level_id.
+     *
+     * Both Talenta's title and job_level_id carry a " - N" disambiguation
+     * suffix for duplicate titles (e.g. "Supervisor - 1"); stripped on both
+     * sides before matching so "Supervisor" and "Supervisor - 1" line up
+     * with the same group.
+     *
+     * A user who can't be resolved (no npk, no Talenta record, no matching
+     * subgrade row) maps to null — callers treat that as "can't tell, don't
+     * block" rather than a hard mismatch, since this is HR-maintained
+     * reference data that may not cover every employee yet.
+     *
+     * @return \Illuminate\Support\Collection<string, ?string> username => group_job_level
+     */
+    private function jobLevelGroupsFor(\Illuminate\Support\Collection $users): \Illuminate\Support\Collection
+    {
+        $npks = $users->pluck('npk')->filter()->unique()->values();
+
+        if ($npks->isEmpty()) {
+            return $users->mapWithKeys(fn ($u) => [$u->username => null]);
+        }
+
+        $titlesByNpk = ViewUsersTalenta::whereIn('employee_id', $npks)->pluck('job_level', 'employee_id');
+
+        $groupCpnyIds = $users->pluck('group_cpny_id')->filter()
+            ->map(fn ($v) => strtoupper(trim($v)))->unique()->values();
+
+        $stripSuffix = fn ($title) => strtolower(trim(preg_replace('/\s*-\s*\d+$/', '', (string) $title)));
+
+        $groupByKey = [];
+        StoSubGradingJobLevel::where('status', 'A')
+            ->whereIn('group_cpny_id', $groupCpnyIds)
+            ->whereNotNull('job_level_id')
+            ->get(['group_cpny_id', 'job_level_id', 'group_job_level'])
+            ->each(function ($row) use (&$groupByKey, $stripSuffix) {
+                $key = strtoupper(trim($row->group_cpny_id)).'|'.$stripSuffix($row->job_level_id);
+                $groupByKey[$key] ??= $row->group_job_level;
+            });
+
+        return $users->mapWithKeys(function ($user) use ($titlesByNpk, $groupByKey, $stripSuffix) {
+            $title = $titlesByNpk[$user->npk] ?? null;
+
+            if (!$title) {
+                return [$user->username => null];
+            }
+
+            $key = strtoupper(trim($user->group_cpny_id)).'|'.$stripSuffix($title);
+
+            return [$user->username => $groupByKey[$key] ?? null];
+        });
+    }
+
+    /**
+     * Colleagues eligible for batch registration: active ms_user rows sharing
+     * the caller's exact origin company AND origin department.
+     */
+    public function colleagues(Request $request)
+    {
+        $user = Auth::user();
+        $originCpnyId = trim((string) $user->origin_cpny_id);
+        $originDeptId = trim((string) $user->origin_department_id);
+
+        if ($originCpnyId === '' || $originDeptId === '') {
+            return response()->json(['data' => []]);
+        }
+
+        $query = User::query()
+            ->where('status', 'A')
+            ->where('origin_cpny_id', $originCpnyId)
+            ->where('origin_department_id', $originDeptId);
+
+        $search = trim((string) $request->get('q', ''));
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'ilike', "%{$search}%")
+                    ->orWhere('username', 'ilike', "%{$search}%");
+            });
+        }
+
+        $rows = $query->orderBy('name')->limit(50)->get(['username', 'name', 'origin_cpny_id', 'origin_department_id']);
+
+        return response()->json([
+            'data' => $rows->map(fn ($u) => [
+                'username' => $u->username,
+                'name' => $u->name ?: $u->username,
+                'cpny_id' => $u->origin_cpny_id,
+                'department_id' => $u->origin_department_id,
+            ])->values(),
+        ]);
+    }
+
+    public function myRegistrations()
+    {
+        $user = Auth::user();
+
+        $registrations = TrLndTrainingRegistration::where('user_registration', $user->username)
+            ->with('schedule.schedule.training')
+            ->orderByDesc('created_at')
+            ->get();
+
+        $answeredDocIds = TrLndTrainingFeedbackAnswer::whereIn('training_regist_id', $registrations->pluck('training_regist_id'))
+            ->pluck('training_regist_id')
+            ->unique();
+
+        $placeIds = $registrations->pluck('schedule.places_id')->filter()->unique();
+        $placeNames = $placeIds->isEmpty() ? collect() : MsLndPlaces::whereIn('places_id', $placeIds)->pluck('places_name', 'places_id');
+
+        $levelLabels = StoGrading::labelsFor($registrations->pluck('schedule.schedule.job_level'));
+
+        $rows = $registrations->map(function ($r) use ($answeredDocIds, $placeNames, $levelLabels) {
+            $hasAttended = (bool) $r->completed_at;
+            $feedbackOpen = (bool) $r->schedule?->is_feedback_open;
+            $feedbackSubmitted = $answeredDocIds->contains($r->training_regist_id);
+            $isApproved = $r->status === TrLndTrainingRegistration::STATUS_APPROVED;
+            $certificateReady = (bool) $r->schedule?->is_certificate_ready;
+
+            return [
+                'id' => $r->id,
+                'eid' => Hashids::encode($r->id),
+                'schedule_id' => $r->schedule_id,
+                'docid' => $r->training_regist_id,
+                'training_name' => $r->schedule?->schedule?->training?->training_name ?? null,
+                'schedule_date' => ($r->schedule_date ?? $r->schedule?->schedule_date)?->format('Y-m-d'),
+                'start_time' => $r->schedule?->schedule_start_time,
+                'end_time' => $r->schedule?->schedule_end_time,
+                'mode' => $r->schedule?->training_mode,
+                'location' => $r->schedule?->places_id ? ($placeNames[$r->schedule->places_id] ?? $r->schedule->places_id) : null,
+                'platform' => $r->schedule?->training_platform,
+                'speaker_name' => $r->schedule?->training_speaker_name ?: $r->schedule?->training_ext_speaker_name,
+                'grade_name' => $levelLabels[$r->schedule?->schedule?->job_level] ?? $r->schedule?->schedule?->job_level,
+                'status' => $r->effective_status,
+                'offer_expires_at' => $r->status_registration === TrLndTrainingRegistration::REG_STATUS_OFFERED
+                    ? $r->offer_expires_at
+                    : null,
+                'has_attended' => $hasAttended,
+                'is_late_attendance' => $r->is_late_attendance,
+                'feedback_open' => $feedbackOpen,
+                'feedback_submitted' => $feedbackSubmitted,
+                'can_fill_feedback' => $hasAttended && $feedbackOpen,
+                'can_view_certificate' => $hasAttended && $isApproved && $certificateReady,
+                'stars' => $r->stars,
+                'created_at' => $r->created_at,
+            ];
+        });
+
+        return response()->json(['data' => $rows]);
+    }
+
+    /**
+     * Lean feed for the "please fill feedback" dashboard reminder — the
+     * caller's own attended registrations whose schedule has feedback open
+     * and that don't have an answer yet. Deliberately not gated by
+     * TRAININGLIST,VIEW (see route comment) so it works from any dashboard.
+     */
+    public function pendingFeedback()
+    {
+        $user = Auth::user();
+
+        $registrations = TrLndTrainingRegistration::where('user_registration', $user->username)
+            ->whereNotNull('completed_at')
+            ->with('schedule.schedule.training')
+            ->get();
+
+        if ($registrations->isEmpty()) {
+            return response()->json(['data' => []]);
+        }
+
+        $answeredDocIds = TrLndTrainingFeedbackAnswer::whereIn('training_regist_id', $registrations->pluck('training_regist_id'))
+            ->pluck('training_regist_id')
+            ->unique();
+
+        $rows = $registrations
+            ->filter(fn ($r) => (bool) $r->schedule?->is_feedback_open && !$answeredDocIds->contains($r->training_regist_id))
+            ->map(fn ($r) => [
+                'id' => $r->id,
+                'eid' => Hashids::encode($r->id),
+                'training_name' => $r->schedule?->schedule?->training?->training_name ?? null,
+                'speaker_name' => $r->schedule?->training_speaker_name ?: $r->schedule?->training_ext_speaker_name,
+            ])
+            ->values();
+
+        return response()->json(['data' => $rows]);
+    }
+
+    /**
+     * The caller's own attended trainings + star breakdown, for the profile
+     * page's "My Trainings & Stars" panel. Deliberately not gated by
+     * TRAININGLIST,VIEW (see route comment) so every employee can see their
+     * own record on their profile regardless of that module permission.
+     */
+    public function myTrainingStars()
+    {
+        $user = Auth::user();
+
+        $registrations = TrLndTrainingRegistration::where('user_registration', $user->username)
+            ->whereNotNull('completed_at')
+            ->with('schedule.schedule.training')
+            ->orderByDesc('completed_at')
+            ->get();
+
+        $rows = $registrations->map(fn ($r) => [
+            'training_name' => $r->schedule?->schedule?->training?->training_name ?? null,
+            'schedule_date' => ($r->schedule_date ?? $r->schedule?->schedule_date)?->format('Y-m-d'),
+            'is_late_attendance' => $r->is_late_attendance,
+            'attendance_stars' => $r->attendance_stars,
+            'feedback_stars' => $r->feedback_stars,
+            'stars' => $r->stars,
+        ])->values();
+
+        return response()->json([
+            'data' => $rows,
+            'total_stars' => $rows->sum('stars'),
+        ]);
+    }
+
+    /**
+     * Streams a certificate PDF rendered fresh from this registration's own
+     * data (no stored file/row) — available once the registration is
+     * Approved, the participant actually attended, and HR has closed the
+     * feedback window for the schedule (is_certificate_ready). Self-service
+     * only: scoped to the caller's own row.
+     */
+    public function myCertificate($id)
+    {
+        $user = Auth::user();
+
+        $registration = TrLndTrainingRegistration::where('user_registration', $user->username)
+            ->with('schedule.schedule.training')
+            ->findOrFail($id);
+
+        abort_unless($registration->status === TrLndTrainingRegistration::STATUS_APPROVED, 422, 'This registration has not been approved yet');
+        abort_unless((bool) $registration->completed_at, 422, 'You have not been recorded as attending this training');
+
+        $schedule = $registration->schedule;
+        abort_unless($schedule && $schedule->is_certificate_ready, 422, 'The certificate for this training is not available yet');
+
+        $trainingDetail = $schedule->schedule;
+        $training = $trainingDetail?->training;
+        abort_unless($trainingDetail && $training, 422, 'Training data is incomplete');
+
+        $gradeName = StoGrading::labelsFor([$trainingDetail->job_level])->get($trainingDetail->job_level);
+
+        $company = MsCompany::where('cpny_id', $registration->cpny_id)->first();
+        $companyAddress = CompanyAddress::where('cpnyid', $registration->cpny_id)->first();
+        $certificateNo = $registration->attendance_code ?: ('CERT-'.$registration->id);
+
+        $pdf = Pdf::loadView('pages.training_attendance.certificate-pdf', [
+            'participantName' => $user->name ?? $user->username,
+            'trainingName' => $training->training_name,
+            'gradeName' => $gradeName,
+            'scheduleDate' => $schedule->schedule_date,
+            'certificateNo' => $certificateNo,
+            'issueDate' => now(),
+            'companyName' => $companyAddress->cpnyname ?? $company->cpny_name ?? '-',
+            'stars' => $registration->stars,
+        ])->setPaper('a4', 'landscape');
+
+        return $pdf->stream("certificate-{$certificateNo}.pdf");
+    }
+
+    /**
+     * Whether/when the caller can see their own check-in barcode for one of
+     * their Approved registrations. The unique attendance_code is generated
+     * by the model observer at approval time; this endpoint only reports it.
+     */
+    public function barcodeStatus($id)
+    {
+        $registration = TrLndTrainingRegistration::findOrFail($id);
+        $user = Auth::user();
+
+        abort_unless(strcasecmp((string) $registration->user_registration, (string) $user->username) === 0, 403);
+
+        if ($registration->status !== TrLndTrainingRegistration::STATUS_APPROVED) {
+            return response()->json(['available' => false, 'message' => 'Registration has not been approved yet']);
+        }
+
+        if ($registration->status_registration) {
+            return response()->json(['available' => false, 'message' => 'You do not have a slot for this event yet']);
+        }
+
+        if (!$registration->attendance_code) {
+            $registration->attendance_code = 'TRN-'.strtoupper(Str::random(10));
+            $registration->updated_by = $user->username;
+            $registration->save();
+        }
+
+        $detail = MsLndTrainingSchedule::where('schedule_id', $registration->schedule_id)->first();
+
+        if (!$detail) {
+            return response()->json(['available' => false, 'message' => 'Schedule not found']);
+        }
+
+        $window = $this->attendanceWindow($detail);
+        $now = now();
+
+        if ($now->lessThan($window['from'])) {
+            return response()->json([
+                'available' => false,
+                'message' => 'Barcode will be active on '.$window['from']->translatedFormat('d M Y H:i'),
+            ]);
+        }
+
+        if ($now->greaterThan($window['until'])) {
+            return response()->json(['available' => false, 'message' => 'Barcode has expired']);
+        }
+
+        return response()->json([
+            'available' => true,
+            'code' => $registration->attendance_code,
+            'valid_until' => $window['until'],
+        ]);
+    }
+
+    public function barcodeImage($id)
+    {
+        $registration = TrLndTrainingRegistration::findOrFail($id);
+        $user = Auth::user();
+
+        abort_unless(strcasecmp((string) $registration->user_registration, (string) $user->username) === 0, 403);
+        abort_unless($registration->status === TrLndTrainingRegistration::STATUS_APPROVED, 403);
+        abort_unless(!$registration->status_registration, 403);
+        abort_unless($registration->attendance_code, 404);
+
+        $detail = MsLndTrainingSchedule::where('schedule_id', $registration->schedule_id)->firstOrFail();
+        abort_unless($this->isWithinAttendanceWindow($detail), 403);
+
+        $generator = new BarcodeGeneratorPNG();
+        $png = $generator->getBarcode($registration->attendance_code, $generator::TYPE_CODE_128, 2, 60);
+
+        return response($png, 200)->header('Content-Type', 'image/png');
+    }
+
+    /**
+     * Multi-participant registration. $scheduleId is the TSDxxxxx schedule
+     * code. Defaults to self-registration; a non-empty `participants[]` list
+     * registers that exact set of colleagues (submitter may include
+     * themselves). Each participant gets their own row AND their own
+     * training_regist_id/approval chain — they are submitted together
+     * (one seat-availability check for the whole set) but approved
+     * independently, not as a shared batch document.
+     */
+    public function register(Request $request, string $scheduleId)
+    {
+        $detail = MsLndTrainingSchedule::where('schedule_id', $scheduleId)->firstOrFail();
+        $user = Auth::user();
+
+        if ($detail->status !== self::SCHEDULE_PUBLISHED) {
+            return response()->json(['success' => false, 'message' => 'Registration for this schedule is already closed'], 422);
+        }
+
+        if ($detail->registration_deadline && Carbon::parse($detail->registration_deadline)->isPast()) {
+            return response()->json(['success' => false, 'message' => 'The registration deadline has passed'], 422);
+        }
+
+        if ($detail->is_schedule_over) {
+            return response()->json(['success' => false, 'message' => 'This training schedule has already taken place'], 422);
+        }
+
+        $originCpnyId = trim((string) $user->origin_cpny_id);
+        $originDeptId = trim((string) $user->origin_department_id);
+
+        $requested = $request->input('participants', []);
+        if (!is_array($requested) || empty($requested)) {
+            $requested = [$user->username];
+        }
+
+        $requested = collect($requested)
+            ->map(fn ($v) => trim((string) $v))
+            ->filter()
+            ->unique()
+            ->values();
+
+        $participants = collect();
+        foreach ($requested as $username) {
+            $participant = User::where('username', $username)->where('status', 'A')->first();
+
+            if (!$participant) {
+                return response()->json(['success' => false, 'message' => "Participant {$username} not found"], 422);
+            }
+
+            // Colleagues must belong to the exact same origin org as the submitter.
+            if (strcasecmp($username, $user->username) !== 0) {
+                $pCpny = trim((string) $participant->origin_cpny_id);
+                $pDept = trim((string) $participant->origin_department_id);
+
+                if ($pCpny !== $originCpnyId || $pDept !== $originDeptId) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Participant {$username} is not a colleague from your office",
+                    ], 422);
+                }
+            }
+
+            $participants->push($participant);
+        }
+
+        // Level gate: a schedule's job_level is one-or-more group_job_level
+        // buckets comma-joined (see TrainingSessionController::levelSearch /
+        // combineJobLevels) — every participant must resolve to one of those
+        // buckets via their own npk. A participant who can't be resolved (no
+        // npk/Talenta record/subgrade mapping) is let through rather than
+        // blocked, since this is HR-maintained reference data that may not
+        // cover everyone yet.
+        $scheduleLevels = $this->splitMulti($detail->schedule?->job_level);
+        $isLegacyLevel = $scheduleLevels->count() === 1 && ctype_digit($scheduleLevels->first());
+        if ($scheduleLevels->isNotEmpty() && !$isLegacyLevel) {
+            $levelGroups = $this->jobLevelGroupsFor($participants);
+
+            foreach ($participants as $participant) {
+                $participantLevel = $levelGroups->get($participant->username);
+
+                if ($participantLevel !== null && !$scheduleLevels->contains($participantLevel)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Participant {$participant->username} is not at the appropriate level for this training",
+                    ], 422);
+                }
+            }
+        }
+
+        // Duplicate prevention guardrail: no active (non-cancelled, non-rejected)
+        // registration for any selected participant on this schedule.
+        $duplicates = TrLndTrainingRegistration::where('schedule_id', $scheduleId)
+            ->whereIn('user_registration', $participants->pluck('username'))
+            ->where(function ($q) {
+                $q->whereNull('status_registration')
+                    ->orWhere('status_registration', '!=', TrLndTrainingRegistration::REG_STATUS_CANCELLED);
+            })
+            ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
+            ->pluck('user_registration');
+
+        if ($duplicates->isNotEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Already registered for this schedule: '.$duplicates->implode(', '),
+            ], 422);
+        }
+
+        // Mandatory trainings only allow one schedule per participant: block if
+        // any selected participant already has an active (non-cancelled,
+        // non-rejected) registration on a *different* schedule of this same
+        // training_id.
+        $isMandatory = (bool) MsTrainingEvent::where('training_id', $detail->training_id)->value('is_mandatory');
+        $trainingName = (string) MsTrainingEvent::where('training_id', $detail->training_id)->value('training_name');
+
+        if ($isMandatory) {
+            $mandatoryDuplicates = TrLndTrainingRegistration::where('training_id', $detail->training_id)
+                ->where('schedule_id', '!=', $scheduleId)
+                ->whereIn('user_registration', $participants->pluck('username'))
+                ->where(function ($q) {
+                    $q->whereNull('status_registration')
+                        ->orWhere('status_registration', '!=', TrLndTrainingRegistration::REG_STATUS_CANCELLED);
+                })
+                ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
+                ->pluck('user_registration');
+
+            if ($mandatoryDuplicates->isNotEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This training is mandatory — already registered on another schedule: '.$mandatoryDuplicates->implode(', '),
+                ], 422);
+            }
+        }
+
+        DB::connection('pgsql5')->beginTransaction();
+
+        try {
+            $quotas = MsLndTrainingQuota::where('schedule_id', $scheduleId)
+                ->where('cpny_id', $originCpnyId)
+                ->lockForUpdate()
+                ->get();
+
+            if ($quotas->isEmpty()) {
+                DB::connection('pgsql5')->rollBack();
+
+                return response()->json(['success' => false, 'message' => 'This training is not available for your company'], 422);
+            }
+
+            $quotaPax = $quotas->sum('quota_pax');
+            $seatCount = $this->activeSeatCount($scheduleId, $originCpnyId);
+            $seatsRemaining = max(0, $quotaPax - $seatCount);
+
+            // Approval always starts at registration time, whether or not
+            // there's a seat free. status_registration is the SEATING flag on
+            // top of it: waitlisted people are still pending/approved in the
+            // approval pipeline while they wait. Seats are handed out to the
+            // submitted set in order (first-come within the batch) rather than
+            // all-or-nothing, so a batch can land partly seated / partly
+            // waitlisted when fewer seats remain than participants — each
+            // participant still gets their own independent document/approval
+            // chain below.
+            $status = TrLndTrainingRegistration::STATUS_PENDING;
+
+            $now = now();
+            $docIds = collect();
+            $seatedCount = 0;
+            $waitlistedCount = 0;
+
+            // Each participant gets their OWN training_regist_id and their own
+            // independent approval chain — a colleague batch is no longer one
+            // shared document. This means the approver acts on each person
+            // individually instead of approving the whole batch in one click,
+            // but it makes training_regist_id a true 1:1 key for every row
+            // (needed so attendance logging can unambiguously tell participants
+            // in the same submission apart).
+            foreach ($participants as $participant) {
+                $docId = $this->generateRegistrationCode($user->username);
+                $docIds->push($docId);
+
+                if ($seatsRemaining > 0) {
+                    $statusReg = null;
+                    $seatsRemaining--;
+                    $seatedCount++;
+                } else {
+                    $statusReg = TrLndTrainingRegistration::REG_STATUS_WAITLISTED;
+                    $waitlistedCount++;
+                }
+
+                TrLndTrainingRegistration::create([
+                    'training_regist_id' => $docId,
+                    'training_regist_date' => $now->toDateString(),
+                    'training_id' => $detail->training_id,
+                    'training_detail_id' => $detail->training_detail_id,
+                    'schedule_id' => $detail->schedule_id,
+                    'schedule_date' => $detail->schedule_date,
+                    'cpny_id' => trim((string) $participant->origin_cpny_id),
+                    'department_id' => trim((string) $participant->origin_department_id),
+                    'user_registration' => $participant->username,
+                    'qty_registration' => 1,
+                    'status' => $status,
+                    'status_registration' => $statusReg,
+                    'process_registration_user' => $statusReg ? $user->username : null,
+                    'process_registration_date' => $statusReg ? $now : null,
+                    'created_by' => $user->username,
+                    'created_at' => $now,
+                ]);
+
+                $this->submitForApproval($docId, $originCpnyId, $originDeptId, $user, $now, $trainingName);
+            }
+
+            DB::connection('pgsql5')->commit();
+
+            $message = 'Registration successful, awaiting approval';
+            if ($waitlistedCount > 0 && $seatedCount > 0) {
+                $message = "{$seatedCount} seats remaining, {$seatedCount} participants registered and {$waitlistedCount} placed on the waiting list — approval still proceeds";
+            } elseif ($waitlistedCount > 0) {
+                $message = 'Quota full, all participants placed on the waiting list — approval still proceeds';
+            } elseif ($docIds->count() > 1) {
+                $message = 'Registration successful ('.$docIds->count().' documents: '.$docIds->implode(', ').'), awaiting approval';
+            }
+
+            return response()->json([
+                'success' => true,
+                'training_regist_id' => $docIds->first(),
+                'training_regist_ids' => $docIds->values(),
+                'status' => $waitlistedCount > 0
+                    ? TrLndTrainingRegistration::REG_STATUS_WAITLISTED
+                    : $status,
+                'seated_count' => $seatedCount,
+                'waitlisted_count' => $waitlistedCount,
+                'message' => $message,
+            ]);
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $e) {
+            // abort()/abort_if() calls further down the stack (e.g. ApprovalController::loadLines()
+            // aborting with "Approval line belum di-setup, Please contact IT!") carry a real,
+            // actionable message — let those surface as-is instead of being masked below.
+            DB::connection('pgsql5')->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage() ?: 'Failed to complete registration',
+            ], $e->getStatusCode());
+        } catch (\Throwable $e) {
+            DB::connection('pgsql5')->rollBack();
+
+            \Illuminate\Support\Facades\Log::error('Training registration failed', [
+                'schedule_id' => $scheduleId,
+                'user' => $user->username,
+                'participants' => $requested->all(),
+                'exception' => $e,
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to complete registration',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * HCDEVACCESS-only admin cancel — approval participants can only
+     * approve/reject their own step (see approve()/reject()); cancelling a
+     * registration outright (Approved, Waiting List, or Pending/Offered) is
+     * an HR action. Blocked once the row is already terminal (Rejected or
+     * already Cancelled), once attendance has been recorded, or once the
+     * schedule date has passed (same-day is still cancellable; H+1 onward
+     * is not).
+     */
+    public function cancel(Request $request, $id)
+    {
+        $registration = TrLndTrainingRegistration::findOrFail($id);
+        $user = Auth::user();
+
+        if (!$user->hasRole('HCDEVACCESS')) {
+            abort(403);
+        }
+
+        if ($registration->status === TrLndTrainingRegistration::STATUS_REJECTED
+            || $registration->status_registration === TrLndTrainingRegistration::REG_STATUS_CANCELLED) {
+            return response()->json(['success' => false, 'message' => 'This registration is no longer active'], 422);
+        }
+
+        if ($registration->completed_at) {
+            return response()->json(['success' => false, 'message' => 'This registration cannot be cancelled because attendance has already been recorded'], 422);
+        }
+
+        $scheduleDate = $registration->schedule_date ?? $registration->schedule?->schedule_date;
+        if ($scheduleDate && $scheduleDate->lt(Carbon::today())) {
+            return response()->json(['success' => false, 'message' => 'This registration cannot be cancelled because its training schedule has already passed'], 422);
+        }
+
+        DB::connection('pgsql5')->beginTransaction();
+
+        try {
+            $wasOffered = $registration->status_registration === TrLndTrainingRegistration::REG_STATUS_OFFERED;
+            $heldSeat = !$registration->status_registration;
+
+            $registration->status_registration = TrLndTrainingRegistration::REG_STATUS_CANCELLED;
+            $registration->process_registration_user = $user->username;
+            $registration->process_registration_date = now();
+            $registration->updated_by = $user->username;
+            $registration->updated_at = now();
+            $registration->save();
+
+            if ($heldSeat) {
+                TrainingRegistrationService::promoteWaitlistIfOpen($registration);
+            } elseif ($wasOffered) {
+                TrainingRegistrationService::cascadeToNextWaitlist($registration);
+            }
+
+            DB::connection('pgsql5')->commit();
+
+            return response()->json(['success' => true, 'message' => 'Registration cancelled successfully']);
+        } catch (\Throwable $e) {
+            DB::connection('pgsql5')->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to cancel registration',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function acceptOffer(Request $request, $id)
+    {
+        $registration = TrLndTrainingRegistration::findOrFail($id);
+        $user = Auth::user();
+
+        if (strcasecmp((string) $registration->user_registration, (string) $user->username) !== 0) {
+            abort(403);
+        }
+
+        if (!$this->offerStillValid($registration)) {
+            return response()->json(['success' => false, 'message' => 'This offer is no longer valid'], 422);
+        }
+
+        DB::connection('pgsql5')->beginTransaction();
+
+        try {
+            $now = now();
+
+            // Approval was already started at registration time, so accepting
+            // the offer only removes the seating flag — the approval chain
+            // keeps running to completion on its own.
+            $registration->status_registration = null;
+            $registration->process_registration_user = null;
+            $registration->process_registration_date = null;
+            $registration->updated_by = $user->username;
+            $registration->updated_at = $now;
+            $registration->save();
+
+            TrainingWaitlistNotifier::notifyHcdevOfferResponse($registration, true);
+
+            DB::connection('pgsql5')->commit();
+
+            $approvalPending = $registration->status === TrLndTrainingRegistration::STATUS_PENDING;
+
+            return response()->json([
+                'success' => true,
+                'message' => $approvalPending
+                    ? 'Slot accepted, awaiting approval to finish'
+                    : 'Slot accepted',
+            ]);
+        } catch (\Throwable $e) {
+            DB::connection('pgsql5')->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to accept offer',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function declineOffer(Request $request, $id)
+    {
+        $registration = TrLndTrainingRegistration::findOrFail($id);
+        $user = Auth::user();
+
+        if (strcasecmp((string) $registration->user_registration, (string) $user->username) !== 0) {
+            abort(403);
+        }
+
+        if ($registration->status_registration !== TrLndTrainingRegistration::REG_STATUS_OFFERED) {
+            return response()->json(['success' => false, 'message' => 'This offer is no longer valid'], 422);
+        }
+
+        DB::connection('pgsql5')->beginTransaction();
+
+        try {
+            $registration->status_registration = TrLndTrainingRegistration::REG_STATUS_CANCELLED;
+            $registration->process_registration_user = $user->username;
+            $registration->process_registration_date = now();
+            $registration->updated_by = $user->username;
+            $registration->updated_at = now();
+            $registration->save();
+
+            TrainingWaitlistNotifier::notifyHcdevOfferResponse($registration, false);
+
+            TrainingRegistrationService::cascadeToNextWaitlist($registration);
+
+            DB::connection('pgsql5')->commit();
+
+            return response()->json(['success' => true, 'message' => 'Offer declined']);
+        } catch (\Throwable $e) {
+            DB::connection('pgsql5')->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to decline offer',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Approve a single participant's registration document (training_regist_id
+     * is a 1:1 key per row now, not a shared batch code — the model observer
+     * mints that row's unique barcode once status hits 'C').
+     */
+    public function approve(Request $request, $id)
+    {
+        $registration = TrLndTrainingRegistration::findOrFail($id);
+        $user = Auth::user();
+
+        $docUrl = url('/training-list/my/'.Hashids::encode($registration->id));
+
+        $result = app(ApprovalController::class)->approveStep(
+            $registration->training_regist_id,
+            self::DOCTYPE,
+            $user->username,
+            $user->name,
+            function (string $refnbr, Carbon $now) use ($registration, $docUrl) {
+                $registration->status = TrLndTrainingRegistration::STATUS_APPROVED;
+                $registration->updated_by = Auth::user()->username;
+                $registration->updated_at = $now;
+                $registration->save();
+
+                app(ApprovalController::class)->notifyRequesterOnStatus(
+                    $refnbr,
+                    'Training Registration',
+                    'C',
+                    $registration->created_by,
+                    $docUrl
+                );
+
+                $this->notifyDocSystem(
+                    $refnbr,
+                    $registration->cpny_id,
+                    $registration->department_id,
+                    'Your training registration has been fully approved.',
+                    'APPROVE'
+                );
+            },
+            function ($next, Carbon $now) use ($registration, $docUrl) {
+                if (!$next) {
+                    return;
+                }
+
+                // Deliberately no notifyDocSystem() bell entry here — "awaiting your
+                // approval" already has a dedicated home on the Approval Dashboard's
+                // Waiting Approval list, and the approver already gets an email via
+                // notifyFirstApprover() below. A bell notice on top of both was pure
+                // duplication, unlike the other TRN system notices (offer, approved,
+                // rejected, ...) which have nowhere else to surface.
+                app(ApprovalController::class)->notifyFirstApprover(
+                    $registration->training_regist_id,
+                    self::DOCTYPE,
+                    'P',
+                    'Training Registration',
+                    $docUrl,
+                    ['createdby' => $registration->created_by, 'date' => $now->toDateTimeString()]
+                );
+            }
+        );
+
+        return response()->json($result, $result['ok'] ?? false ? 200 : 422);
+    }
+
+    public function reject(Request $request, $id)
+    {
+        $registration = TrLndTrainingRegistration::findOrFail($id);
+        $user = Auth::user();
+
+        $docUrl = url('/training-list/my/'.Hashids::encode($registration->id));
+
+        $result = app(ApprovalController::class)->rejectStep(
+            $registration->training_regist_id,
+            self::DOCTYPE,
+            $user->username,
+            $user->name,
+            function (string $refnbr, Carbon $now) use ($registration, $docUrl) {
+                // A rejected row is already excluded from the seat-usage count
+                // (see json()/waitlistForOffer()'s status != 'R' filter), so
+                // the quota number frees up on its own — but nobody is
+                // auto-promoted unless this row was actually holding/offered
+                // that seat (a still-waitlisted row wasn't occupying one).
+                $wasOffered = $registration->status_registration === TrLndTrainingRegistration::REG_STATUS_OFFERED;
+                $heldSeat = !$registration->status_registration;
+
+                $registration->status = TrLndTrainingRegistration::STATUS_REJECTED;
+                $registration->updated_by = Auth::user()->username;
+                $registration->updated_at = $now;
+                $registration->save();
+
+                if ($heldSeat) {
+                    TrainingRegistrationService::promoteWaitlistIfOpen($registration);
+                } elseif ($wasOffered) {
+                    TrainingRegistrationService::cascadeToNextWaitlist($registration);
+                }
+
+                app(ApprovalController::class)->notifyRequesterOnStatus(
+                    $refnbr,
+                    'Training Registration',
+                    'R',
+                    $registration->created_by,
+                    $docUrl
+                );
+
+                $this->notifyDocSystem(
+                    $refnbr,
+                    $registration->cpny_id,
+                    $registration->department_id,
+                    'Your training registration has been rejected.',
+                    'REJECT'
+                );
+            }
+        );
+
+        return response()->json($result, $result['ok'] ?? false ? 200 : 422);
+    }
+
+    /**
+     * Every TRN document the caller is or was an approver on: rows still
+     * 'P' (the caller is the current/active approver — same "active step"
+     * definition as ApprovalController::assertUserCanAct(), so this matches
+     * exactly what approve()/reject() would let them act on right now, via
+     * the comma-separated aprv_username list), plus rows already 'A'/'R'
+     * where the caller was the one who made that decision — approveStep()/
+     * rejectStep() overwrite aprv_username with the actor's own username on
+     * decision, so an exact match (not the comma-list one) is correct there.
+     * Feeds the Approval sub-tab, which lets the caller filter by status.
+     */
+    public function pendingApprovals(Request $request)
+    {
+        $user = Auth::user();
+        $username = strtolower(trim($user->username));
+
+        $approvalRows = TrApproval::query()
+            ->where('aprv_doctype', self::DOCTYPE)
+            ->whereNotNull('aprv_datebefore')
+            ->where(function ($q) use ($username) {
+                $q->where(function ($q2) use ($username) {
+                    $q2->where('status', 'P')
+                        ->whereRaw(
+                            "(',' || lower(regexp_replace(coalesce(aprv_username,''), '\s+', '', 'g')) || ',') like ?",
+                            ['%,'.$username.',%']
+                        );
+                })->orWhere(function ($q2) use ($username) {
+                    $q2->whereIn('status', ['A', 'R'])
+                        ->whereRaw("lower(trim(coalesce(aprv_username, ''))) = ?", [$username]);
+                });
+            })
+            ->orderByDesc(DB::raw('coalesce(aprv_dateafter, aprv_datebefore)'))
+            ->get(['refnbr', 'aprv_datebefore', 'aprv_dateafter', 'status']);
+
+        if ($approvalRows->isEmpty()) {
+            return response()->json(['data' => []]);
+        }
+
+        $docIds = $approvalRows->pluck('refnbr')->unique()->values();
+
+        $registrations = TrLndTrainingRegistration::whereIn('training_regist_id', $docIds->all())
+            ->with('schedule.schedule.training')
+            ->get()
+            ->keyBy('training_regist_id');
+
+        $usernames = $registrations->pluck('user_registration')->unique();
+        $names = $usernames->isEmpty() ? collect() : User::whereIn('username', $usernames)->pluck('name', 'username');
+
+        $cpnyIds = $registrations->pluck('cpny_id')->filter()->unique();
+        $companyNames = $cpnyIds->isEmpty() ? collect() : MsCompany::whereIn('cpny_id', $cpnyIds)->pluck('cpny_name', 'cpny_id');
+
+        $deptIds = $registrations->pluck('department_id')->filter()->unique();
+        $departmentNames = $deptIds->isEmpty() ? collect() : MsDepartment::whereIn('department_id', $deptIds)->pluck('department_name', 'department_id');
+
+        // Same place/level lookups as myRegistrations(), so a pending-approval
+        // row carries everything openMyViewModal() needs (eid, schedule/mode/
+        // speaker/level) — lets the Waiting Approval tab reuse that same
+        // read-only detail modal instead of only exposing Approve/Reject.
+        $placeIds = $registrations->pluck('schedule.places_id')->filter()->unique();
+        $placeNames = $placeIds->isEmpty() ? collect() : MsLndPlaces::whereIn('places_id', $placeIds)->pluck('places_name', 'places_id');
+
+        $levelLabels = StoGrading::labelsFor($registrations->pluck('schedule.schedule.job_level'));
+
+        $data = $approvalRows
+            ->map(function ($apr) use ($registrations, $names, $companyNames, $departmentNames, $placeNames, $levelLabels) {
+                $r = $registrations->get($apr->refnbr);
+
+                if (!$r) {
+                    return null;
+                }
+
+                return [
+                    'id' => $r->id,
+                    'eid' => Hashids::encode($r->id),
+                    'docid' => $r->training_regist_id,
+                    'training_name' => $r->schedule?->schedule?->training?->training_name ?? null,
+                    'username' => $r->user_registration,
+                    'name' => $names[$r->user_registration] ?? $r->user_registration,
+                    'cpny_id' => $r->cpny_id,
+                    'cpny_name' => $companyNames[$r->cpny_id] ?? $r->cpny_id,
+                    'department_id' => $r->department_id,
+                    'department_name' => $departmentNames[$r->department_id] ?? $r->department_id,
+                    'schedule_date' => ($r->schedule_date ?? $r->schedule?->schedule_date)?->format('Y-m-d'),
+                    'start_time' => $r->schedule?->schedule_start_time,
+                    'end_time' => $r->schedule?->schedule_end_time,
+                    'mode' => $r->schedule?->training_mode,
+                    'location' => $r->schedule?->places_id ? ($placeNames[$r->schedule->places_id] ?? $r->schedule->places_id) : null,
+                    'platform' => $r->schedule?->training_platform,
+                    'speaker_name' => $r->schedule?->training_speaker_name ?: $r->schedule?->training_ext_speaker_name,
+                    'grade_name' => $levelLabels[$r->schedule?->schedule?->job_level] ?? $r->schedule?->schedule?->job_level,
+                    'status' => $r->effective_status,
+                    'approval_status' => $apr->status,
+                    'action_date' => $apr->status === 'P' ? $apr->aprv_datebefore : $apr->aprv_dateafter,
+                ];
+            })
+            ->filter()
+            ->values();
+
+        return response()->json(['data' => $data]);
+    }
+
+    /**
+     * HCDEVACCESS-only: every training registration across all employees, so
+     * HR can see who has registered and where each one currently stands
+     * (waiting approval, approved, waitlisted, offered, rejected, cancelled)
+     * without being limited to just what's actively pending their own
+     * approval action (that's pendingApprovals() above).
+     */
+    public function allRegistrations(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user->hasRole('HCDEVACCESS')) {
+            abort(403, 'You do not have HCDEVACCESS access');
+        }
+
+        // Same "past Draft" scoping as registrationSummary()'s cards/filter
+        // options — a still-Draft schedule isn't open for registration, so
+        // no row here should ever be able to belong to one.
+        $registrations = TrLndTrainingRegistration::query()
+            ->with('schedule.schedule.training')
+            ->whereHas('schedule', fn ($q) => $q->where('status', '!=', self::SCHEDULE_DRAFT))
+            ->orderByDesc('created_at')
+            ->get();
+
+        $usernames = $registrations->pluck('user_registration')->unique();
+        $names = $usernames->isEmpty() ? collect() : User::whereIn('username', $usernames)->pluck('name', 'username');
+
+        $cpnyIds = $registrations->pluck('cpny_id')->filter()->unique();
+        $companyNames = $cpnyIds->isEmpty() ? collect() : MsCompany::whereIn('cpny_id', $cpnyIds)->pluck('cpny_name', 'cpny_id');
+
+        $deptIds = $registrations->pluck('department_id')->filter()->unique();
+        $departmentNames = $deptIds->isEmpty() ? collect() : MsDepartment::whereIn('department_id', $deptIds)->pluck('department_name', 'department_id');
+
+        $placeIds = $registrations->pluck('schedule.places_id')->filter()->unique();
+        $placeNames = $placeIds->isEmpty() ? collect() : MsLndPlaces::whereIn('places_id', $placeIds)->pluck('places_name', 'places_id');
+
+        $levelLabels = StoGrading::labelsFor($registrations->pluck('schedule.schedule.job_level'));
+
+        // Queue position within each schedule's waitlist, oldest-first — same
+        // ordering waitlistForOffer()/the Waitlist Management tab uses, just
+        // surfaced here as an actual number so this tab can double as that
+        // queue view instead of a separate one.
+        $queueNumbers = collect();
+        $registrations
+            ->filter(fn ($r) => $r->status_registration === TrLndTrainingRegistration::REG_STATUS_WAITLISTED
+                && $r->status !== TrLndTrainingRegistration::STATUS_REJECTED)
+            ->groupBy('schedule_id')
+            ->each(function ($group) use ($queueNumbers) {
+                // flatMap()->collapse() would silently drop these registration-id
+                // keys (collapse() re-indexes numerically) — build the map by hand
+                // instead so `$queueNumbers[$r->id]` lookups below actually hit.
+                $group->sortBy('created_at')->values()->each(fn ($r, $i) => $queueNumbers->put($r->id, $i + 1));
+            });
+
+        // Accept only ever applies to Waiting List rows whose approval has
+        // completed on a schedule that's already Closed (see manualAccept()
+        // above) — quota/usage is only worth fetching for that subset, not
+        // every registration on the page.
+        $eligibleScheduleIds = $registrations->filter(fn ($r) => $r->status_registration === TrLndTrainingRegistration::REG_STATUS_WAITLISTED
+                && $r->status === TrLndTrainingRegistration::STATUS_APPROVED
+                && $r->schedule?->status === self::SCHEDULE_CLOSED)
+            ->pluck('schedule_id')->unique();
+
+        $quotas = $eligibleScheduleIds->isEmpty() ? collect() : MsLndTrainingQuota::whereIn('schedule_id', $eligibleScheduleIds)->get();
+        $quotaCompanyNames = MsCompany::whereIn('cpny_id', $quotas->pluck('cpny_id')->unique())->pluck('cpny_name', 'cpny_id');
+
+        $usage = $eligibleScheduleIds->isEmpty() ? collect() : TrLndTrainingRegistration::whereIn('schedule_id', $eligibleScheduleIds)
+            ->where(function ($q) {
+                $q->whereNull('status_registration')
+                    ->orWhere('status_registration', TrLndTrainingRegistration::REG_STATUS_OFFERED);
+            })
+            ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
+            ->select('schedule_id', 'cpny_id', DB::raw('count(*) as cnt'))
+            ->groupBy('schedule_id', 'cpny_id')
+            ->get()
+            ->groupBy('schedule_id');
+
+        $data = $registrations->map(function ($r) use ($names, $companyNames, $departmentNames, $placeNames, $levelLabels, $queueNumbers, $quotas, $quotaCompanyNames, $usage) {
+            $canAccept = $r->status_registration === TrLndTrainingRegistration::REG_STATUS_WAITLISTED
+                && $r->status === TrLndTrainingRegistration::STATUS_APPROVED
+                && $r->schedule?->status === self::SCHEDULE_CLOSED;
+
+            $quotaOptions = collect();
+            if ($canAccept) {
+                $usedByCpny = collect($usage->get($r->schedule_id, collect()));
+                $quotaOptions = $quotas->where('schedule_id', $r->schedule_id)
+                    ->map(function ($q) use ($usedByCpny, $quotaCompanyNames) {
+                        $used = (int) $usedByCpny->where('cpny_id', $q->cpny_id)->sum('cnt');
+
+                        return [
+                            'cpny_id' => $q->cpny_id,
+                            'cpny_name' => $quotaCompanyNames[$q->cpny_id] ?? $q->cpny_id,
+                            'quota_pax' => $q->quota_pax,
+                            'used' => $used,
+                            'available' => max(0, $q->quota_pax - $used),
+                        ];
+                    })->values();
+            }
+
+            return [
+                'id' => $r->id,
+                'eid' => Hashids::encode($r->id),
+                'docid' => $r->training_regist_id,
+                'training_id' => $r->training_id,
+                'training_name' => $r->schedule?->schedule?->training?->training_name ?? null,
+                'username' => $r->user_registration,
+                'name' => $names[$r->user_registration] ?? $r->user_registration,
+                'cpny_id' => $r->cpny_id,
+                'cpny_name' => $companyNames[$r->cpny_id] ?? $r->cpny_id,
+                'department_id' => $r->department_id,
+                'department_name' => $departmentNames[$r->department_id] ?? $r->department_id,
+                'grade_name' => $levelLabels[$r->schedule?->schedule?->job_level] ?? $r->schedule?->schedule?->job_level,
+                'schedule_date' => ($r->schedule_date ?? $r->schedule?->schedule_date)?->format('Y-m-d'),
+                'start_time' => $r->schedule?->schedule_start_time,
+                'end_time' => $r->schedule?->schedule_end_time,
+                'mode' => $r->schedule?->training_mode,
+                'location' => $r->schedule?->places_id ? ($placeNames[$r->schedule->places_id] ?? $r->schedule->places_id) : null,
+                'platform' => $r->schedule?->training_platform,
+                'speaker_name' => $r->schedule?->training_speaker_name ?: $r->schedule?->training_ext_speaker_name,
+                'schedule_status' => $r->schedule?->status,
+                'approval_status' => $r->status,
+                'status_registration' => $r->status_registration,
+                'queue_no' => $queueNumbers[$r->id] ?? null,
+                'status' => $r->effective_status,
+                'registered_at' => $r->created_at,
+                'has_attended' => (bool) $r->completed_at,
+                'can_accept' => $canAccept,
+                'quota_options' => $quotaOptions,
+            ];
+        })->values();
+
+        return response()->json(['data' => $data]);
+    }
+
+    /**
+     * HCDEVACCESS-only: Excel download of the List Registration tab, honoring
+     * the same training/level/schedule_date/status/search filters currently
+     * applied on screen (see TrainingAllRegistrationsExport, which mirrors
+     * allRegistrations() above row-for-row).
+     */
+    public function exportAllRegistrations(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user->hasRole('HCDEVACCESS')) {
+            abort(403, 'You do not have HCDEVACCESS access');
+        }
+
+        return Excel::download(
+            new TrainingAllRegistrationsExport(
+                $request->query('training_id'),
+                $request->query('status'),
+                $request->query('search'),
+                $request->query('level'),
+                $request->query('schedule_date')
+            ),
+            'training-registrations-'.now()->format('Ymd_His').'.xlsx'
+        );
+    }
+
+    /**
+     * HCDEVACCESS-only: quota utilization + status-count overview for the
+     * List Registration tab, optionally scoped to one training event
+     * (?training_id=). The training filter list only offers events that
+     * currently have a PUBLISHED schedule (what HR can still act on right
+     * now); once picked, totals cover every schedule of that training
+     * regardless of its own status — same when nothing is picked, just
+     * across all trainings.
+     */
+    public function registrationSummary(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user->hasRole('HCDEVACCESS')) {
+            abort(403, 'You do not have HCDEVACCESS access');
+        }
+
+        $trainingId = $request->query('training_id');
+
+        $publishedTrainingIds = MsLndTrainingSchedule::where('status', self::SCHEDULE_PUBLISHED)
+            ->pluck('training_id')
+            ->unique();
+
+        $trainingOptions = $publishedTrainingIds->isEmpty()
+            ? collect()
+            : MsTrainingEvent::whereIn('training_id', $publishedTrainingIds)
+                ->orderBy('training_name')
+                ->get(['training_id', 'training_name']);
+
+        $scheduleQuery = MsLndTrainingSchedule::query();
+        if ($trainingId) {
+            $scheduleQuery->where('training_id', $trainingId);
+        }
+        $scopedSchedules = $scheduleQuery->get(['schedule_id', 'training_detail_id', 'schedule_date', 'status']);
+
+        // Everything below — quota/reserved/status cards, Level/Schedule
+        // Date filter options, and (in allRegistrations()) the table rows
+        // themselves — stays scoped to schedules that are past Draft: a
+        // Draft schedule isn't open for registration yet, so it shouldn't
+        // contribute quota, counts, or filterable values anywhere on screen.
+        $liveSchedules = $scopedSchedules->where('status', '!=', self::SCHEDULE_DRAFT);
+
+        // Level/Schedule Date options: not every ms_lnd_training_detail batch
+        // (a batch can have zero schedules under it) — only ones with a live
+        // schedule, matching what the Master Training page groups by. These
+        // list every value available for the selected training regardless of
+        // the current level/schedule_date pick below, so picking one doesn't
+        // prune the other's options out from under the user.
+        $detailIds = $liveSchedules->pluck('training_detail_id')->filter()->unique();
+        $detailJobLevels = $detailIds->isEmpty()
+            ? collect()
+            : MsLndTrainingDetail::whereIn('training_detail_id', $detailIds)->pluck('job_level', 'training_detail_id');
+        $detailLabels = StoGrading::labelsFor($detailJobLevels->values());
+
+        $levelOptions = $detailJobLevels->values()
+            ->map(fn ($jl) => $detailLabels[$jl] ?? $jl)
+            ->unique()
+            ->sort()
+            ->values();
+
+        $scheduleDateOptions = $liveSchedules->pluck('schedule_date')
+            ->filter()
+            ->map(fn ($d) => $d->format('Y-m-d'))
+            ->unique()
+            ->sort()
+            ->values();
+
+        // Cards (quota/reserved/status counts) narrow further to the
+        // specific level/schedule_date currently picked in the filter bar —
+        // otherwise picking one schedule date still totaled quota across
+        // every live schedule of the training, which read as "not filtered".
+        $level = $request->query('level');
+        $scheduleDate = $request->query('schedule_date');
+
+        $cardSchedules = $liveSchedules;
+
+        if ($scheduleDate) {
+            $cardSchedules = $cardSchedules->filter(fn ($s) => $s->schedule_date?->format('Y-m-d') === $scheduleDate);
+        }
+
+        if ($level) {
+            $matchingDetailIds = $detailJobLevels
+                ->filter(fn ($jl) => ($detailLabels[$jl] ?? $jl) === $level)
+                ->keys();
+            $cardSchedules = $cardSchedules->filter(fn ($s) => $matchingDetailIds->contains($s->training_detail_id));
+        }
+
+        $scheduleIds = $cardSchedules->pluck('schedule_id');
+
+        $quotas = MsLndTrainingQuota::whereIn('schedule_id', $scheduleIds)->get();
+        $companyNames = MsCompany::whereIn('cpny_id', $quotas->pluck('cpny_id')->unique())
+            ->pluck('cpny_name', 'cpny_id');
+
+        $totalByCpny = $quotas->groupBy('cpny_id')->map(fn ($g) => (int) $g->sum('quota_pax'));
+
+        // Reserved = currently holding or offered a seat (not cancelled, not
+        // rejected) — the same "used" definition as json()/waitlistForOffer().
+        $reservedByCpny = TrLndTrainingRegistration::whereIn('schedule_id', $scheduleIds)
+            ->where(function ($q) {
+                $q->whereNull('status_registration')
+                    ->orWhere('status_registration', TrLndTrainingRegistration::REG_STATUS_OFFERED);
+            })
+            ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
+            ->select('cpny_id', DB::raw('count(*) as cnt'))
+            ->groupBy('cpny_id')
+            ->pluck('cnt', 'cpny_id');
+
+        $byCompany = $totalByCpny->keys()
+            ->merge($reservedByCpny->keys())
+            ->unique()
+            ->map(fn ($cpnyId) => [
+                'cpny_id' => $cpnyId,
+                'cpny_name' => $companyNames[$cpnyId] ?? $cpnyId,
+                'reserved' => (int) ($reservedByCpny[$cpnyId] ?? 0),
+                'total_quota' => (int) ($totalByCpny[$cpnyId] ?? 0),
+            ])
+            ->sortByDesc('total_quota')
+            ->values();
+
+        $statusCounts = TrLndTrainingRegistration::whereIn('schedule_id', $scheduleIds)
+            ->select('status', 'status_registration', DB::raw('count(*) as cnt'))
+            ->groupBy('status', 'status_registration')
+            ->get()
+            ->reduce(function ($carry, $row) {
+                $effective = $row->status_registration ?: $row->status;
+                $carry[$effective] = ($carry[$effective] ?? 0) + (int) $row->cnt;
+
+                return $carry;
+            }, []);
+
+        return response()->json([
+            'trainings' => $trainingOptions->values(),
+            'levels' => $levelOptions,
+            'schedule_dates' => $scheduleDateOptions,
+            'overall' => [
+                'reserved' => (int) $byCompany->sum('reserved'),
+                'total_quota' => (int) $byCompany->sum('total_quota'),
+            ],
+            'by_company' => $byCompany,
+            'status_counts' => [
+                'waiting_approval' => $statusCounts['P'] ?? 0,
+                'approved' => $statusCounts['C'] ?? 0,
+                'rejected' => $statusCounts['R'] ?? 0,
+                'cancelled' => $statusCounts['X'] ?? 0,
+                'waiting_list' => $statusCounts[TrLndTrainingRegistration::REG_STATUS_WAITLISTED] ?? 0,
+            ],
+        ]);
+    }
+
+    /**
+     * HCDEVACCESS-only: seat a waitlisted person on a closed schedule. The
+     * person's approval chain already ran at registration time, so HR can
+     * only accept people whose approval has COMPLETED (status 'C'). HR may
+     * pick a different company's quota than the person's origin company —
+     * that reassigns the row's cpny_id (the seat is then counted against the
+     * chosen company's quota).
+     */
+    public function manualAccept(Request $request, $id)
+    {
+        $user = Auth::user();
+
+        if (!$user->hasRole('HCDEVACCESS')) {
+            abort(403, 'You do not have HCDEVACCESS access');
+        }
+
+        $registration = TrLndTrainingRegistration::findOrFail($id);
+
+        if ($registration->status_registration !== TrLndTrainingRegistration::REG_STATUS_WAITLISTED) {
+            return response()->json(['success' => false, 'message' => 'This registration is not on the waiting list'], 422);
+        }
+
+        if ($registration->status !== TrLndTrainingRegistration::STATUS_APPROVED) {
+            return response()->json(['success' => false, 'message' => 'Approval for this participant is not finished yet — wait until approval completes'], 422);
+        }
+
+        $detail = MsLndTrainingSchedule::where('schedule_id', $registration->schedule_id)->first();
+
+        if (!$detail || $detail->status !== self::SCHEDULE_CLOSED) {
+            return response()->json(['success' => false, 'message' => 'Manual acceptance is only for schedules that are already closed'], 422);
+        }
+
+        $cpnyId = trim((string) ($request->input('cpny_id') ?: $registration->cpny_id));
+
+        DB::connection('pgsql5')->beginTransaction();
+
+        try {
+            $quota = MsLndTrainingQuota::where('schedule_id', $registration->schedule_id)
+                ->where('cpny_id', $cpnyId)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$quota) {
+                DB::connection('pgsql5')->rollBack();
+
+                return response()->json(['success' => false, 'message' => 'Quota for the selected company was not found on this schedule'], 422);
+            }
+
+            $seatCount = $this->activeSeatCount($registration->schedule_id, $cpnyId);
+
+            if ($seatCount >= $quota->quota_pax) {
+                DB::connection('pgsql5')->rollBack();
+
+                return response()->json(['success' => false, 'message' => 'Quota is already full, no slots available for this company'], 422);
+            }
+
+            $companyName = MsCompany::where('cpny_id', $cpnyId)->value('cpny_name') ?? $cpnyId;
+            $now = now();
+
+            $registration->cpny_id = $cpnyId;
+            $registration->status_registration = null;
+            $registration->process_registration_user = $user->username;
+            $registration->process_registration_date = $now;
+            $registration->updated_by = $user->username;
+            $registration->updated_at = $now;
+            $registration->save();
+
+            TrainingWaitlistNotifier::notifyCreatorManualAccept($registration, $user->name ?: $user->username);
+
+            DB::connection('pgsql5')->commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => $registration->user_registration.' accepted (quota '.$companyName.')',
+            ]);
+        } catch (\Throwable $e) {
+            DB::connection('pgsql5')->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to accept participant',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Rows currently holding a seat on a schedule+company pool: pending
+     * approval, approved, or offered (waitlisted/cancelled/rejected don't).
+     */
+    private function activeSeatCount(string $scheduleId, string $cpnyId): int
+    {
+        return TrLndTrainingRegistration::where('schedule_id', $scheduleId)
+            ->where('cpny_id', $cpnyId)
+            ->where(function ($q) {
+                $q->whereNull('status_registration')
+                    ->orWhere('status_registration', TrLndTrainingRegistration::REG_STATUS_OFFERED);
+            })
+            ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
+            ->count();
+    }
+
+    private function offerStillValid(TrLndTrainingRegistration $registration): bool
+    {
+        if ($registration->status_registration !== TrLndTrainingRegistration::REG_STATUS_OFFERED) {
+            return false;
+        }
+
+        $expiresAt = $registration->offer_expires_at;
+
+        if ($expiresAt && $expiresAt->isPast()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * TrMessage doctype 'TRN' is registered in DocumentNotificationService's
+     * extendedDocTypeConfig(), so writing this row also surfaces in the bell
+     * for the creator, current approval line, and HCDEVACCESS holders —
+     * alongside whatever targeted email already went out for the same event.
+     * $eventCode drives the bell's label/icon (see DocumentNotificationService's
+     * trnSystemEventMeta()) instead of the generic "New Comment" styling.
+     * Kept to <=8 chars: tr_message.message_type is varchar(10) and the 'S_'
+     * prefix (see trnSystemEventMeta()'s detection) already takes 2.
+     */
+    private function notifyDocSystem(string $docId, string $cpnyId, string $deptId, string $message, string $eventCode): void
+    {
+        TrMessage::create([
+            'refnbr' => $docId,
+            'doctype' => self::DOCTYPE,
+            'message_date' => now(),
+            'message_type' => 'S_' . $eventCode,
+            'cpny_id' => $cpnyId,
+            'department_id' => $deptId,
+            'username' => 'system',
+            'name' => 'System',
+            'message' => $message,
+            'status' => 'A',
+            'created_by' => 'system',
+        ]);
+    }
+
+    private function submitForApproval(string $docId, string $cpnyId, string $deptId, User $user, Carbon $now, string $trainingName = ''): void
+    {
+        $approvalCtl = app(ApprovalController::class);
+
+        $approvalCtl->loadLines(self::DOCTYPE, $cpnyId, $deptId);
+
+        $approvalCtl->generateForDocument(
+            $docId,
+            self::DOCTYPE,
+            $cpnyId,
+            $deptId,
+            $user->username,
+            [],
+            $now
+        );
+
+        $docUrl = url('/training-list/my');
+
+        // See the matching comment in approve()'s notifyFirstApprover closure — no
+        // notifyDocSystem() bell entry here either, same reasoning.
+        $approvalCtl->notifyFirstApprover(
+            $docId,
+            self::DOCTYPE,
+            'P',
+            'Training Registration',
+            $docUrl,
+            [
+                'info' => $trainingName,
+                'createdby' => $user->name ?? $user->username,
+                'date' => $now->toDateTimeString(),
+            ]
+        );
+    }
+
+    private function generateRegistrationCode(string $username): string
+    {
+        $year = (int) Carbon::now()->year;
+        $month = Carbon::now()->format('m');
+
+        $auto = $this->nextAutonbr(
+            self::DOCTYPE,
+            $year,
+            $month,
+            $username,
+            'Training Registration'
+        );
+
+        $yy = substr((string) $year, 2, 2);
+
+        return self::DOCTYPE.$yy.$month.sprintf('%04d', $auto['next']);
+    }
 }

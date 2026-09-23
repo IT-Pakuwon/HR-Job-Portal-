@@ -11,13 +11,16 @@
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create RFP Non Purchase</h2>
                         </div>
 
-                        <!-- Row 1 -->
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
+                        <!-- Main Grid: grid-cols-5, 2 rows natural wrap -->
+                        <div class="grid grid-cols-5 gap-4">
+
+                            <!-- Row 1: selalu visible -->
+
                             <!-- Company -->
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                                 <select name="cpnyid" id="cpnyid"
-                                    class="req headerCpnySelect w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    class="req headerCpnySelect w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                                     required>
                                     @foreach ($usercpny as $p)
                                         <option value="{{ $p->cpny_id }}"
@@ -27,12 +30,12 @@
                                     @endforeach
                                 </select>
                             </div>
-                            
+
                             <!-- Department -->
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
                                 <select name="departementid" id="departementid"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                                     required>
                                     @foreach ($userdept as $p)
                                         <option value="{{ $p->department_id }}"
@@ -43,11 +46,21 @@
                                 </select>
                             </div>
 
+                            <!-- Business Unit -->
+                            <div class="flex flex-col gap-2" id="businessUnitBox">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
+                                <select name="business_unit_id" id="business_unit_id"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+                                    required>
+                                    <option value="" disabled selected>Loading...</option>
+                                </select>
+                            </div>
+
                             <!-- Type Payment -->
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Type Payment</label>
                                 <select name="rfpnonpurchase_type" id="rfpnonpurchase_type"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                                     required>
                                     <option value="">Select Type</option>
                                     <option value="RFP">RFP</option>
@@ -60,13 +73,12 @@
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Group Biaya</label>
                                 <select name="groupbiaya_id"
                                     id="groupbiaya_id"
-                                    class="select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    class="select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                                     required>
-                                    <option value="">Select Group</option>                         
+                                    <option value="">Select Group</option>
                                     @foreach ($groupbiaya as $g)
                                         <option value="{{ $g->groupbiaya_id }}"
-                                            data-is-deposit="{{ ($g->is_deposit === true || $g->is_deposit === 't' || $g->is_deposit == 1) ? '1' : '0' }}"
-                                            data-is-budget="{{ ($g->is_budget === true || $g->is_budget === 't' || $g->is_budget == 1) ? '1' : '0' }}">
+                                            data-is-deposit="{{ ($g->is_deposit === true || $g->is_deposit === 't' || $g->is_deposit == 1) ? '1' : '0' }}">
                                             {{ $g->groupbiayadescr }}
                                         </option>
                                     @endforeach
@@ -79,16 +91,61 @@
                                     Tanggal Diperlukan
                                 </label>
                                 <input type="date" name="datediperlukan" id="datediperlukan" required
+                                    value="{{ now()->addDays(14)->format('Y-m-d') }}"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                             </div>
 
-                            <!-- Business Unit -->
-                            <div class="hidden flex flex-col gap-2" id="businessUnitBox">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
-                                <select name="business_unit_id" id="business_unit_id"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
-                                    required>
-                                    <option value="" disabled selected>Loading...</option>
+                            <!-- Row 2: conditional fields + Kepada + Tembusan (col-span dynamic via JS) -->
+
+                            {{-- Amount Request Payment (muncul jika RCA) --}}
+                            <div id="amountRequestPaymentBox" class="hidden flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Amount Request Payment
+                                </label>
+                                <input type="text" name="amountrequestpayment" id="amountrequestpayment"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-right text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    placeholder="0,00">
+                            </div>
+
+                            {{-- Tanggal Realisasi (muncul jika RCA) --}}
+                            <div id="tanggalRealisasiBox" class="hidden flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Tanggal Realisasi
+                                </label>
+                                <input type="date" name="datepenyelesaian" id="datepenyelesaian"
+                                    value="{{ now()->addDays(28)->format('Y-m-d') }}"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                            </div>
+
+                            {{-- Kepada (selalu visible, col-span dinamis) --}}
+                            <div id="kepadaBox" class="flex flex-col gap-2" style="grid-column: span 2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Kepada
+                                </label>
+                                <select name="rfpnonpurchase_kepada[]" id="rfpnonpurchase_kepada"
+                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+                                    multiple>
+                                    @foreach ($kepada as $u)
+                                        <option value="{{ $u->username }}">
+                                            {{ $u->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            {{-- Tembusan (selalu visible, col-span dinamis) --}}
+                            <div id="tembusanBox" class="flex flex-col gap-2" style="grid-column: span 2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Tembusan
+                                </label>
+                                <select name="rfpnonpurchase_tembusan[]" id="rfpnonpurchase_tembusan"
+                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+                                    multiple>
+                                    @foreach ($tembusan as $u)
+                                        <option value="{{ $u->username }}">
+                                            {{ $u->name }}
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
                         </div>
@@ -98,7 +155,7 @@
 
                             {{-- Customer Name --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Customer Name
                                 </label>
                                 <input type="text"
@@ -111,7 +168,7 @@
 
                             {{-- Store Name --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Store Name
                                 </label>
                                 <input type="text"
@@ -124,7 +181,7 @@
 
                             {{-- Unit ID --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Unit ID
                                 </label>
                                 <input type="text"
@@ -137,7 +194,7 @@
 
                             {{-- Transfer To --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Transfer To
                                 </label>
                                 <input type="text"
@@ -150,7 +207,7 @@
 
                             {{-- Bank Name --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Bank Name
                                 </label>
                                 <input type="text"
@@ -163,7 +220,7 @@
 
                             {{-- Bank Account --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Bank Account
                                 </label>
                                 <input type="text"
@@ -176,31 +233,11 @@
 
                         </div>                                          
                        
-                        {{-- Row Payment Info --}}
-                        <div id="paymentInfoRow"
-                            class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
-
-                            {{-- Amount Request Payment - khusus RCA --}}
-                            <div id="amountRequestPaymentBox" class="hidden flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Amount Request Payment
-                                </label>
-                                <input type="text" name="amountrequestpayment" id="amountrequestpayment"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-right text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    placeholder="0,00">
-                            </div>
-
-                            {{-- Tanggal Realisasi - khusus RCA --}}
-                            <div id="tanggalRealisasiBox" class="hidden flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Tanggal Realisasi
-                                </label>
-                                <input type="date" name="datepenyelesaian" id="datepenyelesaian"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                            </div>
+                        {{-- Dibayarkan Kepada + Keperluan --}}
+                        <div class="grid grid-cols-2 gap-4">
 
                             {{-- Dibayarkan Kepada --}}
-                            <div class="flex flex-col gap-2">
+                            <div id="dibayarkanKepadaBox" class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Dibayarkan Kepada
                                 </label>
@@ -218,38 +255,6 @@
                                     class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     placeholder="Input keperluan..."></textarea>
                             </div>
-
-                            {{-- Kepada --}}
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Kepada
-                                </label>
-                                <select name="rfpnonpurchase_kepada[]" id="rfpnonpurchase_kepada"
-                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
-                                    multiple>
-                                    @foreach ($kepada as $u)
-                                        <option value="{{ $u->username }}">
-                                            {{ $u->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            {{-- Tembusan --}}
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Tembusan
-                                </label>
-                                <select name="rfpnonpurchase_tembusan[]" id="rfpnonpurchase_tembusan"
-                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
-                                    multiple>
-                                    @foreach ($tembusan as $u)
-                                        <option value="{{ $u->username }}">
-                                            {{ $u->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
                         </div>
                     </div>
 
@@ -261,8 +266,8 @@
                                 <summary
                                     class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                     <span>Detail</span>
-                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details &rarr;</span>
-                                    <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details &darr;</span>
+                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See details &rarr;</span>
+                                    <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide details &darr;</span>
                                 </summary>
 
                                 <div class="flex h-auto flex-col justify-start">
@@ -270,7 +275,9 @@
                                         <table class="mb-4 mt-3 w-full table-fixed">
                                             <colgroup>
                                                 <col class="w-[60px]">
-                                                <col id="descCol" class="w-[65%]">
+                                                <col id="descCol" class="w-[38%]">
+                                                <col class="rfp-tax-col w-[180px]">
+                                                <col class="rfp-tax-col w-[170px]">
                                                 <col class="w-[180px]">
                                                 <col class="budget-col w-[260px]">
                                                 <col class="w-[70px]">
@@ -280,7 +287,9 @@
                                                 <tr>
                                                     <th class="border p-3 text-center">No</th>
                                                     <th id="detailDescrHeader" class="req border p-3 text-left">Description</th>
-                                                    <th class="req border p-3 text-right">Price</th>
+                                                    <th class="rfp-tax-col border p-3 text-right">Amount DPP</th>
+                                                    <th class="rfp-tax-col req border p-3 text-left">Tax</th>
+                                                    <th class="req border p-3 text-right">Total Amount</th>
                                                     <th class="req border p-3 text-left budget-col">Budget</th>
                                                     <th class="border p-3 text-center"></th>
                                                 </tr>
@@ -294,6 +303,28 @@
                                                         <textarea name="rfpnonpurchase_descr[]" rows="2"
                                                             class="rfpnonpurchaseDescrField w-full resize-y border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                                                             placeholder="Input description..."></textarea>
+                                                    </td>
+
+                                                    <td class="rfp-tax-col border p-3">
+                                                        <input type="text" name="amount_request_dpp[]"
+                                                            class="amountDppField w-full border-none bg-gray-100 p-2 text-right focus:outline-none focus:ring-0 dark:bg-gray-900"
+                                                            placeholder="0,00" readonly>
+                                                        <input type="hidden" name="amount_request_taxamt[]" class="taxAmountField" value="0">
+                                                    </td>
+
+                                                    <td class="rfp-tax-col border p-3">
+                                                        <select name="taxcodeid[]"
+                                                            class="taxCodeField w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                                            required>
+                                                            @forelse ($rfpNonPurchaseTaxes as $tax)
+                                                                <option value="{{ $tax->taxid }}" data-rate="{{ (float) $tax->taxrate }}"
+                                                                    {{ $tax->taxid === 'NONTAX' ? 'selected' : '' }}>
+                                                                    {{ $tax->descr ?: $tax->taxid }}
+                                                                </option>
+                                                            @empty
+                                                                <option value="">Tax tidak ditemukan</option>
+                                                            @endforelse
+                                                        </select>
                                                     </td>
 
                                                     <td class="border p-3">
@@ -311,7 +342,7 @@
                                                             <input type="hidden" name="coa_id[]" class="coaIdField">
 
                                                             <input type="text" name="coa[]"
-                                                                class="coaNameField w-full border-none bg-gray-100 p-2 focus:outline-none focus:ring-0"
+                                                                class="coaNameField w-full border-none bg-gray-100 p-2 focus:outline-none focus:ring-0 dark:bg-gray-900"
                                                                 placeholder="Select Budget..." readonly>
 
                                                             <button type="button"
@@ -328,24 +359,21 @@
                                                     </td>
                                                 </tr>
                                             </tbody>
+
+                                            <tfoot>
+                                                <tr class="border-t-2 border-indigo-200 bg-indigo-50/60 dark:bg-indigo-900/20">
+                                                    <td colspan="4" class="grandTotalLabelCell p-3 text-right text-xs font-semibold uppercase tracking-widest text-indigo-400 dark:text-indigo-400">
+                                                        Grand Total
+                                                    </td>
+                                                    <td class="grandTotalAmountCell whitespace-nowrap p-3 text-right text-base font-extrabold tabular-nums text-indigo-700 dark:text-indigo-200">
+                                                        <span id="grandTotalDisplay">0,00</span>
+                                                        <input type="hidden" name="grand_total" id="grandTotalInput" value="0">
+                                                    </td>
+                                                    <td class="budget-col p-3"></td>
+                                                    <td class="p-3"></td>
+                                                </tr>
+                                            </tfoot>
                                         </table>
-                                    </div>
-                                    <div class="mt-4 flex justify-end">
-                                        <div class="w-full max-w-sm rounded-lg border bg-gray-50 p-4 dark:bg-gray-700">
-                                            
-                                            <div class="flex items-center justify-between">
-                                                <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                                                    Grand Total
-                                                </span>
-
-                                                <span id="grandTotalDisplay" class="text-lg font-bold text-indigo-600">
-                                                    0,00
-                                                </span>
-                                            </div>
-
-                                            <!-- hidden untuk dikirim ke backend -->
-                                            <input type="hidden" name="grand_total" id="grandTotalInput" value="0">
-                                        </div>
                                     </div>
 
                                     <button type="button" id="addImBudgetNonPurch"
@@ -419,10 +447,10 @@
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span class="req">Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
                                     details &rarr;</span>
                                 <span
-                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                                     details &darr;</span>
                             </summary>
                             <div class="flex flex-col pt-6">
@@ -449,7 +477,7 @@
                         <div
                             class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
                             <button id="backBtn" onclick="history.back()"
-                                class="flex items-center justify-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                class="flex items-center justify-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-300">
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -504,10 +532,48 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
+        const groupBiayaBudgetSettings = @json($groupbiayaBudgetSettings ?? []);
+        const departmentFinMap = @json($departmentFinMap ?? []);
+        let hasCompanyBudgetSetting = true;
+
+        function selectedDepartmentFinId() {
+            const dept = String($('#departementid').val() || '').trim();
+            return String(departmentFinMap[dept] || '').trim();
+        }
+
+        function budgetSettingKey() {
+            return [
+                $('#cpnyid').val(),
+                $('#business_unit_id').val(),
+                selectedDepartmentFinId(),
+                $('#groupbiaya_id').val()
+            ].map(v => String(v || '').trim()).join('|');
+        }
+
         window.isBudgetSelected = function () {
-            const val = $('#groupbiaya_id option:selected').attr('data-is-budget');
-            return val === '1' || val === 't' || val === 'true';
+            if (!hasCompanyBudgetSetting) {
+                return false;
+            }
+
+            const val = groupBiayaBudgetSettings[budgetSettingKey()];
+
+            return val === 1 || val === true || val === '1' || val === 't' || val === 'true';
         };
+
+        function applyBusinessUnitRequirement() {
+            if (hasCompanyBudgetSetting) {
+                $('#businessUnitBox').removeClass('hidden');
+                $('#business_unit_id')
+                    .prop('disabled', false)
+                    .prop('required', true);
+            } else {
+                $('#businessUnitBox').addClass('hidden');
+                $('#business_unit_id')
+                    .val('')
+                    .prop('required', false)
+                    .prop('disabled', true);
+            }
+        }
 
         window.applyBudgetColumnVisibility = function () {
             const isBudget = window.isBudgetSelected();
@@ -519,8 +585,7 @@
                 .prop('disabled', false);
 
             if (isBudget) {
-                $('#businessUnitBox').removeClass('hidden');
-                $('#business_unit_id').prop('required', true);
+                applyBusinessUnitRequirement();
 
                 $('.budget-col').removeClass('hidden');
                 $('#descCol').removeClass('w-[75%]').addClass('w-[65%]');
@@ -528,8 +593,7 @@
                 $('.coaIdField, .coaNameField, .activityIdField, .businessUnitIdField, .departmentFinIdField, .actDescrField')
                     .prop('disabled', false);
             } else {
-                $('#businessUnitBox').addClass('hidden');
-                $('#business_unit_id').prop('required', false).val('');
+                applyBusinessUnitRequirement();
 
                 $('.budget-col').addClass('hidden');
                 $('#descCol').removeClass('w-[65%]').addClass('w-[75%]');
@@ -538,6 +602,28 @@
                     .val('')
                     .prop('disabled', true);
             }
+
+            applyTaxColumnVisibility();
+            window.updateRow2ColSpans && window.updateRow2ColSpans();
+        };
+
+        window.updateRow2ColSpans = function () {
+            const isRCA = $('#rfpnonpurchase_type').val() === 'RCA';
+
+            // Row 2 sudah terpakai oleh Tanggal Diperlukan.
+            // Tambahan yang dihitung hanya Tanggal Realisasi saat RCA.
+            let usedSlots = 1;
+            if (isRCA) usedSlots++;
+
+            const remaining = 5 - usedSlots;
+            const kepadaSpan = Math.min(2, Math.ceil(remaining / 2));
+            const tembusanSpan = Math.max(1, remaining - kepadaSpan);
+
+            const kepadaEl = document.getElementById('kepadaBox');
+            const tembusanEl = document.getElementById('tembusanBox');
+
+            if (kepadaEl) kepadaEl.style.gridColumn = 'span ' + kepadaSpan;
+            if (tembusanEl) tembusanEl.style.gridColumn = 'span ' + tembusanSpan;
         };
     </script>
 
@@ -618,6 +704,68 @@
             }
         }
 
+        const rfpNonPurchaseTaxes = @json($rfpNonPurchaseTaxes ?? []);
+
+        function taxOptionsHtml(selectedTaxId = 'NONTAX') {
+            if (!rfpNonPurchaseTaxes.length) {
+                return '<option value="">Tax tidak ditemukan</option>';
+            }
+
+            return rfpNonPurchaseTaxes.map(tax => {
+                const taxId = String(tax.taxid || '');
+                const rate = Number(tax.taxrate || 0);
+                const descr = String(tax.descr || taxId);
+                const selected = taxId === String(selectedTaxId || 'NONTAX') ? 'selected' : '';
+
+                return `<option value="${taxId}" data-rate="${rate}" ${selected}>${descr}</option>`;
+            }).join('');
+        }
+
+        function currentTypeIsRfp() {
+            return String($('#rfpnonpurchase_type').val() || '').toUpperCase() === 'RFP';
+        }
+
+        function calculateRowTax($row) {
+            const totalAmount = parseNumber($row.find('.priceField').val());
+            const rate = Number($row.find('.taxCodeField option:selected').data('rate') || 0);
+            const amountDpp = rate > 0 ? (totalAmount * 100 / (100 + rate)) : totalAmount;
+            const taxAmount = rate > 0 ? (amountDpp * rate / 100) : 0;
+
+            $row.find('.amountDppField').val(totalAmount ? formatNumber(amountDpp) : '');
+            $row.find('.taxAmountField').val(taxAmount.toFixed(2));
+        }
+
+        function calculateAllRowTaxes() {
+            $('#rfpnonpurchTable tr.rfpnonpurch-row').each(function () {
+                calculateRowTax($(this));
+            });
+        }
+
+        function updateGrandTotalFooterLayout() {
+            $('.grandTotalLabelCell').attr('colspan', currentTypeIsRfp() ? 4 : 2);
+        }
+
+        function applyTaxColumnVisibility() {
+            if (currentTypeIsRfp()) {
+                $('.rfp-tax-col').removeClass('hidden');
+                $('#descCol').removeClass('w-[65%] w-[75%]').addClass('w-[38%]');
+                $('.amountDppField, .taxAmountField, .taxCodeField').prop('disabled', false);
+                $('.taxCodeField').prop('required', true);
+                calculateAllRowTaxes();
+            } else {
+                $('.rfp-tax-col').addClass('hidden');
+                $('#descCol')
+                    .removeClass('w-[38%]')
+                    .addClass(window.isBudgetSelected() ? 'w-[65%]' : 'w-[75%]');
+                $('.amountDppField, .taxAmountField, .taxCodeField')
+                    .val('')
+                    .prop('disabled', true);
+                $('.taxCodeField').prop('required', false);
+            }
+
+            updateGrandTotalFooterLayout();
+        }
+
         function newRowTemplate(no) {
             return `
                 <tr class="rfpnonpurch-row">
@@ -627,6 +775,21 @@
                         <textarea name="rfpnonpurchase_descr[]" rows="2"
                             class="rfpnonpurchaseDescrField w-full resize-y border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                             placeholder="Input description..."></textarea>
+                    </td>
+
+                    <td class="rfp-tax-col border p-3">
+                        <input type="text" name="amount_request_dpp[]"
+                            class="amountDppField w-full border-none bg-gray-100 p-2 text-right focus:outline-none focus:ring-0 dark:bg-gray-900"
+                            placeholder="0,00" readonly>
+                        <input type="hidden" name="amount_request_taxamt[]" class="taxAmountField" value="0">
+                    </td>
+
+                    <td class="rfp-tax-col border p-3">
+                        <select name="taxcodeid[]"
+                            class="taxCodeField w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                            required>
+                            ${taxOptionsHtml()}
+                        </select>
                     </td>
 
                     <td class="border p-3">
@@ -644,7 +807,7 @@
                             <input type="hidden" name="coa_id[]" class="coaIdField">
 
                             <input type="text" name="coa[]"
-                                class="coaNameField w-full border-none bg-gray-100 p-2 focus:outline-none focus:ring-0"
+                                class="coaNameField w-full border-none bg-gray-100 p-2 focus:outline-none focus:ring-0 dark:bg-gray-900"
                                 placeholder="Select Budget..." readonly>
 
                             <button type="button"
@@ -674,10 +837,12 @@
                 const $desc = $row.find('.rfpnonpurchaseDescrField');
                 const $price = $row.find('.priceField');
                 const $coa = $row.find('.coaNameField');
+                const $tax = $row.find('.taxCodeField');
 
                 const desc = ($desc.val() || '').trim();
                 const price = parseNumber($price.val());
                 const coaId = ($row.find('.coaIdField').val() || '').trim();
+                const taxCodeId = ($tax.val() || '').trim();
 
                 const isBudget = window.isBudgetSelected();
                 const isEmptyRow = !desc && !price && !coaId;
@@ -691,8 +856,13 @@
                     rowErr = true;
                 }
 
-                if (!price || price <= 0) {
-                    addError($price, 'Price harus > 0.');
+                if (!price) {
+                    addError($price, 'Total Amount tidak boleh 0.');
+                    rowErr = true;
+                }
+
+                if (currentTypeIsRfp() && !taxCodeId) {
+                    addError($tax, 'Tax wajib diisi.');
                     rowErr = true;
                 }
 
@@ -763,6 +933,48 @@
                 width: '100%'
             });
 
+            function renderGroupBiayaOptions(list, selected = null) {
+                let html = '<option value="">Select Group</option>';
+
+                (list || []).forEach(item => {
+                    const id = item.id ?? '';
+                    const text = item.text ?? id;
+                    const isDeposit = item.is_deposit ?? '0';
+                    const sel = selected && String(selected) === String(id) ? 'selected' : '';
+
+                    html += `<option value="${escapeHtml(id)}" data-is-deposit="${escapeHtml(isDeposit)}" ${sel}>${escapeHtml(text)}</option>`;
+                });
+
+                return html;
+            }
+
+            function loadGroupBiayaOptions(selected = null) {
+                const $group = $('#groupbiaya_id');
+                const selectedValue = selected ?? $group.val();
+
+                $group.html('<option value="">Loading...</option>').trigger('change.select2');
+
+                return $.getJSON("{{ route('rfpnonpurch.groupbiaya-options') }}", {
+                    cpnyid: $('#cpnyid').val() || '',
+                    departementid: $('#departementid').val() || '',
+                    selected_groupbiaya_id: selectedValue || ''
+                }).done(function (res) {
+                    hasCompanyBudgetSetting = res.has_company_budget_setting !== false;
+
+                    if (!hasCompanyBudgetSetting) {
+                        $('#business_unit_id').val('');
+                    }
+
+                    const rows = res.data || [];
+                    const hasSelected = rows.some(item => String(item.id) === String(selectedValue));
+
+                    $group.html(renderGroupBiayaOptions(rows, hasSelected ? selectedValue : null));
+                    $group.val(hasSelected ? selectedValue : '').trigger('change');
+                }).fail(function () {
+                    $group.html('<option value="">Failed to load Group Biaya</option>').trigger('change');
+                });
+            }
+
             $('.user-select2').select2({
                 placeholder: 'Search user...',
                 allowClear: true,
@@ -794,6 +1006,7 @@
                 updateRowNumbers();
                 updateRemoveButtons();
                 calculateGrandTotal();
+                applyTaxColumnVisibility();
                 window.applyBudgetColumnVisibility();
             });
 
@@ -806,7 +1019,10 @@
             });
 
             $(document).on('input', '.priceField', function () {
-                this.value = this.value.replace(/\./g, ',').replace(/[^0-9,]/g, '');
+                let value = this.value.replace(/\./g, ',').replace(/[^0-9,-]/g, '');
+                const isNegative = value.startsWith('-');
+                value = value.replace(/-/g, '');
+                this.value = (isNegative ? '-' : '') + value;
 
                 const parts = this.value.split(',');
                 if (parts.length > 2) {
@@ -814,12 +1030,18 @@
                 }
 
                 calculateGrandTotal();
+                calculateRowTax($(this).closest('.rfpnonpurch-row'));
             });
 
             $(document).on('blur', '.priceField', function () {
                 const value = parseNumber($(this).val());
                 $(this).val(value ? formatNumber(value) : '');
                 calculateGrandTotal();
+                calculateRowTax($(this).closest('.rfpnonpurch-row'));
+            });
+
+            $(document).on('change', '.taxCodeField', function () {
+                calculateRowTax($(this).closest('.rfpnonpurch-row'));
             });
 
             $(document).on('keypress', '.priceField', function (e) {
@@ -828,7 +1050,11 @@
 
                 if ($.inArray(charCode, [8, 9, 37, 38, 39, 40, 46]) !== -1) return;
 
-                if (!/^[0-9,]$/.test(charStr)) {
+                if (!/^[0-9,-]$/.test(charStr)) {
+                    e.preventDefault();
+                }
+
+                if (charStr === '-' && ($(this).val().includes('-') || this.selectionStart !== 0)) {
                     e.preventDefault();
                 }
 
@@ -948,6 +1174,9 @@
 
                     $tr.find('.rfpnonpurchaseDescrField').val('');
                     $tr.find('.priceField').val('');
+                    $tr.find('.amountDppField').val('');
+                    $tr.find('.taxAmountField').val('0');
+                    $tr.find('.taxCodeField').val('NONTAX');
 
                     $tr.find('.activityIdField').val('');
                     $tr.find('.businessUnitIdField').val('');
@@ -961,6 +1190,7 @@
                 });
 
                 calculateGrandTotal();
+                calculateAllRowTaxes();
             }
 
             async function confirmReset(type) {
@@ -995,6 +1225,8 @@
             loadBusinessUnitsByCpny($cpny.val()).done(function () {
                 prevCpny = $cpny.val();
                 prevBu = $bu.val();
+                loadGroupBiayaOptions();
+                window.applyBudgetColumnVisibility();
             });
 
             $cpny.on('change', async function () {
@@ -1007,6 +1239,8 @@
 
                     loadBusinessUnitsByCpny(newCpny).done(function () {
                         prevBu = $bu.val();
+                        loadGroupBiayaOptions(null);
+                        window.applyBudgetColumnVisibility();
                     });
 
                     return;
@@ -1025,6 +1259,8 @@
 
                 loadBusinessUnitsByCpny(newCpny).done(function () {
                     prevBu = $bu.val();
+                    loadGroupBiayaOptions(null);
+                    window.applyBudgetColumnVisibility();
                 });
 
                 Swal.fire({
@@ -1035,10 +1271,16 @@
                 });
             });
 
+            $('#departementid').on('change', function () {
+                loadGroupBiayaOptions(null);
+                window.applyBudgetColumnVisibility();
+            });
+
             $bu.on('change', async function () {
                 if (isReverting) return;
 
                 const newBu = $bu.val();
+                window.applyBudgetColumnVisibility();
 
                 if (!prevBu) {
                     prevBu = newBu;
@@ -1090,7 +1332,8 @@
                 cpnyid: null,
                 deptid: null,
                 perpost: null,
-                business_unit_id: null
+                business_unit_id: null,
+                groupbiaya_id: null
             };
 
             function openCoaModal(forRow) {
@@ -1100,6 +1343,7 @@
                 const dept = $('#departementid').val();
                 const perpost = new Date().getFullYear();
                 const bu = $('#business_unit_id').val();
+                const groupbiayaId = $('#groupbiaya_id').val();
 
                 if (!cpny) {
                     toastr.warning('Pilih Company terlebih dahulu.');
@@ -1116,9 +1360,15 @@
                     return;
                 }
 
+                if (!groupbiayaId) {
+                    toastr.warning('Pilih Group Biaya terlebih dahulu.');
+                    return;
+                }
+
                 coaState.cpnyid = cpny;
                 coaState.deptid = dept;
                 coaState.business_unit_id = bu;
+                coaState.groupbiaya_id = groupbiayaId;
                 coaState.perpost = perpost;
                 coaState.page = 1;
                 coaState.search = '';
@@ -1148,10 +1398,11 @@
                     cpnyid: coaState.cpnyid,
                     deptid: coaState.deptid,
                     perpost: coaState.perpost,
-                    business_unit_id: coaState.business_unit_id
+                    business_unit_id: coaState.business_unit_id,
+                    groupbiaya_id: coaState.groupbiaya_id
                 };
 
-                $.getJSON("{{ route('coa.byDept') }}", params)
+                $.getJSON("{{ route('coa.nonpurch.byDept') }}", params)
                     .done(function (res) {
                         const rows = (res.data || []).map(item => {
                             const id = item.account_id ?? '';
@@ -1178,7 +1429,7 @@
                                     </td>
                                     <td class="border p-2 text-center">
                                         <button type="button"
-                                            class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
+                                            class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                                             data-id="${escapeHtml(id)}"
                                             data-activity_id="${escapeHtml(actId)}"
                                             data-business_unit_id="${escapeHtml(buId)}"
@@ -1400,6 +1651,7 @@
                     |--------------------------------------------------------------------------
                     */
                     $('#headerKeperluanBox').addClass('hidden');
+                    document.getElementById('dibayarkanKepadaBox').style.gridColumn = 'span 2';
                     $('#keperluan')
                         .prop('required', false)
                         .val('');
@@ -1433,6 +1685,7 @@
                     */
                     $('#headerKeperluanBox').removeClass('hidden');
                     $('#keperluan').prop('required', true);
+                    document.getElementById('dibayarkanKepadaBox').style.gridColumn = 'span 1';
 
                     $('#detailDescrHeader').text('Description');
 
@@ -1454,7 +1707,32 @@
                 }
 
                 toggleBudgetMode();
+                applyTaxColumnVisibility();
+                window.updateRow2ColSpans();
             }
+
+            function addDaysToDate(value, days) {
+                if (!value) return '';
+
+                const date = new Date(value + 'T00:00:00');
+                if (Number.isNaN(date.getTime())) return '';
+
+                date.setDate(date.getDate() + days);
+
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+
+                return `${year}-${month}-${day}`;
+            }
+
+            function syncTanggalRealisasi() {
+                const tanggalDiperlukan = $('#datediperlukan').val();
+                $('#datepenyelesaian').val(addDaysToDate(tanggalDiperlukan, 14));
+            }
+
+            $('#datediperlukan').on('change', syncTanggalRealisasi);
+
             // =====================================================
             // BUDGET MODE
             // =====================================================
@@ -1468,8 +1746,7 @@
                     .prop('disabled', false);
 
                 if (isBudget) {
-                    $('#businessUnitBox').removeClass('hidden');
-                    $('#business_unit_id').prop('required', true);
+                    applyBusinessUnitRequirement();
 
                     $('.budget-col').removeClass('hidden');
 
@@ -1480,11 +1757,7 @@
                     $('.coaIdField, .coaNameField, .activityIdField, .businessUnitIdField, .departmentFinIdField, .actDescrField')
                         .prop('disabled', false);
                 } else {
-                    $('#businessUnitBox').addClass('hidden');
-
-                    $('#business_unit_id')
-                        .prop('required', false)
-                        .val('');
+                    applyBusinessUnitRequirement();
 
                     $('.budget-col').addClass('hidden');
 
@@ -1496,8 +1769,11 @@
                         .val('')
                         .prop('disabled', true);
                 }
+
+                applyTaxColumnVisibility();
+                window.updateRow2ColSpans();
             }
-            
+
 
             // =====================================================
             // DEPOSIT MODE
@@ -1537,6 +1813,7 @@
             // =====================================================
             $('#rfpnonpurchase_type').on('change', function () {
                 toggleRfpRcaMode();
+                syncTanggalRealisasi();
                 window.applyBudgetColumnVisibility();
             });
 
@@ -1575,8 +1852,11 @@
             // FIRST LOAD
             // =====================================================
             toggleRfpRcaMode();
+            syncTanggalRealisasi();
             toggleDepositFields();
             toggleBudgetMode();
+            applyTaxColumnVisibility();
+            window.updateRow2ColSpans();
 
         });
     </script>

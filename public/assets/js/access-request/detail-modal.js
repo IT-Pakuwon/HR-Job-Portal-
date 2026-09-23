@@ -517,7 +517,7 @@ function renderDiscussionMessages(messages = []) {
                         <span>•</span>
                         <span>${formatDate(item.message_date ?? item.created_at)}</span>
                     </div>
-                    <div class="whitespace-normal break-words text-sm leading-6">${item.message ?? "-"}</div>
+                    <div class="whitespace-normal break-words text-sm leading-6">${highlightMentions(item.message ?? "-")}</div>
                 </div>
             </div>`);
     });
@@ -543,5 +543,14 @@ function initDiscussionUI() {
             e.preventDefault();
             sendDiscussion();
         }
+    });
+
+    attachMentionAutocomplete({
+        inputSelector: "#discussionInput",
+        fetchUrlFn: function () {
+            return currentDiscussionHash
+                ? `/access-request/mentionable-users/${currentDiscussionHash}`
+                : null;
+        },
     });
 }

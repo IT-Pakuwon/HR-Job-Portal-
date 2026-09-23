@@ -73,7 +73,7 @@
 
     <!-- ADD BUTTON -->
     <button onclick="openShortcutModal()"
-        class="flex h-9 items-center gap-2 rounded-md border border-dashed border-gray-300 px-3 text-sm text-gray-500 hover:border-indigo-400 hover:text-indigo-600">
+        class="flex h-9 items-center gap-2 rounded-md border border-dashed border-gray-300 px-3 text-sm text-gray-500 hover:border-indigo-400 hover:text-indigo-600 dark:text-gray-400 dark:border-gray-700">
         ➕ Add
     </button>
 
@@ -81,19 +81,19 @@
 {{-- ================= MODAL ================= --}}
 <div id="shortcutModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
 
-    <div class="w-full max-w-sm rounded-lg bg-white p-4 shadow-lg">
-        <h3 id="modalTitle" class="mb-3 text-sm font-semibold text-gray-800">
+    <div class="w-full max-w-sm rounded-lg bg-white p-4 shadow-lg dark:bg-gray-800">
+        <h3 id="modalTitle" class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-200">
             Add Shortcut
         </h3>
 
         <input id="shortcutTitle" type="text" placeholder="Shortcut title"
-            class="mb-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none">
+            class="mb-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none dark:border-gray-700">
 
         <input id="shortcutUrl" type="url" placeholder="https://example.com"
-            class="mb-4 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none">
+            class="mb-4 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none dark:border-gray-700">
 
         <div class="flex justify-end gap-2">
-            <button onclick="closeShortcutModal()" class="text-sm text-gray-500 hover:text-gray-700">
+            <button onclick="closeShortcutModal()" class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400">
                 Cancel
             </button>
 

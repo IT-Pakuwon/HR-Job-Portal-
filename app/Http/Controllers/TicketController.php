@@ -18,6 +18,7 @@ use App\Models\TrMessage;
 use App\Models\TrServiceorderEnvision;
 use App\Models\TrTicket;
 use App\Models\TrTicketActivity;
+use App\Models\User;
 use App\Services\TicketNotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -29,6 +30,8 @@ use Yajra\DataTables\Facades\DataTables;
 class TicketController extends Controller
 {
     use HasAutonbr;
+
+    protected const IT_DEPARTMENT_ID = 'IT';
 
     protected $notificationService;
 
@@ -123,12 +126,14 @@ class TicketController extends Controller
 
         $isIT = $this->isITRole();
 
+        $itTypes = $this->itTicketTypes();
+
         $userCompanies    = $companies->pluck('cpny_id')->toArray();
         $userDepartments  = $departments->pluck('department_id')->toArray();
 
-        $baseCount = function () use ($isIT, $userCompanies, $userDepartments) {
-            $q = TrTicket::query();
-            if (!$isIT) {
+        $baseCount = function () use ($isIT, $userCompanies, $userDepartments, $itTypes, $user) {
+            $q = TrTicket::query()->whereIn('ticket_type', $itTypes);
+            if (!$isIT && !$user->hasFullDataScope()) {
                 $q->whereIn('cpny_id', $userCompanies)
                   ->whereIn('department_id', $userDepartments);
             }
@@ -189,17 +194,20 @@ class TicketController extends Controller
             )->count(),
 
             'my_ticket' => TrTicket::query()
+                ->whereIn('ticket_type', $itTypes)
                 ->where('pic_ticket', $user->username)
                 ->count(),
         ];
 
         $categories = MsTicketCategory::query()
             ->where('status', 'A')
+            ->whereIn('ticket_type', $itTypes)
             ->orderBy('ticket_category_name')
             ->get(['ticket_categoryid', 'ticket_category_name']);
 
         $allCompanies = MsCompany::query()
             ->where('status', 'A')
+            ->where('group_cpny_id', 'JKT')
             ->orderBy('cpny_name')
             ->get(['cpny_id', 'cpny_name']);
 
@@ -220,6 +228,10 @@ class TicketController extends Controller
 
         $isIT = $this->isITRole();
 
+        $isITByRole = $this->isITByRole();
+
+        $itTypes = $this->itTicketTypes();
+
         $query = TrTicket::with([
             'category',
             'subcategory',
@@ -227,9 +239,11 @@ class TicketController extends Controller
             'location',
             'subLocation',
             'responseActivity',
-        ])->whereNull('deleted_at');
+        ])
+            ->whereNull('deleted_at')
+            ->whereIn('ticket_type', $itTypes);
 
-        if (!$isIT) {
+        if (!$isIT && !$user->hasFullDataScope()) {
             $query->where(function ($q) use ($user) {
                 $q->where('created_by', $user->username)
                     ->orWhere('pic_ticket', $user->username);
@@ -363,8 +377,8 @@ class TicketController extends Controller
                 return $ws ? $ws->toISOString() : null;
             })
 
-            ->addColumn('actions', function ($row) {
-                return $this->buildActions($row);
+            ->addColumn('actions', function ($row) use ($isIT, $isITByRole) {
+                return $this->buildActions($row, $isIT, $isITByRole);
             })
 
             ->rawColumns([
@@ -374,10 +388,20 @@ class TicketController extends Controller
             ->make(true);
     }
 
+    protected function itTicketTypes(): array
+    {
+        return MsTicketType::query()
+            ->where('department_id', self::IT_DEPARTMENT_ID)
+            ->where('status', 'A')
+            ->pluck('ticket_type')
+            ->toArray();
+    }
+
     protected function isITRole()
     {
         return MsTicketCategoryDept::query()
             ->where('username', auth()->user()->username)
+            ->whereIn('ticket_type', $this->itTicketTypes())
             ->where('status', 'A')
             ->exists();
     }
@@ -433,6 +457,12 @@ class TicketController extends Controller
                 'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx',
             ],
         ]);
+
+        abort_unless(
+            in_array($request->ticket_type, $this->itTicketTypes(), true),
+            422,
+            'Invalid ticket type for IT Ticket.'
+        );
 
         DB::connection('pgsql5')->beginTransaction();
 
@@ -598,6 +628,12 @@ class TicketController extends Controller
             'issue_descr' => 'required',
         ]);
 
+        abort_unless(
+            in_array($request->ticket_type, $this->itTicketTypes(), true),
+            422,
+            'Invalid ticket type for IT Ticket.'
+        );
+
         DB::connection('pgsql5')->beginTransaction();
 
         try {
@@ -724,7 +760,7 @@ class TicketController extends Controller
                 'pic_ticket'       => $username,
                 'response_date'    => now(),
                 'response_summary' => 'Ticket Cancelled',
-                'response_descr'   => 'Ticket cancelled.',
+                'response_descr'   => request('response_descr') ?: 'Ticket cancelled.',
                 'status_pekerjaan' => 'CANCEL',
                 'status'           => 'A',
                 'created_by'       => $username,
@@ -769,11 +805,6 @@ class TicketController extends Controller
         $this->syncEnvisionSolved($ticket);
 
         $ticket->refresh();
-
-        abort_unless(
-            $this->canAccessTicket($ticket),
-            403
-        );
 
         /*
         |--------------------------------------------------------------------------
@@ -945,7 +976,7 @@ class TicketController extends Controller
 
                 'tracking' => $tracking,
 
-                'actions' => $this->buildActions($ticket),
+                'actions' => $this->buildActions($ticket, $this->isITRole(), $this->isITByRole()),
             ],
         ]);
     }
@@ -957,11 +988,6 @@ class TicketController extends Controller
         abort_if(!$id, 404);
 
         $ticket = TrTicket::findOrFail($id);
-
-        abort_unless(
-            $this->canAccessTicket($ticket),
-            403
-        );
 
         $activities = TrTicketActivity::where(
             'ticketid',
@@ -1655,6 +1681,12 @@ class TicketController extends Controller
             'pic_ticket' => 'nullable',
         ]);
 
+        abort_unless(
+            in_array($request->ticket_type, $this->itTicketTypes(), true),
+            422,
+            'Invalid ticket type for IT Ticket.'
+        );
+
         if ($request->filled('pic_ticket')) {
             abort_if(
                 !$this->validatePIC(
@@ -1977,8 +2009,19 @@ class TicketController extends Controller
 
         $ticket = TrTicket::findOrFail($id);
 
+        $isIT = $this->isITRole();
+
+        $isRequester = $ticket->created_by === auth()->user()->username;
+
+        $canRequesterReopen =
+            $isRequester
+            && $ticket->status === 'C'
+            && $ticket->status_pekerjaan === 'COMPLETED'
+            && $ticket->completed_at
+            && now()->lte($ticket->completed_at->copy()->addDays(7));
+
         abort_unless(
-            $this->isITRole(),
+            $isIT || $canRequesterReopen,
             403
         );
 
@@ -2098,11 +2141,6 @@ class TicketController extends Controller
 
         $ticket = TrTicket::findOrFail($id);
 
-        abort_unless(
-            $this->canAccessTicket($ticket),
-            403
-        );
-
         $comments = TrMessage::query()
             ->where('refnbr', $ticket->ticketid)
             ->where('doctype', 'TIC')
@@ -2113,6 +2151,33 @@ class TicketController extends Controller
             'success' => true,
             'data' => $comments,
         ]);
+    }
+
+    public function mentionableUsers($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        abort_if(!$id, 404);
+
+        $ticket = TrTicket::findOrFail($id);
+
+        $usernames = collect([$ticket->user_peminta])
+            ->merge(
+                MsTicketCategoryDept::where('ticket_categoryid', $ticket->ticket_categoryid)
+                    ->where('status', 'A')
+                    ->pluck('username')
+            )
+            ->filter()
+            ->map(fn ($u) => strtolower(trim($u)))
+            ->unique()
+            ->reject(fn ($u) => $u === strtolower(auth()->user()->username));
+
+        $users = User::query()
+            ->whereIn(DB::raw('lower(username)'), $usernames->all())
+            ->get(['username', 'name'])
+            ->values();
+
+        return response()->json($users);
     }
 
     public function comment(Request $request, $hash)
@@ -2287,12 +2352,14 @@ class TicketController extends Controller
         $user    = auth()->user();
         $isIT    = $this->isITRole();
 
+        $itTypes = $this->itTicketTypes();
+
         $userCompanies   = collect(explode(',', $user->cpny_id))->filter()->map(fn($v) => trim($v))->toArray();
         $userDepartments = collect(explode(',', $user->department_id))->filter()->map(fn($v) => trim($v))->toArray();
 
-        $base = function () use ($isIT, $userCompanies, $userDepartments, $user) {
-            $q = TrTicket::query();
-            if (!$isIT) {
+        $base = function () use ($isIT, $userCompanies, $userDepartments, $user, $itTypes) {
+            $q = TrTicket::query()->whereIn('ticket_type', $itTypes);
+            if (!$isIT && !$user->hasFullDataScope()) {
                 $q->where(function ($q2) use ($user) {
                     $q2->where('created_by', $user->username)
                        ->orWhere('pic_ticket', $user->username);
@@ -2317,6 +2384,7 @@ class TicketController extends Controller
             ->count();
 
         $counts['my_ticket'] = TrTicket::query()
+            ->whereIn('ticket_type', $itTypes)
             ->where('pic_ticket', $user->username)
             ->count();
 
@@ -2329,6 +2397,7 @@ class TicketController extends Controller
 
         $companies = MsCompany::query()
             ->where('status', 'A')
+            ->where('group_cpny_id', 'JKT')
             ->orderBy('cpny_name')
             ->get(['cpny_id', 'cpny_name']);
 
@@ -2354,6 +2423,7 @@ class TicketController extends Controller
             ]);
         $types = MsTicketType::query()
             ->where('status', 'A')
+            ->where('department_id', self::IT_DEPARTMENT_ID)
             ->orderBy('ticket_type_name')
             ->get([
                 'ticket_type',
@@ -2560,6 +2630,7 @@ class TicketController extends Controller
     {
         $companies = MsCompany::query()
             ->where('status', 'A')
+            ->where('group_cpny_id', 'JKT')
             ->orderBy('cpny_name')
             ->get(['cpny_id', 'cpny_name']);
 
@@ -2704,7 +2775,7 @@ class TicketController extends Controller
             ->values();
     }
 
-    protected function buildActions($ticket)
+    protected function buildActions($ticket, $isIT, $isITByRole)
     {
         $user = auth()->user();
 
@@ -2713,9 +2784,6 @@ class TicketController extends Controller
 
         $isPIC =
             $ticket->pic_ticket === $user->username;
-
-        $isIT       = $this->isITRole();
-        $isITByRole = $this->isITByRole();
 
         return [
             'can_edit' => $isRequester
@@ -2777,7 +2845,16 @@ class TicketController extends Controller
                     'ENVISION CHECKED / SOLVED',
                 ]),
 
-            'can_reopen' => $isIT
+            'can_reopen' => (
+                $isIT
+                || (
+                    $isRequester
+                    && $ticket->status === 'C'
+                    && $ticket->status_pekerjaan === 'COMPLETED'
+                    && $ticket->completed_at
+                    && now()->lte($ticket->completed_at->copy()->addDays(7))
+                )
+            )
                 && (
                     ($ticket->status === 'C' && $ticket->status_pekerjaan === 'COMPLETED')
                     || ($ticket->status === 'X' && $ticket->status_pekerjaan === 'CANCEL')
@@ -2812,11 +2889,6 @@ class TicketController extends Controller
             'location',
             'subLocation',
         ])->findOrFail($id);
-
-        abort_unless(
-            $this->canAccessTicket($ticket),
-            403
-        );
 
         $attachmentController = app(TrAttachmentController::class);
 
@@ -2967,7 +3039,7 @@ class TicketController extends Controller
 
     public function serviceOrderJson(Request $request)
     {
-        abort_unless($this->isITRole(), 403);
+        abort_unless($this->isITRole() || auth()->user()->hasFullDataScope(), 403);
 
         $query = TrServiceorderEnvision::query()
             ->whereNull('deleted_at');

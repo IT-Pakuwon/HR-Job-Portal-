@@ -72,9 +72,18 @@ class ReportGeneralGAController extends Controller
             ->orderBy('category_name')
             ->get(['categoryid', 'category_name']);
 
-        $hasCSACCESS = $user->hasRole('CSACCESS');
-        $hasADMIN    = strtolower($user->user_role) === 'admin';
-        $hasGAACCESS = $user->hasRole('GAACCESS');
+        $userCompanyIds = $user->scopedCompanyIds();
+
+        $companies = \App\Models\MsCompany::whereIn('cpny_id', $userCompanyIds)
+            ->orderBy('cpny_name')
+            ->get(['cpny_id', 'cpny_name']);
+
+        // DIRECTORACCESS (or other hasFullDataScope() roles) sees every tab —
+        // none of CSACCESS/isAdmin/GAACCESS individually, but the UI gates each
+        // tab on exactly those flags, so treat it as having all three here.
+        $hasCSACCESS = $user->hasRole('CSACCESS') || $user->hasFullDataScope();
+        $hasADMIN    = $user->isAdmin() || $user->hasFullDataScope();
+        $hasGAACCESS = $user->hasRole('GAACCESS') || $user->hasFullDataScope();
 
         $tabCount = ($hasCSACCESS ? 1 : 0) + ($hasADMIN ? 1 : 0) + ($hasGAACCESS ? 4 : 0);
 
@@ -97,6 +106,8 @@ class ReportGeneralGAController extends Controller
             'parkingTypes' => $parkingTypes,
 
             'workerTypes' => $workerTypes,
+
+            'companies' => $companies,
 
             'hasCSACCESS'   => $hasCSACCESS,
 
@@ -187,13 +198,7 @@ class ReportGeneralGAController extends Controller
         $users = User::pluck('name', 'username');
         $user = auth()->user();
 
-        $companyIds = collect(
-            explode(',', (string) $user->cpny_id)
-        )
-        ->map(fn ($x) => trim($x))
-        ->filter()
-        ->values()
-        ->toArray();
+        $companyIds = $user->scopedCompanyIds();
         $query = DB::connection('pgsql5')
             ->table('tr_meeting as m')
 
@@ -274,7 +279,7 @@ class ReportGeneralGAController extends Controller
         }
 
         if ($request->room) {
-            $query->where('r.room_name', $request->room);
+            $query->whereIn(DB::raw('TRIM(r.room_name)'), (array) $request->room);
         }
 
         if ($request->requester) {
@@ -375,13 +380,7 @@ class ReportGeneralGAController extends Controller
         $users = User::pluck('name', 'username');
         $user = auth()->user();
 
-        $companyIds = collect(
-            explode(',', (string) $user->cpny_id)
-        )
-        ->map(fn ($x) => trim($x))
-        ->filter()
-        ->values()
-        ->toArray();
+        $companyIds = $user->scopedCompanyIds();
 
         $query = DB::connection('pgsql5')
             ->table('tr_meeting as m')
@@ -541,22 +540,24 @@ class ReportGeneralGAController extends Controller
             'department_id'
         );
 
+        $companies = \App\Models\MsCompany::pluck(
+            'cpny_name',
+            'cpny_id'
+        );
+
         $users = User::pluck('name', 'username');
 
         $user = auth()->user();
 
-        $companyIds = collect(
-            explode(',', (string) $user->cpny_id)
-        )
-        ->map(fn ($x) => trim($x))
-        ->filter()
-        ->values()
-        ->toArray();
+        $companyIds = $user->scopedCompanyIds();
 
         $query = DB::connection('pgsql5')
             ->table('tr_booking_car as bc')
 
-            ->whereIn('bc.cpny_id', $companyIds)
+            ->where(function ($q) use ($companyIds) {
+                $q->whereIn('bc.cpny_id', $companyIds)
+                    ->orWhereIn('bc.cpny_id_site', $companyIds);
+            })
             ->leftJoin(
                 'tr_booking_car_detail as bcd',
                 'bcd.docid',
@@ -670,6 +671,14 @@ class ReportGeneralGAController extends Controller
                 $request->vehicle
             );
         }
+
+        if ($request->company) {
+
+            $query->where(function ($q) use ($request) {
+                $q->where('bc.cpny_id', $request->company)
+                    ->orWhere('bc.cpny_id_site', $request->company);
+            });
+        }
         /*
         |--------------------------------------------------------------------------
         | DATATABLE
@@ -717,6 +726,16 @@ class ReportGeneralGAController extends Controller
                     ?? '-';
             })
 
+            ->addColumn('company', function ($row) use ($companies) {
+                return $companies[$row->cpny_id]
+                    ?? '-';
+            })
+
+            ->addColumn('company_expense', function ($row) use ($companies) {
+                return $companies[$row->cpny_id_site]
+                    ?? '-';
+            })
+
             ->addColumn('route', function ($row) {
 
                 $origin = $row->origin ?: '-';
@@ -754,6 +773,10 @@ class ReportGeneralGAController extends Controller
 
                     'X' => 'Cancelled',
 
+                    'F' => 'Processed',
+
+                    'U' => 'Unprocessed',
+
                     default => '-',
                 };
             })
@@ -789,26 +812,26 @@ class ReportGeneralGAController extends Controller
 
         $user = auth()->user();
 
-        $companyIds = collect(
-            explode(',', (string) $user->cpny_id)
-        )
-            ->map(fn($x) => trim($x))
-            ->filter()
-            ->values()
-            ->toArray();
+        $companyIds = $user->scopedCompanyIds();
 
         $query = DB::connection('pgsql5')
             ->table('tr_voucher_taxi as vt')
-            ->whereIn('vt.cpny_id', $companyIds)
+            ->where(function ($q) use ($companyIds) {
+                $q->whereIn('vt.cpny_id', $companyIds)
+                    ->orWhereIn('vt.cpny_id_expense', $companyIds);
+            })
             ->select([
                 'vt.docid',
 
                 'vt.voucher_date',
 
+                'vt.date_used',
+
                 'vt.created_by',
 
                 'vt.user_peminta_expense',
                 'vt.department_id_expense',
+                'vt.cpny_id',
                 'vt.cpny_id_expense',
 
                 'vt.origin',
@@ -863,11 +886,25 @@ class ReportGeneralGAController extends Controller
             );
         }
 
+        if ($request->company) {
+            $query->where(function ($q) use ($request) {
+                $q->where('vt.cpny_id', $request->company)
+                    ->orWhere('vt.cpny_id_expense', $request->company);
+            });
+        }
+
         return DataTables::of($query)
 
             ->editColumn('voucher_date', function ($row) {
                 return $row->voucher_date
                     ? Carbon::parse($row->voucher_date)
+                        ->format('d-M-Y')
+                    : '-';
+            })
+
+            ->editColumn('date_used', function ($row) {
+                return $row->date_used
+                    ? Carbon::parse($row->date_used)
                         ->format('d-M-Y')
                     : '-';
             })
@@ -888,6 +925,11 @@ class ReportGeneralGAController extends Controller
             })
 
             ->addColumn('company', function ($row) use ($companies) {
+                return $companies[$row->cpny_id]
+                    ?? '-';
+            })
+
+            ->addColumn('company_expense', function ($row) use ($companies) {
                 return $companies[$row->cpny_id_expense]
                     ?? '-';
             })
@@ -958,6 +1000,7 @@ class ReportGeneralGAController extends Controller
                     'R' => 'Rejected',
                     'D' => 'Revise',
                     'X' => 'Cancelled',
+                    'F' => 'Processed',
                     default => '-',
                 };
             })
@@ -996,13 +1039,7 @@ class ReportGeneralGAController extends Controller
     {
         $user = auth()->user();
 
-        $companyIds = collect(
-            explode(',', (string) $user->cpny_id)
-        )
-        ->map(fn ($x) => trim($x))
-        ->filter()
-        ->values()
-        ->toArray();
+        $companyIds = $user->scopedCompanyIds();
 
         $data = DB::connection('pgsql5')
             ->table('tr_meeting as m')
@@ -1108,9 +1145,9 @@ class ReportGeneralGAController extends Controller
         }
 
         if ($request->room) {
-            $data->where(
-                'r.room_name',
-                $request->room
+            $data->whereIn(
+                DB::raw('TRIM(r.room_name)'),
+                (array) $request->room
             );
         }
 
@@ -1223,11 +1260,7 @@ class ReportGeneralGAController extends Controller
 
         $user = auth()->user();
 
-        $companyIds = collect(explode(',', (string) $user->cpny_id))
-            ->map(fn ($x) => trim($x))
-            ->filter()
-            ->values()
-            ->toArray();
+        $companyIds = $user->scopedCompanyIds();
 
         $query = DB::connection('pgsql5')
             ->table('tr_parking_registration_detail as pd')
@@ -1329,13 +1362,24 @@ class ReportGeneralGAController extends Controller
             ->where('status', 'A')
             ->pluck('category_name', 'id');
 
-        $query = DB::connection('pgsql')->table('tr_car_expense')
+        $companies   = \App\Models\MsCompany::pluck('cpny_name', 'cpny_id');
+        $departments = \App\Models\MsDepartment::pluck('department_name', 'department_id');
+
+        $user = auth()->user();
+
+        $companyIds = $user->scopedCompanyIds();
+
+        $query = DB::connection('pgsql5')->table('tr_car_expense')
             ->whereNull('deleted_at')
+            ->whereIn('cpny_id', $companyIds)
             ->select([
                 'refnbr',
                 'ref_date',
+                'cpny_id',
+                'department_id',
                 'nopol',
                 'driver',
+                'kilometer',
                 'cost_type',
                 'cost_descr',
                 'cost_qty',
@@ -1358,12 +1402,20 @@ class ReportGeneralGAController extends Controller
             $query->where('driver', 'ilike', "%{$request->driver}%");
         }
 
+        if ($request->company) {
+            $query->where('cpny_id', $request->company);
+        }
+
         return DataTables::of($query)
 
             ->editColumn('ref_date', fn ($row) => $row->ref_date
                 ? Carbon::parse($row->ref_date)->format('d-M-Y')
                 : '-'
             )
+
+            ->addColumn('company', fn ($row) => $companies[$row->cpny_id] ?? '-')
+
+            ->addColumn('department', fn ($row) => $departments[$row->department_id] ?? '-')
 
             ->addColumn('cost_type_name', fn ($row) => $categoryMap[$row->cost_type] ?? $row->cost_type ?? '-')
 

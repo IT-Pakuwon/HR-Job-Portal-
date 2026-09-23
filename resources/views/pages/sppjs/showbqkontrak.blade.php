@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <style>
         /* This container needs a defined height and overflow-y for the sticky position to work. */
         .table-container {
@@ -18,6 +18,12 @@
     </style>
 
     <div class="max-w-9xl mx-auto p-2">
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'SPPJ', 'url' => route('sppjs')],
+            ['label' => 'Show Details'],
+        ]" />
+
         <div class="mb-4 flex items-center justify-end">
 
             <div class="flex gap-3">
@@ -35,7 +41,7 @@
 
             </div>
         </div>
-        <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
+        <div class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
             <div class="grid grid-cols-1 gap-6">
                 {{-- Left Card --}}
                 <div class="flex flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">

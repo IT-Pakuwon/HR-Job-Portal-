@@ -6,7 +6,6 @@ let detailIndex = 0;
 $(document).ready(function () {
     initDataTable();
     initFilters();
-    initSearch();
     initModalHandlers();
     initAutoOpenModal();
     initRequestForm();

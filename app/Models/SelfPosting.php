@@ -20,7 +20,8 @@ class SelfPosting extends Model
         'departementid',
         'division_id',
         'date',
-        'job_title',       
+        'job_title',
+        'is_read',
         'status',
         'created_user',
         'updated_user',
@@ -29,11 +30,11 @@ class SelfPosting extends Model
     ];
 
     protected $casts = [
-        'date'            => 'date',
-        'experience_start'=> 'date',
-        'experience_end'  => 'date',
-        'completed_at'    => 'datetime',
-        'created_at'      => 'datetime',
-        'updated_at'      => 'datetime',
+        'date' => 'date',
+        'experience_start' => 'date',
+        'experience_end' => 'date',
+        'completed_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 }

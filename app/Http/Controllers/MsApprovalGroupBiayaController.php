@@ -13,12 +13,26 @@ use Illuminate\Support\Facades\DB;
 
 class MsApprovalGroupBiayaController extends Controller
 {
+    /**
+     * Approval Group Biaya is off-limits to the "adminsby" role (routes named
+     * *-sby*); only the plain "admin" role (routes without the -sby suffix)
+     * may use it.
+     */
+    private function isRestrictedAdmin(): bool
+    {
+        return request()->routeIs('*-sby*');
+    }
+
     public function index()
     {
         $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
+        }
+
+        if ($this->isRestrictedAdmin()) {
+            abort(403);
         }
 
         // Sesuaikan dengan model doctype yang Anda pakai di controller lama
@@ -76,6 +90,10 @@ class MsApprovalGroupBiayaController extends Controller
 
     public function json()
     {
+        if ($this->isRestrictedAdmin()) {
+            abort(403);
+        }
+
         $rows = MsApprovalGroupBiaya::query()
             ->orderBy('aprv_doctype')
             ->orderBy('aprv_cpnyid')
@@ -101,6 +119,10 @@ class MsApprovalGroupBiayaController extends Controller
 
     public function store(Request $request)
     {
+        if ($this->isRestrictedAdmin()) {
+            abort(403);
+        }
+
         $user = $request->user();
         $username = $user->username ?? 'system';
 
@@ -196,6 +218,10 @@ class MsApprovalGroupBiayaController extends Controller
 
     public function edit($id)
     {
+        if ($this->isRestrictedAdmin()) {
+            abort(403);
+        }
+
         $row = MsApprovalGroupBiaya::findOrFail($id);
 
         return response()->json($row);
@@ -203,6 +229,10 @@ class MsApprovalGroupBiayaController extends Controller
 
     public function update(Request $request, $id)
     {
+        if ($this->isRestrictedAdmin()) {
+            abort(403);
+        }
+
         $user = $request->user();
         $username = $user->username ?? 'system';
 
@@ -266,6 +296,10 @@ class MsApprovalGroupBiayaController extends Controller
 
     public function toggleStatus(Request $request, $id)
     {
+        if ($this->isRestrictedAdmin()) {
+            abort(403);
+        }
+
         $request->validate([
             'status' => ['required', 'in:A,X'],
         ]);
@@ -286,6 +320,10 @@ class MsApprovalGroupBiayaController extends Controller
 
     public function departments(Request $request)
     {
+        if ($this->isRestrictedAdmin()) {
+            abort(403);
+        }
+
         $doctype = $request->query('doctype');
 
         /*

@@ -150,7 +150,7 @@
                         </li>
                         {{-- Add other tabs here if needed --}}
                     </ul>
-                    <button onclick="closeModal()" class="text-base text-gray-500 transition-colors hover:text-red-600">
+                    <button onclick="closeModal()" class="text-base text-gray-500 transition-colors hover:text-red-600 dark:text-gray-400">
                         &times; {{-- Close icon --}}
                     </button>
                 </div>
@@ -211,7 +211,7 @@
                                     class="font-bold text-blue-600 dark:text-blue-400"></span>
                             </h3>
                             <button onclick="$('#modalJobProfile').addClass('hidden')"
-                                class="text-base text-gray-500 transition-colors hover:text-red-600">&times;</button>
+                                class="text-base text-gray-500 transition-colors hover:text-red-600 dark:text-gray-400">&times;</button>
                         </div>
 
                         <div class="mb-6">
@@ -416,7 +416,7 @@
                         // let legendList = Object.values(legendMap);
 
                         // let legendHTML = `
-                // <div class="p-2 rounded border bg-white shadow" style="display:inline-block; min-width:260px">
+                // <div class="p-2 rounded border bg-white shadow dark:bg-gray-800" style="display:inline-block; min-width:260px">
                 //     <div class="font-bold mb-1">Legend:</div>
                 //     <table class=" text-sm ">
                 //     <thead>
@@ -458,7 +458,7 @@
                         }));
 
                         let legendHTML = `
-                        <div class="p-2 rounded border bg-white shadow" style="display:inline-block; min-width:160px">
+                        <div class="p-2 rounded border bg-white shadow dark:bg-gray-800" style="display:inline-block; min-width:160px">
                             <div class="font-bold mb-1">Legend (Company):</div>
                             <table class=" text-sm ">
                             <thead>
@@ -484,7 +484,7 @@
 
                         if (!Array.isArray(nodes) || nodes.length === 0) {
                             $('.chart-container').html(
-                                '<div class="text-center text-gray-500 mt-10">No data available for this department.</div>'
+                                '<div class="text-center text-gray-500 mt-10 dark:text-gray-400">No data available for this department.</div>'
                             );
                             return;
                         }
@@ -557,7 +557,7 @@
                         $('.chart-container').empty();
                         if (xhr.status === 404) {
                             $('.chart-container').html(
-                                '<div class="text-center text-gray-500 mt-10">Department not found.</div>'
+                                '<div class="text-center text-gray-500 mt-10 dark:text-gray-400">Department not found.</div>'
                             );
                         } else {
                             $('.chart-container').html(

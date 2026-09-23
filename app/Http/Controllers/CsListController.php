@@ -25,9 +25,7 @@ class CsListController extends Controller
 
         $u = $user->username ?? '';
 
-        // Ambil company list (bisa "AW,GPS")
-        $cpnyRaw = $user->cpny_id ?? '';
-        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
+        $cpnyList = $user->scopedCompanyIds();
 
         // Role FINACCESS?
         $isFinanceAccess = SysUserRole::where('username', $u)
@@ -92,8 +90,7 @@ class CsListController extends Controller
         $user = Auth::user();
         $u = $user->username ?? '';
 
-        $cpnyRaw = $user->cpny_id ?? '';
-        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
+        $cpnyList = $user->scopedCompanyIds();
 
         $isFinanceAccess = SysUserRole::where('username', $u)
             ->where('role_id', 'FINACCESS')
@@ -119,8 +116,8 @@ class CsListController extends Controller
             $base->where('status', $filterStatus);
         }
 
-        $applyCreatorFilter = function ($q) use ($isFinanceAccess, $u) {
-            if (!$isFinanceAccess) {
+        $applyCreatorFilter = function ($q) use ($isFinanceAccess, $u, $user) {
+            if (!$isFinanceAccess && !$user->hasFullDataScope()) {
                 $q->where('created_by', $u);
             }
         };
@@ -195,8 +192,8 @@ class CsListController extends Controller
         }
 
         // Filter created_by only if NOT FINACCESS
-        $applyCreatorFilter = function ($q) use ($isFinanceAccess, $u) {
-            if (!$isFinanceAccess) {
+        $applyCreatorFilter = function ($q) use ($isFinanceAccess, $u, $user) {
+            if (!$isFinanceAccess && !$user->hasFullDataScope()) {
                 $q->where('created_by', $u);
             }
         };

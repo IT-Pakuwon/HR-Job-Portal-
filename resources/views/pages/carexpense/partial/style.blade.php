@@ -59,14 +59,4 @@
         color: #ef4444;
         font-weight: 700;
     }
-
-    .dataTables_wrapper .dataTables_length,
-    .dataTables_wrapper .dataTables_filter {
-        padding: 16px 18px;
-    }
-
-    .dataTables_wrapper .dataTables_info,
-    .dataTables_wrapper .dataTables_paginate {
-        padding: 14px 18px;
-    }
 </style>

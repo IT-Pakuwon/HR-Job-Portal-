@@ -10,6 +10,7 @@
                     action="{{ route('spbs.update', $hash) }}" method="POST">
                     @csrf
                     @method('PUT')
+                    <input type="hidden" name="is_draft" id="isDraftField" value="0">
                     <div class="flex w-full flex-col gap-4 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                         <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">
@@ -178,10 +179,10 @@
                                 <summary
                                     class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                     <span>SPB Detail</span>
-                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
                                         details &rarr;</span>
                                     <span
-                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                                         details &darr;</span>
                                 </summary>
 
@@ -253,7 +254,7 @@
 
                                                         {{-- UoM --}}
                                                         {{-- <td class="border p-3">
-                                                        <input type="text" name="stock_unit[]" readonly class="stock_unitField w-full cursor-not-allowed border-none bg-gray-50 p-2 text-gray-600 focus:outline-none" value="{{ $d->uom ?? '-' }}">
+                                                        <input type="text" name="stock_unit[]" readonly class="stock_unitField w-full cursor-not-allowed border-none bg-gray-50 p-2 text-gray-600 focus:outline-none dark:bg-gray-900 dark:text-gray-400" value="{{ $d->uom ?? '-' }}">
                                                     </td> --}}
                                                         <td class="border p-3">
                                                             <div class="flex items-center gap-2">
@@ -395,7 +396,7 @@
                                                                 placeholder="0,00">
                                                         </td>
                                                         {{-- <td class="border p-3">
-                                                        <input type="text" name="stock_unit[]" readonly class="stock_unitField w-full cursor-not-allowed border-none bg-gray-50 p-2 text-gray-600 focus:outline-none" placeholder="-">
+                                                        <input type="text" name="stock_unit[]" readonly class="stock_unitField w-full cursor-not-allowed border-none bg-gray-50 p-2 text-gray-600 focus:outline-none dark:bg-gray-900 dark:text-gray-400" placeholder="-">
                                                     </td> --}}
                                                         <td class="border p-3">
                                                             <div class="flex items-center gap-2">
@@ -796,10 +797,10 @@
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
                                     details &rarr;</span>
                                 <span
-                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                                     details &darr;</span>
                             </summary>
 
@@ -878,7 +879,7 @@
                         <div
                             class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
                             <button id="backBtn" onclick="history.back()"
-                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-300">
 
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -897,6 +898,10 @@
                                             stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
                                     </svg>
+                                </button>
+                                <button type="button" id="saveDraftBtn"
+                                    class="flex items-center gap-2 rounded-md bg-gray-500 px-4 py-2 text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                    <span id="draftBtnText">Save as Draft</span>
                                 </button>
                                 <button type="submit" id="submitBtn"
                                     class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
@@ -1113,25 +1118,124 @@
                 }
             }
 
-            $('#spbForm').on('submit', function(e) {
-                e.preventDefault();
+            function submitSpbForm(isDraft) {
+                $('#isDraftField').val(isDraft ? '1' : '0');
 
-                const wt = ($('#worktypeid').val() || '').toUpperCase();
-                const woid = ($('#woid').val() || '').trim();
+                if (!isDraft) {
+                    const wt = ($('#worktypeid').val() || '').toUpperCase();
+                    const woid = ($('#woid').val() || '').trim();
 
-                if (wt !== 'ATK' && !woid) {
-                    $('#woid').addClass('is-invalid');
-                    if ($('#woid').next('.error-feedback').length === 0) {
-                        $('#woid').after(
-                            '<small class="error-feedback">WO wajib dipilih untuk jenis pekerjaan ini.</small>'
-                        );
+                    if (wt !== 'ATK' && !woid) {
+                        $('#woid').addClass('is-invalid');
+                        if ($('#woid').next('.error-feedback').length === 0) {
+                            $('#woid').after(
+                                '<small class="error-feedback">WO wajib dipilih untuk jenis pekerjaan ini.</small>'
+                            );
+                        }
+
+                        toastr.error('WO wajib dipilih (kecuali ATK).');
+                        $('html,body').animate({
+                            scrollTop: $('#woSection').offset().top - 120
+                        }, 300);
+                        return;
                     }
 
-                    toastr.error('WO wajib dipilih (kecuali ATK).');
-                    $('html,body').animate({
-                        scrollTop: $('#woSection').offset().top - 120
-                    }, 300);
-                    return;
+                    // validasi minimal 1 detail valid (punya product & qty>0)
+                    const hasValid = $('#spbTable tr.spb-row').toArray().some(tr => {
+                        const $tr = $(tr);
+                        const invId = ($tr.find('.inventoryIdField').val() || '').trim();
+                        const qty = parseFloat(($tr.find('input[name="qty[]"]').val() || '0')
+                            .replace(',', '.'));
+                        return invId !== '' && qty > 0;
+                    });
+                    if (!hasValid) {
+                        toastr.error('Minimal 1 item detail harus dipilih (Product Name & Qty > 0).');
+                        return;
+                    }
+
+                    // ===== VALIDASI SETIAP BARIS (wajib: Product, Qty, UoM, Location, Sub Location, COA) =====
+                    clearDetailErrors();
+                    let anyInvalid = false;
+
+                    $('#spbTable tr.spb-row').each(function() {
+                        const $tr = $(this);
+
+                        const $prodHidden = $tr.find('.inventoryIdField');
+                        const $prodVis = $tr.find('.productNameField');
+
+                        const $qty = $tr.find('input[name="qty[]"]');
+
+                        const $uomVis = $tr.find('.stock_unitField'); // yang terlihat
+                        const $uomTo = $tr.find('.uomToField'); // hidden (hasil pilih UoM)
+
+                        const $locHidden = $tr.find('.locationIdField');
+                        // const $locVis = $tr.find('.locationNameField');
+
+                        const $subHidden = $tr.find('.subLocationIdField');
+                        // const $subVis = $tr.find('.subLocationNameField');
+
+                        const $coaHidden = $tr.find('.coaIdField');
+                        const $coaVis = $tr.find('.coaNameField');
+
+                        // Anggap baris "aktif" kalau ada salah satu kolom terisi
+                        const active = [
+                            $prodHidden.val(), $qty.val(),
+                            $locHidden.val(), $subHidden.val(), $coaHidden.val()
+                        ].some(v => (v || '').toString().trim() !== '');
+
+                        if (!active) return; // baris kosong → lewati
+
+                        // Product
+                        if (($prodHidden.val() || '').trim() === '') {
+                            addDetailError($prodVis, 'Product wajib dipilih.');
+                            anyInvalid = true;
+                        }
+
+                        // Qty
+                        const qNum = parseFloat(($qty.val() || '').replace(',', '.'));
+                        if (!(qNum > 0)) {
+                            addDetailError($qty, 'Qty harus > 0.');
+                            anyInvalid = true;
+                        }
+
+                        // UoM (cek visible & hidden)
+                        const uomText = ($uomVis.val() || '').trim();
+                        if ((uomText === '' || uomText === '-') && (($uomTo.val() || '').trim() ===
+                                '')) {
+                            addDetailError($uomVis, 'UoM wajib dipilih.');
+                            anyInvalid = true;
+                        }
+
+                        // Location
+                        if (($locHidden.val() || '').trim() === '') {
+                            addDetailError($locVis, 'Location wajib dipilih.');
+                            anyInvalid = true;
+                        }
+
+                        // Sub Location
+                        if (($subHidden.val() || '').trim() === '') {
+                            addDetailError($subVis, 'Sub Location wajib dipilih.');
+                            anyInvalid = true;
+                        }
+
+                        // COA
+                        if (($coaHidden.val() || '').trim() === '') {
+                            addDetailError($coaVis, 'Budget wajib dipilih.');
+                            anyInvalid = true;
+                        }
+                    });
+
+                    if (anyInvalid) {
+                        const $first = $('#spbTable .is-invalid').first();
+                        if ($first.length) {
+                            $('html,body').animate({
+                                scrollTop: $first.offset().top - 120
+                            }, 300);
+                            $first.trigger('focus');
+                        }
+                        toastr.error('Mohon lengkapi field wajib di SPB Detail (bertanda *).');
+                        return;
+                    }
                 }
 
                 // normalisasi qty (koma -> titik)
@@ -1139,108 +1243,15 @@
                     if (this.value.includes(',')) this.value = this.value.replace(',', '.');
                 });
 
-                // validasi minimal 1 detail valid (punya product & qty>0)
-                const hasValid = $('#spbTable tr.spb-row').toArray().some(tr => {
-                    const $tr = $(tr);
-                    const invId = ($tr.find('.inventoryIdField').val() || '').trim();
-                    const qty = parseFloat(($tr.find('input[name="qty[]"]').val() || '0').replace(
-                        ',', '.'));
-                    return invId !== '' && qty > 0;
-                });
-                if (!hasValid) {
-                    toastr.error('Minimal 1 item detail harus dipilih (Product Name & Qty > 0).');
-                    return;
-                }
-
-                // ===== VALIDASI SETIAP BARIS (wajib: Product, Qty, UoM, Location, Sub Location, COA) =====
-                clearDetailErrors();
-                let anyInvalid = false;
-
-                $('#spbTable tr.spb-row').each(function() {
-                    const $tr = $(this);
-
-                    const $prodHidden = $tr.find('.inventoryIdField');
-                    const $prodVis = $tr.find('.productNameField');
-
-                    const $qty = $tr.find('input[name="qty[]"]');
-
-                    const $uomVis = $tr.find('.stock_unitField'); // yang terlihat
-                    const $uomTo = $tr.find('.uomToField'); // hidden (hasil pilih UoM)
-
-                    const $locHidden = $tr.find('.locationIdField');
-                    // const $locVis = $tr.find('.locationNameField');
-
-                    const $subHidden = $tr.find('.subLocationIdField');
-                    // const $subVis = $tr.find('.subLocationNameField');
-
-                    const $coaHidden = $tr.find('.coaIdField');
-                    const $coaVis = $tr.find('.coaNameField');
-
-                    // Anggap baris "aktif" kalau ada salah satu kolom terisi
-                    const active = [
-                        $prodHidden.val(), $qty.val(),
-                        $locHidden.val(), $subHidden.val(), $coaHidden.val()
-                    ].some(v => (v || '').toString().trim() !== '');
-
-                    if (!active) return; // baris kosong → lewati
-
-                    // Product
-                    if (($prodHidden.val() || '').trim() === '') {
-                        addDetailError($prodVis, 'Product wajib dipilih.');
-                        anyInvalid = true;
-                    }
-
-                    // Qty
-                    const qNum = parseFloat(($qty.val() || '').replace(',', '.'));
-                    if (!(qNum > 0)) {
-                        addDetailError($qty, 'Qty harus > 0.');
-                        anyInvalid = true;
-                    }
-
-                    // UoM (cek visible & hidden)
-                    const uomText = ($uomVis.val() || '').trim();
-                    if ((uomText === '' || uomText === '-') && (($uomTo.val() || '').trim() ===
-                            '')) {
-                        addDetailError($uomVis, 'UoM wajib dipilih.');
-                        anyInvalid = true;
-                    }
-
-                    // Location
-                    if (($locHidden.val() || '').trim() === '') {
-                        addDetailError($locVis, 'Location wajib dipilih.');
-                        anyInvalid = true;
-                    }
-
-                    // Sub Location
-                    if (($subHidden.val() || '').trim() === '') {
-                        addDetailError($subVis, 'Sub Location wajib dipilih.');
-                        anyInvalid = true;
-                    }
-
-                    // COA
-                    if (($coaHidden.val() || '').trim() === '') {
-                        addDetailError($coaVis, 'Budget wajib dipilih.');
-                        anyInvalid = true;
-                    }
-                });
-
-                if (anyInvalid) {
-                    const $first = $('#spbTable .is-invalid').first();
-                    if ($first.length) {
-                        $('html,body').animate({
-                            scrollTop: $first.offset().top - 120
-                        }, 300);
-                        $first.trigger('focus');
-                    }
-                    toastr.error('Mohon lengkapi field wajib di SPB Detail (bertanda *).');
-                    return;
-                }
-
                 // ============== lock UI ==============
-                $('#submitBtn, #cancelBtn').prop('disabled', true);
-                $('#btnText').text('Processing...');
+                $('#submitBtn, #saveDraftBtn, #cancelBtn').prop('disabled', true);
+                if (isDraft) {
+                    $('#draftBtnText').text('Saving...');
+                } else {
+                    $('#btnText').text('Processing...');
+                }
                 // $('#loadingSpinner').removeClass('hidden');
-                showOverlay('Submitting');
+                showOverlay(isDraft ? 'Saving Draft' : 'Submitting');
 
                 // Kirim ke route update (pakai action form sendiri)
                 const form = document.getElementById('spbForm');
@@ -1254,7 +1265,9 @@
                     processData: false,
                     contentType: false,
                     success: function(res) {
-                        toastr.success(res.message || "SPB updated successfully!");
+                        toastr.success(res.message || (isDraft ?
+                            "SPB saved as draft!" :
+                            "SPB updated successfully!"));
                         window.location.href = "/spbs";
                     },
                     error: function(xhr) {
@@ -1272,23 +1285,79 @@
                         }
                     },
                     complete: function() {
-                        $('#submitBtn, #cancelBtn').prop('disabled', false);
+                        $('#submitBtn, #saveDraftBtn, #cancelBtn').prop('disabled', false);
                         $('#btnText').text('Submit Approval');
+                        $('#draftBtnText').text('Save as Draft');
                         // $('#loadingSpinner').addClass('hidden');
                         hideOverlay();
                     }
                 });
+            }
+
+            $('#spbForm').on('submit', function(e) {
+                e.preventDefault();
+                submitSpbForm(false);
+            });
+
+            $('#saveDraftBtn').on('click', function(e) {
+                e.preventDefault();
+                submitSpbForm(true);
             });
 
             // ===== Cancel Button =====
-            $('#cancelBtn').click(function() {
-                const confirmed = confirm("Are you sure you want to cancel? Unsaved changes will be lost.");
-                if (confirmed) {
+            $('#cancelBtn').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                Swal.fire({
+                    title: 'Cancel Document?',
+                    text: 'Document akan di-cancel.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, Cancel',
+                    cancelButtonText: 'No',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
                     $('#cancelBtn').prop('disabled', true);
                     $('#cancelText').text('Cancelling...');
                     $('#cancelSpinner').removeClass('hidden');
-                    window.location.href = "{{ route('spbs') }}";
-                }
+                    showOverlay('Cancelling Document');
+
+                    $.ajax({
+                        url: "{{ route('spbs.cancel', $hash) }}",
+                        type: "POST",
+                        data: {
+                            _method: "PUT",
+                            _token: "{{ csrf_token() }}"
+                        },
+                        success: function(res) {
+                            if (res?.success) {
+                                Swal.fire({
+                                    title: 'Canceled',
+                                    text: res.message || 'Document canceled.',
+                                    icon: 'success'
+                                }).then(() => {
+                                    window.location.href = "{{ route('spbs') }}";
+                                });
+                            } else {
+                                Swal.fire('Failed', res?.message ||
+                                    'Failed to cancel document.', 'error');
+                            }
+                        },
+                        error: function(xhr) {
+                            Swal.fire('Error', xhr.responseJSON?.message ||
+                                'Failed to cancel document.', 'error');
+                        },
+                        complete: function() {
+                            hideOverlay();
+                            $('#cancelBtn').prop('disabled', false);
+                            $('#cancelText').text('Cancel');
+                            $('#cancelSpinner').addClass('hidden');
+                        }
+                    });
+                });
             });
         });
     </script>
@@ -1403,9 +1472,9 @@
                             <td class="border p-2">${item.siteid || ''}</td>
                             <td class="border p-2">${formatNumber(item.stock)}</td>
                             <td class="border p-2 text-center">
-                            <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100"
+                            <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                                 data-id="${item.inventoryid}"
-                                data-name="${$('<div>').text(item.inventory_descr).html()}"
+                                data-name="${$('<div>').text(item.inventory_descr).html().replace(/"/g, '&quot;')}"
                                 data-stock_unit="${item.stock_unit || ''}"
                                 data-item_type="${$('<div>').text(item.item_type || '').html()}"
                                 data-purchase_unit="${item.purchase_unit || item.purchaseunit || ''}"
@@ -1764,7 +1833,7 @@
                 <td class="border p-2">${item.location_id}</td>
                 <td class="border p-2">${item.location_name || item.locationname || ''}</td>
                 <td class="border p-2 text-center">
-                    <button type="button" class="chooseLocation rounded border px-2 py-1 hover:bg-gray-100"
+                    <button type="button" class="chooseLocation rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                     data-id="${item.location_id}"
                     data-name="${$('<div>').text(item.location_name || item.locationname || '').html()}">Choose</button>
                 </td>
@@ -1927,7 +1996,7 @@
                     <td class="border p-2">${id}</td>
                     <td class="border p-2">${name}</td>
                     <td class="border p-2 text-center">
-                    <button type="button" class="chooseSubLocation rounded border px-2 py-1 hover:bg-gray-100"
+                    <button type="button" class="chooseSubLocation rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                         data-id="${id}" data-name="${$('<div>').text(name).html()}">Choose</button>
                     </td>
                 </tr>
@@ -2153,7 +2222,7 @@
 
                         if (res.message) toastr.warning(res.message);
 
-                        const esc = v => $('<div>').text(v ?? '').html();
+                        const esc = v => $('<div>').text(v ?? '').html().replace(/"/g, '&quot;');
 
                         const rows = (res.data || []).map(item => {
                             const id = item.account_id ?? '';
@@ -2181,7 +2250,7 @@
                                             <div class="text-sm opacity-70">Used: ${used}</div>
                                         </td>
                                         <td class="border p-2 text-center">
-                                            <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
+                                            <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                                                 data-id="${esc(id)}"
                                                 data-activity_id="${esc(actId)}"
                                                 data-activity_descr="${esc(actDetail)}"
@@ -2355,7 +2424,7 @@
                     <td class="border p-2">${md}</td>
                     <td class="border p-2">${rate}</td>
                     <td class="border p-2 text-center">
-                    <button type="button" class="chooseUom rounded border px-2 py-1 hover:bg-gray-100"
+                    <button type="button" class="chooseUom rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                             data-from="${$('<div>').text(from).html()}"
                             data-to="${$('<div>').text(to).html()}"
                             data-md="${$('<div>').text(md).html()}"
@@ -2585,7 +2654,7 @@
                     <td class="border p-2">${worktype}</td>
                     <td class="border p-2">${created_by}</td>
                     <td class="border p-2 text-center">
-                    <button type="button" class="chooseWo rounded border px-2 py-1 hover:bg-gray-100"
+                    <button type="button" class="chooseWo rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                         data-woid="${$('<div>').text(woid).html()}">Choose</button>
                     </td>
                 </tr>
@@ -2729,7 +2798,7 @@
                     <td class="border p-2">${worktype}</td>
                     <td class="border p-2">${created_by}</td>
                     <td class="border p-2 text-center">
-                    <button type="button" class="chooseWo rounded border px-2 py-1 hover:bg-gray-100"
+                    <button type="button" class="chooseWo rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                         data-woid="${$('<div>').text(woid).html()}">Choose</button>
                     </td>
                 </tr>`;
@@ -2777,6 +2846,45 @@
             const $selSub = $('#modal_sub_location_id');
             let currentLocRow = null;
 
+            function ensureSelect2() {
+                if ($selLoc.hasClass('select2-hidden-accessible')) $selLoc.select2('destroy');
+                if ($selSub.hasClass('select2-hidden-accessible')) $selSub.select2('destroy');
+                $selLoc.select2({
+                    dropdownParent: $lokasiModal,
+                    width: '100%',
+                    placeholder: 'choose',
+                    allowClear: true
+                });
+                $selSub.select2({
+                    dropdownParent: $lokasiModal,
+                    width: '100%',
+                    placeholder: 'choose',
+                    allowClear: true
+                });
+            }
+
+            function fillSelect($sel, list, selectedVal) {
+                $sel.empty().append('<option value="">choose </option>');
+                (list || []).forEach(it => $sel.append(new Option(it.text, it.value)));
+                $sel.val(selectedVal || null);
+                if ($sel.hasClass('select2-hidden-accessible')) $sel.trigger('change.select2');
+            }
+
+            function loadSubLocations(cpny, loc, selectedSub) {
+                if (!cpny || !loc) {
+                    fillSelect($selSub, [], null);
+                    return;
+                }
+
+                $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`)
+                    .done(function(list) {
+                        fillSelect($selSub, list, selectedSub);
+                    })
+                    .fail(function() {
+                        toastr.error('Gagal memuat sub location.');
+                    });
+            }
+
             function openLokasiModal(forRow) {
                 currentLocRow = forRow;
 
@@ -2786,26 +2894,27 @@
                     return;
                 }
 
-                // reset dropdown
-                $selLoc.empty().append('<option value="">choose </option>');
-                $selSub.empty().append('<option value="">choose </option>');
+                $lokasiModal.removeClass('hidden').addClass('flex');
+                ensureSelect2();
+
+                fillSelect($selLoc, [], null);
+                fillSelect($selSub, [], null);
 
                 // load locations
                 $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`)
                     .done(function(list) {
-                        list.forEach(it => $selLoc.append(new Option(it.text, it.value)));
-
                         // preselect jika row sudah punya value
                         const curLoc = currentLocRow.find('.locationIdField').val();
+                        fillSelect($selLoc, list, curLoc || null);
+
                         if (curLoc) {
-                            $selLoc.val(curLoc).trigger('change');
+                            const curSub = currentLocRow.find('.subLocationIdField').val();
+                            loadSubLocations(cpny, curLoc, curSub);
                         }
                     })
                     .fail(function() {
                         toastr.error('Gagal memuat lokasi.');
                     });
-
-                $lokasiModal.removeClass('hidden').addClass('flex');
             }
 
             function closeLokasiModal() {
@@ -2820,35 +2929,22 @@
             // Close modal
             $('#closeLokasi, #cancelLokasi').on('click', closeLokasiModal);
 
-            // Ketika location dipilih → load sublocations
-            $selLoc.on('change', function() {
+            // Ketika location dipilih oleh user → load sublocations
+            // (select2:select hanya terpicu oleh interaksi user, bukan set value programatik)
+            $selLoc.on('select2:select', function(e) {
                 const cpny = $('select[name="cpnyid"]').val();
-                const loc = $(this).val();
-                $selSub.empty().append('<option value="">choose </option>');
-
-                if (!loc) return;
-
-                $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`)
-                    .done(function(list) {
-                        list.forEach(it => $selSub.append(new Option(it.text, it.value)));
-
-                        // preselect jika row sudah punya sub_location_id
-                        if (currentLocRow) {
-                            const curSub = currentLocRow.find('.subLocationIdField').val();
-                            if (curSub) $selSub.val(curSub);
-                        }
-                    })
-                    .fail(function() {
-                        toastr.error('Gagal memuat sub location.');
-                    });
+                loadSubLocations(cpny, e.params.data.id, null);
+            });
+            $selLoc.on('select2:clear', function() {
+                fillSelect($selSub, [], null);
             });
 
             // Save ke row aktif
             $('#saveLokasi').on('click', function() {
                 const locId = $selLoc.val();
-                const locText = $('#modal_location_id option:selected').text();
+                const locText = $selLoc.find('option:selected').text();
                 const subId = $selSub.val();
-                const subText = $('#modal_sub_location_id option:selected').text();
+                const subText = $selSub.find('option:selected').text();
 
                 if (!locId || !subId) {
                     toastr.error('Pilih Location dan Sub Location.');
@@ -2869,11 +2965,8 @@
 
             // Jika company berubah dan modal terbuka → reload lokasi
             $('select[name="cpnyid"]').on('change', function() {
-                if ($lokasiModal.is(':visible')) {
-                    // reset dan panggil open ulang dengan row yang sama
-                    $selLoc.empty().append('<option value="">choose </option>');
-                    $selSub.empty().append('<option value="">choose </option>');
-                    if (currentLocRow) openLokasiModal(currentLocRow);
+                if ($lokasiModal.is(':visible') && currentLocRow) {
+                    openLokasiModal(currentLocRow);
                 }
             });
         });

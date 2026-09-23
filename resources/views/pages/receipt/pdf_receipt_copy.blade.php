@@ -79,6 +79,16 @@
                             <td>:</td>
                             <td>{{ $rcp->department_id ?? '' }}</td>
                         </tr>
+                        <tr>
+                            <td>Created By</td>
+                            <td>:</td>
+                            <td>{{ ucwords(strtolower(optional($rcp->creator)->name ?? '')) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Created At</td>
+                            <td>:</td>
+                            <td>{{ $rcp->created_at ? \Carbon\Carbon::parse($rcp->created_at)->format('d/m/Y H:i') : '' }}</td>
+                        </tr>
                     </table>
                 </td>
             </tr>
@@ -167,6 +177,9 @@
         <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:4px;">
             <tr>
                 <td style="text-align:left;padding-top:4px;">Asli: Supplier, Copy: Gudang</td>
+                <td style="text-align:right;padding-top:4px;color:#555;">
+                    Printed by: {{ $printedBy }} &nbsp;|&nbsp; Printed at: {{ $printedAt }}
+                </td>
             </tr>
         </table>
     </div>

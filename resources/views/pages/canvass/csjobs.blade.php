@@ -70,7 +70,7 @@
             {{-- Completed Jobs --}}
             <button type="button" class="w-full text-left">
                 <div id="btn-completed"
-                    class="filter-card flex h-full items-center gap-2 rounded-lg border border-slate-900 bg-slate-200/20 p-2 text-slate-900 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95">
+                    class="filter-card flex h-full items-center gap-2 rounded-lg border border-slate-900 bg-slate-200/20 p-2 text-slate-900 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95 dark:hover:bg-slate-700 dark:text-slate-100">
 
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
 
@@ -84,7 +84,7 @@
 
         </div>
 
-        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
+        <div class="mt-2 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
 
             {{-- === PANE: CS Jobs + Entry CS (dua tabel) === --}}
             <div id="pane-mine">
@@ -92,34 +92,34 @@
                     <h2 class="mb-2 text-base font-semibold">CS Jobs</h2>
                     <table id="tblMine" class="text-body w-full text-left text-sm rtl:text-right">
                         <thead
-                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                             <tr>
                                 <th></th>
-                                <th class="w-32 px-4 py-3 text-center">
+                                <th class="w-32 px-4 py-3 text-left font-medium">
                                     Action</th>
-                                <th class="px-4 py-3 text-left">DocID
+                                <th class="px-4 py-3 text-left font-medium">DocID
                                 </th>
-                                <th class="px-4 py-3 text-left">
+                                <th class="px-4 py-3 text-left font-medium">
                                     Assign
                                     Date</th>
-                                <th class="px-4 py-3 text-left">
+                                <th class="px-4 py-3 text-left font-medium">
                                     Date
                                 </th>
-                                <th class="px-4 py-3 text-left">
+                                <th class="px-4 py-3 text-left font-medium">
                                     Company
                                 </th>
-                                <th class="px-4 py-3 text-left">
+                                <th class="px-4 py-3 text-left font-medium">
                                     Name
                                 </th>
-                                <th class="px-4 py-3 text-left">
+                                <th class="px-4 py-3 text-left font-medium">
                                     Assign
                                     Purchasing</th>
-                                <th class="px-4 py-3 text-left">
+                                <th class="px-4 py-3 text-left font-medium">
                                     Assign
                                     By</th>
-                                <th class="px-4 py-3 text-left">
+                                <th class="px-4 py-3 text-left font-medium">
                                     Department</th>
-                                <th class="w-32 px-4 py-3 text-center">
+                                <th class="w-32 px-4 py-3 text-left font-medium">
                                     Description</th>
                             </tr>
                         </thead>
@@ -164,7 +164,7 @@
                 <h2 class="mb-2 text-base font-semibold">My Revision</h2>
                 <table id="tblRevision" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                         <tr>
                             <th></th>
                             <th class="w-2 w-32 px-4 py-3 text-center">
@@ -204,7 +204,7 @@
                 <h2 class="mb-2 text-base font-semibold">All Jobs</h2>
                 <table id="tblAll" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                         <tr>
                             <th></th>
                             <th class="w-32 px-4 py-3 text-center">DocID
@@ -239,7 +239,7 @@
                 <h2 class="mb-2 text-base font-semibold">SPPBJKT IN Progress</h2>
                 <table id="tblSppbjkt" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                         <tr>
                             <th></th>
                             <th class="w-32 px-4 py-3 text-center">DocID
@@ -284,7 +284,7 @@
                             </tr>
                         </thead> --}}
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                         <tr>
                             <th></th>
                             <th class="w-32 px-4 py-3 text-center">DocID

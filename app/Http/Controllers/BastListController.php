@@ -25,13 +25,8 @@ class BastListController extends Controller
             return redirect()->route('login');
         }
 
-        // user->cpny_id bisa "AW" atau "AW,GPS"
-        $cpnyRaw = $user->cpny_id ?? '';
-        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
-
-        // user->department_id bisa "IT" atau "IT,ENG"
-        $deptRaw = $user->department_id ?? '';
-        $deptList = $deptRaw !== '' ? array_map('trim', explode(',', $deptRaw)) : [];
+        $cpnyList = $user->scopedCompanyIds();
+        $deptList = $user->scopedDepartmentIds();
 
         // Jobs berasal dari TrPOterm
         $bastjobs = TrPOterm::query()
@@ -72,9 +67,10 @@ class BastListController extends Controller
             ->when(!empty($deptList), fn ($q) => $q->whereIn('department_id', $deptList))
             ->count();
 
+        // Note: no department filter here, mirroring scope=allactive in json()
+        // which also ignores department_id so admin sees the true cross-department total.
         $allActive = TrBast::query()
             ->when(!empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
-            ->when(!empty($deptList), fn ($q) => $q->whereIn('department_id', $deptList))
             ->whereIn('status', ['P', 'C']) // Only On Progress + Completed
             ->count();
 
@@ -87,13 +83,17 @@ class BastListController extends Controller
     {
         $scope = strtolower((string) $req->query('scope', 'bastjobs'));
         $user = Auth::user();
+        if (!$user) {
+            return response()->json([
+                'draw' => (int) $req->input('draw', 1),
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => [],
+            ], 401);
+        }
 
-        // parse cpny_id & department_id multiple
-        $cpnyRaw = $user->cpny_id ?? '';
-        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
-
-        $deptRaw = $user->department_id ?? '';
-        $deptList = $deptRaw !== '' ? array_map('trim', explode(',', $deptRaw)) : [];
+        $cpnyList = $user->scopedCompanyIds();
+        $deptList = $user->scopedDepartmentIds();
 
         $draw = (int) $req->input('draw', 1);
         $start = (int) $req->input('start', 0);
@@ -105,18 +105,7 @@ class BastListController extends Controller
         $startDate = $req->query('start_date');
         $endDate = $req->query('end_date');
 
-        if ($scope === 'bastjobs') {
-            // Sumber list “jobs” dari TrPOterm
-            // $base = TrPOterm::query()
-            //     ->when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
-            //     ->when(!empty($deptList), fn($q) => $q->whereIn('department_id', $deptList))
-            //     ->where('flag_bast', true)
-            //     ->whereNull('bastid')
-            //     ->select([
-            //         'id', 'ponbr', 'cpny_id', 'vendorname', 'created_by',
-            //         'terms_name', 'progress_pct', 'payment_pct',
-            //         DB::raw("'HOLD' as status") // <= status dummy utk jobs
-            //     ]);
+        if ($scope === 'bastjobs') {     
             $base = TrPOterm::query()
                 ->from('tr_po_term as t') // sesuaikan kalau table name TrPOterm beda
                 ->when(!empty($cpnyList), fn ($q) => $q->whereIn('t.cpny_id', $cpnyList))
@@ -146,6 +135,8 @@ class BastListController extends Controller
                 ])
                 ->orderBy('t.order_term', 'asc');
 
+            $scopedBase = clone $base;
+
             if ($vendor !== '') {
                 $base->where('t.vendorname', 'ilike', "%{$vendor}%");
             }
@@ -161,118 +152,138 @@ class BastListController extends Controller
             if ($endDate) {
                 $base->whereDate('p.spkendtworkingdate', '<=', $endDate);
             }
-            // $orderColumns = [
-            //     0=>'ponbr', 1=>'ponbr', 2=>'cpny_id', 3=>'vendorname',
-            //     4=>'terms_name', 5=>'progress_pct', 6=>'payment_pct', 7=>'created_by',
-            //     8=>'status',
-            // ];
+            
             $orderColumns = [
-                0 => 'ponbr',       // dtr-control (abaikan)
-                1 => 'ponbr',       // action (abaikan)
-                2 => 'ponbr',
-                3 => 'cpny_id',
-                4 => 'vendorname',
-                5 => 'spkstartworkingdate',
-                6 => 'spkendtworkingdate',
-                7 => 'terms_name',
-                8 => 'progress_pct',
-                9 => 'payment_pct',
-                10 => 'created_by',
-                11 => 'status',
+                0 => 't.ponbr',       // dtr-control (abaikan)
+                1 => 't.ponbr',       // action (abaikan)
+                2 => 't.ponbr',
+                3 => 't.cpny_id',
+                4 => 't.vendorname',
+                5 => 'p.spkstartworkingdate',
+                6 => 'p.spkendtworkingdate',
+                7 => 't.terms_name',
+                8 => 't.progress_pct',
+                9 => 't.payment_pct',
+                10 => 't.created_by',
+                11 => 't.ponbr',
             ];
 
             if ($search !== '') {
                 $base->where(function ($q) use ($search) {
-                    $q->where('ponbr', 'ilike', "%{$search}%")
-                    ->orWhere('cpny_id', 'ilike', "%{$search}%")
-                    ->orWhere('vendorname', 'ilike', "%{$search}%")
-                    ->orWhere('created_by', 'ilike', "%{$search}%")
-                    ->orWhere('terms_name', 'ilike', "%{$search}%");
+                    $q->where('t.ponbr', 'ilike', "%{$search}%")
+                    ->orWhere('t.cpny_id', 'ilike', "%{$search}%")
+                    ->orWhere('t.vendorname', 'ilike', "%{$search}%")
+                    ->orWhere('t.created_by', 'ilike', "%{$search}%")
+                    ->orWhere('t.terms_name', 'ilike', "%{$search}%");
                 });
             }
         } else {
             $base = TrBast::query()
-                ->when(!empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
+                ->from('tr_bast as b')
+                ->leftJoin('ms_top_detail as td', 'td.terms_id', '=', 'b.terms_id')
+                ->when(!empty($cpnyList), fn ($q) => $q->whereIn('b.cpny_id', $cpnyList))
                 ->when(
                     !empty($deptList) && $scope !== 'allactive',
-                    fn ($q) => $q->whereIn('department_id', $deptList)
+                    fn ($q) => $q->whereIn('b.department_id', $deptList)
                 )
-                ->when($scope === 'onprogress', fn ($q) => $q->where('status', 'P'))
-                ->when($scope === 'completed', fn ($q) => $q->where('status', 'C'))
-                ->when($scope === 'rejected', fn ($q) => $q->where('status', 'R'))
-                ->when($scope === 'revise', fn ($q) => $q->where('status', 'D'))
-                ->when($scope === 'allactive', fn ($q) => $q->whereIn('status', ['P', 'C']))
+                ->when($scope === 'onprogress', fn ($q) => $q->where('b.status', 'P'))
+                ->when($scope === 'completed', fn ($q) => $q->where('b.status', 'C'))
+                ->when($scope === 'rejected', fn ($q) => $q->where('b.status', 'R'))
+                ->when($scope === 'revise', fn ($q) => $q->where('b.status', 'D'))
+                ->when($scope === 'allactive', fn ($q) => $q->whereIn('b.status', ['P', 'C']))
                 ->select([
-                    'id', 'bastid', 'bastdate', 'ponbr',
-                    'sppbjktid', 'cpny_id', 'created_by', 'status',
-                    'vendorname', 'startdate', 'enddate', 'terms_id',
+                    'b.id', 'b.bastid', 'b.bastdate', 'b.ponbr',
+                    'b.sppbjktid', 'b.cpny_id', 'b.created_by', 'b.status',
+                    'b.vendorname', 'b.startdate', 'b.enddate', 'b.terms_id',
+                    'td.terms_name',
                 ]);
 
+            $scopedBase = clone $base;
+
             $orderColumns = [
-                0 => 'bastid',
-                1 => 'bastdate',
-                2 => 'ponbr',
-                3 => 'sppbjktid',
-                4 => 'cpny_id',
-                5 => 'created_by',
-                6 => 'status',
+                0 => 'b.bastid',       // dtr-control (unorderable)
+                1 => 'b.bastid',
+                2 => 'b.bastdate',
+                3 => 'b.ponbr',
+                4 => 'b.sppbjktid',
+                5 => 'b.cpny_id',
+                6 => 'b.vendorname',
+                7 => 'td.terms_name',
+                8 => 'b.created_by',
+                9 => 'b.status',
             ];
 
             if ($search !== '') {
                 $base->where(function ($q) use ($search) {
-                    $q->where('bastid', 'ilike', "%{$search}%")
-                    ->orWhere('ponbr', 'ilike', "%{$search}%")
-                    ->orWhere('sppbjktid', 'ilike', "%{$search}%")
-                    ->orWhere('cpny_id', 'ilike', "%{$search}%")
-                    ->orWhere('created_by', 'ilike', "%{$search}%")
-                    ->orWhereRaw("TO_CHAR(bastdate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
+                    $q->where('b.bastid', 'ilike', "%{$search}%")
+                    ->orWhere('b.ponbr', 'ilike', "%{$search}%")
+                    ->orWhere('b.sppbjktid', 'ilike', "%{$search}%")
+                    ->orWhere('b.cpny_id', 'ilike', "%{$search}%")
+                    ->orWhere('b.created_by', 'ilike', "%{$search}%")
+                    ->orWhereRaw("TO_CHAR(b.bastdate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
                 });
             }
             // 🔥 FILTERS (BAST)
             if ($vendor !== '') {
-                $base->where('vendorname', 'ilike', "%{$vendor}%");
+                $base->where('b.vendorname', 'ilike', "%{$vendor}%");
             }
 
-            // optional (if you want terms_id filter)
             if ($terms !== '') {
-                $base->where('terms_id', 'ilike', "%{$terms}%");
+                $base->where('td.terms_name', 'ilike', "%{$terms}%");
             }
 
             // 🔥 use BAST dates (NOT PO anymore)
             if ($startDate) {
-                $base->whereDate('startdate', '>=', $startDate);
+                $base->whereDate('b.startdate', '>=', $startDate);
             }
 
             if ($endDate) {
-                $base->whereDate('enddate', '<=', $endDate);
+                $base->whereDate('b.enddate', '<=', $endDate);
             }
         }
 
-        $recordsTotal = (clone $base)->count();
+        $recordsTotal = (clone $scopedBase)->count();
         $recordsFiltered = (clone $base)->count();
+
+        $vendorColumn = $scope === 'bastjobs' ? 't.vendorname' : 'b.vendorname';
+        $termsColumn = $scope === 'bastjobs' ? 't.terms_name' : 'td.terms_name';
+
+        $vendorOptions = (clone $scopedBase)
+            ->reorder($vendorColumn, 'asc')
+            ->whereNotNull($vendorColumn)
+            ->where($vendorColumn, '!=', '')
+            ->distinct()
+            ->pluck($vendorColumn)
+            ->filter()
+            ->values();
+
+        $termsQuery = (clone $scopedBase);
+        if ($vendor !== '') {
+            $termsQuery->where($vendorColumn, 'ilike', "%{$vendor}%");
+        }
+        $termsOptions = $termsQuery
+            ->reorder($termsColumn, 'asc')
+            ->whereNotNull($termsColumn)
+            ->where($termsColumn, '!=', '')
+            ->distinct()
+            ->pluck($termsColumn)
+            ->filter()
+            ->values();
 
         $orderIdx = (int) $req->input('order.0.column', $scope === 'bastjobs' ? 1 : 1);
         $orderDir = $req->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
-        $orderCol = $orderColumns[$orderIdx] ?? ($scope === 'bastjobs' ? 'ponbr' : 'bastdate');
+        $orderCol = $orderColumns[$orderIdx] ?? ($scope === 'bastjobs' ? 't.ponbr' : 'b.bastdate');
 
-        $rows = $base->orderBy($orderCol, $orderDir)
-                    ->orderBy($scope === 'bastjobs' ? 'ponbr' : 'bastid', 'desc')
-                    ->skip($start)->take($length)
-                    ->get();
+        $rowsQuery = $base->orderBy($orderCol, $orderDir)
+                    ->orderBy($scope === 'bastjobs' ? 't.ponbr' : 'b.bastid', 'desc')
+                    ->skip($start);
 
-        // ========= ENRICH / FORMAT =========
-        // Map PONBR -> id (TrPo) supaya link PO bisa dipakai
-        // $poIdMap = [];
-        // $ponbrsForMap = $rows->pluck('ponbr')->filter()->unique()->values()->all();
-        // if (!empty($ponbrsForMap)) {
-        //     // $poIdMap = TrPo::whereIn('ponbr', $ponbrsForMap)
-        //     //     ->pluck('id', 'ponbr')
-        //     //     ->toArray();
-        //     $poIdMap = TrPO::whereIn('ponbr', $ponbrsForMap)
-        //         ->when(!empty($cpnyList), fn ($q) => $q->where('cpny_id', $cpnyList))
-        //         ->pluck('id', 'ponbr')
-        //         ->toArray();
-        // }
+        if ($length > 0) {
+            $rowsQuery->take($length);
+        }
+
+        $rows = $rowsQuery->get();
+       
         $poIdMap = [];
         $ponbrsForMap = $rows->pluck('ponbr')->filter()->unique()->values()->all();
 
@@ -318,6 +329,7 @@ class BastListController extends Controller
                     ? Carbon::parse($r->bastdate)->format('Y-m-d')
                     : null;
                 $r->bastid_eid = Hashids::encode((string) $r->id);
+                $r->terms_name = $r->terms_name ?? '-';
 
                 // 🔗 PO link via PONBR
                 // $poId = $poIdMap[$r->ponbr] ?? null;
@@ -414,6 +426,8 @@ class BastListController extends Controller
             'recordsTotal' => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
             'data' => $rows,
+            'vendorOptions' => $vendorOptions,
+            'termsOptions' => $termsOptions,
         ]);
     }
 }

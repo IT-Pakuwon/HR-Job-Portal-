@@ -15,6 +15,7 @@ class MsWaSetting extends Model
 
     protected $fillable = [
         'cpny_id',
+        'ticket_type',
         'chat_id',
         'status',
         'created_by',

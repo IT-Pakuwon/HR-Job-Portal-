@@ -3,7 +3,7 @@
         <div class="mb-4 sm:flex sm:items-center sm:justify-between"></div>
         <div class="mb-4 flex items-center justify-end sm:mb-0"></div>
         <div class="mb-2 mt-2 rounded-xl bg-white p-6 dark:bg-gray-800">
-            {{-- <div class="max-w-6xl mx-auto bg-white   p-6 rounded-lg"> --}}
+            {{-- <div class="max-w-6xl mx-auto bg-white p-6 rounded-lg dark:bg-gray-800"> --}}
             <h2 class="mb-4 text-lg font-bold">Edit Personnel Requisition - {{ $personnel->docid }}</h2>
 
             <form id="personnelForm" enctype="multipart/form-data">
@@ -12,7 +12,7 @@
 
                 <div class="grid grid-cols-3 gap-4">
                     <div>
-                        <label class="block text-gray-700">Company</label>
+                        <label class="block text-gray-700 dark:text-gray-300">Company</label>
                         <select name="cpnyid" class="select2 w-full rounded-lg border p-3">
                             @foreach ($usercpny as $p)
                                 <option value="{{ $p->cpnyid }}"
@@ -22,7 +22,7 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-gray-700">Department</label>
+                        <label class="block text-gray-700 dark:text-gray-300">Department</label>
                         <select name="departementid" class="select2 w-full rounded-lg border p-3">
                             @foreach ($userdept as $p)
                                 <option value="{{ $p->deptname }}"
@@ -32,12 +32,12 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-gray-700">Job Title</label>
+                        <label class="block text-gray-700 dark:text-gray-300">Job Title</label>
                         <input type="text" name="job_title" class="w-full rounded border p-2"
                             value="{{ $personnel->job_title }}">
                     </div>
                     <div>
-                        <label class="block text-gray-700">Job Level</label>
+                        <label class="block text-gray-700 dark:text-gray-300">Job Level</label>
                         <select name="job_level" class="select2 w-full rounded-lg border p-3">
                             @foreach ($joblevel as $p)
                                 <option value="{{ $p->title_level }}"
@@ -48,17 +48,17 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-gray-700">Immediate Superior</label>
+                        <label class="block text-gray-700 dark:text-gray-300">Immediate Superior</label>
                         <input type="text" name="immediate_superior" id="immediate_superior"
                             value={{ $personnel->immediate_superior }} class="w-full rounded border p-2">
                     </div>
                     <div>
-                        <label class="block text-gray-700">State Position</label>
+                        <label class="block text-gray-700 dark:text-gray-300">State Position</label>
                         <input type="text" name="state_position" id="state_position"
                             value={{ $personnel->state_position }} class="w-full rounded border p-2">
                     </div>
                     <div>
-                        <label class="block text-gray-700">Job Type</label>
+                        <label class="block text-gray-700 dark:text-gray-300">Job Type</label>
                         <select name="job_type" id="job_type" class="w-full rounded border p-2">
                             <option value="" {{ $personnel->job_type == '' ? 'selected' : '' }}></option>
                             <option value="Replacement" {{ $personnel->job_type == 'Replacement' ? 'selected' : '' }}>
@@ -68,21 +68,21 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-gray-700">Reason for Vacancy</label>
+                        <label class="block text-gray-700 dark:text-gray-300">Reason for Vacancy</label>
                         <textarea name="reason_vacancy" id="reason_vacancy" class="w-full rounded border p-2">{{ $personnel->reason_vacancy }}</textarea>
                     </div>
                     <div>
-                        <label class="block text-gray-700">Total Number Required</label>
+                        <label class="block text-gray-700 dark:text-gray-300">Total Number Required</label>
                         <input type="number" name="required" id="required" value={{ $personnel->required }}
                             class="w-full rounded border p-2">
                     </div>
                     <div>
-                        <label class="block text-gray-700">Actual</label>
+                        <label class="block text-gray-700 dark:text-gray-300">Actual</label>
                         <input type="number" name="actual" id="actual" value={{ $personnel->actual }}
                             class="w-full rounded border p-2">
                     </div>
                     <div>
-                        <label class="block text-gray-700">The Actual Number</label>
+                        <label class="block text-gray-700 dark:text-gray-300">The Actual Number</label>
                         <input type="number" name="total_actual" id="total_actual"
                             value={{ $personnel->total_actual }} class="w-full rounded border p-2">
                     </div>
@@ -91,7 +91,7 @@
                 <!-- Job Responsibilities (Editable) -->
                 <div class="mt-6">
                     <label class="block text-sm font-semibold">Job Responsibilities</label>
-                    <table class="w-full rounded-lg border border-gray-200">
+                    <table class="w-full rounded-lg border border-gray-200 dark:border-gray-700">
                         <tbody id="responsibilitiesTable">
                             @foreach ($jobres as $key => $resp)
                                 <tr>
@@ -117,7 +117,7 @@
 
                 <div class="mt-6">
                     <label class="block text-sm font-semibold">Job Qualification</label>
-                    <table class="w-full rounded-lg border border-gray-200">
+                    <table class="w-full rounded-lg border border-gray-200 dark:border-gray-700">
                         <tbody id="qualificationTable">
                             @foreach ($jobqua as $key => $resp)
                                 <tr>

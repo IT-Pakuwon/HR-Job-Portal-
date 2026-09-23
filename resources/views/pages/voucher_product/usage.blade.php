@@ -1,0 +1,999 @@
+<x-app-layout>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
+<style>
+.modal-panel { backface-visibility: hidden; }
+.modal-scroll { scrollbar-width: thin; }
+.select2-container .select2-selection--single { height: 42px !important; border-radius: 8px !important; border-color: #e2e8f0 !important; display: flex; align-items: center; }
+.select2-container .select2-selection--single .select2-selection__rendered { line-height: 42px !important; padding: 0 50px 0 12px !important; }
+.select2-container .select2-selection--single .select2-selection__arrow { height: 40px !important; }
+
+/* Product picker (Add Product modal) — long product names wrap instead of clipping/scrolling */
+.vpl-picker-wrap.select2-container .select2-selection--single { height: auto !important; min-height: 42px; align-items: flex-start; padding: 6px 0; }
+.vpl-picker-wrap.select2-container .select2-selection--single .select2-selection__rendered { white-space: normal !important; word-break: break-word; line-height: 1.4 !important; padding: 3px 50px 3px 12px !important; }
+.vpl-picker-wrap.select2-container .select2-selection--single .select2-selection__arrow { height: 20px !important; top: 50%; transform: translateY(-50%); }
+.vpl-picker-wrap.select2-container .select2-selection--single .select2-selection__clear { position: absolute; top: 50%; right: 28px; transform: translateY(-50%); }
+.apv-badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:600; }
+.status-filter.active-card .status-card { box-shadow: 0 0 0 2px #6366f1; }
+
+/* SweetAlert2 dark mode */
+.dark .swal2-popup { background: #1e293b; color: #e2e8f0; }
+.dark .swal2-title, .dark .swal2-html-container { color: #e2e8f0; }
+.dark .swal2-close { color: #94a3b8; }
+.dark .swal2-input, .dark .swal2-textarea, .dark .swal2-select { background: #0f172a; color: #e2e8f0; border-color: #334155; }
+.dark .swal2-validation-message { background: #0f172a; color: #f87171; }
+
+/* Select2 — dark mode */
+.dark .select2-container .select2-selection--single { background-color: #0b1220; border-color: rgba(255, 255, 255, .1) !important; }
+.dark .select2-container .select2-selection--single .select2-selection__rendered { color: #f8fafc; }
+.dark .select2-container .select2-selection--single .select2-selection__placeholder { color: #64748b; }
+.dark .select2-container .select2-selection--single .select2-selection__arrow b { border-color: #94a3b8 transparent transparent transparent; }
+.dark .select2-container.select2-container--disabled .select2-selection--single { background-color: #0f172a; border-color: rgba(255, 255, 255, .06) !important; cursor: not-allowed; }
+.dark .select2-container.select2-container--disabled .select2-selection--single .select2-selection__rendered { color: #64748b; }
+.dark .select2-dropdown { background-color: #0f172a; border-color: rgba(255, 255, 255, .1); color: #f8fafc; }
+.dark .select2-search--dropdown .select2-search__field { background-color: #0b1220; border-color: rgba(255, 255, 255, .1); color: #f8fafc; }
+.dark .select2-results__option { color: #e2e8f0; }
+.dark .select2-container--default .select2-results__option--highlighted[aria-selected] { background-color: #4f46e5; color: #ffffff; }
+.dark .select2-container--default .select2-results__option[aria-selected=true] { background-color: #1e293b; color: #f8fafc; }
+
+/* "Doctype" filter — match the plain Type/Status filter selects beside it */
+#f_doctype + .select2-container .select2-selection--single { height: 40px !important; display: flex; align-items: center; }
+#f_doctype + .select2-container .select2-selection--single .select2-selection__rendered { line-height: 40px !important; padding: 0 30px 0 12px !important; font-size: 0.875rem; color: #4b5563; }
+#f_doctype + .select2-container .select2-selection--single .select2-selection__arrow { height: 38px !important; }
+.dark #f_doctype + .select2-container .select2-selection--single .select2-selection__rendered { color: #9ca3af; }
+</style>
+
+<div class="max-w-9xl mx-auto w-full p-2">
+
+{{-- ======================================================== --}}
+{{-- STATUS COUNT CARDS --}}
+{{-- ======================================================== --}}
+@php
+    $vplCompanyAccess = $user->hasVplCompanyAccess();
+    $gridColsClass = $user->isPrimaryAdmin()
+        ? ($vplCompanyAccess ? 'xl:grid-cols-8' : 'xl:grid-cols-7')
+        : ($vplCompanyAccess ? 'xl:grid-cols-7' : 'xl:grid-cols-6');
+@endphp
+<div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 {{ $gridColsClass }}">
+
+    <button type="button" class="text-left">
+        <a href="#" class="status-filter group block h-full" data-status="ALL">
+            <div class="status-card flex h-full items-center gap-3 rounded-lg border border-slate-400 bg-slate-200/20 p-3 text-slate-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95 dark:border-slate-500 dark:text-slate-300 dark:hover:bg-slate-700/30">
+                <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
+                <div class="flex min-w-0 flex-grow flex-col leading-tight"><p class="break-words text-sm font-medium">All</p></div>
+                <p class="shrink-0 text-base font-bold">{{ $counts['all'] }}</p>
+            </div>
+        </a>
+    </button>
+
+    <button type="button" class="text-left">
+        <a href="#" class="status-filter active-card group block h-full" data-status="P">
+            <div class="status-card flex h-full items-center gap-3 rounded-lg border border-yellow-500 bg-yellow-100/30 p-3 text-yellow-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-md active:scale-95 dark:border-yellow-500 dark:text-yellow-400 dark:hover:bg-yellow-500/20">
+                <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⏳</div>
+                <div class="flex min-w-0 flex-grow flex-col leading-tight"><p class="break-words text-sm font-medium">On Progress</p></div>
+                <p class="shrink-0 text-base font-bold">{{ $counts['progress'] }}</p>
+            </div>
+        </a>
+    </button>
+
+    <button type="button" class="text-left">
+        <a href="#" class="status-filter group block h-full" data-status="C">
+            <div class="status-card flex h-full items-center gap-3 rounded-lg border border-green-600 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95 dark:border-green-500 dark:text-green-400 dark:hover:bg-green-500/20">
+                <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
+                <div class="flex min-w-0 flex-grow flex-col leading-tight"><p class="break-words text-sm font-medium">Completed</p></div>
+                <p class="shrink-0 text-base font-bold">{{ $counts['completed'] }}</p>
+            </div>
+        </a>
+    </button>
+
+    <button type="button" class="text-left">
+        <a href="#" class="status-filter group block h-full" data-status="D">
+            <div class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-500 bg-blue-100/30 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-500/20">
+                <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✏️</div>
+                <div class="flex min-w-0 flex-grow flex-col leading-tight"><p class="break-words text-sm font-medium">Hold / Revise</p></div>
+                <p class="shrink-0 text-base font-bold">{{ $counts['hold'] }}</p>
+            </div>
+        </a>
+    </button>
+
+    <button type="button" class="text-left">
+        <a href="#" class="status-filter group block h-full" data-status="R">
+            <div class="status-card flex h-full items-center gap-3 rounded-lg border border-red-600 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95 dark:border-red-500 dark:text-red-400 dark:hover:bg-red-500/20">
+                <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⛔</div>
+                <div class="flex min-w-0 flex-grow flex-col leading-tight"><p class="break-words text-sm font-medium">Rejected</p></div>
+                <p class="shrink-0 text-base font-bold">{{ $counts['rejected'] }}</p>
+            </div>
+        </a>
+    </button>
+
+    <button type="button" class="text-left">
+        <a href="#" class="status-filter group block h-full" data-status="X">
+            <div class="status-card flex h-full items-center gap-3 rounded-lg border border-slate-500 bg-slate-200/20 p-3 text-slate-500 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95 dark:border-slate-400 dark:text-slate-400 dark:hover:bg-slate-700/30">
+                <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">❌</div>
+                <div class="flex min-w-0 flex-grow flex-col leading-tight"><p class="break-words text-sm font-medium">Cancelled</p></div>
+                <p class="shrink-0 text-base font-bold">{{ $counts['cancelled'] }}</p>
+            </div>
+        </a>
+    </button>
+
+    {{-- Usage All — admin only, system-wide view --}}
+    @if($user->isPrimaryAdmin())
+    <button type="button" class="text-left">
+        <a href="#" class="status-filter group block h-full" data-status="ADMINALL">
+            <div class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-500 bg-purple-100/30 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95 dark:border-purple-500 dark:text-purple-400 dark:hover:bg-purple-500/20">
+                <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🌐</div>
+                <div class="flex min-w-0 flex-grow flex-col leading-tight"><p class="break-words text-sm font-medium">Usage All</p></div>
+                <p class="shrink-0 text-base font-bold">{{ $counts['admin_all'] ?? 0 }}</p>
+            </div>
+        </a>
+    </button>
+    @endif
+
+    {{-- All Usage — VPCOLLACCESS/VPLOYALTYACCESS/VPPRMTNACCESS only, company-wide view --}}
+    @if($vplCompanyAccess)
+    <button type="button" class="text-left">
+        <a href="#" class="status-filter group block h-full" data-status="COMPANYALL">
+            <div class="status-card flex h-full items-center gap-3 rounded-lg border border-teal-500 bg-teal-100/30 p-3 text-teal-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-teal-100 hover:shadow-md active:scale-95 dark:border-teal-500 dark:text-teal-400 dark:hover:bg-teal-500/20">
+                <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🏢</div>
+                <div class="flex min-w-0 flex-grow flex-col leading-tight"><p class="break-words text-sm font-medium">All Usage</p></div>
+                <p class="shrink-0 text-base font-bold">{{ $counts['company_all'] ?? 0 }}</p>
+            </div>
+        </a>
+    </button>
+    @endif
+
+</div>
+
+{{-- ======================================================== --}}
+{{-- DATATABLE PANEL --}}
+{{-- ======================================================== --}}
+<div class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+
+    <div class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
+        <div>
+            <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
+                Usage Product / Voucher
+            </h2>
+        </div>
+        <div class="flex items-center gap-3">
+            @if($user->isPrimaryAdmin())
+            <div id="adminAllFilters" class="hidden items-center gap-2">
+                <select id="f_vp_type"
+                    class="h-10 rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-10 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-slate-200">
+                    <option value="">All Types</option>
+                    <option value="V">Voucher</option>
+                    <option value="P">Product</option>
+                </select>
+                <select id="f_doctype" class="w-48 select2-filter">
+                    <option value="">All Doctype</option>
+                    <option value="Usage">Usage</option>
+                    <option value="Return">Return Usage</option>
+                </select>
+                <select id="f_doc_status"
+                    class="h-10 rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-10 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-slate-200">
+                    <option value="ALL">All Status</option>
+                    <option value="P">On Progress</option>
+                    <option value="C">Completed</option>
+                    <option value="D">Hold / Revise</option>
+                    <option value="R">Rejected</option>
+                    <option value="X">Cancelled</option>
+                </select>
+            </div>
+            @endif
+            <button id="openCreateBtn" type="button"
+                class="inline-flex h-10 items-center justify-center rounded-lg bg-indigo-600 px-5 text-sm font-medium text-white transition hover:bg-indigo-500">
+                <i class="fa-solid fa-plus mr-2 text-xs"></i> New Usage
+            </button>
+        </div>
+    </div>
+
+    <div class="relative overflow-hidden">
+        <table id="usageTable" class="w-full min-w-full border-separate border-spacing-0 text-sm" style="width:100%">
+            <thead>
+                <tr class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                    <th class="px-4 py-3 text-left font-medium">Doc No</th>
+                    <th class="px-4 py-3 text-left font-medium">Date</th>
+                    <th class="px-4 py-3 text-left font-medium">Event Date</th>
+                    <th class="px-4 py-3 text-left font-medium">Company</th>
+                    <th class="px-4 py-3 text-left font-medium">Dept</th>
+                    <th class="px-4 py-3 text-left font-medium">V/P Type</th>
+                    <th class="px-4 py-3 text-left font-medium">Usage Type</th>
+                    <th class="px-4 py-3 text-left font-medium">Ref ID</th>
+                    <th class="px-4 py-3 text-left font-medium">Remark</th>
+                    <th class="px-4 py-3 text-left font-medium">Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+</div>{{-- end wrapper --}}
+
+
+{{-- ======================================================== --}}
+{{-- ADD PRODUCT MODAL — Create --}}
+{{-- ======================================================== --}}
+<div id="c_addProductModal" class="fixed inset-0 z-[90] hidden items-center justify-center p-4">
+    <div class="modal-backdrop absolute inset-0 bg-slate-900/70 opacity-0 transition-opacity duration-200"></div>
+    <div class="modal-panel modal-scroll relative z-10 flex max-h-[90vh] w-full max-w-2xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+        <div class="flex items-start justify-between border-b border-slate-200 px-5 py-4 dark:border-white/10">
+            <div>
+                <h3 class="text-sm font-bold text-slate-800 dark:text-white">Add Product</h3>
+                <p class="mt-1 text-xs text-slate-400">Stock is drawn from the nearest-expiry batch first.</p>
+            </div>
+            <button type="button" id="c_closeAddProductModal" class="shrink-0 text-slate-400 hover:text-slate-700 dark:hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+        <div class="space-y-4 p-5">
+            <div class="flex items-end gap-3">
+                <div class="flex-1">
+                    <label class="mb-1.5 block text-xs font-medium text-slate-500 dark:text-slate-400">Product</label>
+                    <select id="c_picker_product" class="w-full select2-create" disabled>
+                        <option value="">Select warehouse first...</option>
+                    </select>
+                </div>
+                <div class="w-28">
+                    <label class="mb-1.5 block text-xs font-medium text-slate-500 dark:text-slate-400">Qty</label>
+                    <input type="number" id="c_picker_qty" min="1" placeholder="0"
+                        class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm dark:border-white/10 dark:bg-[#0b1220] dark:text-white">
+                </div>
+            </div>
+
+            <div id="c_picker_preview_wrap" class="hidden">
+                <div class="mb-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">Batch Breakdown</div>
+                <div class="overflow-hidden rounded-lg border border-slate-200 dark:border-white/10">
+                    <table class="min-w-full text-xs">
+                        <thead class="bg-slate-50 dark:bg-white/[0.04]">
+                            <tr>
+                                <th class="px-3 py-2 text-left font-semibold text-slate-600 dark:text-slate-300">Name</th>
+                                <th class="px-3 py-2 text-right font-semibold text-slate-600 dark:text-slate-300">Qty</th>
+                                <th class="px-3 py-2 text-left font-semibold text-slate-600 dark:text-slate-300">Expired</th>
+                                <th class="px-3 py-2 text-right font-semibold text-slate-600 dark:text-slate-300">Availability</th>
+                                <th class="px-3 py-2 text-right font-semibold text-slate-600 dark:text-slate-300">Received</th>
+                            </tr>
+                        </thead>
+                        <tbody id="c_picker_preview_body"></tbody>
+                    </table>
+                </div>
+                <p id="c_picker_preview_error" class="mt-1.5 hidden text-xs text-red-500"></p>
+            </div>
+
+            <div id="c_picker_added" class="hidden max-h-32 space-y-1.5 overflow-y-auto rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs dark:border-emerald-500/20 dark:bg-emerald-500/10">
+                <div class="mb-1 flex items-center gap-1.5 font-semibold text-emerald-700 dark:text-emerald-300">
+                    <i class="fa-solid fa-circle-check"></i> Added to this document
+                </div>
+                <div id="c_picker_added_list" class="space-y-1 text-emerald-800 dark:text-emerald-200"></div>
+            </div>
+        </div>
+        <div class="flex items-center justify-end gap-3 border-t border-slate-200 px-5 py-4 dark:border-white/10">
+            <button type="button" id="c_closeAddProductModalFooter"
+                class="inline-flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                Close
+            </button>
+            <button type="button" id="c_pickerAddBtn"
+                class="inline-flex h-10 items-center justify-center gap-1 rounded-lg bg-indigo-600 px-5 text-sm font-semibold text-white hover:bg-indigo-500">
+                <i class="fa-solid fa-plus text-xs"></i> Add
+            </button>
+        </div>
+    </div>
+</div>
+
+{{-- ======================================================== --}}
+{{-- ADD PRODUCT MODAL — Edit --}}
+{{-- ======================================================== --}}
+<div id="e_addProductModal" class="fixed inset-0 z-[90] hidden items-center justify-center p-4">
+    <div class="modal-backdrop absolute inset-0 bg-slate-900/70 opacity-0 transition-opacity duration-200"></div>
+    <div class="modal-panel modal-scroll relative z-10 flex max-h-[90vh] w-full max-w-2xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+        <div class="flex items-start justify-between border-b border-slate-200 px-5 py-4 dark:border-white/10">
+            <div>
+                <h3 class="text-sm font-bold text-slate-800 dark:text-white">Add Product</h3>
+                <p class="mt-1 text-xs text-slate-400">Stock is drawn from the nearest-expiry batch first.</p>
+            </div>
+            <button type="button" id="e_closeAddProductModal" class="shrink-0 text-slate-400 hover:text-slate-700 dark:hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+        <div class="space-y-4 p-5">
+            <div class="flex items-end gap-3">
+                <div class="flex-1">
+                    <label class="mb-1.5 block text-xs font-medium text-slate-500 dark:text-slate-400">Product</label>
+                    <select id="e_picker_product" class="w-full select2-create" disabled>
+                        <option value="">Select warehouse first...</option>
+                    </select>
+                </div>
+                <div class="w-28">
+                    <label class="mb-1.5 block text-xs font-medium text-slate-500 dark:text-slate-400">Qty</label>
+                    <input type="number" id="e_picker_qty" min="1" placeholder="0"
+                        class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm dark:border-white/10 dark:bg-[#0b1220] dark:text-white">
+                </div>
+            </div>
+
+            <div id="e_picker_preview_wrap" class="hidden">
+                <div class="mb-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">Batch Breakdown</div>
+                <div class="overflow-hidden rounded-lg border border-slate-200 dark:border-white/10">
+                    <table class="min-w-full text-xs">
+                        <thead class="bg-slate-50 dark:bg-white/[0.04]">
+                            <tr>
+                                <th class="px-3 py-2 text-left font-semibold text-slate-600 dark:text-slate-300">Name</th>
+                                <th class="px-3 py-2 text-right font-semibold text-slate-600 dark:text-slate-300">Qty</th>
+                                <th class="px-3 py-2 text-left font-semibold text-slate-600 dark:text-slate-300">Expired</th>
+                                <th class="px-3 py-2 text-right font-semibold text-slate-600 dark:text-slate-300">Availability</th>
+                                <th class="px-3 py-2 text-right font-semibold text-slate-600 dark:text-slate-300">Received</th>
+                            </tr>
+                        </thead>
+                        <tbody id="e_picker_preview_body"></tbody>
+                    </table>
+                </div>
+                <p id="e_picker_preview_error" class="mt-1.5 hidden text-xs text-red-500"></p>
+            </div>
+
+            <div id="e_picker_added" class="hidden max-h-32 space-y-1.5 overflow-y-auto rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs dark:border-emerald-500/20 dark:bg-emerald-500/10">
+                <div class="mb-1 flex items-center gap-1.5 font-semibold text-emerald-700 dark:text-emerald-300">
+                    <i class="fa-solid fa-circle-check"></i> Added to this document
+                </div>
+                <div id="e_picker_added_list" class="space-y-1 text-emerald-800 dark:text-emerald-200"></div>
+            </div>
+        </div>
+        <div class="flex items-center justify-end gap-3 border-t border-slate-200 px-5 py-4 dark:border-white/10">
+            <button type="button" id="e_closeAddProductModalFooter"
+                class="inline-flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                Close
+            </button>
+            <button type="button" id="e_pickerAddBtn"
+                class="inline-flex h-10 items-center justify-center gap-1 rounded-lg bg-indigo-600 px-5 text-sm font-semibold text-white hover:bg-indigo-500">
+                <i class="fa-solid fa-plus text-xs"></i> Add
+            </button>
+        </div>
+    </div>
+</div>
+
+
+{{-- ======================================================== --}}
+{{-- CREATE MODAL --}}
+{{-- ======================================================== --}}
+<div id="createModal" class="fixed inset-0 z-[50] hidden items-center justify-center p-4">
+    <div class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70"></div>
+    <div class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+
+        <div class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
+            <div>
+                <h2 class="text-sm font-bold text-slate-900 dark:text-white">Create Usage</h2>
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">New product / voucher usage or return form.</p>
+            </div>
+            <button type="button" id="closeCreateModal"
+                class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05]">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        {{-- FORM VIEW --}}
+        <div id="c_formView" class="bg-slate-50 p-6 dark:bg-[#0b1220]">
+            <form id="createForm" class="space-y-6" enctype="multipart/form-data">
+                @csrf
+
+                {{-- Header Info --}}
+                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                    <div class="border-b border-slate-200 px-6 py-3 dark:border-white/10">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Usage Information</h3>
+                    </div>
+                    <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-4">
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Company <span class="text-red-500">*</span></label>
+                            <select name="cpnyid" id="c_cpnyid" class="w-full select2-create" required>
+                                @foreach($usercpny as $p)
+                                    <option value="{{ $p->cpny_id }}" {{ $p->cpny_id == $usercpny2?->cpny_id ? 'selected' : '' }}>{{ $p->cpny_id }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Department <span class="text-red-500">*</span></label>
+                            <select name="department" id="c_department" class="w-full select2-create" required>
+                                @foreach($userdept as $p)
+                                    <option value="{{ $p->department_id }}" {{ $p->department_id == $userdept2?->department_id ? 'selected' : '' }}>{{ $p->department_id }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">V/P Type <span class="text-red-500">*</span></label>
+                            <select name="vp_type" id="c_vp_type" class="w-full select2-create" required>
+                                <option value=""></option>
+                                <option value="V" selected>Voucher</option>
+                                <option value="P">Product</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Usage Type <span class="text-red-500">*</span></label>
+                            <select name="usagetype" id="c_usagetype" class="w-full select2-create" required>
+                                <option value=""></option>
+                                <option value="Usage" selected>Usage</option>
+                                <option value="Return">Return Usage</option>
+                            </select>
+                        </div>
+                        <div id="c_ref_wrapper" class="hidden md:col-span-2">
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Reference Usage Doc <span class="text-red-500">*</span></label>
+                            <select name="ref_usage_id" id="c_ref_usage_id" class="w-full select2-create">
+                                <option value="">Select Reference...</option>
+                            </select>
+                        </div>
+                        <div id="c_usage_date_wrapper" class="hidden md:col-span-2">
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Usage Date <span class="text-red-500">*</span></label>
+                            <input type="date" name="usage_date" id="c_usage_date" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm dark:border-white/10 dark:bg-white/[0.03] dark:text-white">
+                            <p class="mt-1 text-xs text-slate-400">CUSTOMERSERVICE can backdate up to H-3.</p>
+                        </div>
+                        <div id="c_event_date_wrapper" class="hidden md:col-span-2">
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Event Date <span class="text-red-500">*</span></label>
+                            <input type="date" name="event_date" id="c_event_date" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm dark:border-white/10 dark:bg-white/[0.03] dark:text-white">
+                            <p class="mt-1 text-xs text-slate-400">Required for departments other than Customer Service. Cannot be backdated.</p>
+                        </div>
+                        <div id="c_whs_wrapper" class="md:col-span-4">
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Warehouse <span class="text-red-500">*</span></label>
+                            <select id="c_whs_id" class="w-full select2-create" required>
+                                <option value="">Select company, department & type first...</option>
+                            </select>
+                            <p class="mt-1 text-xs text-slate-400">Your department may have more than one usage warehouse assigned — pick the one to draw stock from.</p>
+                        </div>
+                        <div class="md:col-span-4">
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Remark <span class="text-red-500">*</span></label>
+                            <textarea name="usage_remark" id="c_remark" rows="2" placeholder="Enter remarks..." required
+                                class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm dark:border-white/10 dark:bg-white/[0.03] dark:text-white"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Warning: department not registered for usage --}}
+                <div id="c_whs_warning" class="hidden rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-300">
+                    <strong>⚠ Cannot Submit</strong> — Your department is not registered as a usage warehouse for this company and type. Please contact the administrator.
+                </div>
+
+                {{-- Detail Lines --}}
+                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                    <div class="flex items-center justify-between border-b border-slate-200 px-6 py-3 dark:border-white/10">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Usage Details</h3>
+                        <button type="button" id="c_openAddProductBtn"
+                            class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Add Product
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-sm" id="c_detailTable">
+                            <thead class="bg-slate-50 dark:bg-white/[0.03]">
+                                <tr>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:20%">Product <span class="text-red-500">*</span></th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:12%">WHS</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:10%">Avail. Qty</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:12%">Expired Date</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:10%">Qty <span class="text-red-500">*</span></th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:14%">Purpose</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:14%">Purpose Remark</th>
+                                    <th class="px-3 py-2.5 text-center text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:8%">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="c_detailBody">
+                                {{-- rows injected by JS --}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {{-- Attachments --}}
+                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                    <div class="flex items-center justify-between border-b border-slate-200 px-5 py-2 dark:border-white/10">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Attachments <span class="text-red-500">*</span></h3>
+                        <button type="button" id="c_addAttach"
+                            class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Add File
+                        </button>
+                    </div>
+                    <div class="p-4">
+                        <table class="min-w-full text-sm">
+                            <tbody id="c_attachBody">
+                                <tr id="c_attach_0">
+                                    <td class="py-1 pr-2">
+                                        <input type="file" name="attachment[]"
+                                            class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm dark:border-white/10">
+                                    </td>
+                                    <td class="py-1 pl-1"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+        {{-- PREVIEW VIEW (populated by JS, hidden by default) --}}
+        <div id="c_previewView" class="hidden bg-slate-50 p-6 dark:bg-[#0b1220]">
+            <div class="space-y-6">
+                <div class="overflow-hidden rounded-lg border border-indigo-200 bg-indigo-50 dark:border-indigo-500/20 dark:bg-indigo-500/10">
+                    <div class="border-b border-indigo-100 px-6 py-3 dark:border-indigo-500/20">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">Please confirm before submitting</h3>
+                    </div>
+                    <div id="c_previewHeader" class="grid grid-cols-2 gap-4 p-6 md:grid-cols-5 text-sm"></div>
+                </div>
+                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                    <div class="border-b border-slate-200 px-6 py-3 dark:border-white/10">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Usage Details</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-sm">
+                            <thead class="bg-slate-50 dark:bg-white/[0.03]">
+                                <tr>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Product</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">WHS</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Expired</th>
+                                    <th class="px-4 py-2 text-right text-xs font-semibold text-slate-600 dark:text-slate-400">Qty</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Purpose</th>
+                                </tr>
+                            </thead>
+                            <tbody id="c_previewDetailBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                    <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Attachments</h3>
+                    </div>
+                    <div id="c_previewAttachBody" class="divide-y divide-slate-100 p-4 text-sm dark:divide-white/10 empty:text-slate-400"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
+            <div class="flex items-center justify-end gap-3">
+                <button type="button" id="closeCreateModalFooter"
+                    class="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                    Close
+                </button>
+                <button type="button" id="c_backToEditBtn"
+                    class="hidden h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                    <i class="fa-solid fa-arrow-left mr-2 text-xs"></i> Back to Edit
+                </button>
+                <button type="button" id="c_reviewBtn"
+                    class="h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 text-sm font-semibold text-white hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-500">
+                    <i class="fa-solid fa-eye text-xs"></i> Review &amp; Submit
+                </button>
+                <button type="button" id="c_confirmSubmitBtn"
+                    class="hidden h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 text-sm font-semibold text-white hover:bg-emerald-500">
+                    <i class="fa-solid fa-paper-plane text-xs"></i> Confirm &amp; Submit
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+{{-- ======================================================== --}}
+{{-- VIEW MODAL --}}
+{{-- ======================================================== --}}
+<div id="viewModal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4">
+    <div class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70"></div>
+    <div class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+
+        <div class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
+            <div>
+                <h2 id="v_title" class="font-semibold text-slate-800 dark:text-white">Usage Detail</h2>
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Usage information &amp; approval workflow.</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" id="v_printBtn" title="Print PDF"
+                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                    <i class="fa-solid fa-print text-base"></i>
+                </button>
+                <button type="button" id="v_msgToggleBtn"
+                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                    <i class="fa-regular fa-comments text-base"></i>
+                </button>
+                <button type="button" id="closeViewModal"
+                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05]">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 bg-slate-50 p-4 dark:bg-[#0b1220] lg:grid-cols-[1.6fr_0.6fr]">
+
+            {{-- LEFT --}}
+            <div class="space-y-4">
+
+                {{-- Usage Info --}}
+                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                    <div class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-white/10">
+                        <div>
+                            <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Requested By</div>
+                            <div id="v_user" class="mt-2 text-base font-semibold text-slate-900 dark:text-white"></div>
+                        </div>
+                        <div id="v_status_badge"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 p-4 md:grid-cols-3">
+                        <div><div class="text-xs text-slate-500 dark:text-slate-400">Doc No</div><div id="v_doc_no" class="mt-1 text-sm font-semibold text-indigo-600 dark:text-indigo-400"></div></div>
+                        <div><div class="text-xs text-slate-500 dark:text-slate-400">Date</div><div id="v_date" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
+                        <div id="v_event_date_wrapper" class="hidden"><div class="text-xs text-slate-500 dark:text-slate-400">Event Date</div><div id="v_event_date" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
+                        <div><div class="text-xs text-slate-500 dark:text-slate-400">Company</div><div id="v_cpnyid" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
+                        <div><div class="text-xs text-slate-500 dark:text-slate-400">Department</div><div id="v_dept" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
+                        <div><div class="text-xs text-slate-500 dark:text-slate-400">V/P Type</div><div id="v_vp_type" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
+                        <div><div class="text-xs text-slate-500 dark:text-slate-400">Usage Type</div><div id="v_usagetype" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
+                        <div id="v_ref_wrapper" class="hidden"><div class="text-xs text-slate-500 dark:text-slate-400">Reference ID</div><div id="v_ref_id" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
+                    </div>
+                    <div class="border-t border-slate-100 px-4 py-3 dark:border-white/10">
+                        <div class="text-xs text-slate-500 dark:text-slate-400">Remark</div>
+                        <div id="v_remark" class="mt-1 text-sm text-slate-700 dark:text-slate-200"></div>
+                    </div>
+                </div>
+
+                {{-- Detail Table --}}
+                <div class="overflow-hidden rounded-lg border border-blue-100 bg-blue-50 dark:border-blue-500/20 dark:bg-blue-500/10">
+                    <div class="border-b border-blue-100 px-5 py-2 dark:border-blue-500/20">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300">Usage Details</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-sm">
+                            <thead class="border-b border-blue-100 dark:border-blue-500/20">
+                                <tr>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold text-blue-700 dark:text-blue-300">Product</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold text-blue-700 dark:text-blue-300">WHS</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold text-blue-700 dark:text-blue-300">Expired</th>
+                                    <th class="px-4 py-2 text-right text-xs font-semibold text-blue-700 dark:text-blue-300">Qty</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold text-blue-700 dark:text-blue-300">Purpose</th>
+                                </tr>
+                            </thead>
+                            <tbody id="v_detailBody" class="divide-y divide-blue-100 dark:divide-blue-500/20"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {{-- Attachments --}}
+                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                    <div class="flex items-center justify-between border-b border-slate-200 px-5 py-2 dark:border-white/10">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Attachments</h3>
+                        <button type="button" id="v_addAttachBtn"
+                            class="hidden inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Add File
+                        </button>
+                        <input type="file" id="v_addAttachInput" name="attachment[]" multiple class="hidden">
+                    </div>
+                    <div id="v_attachBody" class="divide-y divide-slate-100 dark:divide-white/10 empty:p-4 empty:text-sm empty:text-slate-400"></div>
+                </div>
+
+            </div>
+
+            {{-- RIGHT --}}
+            <div class="space-y-4">
+
+                <div id="v_reviseReasonWrapper" class="hidden overflow-hidden rounded-lg border border-yellow-200 bg-yellow-50 dark:border-yellow-500/20 dark:bg-yellow-500/10">
+                    <div class="border-b border-yellow-100 px-5 py-2 dark:border-yellow-500/20">
+                        <h3 class="text-sm font-semibold uppercase tracking-wider text-yellow-700 dark:text-yellow-300">Revision Reason</h3>
+                    </div>
+                    <div id="v_revise_reason" class="p-5 text-sm leading-relaxed text-yellow-900 dark:text-yellow-100"></div>
+                </div>
+
+                <div class="overflow-hidden">
+                    <div class="flex flex-col gap-2">
+                        <div id="v_statusBanner" class="mb-0 flex w-full items-center gap-2"></div>
+                        <div id="v_approvalActions" class="mb-4 hidden flex w-full items-center justify-between gap-2">
+                            <button type="button" id="v_approveBtn"
+                                class="flex-1 rounded-lg bg-emerald-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-400">
+                                <i class="fa-solid fa-check mr-1"></i> Approve
+                            </button>
+                            <button type="button" id="v_reviseBtn"
+                                class="flex-1 rounded-lg bg-yellow-400 px-4 py-2 text-xs font-semibold text-black transition hover:bg-yellow-300 dark:text-white">
+                                <i class="fa-solid fa-rotate-left mr-1"></i> Revise
+                            </button>
+                            <button type="button" id="v_rejectBtn"
+                                class="flex-1 rounded-lg bg-red-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-red-400">
+                                <i class="fa-solid fa-xmark mr-1"></i> Reject
+                            </button>
+                        </div>
+                    </div>
+                    <div id="v_approvalBody" class="mt-4"></div>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- Discussion panel --}}
+        <div id="v_discussionPanel"
+            class="absolute bottom-16 right-0 z-30 hidden w-[380px] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
+            <div class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-white/10">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">Messages</h3>
+                <button type="button" id="v_discussionClose">
+                    <i class="fa-solid fa-xmark text-slate-400 hover:text-slate-700 dark:hover:text-white"></i>
+                </button>
+            </div>
+            <div id="v_msgBody" class="h-[360px] space-y-4 overflow-y-auto bg-slate-50 p-4 dark:bg-[#0b1220]"></div>
+            <div class="border-t border-slate-200 p-3 dark:border-white/10">
+                <div class="flex items-end gap-2">
+                    <textarea id="v_msgInput" rows="1" placeholder="Write message..."
+                        class="min-h-[46px] flex-1 resize-none rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-400 focus:ring-0 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-100 dark:placeholder:text-slate-500"></textarea>
+                    <button type="button" id="v_msgSend"
+                        class="h-11 w-11 rounded-lg bg-slate-900 text-white hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-500">
+                        <i class="fa-solid fa-paper-plane text-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
+            <div class="flex items-center justify-between">
+                <button type="button" id="closeViewModalFooter"
+                    class="text-sm text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white">Close</button>
+                <div class="flex items-center gap-3">
+                    <button type="button" id="v_cancelBtn"
+                        class="hidden rounded-lg bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-500">
+                        Cancel Document
+                    </button>
+                    <button type="button" id="v_editBtn"
+                        class="hidden rounded-lg bg-slate-900 px-5 py-2 text-sm font-semibold text-white hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-500">
+                        Edit
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+{{-- ======================================================== --}}
+{{-- EDIT MODAL --}}
+{{-- ======================================================== --}}
+<div id="editModal" class="fixed inset-0 z-[70] hidden items-center justify-center p-4">
+    <div class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70"></div>
+    <div class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+
+        <div class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
+            <div>
+                <h2 id="e_title" class="text-sm font-bold text-slate-900 dark:text-white">Edit Usage</h2>
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Modify and resubmit for approval.</p>
+            </div>
+            <button type="button" id="closeEditModal"
+                class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05]">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        {{-- FORM VIEW --}}
+        <div id="e_formView" class="bg-slate-50 p-6 dark:bg-[#0b1220]">
+            <form id="editForm" class="space-y-6" enctype="multipart/form-data">
+                @csrf
+
+                {{-- Read-only header --}}
+                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                    <div class="border-b border-slate-200 px-6 py-3 dark:border-white/10">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Usage Information <span class="text-slate-400 font-normal normal-case text-[11px]">(read-only)</span></h3>
+                    </div>
+                    <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-3">
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Company</label>
+                            <input type="text" id="e_cpnyid_display" readonly class="h-11 w-full rounded-lg border border-slate-200 bg-slate-100 px-4 text-sm dark:border-white/10 dark:bg-white/[0.04]">
+                            <input type="hidden" name="cpnyid" id="e_cpnyid">
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Department</label>
+                            <input type="text" id="e_dept_display" readonly class="h-11 w-full rounded-lg border border-slate-200 bg-slate-100 px-4 text-sm dark:border-white/10 dark:bg-white/[0.04]">
+                            <input type="hidden" name="department" id="e_department">
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">V/P Type</label>
+                            <input type="text" id="e_vp_type_display" readonly class="h-11 w-full rounded-lg border border-slate-200 bg-slate-100 px-4 text-sm dark:border-white/10 dark:bg-white/[0.04]">
+                            <input type="hidden" id="e_vp_type">
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Usage Type</label>
+                            <input type="text" id="e_usagetype_display" readonly class="h-11 w-full rounded-lg border border-slate-200 bg-slate-100 px-4 text-sm dark:border-white/10 dark:bg-white/[0.04]">
+                            <input type="hidden" id="e_usagetype">
+                        </div>
+                        <div id="e_ref_display_wrapper" class="hidden">
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Reference Usage Doc</label>
+                            <input type="text" id="e_ref_display" readonly class="h-11 w-full rounded-lg border border-slate-200 bg-slate-100 px-4 text-sm dark:border-white/10 dark:bg-white/[0.04]">
+                        </div>
+                        <div id="e_event_date_wrapper" class="hidden">
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Event Date <span class="text-red-500">*</span></label>
+                            <input type="date" name="event_date" id="e_event_date" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm dark:border-white/10 dark:bg-white/[0.03] dark:text-white">
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Remark <span class="text-red-500">*</span></label>
+                            <textarea name="usage_remark" id="e_remark" rows="2" required
+                                class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm dark:border-white/10 dark:bg-white/[0.03] dark:text-white"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Existing Details --}}
+                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                    <div class="border-b border-slate-200 px-6 py-3 dark:border-white/10">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Existing Details</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-sm">
+                            <thead class="bg-slate-50 dark:bg-white/[0.03]">
+                                <tr>
+                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Product</th>
+                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">WHS</th>
+                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Expired</th>
+                                    <th class="px-4 py-2.5 text-right text-xs font-semibold text-slate-600 dark:text-slate-400">Qty</th>
+                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Purpose</th>
+                                    <th class="w-16 px-4 py-2.5"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="e_existDetailBody" class="divide-y divide-slate-100 dark:divide-white/10"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {{-- Add New Lines --}}
+                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                    <div class="flex items-center justify-between border-b border-slate-200 px-6 py-3 dark:border-white/10">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Add New Lines</h3>
+                        <button type="button" id="e_openAddProductBtn"
+                            class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Add Product
+                        </button>
+                    </div>
+                    <div id="e_whs_wrapper" class="border-b border-slate-200 px-6 py-3 dark:border-white/10">
+                        <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Warehouse for new lines <span class="text-red-500">*</span></label>
+                        <select id="e_whs_id" class="w-full max-w-sm select2-create">
+                            <option value="">Select...</option>
+                        </select>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-sm" id="e_detailTable">
+                            <thead class="bg-slate-50 dark:bg-white/[0.03]">
+                                <tr>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:20%">Product</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:12%">WHS</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:10%">Avail. Qty</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:12%">Expired Date</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:10%">Qty</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:14%">Purpose</th>
+                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:14%">Purpose Remark</th>
+                                    <th class="px-3 py-2.5 text-center text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:8%">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="e_detailBody">
+                                {{-- rows injected by JS --}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {{-- Existing Attachments --}}
+                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                    <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Existing Attachments</h3>
+                    </div>
+                    <div id="e_existAttachBody" class="divide-y divide-slate-100 dark:divide-white/10"></div>
+                </div>
+
+                {{-- New Attachments --}}
+                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                    <div class="flex items-center justify-between border-b border-slate-200 px-5 py-2 dark:border-white/10">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Add Attachments <span class="text-red-500">*</span></h3>
+                        <button type="button" id="e_addAttach"
+                            class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Add File
+                        </button>
+                    </div>
+                    <div class="p-4">
+                        <table class="min-w-full text-sm">
+                            <tbody id="e_attachBody">
+                                <tr id="e_attach_0">
+                                    <td class="py-1 pr-2">
+                                        <input type="file" name="attachment[]"
+                                            class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm dark:border-white/10">
+                                    </td>
+                                    <td class="py-1 pl-1"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+        {{-- PREVIEW VIEW --}}
+        <div id="e_previewView" class="hidden bg-slate-50 p-6 dark:bg-[#0b1220]">
+            <div class="space-y-6">
+                <div class="overflow-hidden rounded-lg border border-indigo-200 bg-indigo-50 dark:border-indigo-500/20 dark:bg-indigo-500/10">
+                    <div class="border-b border-indigo-100 px-6 py-3 dark:border-indigo-500/20">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">Please confirm before resubmitting</h3>
+                    </div>
+                    <div id="e_previewHeader" class="grid grid-cols-2 gap-4 p-6 md:grid-cols-5 text-sm"></div>
+                </div>
+                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                    <div class="border-b border-slate-200 px-6 py-3 dark:border-white/10">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">New Lines</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-sm">
+                            <thead class="bg-slate-50 dark:bg-white/[0.03]">
+                                <tr>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Product</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">WHS</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Expired</th>
+                                    <th class="px-4 py-2 text-right text-xs font-semibold text-slate-600 dark:text-slate-400">Qty</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Purpose</th>
+                                </tr>
+                            </thead>
+                            <tbody id="e_previewDetailBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                    <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Attachments</h3>
+                    </div>
+                    <div id="e_previewAttachBody" class="divide-y divide-slate-100 p-4 text-sm dark:divide-white/10 empty:text-slate-400"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
+            <div class="flex items-center justify-end gap-3">
+                <button type="button" id="closeEditModalFooter"
+                    class="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                    Close
+                </button>
+                <button type="button" id="e_backToEditBtn"
+                    class="hidden h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                    <i class="fa-solid fa-arrow-left mr-2 text-xs"></i> Back to Edit
+                </button>
+                <button type="button" id="e_reviewBtn"
+                    class="h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 text-sm font-semibold text-white hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-500">
+                    <i class="fa-solid fa-eye text-xs"></i> Review &amp; Resubmit
+                </button>
+                <button type="button" id="e_confirmSubmitBtn"
+                    class="hidden h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 text-sm font-semibold text-white hover:bg-emerald-500">
+                    <i class="fa-solid fa-paper-plane text-xs"></i> Confirm &amp; Resubmit
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+{{-- ======================================================== --}}
+{{-- SCRIPTS --}}
+{{-- ======================================================== --}}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<script>
+    window.VplUsageConfig = {
+        base:       '{{ url("usagevp") }}',
+        store:      '{{ route("usagevp.store") }}',
+        warehouse:  '{{ route("usagevp.warehouse") }}',
+        products:   '{{ route("usagevp.products") }}',
+        fefoPick:   '{{ route("usagevp.fefo-pick") }}',
+        refOpts:    '{{ route("usagevp.ref-options") }}',
+        refDetails: '{{ route("usagevp.ref-details") }}',
+        delDetail:  '{{ route("usagevp.detail.delete") }}',
+        delAttach:  '{{ route("usagevp.attachment.delete") }}',
+        addAttach: (id) => `{{ url("usagevp") }}/${id}/attachment/add`,
+        data: (id) => `{{ url("usagevp") }}/${id}/data`,
+        update: (id) => `{{ url("usagevp") }}/${id}/update`,
+        cancel: (id) => `{{ url("usagevp") }}/${id}/cancel`,
+        approve: (id) => `{{ url("usagevp") }}/${id}/approve`,
+        reject: (id) => `{{ url("usagevp") }}/${id}/reject`,
+        revise: (id) => `{{ url("usagevp") }}/${id}/revise`,
+        message: (id) => `{{ url("usagevp") }}/${id}/message`,
+        show: (eid) => `{{ url("showusagevp") }}/${eid}`,
+        initialId: {{ $initialId ?? 'null' }},
+        purposes: @json($purposes),
+    };
+</script>
+
+<script src="{{ asset('assets/js/voucher-usage/core.js') }}"></script>
+<script src="{{ asset('assets/js/voucher-usage/helper.js') }}"></script>
+<script src="{{ asset('assets/js/voucher-usage/datalist.js') }}"></script>
+<script src="{{ asset('assets/js/voucher-usage/modal.js') }}"></script>
+<script src="{{ asset('assets/js/voucher-usage/form.js') }}"></script>
+<script src="{{ asset('assets/js/voucher-usage/init.js') }}"></script>
+
+</x-app-layout>

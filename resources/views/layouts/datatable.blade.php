@@ -84,15 +84,12 @@ SEARCH / FILTER / LENGTH CONTROLS (GLOBAL)
 
     .dataTables_wrapper .dataTables_length,
     .dataTables_wrapper .dataTables_filter {
-        padding-bottom: 10px;
+        padding: 8px 18px;
     }
 
-    .dataTables_wrapper .dataTables_info {
-        padding-top: 10px;
-    }
-
+    .dataTables_wrapper .dataTables_info,
     .dataTables_wrapper .dataTables_paginate {
-        padding-top: 10px;
+        padding: 8px 18px;
     }
 
     /* LENGTH (Show entries) */
@@ -135,6 +132,20 @@ TABLE CELLS & ROWS (GLOBAL)
         font-size: 12px;
         align-items: center;
         justify-items: center;
+    }
+
+    /* Header row banner (Access Request style, applied globally) */
+    table.dataTable thead th {
+        background-color: rgba(249, 250, 251, .7);
+        border-bottom: 1px solid #f3f4f6;
+        color: #6b7280;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        text-align: left;
+        padding: 12px 16px;
+        white-space: nowrap;
     }
 
     table.dataTable tbody tr td {
@@ -246,8 +257,8 @@ CUSTOM COMPONENTS (UNCHANGED)
     .switch {
         position: relative;
         display: inline-block;
-        width: 40px;
-        height: 22px;
+        width: 46px;
+        height: 24px;
     }
 
     .switch input {
@@ -260,29 +271,35 @@ CUSTOM COMPONENTS (UNCHANGED)
         position: absolute;
         cursor: pointer;
         inset: 0;
-        background: #ccc;
-        transition: .4s;
-        border-radius: 34px;
+        background-color: #ef4444;
+        transition: .25s;
+        border-radius: 9999px;
     }
 
     .slider:before {
-        content: "";
         position: absolute;
-        height: 16px;
-        width: 16px;
+        content: "";
+        height: 18px;
+        width: 18px;
         left: 3px;
         bottom: 3px;
-        background: #fff;
-        transition: .4s;
-        border-radius: 50%;
+        background-color: white;
+        transition: .25s;
+        border-radius: 9999px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
     }
 
-    input:checked+.slider {
-        background: #4CAF50;
+    .switch input:checked + .slider {
+        background-color: #16a34a;
     }
 
-    input:checked+.slider:before {
-        transform: translateX(18px);
+    .switch input:checked + .slider:before {
+        transform: translateX(22px);
+    }
+
+    .switch input:disabled + .slider {
+        opacity: .45;
+        cursor: not-allowed;
     }
 
     /* ---- MENU TREE ---- */
@@ -359,23 +376,31 @@ TABLE-SPECIFIC OVERRIDES (KEEP)
 
     /* Approval column widths */
     #approvalTable th.col-actions,
-    #approvalTable td.col-actions {
+    #approvalTable td.col-actions,
+    #gbApprovalTable th.col-actions,
+    #gbApprovalTable td.col-actions {
         width: 70px;
     }
 
     #approvalTable th.col-level,
-    #approvalTable td.col-level {
+    #approvalTable td.col-level,
+    #gbApprovalTable th.col-level,
+    #gbApprovalTable td.col-level {
         width: 60px;
         text-align: center;
     }
 
     #approvalTable th.col-doctype,
-    #approvalTable td.col-doctype {
+    #approvalTable td.col-doctype,
+    #gbApprovalTable th.col-doctype,
+    #gbApprovalTable td.col-doctype {
         width: 60px;
     }
 
     #approvalTable th.col-status,
-    #approvalTable td.col-status {
+    #approvalTable td.col-status,
+    #gbApprovalTable th.col-status,
+    #gbApprovalTable td.col-status {
         width: 80px;
         text-align: center;
     }
@@ -388,7 +413,9 @@ TABLE-SPECIFIC OVERRIDES (KEEP)
     }
 
     #approvalTable th.col-name,
-    #approvalTable td.col-name {
+    #approvalTable td.col-name,
+    #gbApprovalTable th.col-name,
+    #gbApprovalTable td.col-name {
         width: 320px;
     }
 
@@ -726,6 +753,13 @@ DARK MODE SUPPORT
         /* gray-50 */
         border-color: #4b5563;
         /* gray-600 */
+    }
+
+    /* Header row banner - dark mode (Access Request style) */
+    .dark table.dataTable thead th {
+        background-color: rgba(255, 255, 255, .02);
+        color: #9ca3af;
+        border-color: rgba(255, 255, 255, .06);
     }
 
     .dark table.dataTable td {

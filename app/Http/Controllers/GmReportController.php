@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use App\Exports\GmReportExport;
 use App\Models\BudgetDetail;
 use App\Models\DepartmentFin;
+use App\Models\MsEvent;
 use App\Models\User;
 use App\Services\BigQueryService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 
 class GmReportController extends Controller
@@ -36,7 +39,37 @@ class GmReportController extends Controller
         'GPS' => 'PMB',
     ];
 
+    // ── Valet Parking constants ─────────────────────────────────────────────────
+    private const VALET_PROJECT = 'ifca-pkwjakarta';
+    private const VALET_DATASET = 'valet_parking';
+
+    // Maps HR company code → valet_parking places_id — 'PSA' (Blok M Plaza) is
+    // intentionally absent, it has no valet service.
+    private const VALET_PLACES_MAP = [
+        'AW'  => 2,   // Gandaria City
+        'EP'  => 1,   // Kota Kasablanka
+        'GPS' => 6,   // Pakuwon Mall Bekasi
+    ];
+
+    private const VALET_PLACE_NAMES = [
+        1 => 'Kota Kasablanka',
+        2 => 'Gandaria City',
+        6 => 'Pakuwon Mall Bekasi',
+    ];
+
+    // ── Voucher & Product (VPL) constants — cpnyid on pgsql5 matches HR
+    // company codes directly, no translation map needed like the sections above.
+    private const VPL_COMPANIES = ['AW', 'EP', 'PSA', 'GPS'];
+
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    // BigQuery NUMERIC columns come back as Google\Cloud\BigQuery\Numeric
+    // objects, not plain PHP numbers — casting one directly to float throws
+    // a "could not be converted to float" warning and silently yields 1.
+    private function bqFloat($val): float
+    {
+        return (float) (string) ($val ?? 0);
+    }
 
     private function csvToArray($val): array
     {
@@ -116,19 +149,95 @@ class GmReportController extends Controller
         ));
     }
 
-    private function applyCompanyFilter($q, array $allowed, ?string $cpnyId)
+    /**
+     * VPL stock is a snapshot, not a range metric — every stock-based widget
+     * resolves the GM date filter's "to" bound down to a single year/month
+     * point (clamped to today, since future periods have no postings yet)
+     * instead of filtering by the range itself.
+     *
+     * @return array{0: int, 1: int} [year, month]
+     */
+    private function vplAsOfPeriod(?string $dateTo): array
+    {
+        $asOf = $dateTo ? \Carbon\Carbon::parse($dateTo) : \Carbon\Carbon::now();
+        if ($asOf->greaterThan(\Carbon\Carbon::now())) {
+            $asOf = \Carbon\Carbon::now();
+        }
+
+        return [(int) $asOf->year, (int) $asOf->month];
+    }
+
+    /** SQL expression rolling ms_vpl_product_bal's begqty + period01..NN in/out forward through the given month — same convention as VplReportController::productStockBaseQuery(). */
+    private function vplStockExpr(int $month): string
+    {
+        $periods = collect(range(1, $month))->map(fn ($m) => str_pad((string) $m, 2, '0', STR_PAD_LEFT));
+        $inSum   = $periods->map(fn ($mm) => "COALESCE(b.period{$mm}in, 0)")->implode(' + ');
+        $outSum  = $periods->map(fn ($mm) => "COALESCE(b.period{$mm}out, 0)")->implode(' + ');
+
+        return "(COALESCE(b.begqty, 0) + ({$inSum}) - ({$outSum}))";
+    }
+
+    /**
+     * Returns the valet_parking places_id values the current user may see.
+     * null = no restriction (show all sites with valet service)
+     * []   = no access (includes the PSA case — Blok M Plaza has no valet)
+     * [2]  = filtered to a single site
+     *
+     * Unlike allowedIsortSites()/allowedPgcardMalls(), an explicit $cpnyId not
+     * present in the map returns [] immediately instead of falling through to
+     * the "no restriction" branch — every HR company those two helpers know
+     * about happens to exist in their maps, but PSA deliberately doesn't exist
+     * in VALET_PLACES_MAP, so the fallthrough would incorrectly show
+     * unrestricted valet data to a user who explicitly filtered to PSA.
+     */
+    private function allowedValetPlaces(?string $cpnyId): ?array
+    {
+        $map = self::VALET_PLACES_MAP;
+        $allowed = $this->allowedCompanies();
+
+        if ($cpnyId) {
+            if (!isset($map[$cpnyId])) {
+                return [];
+            }
+            if (!empty($allowed) && !in_array($cpnyId, $allowed, true)) {
+                return [];
+            }
+
+            return [$map[$cpnyId]];
+        }
+
+        if (empty($allowed)) {
+            return null; // no restriction — show all sites
+        }
+
+        return array_values(array_filter(
+            array_map(fn ($code) => $map[$code] ?? null, $allowed)
+        ));
+    }
+
+    private function applyCompanyFilter($q, array $allowed, ?string $cpnyId, string $column = 'cpny_id')
     {
         if ($cpnyId) {
             $cpnyId = strtoupper(trim($cpnyId));
             if (!empty($allowed) && !in_array($cpnyId, $allowed, true)) {
                 return $q->whereRaw('1=0');
             }
-            $q->where('cpny_id', $cpnyId);
+            $q->where($column, $cpnyId);
         } elseif (!empty($allowed)) {
-            $q->whereIn('cpny_id', $allowed);
+            $q->whereIn($column, $allowed);
         }
 
         return $q;
+    }
+
+    // ms_event.event_start_date/event_end_date describe when the event runs,
+    // not when the row changed — filtering on overlap with the selected
+    // period (rather than a single date column) matches how the event
+    // calendar itself treats an event as "in" a given range.
+    private function applyEventPeriodFilter($q, string $dateFrom, string $dateTo)
+    {
+        return $q->where('event_start_date', '<=', $dateTo)
+            ->where('event_end_date', '>=', $dateFrom);
     }
 
     private function buildExprs(string $dateFrom, string $dateTo): array
@@ -354,6 +463,48 @@ class GmReportController extends Controller
             {$usedPct}          AS used_pct
         ")
         ->groupBy('department_fin_id')
+        ->orderByRaw("{$exprs['used']} DESC")
+        ->get();
+
+        return response()->json(['data' => $rows]);
+    }
+
+    // ── API: Budget by company ────────────────────────────────────────────────
+    // Route was already registered (gm.budget-by-company) but had no matching
+    // method — the Summary Insight panel needs a per-company breakdown alongside
+    // the existing per-department one when "All Companies" is selected.
+
+    public function budgetByCompany(Request $request)
+    {
+        ['dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'cpnyId' => $cpnyId, 'depts' => $depts]
+            = $this->parseFilters($request);
+
+        $allowed = $this->allowedCompanies();
+        $exprs = $this->buildExprs($dateFrom, $dateTo);
+
+        $finalExpr = "({$exprs['budget']}+{$exprs['add']})";
+        $remExpr = "({$exprs['budget']}+{$exprs['add']}-{$exprs['used']}-{$exprs['reserve']})";
+        $usedPct = "CASE WHEN ({$exprs['budget']}+{$exprs['add']}) > 0
+                           THEN ROUND(({$exprs['used']} / ({$exprs['budget']}+{$exprs['add']})) * 100, 1)
+                           ELSE 0 END";
+
+        $q = BudgetDetail::query()->where('status', 'C')->whereNotNull('cpny_id');
+        $q = $this->applyCompanyFilter($q, $allowed, $cpnyId);
+        $q = $this->applyDateFilter($q, $dateFrom, $dateTo);
+
+        if (!empty($depts)) {
+            $q->whereIn('department_fin_id', array_map('strtoupper', $depts));
+        }
+
+        $rows = $q->selectRaw("
+            cpny_id,
+            {$finalExpr}        AS total_final,
+            {$exprs['used']}    AS total_used,
+            {$exprs['reserve']} AS total_reserve,
+            {$remExpr}          AS total_remaining,
+            {$usedPct}          AS used_pct
+        ")
+        ->groupBy('cpny_id')
         ->orderByRaw("{$exprs['used']} DESC")
         ->get();
 
@@ -706,6 +857,46 @@ class GmReportController extends Controller
             $rows = $bq->query($sql);
             $row  = $rows[0] ?? [];
 
+            // Per-company breakdown — only meaningful when "All Companies" is
+            // selected, so the KPI strip can show a per-site table alongside
+            // the aggregate totals instead of just one blended number.
+            $bySite = [];
+            if ($cpnyId === null) {
+                $sqlSite = <<<SQL
+                    SELECT
+                        COALESCE(site, 'Unknown')               AS site,
+                        COALESCE(SUM(total_case),               0) AS total_case,
+                        COALESCE(SUM(total_open),               0) AS total_open,
+                        COALESCE(SUM(total_closed),             0) AS total_closed,
+                        COALESCE(SUM(total_overdue),            0) AS total_overdue,
+                        COALESCE(SUM(solved_duration_hour_sum), 0) AS solved_hours,
+                        COALESCE(SUM(solved_case_count),        0) AS solved_case_count
+                    FROM `{$p}.{$d}.tb_kaizen_dashboard_summary_daily`
+                    WHERE issue_dt BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                      {$siteFilter}
+                      {$this->buildIsortDeptFilter($request)}
+                    GROUP BY site
+                    ORDER BY total_case DESC
+                SQL;
+
+                foreach ($bq->query($sqlSite) as $sr) {
+                    $siteTotal = (int) ($sr['total_case'] ?? 0);
+                    $siteClosed = (int) ($sr['total_closed'] ?? 0);
+                    $siteSolvedHours = (float) ($sr['solved_hours'] ?? 0);
+                    $siteSolvedCount = (int) ($sr['solved_case_count'] ?? 0);
+
+                    $bySite[] = [
+                        'site' => (string) ($sr['site'] ?? 'Unknown'),
+                        'total_case' => $siteTotal,
+                        'total_open' => (int) ($sr['total_open'] ?? 0),
+                        'total_closed' => $siteClosed,
+                        'total_overdue' => (int) ($sr['total_overdue'] ?? 0),
+                        'avg_resolution_hours' => $siteSolvedCount > 0 ? round($siteSolvedHours / $siteSolvedCount, 1) : 0,
+                        'closure_rate' => $siteTotal > 0 ? round(($siteClosed / $siteTotal) * 100) : 0,
+                    ];
+                }
+            }
+
             return response()->json([
                 'data' => [
                     'total_case'        => (int)   ($row['total_case']        ?? 0),
@@ -714,6 +905,7 @@ class GmReportController extends Controller
                     'total_overdue'     => (int)   ($row['total_overdue']     ?? 0),
                     'solved_hours'      => (float) ($row['solved_hours']      ?? 0),
                     'solved_case_count' => (int)   ($row['solved_case_count'] ?? 0),
+                    'by_site'           => $bySite,
                 ],
             ]);
         } catch (\Throwable $e) {
@@ -1265,273 +1457,683 @@ class GmReportController extends Controller
 
     // ── API: Cumulative budget used per month ─────────────────────────────────
 
-    // ── Valet Parking constants ───────────────────────────────────────────────
-    private const VALET_PROJECT = 'ifca-pkwjakarta';
-    private const VALET_DATASET = 'valet_parking';
+    // ── API: Parking - Valet ─────────────────────────────────────────────────
 
-    // ── API: Valet — Income Trend (daily / monthly) ───────────────────────────
-    public function valetIncomeTrend(Request $request)
+    public function valetKpiSummary(Request $request)
     {
         try {
             ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
-            $mode = in_array($request->input('mode'), ['daily', 'monthly'], true)
-                ? $request->input('mode') : 'daily';
+            $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
+            $places = $this->allowedValetPlaces($cpnyId);
+
+            $empty = [
+                'total_valet' => 0, 'total_income_service' => 0, 'total_income_parking' => 0,
+                'total_member' => 0, 'avg_duration_minutes' => 0, 'daily_avg_turnover' => 0, 'by_place' => [],
+            ];
+
+            if ($places !== null && empty($places)) {
+                return response()->json(['data' => $empty]);
+            }
+
+            $placeFilter = $places !== null
+                ? 'AND places_id IN (' . implode(',', array_map('intval', $places)) . ')'
+                : '';
 
             $bq = new BigQueryService();
-            $p  = self::VALET_PROJECT;
-            $d  = self::VALET_DATASET;
+            $p = self::VALET_PROJECT;
+            $d = self::VALET_DATASET;
 
-            $groupExpr = $mode === 'monthly'
-                ? "FORMAT_DATE('%Y-%m', checkin_date)"
-                : "FORMAT_DATE('%Y-%m-%d', checkin_date)";
-
-            $sql = <<<SQL
+            $sqlTotals = <<<SQL
                 SELECT
-                    {$groupExpr}                      AS label,
-                    COALESCE(SUM(total_amount), 0)    AS income,
-                    COUNT(*)                          AS transactions,
-                    COALESCE(AVG(total_amount), 0)    AS avg_income
+                    COUNT(*)                                          AS total_valet,
+                    COALESCE(SUM(service_amount), 0)                  AS total_income_service,
+                    COALESCE(SUM(parking_amount), 0)                  AS total_income_parking,
+                    COUNTIF(voucher_status = 'MEMBER')                AS total_member,
+                    COALESCE(AVG(duration_hour * 60 + duration_minute), 0) AS avg_duration_minutes
                 FROM `{$p}.{$d}.valet_parking_valets_src`
                 WHERE checkin_date BETWEEN '{$dateFrom}' AND '{$dateTo}'
-                  AND is_done = 1
-                GROUP BY label
-                ORDER BY label
+                  {$placeFilter}
             SQL;
 
-            $rows        = $bq->query($sql);
-            $data        = [];
-            $totalIncome = 0;
-            $totalTxn    = 0;
+            $sqlByPlace = <<<SQL
+                SELECT
+                    places_id,
+                    COUNT(*)                         AS total_valet,
+                    COALESCE(SUM(service_amount), 0) AS total_income_service,
+                    COALESCE(SUM(parking_amount), 0) AS total_income_parking
+                FROM `{$p}.{$d}.valet_parking_valets_src`
+                WHERE checkin_date BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                  {$placeFilter}
+                GROUP BY places_id
+                ORDER BY total_valet DESC
+            SQL;
 
-            foreach ($rows as $r) {
-                $income       = (float) ($r['income']       ?? 0);
-                $txn          = (int)   ($r['transactions'] ?? 0);
-                $totalIncome += $income;
-                $totalTxn    += $txn;
-                $data[]       = [
-                    'label'        => (string) ($r['label']      ?? ''),
-                    'income'       => $income,
-                    'transactions' => $txn,
-                    'avg_income'   => (float) ($r['avg_income'] ?? 0),
+            $row = ($bq->query($sqlTotals))[0] ?? [];
+
+            $days = max(1, \Carbon\Carbon::parse($dateFrom)->diffInDays(\Carbon\Carbon::parse($dateTo)) + 1);
+            $totalValet = (int) ($row['total_valet'] ?? 0);
+
+            $byPlace = [];
+            foreach ($bq->query($sqlByPlace) as $pr) {
+                $placeId = (int) ($pr['places_id'] ?? 0);
+                $byPlace[] = [
+                    'place_id' => $placeId,
+                    'place_name' => self::VALET_PLACE_NAMES[$placeId] ?? "Place #{$placeId}",
+                    'total_valet' => (int) ($pr['total_valet'] ?? 0),
+                    'total_income_service' => $this->bqFloat($pr['total_income_service'] ?? null),
+                    'total_income_parking' => $this->bqFloat($pr['total_income_parking'] ?? null),
                 ];
             }
 
             return response()->json([
-                'data'         => $data,
-                'mode'         => $mode,
-                'total_income' => $totalIncome,
-                'total_txn'    => $totalTxn,
-                'avg_income'   => $totalTxn > 0 ? round($totalIncome / $totalTxn) : 0,
+                'data' => [
+                    'total_valet' => $totalValet,
+                    'total_income_service' => $this->bqFloat($row['total_income_service'] ?? null),
+                    'total_income_parking' => $this->bqFloat($row['total_income_parking'] ?? null),
+                    'total_member' => (int) ($row['total_member'] ?? 0),
+                    'avg_duration_minutes' => (float) ($row['avg_duration_minutes'] ?? 0),
+                    'daily_avg_turnover' => round($totalValet / $days, 1),
+                    'by_place' => $byPlace,
+                ],
             ]);
         } catch (\Throwable $e) {
-            return response()->json(['data' => [], 'error' => $e->getMessage()]);
+            return response()->json(['data' => $empty ?? [], 'error' => $e->getMessage()]);
         }
     }
 
-    // ── API: Valet — Peak Hour Heatmap (hour × day-of-week) ──────────────────
-    public function valetPeakHour(Request $request)
+    public function valetVoucherRedemption(Request $request)
     {
         try {
             ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
+            $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
+            $places = $this->allowedValetPlaces($cpnyId);
+
+            $empty = ['total_valet' => 0, 'redeemed' => 0, 'redemption_rate' => 0, 'by_status' => []];
+
+            if ($places !== null && empty($places)) {
+                return response()->json(['data' => $empty]);
+            }
+
+            $placeFilter = $places !== null
+                ? 'AND places_id IN (' . implode(',', array_map('intval', $places)) . ')'
+                : '';
 
             $bq = new BigQueryService();
-            $p  = self::VALET_PROJECT;
-            $d  = self::VALET_DATASET;
+            $p = self::VALET_PROJECT;
+            $d = self::VALET_DATASET;
 
+            // voucher_code is currently unpopulated across the whole table, so
+            // "redeemed" is derived from voucher_status instead (verified against
+            // live data — every non-blank voucher_status row is a MEMBER free-
+            // parking redemption today, but this stays generic for future statuses).
             $sql = <<<SQL
                 SELECT
-                    EXTRACT(HOUR FROM checkin_time)      AS hour,
-                    EXTRACT(DAYOFWEEK FROM checkin_date) AS dow,
-                    COUNT(*)                             AS cnt
+                    COALESCE(NULLIF(voucher_status, ''), 'None') AS status,
+                    COUNT(*)                                     AS status_count
                 FROM `{$p}.{$d}.valet_parking_valets_src`
                 WHERE checkin_date BETWEEN '{$dateFrom}' AND '{$dateTo}'
-                  AND is_done = 1
-                  AND checkin_time IS NOT NULL
-                GROUP BY hour, dow
-                ORDER BY dow, hour
+                  {$placeFilter}
+                GROUP BY status
             SQL;
 
             $rows = $bq->query($sql);
-            $data = array_map(fn ($r) => [
-                'hour' => (int) ($r['hour'] ?? 0),
-                'dow'  => (int) ($r['dow']  ?? 0),
-                'cnt'  => (int) ($r['cnt']  ?? 0),
-            ], $rows);
 
-            return response()->json(['data' => $data]);
+            $totalValet = 0;
+            $redeemed = 0;
+            $byStatus = [];
+            foreach ($rows as $r) {
+                $count = (int) ($r['status_count'] ?? 0);
+                $status = (string) ($r['status'] ?? 'None');
+                $totalValet += $count;
+                if ($status !== 'None') {
+                    $redeemed += $count;
+                }
+                $byStatus[] = ['status' => $status, 'count' => $count];
+            }
+
+            return response()->json([
+                'data' => [
+                    'total_valet' => $totalValet,
+                    'redeemed' => $redeemed,
+                    'redemption_rate' => $totalValet > 0 ? round(($redeemed / $totalValet) * 100, 1) : 0,
+                    'by_status' => $byStatus,
+                ],
+            ]);
         } catch (\Throwable $e) {
-            return response()->json(['data' => [], 'error' => $e->getMessage()]);
+            return response()->json(['data' => $empty ?? [], 'error' => $e->getMessage()]);
         }
     }
 
-    // ── API: Valet — Repetitive License Plates ────────────────────────────────
-    public function valetRepetitiveNopol(Request $request)
+    public function valetPeakHours(Request $request)
     {
         try {
             ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
+            $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
+            $places = $this->allowedValetPlaces($cpnyId);
+
+            $hours = array_fill(0, 24, 0);
+
+            if ($places !== null && empty($places)) {
+                return response()->json(['data' => array_values($hours)]);
+            }
+
+            $placeFilter = $places !== null
+                ? 'AND places_id IN (' . implode(',', array_map('intval', $places)) . ')'
+                : '';
 
             $bq = new BigQueryService();
-            $p  = self::VALET_PROJECT;
-            $d  = self::VALET_DATASET;
+            $p = self::VALET_PROJECT;
+            $d = self::VALET_DATASET;
 
             $sql = <<<SQL
                 SELECT
-                    vehicle_license                            AS nopol,
-                    MAX(owner)                                 AS owner,
-                    COUNT(*)                                   AS visit_count,
-                    FORMAT_DATE('%Y-%m-%d', MAX(checkin_date)) AS last_visit,
-                    COALESCE(SUM(total_amount), 0)             AS total_spent,
-                    COALESCE(AVG(total_amount), 0)             AS avg_spent
+                    EXTRACT(HOUR FROM checkin_time) AS hr,
+                    COUNT(*)                        AS total_valet
                 FROM `{$p}.{$d}.valet_parking_valets_src`
                 WHERE checkin_date BETWEEN '{$dateFrom}' AND '{$dateTo}'
-                  AND is_done = 1
-                  AND vehicle_license IS NOT NULL
-                  AND TRIM(vehicle_license) != ''
-                GROUP BY vehicle_license
-                HAVING COUNT(*) > 1
-                ORDER BY visit_count DESC
-                LIMIT 20
+                  {$placeFilter}
+                GROUP BY hr
             SQL;
 
-            $rows = $bq->query($sql);
-            $data = array_map(fn ($r) => [
-                'nopol'       => (string) ($r['nopol']       ?? ''),
-                'owner'       => (string) ($r['owner']       ?? ''),
-                'visit_count' => (int)    ($r['visit_count'] ?? 0),
-                'last_visit'  => (string) ($r['last_visit']  ?? ''),
-                'total_spent' => (float)  ($r['total_spent'] ?? 0),
-                'avg_spent'   => (float)  ($r['avg_spent']   ?? 0),
-            ], $rows);
+            foreach ($bq->query($sql) as $r) {
+                $hr = (int) ($r['hr'] ?? -1);
+                if ($hr >= 0 && $hr <= 23) {
+                    $hours[$hr] = (int) ($r['total_valet'] ?? 0);
+                }
+            }
 
-            return response()->json(['data' => $data]);
+            return response()->json(['data' => array_values($hours)]);
         } catch (\Throwable $e) {
-            return response()->json(['data' => [], 'error' => $e->getMessage()]);
+            return response()->json(['data' => array_values($hours ?? array_fill(0, 24, 0)), 'error' => $e->getMessage()]);
         }
     }
 
-    // ── API: Valet — Top 10 Transactions by Amount ────────────────────────────
-    public function valetTopTransactions(Request $request)
-    {
-        try {
-            ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
+    // ── API: Event ─────────────────────────────────────────────────────────────
 
-            $bq = new BigQueryService();
-            $p  = self::VALET_PROJECT;
-            $d  = self::VALET_DATASET;
-
-            $sql = <<<SQL
-                SELECT
-                    v.vehicle_license                            AS nopol,
-                    v.owner,
-                    p.name                                       AS location,
-                    FORMAT_DATE('%Y-%m-%d', v.checkin_date)      AS checkin_date,
-                    FORMAT_DATETIME('%H:%M', v.checkin_time)     AS checkin_time_str,
-                    COALESCE(v.duration_hour, 0)                 AS duration_hour,
-                    COALESCE(v.duration_minute, 0)               AS duration_minute,
-                    COALESCE(v.total_amount, 0)                  AS total_amount,
-                    COALESCE(v.paid_amount, 0)                   AS paid_amount,
-                    COALESCE(v.voucher_code, '')                 AS voucher_code,
-                    COALESCE(v.status, '')                       AS status,
-                    COALESCE(v.status_paid, '')                  AS status_paid
-                FROM `{$p}.{$d}.valet_parking_valets_src` v
-                LEFT JOIN `{$p}.{$d}.valet_parking_places_src` p
-                    ON v.places_id = p.id
-                WHERE v.checkin_date BETWEEN '{$dateFrom}' AND '{$dateTo}'
-                  AND v.total_amount IS NOT NULL
-                ORDER BY v.total_amount DESC
-                LIMIT 10
-            SQL;
-
-            $rows = $bq->query($sql);
-            $data = array_map(fn ($r) => [
-                'nopol'            => (string) ($r['nopol']            ?? ''),
-                'owner'            => (string) ($r['owner']            ?? ''),
-                'location'         => (string) ($r['location']         ?? ''),
-                'checkin_date'     => (string) ($r['checkin_date']     ?? ''),
-                'checkin_time_str' => (string) ($r['checkin_time_str'] ?? ''),
-                'duration_hour'    => (int)    ($r['duration_hour']    ?? 0),
-                'duration_minute'  => (int)    ($r['duration_minute']  ?? 0),
-                'total_amount'     => (float)  ($r['total_amount']     ?? 0),
-                'paid_amount'      => (float)  ($r['paid_amount']      ?? 0),
-                'voucher_code'     => (string) ($r['voucher_code']     ?? ''),
-                'status'           => (string) ($r['status']           ?? ''),
-                'status_paid'      => (string) ($r['status_paid']      ?? ''),
-            ], $rows);
-
-            return response()->json(['data' => $data]);
-        } catch (\Throwable $e) {
-            return response()->json(['data' => [], 'error' => $e->getMessage()]);
-        }
-    }
-
-    // ── Parking constants ─────────────────────────────────────────────────────
-    private const PARKING_PROJECT  = 'ifca-pkwjakarta';
-    private const PARKING_DATASET  = 'parking_centrepark';
-    private const PARKING_LOCATION = 'asia-southeast1'; // parking_centrepark dataset location — change if wrong
-
-    private function allowedParkingSites(?string $cpnyId): ?array
+    private function baseEventQuery(string $dateFrom, string $dateTo, ?string $cpnyId)
     {
         $allowed = $this->allowedCompanies();
 
-        $q = \App\Models\MsSite::where('site_parking', true)->where('status', 'A');
+        $q = MsEvent::query()->where('status', 'A');
+        $q = $this->applyCompanyFilter($q, $allowed, $cpnyId, 'cpnyid');
+        $q = $this->applyEventPeriodFilter($q, $dateFrom, $dateTo);
 
-        if ($cpnyId) {
-            if (!empty($allowed) && !in_array($cpnyId, $allowed, true)) {
-                return [];
-            }
-            $q->where('cpny_id', $cpnyId);
-        } elseif (!empty($allowed)) {
-            $q->whereIn('cpny_id', $allowed);
-        } else {
-            return null; // super-admin: no restriction
-        }
-
-        return $q->pluck('siteid')->filter()->unique()->values()->all();
+        return $q;
     }
 
-    private function buildParkingSiteFilter(?array $sites): string
+    public function eventSummary(Request $request)
     {
-        return $sites !== null
-            ? "AND siteId IN ('" . implode("','", array_map('addslashes', $sites)) . "')"
-            : '';
+        ['dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
+
+        $rows = $this->baseEventQuery($dateFrom, $dateTo, $cpnyId)
+            ->selectRaw('event_status, COUNT(*) AS cnt, COALESCE(SUM(event_total_contract), 0) AS total_contract')
+            ->groupBy('event_status')
+            ->get()
+            ->keyBy('event_status');
+
+        $totalContract = 0;
+        $totalCount = 0;
+        $paidAmt = 0;
+        foreach (\App\Http\Controllers\EventCalendarController::EVENT_STATUSES as $status => $_) {
+            $row = $rows->get($status);
+            $cnt = (int) ($row->cnt ?? 0);
+            $amt = (float) ($row->total_contract ?? 0);
+            if ($status === 'Paid') {
+                $paidAmt = $amt;
+            }
+            $totalContract += $amt;
+            $totalCount += $cnt;
+        }
+
+        return response()->json([
+            'data' => [
+                'total_contract' => $totalContract,
+                'total_count' => $totalCount,
+                'total_paid' => $paidAmt,
+                'avg_contract' => $totalCount > 0 ? round($totalContract / $totalCount) : 0,
+            ],
+        ]);
     }
 
-    // ── API: Parking — distinct siteIds visible to the current user ───────────
-    public function parkingSites(Request $request)
+    /**
+     * Event count by status — when no company filter is applied, broken
+     * down per company (mirrors the Isort "stacked" pattern) so the chart
+     * can render one bar per company instead of a single aggregate bar.
+     */
+    public function eventStatusByCompany(Request $request)
     {
-        try {
-            $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
-            $sites  = $this->allowedParkingSites($cpnyId);
+        ['dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
+        $stacked = $cpnyId === null;
 
-            if ($sites !== null && empty($sites)) {
-                return response()->json(['data' => []]);
+        // Row-level (not aggregated) so the tooltip can list individual event
+        // names — ordered by contract value so the capped "top N" list below
+        // surfaces the biggest deals first.
+        $rows = $this->baseEventQuery($dateFrom, $dateTo, $cpnyId)
+            ->select('event_status', 'cpnyid', 'event_name', 'event_total_contract')
+            ->orderByDesc('event_total_contract')
+            ->get();
+
+        $byStatus = [];
+        foreach (\App\Http\Controllers\EventCalendarController::EVENT_STATUSES as $status => $_) {
+            $byStatus[$status] = ['status' => $status, 'total' => 0, 'total_contract' => 0, 'by_site' => [], 'events' => []];
+        }
+
+        $companies = [];
+        $eventsSeen = [];
+        foreach ($rows as $row) {
+            $status = (string) $row->event_status;
+            $cpny = (string) $row->cpnyid;
+            $contract = (float) $row->event_total_contract;
+
+            if (!isset($byStatus[$status])) {
+                $byStatus[$status] = ['status' => $status, 'total' => 0, 'total_contract' => 0, 'by_site' => [], 'events' => []];
+            }
+            $byStatus[$status]['total'] += 1;
+            $byStatus[$status]['total_contract'] += $contract;
+            $byStatus[$status]['by_site'][$cpny] = ($byStatus[$status]['by_site'][$cpny] ?? 0) + 1;
+            $eventsSeen[$status] = ($eventsSeen[$status] ?? 0) + 1;
+            $companies[$cpny] = true;
+
+            // Cap the per-status event list the tooltip renders — it's already
+            // sorted by contract value, so the top 8 are the most relevant.
+            if (count($byStatus[$status]['events']) < 8) {
+                $byStatus[$status]['events'][] = [
+                    'name' => (string) $row->event_name,
+                    'cpny' => $cpny,
+                    'contract' => $contract,
+                ];
+            }
+        }
+
+        foreach ($byStatus as $status => &$s) {
+            $s['events_more'] = max(0, ($eventsSeen[$status] ?? 0) - count($s['events']));
+        }
+        unset($s);
+
+        $companies = array_keys($companies);
+        sort($companies);
+
+        return response()->json([
+            'data' => array_values($byStatus),
+            'stacked' => $stacked,
+            'all_sites' => $stacked ? $companies : [],
+        ]);
+    }
+
+    public function eventByType(Request $request)
+    {
+        ['dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
+
+        $rows = $this->baseEventQuery($dateFrom, $dateTo, $cpnyId)
+            ->selectRaw('
+                event_type,
+                COUNT(*) AS cnt,
+                COALESCE(SUM(event_total_contract), 0) AS total_contract,
+                COALESCE(AVG(event_total_contract), 0) AS avg_contract
+            ')
+            ->groupBy('event_type')
+            ->get()
+            ->keyBy('event_type');
+
+        $data = [];
+        foreach (\App\Http\Controllers\EventCalendarController::EVENT_TYPES as $type => $_) {
+            $row = $rows->get($type);
+            $data[] = [
+                'event_type' => $type,
+                'count' => (int) ($row->cnt ?? 0),
+                'total_contract' => (float) ($row->total_contract ?? 0),
+                'avg_contract' => (float) ($row->avg_contract ?? 0),
+            ];
+        }
+        usort($data, fn ($a, $b) => $b['total_contract'] <=> $a['total_contract']);
+
+        return response()->json(['data' => $data]);
+    }
+
+    /**
+     * Paid events for the Gantt-style timeline — every event carries signed
+     * start_days/end_days (today = 0) so the frontend can position it on a
+     * shared axis that auto-scales to the full ongoing/upcoming/past range,
+     * instead of a fixed window that would hide anything outside it.
+     */
+    public function eventStatusStrip(Request $request)
+    {
+        ['dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
+        $today = \Carbon\Carbon::today();
+
+        // Only Paid events — Booked/Confirmed events aren't a confirmed
+        // commitment yet, so they'd skew the ongoing/upcoming/past pulse.
+        $rows = $this->baseEventQuery($dateFrom, $dateTo, $cpnyId)
+            ->where('event_status', 'Paid')
+            ->select('cpnyid', 'event_name', 'event_total_contract', 'event_start_date', 'event_end_date')
+            ->get();
+
+        $events = [];
+        $groupCounts = [];
+        foreach ($rows as $row) {
+            $cpny = (string) $row->cpnyid;
+            $startDays = (int) $today->diffInDays($row->event_start_date, false);
+            $endDays = (int) $today->diffInDays($row->event_end_date, false);
+
+            if ($row->event_start_date->lte($today) && $row->event_end_date->gte($today)) {
+                $bucket = 'ongoing';
+                $days = abs($endDays);
+            } elseif ($row->event_start_date->gt($today)) {
+                $bucket = 'upcoming';
+                $days = abs($startDays);
+            } else {
+                $bucket = 'past';
+                $days = abs($endDays);
             }
 
-            $siteFilter = $this->buildParkingSiteFilter($sites);
+            if (!isset($groupCounts[$cpny])) {
+                $groupCounts[$cpny] = ['ongoing' => 0, 'upcoming' => 0, 'past' => 0];
+            }
+            $groupCounts[$cpny][$bucket] += 1;
 
-            $bq = new BigQueryService();
-            $p  = self::PARKING_PROJECT;
-            $d  = self::PARKING_DATASET;
-
-            // No date filter here — site list should always show all available sites
-            $sql = <<<SQL
-                SELECT DISTINCT siteId
-                FROM `{$p}.{$d}.parkingco_parking_slip_list_src`
-                WHERE siteId IS NOT NULL
-                  {$siteFilter}
-                ORDER BY siteId
-            SQL;
-
-            $rows = $bq->query($sql, [], self::PARKING_LOCATION);
-            $data = array_values(array_filter(array_map(
-                fn ($r) => (string) ($r['siteId'] ?? ''),
-                $rows
-            )));
-
-            return response()->json(['data' => $data]);
-        } catch (\Throwable $e) {
-            return response()->json(['data' => [], 'error' => $e->getMessage()]);
+            $events[] = [
+                'name' => (string) $row->event_name,
+                'cpny' => $cpny,
+                'code' => self::PGCARD_COMPANY_MAP[$cpny] ?? $cpny,
+                'bucket' => $bucket,
+                'days' => $days,
+                'start_days' => $startDays,
+                'end_days' => $endDays,
+                'contract' => (float) $row->event_total_contract,
+            ];
         }
+
+        $bucketOrder = ['ongoing' => 0, 'upcoming' => 1, 'past' => 2];
+        usort($events, function ($a, $b) use ($bucketOrder) {
+            return $bucketOrder[$a['bucket']] <=> $bucketOrder[$b['bucket']]
+                ?: $a['start_days'] <=> $b['start_days'];
+        });
+
+        return response()->json([
+            'data' => $events,
+            'groups' => $groupCounts,
+        ]);
+    }
+
+    // ── API: Voucher & Product (VPL) ──────────────────────────────────────────
+    // Data lives on the pgsql5 connection (ms_vpl_product / ms_vpl_product_bal /
+    // tr_vpl_ledger / tr_vpl_usage), scoped by cpnyid — the same HR company
+    // codes (AW/EP/PSA/GPS) as every other GM section, restricted the same way
+    // via allowedCompanies()/applyCompanyFilter(). Stock-based widgets read
+    // ms_vpl_product_bal (a snapshot, see vplAsOfPeriod()); movement-based
+    // widgets (Top Out / Usage by Reason) read tr_vpl_ledger, which only ever
+    // carries fully-posted quantities (unlike tr_vpl_usage_detail, whose
+    // status column stays 'P' regardless of the header's approval state).
+
+    public function vplCompanyOverview(Request $request)
+    {
+        ['dateTo' => $dateTo, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
+        $allowed = $this->allowedCompanies();
+        [$year, $month] = $this->vplAsOfPeriod($dateTo);
+        $stockExpr = $this->vplStockExpr($month);
+
+        $q = DB::connection('pgsql5')->table('ms_vpl_product_bal as b')
+            ->join('ms_vpl_product as p', 'p.product_id', '=', 'b.product_id')
+            ->where('b.year', $year);
+        $q = $this->applyCompanyFilter($q, $allowed, $cpnyId, 'b.cpnyid');
+
+        $rows = $q->selectRaw("
+                b.cpnyid,
+                p.product_type,
+                SUM({$stockExpr})                   AS stock,
+                SUM({$stockExpr} * p.product_value) AS value
+            ")
+            ->groupBy('b.cpnyid', 'p.product_type')
+            ->get();
+
+        $byCompany = [];
+        foreach ($rows as $r) {
+            $c = (string) $r->cpnyid;
+            if (!isset($byCompany[$c])) {
+                $byCompany[$c] = ['cpnyid' => $c, 'voucher_stock' => 0.0, 'product_stock' => 0.0, 'voucher_value' => 0.0, 'product_value' => 0.0];
+            }
+            $key = $r->product_type === 'V' ? 'voucher' : 'product';
+            $byCompany[$c][$key.'_stock'] += (float) $r->stock;
+            $byCompany[$c][$key.'_value'] += $this->bqFloat($r->value ?? 0);
+        }
+
+        $byCompany = array_values($byCompany);
+        usort($byCompany, fn ($a, $b) => $a['cpnyid'] <=> $b['cpnyid']);
+
+        $totals = ['voucher_stock' => 0.0, 'product_stock' => 0.0, 'voucher_value' => 0.0, 'product_value' => 0.0];
+        foreach ($byCompany as $c) {
+            foreach ($totals as $k => $v) {
+                $totals[$k] += $c[$k];
+            }
+        }
+
+        return response()->json([
+            'data' => [
+                'totals' => $totals,
+                'by_company' => $byCompany,
+                'as_of' => sprintf('%04d-%02d', $year, $month),
+            ],
+        ]);
+    }
+
+    public function vplVoucherList(Request $request)
+    {
+        ['dateTo' => $dateTo, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
+        $allowed = $this->allowedCompanies();
+        [$year, $month] = $this->vplAsOfPeriod($dateTo);
+        $stockExpr = $this->vplStockExpr($month);
+
+        $q = DB::connection('pgsql5')->table('ms_vpl_product_bal as b')
+            ->join('ms_vpl_product as p', 'p.product_id', '=', 'b.product_id')
+            ->where('b.year', $year)
+            ->where('p.product_type', 'V');
+        $q = $this->applyCompanyFilter($q, $allowed, $cpnyId, 'b.cpnyid');
+
+        $rows = $q->selectRaw("
+                p.product_id, p.product_name, p.product_category, p.product_value,
+                b.cpnyid,
+                SUM({$stockExpr}) AS stock
+            ")
+            ->groupBy('p.product_id', 'p.product_name', 'p.product_category', 'p.product_value', 'b.cpnyid')
+            ->get();
+
+        $byProduct = [];
+        foreach ($rows as $r) {
+            $id = $r->product_id;
+            if (!isset($byProduct[$id])) {
+                $byProduct[$id] = [
+                    'product_id' => $id,
+                    'product_name' => $r->product_name,
+                    'category' => $r->product_category ?: 'Uncategorized',
+                    'value' => (float) $r->product_value,
+                    'stock' => 0.0,
+                    'by_company' => [],
+                ];
+            }
+            $byProduct[$id]['stock'] += (float) $r->stock;
+            $byProduct[$id]['by_company'][$r->cpnyid] = (float) $r->stock;
+        }
+
+        foreach ($byProduct as &$row) {
+            $row['total_value'] = $row['value'] * $row['stock'];
+        }
+        unset($row);
+
+        $list = array_values($byProduct);
+        usort($list, fn ($a, $b) => $b['stock'] <=> $a['stock']);
+
+        return response()->json([
+            'data' => $list,
+            'stacked' => $cpnyId === null,
+            'all_sites' => $cpnyId === null ? (empty($allowed) ? self::VPL_COMPANIES : array_values($allowed)) : [],
+        ]);
+    }
+
+    public function vplTopOut(Request $request)
+    {
+        ['dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
+        $allowed = $this->allowedCompanies();
+        $cardType = strtoupper(trim((string) $request->input('card_type', '')));
+
+        $q = DB::connection('pgsql5')->table('tr_vpl_ledger as l')
+            ->join('ms_vpl_product as p', 'p.product_id', '=', 'l.product_id')
+            ->leftJoin('tr_vpl_usage as u', 'u.usage_id', '=', 'l.refnbr')
+            ->where('l.status', 'A')
+            ->where('l.transaction_source', 'Usage')
+            ->where(function ($q2) {
+                $q2->whereNull('u.usagetype')->orWhere('u.usagetype', '<>', 'Return');
+            })
+            ->whereBetween('l.postdate', [$dateFrom, $dateTo]);
+        $q = $this->applyCompanyFilter($q, $allowed, $cpnyId, 'l.cpnyid');
+
+        if (in_array($cardType, ['V', 'P'], true)) {
+            $q->where('p.product_type', $cardType);
+        }
+
+        $rows = $q->selectRaw('p.product_id, p.product_name, p.product_type, l.cpnyid, SUM(-l.qty) AS qty_out')
+            ->groupBy('p.product_id', 'p.product_name', 'p.product_type', 'l.cpnyid')
+            ->get();
+
+        $byProduct = [];
+        $sitesSeen = [];
+        foreach ($rows as $r) {
+            $id = $r->product_id;
+            if (!isset($byProduct[$id])) {
+                $byProduct[$id] = [
+                    'product_id' => $id,
+                    'label' => $r->product_name,
+                    'type' => $r->product_type,
+                    'total' => 0.0,
+                    'by_company' => [],
+                ];
+            }
+            $qty = (float) $r->qty_out;
+            $byProduct[$id]['total'] += $qty;
+            $byProduct[$id]['by_company'][$r->cpnyid] = ($byProduct[$id]['by_company'][$r->cpnyid] ?? 0) + $qty;
+            $sitesSeen[$r->cpnyid] = true;
+        }
+
+        $list = array_values($byProduct);
+        usort($list, fn ($a, $b) => $b['total'] <=> $a['total']);
+        $list = array_slice($list, 0, 10);
+
+        $stacked = $cpnyId === null;
+        $sites = array_keys($sitesSeen);
+        sort($sites);
+
+        return response()->json([
+            'data' => $list,
+            'stacked' => $stacked,
+            'all_sites' => $stacked ? $sites : [],
+        ]);
+    }
+
+    public function vplByCategory(Request $request)
+    {
+        ['dateTo' => $dateTo, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
+        $allowed = $this->allowedCompanies();
+        [$year, $month] = $this->vplAsOfPeriod($dateTo);
+        $stockExpr = $this->vplStockExpr($month);
+
+        $q = DB::connection('pgsql5')->table('ms_vpl_product_bal as b')
+            ->join('ms_vpl_product as p', 'p.product_id', '=', 'b.product_id')
+            ->where('b.year', $year);
+        $q = $this->applyCompanyFilter($q, $allowed, $cpnyId, 'b.cpnyid');
+
+        $rows = $q->selectRaw("
+                COALESCE(NULLIF(p.product_category, ''), 'Uncategorized') AS category,
+                p.product_type, b.cpnyid,
+                SUM({$stockExpr}) AS stock
+            ")
+            ->groupBy('category', 'p.product_type', 'b.cpnyid')
+            ->get();
+
+        $cats = [];
+        foreach ($rows as $r) {
+            $cat = $r->category;
+            if (!isset($cats[$cat])) {
+                $cats[$cat] = ['category' => $cat, 'voucher' => 0.0, 'product' => 0.0, 'by_company' => []];
+            }
+            $key = $r->product_type === 'V' ? 'voucher' : 'product';
+            $stock = (float) $r->stock;
+            $cats[$cat][$key] += $stock;
+
+            if (!isset($cats[$cat]['by_company'][$r->cpnyid])) {
+                $cats[$cat]['by_company'][$r->cpnyid] = ['voucher' => 0.0, 'product' => 0.0];
+            }
+            $cats[$cat]['by_company'][$r->cpnyid][$key] += $stock;
+        }
+
+        $list = array_values($cats);
+        usort($list, fn ($a, $b) => ($b['voucher'] + $b['product']) <=> ($a['voucher'] + $a['product']));
+
+        return response()->json(['data' => $list]);
+    }
+
+    public function vplUsageByReason(Request $request)
+    {
+        ['dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
+        $allowed = $this->allowedCompanies();
+
+        $q = DB::connection('pgsql5')->table('tr_vpl_ledger as l')
+            ->join('ms_vpl_product as p', 'p.product_id', '=', 'l.product_id')
+            ->leftJoin('tr_vpl_usage as u', 'u.usage_id', '=', 'l.refnbr')
+            ->where('l.status', 'A')
+            ->where('l.transaction_source', 'Usage')
+            ->where(function ($q2) {
+                $q2->whereNull('u.usagetype')->orWhere('u.usagetype', '<>', 'Return');
+            })
+            ->whereBetween('l.postdate', [$dateFrom, $dateTo]);
+        $q = $this->applyCompanyFilter($q, $allowed, $cpnyId, 'l.cpnyid');
+
+        $rows = $q->selectRaw("
+                COALESCE(NULLIF(l.purpose_id, ''), 'Unspecified') AS reason,
+                p.product_type, l.cpnyid,
+                SUM(-l.qty) AS qty_out
+            ")
+            ->groupBy('reason', 'p.product_type', 'l.cpnyid')
+            ->get();
+
+        $reasons = [];
+        foreach ($rows as $r) {
+            $reason = (string) $r->reason;
+            if (!isset($reasons[$reason])) {
+                $reasons[$reason] = ['reason' => $reason, 'voucher' => 0.0, 'product' => 0.0, 'by_company' => []];
+            }
+            $key = $r->product_type === 'V' ? 'voucher' : 'product';
+            $qty = (float) $r->qty_out;
+            $reasons[$reason][$key] += $qty;
+
+            if (!isset($reasons[$reason]['by_company'][$r->cpnyid])) {
+                $reasons[$reason]['by_company'][$r->cpnyid] = ['voucher' => 0.0, 'product' => 0.0];
+            }
+            $reasons[$reason]['by_company'][$r->cpnyid][$key] += $qty;
+        }
+
+        $list = array_values($reasons);
+        usort($list, fn ($a, $b) => ($b['voucher'] + $b['product']) <=> ($a['voucher'] + $a['product']));
+
+        // Cap to the top 9 reasons + an "Others" bucket so a long tail of
+        // one-off remarks doesn't turn the chart into an unreadable list.
+        if (count($list) > 10) {
+            $top = array_slice($list, 0, 9);
+            $rest = array_slice($list, 9);
+            $others = ['reason' => 'Others', 'voucher' => 0.0, 'product' => 0.0, 'by_company' => []];
+            foreach ($rest as $r) {
+                $others['voucher'] += $r['voucher'];
+                $others['product'] += $r['product'];
+                foreach ($r['by_company'] as $cpny => $vals) {
+                    if (!isset($others['by_company'][$cpny])) {
+                        $others['by_company'][$cpny] = ['voucher' => 0.0, 'product' => 0.0];
+                    }
+                    $others['by_company'][$cpny]['voucher'] += $vals['voucher'];
+                    $others['by_company'][$cpny]['product'] += $vals['product'];
+                }
+            }
+            $list = array_merge($top, [$others]);
+        }
+
+        return response()->json(['data' => $list]);
     }
 
     // ── API: PG Card — Top 10 customers per mall ──────────────────────────────
@@ -2417,5 +3019,61 @@ class GmReportController extends Controller
             'year' => $year,
             'total_budget' => round((float) ($row->total_budget ?? 0)),
         ]);
+    }
+
+    // ── API: Per-section "Last Updated" timestamps ────────────────────────────
+
+    /**
+     * Returns when each section's underlying data source was last refreshed:
+     * - budget: newest updated_at on the local budget_details table.
+     * - pgcard / isort / valet: newest BigQuery table sync time in that dataset
+     *   (these datasets are refreshed by an external nightly ETL job, not by
+     *   this app, so this is the only way to know their freshness).
+     * BigQuery metadata lookups are cached briefly — the source data itself
+     * only changes once a night, so there is no need to hit BigQuery on every
+     * dashboard load / tab switch.
+     */
+    public function sectionLastUpdated()
+    {
+        $raw = Cache::remember('gm_section_last_updated', 300, function () {
+            $bq = new BigQueryService();
+
+            return [
+                'budget' => BudgetDetail::query()->where('status', 'C')->max('updated_at'),
+                'pgcard' => $this->bqDatasetLastModified($bq, self::PGCARD_PROJECT, self::PGCARD_DATASET),
+                'isort' => $this->bqDatasetLastModified($bq, self::ISORT_PROJECT, self::ISORT_DATASET),
+                'valet' => $this->bqDatasetLastModified($bq, self::VALET_PROJECT, self::VALET_DATASET),
+                'event' => MsEvent::query()->max('updated_at'),
+                'vpl' => DB::connection('pgsql5')->table('tr_vpl_ledger')->max('updated_at'),
+            ];
+        });
+
+        return response()->json([
+            'data' => array_map(fn ($v) => $this->formatLastUpdated($v), $raw),
+        ]);
+    }
+
+    private function bqDatasetLastModified(BigQueryService $bq, string $project, string $dataset): ?string
+    {
+        try {
+            $sql = "SELECT TIMESTAMP_MILLIS(MAX(last_modified_time)) AS last_modified
+                    FROM `{$project}.{$dataset}.__TABLES__`";
+            $rows = $bq->query($sql);
+
+            return isset($rows[0]['last_modified']) ? (string) $rows[0]['last_modified'] : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    private function formatLastUpdated($val): ?string
+    {
+        if (!$val) {
+            return null;
+        }
+
+        return \Carbon\Carbon::parse((string) $val)
+            ->timezone(config('app.timezone'))
+            ->format('d M Y, H:i');
     }
 }

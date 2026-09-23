@@ -28,6 +28,9 @@ class BqDetailTempImport implements ToModel, WithHeadingRow
 
     public function model(array $row)
     {
+        $description = isset($row['bq_descr']) ? trim((string) $row['bq_descr']) : null;
+        $qty = $row['qty'] ?? null;
+
         // Pastikan header di Excel sesuai kunci berikut (lihat catatan di bawah):
         // bq_line_no, bq_descr, qty, uom, est_material_price, total_est_material_price, est_jasa_price, total_est_jasa_price
         return new BqDetailTemp([
@@ -36,8 +39,8 @@ class BqDetailTempImport implements ToModel, WithHeadingRow
             'bqid'                      => $this->bqid,            
             // 'bq_no'                  => $row['bq_no'] ?? null, // aktifkan jika header bq_no tersedia
             'bq_line_no'                => $row['bq_line_no'] ?? null,
-            'bq_descr'                  => $row['bq_descr'] ?? null,
-            'qty'                       => isset($row['qty']) ? (float)$row['qty'] : null,
+            'bq_descr'                  => $description !== '' ? $description : null,
+            'qty'                       => $qty !== null && trim((string) $qty) !== '' ? (float) $qty : null,
             'uom'                       => $row['uom'] ?? null,
             'est_material_price'        => isset($row['est_material_price']) ? (float)$row['est_material_price'] : null,
             'total_est_material_price'  => isset($row['total_est_material_price']) ? (float)$row['total_est_material_price'] : null,

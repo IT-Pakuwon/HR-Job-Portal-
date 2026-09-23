@@ -49,7 +49,10 @@ class VoucherTaxiExport implements FromCollection, WithHeadings
             ->toArray();
 
         $query = TrVoucherTaxi::query()
-            ->whereIn('cpny_id', $companyIds);
+            ->where(function ($q) use ($companyIds) {
+                $q->whereIn('cpny_id', $companyIds)
+                    ->orWhereIn('cpny_id_expense', $companyIds);
+            });
 
         if ($request->date_from) {
             $query->whereDate(
@@ -83,6 +86,13 @@ class VoucherTaxiExport implements FromCollection, WithHeadings
             $query->where('status', 'X');
         }
 
+        if ($request->company) {
+            $query->where(function ($q) use ($request) {
+                $q->where('cpny_id', $request->company)
+                    ->orWhere('cpny_id_expense', $request->company);
+            });
+        }
+
         $rows = $query
             ->orderByDesc('voucher_date')
             ->get();
@@ -102,6 +112,11 @@ class VoucherTaxiExport implements FromCollection, WithHeadings
                         ->format('d-M-Y')
                     : '-',
 
+                'DATE USED' => $row->date_used
+                    ? Carbon::parse($row->date_used)
+                        ->format('d-M-Y')
+                    : '-',
+
                 'CREATED USER' => $users[$row->created_by]
                     ?? $row->created_by,
 
@@ -111,7 +126,10 @@ class VoucherTaxiExport implements FromCollection, WithHeadings
                 'DEPARTMENT' => $departments[$row->department_id_expense]
                     ?? $row->department_id_expense,
 
-                'COMPANY' => $companies[$row->cpny_id_expense]
+                'COMPANY' => $companies[$row->cpny_id]
+                    ?? $row->cpny_id,
+
+                'COMPANY EXPENSE' => $companies[$row->cpny_id_expense]
                     ?? $row->cpny_id_expense,
 
                 'ORIGIN' => is_array($row->origin)
@@ -138,6 +156,7 @@ class VoucherTaxiExport implements FromCollection, WithHeadings
                     'R' => 'Rejected',
                     'D' => 'Revise',
                     'X' => 'Cancelled',
+                    'F' => 'Processed',
                     default => $row->status,
                 },
             ];
@@ -149,10 +168,12 @@ class VoucherTaxiExport implements FromCollection, WithHeadings
         return [
             'DOC ID',
             'DATE',
+            'DATE USED',
             'CREATED USER',
             'REQUESTER',
             'DEPARTMENT',
             'COMPANY',
+            'COMPANY EXPENSE',
             'ORIGIN',
             'DESTINATION',
             'PURPOSE',

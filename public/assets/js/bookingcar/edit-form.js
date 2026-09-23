@@ -50,10 +50,18 @@ const BookingCarEditForm = {
                 BookingCarEditForm.openEditForm();
             });
 
-        // Department change → re-filter passenger list (use jQuery for Select2 compat)
-        $('#edit_department_id').on('change.bookingFilter', function () {
+        // Department or Company Expense change → re-filter passenger list
+        $('#edit_department_id, #edit_cpny_id_site').on('change.bookingFilter', function () {
             BookingCarEditForm.filterUserByDept();
         });
+
+        // Total Passenger — block negative values as the user types or spins
+        document.getElementById('edit_passenger')
+            ?.addEventListener('input', (e) => {
+                if (e.target.value !== '' && parseInt(e.target.value, 10) < 0) {
+                    e.target.value = '0';
+                }
+            });
 
         // Driver dropdown change — auto-fill handphone
         document.getElementById('ga_driver')
@@ -186,6 +194,7 @@ const BookingCarEditForm = {
     // --------------------------------------------------------
     filterUserByDept(preselectValue = null) {
         const selectedDept = BookingCarHelper.getValue('edit_department_id').trim();
+        const selectedCpny = BookingCarHelper.getValue('edit_cpny_id_site').trim();
         const $sel         = $('#edit_user_request');
         if (!$sel.length) return;
 
@@ -203,19 +212,21 @@ const BookingCarEditForm = {
         // Restore full option list
         $sel.html($sel.data('all-options'));
 
-        // Remove options that don't belong to the selected department
-        if (selectedDept) {
-            $sel.find('option').each(function () {
-                const $opt = $(this);
-                if (!$opt.val()) return;
+        // Remove options that don't match selected department AND company expense
+        $sel.find('option').each(function () {
+            const $opt = $(this);
+            if (!$opt.val()) return;
 
-                // Use .attr() — reads live DOM attribute, never stale jQuery cache
-                const optDept = ($opt.attr('data-dept') ?? '').toString().trim();
-                if (optDept !== selectedDept) {
-                    $opt.remove();
-                }
-            });
-        }
+            const optDept = ($opt.attr('data-dept') ?? '').toString().trim();
+            const optCpny = ($opt.attr('data-cpny') ?? '').toString().trim();
+
+            const deptOk = !selectedDept || optDept.split(',').map(s => s.trim()).includes(selectedDept);
+            const cpnyOk = !selectedCpny || optCpny.split(',').map(s => s.trim()).includes(selectedCpny);
+
+            if (!deptOk || !cpnyOk) {
+                $opt.remove();
+            }
+        });
 
         const stillValid = $sel.find(`option[value="${targetVal}"]`).length > 0;
         $sel.val(stillValid ? targetVal : '');

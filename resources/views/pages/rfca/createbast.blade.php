@@ -182,7 +182,7 @@
                                         class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                                         <!-- tile add photo -->
                                         <button type="button" id="addAttachmentTile"
-                                            class="flex aspect-[4/3] items-center justify-center rounded-xl border-2 border-dashed border-gray-300 text-gray-500 hover:border-blue-500 hover:text-blue-600">
+                                            class="flex aspect-[4/3] items-center justify-center rounded-xl border-2 border-dashed border-gray-300 text-gray-500 hover:border-blue-500 hover:text-blue-600 dark:text-gray-400 dark:border-gray-700">
                                             <div class="flex flex-col items-center gap-1">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7"
                                                     viewBox="0 0 20 20" fill="currentColor">
@@ -194,7 +194,7 @@
                                             </div>
                                         </button>
                                     </div>
-                                    <p class="mt-2 text-sm text-gray-500">Accepted: JPG/PNG, maks 5 MB per foto.</p>
+                                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Accepted: JPG/PNG, maks 5 MB per foto.</p>
                                 </div>
                             </details>
                         </div>
@@ -246,10 +246,10 @@
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
                                     details &rarr;</span>
                                 <span
-                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
                                     details &darr;</span>
                             </summary>
 

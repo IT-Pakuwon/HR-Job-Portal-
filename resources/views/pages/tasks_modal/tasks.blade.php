@@ -176,52 +176,6 @@
                 }
             </style>
             <style>
-                /* ✅ Custom Switch Button */
-                .switch {
-                    position: relative;
-                    display: inline-block;
-                    width: 40px;
-                    height: 22px;
-                }
-
-                .switch input {
-                    opacity: 0;
-                    width: 0;
-                    height: 0;
-                }
-
-                .slider {
-                    position: absolute;
-                    cursor: pointer;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background-color: #ccc;
-                    transition: .4s;
-                    border-radius: 34px;
-                }
-
-                .slider:before {
-                    position: absolute;
-                    content: "";
-                    height: 16px;
-                    width: 16px;
-                    left: 3px;
-                    bottom: 3px;
-                    background-color: white;
-                    transition: .4s;
-                    border-radius: 50%;
-                }
-
-                input:checked+.slider {
-                    background-color: #4CAF50;
-                }
-
-                input:checked+.slider:before {
-                    transform: translateX(18px);
-                }
-
                 /* ✅ Memperkecil Lebar Kolom Actions */
                 #tasksTable th:nth-child(1),
                 #tasksTable td:nth-child(1) {
@@ -235,29 +189,31 @@
                     text-align: center;
                 }
             </style>
-            <div class="mt-6 rounded-xl bg-white p-4 dark:bg-gray-800">
-                <div class="mb-4 flex items-center justify-between">
-                    <h2 class="text-base font-bold text-gray-800 dark:text-white">Task Management</h2>
-                    {{-- <button id="addAppBtn" class="px-5 py-2 bg-indigo-500 text-white rounded-lg">
-                        + Create PRF
-                    </button> --}}
-                    <a href="{{ url('/createtasks') }}" class="rounded-lg bg-indigo-500 px-5 py-2 text-white">+ Create
-                        Tasks</a>
+            <div
+                class="mt-6 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                <div class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Task Management</h2>
+                    <a href="{{ url('/createtasks') }}"
+                        class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">+
+                        Create Tasks</a>
                 </div>
 
-                <table id="tasksTable" class="w-full table-fixed border-collapse">
-                    <thead class="bg-white dark:bg-gray-700">
-                        <tr>
-                            <th class="w-32 px-4 py-3 text-center">DocID</th>
-                            <th class="px-4 py-3 text-left">Company</th>
-                            <th class="px-4 py-3 text-left">Departement</th>
-                            <th class="px-4 py-3 text-left">Summary</th>
-                            <th class="px-4 py-3 text-left">Priority</th>
-                            <th class="w-32 px-4 py-3 text-center">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <div class="relative overflow-hidden">
+                    <table id="tasksTable" class="w-full min-w-full table-fixed border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                <th class="w-32 px-4 py-3 text-left font-medium">DocID</th>
+                                <th class="px-4 py-3 text-left font-medium">Company</th>
+                                <th class="px-4 py-3 text-left font-medium">Departement</th>
+                                <th class="px-4 py-3 text-left font-medium">Summary</th>
+                                <th class="px-4 py-3 text-left font-medium">Priority</th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
 
             <script>

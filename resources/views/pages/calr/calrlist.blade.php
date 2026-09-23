@@ -95,15 +95,17 @@
         </div>
 
 
-        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
+        <div
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Calr</h1>
             </div>
 
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="calrTable" class="text-body w-full text-left text-sm rtl:text-right">
+            <div class="relative overflow-hidden">
+                <table id="calrTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                         <tr id="thead-row"></tr>
                     </thead>
                     <tbody>
@@ -383,7 +385,7 @@
                 // create CALR → kirim hash id RFCA (rfca_eid dari controller)
                 const url = `{{ route('calr.create') }}` + `?rfca=${encodeURIComponent(row.rfca_eid ?? '')}`;
                 return `
-                            <a href="${url}" 
+                            <a href="${url}"
                             class="inline-flex justify-center items-center px-4 py-2  text-sm  leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-blue-500 hover:bg-blue-700">
                                 <i class="fas fa-plus"></i>
                             </a>`;
@@ -445,7 +447,7 @@
                 }
 
                 const url = `/showcalr/${encodeURIComponent(hash)}`;
-                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
+                return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
             }
 
             // init

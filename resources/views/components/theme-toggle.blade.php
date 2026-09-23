@@ -1,7 +1,7 @@
 <div>
     <input type="checkbox" name="light-switch" id="light-switch" class="light-switch sr-only" />
     <label
-        class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full hover:bg-gray-100 lg:hover:bg-gray-200 dark:bg-gray-800/60 dark:hover:bg-gray-700/80"
+        class="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full hover:bg-gray-100 lg:hover:bg-gray-200 dark:bg-gray-800/60 dark:hover:bg-gray-700/80"
         for="light-switch">
         <svg class="fill-current text-gray-500/80 dark:hidden dark:text-gray-400/80" width="16" height="16"
             viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">

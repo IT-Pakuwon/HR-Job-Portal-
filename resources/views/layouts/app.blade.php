@@ -55,12 +55,17 @@
     <!-- ================= UI PLUGINS ================= -->
     <!-- Select2 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Flatpickr -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+
+    <!-- Frappe Gantt (JS bundled via npm/app.js as window.FrappeGantt; only the
+         CSS is loaded here — the package's exports map doesn't expose a CSS
+         subpath for Vite to bundle) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@1.2.2/dist/frappe-gantt.css">
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -72,10 +77,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 
     <!--Calendar -->
+
+    <!-- Livewire's bundled auto-start (livewire.esm.js) only skips itself when
+         window.livewireScriptConfig is already defined at import time. The real
+         @livewireScriptConfig directive sits near the end of <body>, so on a slow
+         or truncated render it can lose that race — causing Livewire.start() (and
+         therefore Alpine.start()) to fire twice, which crashes with "Cannot redefine
+         property: $persist" and breaks every x-data scope on the page. Pre-seeding
+         a placeholder here closes that race regardless of how the rest of the page renders. -->
+    <script>window.livewireScriptConfig = window.livewireScriptConfig || {};</script>
 
     <!-- ================= VITE ================= -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -85,7 +98,18 @@
 
     <!-- ================= DARK MODE INIT ================= -->
     <script>
-        const isDark = localStorage.getItem('dark-mode') === 'true';
+        // localStorage is the per-browser session override (set by the header toggle).
+        // When it's empty (first visit, or cache/localStorage was cleared), fall back to
+        // the account default saved in ms_user.is_darkmode via Settings/Account.
+        const storedDarkMode = localStorage.getItem('dark-mode');
+        const isDark = storedDarkMode !== null
+            ? storedDarkMode === 'true'
+            : @json((bool) (auth()->check() && auth()->user()->is_darkmode));
+
+        if (storedDarkMode === null) {
+            localStorage.setItem('dark-mode', isDark ? 'true' : 'false');
+        }
+
         if (isDark) {
             document.documentElement.classList.add('dark');
             document.documentElement.style.colorScheme = 'dark';
@@ -104,30 +128,26 @@
     }">
 
 
+    @if(session('impersonate_original_username'))
+        <div class="sticky top-0 z-60 flex flex-wrap items-center justify-center gap-3 bg-black px-4 py-2 text-center text-sm font-semibold text-white">
+            <span>🔑 You are logged in as <strong>{{ auth()->user()->name ?? auth()->user()->username }}</strong>.</span>
+            <form action="{{ route('users.stop-impersonate') }}" method="POST" class="inline">
+                @csrf
+                <button type="submit" class="rounded bg-white/20 px-3 py-1 transition hover:bg-white/30">
+                    Return to my account
+                </button>
+            </form>
+        </div>
+    @endif
+
     <!-- HEADER -->
     <x-app.header_new />
 
     <!-- ================= OFF-CANVAS SIDEBAR ================= -->
-    <div x-cloak>
-
-        <!-- BACKDROP -->
-        <div x-show="sidebarOpen" x-transition.opacity @click="sidebarOpen = false"
-            class="fixed inset-0 z-40 bg-black/40"></div>
-
-        <!-- SIDEBAR -->
-        <aside x-show="sidebarOpen" x-transition:enter="transform transition ease-out duration-300"
-            x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
-            x-transition:leave="transform transition ease-in duration-200" x-transition:leave-start="translate-x-0"
-            x-transition:leave-end="-translate-x-full" @keydown.escape.window="sidebarOpen = false"
-            class="fixed left-0 top-0 z-50 h-[100dvh] w-72 overflow-y-auto bg-white shadow-xl dark:bg-gray-800">
-
-            <!-- ONLY CONTENT -->
-            <div class="p-4">
-                <x-app.sidebar_menu />
-            </div>
-
-        </aside>
-    </div>
+    {{-- Backdrop, aside shell, Esc-to-close, and the sidebar content itself all live
+         together in sidebar_menu.blade.php — do not re-wrap it here, it was previously
+         nested inside a duplicate backdrop/aside pair which rendered the drawer twice. --}}
+    <x-app.sidebar_menu />
 
 
     <!-- ================= MAIN CONTENT ================= -->

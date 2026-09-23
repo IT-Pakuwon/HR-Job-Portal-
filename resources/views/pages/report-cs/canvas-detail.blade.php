@@ -1,69 +1,103 @@
+<style>
+    /* Match Select2 with the other filter inputs */
+    .select2-container .select2-selection--single {
+        height: 38px !important;
+        border-radius: 0.5rem !important;
+        border: 1px solid #e5e7eb !important;
+        padding: 4px 8px !important;
+        display: flex;
+        align-items: center;
+    }
+
+    .select2-selection__rendered {
+        line-height: normal !important;
+        font-size: 14px;
+        color: #374151;
+    }
+
+    .select2-selection__arrow {
+        height: 100% !important;
+    }
+</style>
 <div class="space-y-4">
 
     <!-- FILTER PANEL -->
     <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800/60">
 
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-9">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-10">
 
             <!-- Date From -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Date From
                 </label>
                 <input type="date" id="date_from"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <!-- Date To -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Date To
                 </label>
                 <input type="date" id="date_to"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <!-- CS Number -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     CS Number
                 </label>
                 <input type="text" id="csid" placeholder="CS-xxxx"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <!-- PO / SPK -->
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     PO / SPK
                 </label>
                 <input type="text" id="ponbr" placeholder="PO-xxxx"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     SPPBJKT No
                 </label>
                 <input type="text" id="sppbjktid" placeholder="PB-xxxx"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Inventory ID
                 </label>
                 <input type="text" id="inventoryid" placeholder="Item code"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
             </div>
 
             <div>
-                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
+                    Department
+                </label>
+                <select id="cs_department"
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
+                    <option value=""></option>
+                    @foreach ($departments as $id => $name)
+                        <option value="{{ $id }}">{{ $name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="mb-1 block text-[11px] font-medium text-gray-500 dark:text-gray-400">
                     Status
                 </label>
 
                 <select id="status"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
 
                     <option value="">All Status</option>
                     <option value="P">On Process</option>
@@ -83,12 +117,12 @@
                 </button>
 
                 <button id="resetBtn"
-                    class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700">
+                    class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
                     Reset
                 </button>
 
                 <button id="exportBtn"
-                    class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700">
+                    class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20">
                     Export
                 </button>
 
@@ -100,15 +134,15 @@
 
 
     <!-- REPORT TABLE -->
-    <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
+    <div class="rounded-2xl border border-gray-200 bg-white shadow-sm dark:bg-gray-800 dark:border-gray-700">
 
-        <div class="border-b border-gray-200 px-6 py-4">
+        <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
 
-            <h2 class="text-sm font-semibold text-gray-800">
+            <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">
                 Canvass Sheet Detail
             </h2>
 
-            <p class="text-xs text-gray-500">
+            <p class="text-xs text-gray-500 dark:text-gray-400">
                 Selected vendor items that generate PO / SPK
             </p>
 
@@ -116,9 +150,9 @@
 
         <div class="overflow-x-auto p-5">
 
-            <table id="reportTable" class="min-w-full text-sm text-gray-700">
+            <table id="reportTable" class="min-w-full text-sm text-gray-700 dark:text-gray-300">
 
-                <thead class="bg-gray-50 text-[11px] uppercase tracking-wider text-gray-500">
+                <thead class="bg-gray-50 text-[11px] uppercase tracking-wider text-gray-500 dark:bg-gray-900 dark:text-gray-400">
 
                     {{-- <tr>
                         <th></th>
@@ -146,6 +180,7 @@
                         <th class="px-3 py-3 text-left">CS No</th>
                         <th class="px-3 py-3 text-left">SPPB/J/K/T</th>
                         <th class="px-3 py-3 text-left">PO / SPK</th>
+                        <th class="px-3 py-3 text-left">BAST No</th>
                         <th class="px-3 py-3 text-left">Department</th>
                         <th class="px-3 py-3 text-left">Requester</th>
                         <th class="px-3 py-3 text-left">Purchaser</th>
@@ -177,6 +212,12 @@
 <script>
     $(function() {
 
+        $('#cs_department').select2({
+            width: '100%',
+            placeholder: 'All Departments',
+            allowClear: true
+        });
+
         var table = $('#reportTable').DataTable({
 
             processing: true,
@@ -207,6 +248,7 @@
 
                     d.sppbjktid = $('#sppbjktid').val();
                     d.inventoryid = $('#inventoryid').val();
+                    d.department = $('#cs_department').val();
 
                 }
             },
@@ -235,13 +277,38 @@
                     }
                 },
                 {
-                    data: 'csid'
+                    data: null,
+                    render: function(data, type, row) {
+                        if (!row.csid) return '';
+                        if (!row.cs_hash) return row.csid;
+                        return `<a href="/showcs/${row.cs_hash}" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">${row.csid}</a>`;
+                    }
                 },
                 {
-                    data: 'sppbjktid'
+                    data: null,
+                    render: function(data, type, row) {
+                        if (!row.sppbjktid) return '';
+                        if (!row.doc_hash || !row.doc_type) return row.sppbjktid;
+
+                        const routes = {
+                            SPPB: 'showsppbs',
+                            SPPJ: 'showsppjs',
+                            SPPK: 'showsppks',
+                            SPPT: 'showsppts'
+                        };
+
+                        const path = routes[row.doc_type];
+                        if (!path) return row.sppbjktid;
+
+                        return `<a href="/${path}/${row.doc_hash}" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">${row.sppbjktid}</a>`;
+                    }
                 },
                 {
                     data: 'ponbr'
+                },
+                {
+                    data: 'bast_number',
+                    defaultContent: '-'
                 },
 
                 {
@@ -397,6 +464,7 @@
             $('#sppbjktid').val('');
             $('#inventoryid').val('');
             $('#status').val('');
+            $('#cs_department').val('').trigger('change');
 
 
             table.ajax.reload();
@@ -413,6 +481,7 @@
             url += "&sppbjktid=" + $('#sppbjktid').val();
             url += "&inventoryid=" + $('#inventoryid').val();
             url += "&status=" + $('#status').val();
+            url += "&department=" + $('#cs_department').val();
 
             window.location.href = url;
 

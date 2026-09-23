@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\MsCategory;
 use App\Models\MsCompany;
+use App\Models\MsDepartment;
 use App\Models\TrApproval;
 use App\Models\TrBookingCar;
 use App\Models\TrBookingCarDetail;
@@ -32,13 +33,8 @@ class BookingCarController extends Controller
             return redirect()->route('login');
         }
 
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
-            : (array) $user->cpny_id;
-
-        $deptIds = is_string($user->department_id)
-            ? array_filter(array_map('trim', explode(',', $user->department_id)))
-            : (array) $user->department_id;
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $isGA = $user->hasRole('GAACCESS');
 
@@ -112,10 +108,10 @@ class BookingCarController extends Controller
             $user->username
         )->first();
 
-        $userdept = Userdept::where(
-            'username',
-            $user->username
-        )->get();
+        $userdept = Userdept::where('ms_user_dept.username', $user->username)
+            ->leftJoin('ms_department', 'ms_user_dept.department_id', '=', 'ms_department.department_id')
+            ->select('ms_user_dept.department_id', 'ms_department.department_name')
+            ->get();
 
         $userdept2 = Userdept::where(
             'username',
@@ -133,13 +129,27 @@ class BookingCarController extends Controller
         $requesters = User::query()
             ->whereNotNull('username')
             ->where('status', 'A')
-            ->select(
-                'username',
-                'name',
-                'department_id'
-            )
+            ->select('username', 'name')
             ->orderBy('name')
             ->get();
+
+        $allUserDepts = Userdept::whereIn('username', $requesters->pluck('username'))
+            ->select('username', 'department_id')
+            ->get()
+            ->groupBy('username');
+
+        $allUserCpny = Usercpny::whereIn('username', $requesters->pluck('username'))
+            ->select('username', 'cpny_id')
+            ->get()
+            ->groupBy('username');
+
+        $requesters = $requesters->map(function ($user) use ($allUserDepts, $allUserCpny) {
+            $user->all_dept_ids = $allUserDepts->get($user->username, collect())
+                ->pluck('department_id')->map('trim')->filter()->join(',');
+            $user->all_cpny_ids = $allUserCpny->get($user->username, collect())
+                ->pluck('cpny_id')->map('trim')->filter()->join(',');
+            return $user;
+        });
 
         $drivers = DB::connection('pgsql5')
             ->table('ms_driver_opr')
@@ -150,7 +160,7 @@ class BookingCarController extends Controller
         $kendaraan = DB::connection('pgsql')
             ->table('ms_kendaraan')
             ->where('status', 'A')
-            ->where('kategori_kendaraan', 'Operational')
+            ->whereRaw('UPPER(kategori_kendaraan) = ?', ['OPERATIONAL'])
             ->orderBy('no_polisi')
             ->get();
 
@@ -191,7 +201,8 @@ class BookingCarController extends Controller
                 'drivers',
                 'kendaraan',
                 'purposes',
-                'statusPerjalanan'
+                'statusPerjalanan',
+                'isGA'
             )
         );
     }
@@ -206,13 +217,8 @@ class BookingCarController extends Controller
             ], 401);
         }
 
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
-            : (array) $user->cpny_id;
-
-        $deptIds = is_string($user->department_id)
-            ? array_filter(array_map('trim', explode(',', $user->department_id)))
-            : (array) $user->department_id;
+        $cpnyIds = $user->scopedCompanyIds();
+        $deptIds = $user->scopedDepartmentIds();
 
         $isGA = $user->hasRole('GAACCESS');
 
@@ -229,42 +235,38 @@ class BookingCarController extends Controller
 
         $base->whereIn('bc.status', ['P', 'C', 'F', 'D', 'R', 'X']);
 
-        $username = strtolower(trim($user->username));
+        $username  = strtolower(trim($user->username));
+        $isAdmin   = $user->isAdmin();
+        $showAll   = $isAdmin && $filter === 'ALL_TRANSACTIONS';
 
-        if ($isGA) {
-            // GA: approval-line bookings OR own created bookings
-            $approvalDocids = TrApproval::where('status', '!=', 'X')
-                ->whereRaw(
-                    "LOWER(aprv_username) ~ ?",
-                    ['(^|,)\s*' . preg_quote($username, '/') . '\s*(,|$)']
-                )
-                ->pluck('refnbr')
-                ->unique()
-                ->values()
-                ->toArray();
+        if (!$showAll) {
+            if ($isGA) {
+                // GA: all bookings for their assigned company (either requester company or expense company)
+                if (!empty($cpnyIds)) {
+                    $base->where(function ($q) use ($cpnyIds) {
+                        $q->whereIn(DB::raw('TRIM(bc.cpny_id)'), $cpnyIds)
+                          ->orWhereIn(DB::raw('TRIM(bc.cpny_id_site)'), $cpnyIds);
+                    });
+                }
+            } else {
+                // Regular user: own docs + same company/department
+                $base->where(function ($q) use ($username, $cpnyIds, $deptIds) {
+                    $q->whereRaw('LOWER(TRIM(bc.created_by)) = ?', [$username]);
 
-            $base->where(function ($q) use ($approvalDocids, $username) {
-                $q->whereIn('bc.docid', $approvalDocids)
-                  ->orWhereRaw('LOWER(TRIM(bc.created_by)) = ?', [$username]);
-            });
-        } else {
-            // Regular user: own docs + same company/department
-            $base->where(function ($q) use ($username, $cpnyIds, $deptIds) {
-                $q->whereRaw('LOWER(TRIM(bc.created_by)) = ?', [$username]);
-
-                $q->orWhere(function ($sub) use ($cpnyIds, $deptIds) {
-                    if (!empty($cpnyIds)) {
-                        $sub->whereIn(DB::raw('TRIM(bc.cpny_id)'), $cpnyIds);
-                    }
-                    if (!empty($deptIds)) {
-                        $sub->whereIn(DB::raw('TRIM(bc.department_id)'), $deptIds);
-                    }
+                    $q->orWhere(function ($sub) use ($cpnyIds, $deptIds) {
+                        if (!empty($cpnyIds)) {
+                            $sub->whereIn(DB::raw('TRIM(bc.cpny_id)'), $cpnyIds);
+                        }
+                        if (!empty($deptIds)) {
+                            $sub->whereIn(DB::raw('TRIM(bc.department_id)'), $deptIds);
+                        }
+                    });
                 });
-            });
+            }
         }
 
         // Apply filter
-        if ($filter !== '' && $filter !== 'ALL') {
+        if ($filter !== '' && $filter !== 'ALL' && $filter !== 'ALL_TRANSACTIONS') {
             if ($filter === 'WAITING_PROCESS') {
                 // Approved (C) + not yet locked by GA
                 $base->where('bc.status', 'C');
@@ -342,8 +344,10 @@ class BookingCarController extends Controller
         $isGA    = $user->hasRole('GAACCESS');
         $username = strtolower(trim($user->username));
 
+        $cpnyIds = $user->scopedCompanyIds();
+
         $base = TrBookingCar::from('tr_booking_car as bc')
-            ->whereIn('bc.status', ['P', 'C', 'F', 'D', 'R'])
+            ->whereIn('bc.status', ['P', 'C', 'F', 'D'])
             ->select([
                 'bc.id', 'bc.docid', 'bc.booking_date',
                 'bc.start_time', 'bc.end_time',
@@ -353,22 +357,13 @@ class BookingCarController extends Controller
             ]);
 
         if ($isGA) {
-            // GA: approval-line bookings OR own created bookings
-            // TrApproval is on pgsql2, TrBookingCar on pgsql5 — fetch docids separately
-            $docids = TrApproval::where('status', '!=', 'X')
-                ->whereRaw(
-                    "LOWER(aprv_username) ~ ?",
-                    ['(^|,)\s*' . preg_quote($username, '/') . '\s*(,|$)']
-                )
-                ->pluck('refnbr')
-                ->unique()
-                ->values()
-                ->toArray();
-
-            $base->where(function ($q) use ($docids, $username) {
-                $q->whereIn('bc.docid', $docids)
-                  ->orWhereRaw('LOWER(TRIM(bc.created_by)) = ?', [$username]);
-            });
+            // GA: all bookings for their assigned company (either requester company or expense company)
+            if (!empty($cpnyIds)) {
+                $base->where(function ($q) use ($cpnyIds) {
+                    $q->whereIn(DB::raw('TRIM(bc.cpny_id)'), $cpnyIds)
+                      ->orWhereIn(DB::raw('TRIM(bc.cpny_id_site)'), $cpnyIds);
+                });
+            }
         } else {
             // Regular user: only own bookings
             $base->whereRaw('LOWER(TRIM(bc.created_by)) = ?', [$username]);
@@ -448,7 +443,7 @@ class BookingCarController extends Controller
             'driver' => ['nullable'],
             'handphone' => ['nullable'],
             'no_polisi' => ['nullable'],
-            'passenger' => ['nullable'],
+            'passenger' => ['required', 'integer', 'min:0'],
         ]);
 
         $purpose = MsCategory::query()
@@ -511,7 +506,7 @@ class BookingCarController extends Controller
 
             $docid = $doctype.
                 $tglbln.
-                sprintf('%03d', $urutan);
+                sprintf('%04d', $urutan);
 
             $booking = TrBookingCar::create([
                 'docid' => $docid,
@@ -691,7 +686,7 @@ class BookingCarController extends Controller
             'driver' => ['nullable'],
             'handphone' => ['nullable'],
             'no_polisi' => ['nullable'],
-            'passenger' => ['nullable'],
+            'passenger' => ['required', 'integer', 'min:0'],
         ]);
 
         $purpose = MsCategory::query()
@@ -792,6 +787,10 @@ class BookingCarController extends Controller
 
             $booking->status = 'P';
 
+            $booking->completed_by = null;
+
+            $booking->completed_at = null;
+
             $booking->updated_by =
                 $username;
 
@@ -852,14 +851,6 @@ class BookingCarController extends Controller
             );
 
             if ($firstApprovalUsernames) {
-                $booking->completed_by =
-                    is_array($firstApprovalUsernames)
-                    ? implode(',', $firstApprovalUsernames)
-                    : $firstApprovalUsernames;
-
-                $booking->completed_at =
-                    $dt;
-
                 $booking->save();
             }
 
@@ -1185,10 +1176,26 @@ class BookingCarController extends Controller
                     === strtolower(trim(Auth::user()->username))
                 ),
 
-                'can_change_expense' => (
-                    $booking->status === 'P'
-                    && Auth::user()->hasRole('GAACCESS')
-                ),
+                'can_change_expense' => (function () use ($booking) {
+                    if ($booking->status !== 'P') return false;
+                    if (!Auth::user()->hasRole('GAACCESS')) return false;
+
+                    $activeStep = TrApproval::query()
+                        ->where('refnbr', $booking->docid)
+                        ->where('status', 'P')
+                        ->whereNotNull('aprv_datebefore')
+                        ->orderByRaw('CAST(aprv_leveling AS numeric)')
+                        ->first();
+
+                    if (!$activeStep) return false;
+
+                    $stepUsernames = collect(preg_split('/[;,]/', strtolower($activeStep->aprv_username)))
+                        ->map(fn($s) => trim($s))
+                        ->filter()
+                        ->values();
+
+                    return $stepUsernames->contains(strtolower(trim(Auth::user()->username)));
+                })(),
 
                 'can_process' => (
                     in_array($booking->status, ['C', 'F', 'U'])
@@ -1243,6 +1250,10 @@ class BookingCarController extends Controller
                             strtolower(trim(Auth::user()->username))
                         );
                     }),
+
+                // GAACCESS can only leave a private note on a booking they're on the approval line for.
+                'can_private_note' => Auth::user()->hasRole('GAACCESS')
+                    && \App\Services\DocumentNotificationService::isOnApprovalLine('BCR', $booking->docid, Auth::user()->username),
             ],
         ]);
     }
@@ -1292,10 +1303,13 @@ class BookingCarController extends Controller
             }
 
             $validated = $request->validate([
-                'status_perjalanan' => ['nullable', 'string'],
-                'driver'            => ['nullable', 'string', 'max:255'],
-                'handphone'         => ['nullable', 'string', 'max:100'],
-                'no_polisi'         => ['nullable', 'string', 'max:100'],
+                'status_perjalanan'          => ['nullable', 'string'],
+                'driver'                     => ['nullable', 'string', 'max:255'],
+                'handphone'                  => ['nullable', 'string', 'max:100'],
+                'no_polisi'                  => ['nullable', 'string', 'max:100'],
+                'routes'                     => ['nullable', 'array'],
+                'routes.*.origin'            => ['required_with:routes', 'string', 'max:255'],
+                'routes.*.destination'       => ['required_with:routes', 'string', 'max:255'],
             ]);
 
             if (!empty($validated['status_perjalanan'])) {
@@ -1303,7 +1317,7 @@ class BookingCarController extends Controller
                     ->where('doctype', 'BCR')
                     ->where('groups', 'STATUS')
                     ->where('status', 'A')
-                    ->where('category_name', $validated['status_perjalanan'])
+                    ->whereRaw('TRIM(category_name) = ?', [trim($validated['status_perjalanan'])])
                     ->first();
 
                 if (!$statusPerjalanan) {
@@ -1341,6 +1355,26 @@ class BookingCarController extends Controller
                 }
 
                 $booking->save();
+
+                // Update routes if GA provided them
+                if (!empty($validated['routes'])) {
+                    TrBookingCarDetail::where('docid', $booking->docid)->delete();
+
+                    foreach ($validated['routes'] as $i => $route) {
+                        TrBookingCarDetail::create([
+                            'docid'         => $booking->docid,
+                            'cpny_id'       => $booking->cpny_id,
+                            'booking_order' => $i + 1,
+                            'origin'        => $route['origin'],
+                            'destination'   => $route['destination'],
+                            'status'        => 'A',
+                            'created_by'    => $booking->created_by,
+                            'created_at'    => now(),
+                            'updated_by'    => $user->username,
+                            'updated_at'    => now(),
+                        ]);
+                    }
+                }
             });
 
             $message = $lock
@@ -1450,6 +1484,27 @@ class BookingCarController extends Controller
                 throw new \Exception('Company expense cannot be changed because the document has been completed, rejected, or cancelled.');
             }
 
+            // Only allowed when the current waiting approval step is assigned to this GA user
+            $activeStep = TrApproval::query()
+                ->where('refnbr', $booking->docid)
+                ->where('status', 'P')
+                ->whereNotNull('aprv_datebefore')
+                ->orderByRaw('CAST(aprv_leveling AS numeric)')
+                ->first();
+
+            if (!$activeStep) {
+                throw new \Exception('Company expense cannot be changed: no active approval step found.');
+            }
+
+            $stepUsernames = collect(preg_split('/[;,]/', strtolower($activeStep->aprv_username)))
+                ->map(fn($s) => trim($s))
+                ->filter()
+                ->values();
+
+            if (!$stepUsernames->contains(strtolower(trim($user->username)))) {
+                throw new \Exception('Company expense can only be changed when the current waiting approval is at your level.');
+            }
+
             if (
                 trim($booking->cpny_id_site) ===
                 trim($validated['cpny_id_site'])
@@ -1468,12 +1523,16 @@ class BookingCarController extends Controller
             $doctype = 'BCR';
             $dt      = now();
 
-            // Remove only Condition-type pending approvals — Normal approvals stay intact
+            // Soft-cancel old Condition-type pending approvals (keep record for visibility)
             TrApproval::query()
                 ->where('refnbr', $booking->docid)
                 ->where('status', 'P')
                 ->whereRaw("LOWER(TRIM(aprv_type)) = 'condition'")
-                ->delete();
+                ->update([
+                    'status'     => 'X',
+                    'updated_by' => $user->username,
+                    'updated_at' => now(),
+                ]);
 
             $approvalCtl = app(ApprovalController::class);
 
