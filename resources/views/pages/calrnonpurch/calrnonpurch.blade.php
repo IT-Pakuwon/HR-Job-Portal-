@@ -129,6 +129,32 @@
                 class="flex flex-wrap items-center justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white">CALR Non Purchase</h1>
                 @if ($isFinanceAccess)
+                    <div id="calrFinanceFilters" style="display: none;" class="flex-wrap items-center gap-3">
+                        <div class="relative">
+                            <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400">
+                                <i class="fas fa-building text-xs" aria-hidden="true"></i>
+                            </span>
+                            <select id="calrFinanceCompany" aria-label="Company"
+                                class="rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-8 text-sm font-medium text-gray-700 shadow-sm focus:border-indigo-400 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                <option value="">All Company</option>
+                                @foreach ($cpnyList as $cpnyId)
+                                    <option value="{{ $cpnyId }}">{{ $cpnyId }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="relative">
+                            <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400">
+                                <i class="fas fa-check-circle text-xs" aria-hidden="true"></i>
+                            </span>
+                            <select id="calrFinanceStatus" aria-label="Finance Status"
+                                class="rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-8 text-sm font-medium text-gray-700 shadow-sm focus:border-indigo-400 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                <option value="">All Finance Status</option>
+                                <option value="waiting_user">Waiting User</option>
+                                <option value="finance_received">Finance Received</option>
+                                <option value="treasury_received">Treasury Received</option>
+                            </select>
+                        </div>
+                    </div>
                     <div id="calrAllStatusFilter" style="display: none;" class="items-center gap-2">
                         <label for="calrAllStatus" class="text-sm text-gray-700 dark:text-gray-300">Status</label>
                         <select id="calrAllStatus" class="rounded border border-gray-300 bg-white py-2 pl-3 pr-8 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
@@ -623,6 +649,7 @@
             function updateTitle(sc) {
                 $title.text(titleMap[sc] ?? 'CALR Non Purchase');
                 $('#calrAllStatusFilter').css('display', sc === 'calrall' ? 'flex' : 'none');
+                $('#calrFinanceFilters').css('display', sc === 'calrfinance' ? 'flex' : 'none');
             }
 
             function resetThead(sc) {
@@ -705,6 +732,10 @@
                         type: "GET",
                         data: function(d) {
                             d.scope = sc;
+                            if (sc === 'calrfinance') {
+                                d.cpny_id = $('#calrFinanceCompany').val() || '';
+                                d.finance_status = $('#calrFinanceStatus').val() || '';
+                            }
                             if (sc === 'calrall') {
                                 d.status = $('#calrAllStatus').val() || '';
                             }
@@ -875,6 +906,12 @@
 
             $('#calrAllStatus').on('change', function() {
                 if (scope === 'calrall') {
+                    table.ajax.reload();
+                }
+            });
+
+            $('#calrFinanceCompany, #calrFinanceStatus').on('change', function() {
+                if (scope === 'calrfinance') {
                     table.ajax.reload();
                 }
             });
