@@ -14,6 +14,7 @@ use App\Models\TrProjectPic;
 use App\Models\TrProjectStatusTeam;
 use App\Models\TrProjectTag;
 use App\Models\TrProjectTask;
+use App\Models\TrProjectTaskStatus;
 use App\Models\TrProjectTeam;
 use App\Models\TrTeamMember;
 use App\Models\User;
@@ -490,19 +491,22 @@ class PmProjectController extends Controller
                 }
             }
 
-            // Seed default Task-board statuses for this Project (To Do / In
-            // Progress / Done), matching the same idea as ms_project_status.
-            foreach ([['TODO', 'To Do', '#9CA3AF', 0], ['INPROGRESS', 'In Progress', '#3B82F6', 1], ['DONE', 'Done', '#10B981', 2]] as [$id, $name, $color, $order]) {
-                MsTaskStatus::create([
-                    'status_id' => $id,
-                    'project_id' => $projectId,
-                    'status_name' => $name,
-                    'color' => $color,
-                    'sort_order' => $order,
-                    'status' => 'A',
-                    'created_by' => $username,
-                    'created_at' => $now,
-                ]);
+            // Task-board statuses are a shared master (ms_task_status) — a
+            // new Project just enables the 4 defaults out of it via
+            // tr_project_task_status, same master+junction idea as
+            // ms_project_status/tr_project_status_team above. Master rows
+            // are firstOrCreate'd so this stays a no-op after the first
+            // Project ever seeds them.
+            foreach ([['TODO', 'To Do', '#9CA3AF', 0], ['INPROGRESS', 'In Progress', '#3B82F6', 1], ['DONE', 'Done', '#10B981', 2], ['ARCHIVE', 'Archive', '#6B7280', 3]] as [$id, $name, $color, $order]) {
+                MsTaskStatus::firstOrCreate(
+                    ['status_id' => $id],
+                    ['status_name' => $name, 'color' => $color, 'sort_order' => $order, 'status' => 'A', 'created_by' => $username, 'created_at' => $now]
+                );
+
+                TrProjectTaskStatus::firstOrCreate(
+                    ['status_id' => $id, 'project_id' => $projectId],
+                    ['status' => 'A', 'created_by' => $username, 'created_at' => $now]
+                );
             }
 
             return $project;

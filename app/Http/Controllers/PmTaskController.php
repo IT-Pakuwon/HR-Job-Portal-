@@ -10,6 +10,7 @@ use App\Models\MsTaskTag;
 use App\Models\MsTeam;
 use App\Models\TrProjectTask;
 use App\Models\TrProjectTaskAssignee;
+use App\Models\TrProjectTaskStatus;
 use App\Models\TrProjectTaskTag;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -127,11 +128,50 @@ class PmTaskController extends Controller
         return response()->json(MsTaskTag::where('status', 'A')->orderBy('tag_name')->get(['tag_id', 'tag_name', 'color']));
     }
 
+    // Task-board statuses are a shared master (ms_task_status), enabled
+    // per-Project via tr_project_task_status — same master+junction idea as
+    // ms_project_status/tr_project_status_team on the portfolio Kanban. A
+    // status typed on one Project's board (storeStatus() below) lands in
+    // the master but is only enabled for that Project; other Projects don't
+    // see it until they enable/add it too.
+    private function enabledStatusIds(string $projectId)
+    {
+        return TrProjectTaskStatus::where('project_id', $projectId)->where('status', 'A')->pluck('status_id');
+    }
+
+    // Guarantees the 4 default columns (To Do / In Progress / Done /
+    // Archive) exist in the master and are enabled for this Project —
+    // covers Projects created before this master+junction table existed.
+    // Idempotent: safe to call on every load.
+    private function ensureDefaultStatuses(string $projectId): void
+    {
+        foreach ([['TODO', 'To Do', '#9CA3AF', 0], ['INPROGRESS', 'In Progress', '#3B82F6', 1], ['DONE', 'Done', '#10B981', 2], ['ARCHIVE', 'Archive', '#6B7280', 3]] as [$id, $name, $color, $order]) {
+            MsTaskStatus::firstOrCreate(
+                ['status_id' => $id],
+                ['status_name' => $name, 'color' => $color, 'sort_order' => $order, 'status' => 'A', 'created_by' => 'system', 'created_at' => now()]
+            );
+
+            TrProjectTaskStatus::firstOrCreate(
+                ['status_id' => $id, 'project_id' => $projectId],
+                ['status' => 'A', 'created_by' => 'system', 'created_at' => now()]
+            );
+        }
+    }
+
     public function boardData(string $projectId)
     {
         $project = $this->project($projectId);
 
-        $statuses = MsTaskStatus::where('project_id', $projectId)->where('status', 'A')->orderBy('sort_order')->get();
+        $this->ensureDefaultStatuses($projectId);
+
+        $allStatuses = MsTaskStatus::where('status', 'A')->orderBy('sort_order')->get();
+        $enabledIds = $this->enabledStatusIds($projectId);
+
+        // Archive always renders last regardless of sort_order — otherwise
+        // a later "+ Add status" column (sort_order = current max + 1)
+        // would land after it.
+        $statuses = $allStatuses->whereIn('status_id', $enabledIds->all())->values()
+            ->sortBy(fn ($s) => $s->status_id === 'ARCHIVE' ? 1 : 0)->values();
 
         $tasks = TrProjectTask::where('project_id', $projectId)->where('status', 'A')->get();
 
@@ -224,7 +264,7 @@ class PmTaskController extends Controller
         $auto = $this->nextAutonbr('TSK', (int) $now->year, $now->format('m'), $username, 'Project Task');
         $taskId = 'TSK' . substr((string) $now->year, 2) . $now->format('m') . sprintf('%04d', $auto['next']);
 
-        $defaultStatus = MsTaskStatus::where('project_id', $projectId)->where('status_id', 'TODO')->exists() ? 'TODO' : null;
+        $defaultStatus = TrProjectTaskStatus::where('project_id', $projectId)->where('status_id', 'TODO')->where('status', 'A')->exists() ? 'TODO' : null;
 
         DB::connection('pgsql5')->transaction(function () use ($request, $projectId, $taskId, $username, $now, $defaultStatus) {
             TrProjectTask::create([
@@ -359,26 +399,49 @@ class PmTaskController extends Controller
         return response()->json(['success' => true, 'message' => 'Task archived successfully']);
     }
 
-    // Per-project custom Task-board status columns ("+ Add status").
+    // "+ Add status" on a Project's Task board. Same master+ junction
+    // pattern as PmProjectController::storeStatus(): matched by a
+    // normalized status_id so "In progress"/"in Progress" resolve to the
+    // same master row, exact typed text kept as status_name. Enabling it
+    // links it to this Project only via tr_project_task_status — it
+    // doesn't touch other Projects' boards.
     public function storeStatus(Request $request, string $projectId)
     {
         $this->project($projectId);
 
         $request->validate(['status_name' => ['required', 'string', 'max:100']]);
 
-        $statusId = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $request->status_name));
-        $nextOrder = (int) MsTaskStatus::where('project_id', $projectId)->max('sort_order') + 1;
+        $statusName = trim($request->status_name);
+        $statusId = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $statusName));
+        abort_if($statusId === '', 422, 'Status name must contain at least one letter or number.');
 
-        $status = MsTaskStatus::firstOrCreate(
-            ['project_id' => $projectId, 'status_id' => $statusId],
-            [
-                'status_name' => $request->status_name,
+        $status = MsTaskStatus::where('status_id', $statusId)->first();
+
+        if ($status) {
+            if ($status->status_name !== $statusName) {
+                $status->update([
+                    'status_name' => $statusName,
+                    'updated_by' => Auth::user()->username,
+                    'updated_at' => now(),
+                ]);
+            }
+        } else {
+            $nextOrder = (int) MsTaskStatus::max('sort_order') + 1;
+
+            $status = MsTaskStatus::create([
+                'status_id' => $statusId,
+                'status_name' => $statusName,
                 'color' => $request->input('color', '#6366F1'),
                 'sort_order' => $nextOrder,
                 'status' => 'A',
                 'created_by' => Auth::user()->username,
                 'created_at' => now(),
-            ]
+            ]);
+        }
+
+        TrProjectTaskStatus::firstOrCreate(
+            ['status_id' => $statusId, 'project_id' => $projectId],
+            ['status' => 'A', 'created_by' => Auth::user()->username, 'created_at' => now()]
         );
 
         return response()->json(['success' => true, 'status' => $status]);

@@ -45,11 +45,19 @@ class MsProject extends Model
         return $this->belongsTo(MsProjectStatus::class, 'status_id', 'status_id');
     }
 
+    // Task-board statuses enabled for this Project, out of the shared
+    // ms_task_status master list — via tr_project_task_status, same
+    // master+junction pattern as projectStatus()/ms_project_status.
     public function taskStatuses()
     {
-        return $this->hasMany(MsTaskStatus::class, 'project_id', 'project_id')
-            ->where('status', 'A')
-            ->orderBy('sort_order');
+        return $this->belongsToMany(
+            MsTaskStatus::class,
+            'tr_project_task_status',
+            'project_id',
+            'status_id',
+            'project_id',
+            'status_id'
+        )->wherePivot('status', 'A')->orderBy('sort_order');
     }
 
     public function tasks()

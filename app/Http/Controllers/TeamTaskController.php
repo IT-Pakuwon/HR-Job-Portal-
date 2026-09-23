@@ -14,6 +14,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Vinkla\Hashids\Facades\Hashids;
 
 // A Team's own recursive Task tree — independent of Project (a Project
 // keeps its own separate tree, see PmTaskController). Structural twin of
@@ -46,9 +47,11 @@ class TeamTaskController extends Controller
     // Project Task/Subtask behavior.
 
     // Collect a task's id plus every descendant's id, for cascade-archive.
+    // Includes cancelled ('C') rows — a cancelled task is still "alive" and
+    // visible, only archived ('X') ones are excluded from the tree.
     private function subtreeTaskIds(string $teamId, string $taskId)
     {
-        $all = TrTeamTask::where('team_id', $teamId)->where('status', 'A')->get(['task_id', 'parent_task_id']);
+        $all = TrTeamTask::where('team_id', $teamId)->whereIn('status', ['A', 'C'])->get(['task_id', 'parent_task_id']);
 
         $ids = collect([$taskId]);
         $frontier = collect([$taskId]);
@@ -106,13 +109,94 @@ class TeamTaskController extends Controller
         return response()->json(MsTaskTag::where('status', 'A')->orderBy('tag_name')->get(['tag_id', 'tag_name', 'color']));
     }
 
+    // A built-in, non-deletable "Archive" column every Team's Task board
+    // gets — archiving a top-level Task (see destroy()) moves it here
+    // instead of hiding it outright, so it stays visible/reversible (drag
+    // it back out to un-archive). Idempotent: safe to call on every load.
+    private function ensureArchiveStatus(string $teamId): void
+    {
+        MsTeamTaskStatus::firstOrCreate(
+            ['team_id' => $teamId, 'status_id' => 'ARCHIVE'],
+            [
+                'status_name' => 'Archive',
+                'color' => '#6B7280',
+                'sort_order' => (int) MsTeamTaskStatus::where('team_id', $teamId)->max('sort_order') + 1,
+                'status' => 'A',
+                'created_by' => 'system',
+                'created_at' => now(),
+            ]
+        );
+    }
+
+    // Whenever a Task/Subtask's own completion could have changed (its
+    // progress_percent was set, one of its children was cancelled/archived,
+    // etc.) — recompute whether IT now reads as "fully done" using the same
+    // rule the frontend's own progress bar/badge already uses (see
+    // teamTaskCard()/openTaskEntityDetail(): all non-cancelled children at
+    // 100%, or its own progress_percent for a leaf), and if so auto-move it
+    // into the team's "Done" column (unless it's there already, or the team
+    // has no such column). Then walks up to the parent, since completing
+    // this task may have just completed ITS parent too.
+    private function maybeAutoCompleteToDone(?TrTeamTask $task, string $teamId, string $username, $now): void
+    {
+        if (! $task) {
+            return;
+        }
+
+        $children = TrTeamTask::where('team_id', $teamId)
+            ->where('parent_task_id', $task->task_id)
+            ->whereIn('status', ['A', 'C'])
+            ->get()
+            ->reject(fn ($c) => $c->status === 'C');
+
+        $isComplete = $children->isNotEmpty()
+            ? $children->every(fn ($c) => (float) $c->progress_percent >= 100)
+            : (float) $task->progress_percent >= 100;
+
+        if ($isComplete && $task->status_id !== 'DONE' && $task->status === 'A') {
+            $hasDoneColumn = MsTeamTaskStatus::where('team_id', $teamId)->where('status_id', 'DONE')->where('status', 'A')->exists();
+
+            if ($hasDoneColumn) {
+                $task->update(['status_id' => 'DONE', 'updated_by' => $username, 'updated_at' => $now]);
+            }
+        }
+
+        if ($task->parent_task_id) {
+            $this->maybeAutoCompleteToDone(
+                TrTeamTask::where('team_id', $teamId)->where('task_id', $task->parent_task_id)->first(),
+                $teamId,
+                $username,
+                $now
+            );
+        }
+    }
+
     public function boardData(string $teamId)
     {
         $team = $this->team($teamId);
 
-        $statuses = MsTeamTaskStatus::where('team_id', $teamId)->where('status', 'A')->orderBy('sort_order')->get();
+        $this->ensureArchiveStatus($teamId);
 
-        $tasks = TrTeamTask::where('team_id', $teamId)->where('status', 'A')->get();
+        // Archive always renders last regardless of sort_order — otherwise
+        // a later "+ Add status" column (sort_order = current max + 1)
+        // would land after it.
+        $statuses = MsTeamTaskStatus::where('team_id', $teamId)->where('status', 'A')->orderBy('sort_order')->get()
+            ->sortBy(fn ($s) => $s->status_id === 'ARCHIVE' ? 1 : 0)->values();
+
+        // 'C' (cancelled) tasks stay in the board/tree — only 'X' (archived)
+        // is actually excluded. The frontend reads `status` to grey a
+        // cancelled row out and leave it out of completion-percent math.
+        $tasks = TrTeamTask::where('team_id', $teamId)->whereIn('status', ['A', 'C'])->get();
+
+        // Self-heal on every load, not just reactively on the mutations that
+        // call this directly (update()/cancel()/destroy()) — a top-level
+        // Task can read as 100% without ever going through one of those
+        // (e.g. it was already fully done before this behavior existed).
+        // Mutates $tasks' own model instances in place, so $flat below
+        // already reflects it without a re-query.
+        $tasks->whereNull('parent_task_id')->where('status', 'A')->each(
+            fn ($t) => $this->maybeAutoCompleteToDone($t, $teamId, 'system', now())
+        );
 
         $assignees = TrTeamTaskAssignee::whereIn('task_id', $tasks->pluck('task_id'))
             ->where('status', 'A')
@@ -147,12 +231,16 @@ class TeamTaskController extends Controller
         $flat = $tasks->map(function ($t) use ($assignees, $taskTags, $tagMaster, $withPeople) {
             return [
                 'task_id' => $t->task_id,
+                // Hashids-encoded ms id (not the task_id business key) — the
+                // /task/{eid} deep-link URL, same convention as Projects.
+                'eid' => Hashids::encode($t->id),
                 'parent_task_id' => $t->parent_task_id,
                 'task_name' => $t->task_name,
                 'task_description' => $t->task_description,
                 'start_date' => optional($t->start_date)->toDateString(),
                 'end_date' => optional($t->end_date)->toDateString(),
                 'status_id' => $t->status_id,
+                'status' => $t->status,
                 'progress_percent' => (float) $t->progress_percent,
                 'created_by' => $t->created_by,
                 'created_at' => optional($t->created_at)->toDateTimeString(),
@@ -168,6 +256,27 @@ class TeamTaskController extends Controller
         return response()->json([
             'statuses' => $statuses,
             'tasks' => $this->buildTaskTree($flat),
+        ]);
+    }
+
+    // Deep-link into a specific Task/Subtask's detail modal — mirrors
+    // PmProjectController::show()'s /projects/{eid} convention: a
+    // Hashids-encoded numeric id (tr_team_task.id, not the task_id business
+    // key) in the URL, pre-opening the modal on the Team's own Task board
+    // (projects.blade.php's teamId-scoped view) rather than a separate page.
+    public function show(string $eid)
+    {
+        $id = Hashids::decode($eid)[0] ?? null;
+        abort_if(! $id, 404);
+
+        $task = TrTeamTask::whereIn('status', ['A', 'C'])->findOrFail($id);
+        $this->team($task->team_id);
+
+        return view('pages.projectmanagement.projects', [
+            'initialTab' => 'kanban',
+            'canCreateProject' => false,
+            'openTeamId' => $task->team_id,
+            'openTaskEid' => $eid,
         ]);
     }
 
@@ -314,6 +423,11 @@ class TeamTaskController extends Controller
             }
         });
 
+        // Covers both: this task's own progress_percent just changed (a
+        // leaf, via the subtask checkbox toggle), and this task is a
+        // Subtask whose parent's completion% just shifted because of it.
+        $this->maybeAutoCompleteToDone($task, $teamId, $username, $now);
+
         return response()->json(['success' => true, 'message' => 'Task updated successfully']);
     }
 
@@ -330,18 +444,79 @@ class TeamTaskController extends Controller
         return response()->json(['success' => true]);
     }
 
+    // Toggle a single task's 'C' (cancelled) flag — distinct from status_id
+    // (its Kanban column) and from destroy()'s 'X' (archived, which hides
+    // the whole subtree from the board entirely). A cancelled task stays
+    // visible everywhere, just read as void by the frontend and left out of
+    // its parent's completion-percent math. Does not cascade to children —
+    // each task/subtask is cancelled independently.
+    public function cancel(string $teamId, string $taskId)
+    {
+        $this->team($teamId);
+        $task = TrTeamTask::where('team_id', $teamId)->where('task_id', $taskId)->firstOrFail();
+
+        abort_if($task->status === 'X', 404);
+
+        $task->update([
+            'status' => $task->status === 'C' ? 'A' : 'C',
+            'updated_by' => Auth::user()->username,
+            'updated_at' => now(),
+        ]);
+
+        // Cancelling a Subtask drops it out of its parent's completion math
+        // (see class comment above) — that alone can push the parent to
+        // 100%, so recheck it same as a progress toggle would.
+        if ($task->parent_task_id) {
+            $this->maybeAutoCompleteToDone(
+                TrTeamTask::where('team_id', $teamId)->where('task_id', $task->parent_task_id)->first(),
+                $teamId,
+                Auth::user()->username,
+                now()
+            );
+        }
+
+        return response()->json(['success' => true, 'cancelled' => $task->status === 'C']);
+    }
+
     public function destroy(string $teamId, string $taskId)
     {
         $this->team($teamId);
-        TrTeamTask::where('team_id', $teamId)->where('task_id', $taskId)->firstOrFail();
+        $task = TrTeamTask::where('team_id', $teamId)->where('task_id', $taskId)->firstOrFail();
 
-        $ids = $this->subtreeTaskIds($teamId, $taskId);
         $now = now();
         $username = Auth::user()->username;
+
+        // A top-level Task lives on the Kanban board — "Archive" just
+        // relocates its card to the board's own Archive column, same as any
+        // other status_id change (reversible by dragging it back out). Its
+        // own subtree is left untouched, unlike archiving a Subtask below.
+        if ($task->parent_task_id === null) {
+            $this->ensureArchiveStatus($teamId);
+            $task->update(['status_id' => 'ARCHIVE', 'updated_by' => $username, 'updated_at' => $now]);
+
+            return response()->json(['success' => true, 'message' => 'Task archived successfully']);
+        }
+
+        // A Subtask has no Kanban column of its own to move to — "Archive"
+        // keeps its original meaning: hide it and its own descendants (if
+        // any) from every view, same as before.
+        $ids = $this->subtreeTaskIds($teamId, $taskId);
 
         TrTeamTask::where('team_id', $teamId)->whereIn('task_id', $ids)
             ->update(['status' => 'X', 'updated_by' => $username, 'updated_at' => $now]);
         TrTeamTaskAssignee::whereIn('task_id', $ids)->update(['status' => 'X']);
+
+        // Archiving a Subtask drops it out of its parent's completion math
+        // (boardData()/subtaskRowHtml only ever see 'A'/'C' rows) — same as
+        // cancelling one, that alone can complete the parent.
+        if ($task->parent_task_id) {
+            $this->maybeAutoCompleteToDone(
+                TrTeamTask::where('team_id', $teamId)->where('task_id', $task->parent_task_id)->first(),
+                $teamId,
+                $username,
+                $now
+            );
+        }
 
         return response()->json(['success' => true, 'message' => 'Task archived successfully']);
     }

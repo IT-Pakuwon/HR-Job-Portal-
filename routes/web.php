@@ -1608,10 +1608,15 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/', 'store')->name('store');
             Route::put('/{taskId}', 'update')->name('update');
             Route::post('/{taskId}/status', 'updateStatus')->name('status');
+            Route::post('/{taskId}/cancel', 'cancel')->name('cancel');
             Route::delete('/{taskId}', 'destroy')->name('destroy');
             Route::post('/statuses', 'storeStatus')->name('statuses.store');
             Route::get('/{taskId}/mentionable-users', 'mentionableUsers')->name('mentionable-users');
         });
+
+        // Deep link into a single Task/Subtask's detail modal — /task/{eid},
+        // same convention as /projects/{eid} (see TeamTaskController::show()).
+        Route::get('/task/{eid}', [TeamTaskController::class, 'show'])->name('task.show');
 
         Route::controller(PmGroupController::class)->prefix('project-groups')->name('project-groups.')->group(function () {
             Route::get('/', 'index')->name('index');

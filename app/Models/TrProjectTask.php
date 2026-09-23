@@ -38,14 +38,9 @@ class TrProjectTask extends Model
         return $this->belongsTo(MsProject::class, 'project_id', 'project_id');
     }
 
-    // status_id is only unique combined with project_id (each Project has
-    // its own status vocabulary) — a plain belongsTo on status_id alone
-    // would risk matching another project's status row of the same id.
     public function taskStatus()
     {
-        return MsTaskStatus::where('project_id', $this->project_id)
-            ->where('status_id', $this->status_id)
-            ->first();
+        return MsTaskStatus::where('status_id', $this->status_id)->first();
     }
 
     // Self-referencing — a Task's children can themselves have children,
