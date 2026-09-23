@@ -11,7 +11,6 @@ class MsProject extends Model
 
     protected $fillable = [
         'project_id',
-        'group_id',
         'project_name',
         'project_description',
         'start_date',
@@ -32,9 +31,13 @@ class MsProject extends Model
         'end_date' => 'date',
     ];
 
-    public function group()
+    // A Project can now be handled by more than one Team — plain hasMany
+    // onto the pivot row, same style as pics()/tags() below (no
+    // belongsToMany, kept consistent with this model's existing pattern).
+    public function teams()
     {
-        return $this->belongsTo(MsGroup::class, 'group_id', 'group_id');
+        return $this->hasMany(TrProjectTeam::class, 'project_id', 'project_id')
+            ->where('status', 'A');
     }
 
     public function projectStatus()
@@ -42,16 +45,30 @@ class MsProject extends Model
         return $this->belongsTo(MsProjectStatus::class, 'status_id', 'status_id');
     }
 
+    // Task-board statuses enabled for this Project, out of the shared
+    // ms_task_status master list — via tr_project_task_status, same
+    // master+junction pattern as projectStatus()/ms_project_status.
     public function taskStatuses()
     {
-        return $this->hasMany(MsTaskStatus::class, 'project_id', 'project_id')
-            ->where('status', 'A')
-            ->orderBy('sort_order');
+        return $this->belongsToMany(
+            MsTaskStatus::class,
+            'tr_project_task_status',
+            'project_id',
+            'status_id',
+            'project_id',
+            'status_id'
+        )->wherePivot('status', 'A')->orderBy('sort_order');
     }
 
     public function tasks()
     {
         return $this->hasMany(TrProjectTask::class, 'project_id', 'project_id');
+    }
+
+    public function pics()
+    {
+        return $this->hasMany(TrProjectPic::class, 'project_id', 'project_id')
+            ->where('status', 'A');
     }
 
     // Links out (this project -> others it points to)

@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class TrProjectTaskAssignee extends Model
+class TrTeamTaskAssignee extends Model
 {
     protected $connection = 'pgsql5';
-    protected $table = 'tr_project_task_assignee';
+    protected $table = 'tr_team_task_assignee';
     public $timestamps = false;
 
     protected $fillable = [
@@ -20,7 +20,7 @@ class TrProjectTaskAssignee extends Model
 
     public function task()
     {
-        return $this->belongsTo(TrProjectTask::class, 'task_id', 'task_id');
+        return $this->belongsTo(TrTeamTask::class, 'task_id', 'task_id');
     }
 
     public function user()
