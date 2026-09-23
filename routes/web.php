@@ -1634,6 +1634,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/gantt', 'gantt')->name('gantt');
             Route::get('/board-data', 'boardData')->name('board-data');
             Route::get('/tags', 'tags')->name('tags');
+            Route::get('/pic-users', 'picUsers')->name('pic-users');
             Route::post('/favorites/toggle', 'toggleFavorite')->name('favorites.toggle');
             Route::post('/', 'store')->name('store');
             Route::post('/statuses', 'storeStatus')->name('statuses.store');

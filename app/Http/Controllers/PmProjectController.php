@@ -8,6 +8,7 @@ use App\Models\MsProjectStatus;
 use App\Models\MsTaskStatus;
 use App\Models\MsTaskTag;
 use App\Models\MsTeam;
+use App\Models\SysUserRole;
 use App\Models\TrFavorite;
 use App\Models\TrProject;
 use App\Models\TrProjectPic;
@@ -242,14 +243,25 @@ class PmProjectController extends Controller
         }
     }
 
+    // Every ms_user holding the PROJECTACCESS role — the People half of
+    // the Team(s) & PIC picker is org-wide (any project-access holder),
+    // not limited to members of the Project's own linked Teams.
+    private function projectAccessUsernames()
+    {
+        return SysUserRole::where('role_id', 'PROJECTACCESS')
+            ->where('status', 'A')
+            ->pluck('username')
+            ->map(fn ($u) => strtolower(trim($u)))
+            ->unique();
+    }
+
     // Validates a raw pic entries payload against the Project's own
     // (about-to-be-saved) team_ids: a TEAM entry must be one of those
-    // teams, a USER entry must be a member of at least one of them.
+    // teams, a USER entry must hold PROJECTACCESS (org-wide, not
+    // constrained to those teams' membership — see projectAccessUsernames()).
     private function validatePicEntries($entries, array $teamIds): void
     {
-        $memberUsernames = MsTeam::whereIn('team_id', $teamIds)->get()
-            ->flatMap(fn ($t) => $t->memberUsers()->pluck('username'))
-            ->map(fn ($u) => strtolower(trim($u)));
+        $accessUsernames = $this->projectAccessUsernames();
 
         foreach ($entries as $entry) {
             $picType = strtoupper((string) ($entry['pic_type'] ?? ''));
@@ -258,9 +270,22 @@ class PmProjectController extends Controller
             if ($picType === 'TEAM') {
                 abort_unless(in_array($refId, $teamIds, true), 422, 'PIC Team must be one of the Project\'s linked Teams.');
             } else {
-                abort_unless($memberUsernames->contains(strtolower($refId)), 422, 'PIC must be a member of one of the Project\'s linked Teams.');
+                abort_unless($accessUsernames->contains(strtolower($refId)), 422, 'PIC must hold Project access.');
             }
         }
+    }
+
+    // People half of the Team(s) & PIC picker (New/Edit Project modal) —
+    // every user with PROJECTACCESS, org-wide.
+    public function picUsers()
+    {
+        abort_unless($this->canBrowse(), 403);
+
+        $users = User::whereIn(DB::raw('lower(username)'), $this->projectAccessUsernames()->all())
+            ->orderBy('name')
+            ->get(['username', 'name']);
+
+        return response()->json($users);
     }
 
     // Resolve a TrProjectPic row into its display shape — a TEAM entry

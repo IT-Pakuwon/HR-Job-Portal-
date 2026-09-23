@@ -38,8 +38,9 @@
                                     </button>
                                 </template>
                                 <template x-if="f.type === 'project'">
-                                    <button @click="openProjectDetail(f.id, 'push')"
-                                        class="flex min-w-0 flex-1 items-center gap-2 truncate px-2.5 py-2 text-left text-sm text-gray-600 dark:text-gray-300">
+                                    <button @click="selectProject(f.id)"
+                                        class="flex min-w-0 flex-1 items-center gap-2 truncate px-2.5 py-2 text-left text-sm transition"
+                                        :class="projectId === f.id ? 'font-medium text-indigo-700 dark:text-indigo-300' : 'text-gray-600 dark:text-gray-300'">
                                         <span class="h-2 w-2 shrink-0 rounded-full" :style="`background:${statusColor(f.status_id)}`"></span>
                                         <span class="truncate" x-text="f.name"></span>
                                     </button>
@@ -85,9 +86,11 @@
                     </p>
                     <div class="max-h-[60vh] space-y-0.5 overflow-y-auto">
                         <template x-for="p in projects" :key="p.project_id">
-                            <div class="group flex items-center rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800">
-                                <button @click="openProjectDetail(p.project_id, 'push')"
-                                    class="flex min-w-0 flex-1 items-center gap-2 truncate px-2.5 py-2 text-left text-sm text-gray-600 dark:text-gray-300">
+                            <div class="group flex items-center rounded-lg"
+                                :class="projectId === p.project_id ? 'bg-indigo-50 dark:bg-indigo-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-800'">
+                                <button @click="selectProject(p.project_id)"
+                                    class="flex min-w-0 flex-1 items-center gap-2 truncate px-2.5 py-2 text-left text-sm transition"
+                                    :class="projectId === p.project_id ? 'font-medium text-indigo-700 dark:text-indigo-300' : 'text-gray-600 dark:text-gray-300'">
                                     <span class="h-2 w-2 shrink-0 rounded-full" :style="`background:${statusColor(p.status_id)}`"></span>
                                     <span class="truncate" x-text="p.project_name"></span>
                                 </button>
@@ -130,6 +133,16 @@
             {{-- HEADER --}}
             <div class="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-3 dark:border-white/[0.06]">
                 <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">📁 <span x-text="headerTitle"></span></h2>
+                <div x-show="projectId" x-cloak class="flex shrink-0 items-center gap-1">
+                    <button @click="editSelectedProject()" title="Edit Project"
+                        class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-50 hover:text-indigo-600 dark:hover:bg-gray-800 dark:hover:text-indigo-400">
+                        <i class="fas fa-pen text-xs"></i>
+                    </button>
+                    <button @click="deleteSelectedProject()" title="Delete Project"
+                        class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-red-50 hover:text-red-500 dark:hover:bg-gray-800 dark:hover:text-red-400">
+                        <i class="fas fa-trash text-xs"></i>
+                    </button>
+                </div>
             </div>
 
             {{-- TABS --}}
@@ -194,7 +207,7 @@
                                 <i class="fas fa-people-group text-[10px]"></i> Team(s) &amp; PIC
                             </label>
                             <select id="project_team_pic" class="select2 w-full" multiple data-placeholder="Select team(s) and/or person(s) in charge"></select>
-                            <p class="mt-1 text-xs text-slate-400">Picking a Team links the project to it. Picking a person also links their Team.</p>
+                            <p class="mt-1 text-xs text-slate-400">Picking a Team links the project to it. People are anyone with Project access, org-wide.</p>
                         </div>
                         <div>
                             <label class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -210,7 +223,10 @@
                             <textarea id="project_description" name="project_description" rows="3" placeholder="Optional details…"
                                 class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm text-slate-700 transition focus:border-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-50 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:focus:ring-indigo-900/30"></textarea>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
+                        {{-- Not asked in this form (create or edit) — the fields
+                             themselves stay so the JS submit stays untouched
+                             (they just submit empty, which is fine server-side). --}}
+                        <div id="projectDateFields" class="hidden">
                             <div>
                                 <label class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
                                     <i class="fas fa-calendar-day text-[10px]"></i> Start Date
@@ -310,8 +326,8 @@
                             <i class="fas fa-id-card text-sm"></i>
                         </span>
                         <div>
-                            <h2 class="text-base font-semibold text-slate-900 dark:text-white" x-text="teamId ? 'Add Task' : 'Add Card'"></h2>
-                            <p class="text-xs text-slate-400" x-text="(teamId ? teamTaskStatuses : statuses).find(s => s.status_id === quickAddStatusId)?.status_name"></p>
+                            <h2 class="text-base font-semibold text-slate-900 dark:text-white" x-text="(teamId || projectId) ? 'Add Task' : 'Add Card'"></h2>
+                            <p class="text-xs text-slate-400" x-text="((teamId || projectId) ? teamTaskStatuses : statuses).find(s => s.status_id === quickAddStatusId)?.status_name"></p>
                         </div>
                     </div>
                     <button type="button" @click="closeQuickAddCard()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"><i class="fas fa-times text-sm"></i></button>
@@ -765,12 +781,15 @@
         /* Fills the tab panel's full available height instead of shrinking
            to the chart's content height — renderGantt()/renderTeamGantt()
            measure this and pass it as Frappe Gantt's own container_height
-           option, so .gantt-container's own built-in overflow:auto only
-           kicks in (scrolling just the chart) once the rows genuinely
-           don't fit, rather than the chart always sitting content-height
-           tall with empty space below it. */
+           option, so the chart's ROWS stretch to fill the space (grid lines
+           and all) instead of leaving a blank gap below a short chart.
+           overflow:hidden is a safety net: it stops any sub-pixel rounding
+           between that JS measurement and the real box from leaking out as
+           a spurious scrollbar on the page itself — .gantt-container below
+           is forced to the same 100% and owns the real (internal) scroll. */
         #ganttPanel {
             height: 100%;
+            overflow: hidden;
         }
 
         /* Gantt chart theming (Frappe Gantt) — the library's built-in dark
@@ -799,6 +818,7 @@
             --g-popup-actions: #EEF2FF;
             --g-weekend-highlight-color: #FAFAFF;
             border: 1px solid #F3F4F6;
+            height: 100% !important;
         }
         .dark .gantt-container {
             --g-bar-color: #312E81;
@@ -866,6 +886,11 @@
                 // that Team's OWN recursive Task board — a wholly separate
                 // concept from Projects, never shown in the Projects list.
                 teamId: '',
+                // A specific project_id = that Project's OWN Task board —
+                // same Kanban/Gantt/Spreadsheet shape as a Team's board
+                // above, sourced from PmTaskController instead of
+                // TeamTaskController. Mutually exclusive with teamId.
+                projectId: '',
                 // Set only by a /task/{eid} deep link (TeamTaskController::show())
                 // — the specific Task/Subtask to open once that Team's board
                 // finishes loading (see loadTeamTaskBoard()). Cleared after use.
@@ -885,8 +910,32 @@
                 defaultApplied: false,
 
                 get headerTitle() {
-                    const t = this.teams.find(t => t.team_id === this.teamId);
-                    return t ? t.team_name : 'Project Management';
+                    if (this.teamId) {
+                        const t = this.teams.find(t => t.team_id === this.teamId);
+                        return t ? t.team_name : 'Project Management';
+                    }
+                    if (this.projectId) {
+                        const p = this.projects.find(p => p.project_id === this.projectId);
+                        return p ? p.project_name : 'Project Management';
+                    }
+                    return 'Project Management';
+                },
+
+                // Task API base/doctype for whichever scope (Team or
+                // Project) is currently selected — same PmTaskController
+                // routes already used by the Project Detail modal's own
+                // Sub Task tab (see pmProjectShow().renderTaskTab()).
+                get taskApiBase() {
+                    return this.teamId
+                        ? `{{ url('all-team') }}/${this.teamId}/tasks`
+                        : `{{ url('projects') }}/${this.projectId}/tasks`;
+                },
+                get taskDoctype() {
+                    return this.teamId ? 'TTK' : 'TSK';
+                },
+                refreshTaskBoard(cb) {
+                    if (this.teamId) return this.loadTeamTaskBoard(cb);
+                    if (this.projectId) return this.loadProjectTaskBoard(cb);
                 },
 
                 get favoriteItems() {
@@ -916,7 +965,61 @@
                     // Clicking the already-active Team clears the filter,
                     // returning to the Projects portfolio.
                     this.teamId = this.teamId === teamId ? '' : teamId;
+                    this.projectId = '';
                     this.loadMainPanel();
+                },
+
+                // Same idea as selectTeam(), but scopes the main panel to a
+                // single Project's own Task board instead of the Projects
+                // portfolio's card view — same Kanban/Gantt/Spreadsheet UI a
+                // Team gets, just sourced from PmTaskController.
+                selectProject(projectId) {
+                    this.projectId = this.projectId === projectId ? '' : projectId;
+                    this.teamId = '';
+                    this.loadMainPanel();
+                },
+
+                // Edit/Delete for the currently-scoped Project — the board
+                // header's own affordance now that clicking a Project in the
+                // sidebar opens its Task board instead of the Overview modal
+                // (which still has its own Edit button, reachable from the
+                // portfolio Kanban's project cards). Reuses the same
+                // #projectModal/#projectForm as that modal's Edit button.
+                editSelectedProject() {
+                    if (!this.projectId) return;
+                    $.get(`{{ url('projects') }}/${this.projectId}/detail`, (data) => {
+                        currentProjectDetail = data;
+                        openEditProject();
+                    });
+                },
+
+                deleteSelectedProject() {
+                    if (!this.projectId) return;
+                    const projectId = this.projectId;
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Delete this project?',
+                        text: 'This removes it from the portfolio for everyone. This cannot be undone from here.',
+                        showCancelButton: true,
+                        confirmButtonText: 'Delete',
+                        confirmButtonColor: '#DC2626',
+                    }).then((result) => {
+                        if (!result.isConfirmed) return;
+
+                        $.ajax({
+                            url: `{{ url('projects') }}/${projectId}`,
+                            method: 'DELETE',
+                            data: { _token: '{{ csrf_token() }}' },
+                            success: () => {
+                                this.projectId = '';
+                                this.loadSidebar();
+                            },
+                            error: (xhr) => {
+                                Swal.fire({ icon: 'error', title: 'Error', text: xhr.responseJSON?.message || 'Something went wrong.' });
+                            },
+                        });
+                    });
                 },
 
                 // Sidebar (Teams / Projects lists) — always unscoped, loaded once.
@@ -940,10 +1043,12 @@
                     });
                 },
 
-                // Main panel (Kanban/Gantt) — either the Projects portfolio
-                // or the selected Team's own Task board.
+                // Main panel (Kanban/Gantt) — either the Projects portfolio,
+                // the selected Team's own Task board, or the selected
+                // Project's own Task board.
                 loadMainPanel() {
                     if (this.teamId) this.loadTeamTaskBoard();
+                    else if (this.projectId) this.loadProjectTaskBoard();
                     else this.renderTab();
                 },
 
@@ -982,6 +1087,32 @@
                     });
                 },
 
+                // A Project's own recursive Task board — same shape as
+                // loadTeamTaskBoard() above, from PmTaskController instead.
+                loadProjectTaskBoard(cb) {
+                    currentTaskApiBase = `{{ url('projects') }}/${this.projectId}/tasks`;
+                    currentTaskDoctype = 'TSK';
+                    currentTaskRefreshFn = (cb2) => this.loadProjectTaskBoard(cb2);
+
+                    $.get(`${currentTaskApiBase}/board-data`, (res) => {
+                        this.teamTaskStatuses = res.statuses;
+                        this.teamTasks = res.tasks;
+                        currentTasksCache = res.tasks;
+                        currentTaskStatuses = res.statuses;
+                        this.renderTab();
+
+                        if (typeof cb === 'function') cb();
+                    });
+
+                    // Same eligible-users pool the Project Detail modal's
+                    // Overview tab loads — needed here too so a Task's
+                    // assignee/mention picker (openTaskEntityDetail()) has
+                    // people to offer without going through that modal first.
+                    $.get(`{{ url('projects') }}/${this.projectId}/detail`, (res) => {
+                        Alpine.$data(document.getElementById('pmProjectShowRoot')).eligibleUsers = res.eligible_users || [];
+                    });
+                },
+
                 toggleFavorite(favType, refId) {
                     $.post('{{ route('projects.favorites.toggle') }}', {
                         fav_type: favType,
@@ -992,17 +1123,18 @@
 
                 renderTab() {
                     $('#kanbanPanel, #ganttPanel, #spreadsheetPanel').addClass('hidden');
+                    const scoped = this.teamId || this.projectId;
                     if (this.tab === 'kanban') {
                         $('#kanbanPanel').removeClass('hidden');
-                        this.teamId ? this.renderTeamKanban() : this.renderKanban();
+                        scoped ? this.renderTeamKanban() : this.renderKanban();
                     }
                     if (this.tab === 'gantt') {
                         $('#ganttPanel').removeClass('hidden');
-                        this.teamId ? this.renderTeamGantt() : this.renderGantt();
+                        scoped ? this.renderTeamGantt() : this.renderGantt();
                     }
                     if (this.tab === 'spreadsheet') {
                         $('#spreadsheetPanel').removeClass('hidden');
-                        this.teamId ? this.renderTeamSpreadsheet() : this.renderSpreadsheet();
+                        scoped ? this.renderTeamSpreadsheet() : this.renderSpreadsheet();
                     }
                 },
 
@@ -1025,7 +1157,7 @@
                 openAddStatusModal() {
                     this.newStatusName = '';
                     this.newStatusColor = '#6366F1';
-                    if (this.teamId) this.availableStatuses = [];
+                    if (this.teamId || this.projectId) this.availableStatuses = [];
                     $('#addStatusModal').removeClass('hidden');
                     $('#new_status_name').focus();
                 },
@@ -1038,14 +1170,14 @@
                     statusName = (statusName ?? '').trim();
                     if (!statusName) return;
 
-                    if (this.teamId) {
-                        $.post(`{{ url('all-team') }}/${this.teamId}/tasks/statuses`, {
+                    if (this.teamId || this.projectId) {
+                        $.post(`${this.taskApiBase}/statuses`, {
                             status_name: statusName,
                             color: this.newStatusColor,
                             _token: '{{ csrf_token() }}',
                         }, () => {
                             this.closeAddStatusModal();
-                            this.loadTeamTaskBoard();
+                            this.refreshTaskBoard();
                         }).fail((xhr) => {
                             Swal.fire({ icon: 'error', title: 'Error', text: xhr.responseJSON?.message || 'Something went wrong.' });
                         });
@@ -1071,7 +1203,7 @@
                 // Team's own Task board it quick-creates a top-level Task in
                 // that column, PIC picked from the Team's own members.
                 openQuickAddCard(statusId) {
-                    if (!this.teamId) {
+                    if (!this.teamId && !this.projectId) {
                         this.openNewProject(statusId);
                         return;
                     }
@@ -1084,7 +1216,8 @@
                     window.qcDescrQuill?.setText('');
 
                     initPicSelect($('#qc_pic'), $('#quickAddCardModal'));
-                    loadTeamPicOptions($('#qc_pic'), this.teamId);
+                    if (this.teamId) loadTeamPicOptions($('#qc_pic'), this.teamId);
+                    else loadProjectPicOptions($('#qc_pic'), this.projectId);
 
                     initTagsSelect($('#qc_tags'), $('#quickAddCardModal'));
                     loadTagOptions($('#qc_tags'));
@@ -1101,14 +1234,14 @@
                     const name = $('#qc_name').val()?.trim();
                     const assignees = $('#qc_pic').val() || [];
                     const tags = $('#qc_tags').val() || [];
-                    if (!name || !this.teamId) return;
+                    if (!name || (!this.teamId && !this.projectId)) return;
 
                     if (window.qcDescrQuill) {
                         $('#qc_description').val(window.qcDescrQuill.root.innerHTML);
                     }
                     const filesToUpload = stagedQcFiles.slice();
 
-                    $.post(`{{ url('all-team') }}/${this.teamId}/tasks`, {
+                    $.post(this.taskApiBase, {
                         task_name: name,
                         task_description: $('#qc_description').val(),
                         start_date: $('#qc_start_date').val(),
@@ -1119,8 +1252,8 @@
                         _token: '{{ csrf_token() }}',
                     }, (res) => {
                         this.closeQuickAddCard();
-                        uploadFilesToProjectAttachments(filesToUpload, 'TTK', res.task_id, () => {});
-                        this.loadTeamTaskBoard();
+                        uploadFilesToProjectAttachments(filesToUpload, this.taskDoctype, res.task_id, () => {});
+                        this.refreshTaskBoard();
                     }).fail((xhr) => {
                         Swal.fire({ icon: 'error', title: 'Error', text: xhr.responseJSON?.message || 'Something went wrong.' });
                     });
@@ -1234,7 +1367,7 @@
                             onEnd: (evt) => {
                                 const taskId = evt.item.dataset.taskId;
                                 const statusId = evt.to.dataset.statusId;
-                                $.post(`{{ url('all-team') }}/${this.teamId}/tasks/${taskId}/status`, { status_id: statusId, _token: '{{ csrf_token() }}' });
+                                $.post(`${this.taskApiBase}/${taskId}/status`, { status_id: statusId, _token: '{{ csrf_token() }}' });
                             }
                         });
                     });
@@ -1280,9 +1413,11 @@
                                 <span class="text-gray-300 transition group-hover:text-gray-400 dark:text-gray-600"><i class="fas fa-grip-vertical text-xs"></i></span>
                                 <div class="flex items-center gap-1">
                                     <div class="flex items-center gap-0.5 opacity-0 transition group-hover:opacity-100">
+                                        ${this.teamId ? `
                                         <button type="button" class="team-card-cancel-btn rounded-lg p-1 text-gray-300 transition hover:bg-amber-50 hover:text-amber-500 dark:hover:bg-amber-900/20" data-task-id="${t.task_id}" title="${cancelled ? 'Restore' : 'Cancel'}">
                                             <i class="fas ${cancelled ? 'fa-rotate-left' : 'fa-ban'} text-xs"></i>
                                         </button>
+                                        ` : ''}
                                         <button type="button" class="team-card-archive-btn rounded-lg p-1 text-gray-300 transition hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20" data-task-id="${t.task_id}" title="Archive">
                                             <i class="fas fa-box-archive text-xs"></i>
                                         </button>
@@ -1314,9 +1449,9 @@
                     `);
 
                     $card.on('click', () => {
-                        currentTaskApiBase = `{{ url('all-team') }}/${this.teamId}/tasks`;
-                        currentTaskDoctype = 'TTK';
-                        currentTaskRefreshFn = (cb) => this.loadTeamTaskBoard(cb);
+                        currentTaskApiBase = this.taskApiBase;
+                        currentTaskDoctype = this.taskDoctype;
+                        currentTaskRefreshFn = (cb) => this.refreshTaskBoard(cb);
                         taskDetailStack = [];
                         openTaskEntityDetail(t);
                     });
@@ -1473,9 +1608,9 @@
                         on_click: (task) => {
                             const t = findTaskInTree(task.id, currentTasksCache);
                             if (t) {
-                                currentTaskApiBase = `{{ url('all-team') }}/${this.teamId}/tasks`;
-                                currentTaskDoctype = 'TTK';
-                                currentTaskRefreshFn = (cb) => this.loadTeamTaskBoard(cb);
+                                currentTaskApiBase = this.taskApiBase;
+                                currentTaskDoctype = this.taskDoctype;
+                                currentTaskRefreshFn = (cb) => this.refreshTaskBoard(cb);
                                 taskDetailStack = [];
                                 openTaskEntityDetail(t);
                             }
@@ -1636,7 +1771,7 @@
                         const taskId = $(e.currentTarget).closest('tr').attr('data-task-id');
                         const t = findTaskInTree(taskId, currentTasksCache);
                         if (!t) return;
-                        toggleTaskProgress(t, () => this.loadTeamTaskBoard());
+                        toggleTaskProgress(t, () => this.refreshTaskBoard());
                     });
 
                     wrap.on('click', '.spreadsheet-row', (e) => {
@@ -1645,9 +1780,9 @@
                         const t = findTaskInTree($tr.attr('data-task-id'), currentTasksCache);
                         if (!t) return;
                         taskDetailStack = ($tr.attr('data-ancestors') || '').split(',').filter(Boolean);
-                        currentTaskApiBase = `{{ url('all-team') }}/${this.teamId}/tasks`;
-                        currentTaskDoctype = 'TTK';
-                        currentTaskRefreshFn = (cb) => this.loadTeamTaskBoard(cb);
+                        currentTaskApiBase = this.taskApiBase;
+                        currentTaskDoctype = this.taskDoctype;
+                        currentTaskRefreshFn = (cb) => this.refreshTaskBoard(cb);
                         openTaskEntityDetail(t);
                     });
 
@@ -1728,12 +1863,27 @@
             });
         }
 
+        // Same idea as loadTeamPicOptions() above, for a Project's own
+        // Task board — offers the union of members across every Team
+        // linked to the Project (PmProjectController::detail()'s
+        // eligible_users), same pool the Project Detail modal's Chat/
+        // assignee pickers already use.
+        function loadProjectPicOptions($select, projectId, selectedUsernames = []) {
+            $select.empty().trigger('change');
+            if (!projectId) return;
+
+            $.get(`{{ url('projects') }}/${projectId}/detail`, (res) => {
+                (res.eligible_users || []).forEach(m => $select.append(new Option(m.name, m.username, false, selectedUsernames.includes(m.username))));
+                $select.trigger('change');
+            });
+        }
+
         // "New/Edit Project" combined Team(s) + PIC picker — one select2,
         // two optgroups. Picking a Team both links the project to it and
-        // makes the Team itself a PIC; picking a person also implicitly
-        // links their Team (see the submit handler's team_ids derivation
-        // below). Option values are "TEAM:<team_id>" / "USER:<username>" so
-        // the submit handler can split pic_type/ref_id back out.
+        // makes the Team itself a PIC; People (org-wide PROJECTACCESS
+        // holders, see loadProjectTeamPicOptions()) are PICs only, no Team
+        // link implied. Option values are "TEAM:<team_id>" / "USER:<username>"
+        // so the submit handler can split pic_type/ref_id back out.
         function initTeamPicMultiSelect($select, $dropdownParent) {
             if (!$select.hasClass('select2-hidden-accessible')) {
                 $select.select2({ width: '100%', closeOnSelect: false, dropdownParent: $dropdownParent });
@@ -1743,6 +1893,9 @@
         // selectedTeamIds/selectedPicEntries pre-check existing selections
         // when editing a Project (selectedPicEntries is the {pic_type,
         // team_id|username} shape PmProjectController::detail() returns).
+        // The People group is org-wide — every ms_user holding PROJECTACCESS
+        // (PmProjectController::picUsers()), not limited to members of the
+        // Teams listed above it; picking one does NOT implicitly link a Team.
         function loadProjectTeamPicOptions($select, selectedTeamIds = [], selectedPicEntries = []) {
             $select.empty().trigger('change');
             const allTeams = window.PM_ALL_TEAMS || [];
@@ -1758,23 +1911,11 @@
             });
             $select.append(teamGroup);
 
-            Promise.all(allTeams.map(t => $.get(`{{ url('all-team') }}/${t.team_id}/detail`).then((res) => ({ team: t, res })))).then((results) => {
-                const membership = {}; // username(lower) -> [team_id, ...]
-                const seen = new Map(); // username(lower) -> {username, name}
-                results.forEach(({ team, res }) => {
-                    (res.members || []).forEach((m) => {
-                        const lower = m.username.toLowerCase();
-                        membership[lower] = membership[lower] || [];
-                        membership[lower].push(team.team_id);
-                        if (!seen.has(lower)) seen.set(lower, m);
-                    });
-                });
-                window.PM_TEAM_MEMBERSHIP = membership;
-
+            $.get('{{ route('projects.pic-users') }}', (users) => {
                 const peopleGroup = $('<optgroup label="People"></optgroup>');
-                seen.forEach((m) => {
-                    const key = `USER:${m.username}`;
-                    peopleGroup.append(new Option(m.name, key, false, selectedKeys.includes(key)));
+                (users || []).forEach((u) => {
+                    const key = `USER:${u.username}`;
+                    peopleGroup.append(new Option(u.name, key, false, selectedKeys.includes(key)));
                 });
                 $select.append(peopleGroup);
                 $select.trigger('change');
@@ -1803,7 +1944,11 @@
             const wasEditing = $('#projectForm').data('mode') === 'edit';
             const editedProjectId = $('#projectForm').data('project-id');
             $('#projectModal').addClass('hidden');
-            if (wasEditing && editedProjectId) openProjectDetail(editedProjectId, 'none');
+            // Only reopen the Overview modal if Edit was actually launched
+            // from it (PM_PROJECT_ID matches) — editSelectedProject() (the
+            // scoped board's own Edit button) opens this same form without
+            // ever opening that modal, and cancelling shouldn't pop it open.
+            if (wasEditing && editedProjectId && PM_PROJECT_ID === editedProjectId) openProjectDetail(editedProjectId, 'none');
         });
 
         $(document).on('submit', '#projectForm', function (e) {
@@ -1818,16 +1963,13 @@
                 return { pic_type: type, ref_id: rest.join(':') };
             });
 
-            // A Team explicitly picked is a linked Team directly; a person
-            // picked implicitly links their Team too (see the field's own
-            // helper text) — union of both, deduped.
-            const explicitTeamIds = picEntries.filter(e => e.pic_type === 'TEAM').map(e => e.ref_id);
-            const derivedTeamIds = picEntries.filter(e => e.pic_type === 'USER')
-                .flatMap(e => (window.PM_TEAM_MEMBERSHIP || {})[e.ref_id.toLowerCase()] || []);
-            const teamIds = [...new Set([...explicitTeamIds, ...derivedTeamIds])];
+            // People are org-wide (any PROJECTACCESS holder, not necessarily
+            // on one of the Teams below) so picking one doesn't imply a
+            // Team link — only explicit TEAM entries count.
+            const teamIds = [...new Set(picEntries.filter(e => e.pic_type === 'TEAM').map(e => e.ref_id))];
 
             if (!teamIds.length) {
-                Swal.fire({ icon: 'warning', title: 'Pick at least one Team or person', text: 'Select at least one Team, or a person (which links their Team automatically).' });
+                Swal.fire({ icon: 'warning', title: 'Pick at least one Team', text: 'Select at least one Team this project belongs to.' });
                 return;
             }
 
@@ -1851,7 +1993,12 @@
                     $('#projectModal').addClass('hidden');
                     Swal.fire({ icon: 'success', title: res.message, timer: 1500, showConfirmButton: false })
                         .then(() => {
+                            const portfolio = Alpine.$data(document.getElementById('pmPortfolioRoot'));
                             if (isEdit && PM_PROJECT_ID === projectId) openProjectDetail(projectId, 'none');
+                            // Edited from the scoped board's own Edit button
+                            // (editSelectedProject()) — refresh sidebar +
+                            // board in place instead of a hard reload.
+                            else if (isEdit && portfolio.projectId === projectId) portfolio.loadSidebar();
                             else window.location.reload();
                         });
                 },

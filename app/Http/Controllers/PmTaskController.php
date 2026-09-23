@@ -381,14 +381,29 @@ class PmTaskController extends Controller
     public function destroy(string $projectId, string $taskId)
     {
         $this->project($projectId);
-        TrProjectTask::where('project_id', $projectId)->where('task_id', $taskId)->firstOrFail();
+        $task = TrProjectTask::where('project_id', $projectId)->where('task_id', $taskId)->firstOrFail();
 
-        // Archiving a Task must cascade to its whole subtree — otherwise a
-        // parent disappears from the board while its children silently
-        // remain active and orphaned.
-        $ids = $this->subtreeTaskIds($projectId, $taskId);
         $now = now();
         $username = Auth::user()->username;
+
+        // A top-level Task lives on the Kanban board — "Archive" just
+        // relocates its card to the board's own Archive column, same as any
+        // other status_id change (reversible by dragging it back out). Its
+        // own subtree is left untouched, unlike archiving a Subtask below.
+        // Same behavior as TeamTaskController::destroy().
+        if ($task->parent_task_id === null) {
+            $this->ensureDefaultStatuses($projectId);
+            $task->update(['status_id' => 'ARCHIVE', 'updated_by' => $username, 'updated_at' => $now]);
+
+            $this->recalcProjectProgress($projectId);
+
+            return response()->json(['success' => true, 'message' => 'Task archived successfully']);
+        }
+
+        // A Subtask has no Kanban column of its own to move to — "Archive"
+        // keeps its original meaning: hide it and its own descendants (if
+        // any) from every view.
+        $ids = $this->subtreeTaskIds($projectId, $taskId);
 
         TrProjectTask::where('project_id', $projectId)->whereIn('task_id', $ids)
             ->update(['status' => 'X', 'updated_by' => $username, 'updated_at' => $now]);
