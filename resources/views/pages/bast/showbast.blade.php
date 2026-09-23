@@ -5,7 +5,8 @@
 
     @php
         $statusText = match ($bast->status) {
-            'P' => 'Pending',
+            'D' => 'Revise',
+            'P' => 'On Progress',
             'A' => 'Approved',
             'R' => 'Rejected',
             'C' => 'Completed',
@@ -13,6 +14,7 @@
             default => 'Unknown',
         };
         $statusClasses = match ($bast->status) {
+            'D' => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
             'P' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300',
             'A' => 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-300',
             'R' => 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300',

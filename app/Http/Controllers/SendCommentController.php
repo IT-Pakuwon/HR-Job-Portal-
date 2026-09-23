@@ -181,6 +181,7 @@ class SendCommentController extends Controller
     {
         $comments = TrMessage::where('doctype', $doctype)
             ->where('refnbr', $id)
+            ->where('status', 'A')
             ->where(function ($q) {
                 $q->whereNull('message_type')
                     ->orWhere('message_type', '!=', 'Private');
