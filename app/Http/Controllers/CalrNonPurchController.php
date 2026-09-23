@@ -142,6 +142,7 @@ class CalrNonPurchController extends Controller
             'revise',
             'calrFinance',
             'calrAll',
+            'cpnyList',
             'isFinanceAccess',
             'hasApFinAccess',
             'hasApTreAccess'
@@ -406,6 +407,22 @@ class CalrNonPurchController extends Controller
 
                 if ($scope === 'calrfinance') {
                     $base->where('status', 'C');
+                    $company = trim((string) $req->input('cpny_id', ''));
+                    if ($company !== '') {
+                        $base->where('cpny_id', $company);
+                    }
+
+                    $financeStatus = (string) $req->input('finance_status', '');
+                    if (in_array($financeStatus, ['waiting_user', 'finance_received', 'treasury_received'], true)) {
+                        // Match the finance_flow_status_text returned for each row.
+                        $base->whereRaw("CASE
+                            WHEN UPPER(TRIM(COALESCE(statusreceive, 'P'))) = 'C'
+                                AND UPPER(TRIM(COALESCE(statuspayment, 'P'))) = 'P' THEN 'finance_received'
+                            WHEN UPPER(TRIM(COALESCE(statusreceive, 'P'))) = 'C'
+                                AND UPPER(TRIM(COALESCE(statuspayment, 'P'))) = 'C' THEN 'treasury_received'
+                            ELSE 'waiting_user'
+                        END = ?", [$financeStatus]);
+                    }
                 } else {
                     $status = strtoupper(trim((string) $req->input('status', '')));
                     if ($status !== '') {
