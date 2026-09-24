@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\MsProjectStatus;
 use App\Models\MsTeam;
+use App\Models\MsTeamTaskStatus;
 use App\Models\TrProjectStatusTeam;
 use App\Models\TrTeamMember;
 use App\Models\User;
@@ -214,6 +215,31 @@ class TeamController extends Controller
                     ['status_id' => $statusId, 'team_id' => $teamId],
                     ['status' => 'A', 'created_by' => $username, 'created_at' => $now]
                 );
+            }
+
+            // Default Task-board columns for the Team's own Kanban — unlike
+            // the Project-lifecycle statuses above, these are the Team's own
+            // rows from the start (ms_team_task_status is already a genuine
+            // per-team table), fully editable/deletable like any status the
+            // Team adds itself.
+            foreach ([
+                ['TODO', 'To Do', '#9CA3AF', 0],
+                ['INPROGRESS', 'On Progress', '#3B82F6', 1],
+                ['DONE', 'Done', '#10B981', 2],
+                // "Closed", not "Archive" — the card's Archive button hides a
+                // Task entirely (status 'X') and never moves it into a column.
+                ['CLOSED', 'Closed', '#6B7280', 3],
+            ] as [$id, $name, $color, $order]) {
+                MsTeamTaskStatus::create([
+                    'status_id' => $id,
+                    'team_id' => $teamId,
+                    'status_name' => $name,
+                    'color' => $color,
+                    'sort_order' => $order,
+                    'status' => 'A',
+                    'created_by' => $username,
+                    'created_at' => $now,
+                ]);
             }
         });
 

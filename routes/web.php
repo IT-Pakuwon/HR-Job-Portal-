@@ -112,6 +112,7 @@ use App\Http\Controllers\PersonnelController;
 use App\Http\Controllers\PgTrekDashboardController;
 use App\Http\Controllers\PmGroupController;
 use App\Http\Controllers\PmProjectController;
+use App\Http\Controllers\ProjectArchiveController;
 use App\Http\Controllers\PmTaskController;
 use App\Http\Controllers\PmTaskDetailController;
 use App\Http\Controllers\PoController;
@@ -1612,6 +1613,8 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/{taskId}/cancel', 'cancel')->name('cancel');
             Route::delete('/{taskId}', 'destroy')->name('destroy');
             Route::post('/statuses', 'storeStatus')->name('statuses.store');
+            Route::put('/statuses/{statusId}', 'updateStatusColumn')->name('statuses.update');
+            Route::delete('/statuses/{statusId}', 'destroyStatusColumn')->name('statuses.destroy');
             Route::get('/{taskId}/mentionable-users', 'mentionableUsers')->name('mentionable-users');
         });
 
@@ -1657,6 +1660,8 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/{taskId}/status', 'updateStatus')->name('status');
             Route::delete('/{taskId}', 'destroy')->name('destroy');
             Route::post('/statuses', 'storeStatus')->name('statuses.store');
+            Route::put('/statuses/{statusId}', 'updateStatusColumn')->name('statuses.update');
+            Route::delete('/statuses/{statusId}', 'destroyStatusColumn')->name('statuses.destroy');
             Route::get('/{taskId}/mentionable-users', 'mentionableUsers')->name('mentionable-users');
         });
 
@@ -2912,6 +2917,17 @@ Route::controller(BookingCarController::class)->group(function () {
         Route::put('/attachments-master/{id}/toggle-status', [AttachmentMasterController::class, 'toggleStatus'])->name('attachments-master.toggle-status');
         Route::delete('/attachments/{id}', [AttachmentMasterController::class, 'delete'])
             ->name('attachments.delete');
+
+        // Global Settings > Project Setup — restore archived Projects/Tasks.
+        Route::controller(ProjectArchiveController::class)->group(function () {
+            Route::get('/project-archive', 'projects')->name('project-archive');
+            Route::get('/project-archive/json', 'projectsJson')->name('project-archive.json');
+            Route::put('/project-archive/{projectId}/restore', 'restoreProject')->name('project-archive.restore');
+
+            Route::get('/task-archive', 'tasks')->name('task-archive');
+            Route::get('/task-archive/json', 'tasksJson')->name('task-archive.json');
+            Route::put('/task-archive/{source}/{taskId}/restore', 'restoreTask')->name('task-archive.restore');
+        });
     }); // end admin middleware
 
     // ── Vendors: accessible to admin and PURCHACCESS (authorization enforced in VendorController) ──

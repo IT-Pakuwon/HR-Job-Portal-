@@ -5,12 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Traits\BuildsTaskTree;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\MsProject;
-use App\Models\MsTaskStatus;
+use App\Models\MsProjectTaskStatus;
 use App\Models\MsTaskTag;
 use App\Models\MsTeam;
 use App\Models\TrProjectTask;
 use App\Models\TrProjectTaskAssignee;
-use App\Models\TrProjectTaskStatus;
 use App\Models\TrProjectTaskTag;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -38,9 +37,9 @@ class PmTaskController extends Controller
         return $project;
     }
 
-    // Union of member usernames across every Team linked to the Project —
-    // a Project handled by more than one Team draws its eligible pool from
-    // all of them, not just one.
+    // Union of member usernames across every Team linked to the Project,
+    // plus individually-picked PIC people and the creator — a Project can
+    // be linked to Teams, people, or both (or only people, no Team at all).
     private function eligibleUsernames(MsProject $project)
     {
         $teamIds = $project->teams->pluck('team_id');
@@ -48,6 +47,9 @@ class PmTaskController extends Controller
         return MsTeam::whereIn('team_id', $teamIds)->get()
             ->flatMap(fn ($t) => $t->memberUsers()->pluck('username'))
             ->map(fn ($u) => strtolower(trim($u)))
+            ->merge($project->picUsernames())
+            ->push(strtolower(trim((string) $project->created_by)))
+            ->filter()
             ->unique();
     }
 
@@ -128,50 +130,11 @@ class PmTaskController extends Controller
         return response()->json(MsTaskTag::where('status', 'A')->orderBy('tag_name')->get(['tag_id', 'tag_name', 'color']));
     }
 
-    // Task-board statuses are a shared master (ms_task_status), enabled
-    // per-Project via tr_project_task_status — same master+junction idea as
-    // ms_project_status/tr_project_status_team on the portfolio Kanban. A
-    // status typed on one Project's board (storeStatus() below) lands in
-    // the master but is only enabled for that Project; other Projects don't
-    // see it until they enable/add it too.
-    private function enabledStatusIds(string $projectId)
-    {
-        return TrProjectTaskStatus::where('project_id', $projectId)->where('status', 'A')->pluck('status_id');
-    }
-
-    // Guarantees the 4 default columns (To Do / In Progress / Done /
-    // Archive) exist in the master and are enabled for this Project —
-    // covers Projects created before this master+junction table existed.
-    // Idempotent: safe to call on every load.
-    private function ensureDefaultStatuses(string $projectId): void
-    {
-        foreach ([['TODO', 'To Do', '#9CA3AF', 0], ['INPROGRESS', 'In Progress', '#3B82F6', 1], ['DONE', 'Done', '#10B981', 2], ['ARCHIVE', 'Archive', '#6B7280', 3]] as [$id, $name, $color, $order]) {
-            MsTaskStatus::firstOrCreate(
-                ['status_id' => $id],
-                ['status_name' => $name, 'color' => $color, 'sort_order' => $order, 'status' => 'A', 'created_by' => 'system', 'created_at' => now()]
-            );
-
-            TrProjectTaskStatus::firstOrCreate(
-                ['status_id' => $id, 'project_id' => $projectId],
-                ['status' => 'A', 'created_by' => 'system', 'created_at' => now()]
-            );
-        }
-    }
-
     public function boardData(string $projectId)
     {
         $project = $this->project($projectId);
 
-        $this->ensureDefaultStatuses($projectId);
-
-        $allStatuses = MsTaskStatus::where('status', 'A')->orderBy('sort_order')->get();
-        $enabledIds = $this->enabledStatusIds($projectId);
-
-        // Archive always renders last regardless of sort_order — otherwise
-        // a later "+ Add status" column (sort_order = current max + 1)
-        // would land after it.
-        $statuses = $allStatuses->whereIn('status_id', $enabledIds->all())->values()
-            ->sortBy(fn ($s) => $s->status_id === 'ARCHIVE' ? 1 : 0)->values();
+        $statuses = MsProjectTaskStatus::where('project_id', $projectId)->where('status', 'A')->orderBy('sort_order')->get();
 
         $tasks = TrProjectTask::where('project_id', $projectId)->where('status', 'A')->get();
 
@@ -264,7 +227,7 @@ class PmTaskController extends Controller
         $auto = $this->nextAutonbr('TSK', (int) $now->year, $now->format('m'), $username, 'Project Task');
         $taskId = 'TSK' . substr((string) $now->year, 2) . $now->format('m') . sprintf('%04d', $auto['next']);
 
-        $defaultStatus = TrProjectTaskStatus::where('project_id', $projectId)->where('status_id', 'TODO')->where('status', 'A')->exists() ? 'TODO' : null;
+        $defaultStatus = MsProjectTaskStatus::where('project_id', $projectId)->where('status_id', 'TODO')->where('status', 'A')->exists() ? 'TODO' : null;
 
         DB::connection('pgsql5')->transaction(function () use ($request, $projectId, $taskId, $username, $now, $defaultStatus) {
             TrProjectTask::create([
@@ -386,23 +349,10 @@ class PmTaskController extends Controller
         $now = now();
         $username = Auth::user()->username;
 
-        // A top-level Task lives on the Kanban board — "Archive" just
-        // relocates its card to the board's own Archive column, same as any
-        // other status_id change (reversible by dragging it back out). Its
-        // own subtree is left untouched, unlike archiving a Subtask below.
-        // Same behavior as TeamTaskController::destroy().
-        if ($task->parent_task_id === null) {
-            $this->ensureDefaultStatuses($projectId);
-            $task->update(['status_id' => 'ARCHIVE', 'updated_by' => $username, 'updated_at' => $now]);
-
-            $this->recalcProjectProgress($projectId);
-
-            return response()->json(['success' => true, 'message' => 'Task archived successfully']);
-        }
-
-        // A Subtask has no Kanban column of its own to move to — "Archive"
-        // keeps its original meaning: hide it and its own descendants (if
-        // any) from every view.
+        // "Archive" hides the Task and its whole subtree (if any) from
+        // every view — a status column is never a required destination, so
+        // this works the same regardless of depth or which/whether a status
+        // column exists. Same behavior as TeamTaskController::destroy().
         $ids = $this->subtreeTaskIds($projectId, $taskId);
 
         TrProjectTask::where('project_id', $projectId)->whereIn('task_id', $ids)
@@ -414,52 +364,97 @@ class PmTaskController extends Controller
         return response()->json(['success' => true, 'message' => 'Task archived successfully']);
     }
 
-    // "+ Add status" on a Project's Task board. Same master+ junction
-    // pattern as PmProjectController::storeStatus(): matched by a
-    // normalized status_id so "In progress"/"in Progress" resolve to the
-    // same master row, exact typed text kept as status_name. Enabling it
-    // links it to this Project only via tr_project_task_status — it
-    // doesn't touch other Projects' boards.
+    // "+ Add status" on a Project's Task board — this Project's own,
+    // isolated status list (mirrors TeamTaskController::storeStatus()).
     public function storeStatus(Request $request, string $projectId)
     {
         $this->project($projectId);
 
-        $request->validate(['status_name' => ['required', 'string', 'max:100']]);
+        $request->validate([
+            'status_name' => ['required', 'string', 'max:100'],
+            'status_id' => ['nullable', 'string', 'max:20'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+        ]);
 
+        // A custom status_id / sort_order is only honored for admins (the
+        // Status Settings panel); everyone else gets one derived from the name.
+        $isAdmin = Auth::user()->isPrimaryAdmin();
         $statusName = trim($request->status_name);
-        $statusId = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $statusName));
-        abort_if($statusId === '', 422, 'Status name must contain at least one letter or number.');
+        $statusId = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', ($isAdmin && $request->filled('status_id')) ? $request->status_id : $statusName));
+        abort_if($statusId === '', 422, 'Status ID must contain at least one letter or number.');
 
-        $status = MsTaskStatus::where('status_id', $statusId)->first();
+        $sortOrder = ($isAdmin && $request->filled('sort_order'))
+            ? (int) $request->sort_order
+            : (int) MsProjectTaskStatus::where('project_id', $projectId)->where('status', 'A')->max('sort_order') + 1;
+
+        // A previously deleted (status 'X') row with the same id is revived
+        // instead of silently returned as-is (it would never reappear).
+        $status = MsProjectTaskStatus::where('project_id', $projectId)->where('status_id', $statusId)->first();
+        abort_if($status && $status->status === 'A', 422, "Status ID \"{$statusId}\" already exists.");
+
+        $values = [
+            'status_name' => $statusName,
+            'color' => $request->input('color', '#6366F1'),
+            'sort_order' => $sortOrder,
+            'status' => 'A',
+        ];
 
         if ($status) {
-            if ($status->status_name !== $statusName) {
-                $status->update([
-                    'status_name' => $statusName,
-                    'updated_by' => Auth::user()->username,
-                    'updated_at' => now(),
-                ]);
-            }
+            $status->update($values + ['updated_by' => Auth::user()->username, 'updated_at' => now()]);
         } else {
-            $nextOrder = (int) MsTaskStatus::max('sort_order') + 1;
-
-            $status = MsTaskStatus::create([
+            $status = MsProjectTaskStatus::create($values + [
+                'project_id' => $projectId,
                 'status_id' => $statusId,
-                'status_name' => $statusName,
-                'color' => $request->input('color', '#6366F1'),
-                'sort_order' => $nextOrder,
-                'status' => 'A',
                 'created_by' => Auth::user()->username,
                 'created_at' => now(),
             ]);
         }
 
-        TrProjectTaskStatus::firstOrCreate(
-            ['status_id' => $statusId, 'project_id' => $projectId],
-            ['status' => 'A', 'created_by' => Auth::user()->username, 'created_at' => now()]
-        );
+        return response()->json(['success' => true, 'status' => $status]);
+    }
+
+    // Rename/recolor a status column — status_id itself never changes, so
+    // Tasks already sitting in it keep pointing at the same row.
+    public function updateStatusColumn(Request $request, string $projectId, string $statusId)
+    {
+        $this->project($projectId);
+
+        $request->validate([
+            'status_name' => ['required', 'string', 'max:100'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        $status = MsProjectTaskStatus::where('project_id', $projectId)->where('status_id', $statusId)->firstOrFail();
+
+        $status->update([
+            'status_name' => trim($request->status_name),
+            'color' => $request->input('color', $status->color),
+            'sort_order' => (Auth::user()->isPrimaryAdmin() && $request->filled('sort_order')) ? (int) $request->sort_order : $status->sort_order,
+            'updated_by' => Auth::user()->username,
+            'updated_at' => now(),
+        ]);
 
         return response()->json(['success' => true, 'status' => $status]);
+    }
+
+    // Every default and custom status is equally deletable — blocked only
+    // while a Task is still sitting in it, so a card is never silently
+    // orphaned onto a column that no longer exists.
+    public function destroyStatusColumn(string $projectId, string $statusId)
+    {
+        $this->project($projectId);
+
+        $status = MsProjectTaskStatus::where('project_id', $projectId)->where('status_id', $statusId)->firstOrFail();
+
+        abort_if(
+            TrProjectTask::where('project_id', $projectId)->where('status_id', $statusId)->where('status', 'A')->exists(),
+            422,
+            'Move or delete the tasks in this status first.'
+        );
+
+        $status->update(['status' => 'X', 'updated_by' => Auth::user()->username, 'updated_at' => now()]);
+
+        return response()->json(['success' => true]);
     }
 
     // @mention autocomplete for a Task's chat — same eligible pool as the

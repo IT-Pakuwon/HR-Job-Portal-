@@ -45,19 +45,13 @@ class MsProject extends Model
         return $this->belongsTo(MsProjectStatus::class, 'status_id', 'status_id');
     }
 
-    // Task-board statuses enabled for this Project, out of the shared
-    // ms_task_status master list — via tr_project_task_status, same
-    // master+junction pattern as projectStatus()/ms_project_status.
+    // Task-board statuses — this Project's own, isolated from every other
+    // Project's (same shape as MsTeam::taskStatuses()).
     public function taskStatuses()
     {
-        return $this->belongsToMany(
-            MsTaskStatus::class,
-            'tr_project_task_status',
-            'project_id',
-            'status_id',
-            'project_id',
-            'status_id'
-        )->wherePivot('status', 'A')->orderBy('sort_order');
+        return $this->hasMany(MsProjectTaskStatus::class, 'project_id', 'project_id')
+            ->where('status', 'A')
+            ->orderBy('sort_order');
     }
 
     public function tasks()
@@ -69,6 +63,16 @@ class MsProject extends Model
     {
         return $this->hasMany(TrProjectPic::class, 'project_id', 'project_id')
             ->where('status', 'A');
+    }
+
+    // Individually-picked PIC people (pic_type USER), lowercased — a Project
+    // may have no linked Team at all, so these people need access on their own.
+    public function picUsernames()
+    {
+        return $this->pics()->where('pic_type', 'USER')->pluck('ref_id')
+            ->map(fn ($u) => strtolower(trim($u)))
+            ->unique()
+            ->values();
     }
 
     // Links out (this project -> others it points to)

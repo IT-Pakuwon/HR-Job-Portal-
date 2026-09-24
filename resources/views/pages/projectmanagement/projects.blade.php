@@ -99,6 +99,10 @@
                                     :class="p.is_favorite ? 'text-amber-400' : 'text-gray-300 opacity-0 group-hover:opacity-100 hover:text-amber-400 dark:text-gray-600'">
                                     <i :class="p.is_favorite ? 'fas' : 'far'" class="fa-star"></i>
                                 </button>
+                                <button x-show="canCreateProject" @click.stop.prevent="archiveProject(p.project_id, p.project_name)" title="Archive project"
+                                    class="shrink-0 py-2 pl-0.5 pr-2 text-xs text-gray-300 opacity-0 transition hover:text-red-500 group-hover:opacity-100 dark:text-gray-600 dark:hover:text-red-400">
+                                    <i class="fas fa-box-archive"></i>
+                                </button>
                             </div>
                         </template>
                         <p x-show="!projects.length" class="px-2.5 py-1.5 text-xs text-gray-400">No projects yet.</p>
@@ -132,15 +136,21 @@
 
             {{-- HEADER --}}
             <div class="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-3 dark:border-white/[0.06]">
-                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">📁 <span x-text="headerTitle"></span></h2>
+                <div class="flex min-w-0 items-center gap-2">
+                    <h2 class="truncate text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">📁 <span x-text="headerTitle"></span></h2>
+                    <button x-show="isPrimaryAdmin && (teamId || projectId)" x-cloak @click="openStatusPanel()" title="Status settings"
+                        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-50 hover:text-indigo-600 dark:hover:bg-gray-800 dark:hover:text-indigo-400">
+                        <i class="fas fa-gear text-sm"></i>
+                    </button>
+                </div>
                 <div x-show="projectId" x-cloak class="flex shrink-0 items-center gap-1">
                     <button @click="editSelectedProject()" title="Edit Project"
                         class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-50 hover:text-indigo-600 dark:hover:bg-gray-800 dark:hover:text-indigo-400">
                         <i class="fas fa-pen text-xs"></i>
                     </button>
-                    <button @click="deleteSelectedProject()" title="Delete Project"
+                    <button @click="archiveSelectedProject()" title="Archive Project"
                         class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-red-50 hover:text-red-500 dark:hover:bg-gray-800 dark:hover:text-red-400">
-                        <i class="fas fa-trash text-xs"></i>
+                        <i class="fas fa-box-archive text-xs"></i>
                     </button>
                 </div>
             </div>
@@ -207,7 +217,7 @@
                                 <i class="fas fa-people-group text-[10px]"></i> Team(s) &amp; PIC
                             </label>
                             <select id="project_team_pic" class="select2 w-full" multiple data-placeholder="Select team(s) and/or person(s) in charge"></select>
-                            <p class="mt-1 text-xs text-slate-400">Picking a Team links the project to it. People are anyone with Project access, org-wide.</p>
+                            <p class="mt-1 text-xs text-slate-400">Pick Teams, people, or both. Picking a Team links the project to it. People are anyone with Project access, org-wide.</p>
                         </div>
                         <div>
                             <label class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -270,7 +280,7 @@
                         <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-300">
                             <i class="fas fa-swatchbook text-sm"></i>
                         </span>
-                        <h2 class="text-base font-semibold text-slate-900 dark:text-white">Add status column</h2>
+                        <h2 class="text-base font-semibold text-slate-900 dark:text-white" x-text="editingStatusId ? 'Edit status column' : 'Add status column'"></h2>
                     </div>
                     <button type="button" @click="closeAddStatusModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"><i class="fas fa-times text-sm"></i></button>
                 </div>
@@ -307,9 +317,99 @@
                                 placeholder="e.g. In Progress"
                                 class="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white">
                             <button type="button" @click="submitStatus(newStatusName)"
-                                class="h-10 shrink-0 rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white transition hover:bg-indigo-500">Add</button>
+                                class="h-10 shrink-0 rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white transition hover:bg-indigo-500" x-text="editingStatusId ? 'Save' : 'Add'"></button>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- STATUS SETTINGS PANEL (admin only) — full CRUD over the current
+         Team/Project's own status columns, sliding in from the right. --}}
+    <div x-show="statusPanelOpen" x-cloak class="fixed inset-0 z-50" @keydown.escape.window="statusPanelOpen && closeStatusPanel()">
+        <div x-show="statusPanelOpen" x-transition.opacity class="absolute inset-0 bg-slate-900/40" @click="closeStatusPanel()"></div>
+        <div x-show="statusPanelOpen"
+            x-transition:enter="transform transition ease-out duration-200" x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
+            x-transition:leave="transform transition ease-in duration-150" x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full"
+            class="absolute inset-y-0 right-0 flex w-full max-w-2xl flex-col bg-white shadow-2xl dark:bg-slate-800">
+            <div class="flex items-start justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-700">
+                <div class="flex items-center gap-3">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-300">
+                        <i class="fas fa-gear text-sm"></i>
+                    </span>
+                    <div>
+                        <h2 class="text-base font-semibold text-slate-900 dark:text-white">Status settings</h2>
+                        <p class="text-xs text-slate-400" x-text="headerTitle"></p>
+                    </div>
+                </div>
+                <button type="button" @click="closeStatusPanel()" title="Close" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"><i class="fas fa-times text-sm"></i></button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-5">
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-200 text-xs font-medium uppercase tracking-wide text-slate-400 dark:border-slate-700">
+                            <th class="py-2 pr-2">Status ID</th>
+                            <th class="px-2 py-2">Status Name</th>
+                            <th class="px-2 py-2">Color</th>
+                            <th class="w-20 px-2 py-2">Order</th>
+                            <th class="w-20 py-2 pl-2"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="row in statusRows" :key="row.status_id">
+                            <tr class="border-b border-slate-100 dark:border-slate-700/60">
+                                <td class="py-2 pr-2">
+                                    <span class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-600 dark:bg-slate-700 dark:text-slate-300" x-text="row.status_id"></span>
+                                </td>
+                                <td class="px-2 py-2">
+                                    <input type="text" x-model="row.status_name" maxlength="100" @keydown.enter="saveStatusRow(row)"
+                                        class="h-9 w-full rounded-lg border border-slate-300 px-2.5 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                                </td>
+                                <td class="px-2 py-2">
+                                    <input type="color" x-model="row.color"
+                                        class="h-9 w-10 cursor-pointer rounded-lg border border-slate-300 bg-white p-1 dark:border-slate-600 dark:bg-slate-700">
+                                </td>
+                                <td class="px-2 py-2">
+                                    <input type="number" min="0" x-model.number="row.sort_order" @keydown.enter="saveStatusRow(row)"
+                                        class="h-9 w-full rounded-lg border border-slate-300 px-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                                </td>
+                                <td class="py-2 pl-2">
+                                    <div class="flex items-center justify-end gap-1">
+                                        <button type="button" @click="saveStatusRow(row)" :disabled="!statusRowDirty(row)" title="Save"
+                                            class="rounded-lg p-2 text-indigo-600 transition hover:bg-indigo-50 disabled:cursor-default disabled:text-slate-300 disabled:hover:bg-transparent dark:hover:bg-indigo-900/30 dark:disabled:text-slate-600">
+                                            <i class="fas fa-check text-xs"></i>
+                                        </button>
+                                        <button type="button" @click="deleteStatusRow(row)" title="Delete"
+                                            class="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20">
+                                            <i class="fas fa-trash text-xs"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+                        <tr x-show="!statusRows.length">
+                            <td colspan="5" class="py-6 text-center text-xs text-slate-400">No statuses yet.</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="mt-5 rounded-lg border border-dashed border-slate-300 p-3 dark:border-slate-600">
+                    <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Add status</p>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <input type="text" x-model="newStatusRow.status_id" maxlength="20" placeholder="ID (optional)"
+                            class="h-9 w-32 rounded-lg border border-slate-300 px-2.5 font-mono text-xs uppercase dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                        <input type="text" x-model="newStatusRow.status_name" maxlength="100" placeholder="Status name" @keydown.enter="addStatusRow()"
+                            class="h-9 min-w-0 flex-1 rounded-lg border border-slate-300 px-2.5 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                        <input type="color" x-model="newStatusRow.color"
+                            class="h-9 w-10 cursor-pointer rounded-lg border border-slate-300 bg-white p-1 dark:border-slate-600 dark:bg-slate-700">
+                        <input type="number" min="0" x-model="newStatusRow.sort_order" placeholder="Order"
+                            class="h-9 w-20 rounded-lg border border-slate-300 px-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                        <button type="button" @click="addStatusRow()"
+                            class="h-9 shrink-0 rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white transition hover:bg-indigo-500">Add</button>
+                    </div>
+                    <p class="mt-2 text-[11px] text-slate-400">ID and order are generated from the name / placed last when left blank. A status ID can't be changed after it's created.</p>
                 </div>
             </div>
         </div>
@@ -900,7 +1000,13 @@
                 availableStatuses: [],
                 newStatusName: '',
                 newStatusColor: '#6366F1',
+                editingStatusId: null,
                 quickAddStatusId: null,
+                // Status Settings side panel — admin (not adminsby) only.
+                isPrimaryAdmin: @json(auth()->user()->isPrimaryAdmin()),
+                statusPanelOpen: false,
+                statusRows: [],
+                newStatusRow: { status_id: '', status_name: '', color: '#6366F1', sort_order: '' },
                 projects: [],
                 teamTaskStatuses: [],
                 teamTasks: [],
@@ -965,6 +1071,7 @@
                     // Clicking the already-active Team clears the filter,
                     // returning to the Projects portfolio.
                     this.teamId = this.teamId === teamId ? '' : teamId;
+                    this.statusPanelOpen = false;
                     this.projectId = '';
                     this.loadMainPanel();
                 },
@@ -975,6 +1082,7 @@
                 // Team gets, just sourced from PmTaskController.
                 selectProject(projectId) {
                     this.projectId = this.projectId === projectId ? '' : projectId;
+                    this.statusPanelOpen = false;
                     this.teamId = '';
                     this.loadMainPanel();
                 },
@@ -993,16 +1101,24 @@
                     });
                 },
 
-                deleteSelectedProject() {
+                archiveSelectedProject() {
                     if (!this.projectId) return;
-                    const projectId = this.projectId;
+                    const p = this.projects.find(x => x.project_id === this.projectId);
+                    this.archiveProject(this.projectId, p?.project_name);
+                },
+
+                // Shared by the scoped board header's Archive and the
+                // sidebar's per-project archive button — soft-archive
+                // (status 'X') via PmProjectController::destroy().
+                archiveProject(projectId, projectName) {
+                    if (!projectId) return;
 
                     Swal.fire({
                         icon: 'warning',
-                        title: 'Delete this project?',
-                        text: 'This removes it from the portfolio for everyone. This cannot be undone from here.',
+                        title: 'Archive this project?',
+                        html: `<b>${$('<div>').text(projectName || projectId).html()}</b> and all of its tasks and subtasks will be removed from the portfolio for everyone. An admin can restore it from Global Settings → Project Setup → Project Archive.`,
                         showCancelButton: true,
-                        confirmButtonText: 'Delete',
+                        confirmButtonText: 'Archive',
                         confirmButtonColor: '#DC2626',
                     }).then((result) => {
                         if (!result.isConfirmed) return;
@@ -1011,8 +1127,9 @@
                             url: `{{ url('projects') }}/${projectId}`,
                             method: 'DELETE',
                             data: { _token: '{{ csrf_token() }}' },
-                            success: () => {
-                                this.projectId = '';
+                            success: (res) => {
+                                if (this.projectId === projectId) this.projectId = '';
+                                Swal.fire({ icon: 'success', title: res.message || 'Project archived', timer: 1500, showConfirmButton: false });
                                 this.loadSidebar();
                             },
                             error: (xhr) => {
@@ -1155,6 +1272,7 @@
                 // columns are its own), so availableStatuses is cleared and
                 // only the free-text field shows.
                 openAddStatusModal() {
+                    this.editingStatusId = null;
                     this.newStatusName = '';
                     this.newStatusColor = '#6366F1';
                     if (this.teamId || this.projectId) this.availableStatuses = [];
@@ -1162,13 +1280,46 @@
                     $('#new_status_name').focus();
                 },
 
+                // Edit pencil on a Team/Project Task-board column header —
+                // reuses the same modal as "+ Add status", prefilled and
+                // switched into update mode via editingStatusId.
+                openEditStatusModal(status) {
+                    this.editingStatusId = status.status_id;
+                    this.newStatusName = status.status_name;
+                    this.newStatusColor = status.color || '#6366F1';
+                    this.availableStatuses = [];
+                    $('#addStatusModal').removeClass('hidden');
+                    $('#new_status_name').focus();
+                },
+
                 closeAddStatusModal() {
+                    this.editingStatusId = null;
                     $('#addStatusModal').addClass('hidden');
                 },
 
                 submitStatus(statusName) {
                     statusName = (statusName ?? '').trim();
                     if (!statusName) return;
+
+                    if (this.editingStatusId) {
+                        $.ajax({
+                            url: `${this.taskApiBase}/statuses/${this.editingStatusId}`,
+                            method: 'PUT',
+                            data: {
+                                status_name: statusName,
+                                color: this.newStatusColor,
+                                _token: '{{ csrf_token() }}',
+                            },
+                            success: () => {
+                                this.closeAddStatusModal();
+                                this.refreshTaskBoard();
+                            },
+                            error: (xhr) => {
+                                Swal.fire({ icon: 'error', title: 'Error', text: xhr.responseJSON?.message || 'Something went wrong.' });
+                            },
+                        });
+                        return;
+                    }
 
                     if (this.teamId || this.projectId) {
                         $.post(`${this.taskApiBase}/statuses`, {
@@ -1194,6 +1345,115 @@
                         this.loadSidebar();
                     }).fail((xhr) => {
                         Swal.fire({ icon: 'error', title: 'Error', text: xhr.responseJSON?.message || 'Something went wrong.' });
+                    });
+                },
+
+                // Status Settings side panel — editable copies of the current
+                // board's statuses (teamTaskStatuses), each row saved on its
+                // own. `_orig` keeps the last-saved values for dirty checks.
+                openStatusPanel() {
+                    if (!this.teamId && !this.projectId) return;
+                    this.syncStatusRows();
+                    this.newStatusRow = { status_id: '', status_name: '', color: '#6366F1', sort_order: '' };
+                    this.statusPanelOpen = true;
+                },
+
+                closeStatusPanel() {
+                    this.statusPanelOpen = false;
+                },
+
+                syncStatusRows() {
+                    this.statusRows = this.teamTaskStatuses.map(s => {
+                        const row = { status_id: s.status_id, status_name: s.status_name, color: s.color || '#6366F1', sort_order: s.sort_order ?? 0 };
+                        return { ...row, _orig: { ...row } };
+                    });
+                },
+
+                statusRowDirty(row) {
+                    return row.status_name !== row._orig.status_name
+                        || row.color !== row._orig.color
+                        || Number(row.sort_order) !== Number(row._orig.sort_order);
+                },
+
+                statusPanelError(xhr) {
+                    const errors = xhr.responseJSON?.errors;
+                    const text = errors ? Object.values(errors).flat().join('\n') : (xhr.responseJSON?.message || 'Something went wrong.');
+                    Swal.fire({ icon: 'error', title: 'Error', text });
+                },
+
+                saveStatusRow(row) {
+                    if (!row.status_name?.trim()) {
+                        Swal.fire({ icon: 'warning', title: 'Status name is required' });
+                        return;
+                    }
+                    if (!this.statusRowDirty(row)) return;
+
+                    $.ajax({
+                        url: `${this.taskApiBase}/statuses/${row.status_id}`,
+                        method: 'PUT',
+                        data: {
+                            status_name: row.status_name.trim(),
+                            color: row.color,
+                            sort_order: row.sort_order === '' ? 0 : row.sort_order,
+                            _token: '{{ csrf_token() }}',
+                        },
+                        success: () => this.refreshTaskBoard(() => this.syncStatusRows()),
+                        error: (xhr) => this.statusPanelError(xhr),
+                    });
+                },
+
+                addStatusRow() {
+                    const r = this.newStatusRow;
+                    if (!r.status_name.trim()) {
+                        Swal.fire({ icon: 'warning', title: 'Status name is required' });
+                        return;
+                    }
+
+                    $.post(`${this.taskApiBase}/statuses`, {
+                        status_id: r.status_id.trim(),
+                        status_name: r.status_name.trim(),
+                        color: r.color,
+                        sort_order: r.sort_order === '' ? '' : r.sort_order,
+                        _token: '{{ csrf_token() }}',
+                    }, () => {
+                        this.newStatusRow = { status_id: '', status_name: '', color: '#6366F1', sort_order: '' };
+                        this.refreshTaskBoard(() => this.syncStatusRows());
+                    }).fail((xhr) => this.statusPanelError(xhr));
+                },
+
+                deleteStatusRow(row) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: `Delete "${row._orig.status_name}"?`,
+                        text: 'Only possible when no task is in this status.',
+                        showCancelButton: true,
+                        confirmButtonText: 'Delete',
+                        confirmButtonColor: '#ef4444',
+                    }).then((result) => {
+                        if (!result.isConfirmed) return;
+                        $.ajax({
+                            url: `${this.taskApiBase}/statuses/${row.status_id}`,
+                            method: 'DELETE',
+                            data: { _token: '{{ csrf_token() }}' },
+                            success: () => this.refreshTaskBoard(() => this.syncStatusRows()),
+                            error: (xhr) => this.statusPanelError(xhr),
+                        });
+                    });
+                },
+
+                // Trash icon on a Team/Project Task-board column header —
+                // blocked server-side (422) while a card still sits in it.
+                deleteStatusColumn(status) {
+                    if (!confirm(`Delete the "${status.status_name}" status?`)) return;
+
+                    $.ajax({
+                        url: `${this.taskApiBase}/statuses/${status.status_id}`,
+                        method: 'DELETE',
+                        data: { _token: '{{ csrf_token() }}' },
+                        success: () => this.refreshTaskBoard(),
+                        error: (xhr) => {
+                            Swal.fire({ icon: 'error', title: 'Error', text: xhr.responseJSON?.message || 'Something went wrong.' });
+                        },
                     });
                 },
 
@@ -1326,10 +1586,18 @@
                         const items = this.teamTasks.filter(t => t.status_id === status.status_id);
                         const col = $(`
                             <div class="w-72 shrink-0 rounded-lg" style="background:${hexToRgba(status.color, 0.08)}">
-                                <div class="flex items-center gap-2 px-3 py-2.5">
-                                    <span class="h-2.5 w-2.5 rounded-full" style="background:${status.color}"></span>
-                                    <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">${status.status_name}</span>
+                                <div class="group flex items-center gap-2 px-3 py-2.5">
+                                    <span class="h-2.5 w-2.5 shrink-0 rounded-full" style="background:${status.color}"></span>
+                                    <span class="truncate text-sm font-semibold text-gray-700 dark:text-gray-200">${this.escapeHtml(status.status_name)}</span>
+                                    <button type="button" class="edit-status-btn shrink-0 rounded p-1 text-gray-400 transition hover:bg-gray-200 hover:text-indigo-600 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-indigo-300" title="Edit status name & color">
+                                        <i class="fas fa-pencil text-[10px]"></i>
+                                    </button>
                                     <span class="text-xs text-gray-400">${items.length}</span>
+                                    <div class="ml-auto hidden shrink-0 items-center gap-0.5 group-hover:flex">
+                                        <button type="button" class="delete-status-btn rounded p-1 text-gray-300 transition hover:bg-red-100 hover:text-red-500 dark:hover:bg-red-900/20" title="Delete status">
+                                            <i class="fas fa-trash text-[10px]"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="kanban-col space-y-2 px-2 pb-2 min-h-[40px]" data-status-id="${status.status_id}"></div>
                                 <div class="px-2 pb-2">
@@ -1344,6 +1612,8 @@
                         items.forEach(t => list.append(this.teamTaskCard(t)));
 
                         col.find('.add-card-btn').on('click', () => this.openQuickAddCard(status.status_id));
+                        col.find('.edit-status-btn').on('click', () => this.openEditStatusModal(status));
+                        col.find('.delete-status-btn').on('click', () => this.deleteStatusColumn(status));
 
                         wrap.append(col);
                     });
@@ -1721,7 +1991,10 @@
                             <div class="overflow-hidden rounded-lg border border-gray-100 dark:border-white/[0.06]">
                                 <div class="flex items-center gap-2 px-3 py-2" style="background:${hexToRgba(status.color, 0.1)}">
                                     <span class="h-2.5 w-2.5 rounded-full" style="background:${status.color}"></span>
-                                    <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">${status.status_name}</span>
+                                    <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">${this.escapeHtml(status.status_name)}</span>
+                                    <button type="button" class="edit-status-btn shrink-0 rounded p-1 text-gray-400 transition hover:bg-gray-200 hover:text-indigo-600 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-indigo-300" title="Edit status name & color">
+                                        <i class="fas fa-pencil text-[10px]"></i>
+                                    </button>
                                     <span class="text-xs text-gray-400">${items.length}</span>
                                 </div>
                                 <div class="overflow-x-auto">
@@ -1748,6 +2021,7 @@
                         `);
 
                         group.find('.spreadsheet-add-btn').on('click', () => this.openQuickAddCard(status.status_id));
+                        group.find('.edit-status-btn').on('click', () => this.openEditStatusModal(status));
                         wrap.append(group);
                     });
 
@@ -1899,17 +2173,20 @@
         function loadProjectTeamPicOptions($select, selectedTeamIds = [], selectedPicEntries = []) {
             $select.empty().trigger('change');
             const allTeams = window.PM_ALL_TEAMS || [];
-            if (!allTeams.length) return;
 
             const selectedKeys = selectedPicEntries.map(e => `${e.pic_type}:${e.pic_type === 'TEAM' ? e.team_id : e.username}`);
 
-            const teamGroup = $('<optgroup label="Teams"></optgroup>');
-            allTeams.forEach((t) => {
-                const key = `TEAM:${t.team_id}`;
-                const checked = selectedTeamIds.includes(t.team_id) || selectedKeys.includes(key);
-                teamGroup.append(new Option(t.team_name, key, false, checked));
-            });
-            $select.append(teamGroup);
+            // No Teams is fine — a Project can be people-only, so the
+            // People group below still loads.
+            if (allTeams.length) {
+                const teamGroup = $('<optgroup label="Teams"></optgroup>');
+                allTeams.forEach((t) => {
+                    const key = `TEAM:${t.team_id}`;
+                    const checked = selectedTeamIds.includes(t.team_id) || selectedKeys.includes(key);
+                    teamGroup.append(new Option(t.team_name, key, false, checked));
+                });
+                $select.append(teamGroup);
+            }
 
             $.get('{{ route('projects.pic-users') }}', (users) => {
                 const peopleGroup = $('<optgroup label="People"></optgroup>');
@@ -1968,8 +2245,9 @@
             // Team link — only explicit TEAM entries count.
             const teamIds = [...new Set(picEntries.filter(e => e.pic_type === 'TEAM').map(e => e.ref_id))];
 
-            if (!teamIds.length) {
-                Swal.fire({ icon: 'warning', title: 'Pick at least one Team', text: 'Select at least one Team this project belongs to.' });
+            // Teams, people, or both — just not neither.
+            if (!teamIds.length && !picEntries.some(e => e.pic_type === 'USER')) {
+                Swal.fire({ icon: 'warning', title: 'Pick a Team or person', text: 'Select at least one Team or person for this project.' });
                 return;
             }
 

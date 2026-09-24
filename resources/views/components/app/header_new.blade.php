@@ -1,5 +1,5 @@
 <header
-    class="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-gray-200 bg-white px-2 sm:gap-3 sm:px-4 dark:border-gray-700 dark:bg-gray-800">
+    class="sticky top-0 z-30 flex h-14 items-center gap-2 bg-white px-2 sm:gap-3 sm:px-4 dark:bg-gray-800">
 
     <!-- SIDEBAR BUTTON -->
     <button @click="sidebarOpen = true"

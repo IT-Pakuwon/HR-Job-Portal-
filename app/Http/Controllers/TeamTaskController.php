@@ -109,25 +109,6 @@ class TeamTaskController extends Controller
         return response()->json(MsTaskTag::where('status', 'A')->orderBy('tag_name')->get(['tag_id', 'tag_name', 'color']));
     }
 
-    // A built-in, non-deletable "Archive" column every Team's Task board
-    // gets — archiving a top-level Task (see destroy()) moves it here
-    // instead of hiding it outright, so it stays visible/reversible (drag
-    // it back out to un-archive). Idempotent: safe to call on every load.
-    private function ensureArchiveStatus(string $teamId): void
-    {
-        MsTeamTaskStatus::firstOrCreate(
-            ['team_id' => $teamId, 'status_id' => 'ARCHIVE'],
-            [
-                'status_name' => 'Archive',
-                'color' => '#6B7280',
-                'sort_order' => (int) MsTeamTaskStatus::where('team_id', $teamId)->max('sort_order') + 1,
-                'status' => 'A',
-                'created_by' => 'system',
-                'created_at' => now(),
-            ]
-        );
-    }
-
     // Whenever a Task/Subtask's own completion could have changed (its
     // progress_percent was set, one of its children was cancelled/archived,
     // etc.) — recompute whether IT now reads as "fully done" using the same
@@ -175,13 +156,7 @@ class TeamTaskController extends Controller
     {
         $team = $this->team($teamId);
 
-        $this->ensureArchiveStatus($teamId);
-
-        // Archive always renders last regardless of sort_order — otherwise
-        // a later "+ Add status" column (sort_order = current max + 1)
-        // would land after it.
-        $statuses = MsTeamTaskStatus::where('team_id', $teamId)->where('status', 'A')->orderBy('sort_order')->get()
-            ->sortBy(fn ($s) => $s->status_id === 'ARCHIVE' ? 1 : 0)->values();
+        $statuses = MsTeamTaskStatus::where('team_id', $teamId)->where('status', 'A')->orderBy('sort_order')->get();
 
         // 'C' (cancelled) tasks stay in the board/tree — only 'X' (archived)
         // is actually excluded. The frontend reads `status` to grey a
@@ -320,7 +295,7 @@ class TeamTaskController extends Controller
         $taskId = 'TTK' . substr((string) $now->year, 2) . $now->format('m') . sprintf('%04d', $auto['next']);
 
         $defaultStatus = $request->status_id
-            ?? (MsTeamTaskStatus::where('team_id', $teamId)->where('status_id', 'TODO')->exists() ? 'TODO' : null);
+            ?? (MsTeamTaskStatus::where('team_id', $teamId)->where('status_id', 'TODO')->where('status', 'A')->exists() ? 'TODO' : null);
 
         DB::connection('pgsql5')->transaction(function () use ($request, $teamId, $taskId, $username, $now, $defaultStatus) {
             TrTeamTask::create([
@@ -486,20 +461,10 @@ class TeamTaskController extends Controller
         $now = now();
         $username = Auth::user()->username;
 
-        // A top-level Task lives on the Kanban board — "Archive" just
-        // relocates its card to the board's own Archive column, same as any
-        // other status_id change (reversible by dragging it back out). Its
-        // own subtree is left untouched, unlike archiving a Subtask below.
-        if ($task->parent_task_id === null) {
-            $this->ensureArchiveStatus($teamId);
-            $task->update(['status_id' => 'ARCHIVE', 'updated_by' => $username, 'updated_at' => $now]);
-
-            return response()->json(['success' => true, 'message' => 'Task archived successfully']);
-        }
-
-        // A Subtask has no Kanban column of its own to move to — "Archive"
-        // keeps its original meaning: hide it and its own descendants (if
-        // any) from every view, same as before.
+        // "Archive" hides the Task and its whole subtree (if any) from
+        // every view — a status column is never a required destination, so
+        // this works the same regardless of depth or which/whether a status
+        // column exists.
         $ids = $this->subtreeTaskIds($teamId, $taskId);
 
         TrTeamTask::where('team_id', $teamId)->whereIn('task_id', $ids)
@@ -507,8 +472,8 @@ class TeamTaskController extends Controller
         TrTeamTaskAssignee::whereIn('task_id', $ids)->update(['status' => 'X']);
 
         // Archiving a Subtask drops it out of its parent's completion math
-        // (boardData()/subtaskRowHtml only ever see 'A'/'C' rows) — same as
-        // cancelling one, that alone can complete the parent.
+        // (boardData() only ever sees 'A'/'C' rows) — same as cancelling
+        // one, that alone can complete the parent.
         if ($task->parent_task_id) {
             $this->maybeAutoCompleteToDone(
                 TrTeamTask::where('team_id', $teamId)->where('task_id', $task->parent_task_id)->first(),
@@ -526,24 +491,91 @@ class TeamTaskController extends Controller
     {
         $this->team($teamId);
 
-        $request->validate(['status_name' => ['required', 'string', 'max:100']]);
+        $request->validate([
+            'status_name' => ['required', 'string', 'max:100'],
+            'status_id' => ['nullable', 'string', 'max:20'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+        ]);
 
-        $statusId = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $request->status_name));
-        $nextOrder = (int) MsTeamTaskStatus::where('team_id', $teamId)->max('sort_order') + 1;
+        // A custom status_id / sort_order is only honored for admins (the
+        // Status Settings panel); everyone else gets one derived from the name.
+        $isAdmin = Auth::user()->isPrimaryAdmin();
+        $statusName = trim($request->status_name);
+        $statusId = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', ($isAdmin && $request->filled('status_id')) ? $request->status_id : $statusName));
+        abort_if($statusId === '', 422, 'Status ID must contain at least one letter or number.');
 
-        $status = MsTeamTaskStatus::firstOrCreate(
-            ['team_id' => $teamId, 'status_id' => $statusId],
-            [
-                'status_name' => $request->status_name,
-                'color' => $request->input('color', '#6366F1'),
-                'sort_order' => $nextOrder,
-                'status' => 'A',
+        $sortOrder = ($isAdmin && $request->filled('sort_order'))
+            ? (int) $request->sort_order
+            : (int) MsTeamTaskStatus::where('team_id', $teamId)->where('status', 'A')->max('sort_order') + 1;
+
+        // A previously deleted (status 'X') row with the same id is revived
+        // instead of silently returned as-is (it would never reappear).
+        $status = MsTeamTaskStatus::where('team_id', $teamId)->where('status_id', $statusId)->first();
+        abort_if($status && $status->status === 'A', 422, "Status ID \"{$statusId}\" already exists.");
+
+        $values = [
+            'status_name' => $statusName,
+            'color' => $request->input('color', '#6366F1'),
+            'sort_order' => $sortOrder,
+            'status' => 'A',
+        ];
+
+        if ($status) {
+            $status->update($values + ['updated_by' => Auth::user()->username, 'updated_at' => now()]);
+        } else {
+            $status = MsTeamTaskStatus::create($values + [
+                'team_id' => $teamId,
+                'status_id' => $statusId,
                 'created_by' => Auth::user()->username,
                 'created_at' => now(),
-            ]
-        );
+            ]);
+        }
 
         return response()->json(['success' => true, 'status' => $status]);
+    }
+
+    // Rename/recolor a status column — status_id itself never changes, so
+    // Tasks already sitting in it keep pointing at the same row.
+    public function updateStatusColumn(Request $request, string $teamId, string $statusId)
+    {
+        $this->team($teamId);
+
+        $request->validate([
+            'status_name' => ['required', 'string', 'max:100'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        $status = MsTeamTaskStatus::where('team_id', $teamId)->where('status_id', $statusId)->firstOrFail();
+
+        $status->update([
+            'status_name' => trim($request->status_name),
+            'color' => $request->input('color', $status->color),
+            'sort_order' => (Auth::user()->isPrimaryAdmin() && $request->filled('sort_order')) ? (int) $request->sort_order : $status->sort_order,
+            'updated_by' => Auth::user()->username,
+            'updated_at' => now(),
+        ]);
+
+        return response()->json(['success' => true, 'status' => $status]);
+    }
+
+    // Every default and custom status is equally deletable — blocked only
+    // while a Task is still sitting in it, so a card is never silently
+    // orphaned onto a column that no longer exists.
+    public function destroyStatusColumn(string $teamId, string $statusId)
+    {
+        $this->team($teamId);
+
+        $status = MsTeamTaskStatus::where('team_id', $teamId)->where('status_id', $statusId)->firstOrFail();
+
+        abort_if(
+            TrTeamTask::where('team_id', $teamId)->where('status_id', $statusId)->where('status', 'A')->exists(),
+            422,
+            'Move or delete the tasks in this status first.'
+        );
+
+        $status->update(['status' => 'X', 'updated_by' => Auth::user()->username, 'updated_at' => now()]);
+
+        return response()->json(['success' => true]);
     }
 
     // @mention autocomplete for a Team Task's chat — eligible members of the Team.

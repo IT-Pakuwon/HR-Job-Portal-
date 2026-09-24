@@ -40,7 +40,7 @@ class TrProjectTask extends Model
 
     public function taskStatus()
     {
-        return MsTaskStatus::where('status_id', $this->status_id)->first();
+        return MsProjectTaskStatus::where('project_id', $this->project_id)->where('status_id', $this->status_id)->first();
     }
 
     // Self-referencing — a Task's children can themselves have children,
