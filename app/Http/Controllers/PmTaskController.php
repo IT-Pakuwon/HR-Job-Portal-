@@ -7,6 +7,7 @@ use App\Http\Controllers\Traits\AddsTaskAssignees;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Http\Controllers\Traits\RequiresTaskAccess;
 use App\Http\Controllers\Traits\ManagesTaskCover;
+use App\Http\Controllers\Traits\TagsCompleteTasks;
 use App\Models\MsProject;
 use App\Models\MsProjectTaskStatus;
 use App\Models\MsTaskTag;
@@ -18,6 +19,7 @@ use App\Models\TrProjectTaskTeam;
 use App\Models\User;
 use App\Services\PmActivityLogger;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Vinkla\Hashids\Facades\Hashids;
@@ -29,6 +31,7 @@ class PmTaskController extends Controller
     use BuildsTaskTree;
     use ManagesTaskCover;
     use AddsTaskAssignees;
+    use TagsCompleteTasks;
 
     private function project(string $projectId): MsProject
     {
@@ -201,9 +204,24 @@ class PmTaskController extends Controller
         'tags' => 'Tags',
     ];
 
-    private function logTask(TrProjectTask $task, string $action, string $description, array $changes = []): void
+    private function logTask(TrProjectTask $task, string $action, string $description, array $changes = [], ?string $by = null): void
     {
-        PmActivityLogger::log('PROJECT', $task->project_id, $task->task_id, $action, $description, $changes);
+        PmActivityLogger::log('PROJECT', $task->project_id, $task->task_id, $action, $description, $changes, $by);
+    }
+
+    // Re-sync the auto-managed "Complete" tag across the whole Project
+    // after anything that can change a task's completion (progress set, a
+    // subtask added/archived) — see TagsCompleteTasks. Same as
+    // TeamTaskController::refreshCompleteTags().
+    private function refreshCompleteTags(string $projectId, ?Collection $tasks = null): void
+    {
+        $this->syncCompleteTags(
+            $tasks ?? TrProjectTask::where('project_id', $projectId)->where('status', 'A')->get(),
+            TrProjectTaskTag::class,
+            fn ($task, $added) => $this->logTask($task, 'tags', $added
+                ? "tagged the {$this->noun($task)} Complete automatically (it reached 100%)"
+                : "removed the Complete tag automatically (the {$this->noun($task)} is no longer at 100%)", [], 'system')
+        );
     }
 
     // Diff against $before and log it — nothing when nothing changed. A
@@ -292,6 +310,11 @@ class PmTaskController extends Controller
 
         $tasks = TrProjectTask::where('project_id', $projectId)->where('status', 'A')->get();
 
+        // Self-heal on every load (e.g. tasks already at 100% before this
+        // behavior existed) — before the tag query below, so the board
+        // already shows it.
+        $this->refreshCompleteTags($projectId, $tasks);
+
         $assignees = TrProjectTaskAssignee::whereIn('task_id', $tasks->pluck('task_id'))
             ->where('status', 'A')
             ->get()
@@ -335,7 +358,9 @@ class PmTaskController extends Controller
         $taskTeams = TrProjectTaskTeam::whereIn('task_id', $tasks->pluck('task_id'))->where('status', 'A')->get()->groupBy('task_id');
         $teamNames = MsTeam::whereIn('team_id', $taskTeams->flatten()->pluck('team_id')->unique())->pluck('team_name', 'team_id');
 
-        $flat = $tasks->map(function ($t) use ($assignees, $taskTags, $tagMaster, $withPeople, $resolve, $effective, $me, $taskTeams, $teamNames) {
+        [$fileCounts, $commentCounts] = $this->taskCardCounts('TSK', $tasks->pluck('task_id'));
+
+        $flat = $tasks->map(function ($t) use ($assignees, $taskTags, $tagMaster, $withPeople, $resolve, $effective, $me, $taskTeams, $teamNames, $fileCounts, $commentCounts) {
             $canAccess = $resolve($t->task_id);
 
             return [
@@ -356,6 +381,9 @@ class PmTaskController extends Controller
                 'end_date' => optional($t->end_date)->toDateString(),
                 'status_id' => $t->status_id,
                 'progress_percent' => (float) $t->progress_percent,
+                // Masked like description/tags for a locked task the viewer can't open.
+                'file_count' => $canAccess ? (int) ($fileCounts[$t->task_id] ?? 0) : null,
+                'comment_count' => $canAccess ? (int) ($commentCounts[$t->task_id] ?? 0) : null,
                 'created_by' => $t->created_by,
                 'created_at' => optional($t->created_at)->toDateTimeString(),
                 'assignees' => ($assignees->get($t->task_id) ?? collect())->pluck('username'),
@@ -447,6 +475,8 @@ class PmTaskController extends Controller
             PmActivityLogger::diff([], $snapshot, array_diff_key(self::TASK_LABELS, array_flip(['task_name', 'task_description', 'progress'])), ['task_description']));
 
         $this->recalcProjectProgress($projectId);
+        // A new 0% subtask un-completes its parent.
+        $this->refreshCompleteTags($projectId);
 
         return response()->json(['success' => true, 'message' => 'Task created successfully', 'task_id' => $taskId]);
     }
@@ -534,6 +564,9 @@ class PmTaskController extends Controller
         $this->logTaskUpdate($task, $before);
 
         $this->recalcProjectProgress($task->project_id);
+        // After the tag sync above, so a form that re-posts "Complete" on a
+        // task that's no longer at 100% still ends up untagged.
+        $this->refreshCompleteTags($task->project_id);
 
         return response()->json(['success' => true, 'message' => 'Task updated successfully']);
     }
@@ -630,6 +663,53 @@ class PmTaskController extends Controller
         return response()->json(['success' => true]);
     }
 
+    // "By Spreadsheet" drag-and-drop — same as TeamTaskController::reparent().
+    // Both the moved task and its new parent must be ones the user can
+    // open, so nothing gets dragged into (or out of) a lock they're not in.
+    public function reparent(Request $request, string $projectId, string $taskId)
+    {
+        $this->assertCanEditTasks();
+        $this->project($projectId);
+        $task = $this->accessibleTask($projectId, $taskId);
+        abort_unless($task->status === 'A', 404);
+
+        $request->validate([
+            'parent_task_id' => ['nullable', 'string'],
+            'status_id' => ['nullable', 'string'],
+        ]);
+
+        $parentId = $request->input('parent_task_id') ?: null;
+        $parent = $parentId ? $this->accessibleTask($projectId, $parentId) : null;
+        abort_if($parent && $parent->status !== 'A', 404);
+        abort_if($parent && $this->subtreeTaskIds($projectId, $taskId)->contains($parentId), 422, 'A task cannot be moved under itself or one of its own subtasks.');
+
+        $values = ['parent_task_id' => $parentId];
+        if (!$parentId && $request->filled('status_id')) {
+            abort_unless(MsProjectTaskStatus::where('project_id', $projectId)->where('status_id', $request->status_id)->where('status', 'A')->exists(), 422, 'Unknown status.');
+            $values['status_id'] = $request->status_id;
+        }
+
+        $oldParentName = $task->parent_task_id ? TrProjectTask::where('task_id', $task->parent_task_id)->value('task_name') : null;
+        $before = ['parent' => $oldParentName ?? 'Top level', 'status' => $this->taskSnapshot($task)['status']];
+        $noun = $this->noun($task);
+
+        $task->update($values + ['updated_by' => Auth::user()->username, 'updated_at' => now()]);
+
+        $changes = PmActivityLogger::diff($before, ['parent' => $parent?->task_name ?? 'Top level', 'status' => $this->taskSnapshot($task->fresh())['status']], ['parent' => 'Parent', 'status' => 'Status']);
+        if (!$changes) {
+            return response()->json(['success' => true, 'changed' => false]);
+        }
+
+        $this->logTask($task, 'moved', $parent ? "moved the {$noun} under \"{$parent->task_name}\"" : "moved the {$noun} to the top level", $changes);
+
+        // The Project rollup only averages top-level Tasks, and both the
+        // old and the new parent's completion% can shift.
+        $this->recalcProjectProgress($projectId);
+        $this->refreshCompleteTags($projectId);
+
+        return response()->json(['success' => true, 'changed' => true]);
+    }
+
     public function destroy(string $projectId, string $taskId)
     {
         $this->assertCanEditTasks();
@@ -653,6 +733,8 @@ class PmTaskController extends Controller
         $this->logTask($task, 'archived', "archived the {$this->noun($task)}" . ($nested ? " (and {$nested} subtask" . ($nested > 1 ? 's' : '') . ')' : ''));
 
         $this->recalcProjectProgress($projectId);
+        // Archiving a Subtask drops it out of its parent's completion math.
+        $this->refreshCompleteTags($projectId);
 
         return response()->json(['success' => true, 'message' => 'Task archived successfully']);
     }

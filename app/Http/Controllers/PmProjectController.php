@@ -160,11 +160,13 @@ class PmProjectController extends Controller
         return view('pages.projectmanagement.projects', ['initialTab' => 'kanban', 'canCreateProject' => $this->canManageProjects()]);
     }
 
+    // Kept at /projects/gantt for old bookmarks — the Gantt tab was
+    // replaced by the Calendar (week/month) tab.
     public function gantt()
     {
         abort_unless($this->canBrowse(), 403);
 
-        return view('pages.projectmanagement.projects', ['initialTab' => 'gantt', 'canCreateProject' => $this->canManageProjects()]);
+        return view('pages.projectmanagement.projects', ['initialTab' => 'calendar','canCreateProject' => $this->canManageProjects()]);
     }
 
     // Starred Teams/Projects (username-scoped) — drives the sidebar's "pin
@@ -662,6 +664,26 @@ class PmProjectController extends Controller
             'initialTab' => 'kanban',
             'canCreateProject' => $this->canManageProjects(),
             'openProjectId' => $project->project_id,
+        ]);
+    }
+
+    // /project-chat/{eid} — deep link (bell notifications) straight into a
+    // Project board's Message tab. Same 'PRJ' thread as the Project Detail
+    // modal's Chat tab.
+    public function chat(string $eid)
+    {
+        abort_unless($this->canBrowse(), 403);
+
+        $id = Hashids::decode($eid)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $project = MsProject::where('id', $id)->where('status', 'A')->firstOrFail();
+        $this->assertTeamAccess($project);
+
+        return view('pages.projectmanagement.projects', [
+            'initialTab' => 'message',
+            'canCreateProject' => $this->canManageProjects(),
+            'openProjectBoardId' => $project->project_id,
         ]);
     }
 

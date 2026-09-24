@@ -846,7 +846,7 @@
         <!-- SIDEBAR FOOTER -->
         <div class="border-t border-gray-200 px-4 py-3 text-center dark:border-gray-700">
             <span class="text-xs text-gray-400 dark:text-gray-500">
-                &copy; 2026, Pakuwon Jakarta
+                &copy; 2026, Pakuwon Group.
             </span>
         </div>
     </aside>

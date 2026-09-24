@@ -7,6 +7,7 @@ use App\Http\Controllers\Traits\AddsTaskAssignees;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Http\Controllers\Traits\RequiresTaskAccess;
 use App\Http\Controllers\Traits\ManagesTaskCover;
+use App\Http\Controllers\Traits\TagsCompleteTasks;
 use App\Models\MsTeam;
 use App\Models\MsTeamTaskStatus;
 use App\Models\MsTaskTag;
@@ -16,6 +17,7 @@ use App\Models\TrTeamTaskTag;
 use App\Models\User;
 use App\Services\PmActivityLogger;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Vinkla\Hashids\Facades\Hashids;
@@ -31,19 +33,13 @@ class TeamTaskController extends Controller
     use BuildsTaskTree;
     use ManagesTaskCover;
     use AddsTaskAssignees;
+    use TagsCompleteTasks;
 
     private function team(string $teamId): MsTeam
     {
         $team = MsTeam::where('team_id', $teamId)->where('status', 'A')->firstOrFail();
 
-        $eligible = $team->memberUsers()->pluck('username')->map(fn ($u) => strtolower(trim($u)));
-
-        abort_unless(
-            $eligible->contains(strtolower(Auth::user()->username))
-                || Auth::user()->isPrimaryAdmin()
-                || Auth::user()->hasRole('PROADMINACCESS'),
-            403
-        );
+        abort_unless($team->isAccessibleBy(Auth::user()), 403);
 
         return $team;
     }
@@ -181,7 +177,8 @@ class TeamTaskController extends Controller
             ->mapWithKeys(fn ($t) => [$t->task_id => ['name' => $t->task_name, 'parent' => (bool) $t->parent_task_id]])
             ->all();
 
-        return response()->json(['items' => PmActivityLogger::feed('TEAM', $teamId, $tasks, 'TTK', true)]);
+        // 'TEAM' pulls the Team's own Message thread (and its files) in too.
+        return response()->json(['items' => PmActivityLogger::feed('TEAM', $teamId, $tasks, 'TTK', true, 'TEAM')]);
     }
 
     // Task Detail → Activity tab: this task and everything under it.
@@ -207,53 +204,20 @@ class TeamTaskController extends Controller
         return response()->json(MsTaskTag::where('status', 'A')->orderBy('tag_name')->get(['tag_id', 'tag_name', 'color']));
     }
 
-    // Whenever a Task/Subtask's own completion could have changed (its
-    // progress_percent was set, one of its children was cancelled/archived,
-    // etc.) — recompute whether IT now reads as "fully done" using the same
-    // rule the frontend's own progress bar/badge already uses (see
-    // teamTaskCard()/openTaskEntityDetail(): all non-cancelled children at
-    // 100%, or its own progress_percent for a leaf), and if so auto-move it
-    // into the team's "Done" column (unless it's there already, or the team
-    // has no such column). Then walks up to the parent, since completing
-    // this task may have just completed ITS parent too.
-    private function maybeAutoCompleteToDone(?TrTeamTask $task, string $teamId, string $username, $now): void
+    // Re-sync the auto-managed "Complete" tag across the whole Team after
+    // anything that can change a task's completion (progress set, a
+    // subtask added/cancelled/archived) — see TagsCompleteTasks. The
+    // task's Kanban column is left alone, so it works whether or not the
+    // Team has a "Done" column.
+    private function refreshCompleteTags(string $teamId, ?Collection $tasks = null): void
     {
-        if (! $task) {
-            return;
-        }
-
-        $children = TrTeamTask::where('team_id', $teamId)
-            ->where('parent_task_id', $task->task_id)
-            ->whereIn('status', ['A', 'C'])
-            ->get()
-            ->reject(fn ($c) => $c->status === 'C');
-
-        $isComplete = $children->isNotEmpty()
-            ? $children->every(fn ($c) => (float) $c->progress_percent >= 100)
-            : (float) $task->progress_percent >= 100;
-
-        if ($isComplete && $task->status_id !== 'DONE' && $task->status === 'A') {
-            $hasDoneColumn = MsTeamTaskStatus::where('team_id', $teamId)->where('status_id', 'DONE')->where('status', 'A')->exists();
-
-            if ($hasDoneColumn) {
-                $fromStatus = MsTeamTaskStatus::where('team_id', $teamId)->where('status_id', $task->status_id)->value('status_name') ?? $task->status_id;
-                $task->update(['status_id' => 'DONE', 'updated_by' => $username, 'updated_at' => $now]);
-                $this->logTask($task, 'status', "moved the {$this->noun($task)} to Done automatically (it reached 100%)", [[
-                    'label' => 'Status',
-                    'from' => $fromStatus ?? '—',
-                    'to' => MsTeamTaskStatus::where('team_id', $teamId)->where('status_id', 'DONE')->value('status_name') ?? 'Done',
-                ]], 'system');
-            }
-        }
-
-        if ($task->parent_task_id) {
-            $this->maybeAutoCompleteToDone(
-                TrTeamTask::where('team_id', $teamId)->where('task_id', $task->parent_task_id)->first(),
-                $teamId,
-                $username,
-                $now
-            );
-        }
+        $this->syncCompleteTags(
+            $tasks ?? TrTeamTask::where('team_id', $teamId)->whereIn('status', ['A', 'C'])->get(),
+            TrTeamTaskTag::class,
+            fn ($task, $added) => $this->logTask($task, 'tags', $added
+                ? "tagged the {$this->noun($task)} Complete automatically (it reached 100%)"
+                : "removed the Complete tag automatically (the {$this->noun($task)} is no longer at 100%)", [], 'system')
+        );
     }
 
     public function boardData(string $teamId)
@@ -268,14 +232,11 @@ class TeamTaskController extends Controller
         $tasks = TrTeamTask::where('team_id', $teamId)->whereIn('status', ['A', 'C'])->get();
 
         // Self-heal on every load, not just reactively on the mutations that
-        // call this directly (update()/cancel()/destroy()) — a top-level
-        // Task can read as 100% without ever going through one of those
-        // (e.g. it was already fully done before this behavior existed).
-        // Mutates $tasks' own model instances in place, so $flat below
-        // already reflects it without a re-query.
-        $tasks->whereNull('parent_task_id')->where('status', 'A')->each(
-            fn ($t) => $this->maybeAutoCompleteToDone($t, $teamId, 'system', now())
-        );
+        // call it directly (store()/update()/cancel()/destroy()) — a task
+        // can read as 100% without ever going through one of those (e.g.
+        // it was already fully done before this behavior existed). Runs
+        // before the tag query below, so the board already shows it.
+        $this->refreshCompleteTags($teamId, $tasks);
 
         $assignees = TrTeamTaskAssignee::whereIn('task_id', $tasks->pluck('task_id'))
             ->where('status', 'A')
@@ -307,7 +268,9 @@ class TeamTaskController extends Controller
             })->values();
         };
 
-        $flat = $tasks->map(function ($t) use ($assignees, $taskTags, $tagMaster, $withPeople) {
+        [$fileCounts, $commentCounts] = $this->taskCardCounts('TTK', $tasks->pluck('task_id'));
+
+        $flat = $tasks->map(function ($t) use ($assignees, $taskTags, $tagMaster, $withPeople, $fileCounts, $commentCounts) {
             return [
                 'task_id' => $t->task_id,
                 // Hashids-encoded ms id (not the task_id business key) — the
@@ -322,6 +285,8 @@ class TeamTaskController extends Controller
                 'status_id' => $t->status_id,
                 'status' => $t->status,
                 'progress_percent' => (float) $t->progress_percent,
+                'file_count' => (int) ($fileCounts[$t->task_id] ?? 0),
+                'comment_count' => (int) ($commentCounts[$t->task_id] ?? 0),
                 'created_by' => $t->created_by,
                 'created_at' => optional($t->created_at)->toDateTimeString(),
                 'assignees' => ($assignees->get($t->task_id) ?? collect())->pluck('username'),
@@ -357,6 +322,23 @@ class TeamTaskController extends Controller
             'canCreateProject' => false,
             'openTeamId' => $task->team_id,
             'openTaskEid' => $eid,
+        ]);
+    }
+
+    // /team-chat/{eid} — deep link (bell notifications) straight into a
+    // Team board's Message tab. {eid} = Hashids of ms_team.id.
+    public function chat(string $eid)
+    {
+        $id = Hashids::decode($eid)[0] ?? null;
+        abort_if(! $id, 404);
+
+        $team = MsTeam::where('status', 'A')->findOrFail($id);
+        $this->team($team->team_id);
+
+        return view('pages.projectmanagement.projects', [
+            'initialTab' => 'message',
+            'canCreateProject' => false,
+            'openTeamId' => $team->team_id,
         ]);
     }
 
@@ -435,6 +417,9 @@ class TeamTaskController extends Controller
         $task = TrTeamTask::where('task_id', $taskId)->first();
         $this->logTask($task, 'created', $task->parent_task_id ? 'added the subtask' : 'created the task',
             PmActivityLogger::diff([], $this->taskSnapshot($task), array_diff_key(self::TASK_LABELS, array_flip(['task_name', 'task_description', 'progress'])), ['task_description']));
+
+        // A new 0% subtask un-completes its parent.
+        $this->refreshCompleteTags($teamId);
 
         return response()->json(['success' => true, 'message' => 'Task created successfully', 'task_id' => $taskId]);
     }
@@ -515,7 +500,9 @@ class TeamTaskController extends Controller
         // Covers both: this task's own progress_percent just changed (a
         // leaf, via the subtask checkbox toggle), and this task is a
         // Subtask whose parent's completion% just shifted because of it.
-        $this->maybeAutoCompleteToDone($task, $teamId, $username, $now);
+        // Runs after the tag sync above, so a form that re-posts "Complete"
+        // on a task that's no longer at 100% still ends up untagged.
+        $this->refreshCompleteTags($teamId);
 
         return response()->json(['success' => true, 'message' => 'Task updated successfully']);
     }
@@ -534,6 +521,49 @@ class TeamTaskController extends Controller
         $this->logTaskUpdate($task, $before);
 
         return response()->json(['success' => true]);
+    }
+
+    // "By Spreadsheet" drag-and-drop: re-nest a Task (and its whole
+    // subtree) under another Task of this Team, or lift it back to the top
+    // level — parent_task_id empty, landing in status_id's group.
+    public function reparent(Request $request, string $teamId, string $taskId)
+    {
+        $this->assertCanEditTasks();
+        $this->team($teamId);
+        $task = $this->liveTask($teamId, $taskId);
+
+        $request->validate([
+            'parent_task_id' => ['nullable', 'string'],
+            'status_id' => ['nullable', 'string'],
+        ]);
+
+        $parentId = $request->input('parent_task_id') ?: null;
+        $parent = $parentId ? $this->liveTask($teamId, $parentId) : null;
+        abort_if($parent && $this->subtreeTaskIds($teamId, $taskId)->contains($parentId), 422, 'A task cannot be moved under itself or one of its own subtasks.');
+
+        $values = ['parent_task_id' => $parentId];
+        if (!$parentId && $request->filled('status_id')) {
+            abort_unless(MsTeamTaskStatus::where('team_id', $teamId)->where('status_id', $request->status_id)->where('status', 'A')->exists(), 422, 'Unknown status.');
+            $values['status_id'] = $request->status_id;
+        }
+
+        $oldParentName = $task->parent_task_id ? TrTeamTask::where('task_id', $task->parent_task_id)->value('task_name') : null;
+        $before = ['parent' => $oldParentName ?? 'Top level', 'status' => $this->taskSnapshot($task)['status']];
+        $noun = $this->noun($task);
+
+        $task->update($values + ['updated_by' => Auth::user()->username, 'updated_at' => now()]);
+
+        $changes = PmActivityLogger::diff($before, ['parent' => $parent?->task_name ?? 'Top level', 'status' => $this->taskSnapshot($task->fresh())['status']], ['parent' => 'Parent', 'status' => 'Status']);
+        if (!$changes) {
+            return response()->json(['success' => true, 'changed' => false]);
+        }
+
+        $this->logTask($task, 'moved', $parent ? "moved the {$noun} under \"{$parent->task_name}\"" : "moved the {$noun} to the top level", $changes);
+
+        // Both the old and the new parent's completion% can shift.
+        $this->refreshCompleteTags($teamId);
+
+        return response()->json(['success' => true, 'changed' => true]);
     }
 
     // Detail header → "+" next to the PIC avatars — same as
@@ -604,15 +634,8 @@ class TeamTaskController extends Controller
 
         // Cancelling a Subtask drops it out of its parent's completion math
         // (see class comment above) — that alone can push the parent to
-        // 100%, so recheck it same as a progress toggle would.
-        if ($task->parent_task_id) {
-            $this->maybeAutoCompleteToDone(
-                TrTeamTask::where('team_id', $teamId)->where('task_id', $task->parent_task_id)->first(),
-                $teamId,
-                Auth::user()->username,
-                now()
-            );
-        }
+        // 100% (or, restoring one, back below), so recheck.
+        $this->refreshCompleteTags($teamId);
 
         return response()->json(['success' => true, 'cancelled' => $task->status === 'C']);
     }
@@ -642,14 +665,7 @@ class TeamTaskController extends Controller
         // Archiving a Subtask drops it out of its parent's completion math
         // (boardData() only ever sees 'A'/'C' rows) — same as cancelling
         // one, that alone can complete the parent.
-        if ($task->parent_task_id) {
-            $this->maybeAutoCompleteToDone(
-                TrTeamTask::where('team_id', $teamId)->where('task_id', $task->parent_task_id)->first(),
-                $teamId,
-                $username,
-                $now
-            );
-        }
+        $this->refreshCompleteTags($teamId);
 
         return response()->json(['success' => true, 'message' => 'Task archived successfully']);
     }
@@ -760,7 +776,9 @@ class TeamTaskController extends Controller
     }
 
     // @mention autocomplete for a Team Task's chat — eligible members of the Team.
-    public function mentionableUsers(string $teamId, string $taskId)
+    // Same people for a Task's chat and the Team-wide Message tab (which
+    // has no task — routed without {taskId}).
+    public function mentionableUsers(string $teamId, ?string $taskId = null)
     {
         $team = $this->team($teamId);
 

@@ -50,7 +50,7 @@
                                     <button @click="selectProject(f.id)"
                                         class="flex min-w-0 flex-1 items-center gap-2 truncate px-2.5 py-2 text-left text-sm transition"
                                         :class="projectId === f.id ? 'font-medium text-indigo-700 dark:text-indigo-300' : 'text-gray-600 dark:text-gray-300'">
-                                        <span class="h-2 w-2 shrink-0 rounded-full" :style="`background:${statusColor(f.status_id)}`"></span>
+                                        <i class="fas shrink-0 text-xs" :class="projectId === f.id ? 'fa-folder-open' : 'fa-folder'" :style="`color:${statusColor(f.status_id)}`"></i>
                                         <span class="truncate" x-text="f.name"></span>
                                     </button>
                                 </template>
@@ -100,7 +100,7 @@
                                 <button @click="selectProject(p.project_id)"
                                     class="flex min-w-0 flex-1 items-center gap-2 truncate px-2.5 py-2 text-left text-sm transition"
                                     :class="projectId === p.project_id ? 'font-medium text-indigo-700 dark:text-indigo-300' : 'text-gray-600 dark:text-gray-300'">
-                                    <span class="h-2 w-2 shrink-0 rounded-full" :style="`background:${statusColor(p.status_id)}`"></span>
+                                    <i class="fas shrink-0 text-xs" :class="projectId === p.project_id ? 'fa-folder-open' : 'fa-folder'" :style="`color:${statusColor(p.status_id)}`"></i>
                                     <span class="truncate" x-text="p.project_name"></span>
                                 </button>
                                 <button @click.stop.prevent="toggleFavorite('PROJECT', p.project_id)" title="Favorite"
@@ -173,18 +173,65 @@
                 <button @click="tab = 'kanban'; renderTab()"
                     :class="tab === 'kanban' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800'"
                     class="rounded-t-lg px-4 py-2 text-sm font-medium">By Kanban</button>
-                <button @click="tab = 'gantt'; renderTab()"
-                    :class="tab === 'gantt' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800'"
-                    class="rounded-t-lg px-4 py-2 text-sm font-medium">By Gantt</button>
+                <button @click="tab = 'calendar'; renderTab()"
+                    :class="tab === 'calendar' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800'"
+                    class="rounded-t-lg px-4 py-2 text-sm font-medium">By Calendar</button>
                 <button @click="tab = 'spreadsheet'; renderTab()"
                     :class="tab === 'spreadsheet' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800'"
                     class="rounded-t-lg px-4 py-2 text-sm font-medium">By Spreadsheet</button>
+                {{-- Team/Project-wide chat — only on a scoped board (the
+                     Projects portfolio has no single audience to talk to). --}}
+                <button x-show="teamId || projectId" x-cloak @click="tab = 'message'; renderTab()"
+                    :class="tab === 'message' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800'"
+                    class="inline-flex items-center gap-1.5 rounded-t-lg px-4 py-2 text-sm font-medium">
+                    <i class="fas fa-comments text-xs"></i> Message
+                </button>
             </div>
 
             <div x-show="teams.length || projects.length" class="flex-1 overflow-y-auto p-4">
                 <div id="kanbanPanel" class="overflow-x-auto"></div>
-                <div id="ganttPanel" class="hidden"></div>
+                <div id="calendarPanel" class="hidden h-full"></div>
                 <div id="spreadsheetPanel" class="hidden"></div>
+
+                {{-- MESSAGE — one thread per Team ('TEAM') / Project ('PRJ',
+                     same thread as the Project Detail modal's Chat tab).
+                     Driven by openBoardChat() below. --}}
+                <div id="messagePanel" class="hidden h-full">
+                    <div class="relative flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.06] dark:bg-gray-900">
+                        <div class="flex shrink-0 items-center gap-3 border-b border-gray-100 px-4 py-3 dark:border-white/[0.06]">
+                            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
+                                <i class="fas fa-comments text-sm"></i>
+                            </span>
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-sm font-semibold text-gray-800 dark:text-gray-100" x-text="headerTitle"></p>
+                                <p class="text-xs text-gray-400" x-text="teamId ? 'Everyone in this Team can read and reply here' : 'Everyone on this Project can read and reply here'"></p>
+                            </div>
+                            <div id="boardChatPeople" class="flex shrink-0 items-center"></div>
+                        </div>
+
+                        <div id="boardChatList" class="custom-scrollbar flex-1 overflow-y-auto px-4 py-4"></div>
+
+                        <button type="button" id="boardChatNewPill"
+                            class="absolute bottom-24 left-1/2 hidden -translate-x-1/2 items-center gap-1.5 rounded-full bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-lg transition hover:bg-indigo-500">
+                            <i class="fas fa-arrow-down text-[10px]"></i> New messages
+                        </button>
+
+                        <div id="boardChatStagedFiles" class="hidden shrink-0 flex-wrap gap-1.5 px-4 pt-2"></div>
+
+                        <div class="flex shrink-0 items-end gap-2.5 border-t border-gray-100 px-4 py-3 dark:border-white/[0.06]">
+                            <div class="flex flex-1 items-end gap-1 rounded-2xl border border-gray-200 bg-gray-50 pl-4 pr-1.5 dark:border-white/10 dark:bg-white/[0.04]">
+                                <textarea id="boardChatInput" rows="1" maxlength="500"
+                                    placeholder="Message everyone… use @ to mention, paste a link or a file. Shift+Enter for a new line"
+                                    class="max-h-32 flex-1 resize-none border-none bg-transparent py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-0 dark:text-white"></textarea>
+                                <button type="button" id="boardChatMentionBtn" title="Mention someone" class="mb-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold text-gray-400 transition hover:bg-white hover:text-indigo-600 dark:hover:bg-white/10 dark:hover:text-indigo-400">@</button>
+                                <button type="button" id="boardChatAttachBtn" title="Attach files (max 5MB each)" class="mb-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-gray-400 transition hover:bg-white hover:text-indigo-600 dark:hover:bg-white/10 dark:hover:text-indigo-400"><i class="fas fa-paperclip text-xs"></i></button>
+                                <input type="file" id="boardChatFileInput" multiple class="hidden">
+                            </div>
+                            <button type="button" id="boardChatSendBtn" title="Send"
+                                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-wait disabled:opacity-60"><i class="fas fa-paper-plane text-xs"></i></button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {{-- EMPTY STATE: no Team/Project access at all --}}
@@ -495,8 +542,8 @@
                             <i class="fas fa-id-card text-sm"></i>
                         </span>
                         <div>
-                            <h2 class="text-base font-semibold text-slate-900 dark:text-white" x-text="(teamId || projectId) ? 'Add Task' : 'Add Card'"></h2>
-                            <p class="text-xs text-slate-400" x-text="((teamId || projectId) ? teamTaskStatuses : statuses).find(s => s.status_id === quickAddStatusId)?.status_name"></p>
+                            <h2 class="text-base font-semibold text-slate-900 dark:text-white" x-text="quickAddParentId ? 'Add Subtask' : (teamId || projectId) ? 'Add Task' : 'Add Card'"></h2>
+                            <p class="text-xs text-slate-400" x-text="quickAddParentId ? `Under: ${quickAddParentName}` : ((teamId || projectId) ? teamTaskStatuses : statuses).find(s => s.status_id === quickAddStatusId)?.status_name"></p>
                         </div>
                     </div>
                     <button type="button" @click="closeQuickAddCard()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"><i class="fas fa-times text-sm"></i></button>
@@ -1025,21 +1072,8 @@
             color: rgb(100 116 139);
         }
 
-        /* Fills the tab panel's full available height instead of shrinking
-           to the chart's content height — renderGantt()/renderTeamGantt()
-           measure this and pass it as Frappe Gantt's own container_height
-           option, so the chart's ROWS stretch to fill the space (grid lines
-           and all) instead of leaving a blank gap below a short chart.
-           overflow:hidden is a safety net: it stops any sub-pixel rounding
-           between that JS measurement and the real box from leaking out as
-           a spurious scrollbar on the page itself — .gantt-container below
-           is forced to the same 100% and owns the real (internal) scroll. */
-        #ganttPanel {
-            height: 100%;
-            overflow: hidden;
-        }
-
-        /* Gantt chart theming (Frappe Gantt) — the library's built-in dark
+        /* Gantt chart theming (Frappe Gantt, Project Detail's hidden
+           #taskGanttPanel only) — the library's built-in dark
            theme keys off html[data-theme="dark"], which this app never
            sets (dark mode toggles a `.dark` class on <html> instead), so
            its CSS custom properties are redefined here for both modes. */
@@ -1141,7 +1175,7 @@
                 // concept from Projects, never shown in the Projects list.
                 teamId: '',
                 // A specific project_id = that Project's OWN Task board —
-                // same Kanban/Gantt/Spreadsheet shape as a Team's board
+                // same Kanban/Calendar/Spreadsheet shape as a Team's board
                 // above, sourced from PmTaskController instead of
                 // TeamTaskController. Mutually exclusive with teamId.
                 projectId: '',
@@ -1156,6 +1190,10 @@
                 newStatusColor: '#6366F1',
                 editingStatusId: null,
                 quickAddStatusId: null,
+                // Set when the quick-add modal creates a Subtask (spreadsheet
+                // row "+") instead of a top-level Task.
+                quickAddParentId: null,
+                quickAddParentName: '',
                 // Status Settings side panel — admin (not adminsby) only.
                 isPrimaryAdmin: @json(auth()->user()->isPrimaryAdmin()),
                 statusPanelOpen: false,
@@ -1166,6 +1204,15 @@
                 teamTasks: [],
                 canCreateProject: @json($canCreateProject),
                 loaded: false,
+
+                // "By Calendar" tab — 'month' | 'week', and any date inside
+                // the period being shown (see renderCalendar()).
+                calView: 'month',
+                calCursor: dayjs().format('YYYY-MM-DD'),
+                // Team/Project boards only: 'task' (top-level Tasks) or
+                // 'subtask' (every Subtask at any depth, with its parent).
+                calLevel: 'task',
+                calResizeBound: false,
 
                 // History panel (header's History button) — see openHistory().
                 historyOpen: false,
@@ -1246,7 +1293,7 @@
 
                 // Same idea as selectTeam(), but scopes the main panel to a
                 // single Project's own Task board instead of the Projects
-                // portfolio's card view — same Kanban/Gantt/Spreadsheet UI a
+                // portfolio's card view — same Kanban/Calendar/Spreadsheet UI a
                 // Team gets, just sourced from PmTaskController.
                 selectProject(projectId) {
                     this.projectId = this.projectId === projectId ? '' : projectId;
@@ -1370,7 +1417,7 @@
                     });
                 },
 
-                // Main panel (Kanban/Gantt) — either the Projects portfolio,
+                // Main panel (Kanban/Calendar/Spreadsheet) — either the Projects portfolio,
                 // the selected Team's own Task board, or the selected
                 // Project's own Task board.
                 loadMainPanel() {
@@ -1462,15 +1509,24 @@
                 },
 
                 renderTab() {
-                    $('#kanbanPanel, #ganttPanel, #spreadsheetPanel').addClass('hidden');
+                    $('#kanbanPanel, #calendarPanel, #spreadsheetPanel, #messagePanel').addClass('hidden');
                     const scoped = this.teamId || this.projectId;
+                    // Message is Team/Project-only — the Projects portfolio
+                    // falls back to Kanban.
+                    if (this.tab === 'message' && !scoped) this.tab = 'kanban';
+                    if (this.tab === 'message') {
+                        $('#messagePanel').removeClass('hidden');
+                        openBoardChat(this.teamId ? 'TEAM' : 'PRJ', this.teamId || this.projectId);
+                    } else {
+                        closeBoardChat();
+                    }
                     if (this.tab === 'kanban') {
                         $('#kanbanPanel').removeClass('hidden');
                         scoped ? this.renderTeamKanban() : this.renderKanban();
                     }
-                    if (this.tab === 'gantt') {
-                        $('#ganttPanel').removeClass('hidden');
-                        scoped ? this.renderTeamGantt() : this.renderGantt();
+                    if (this.tab === 'calendar') {
+                        $('#calendarPanel').removeClass('hidden');
+                        this.renderCalendar();
                     }
                     if (this.tab === 'spreadsheet') {
                         $('#spreadsheetPanel').removeClass('hidden');
@@ -1685,13 +1741,17 @@
                 // Team can be picked (a Project needs at least one). On a
                 // Team's own Task board it quick-creates a top-level Task in
                 // that column, PIC picked from the Team's own members.
-                openQuickAddCard(statusId) {
+                // parent: {task_id, task_name} to create a Subtask under it
+                // instead (the spreadsheet row's "+").
+                openQuickAddCard(statusId, parent = null) {
                     if (!this.teamId && !this.projectId) {
                         this.openNewProject(statusId);
                         return;
                     }
 
                     this.quickAddStatusId = statusId;
+                    this.quickAddParentId = parent?.task_id || null;
+                    this.quickAddParentName = parent?.task_name || '';
                     $('#qc_name, #qc_start_date, #qc_end_date').val('');
                     stagedQcFiles = [];
                     renderStagedQcFiles();
@@ -1723,6 +1783,7 @@
                         $('#qc_description').val(window.qcDescrQuill.root.innerHTML);
                     }
                     const filesToUpload = stagedQcFiles.slice();
+                    const parentId = this.quickAddParentId;
 
                     $.post(this.taskApiBase, {
                         task_name: name,
@@ -1730,12 +1791,15 @@
                         start_date: $('#qc_start_date').val(),
                         end_date: $('#qc_end_date').val(),
                         status_id: this.quickAddStatusId,
+                        parent_task_id: parentId || '',
                         assignees: assignees,
                         team_ids: team_ids,
                         tags: tags,
                         _token: '{{ csrf_token() }}',
                     }, (res) => {
                         this.closeQuickAddCard();
+                        // Make sure the new Subtask is visible under its parent.
+                        if (parentId) spreadsheetCollapsedIds.delete(parentId);
                         uploadFilesToProjectAttachments(filesToUpload, this.taskDoctype, res.task_id, () => {});
                         this.refreshTaskBoard();
                     }).fail((xhr) => {
@@ -1758,7 +1822,7 @@
                                 </div>
                                 <div class="kanban-col space-y-2 px-2 pb-2 min-h-[40px]" data-status-id="${status.status_id}"></div>
                                 <div class="px-2 pb-2">
-                                    <button class="add-card-btn flex w-full items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-gray-400 transition hover:bg-gray-100 hover:text-indigo-500 dark:hover:bg-gray-800 dark:hover:text-indigo-400">
+                                    <button class="add-card-btn flex w-full items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-gray-200 px-2 py-2 text-xs font-medium text-gray-400 transition hover:border-indigo-300 hover:bg-white/60 hover:text-indigo-500 dark:border-gray-700 dark:hover:border-indigo-500/60 dark:hover:bg-gray-800 dark:hover:text-indigo-400">
                                         <i class="fas fa-plus text-[10px]"></i> Add card
                                     </button>
                                 </div>
@@ -1835,7 +1899,7 @@
                                 </div>
                                 <div class="kanban-col space-y-2 px-2 pb-2 min-h-[40px]" data-status-id="${status.status_id}"></div>
                                 <div class="px-2 pb-2">
-                                    <button class="add-card-btn flex w-full items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-gray-400 transition hover:bg-gray-100 hover:text-indigo-500 dark:hover:bg-gray-800 dark:hover:text-indigo-400">
+                                    <button class="add-card-btn flex w-full items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-gray-200 px-2 py-2 text-xs font-medium text-gray-400 transition hover:border-indigo-300 hover:bg-white/60 hover:text-indigo-500 dark:border-gray-700 dark:hover:border-indigo-500/60 dark:hover:bg-gray-800 dark:hover:text-indigo-400">
                                         <i class="fas fa-plus text-[10px]"></i> Add card
                                     </button>
                                 </div>
@@ -1879,21 +1943,16 @@
                 },
 
                 teamTaskCard(t) {
-                    const dateRange = (t.start_date || t.end_date)
-                        ? `${formatDate(t.start_date)} → ${formatDate(t.end_date)}`
-                        : '';
+                    const esc = (s) => this.escapeHtml(s);
 
                     const people = t.assignee_people || [];
-                    const avatars = people.map((p, i) => p.photo_url
-                        ? `<img src="${p.photo_url}" alt="${this.escapeHtml(p.name)}" title="${this.escapeHtml(p.name)}"
-                            class="h-6 w-6 rounded-full object-cover ring-2 ring-white dark:ring-gray-800" style="margin-left:${i === 0 ? '0' : '-8px'}">`
-                        : `<span title="${this.escapeHtml(p.name)}" style="margin-left:${i === 0 ? '0' : '-8px'}" class="inline-block rounded-full ring-2 ring-white dark:ring-gray-800">${initialsAvatar(p.name, 24)}</span>`
+                    const avatars = people.slice(0, 3).map((p, i) => p.photo_url
+                        ? `<img src="${p.photo_url}" alt="${esc(p.name)}" title="${esc(p.name)}"
+                            class="h-6 w-6 rounded-full object-cover ring-2 ring-white dark:ring-gray-800" style="margin-left:${i === 0 ? '0' : '-6px'}">`
+                        : `<span title="${esc(p.name)}" style="margin-left:${i === 0 ? '0' : '-6px'}" class="inline-block rounded-full ring-2 ring-white dark:ring-gray-800">${initialsAvatar(p.name, 24)}</span>`
                     ).join('');
 
-                    const tags = t.tags || [];
-                    const tagBadges = tags.map(tag => `
-                        <span class="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium" style="border-color:${tag.color || '#6366F1'};color:${tag.color || '#6366F1'}">${this.escapeHtml(tag.tag_name)}</span>
-                    `).join('');
+                    const description = t.task_description ? stripHtml(t.task_description) : '';
 
                     const cancelled = t.status === 'C';
                     // Cancelled children are excluded from the completion
@@ -1907,52 +1966,105 @@
                     // do with subtask checkmarks and would otherwise sit at
                     // 0% forever even with subtasks done. Leaf tasks (no
                     // subtasks) fall back to their own progress_percent.
-                    const displayPct = children.length ? Math.round((childDone / children.length) * 100) : t.progress_percent;
+                    const displayPct = children.length ? Math.round((childDone / children.length) * 100) : Math.round(t.progress_percent);
                     const late = isLate(t.end_date, displayPct, cancelled);
+                    const done = !cancelled && displayPct >= 100;
+
+                    // Compact range ("01 Sep → 30 Sep"); the year only shows
+                    // when it isn't this year. Full dates live in the tooltip.
+                    const shortDate = (d) => {
+                        const x = dayjs(d);
+                        return x.isValid() ? x.format(x.year() === dayjs().year() ? 'DD MMM' : 'DD MMM YY') : '—';
+                    };
+                    const dateRange = t.start_date && t.end_date ? `${shortDate(t.start_date)} → ${shortDate(t.end_date)}`
+                        : t.end_date ? `Due ${shortDate(t.end_date)}`
+                        : t.start_date ? `From ${shortDate(t.start_date)}` : '';
+                    const dateTitle = `${formatDate(t.start_date)} → ${formatDate(t.end_date)}`;
+
+                    // Countdown chip next to the dates — the "how urgent is
+                    // this" at a glance, colored by how close/over the due date is.
+                    let due = null;
+                    if (cancelled) {
+                        due = { text: 'Cancelled', icon: 'fa-ban', cls: 'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-400' };
+                    } else if (done) {
+                        due = { text: 'Done', icon: 'fa-circle-check', cls: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' };
+                    } else if (t.end_date && dayjs(t.end_date).isValid()) {
+                        const days = dayjs(t.end_date).startOf('day').diff(dayjs().startOf('day'), 'day');
+                        due = days < 0 ? { text: `${-days}d overdue`, icon: 'fa-fire', cls: 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400' }
+                            : days === 0 ? { text: 'Due today', icon: 'fa-hourglass-half', cls: 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400' }
+                            : days <= 3 ? { text: `${days}d left`, icon: 'fa-hourglass-half', cls: 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400' }
+                            : { text: `${days}d left`, icon: 'fa-clock', cls: 'bg-gray-100 text-gray-500 dark:bg-white/5 dark:text-gray-400' };
+                    }
+
+                    // Left accent stripe: the card's state in one glance.
+                    const accent = cancelled ? '#9CA3AF' : done ? '#10B981' : late ? '#EF4444' : '#6366F1';
+
+                    const tagChips = [
+                        ...(t.teams || []).map(tm => `<span class="inline-flex max-w-[8rem] items-center gap-1 truncate rounded-md bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300" title="Team: ${esc(tm.team_name)}"><i class="fas fa-users text-[8px]"></i> ${esc(tm.team_name)}</span>`),
+                        ...(t.tags || []).map(tag => {
+                            const c = tag.color || '#6366F1';
+                            return `<span class="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold" style="background:${hexToRgba(c, 0.12)};color:${c}">${tag.tag_id === 'COMPLETE' ? '<i class="fas fa-check text-[8px]"></i>' : `<span class="h-1.5 w-1.5 rounded-full" style="background:${c}"></span>`}${esc(tag.tag_name)}</span>`;
+                        }),
+                    ].join('');
+
+                    const meta = (icon, count, title) => `<span class="inline-flex items-center gap-1 ${count ? 'text-gray-500 dark:text-gray-300' : 'text-gray-300 dark:text-gray-600'}" title="${title}"><i class="${icon} text-[10px]"></i>${count}</span>`;
 
                     const $card = $(`
                         <div data-task-id="${t.task_id}"
-                            class="group relative block cursor-move rounded-xl border ${late ? 'border-red-200 dark:border-red-500/30' : 'border-gray-200 dark:border-gray-700'} bg-white p-3.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:bg-gray-800 ${cancelled ? 'opacity-60' : ''}">
+                            class="group relative block cursor-move overflow-hidden rounded-xl border ${late ? 'border-red-200 dark:border-red-500/30' : 'border-gray-200/80 dark:border-gray-700'} bg-white p-3.5 pl-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-lg hover:shadow-indigo-500/5 dark:bg-gray-800 dark:hover:border-indigo-500/30 ${cancelled ? 'opacity-60' : ''}">
 
-                            ${t.cover_url ? `<div class="-mx-3.5 -mt-3.5 mb-2.5 h-28 overflow-hidden rounded-t-xl bg-gray-100 dark:bg-white/5"><img src="${t.cover_url}" alt="" loading="lazy" class="h-full w-full object-cover"></div>` : ''}
+                            <span class="absolute inset-y-0 left-0 w-1" style="background:${accent}"></span>
 
-                            <div class="flex items-start justify-between">
-                                <span class="text-gray-300 transition group-hover:text-gray-400 dark:text-gray-600"><i class="fas fa-grip-vertical text-xs"></i></span>
-                                <div class="flex items-center gap-1">
-                                    <div class="flex items-center gap-0.5 opacity-0 transition group-hover:opacity-100">
-                                        ${this.teamId ? `
-                                        <button type="button" class="team-card-cancel-btn rounded-lg p-1 text-gray-300 transition hover:bg-amber-50 hover:text-amber-500 dark:hover:bg-amber-900/20" data-task-id="${t.task_id}" title="${cancelled ? 'Restore' : 'Cancel'}">
-                                            <i class="fas ${cancelled ? 'fa-rotate-left' : 'fa-ban'} text-xs"></i>
-                                        </button>
-                                        ` : ''}
-                                        <button type="button" class="team-card-archive-btn rounded-lg p-1 text-gray-300 transition hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20" data-task-id="${t.task_id}" title="Archive">
-                                            <i class="fas fa-box-archive text-xs"></i>
-                                        </button>
+                            ${t.cover_url ? `<div class="-mt-3.5 -mr-3.5 -ml-4 mb-3 h-28 overflow-hidden bg-gray-100 dark:bg-white/5"><img src="${t.cover_url}" alt="" loading="lazy" class="h-full w-full object-cover transition duration-300 group-hover:scale-105"></div>` : ''}
+
+                            <div class="flex h-6 items-center justify-between gap-2">
+                                <div class="flex min-w-0 items-center gap-2.5 text-[11px] font-medium">
+                                    ${t.file_count != null ? meta('fas fa-paperclip', t.file_count, `${t.file_count} file(s)`) : ''}
+                                    ${t.comment_count != null ? meta('far fa-comment', t.comment_count, `${t.comment_count} comment(s)`) : ''}
+                                    ${children.length ? meta('fas fa-list-check', `${childDone}/${children.length}`, `${childDone} of ${children.length} subtask(s) done`) : ''}
+                                    ${t.is_locked ? `<i class="fas fa-lock text-[10px] text-amber-500" title="${t.can_access === false ? 'Locked — assignees only' : 'Locked'}"></i>` : ''}
+                                </div>
+                                <div class="flex items-center gap-0.5 opacity-0 transition group-hover:opacity-100">
+                                    ${this.teamId ? `
+                                    <button type="button" class="team-card-cancel-btn rounded-md p-1 text-gray-400 transition hover:bg-amber-50 hover:text-amber-500 dark:hover:bg-amber-900/20" data-task-id="${t.task_id}" title="${cancelled ? 'Restore' : 'Cancel'}">
+                                        <i class="fas ${cancelled ? 'fa-rotate-left' : 'fa-ban'} text-xs"></i>
+                                    </button>
+                                    ` : ''}
+                                    <button type="button" class="team-card-archive-btn rounded-md p-1 text-gray-400 transition hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20" data-task-id="${t.task_id}" title="Archive">
+                                        <i class="fas fa-box-archive text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            ${tagChips ? `<div class="mt-2 flex flex-wrap gap-1">${tagChips}</div>` : ''}
+
+                            <p class="mt-2 line-clamp-2 text-sm font-semibold leading-snug ${cancelled ? 'text-gray-400 line-through dark:text-gray-500' : 'text-gray-800 dark:text-gray-100'}" title="${esc(t.task_name)}">${esc(t.task_name)}</p>
+
+                            ${description ? `<p class="mt-1 line-clamp-2 text-xs leading-relaxed text-gray-500 dark:text-gray-400" title="${esc(description)}">${esc(description)}</p>` : ''}
+
+                            <div class="mt-3">
+                                <div class="mb-1 flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                                    <span>Progress</span>
+                                    <span class="${done ? 'text-emerald-600 dark:text-emerald-400' : late ? 'text-red-500 dark:text-red-400' : 'text-indigo-600 dark:text-indigo-300'}">${displayPct}%</span>
+                                </div>
+                                <div class="h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700">
+                                    <div class="h-full rounded-full transition-all duration-500 ${done ? 'bg-linear-to-r from-emerald-400 to-emerald-500' : late ? 'bg-linear-to-r from-orange-400 to-red-500' : 'bg-linear-to-r from-indigo-500 to-violet-500'}" style="width:${displayPct}%"></div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3 flex items-center justify-between gap-2 border-t border-dashed border-gray-100 pt-2.5 dark:border-gray-700">
+                                <div class="flex min-w-0 items-center gap-1.5 text-[11px]">
+                                    ${dateRange
+                                        ? `<span class="inline-flex min-w-0 items-center gap-1 truncate text-gray-500 dark:text-gray-400" title="${dateTitle}"><i class="far fa-calendar text-[10px]"></i> ${dateRange}</span>`
+                                        : '<span class="inline-flex items-center gap-1 italic text-gray-300 dark:text-gray-600"><i class="far fa-calendar text-[10px]"></i> No dates</span>'}
+                                    ${due ? `<span class="inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${due.cls}"><i class="fas ${due.icon} text-[8px]"></i> ${due.text}</span>` : ''}
+                                </div>
+                                ${people.length ? `
+                                    <div class="flex shrink-0 items-center" title="${esc(people.map(p => p.name).join(', '))}">
+                                        ${avatars}
+                                        ${people.length > 3 ? `<span class="-ml-1.5 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-gray-100 px-1 text-[10px] font-bold text-gray-500 ring-2 ring-white dark:bg-gray-700 dark:text-gray-300 dark:ring-gray-800">+${people.length - 3}</span>` : ''}
                                     </div>
-                                    ${(t.teams || []).map(tm => `<span class="inline-flex max-w-[7rem] items-center gap-1 truncate rounded-full bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300" title="Team: ${this.escapeHtml(tm.team_name)}"><i class="fas fa-users text-[8px]"></i> ${this.escapeHtml(tm.team_name)}</span>`).join('')}
-                                    ${avatars ? `<div class="flex items-center">${avatars}</div>` : ''}
-                                </div>
-                            </div>
-
-                            <div class="mt-1.5 flex items-center gap-1.5">
-                                ${t.is_locked ? `<i class="fas fa-lock shrink-0 text-[11px] text-amber-500" title="${t.can_access === false ? 'Locked — assignees only' : 'Locked'}"></i>` : ''}
-                                <p class="min-w-0 flex-1 truncate text-sm font-semibold leading-snug text-gray-800 dark:text-gray-100 ${cancelled ? 'text-gray-400 line-through dark:text-gray-500' : ''}">${this.escapeHtml(t.task_name)}</p>
-                                ${cancelled ? `<span class="shrink-0 rounded-full bg-gray-200 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:bg-white/10 dark:text-gray-400">Cancelled</span>` : ''}
-                                ${late ? `<span class="shrink-0 inline-flex items-center gap-1 rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-600 dark:bg-red-500/10 dark:text-red-400"><i class="fas fa-triangle-exclamation text-[9px]"></i> Late</span>` : ''}
-                            </div>
-
-                            ${tagBadges ? `<div class="mt-2 flex flex-wrap gap-1">${tagBadges}</div>` : ''}
-
-                            <div class="mt-3 flex items-center gap-2">
-                                <div class="h-1.5 min-w-0 flex-1 rounded-full bg-gray-100 dark:bg-gray-700">
-                                    <div class="h-1.5 rounded-full ${displayPct >= 100 ? 'bg-emerald-500' : 'bg-indigo-500'}" style="width:${displayPct}%"></div>
-                                </div>
-                                <span class="shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${displayPct >= 100 ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300'}">${displayPct}%</span>
-                            </div>
-
-                            <div class="mt-3 flex items-center justify-between border-t border-gray-100 pt-2.5 text-xs text-gray-400 dark:border-gray-700">
-                                ${dateRange ? `<span class="inline-flex items-center gap-1 ${late ? 'font-semibold text-red-500 dark:text-red-400' : ''}"><i class="fas fa-calendar-day text-[10px]"></i> ${dateRange}</span>` : '<span></span>'}
-                                ${children.length ? `<span class="inline-flex items-center gap-1"><i class="fas fa-list-check text-[10px]"></i> ${childDone}/${children.length}</span>` : ''}
+                                ` : `<span class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-dashed border-gray-300 text-gray-300 dark:border-gray-600 dark:text-gray-600" title="No PIC assigned"><i class="fas fa-user-plus text-[9px]"></i></span>`}
                             </div>
                         </div>
                     `);
@@ -2038,93 +2150,378 @@
                     return $card;
                 },
 
-                renderGantt() {
-                    const container = $('#ganttPanel').empty();
-                    if (this.projects.length === 0) {
-                        container.append('<p class="text-sm text-gray-400">No projects yet.</p>');
-                        return;
-                    }
-                    container.append('<svg id="ganttSvg"></svg>');
+                // "By Calendar" — normalized items for whichever scope is
+                // showing: the Projects portfolio, or a Team/Project's own
+                // Tasks (top-level) / Subtasks (any depth, per calLevel).
+                // An item with only one of start/end date sits on that
+                // single day; one with neither isn't placed but still counts
+                // toward `total` (the toolbar's "N without dates").
+                calendarItems() {
+                    const scoped = this.teamId || this.projectId;
+                    const statuses = scoped ? this.teamTaskStatuses : this.statuses;
+                    const findStatus = (id) => statuses.find(s => s.status_id === id);
 
-                    // Bars are tinted by the project's own Kanban status
-                    // color — a pale tint as the full-duration track, the
-                    // solid color as the progress fill — so the Gantt reads
-                    // at a glance the same way the status dots do everywhere
-                    // else in this file.
-                    const tasks = this.projects
-                        .filter(p => p.start_date && p.end_date)
-                        .map(p => {
-                            const color = this.statusColor(p.status_id);
-                            const late = isLate(p.end_date, p.progress_percent, false);
-                            return {
-                                id: p.project_id,
-                                name: (late ? '⚠ ' : '') + p.project_name,
-                                start: p.start_date,
-                                end: p.end_date,
-                                progress: p.progress_percent,
-                                color: hexToRgba(color, 0.3),
-                                color_progress: color,
-                                custom_class: late ? 'gantt-bar-late' : '',
-                            };
+                    // {x, ancestors: task_id[], path: name[], root} rows.
+                    const rows = [];
+                    if (!scoped) {
+                        this.projects.forEach(x => rows.push({ x, ancestors: [], path: [], root: x }));
+                    } else if (this.calLevel === 'subtask') {
+                        const walk = (nodes, ancestors, path, root) => (nodes || []).forEach(n => {
+                            rows.push({ x: n, ancestors, path, root });
+                            walk(n.children, [...ancestors, n.task_id], [...path, n.task_name], root);
                         });
-
-                    if (tasks.length === 0) {
-                        container.append('<p class="text-sm text-gray-400 mt-2">No projects with both a start and end date yet.</p>');
-                        return;
+                        this.teamTasks.forEach(t => walk(t.children, [t.task_id], [t.task_name], t));
+                    } else {
+                        this.teamTasks.forEach(x => rows.push({ x, ancestors: [], path: [], root: x }));
                     }
 
-                    new FrappeGantt('#ganttSvg', tasks, {
-                        bar_corner_radius: 6,
-                        container_height: Math.max(container.height(), 200),
-                        on_click: (task) => openProjectDetail(task.id, 'push'),
-                    });
+                    const items = rows.map(({ x, ancestors, path, root }) => {
+                        let start = x.start_date || x.end_date;
+                        let end = x.end_date || x.start_date;
+                        if (!start || !dayjs(start).isValid() || !dayjs(end).isValid()) return null;
+                        start = dayjs(start).startOf('day');
+                        end = dayjs(end).startOf('day');
+                        if (end.isBefore(start)) [start, end] = [end, start];
+
+                        // A Subtask without its own board status takes its
+                        // top-level Task's color, so a Task's Subtasks read
+                        // as one family on the calendar.
+                        const status = findStatus(x.status_id) || findStatus(root.status_id);
+                        const cancelled = scoped && x.status === 'C';
+                        // Same "children win over own progress_percent" rule
+                        // as the Kanban card/detail views.
+                        const children = scoped ? (x.children || []).filter(c => c.status !== 'C') : [];
+                        const subDone = children.filter(c => c.progress_percent >= 100).length;
+                        const progress = children.length
+                            ? Math.round(subDone / children.length * 100)
+                            : Math.round(x.progress_percent || 0);
+                        const desc = scoped ? x.task_description : x.project_description;
+
+                        return {
+                            id: scoped ? x.task_id : x.project_id,
+                            name: scoped ? x.task_name : x.project_name,
+                            start, end,
+                            color: status?.color || '#9CA3AF',
+                            statusName: status?.status_name || '',
+                            progress,
+                            cancelled,
+                            done: !cancelled && progress >= 100,
+                            late: isLate(x.end_date, progress, cancelled),
+                            people: scoped ? (x.assignee_people || []) : (x.pics || []),
+                            description: desc ? stripHtml(desc) : '',
+                            subTotal: children.length,
+                            subDone,
+                            ancestors,
+                            parentPath: path, // top-level Task → … → direct parent
+                            tags: x.tags || [],
+                            isLocked: !!x.is_locked,
+                            // Locked TSK the viewer isn't assigned to — the
+                            // server already masked its description and
+                            // dropped its Subtasks (see PmTaskController).
+                            lockedOut: x.can_access === false,
+                        };
+                    }).filter(Boolean);
+
+                    return { items, total: rows.length };
                 },
 
-                renderTeamGantt() {
-                    const container = $('#ganttPanel').empty();
-                    const items = this.teamTasks
-                        .filter(t => t.start_date && t.end_date)
-                        .map(t => {
-                            // Same "children win over own progress_percent"
-                            // rule as the Kanban card/detail views, so the
-                            // bar's fill matches what's shown everywhere else.
-                            const children = (t.children || []).filter(c => c.status !== 'C');
-                            const childDone = children.filter(c => c.progress_percent >= 100).length;
-                            const progress = children.length ? Math.round((childDone / children.length) * 100) : t.progress_percent;
-                            const color = this.teamStatusColor(t.status_id);
-                            const late = isLate(t.end_date, progress, t.status === 'C');
+                openCalendarItem(ev) {
+                    if (!(this.teamId || this.projectId)) return openProjectDetail(ev.id, 'push');
+                    const t = findTaskInTree(ev.id, currentTasksCache);
+                    if (!t) return;
+                    currentTaskApiBase = this.taskApiBase;
+                    currentTaskDoctype = this.taskDoctype;
+                    currentTaskRefreshFn = (cb) => this.refreshTaskBoard(cb);
+                    // Ancestors first, so the detail modal's Back button
+                    // walks up to the parent Task (same as the spreadsheet).
+                    taskDetailStack = [...ev.ancestors];
+                    openTaskEntityDetail(t);
+                },
+
+                // Splits items into one week's bar segments and stacks them
+                // into lanes (greedy, earliest/longest first) so overlapping
+                // items never draw on top of each other.
+                layoutCalendarWeek(items, weekStart) {
+                    const weekEnd = weekStart.add(6, 'day');
+                    const segs = items
+                        .filter(ev => !ev.end.isBefore(weekStart) && !ev.start.isAfter(weekEnd))
+                        .map(ev => {
+                            const s = ev.start.isBefore(weekStart) ? weekStart : ev.start;
+                            const e = ev.end.isAfter(weekEnd) ? weekEnd : ev.end;
                             return {
-                                id: t.task_id,
-                                name: (late ? '⚠ ' : '') + t.task_name,
-                                start: t.start_date,
-                                end: t.end_date,
-                                progress,
-                                color: hexToRgba(color, 0.3),
-                                color_progress: color,
-                                custom_class: late ? 'gantt-bar-late' : '',
+                                ev,
+                                col: s.diff(weekStart, 'day'),
+                                span: e.diff(s, 'day') + 1,
+                                clipL: ev.start.isBefore(weekStart),
+                                clipR: ev.end.isAfter(weekEnd),
                             };
-                        });
+                        })
+                        .sort((a, b) => a.col - b.col || b.span - a.span || a.ev.name.localeCompare(b.ev.name));
 
-                    if (items.length === 0) {
-                        container.append('<p class="text-sm text-gray-400">No tasks with both a start and end date yet.</p>');
-                        return;
-                    }
-                    container.append('<svg id="ganttSvg"></svg>');
-
-                    new FrappeGantt('#ganttSvg', items, {
-                        bar_corner_radius: 6,
-                        container_height: Math.max(container.height(), 200),
-                        on_click: (task) => {
-                            const t = findTaskInTree(task.id, currentTasksCache);
-                            if (t) {
-                                currentTaskApiBase = this.taskApiBase;
-                                currentTaskDoctype = this.taskDoctype;
-                                currentTaskRefreshFn = (cb) => this.refreshTaskBoard(cb);
-                                taskDetailStack = [];
-                                openTaskEntityDetail(t);
-                            }
-                        },
+                    const laneEnds = [];
+                    segs.forEach(seg => {
+                        let lane = laneEnds.findIndex(endCol => endCol < seg.col);
+                        if (lane === -1) { lane = laneEnds.length; laneEnds.push(0); }
+                        laneEnds[lane] = seg.col + seg.span - 1;
+                        seg.lane = lane;
                     });
+                    return { segs, laneCount: laneEnds.length };
+                },
+
+                calendarBarHtml(seg, compact) {
+                    const ev = seg.ev;
+                    const esc = (s) => this.escapeHtml(s);
+                    const radius = `${seg.clipL ? '0' : '6px'} ${seg.clipR ? '0' : '6px'} ${seg.clipR ? '0' : '6px'} ${seg.clipL ? '0' : '6px'}`;
+                    const icon = ev.cancelled ? '<i class="fas fa-ban text-[9px] text-gray-400"></i>'
+                        : ev.done ? '<i class="fas fa-circle-check text-[10px] text-emerald-500"></i>'
+                        : ev.late ? '<i class="fas fa-triangle-exclamation text-[9px] text-red-500"></i>' : '';
+                    const lock = ev.isLocked ? `<i class="fas fa-lock text-[9px] text-amber-500" title="${ev.lockedOut ? 'Locked — assignees only' : 'Locked'}"></i>` : '';
+                    const shortDate = (d) => d.format(d.year() === dayjs().year() ? 'DD MMM' : 'DD MMM YY');
+                    const range = ev.start.isSame(ev.end, 'day') ? shortDate(ev.start) : `${shortDate(ev.start)} → ${shortDate(ev.end)}`;
+
+                    const parent = ev.parentPath.length ? ev.parentPath[ev.parentPath.length - 1] : '';
+
+                    // Second line of a week-view bar: a Subtask names its
+                    // parent Task; a Task/Project shows its own Subtask
+                    // count (if any) and a one-line description excerpt.
+                    const infoLine = ev.lockedOut
+                        ? `<span class="truncate italic text-amber-600 dark:text-amber-400"><i class="fas fa-lock mr-1 text-[9px]"></i>Locked — assignees only</span>`
+                        : parent
+                        ?`<span class="inline-flex min-w-0 items-center gap-1 truncate rounded bg-white/70 px-1.5 py-px text-[10px] font-semibold text-indigo-600 dark:bg-white/10 dark:text-indigo-300" title="Task: ${esc(ev.parentPath.join(' › '))}">
+                               <i class="fas fa-turn-up fa-rotate-90 text-[8px]"></i><span class="truncate">${esc(ev.parentPath.join(' › '))}</span>
+                           </span>`
+                        : `${ev.subTotal ? `<span class="shrink-0 inline-flex items-center gap-1 rounded bg-white/70 px-1.5 py-px text-[10px] font-semibold text-gray-600 dark:bg-white/10 dark:text-gray-300"><i class="fas fa-list-check text-[8px]"></i>${ev.subDone}/${ev.subTotal}</span>` : ''}
+                           <span class="truncate">${esc(ev.description) || '<span class="italic opacity-60">No description</span>'}</span>`;
+
+                    const body = compact
+                        ? `<div class="flex min-w-0 items-center gap-1">
+                               ${seg.clipL ? '<i class="fas fa-caret-left text-[9px] opacity-60"></i>' : ''}
+                               ${lock}${icon}
+                               <span class="truncate">${esc(ev.name)}${parent ? `<span class="font-normal text-gray-500 dark:text-gray-400"> · ${esc(parent)}</span>` : ''}</span>
+                           </div>`
+                        : `<div class="flex min-w-0 items-center gap-1.5">
+                               ${seg.clipL ? '<i class="fas fa-caret-left text-[10px] opacity-60"></i>' : ''}
+                               ${lock}${icon}
+                               <span class="truncate font-semibold">${esc(ev.name)}</span>
+                           </div>
+                           <div class="mt-1 flex min-w-0 items-center gap-1.5 text-[11px] font-normal text-gray-500 dark:text-gray-400">${infoLine}</div>
+                           <div class="mt-1 flex min-w-0 items-center gap-2 text-[11px] font-normal text-gray-500 dark:text-gray-400">
+                               <span class="truncate"><i class="fas fa-calendar-day mr-1 text-[9px]"></i>${range}</span>
+                               <span class="shrink-0 font-semibold ${ev.done ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-600 dark:text-gray-300'}">${ev.progress}%</span>
+                               <span class="ml-auto shrink-0">${subtaskPicHtml(ev.people)}</span>
+                           </div>
+                           <div class="absolute inset-x-0 bottom-0 h-[3px] bg-black/5 dark:bg-white/5">
+                               <div class="h-full" style="width:${ev.progress}%;background:${ev.done ? '#10B981' : ev.color}"></div>
+                           </div>`;
+
+                    return `
+                        <div class="cal-bar absolute cursor-pointer overflow-hidden px-2 text-xs font-medium text-gray-800 transition hover:brightness-95 dark:text-gray-100 dark:hover:brightness-125 ${compact ? 'flex items-center' : 'py-1.5'} ${ev.late ? 'ring-1 ring-inset ring-red-400/70' : ''} ${ev.cancelled ? 'opacity-60 line-through' : ''}"
+                            data-id="${esc(ev.id)}"
+                            style="background:${hexToRgba(ev.color, 0.16)};border-left:${seg.clipL ? '0' : `3px solid ${ev.color}`};border-radius:${radius}">
+                            ${body}
+                        </div>`;
+                },
+
+                calendarTooltipHtml(ev) {
+                    const esc = (s) => this.escapeHtml(s);
+                    const desc = ev.description.length > 160 ? ev.description.slice(0, 160) + '…' : ev.description;
+                    return `
+                        ${ev.parentPath.length ? `<p class="mb-1 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-indigo-300"><i class="fas fa-turn-up fa-rotate-90 text-[8px]"></i> ${esc(ev.parentPath.join(' › '))}</p>` : ''}
+                        <p class="text-xs font-semibold text-white">${ev.isLocked ? '<i class="fas fa-lock mr-1 text-[10px] text-amber-400"></i>' : ''}${esc(ev.name)}</p>
+                        ${ev.lockedOut ? '<p class="mt-1 text-[11px] italic text-amber-300">Locked — only its assignees can open it.</p>' : ''}
+                        ${desc ?`<p class="mt-1 text-[11px] leading-snug text-gray-300">${esc(desc)}</p>` : ''}
+                        ${ev.subTotal ? `<p class="mt-1 text-[11px] text-gray-400"><span class="font-medium text-gray-300">Subtasks:</span> ${ev.subDone}/${ev.subTotal} done</p>` : ''}
+                        <p class="mt-1 flex items-center gap-1.5 text-[11px] text-gray-300">
+                            <span class="h-2 w-2 rounded-full" style="background:${ev.color}"></span>${esc(ev.statusName || '—')}
+                            <span class="text-gray-500">·</span> ${ev.progress}%
+                            ${ev.late ? '<span class="font-semibold text-red-400">· Late</span>' : ''}
+                        </p>
+                        <p class="mt-1 text-[11px] text-gray-400">${formatDate(ev.start)} → ${formatDate(ev.end)}</p>
+                        ${ev.people.length ? `<p class="mt-1 text-[11px] text-gray-400"><span class="font-medium text-gray-300">${this.teamId || this.projectId ? 'Assignee' : 'PIC'}:</span> ${esc(ev.people.map(p => p.name).join(', '))}</p>` : ''}
+                    `;
+                },
+
+                calendarGo(step) {
+                    const c = dayjs(this.calCursor);
+                    this.calCursor = (step === 0 ? dayjs() : c.add(step, this.calView === 'week' ? 'week' : 'month')).format('YYYY-MM-DD');
+                    this.renderCalendar();
+                },
+
+                renderCalendar() {
+                    const panel = $('#calendarPanel').empty();
+                    hideCardTooltip();
+
+                    // Re-fit the rows to the panel when the window resizes
+                    // (bound once; only acts while this tab is showing).
+                    if (!this.calResizeBound) {
+                        this.calResizeBound = true;
+                        let timer = null;
+                        window.addEventListener('resize', () => {
+                            clearTimeout(timer);
+                            timer = setTimeout(() => {
+                                if (this.tab === 'calendar' && $('#calendarPanel').is(':visible')) this.renderCalendar();
+                            }, 150);
+                        });
+                    }
+
+                    const scoped = this.teamId || this.projectId;
+                    const isSub = scoped && this.calLevel === 'subtask';
+                    const { items, total } = this.calendarItems();
+                    const byId = new Map(items.map(ev => [String(ev.id), ev]));
+                    const undated = total - items.length;
+                    const noun = !scoped ? 'project' : isSub ? 'subtask' : 'task';
+
+                    const cursor = dayjs(this.calCursor);
+                    const startOfWeek = (d) => d.startOf('day').subtract((d.day() + 6) % 7, 'day'); // Monday-first
+                    const today = dayjs().startOf('day');
+                    const isWeek = this.calView === 'week';
+
+                    const wkStart = startOfWeek(cursor);
+                    const wkEnd = wkStart.add(6, 'day');
+                    const title = isWeek
+                        ? (wkStart.month() === wkEnd.month()
+                            ? `${wkStart.format('DD')} – ${wkEnd.format('DD MMM YYYY')}`
+                            : `${wkStart.format('DD MMM')} – ${wkEnd.format('DD MMM YYYY')}`)
+                        : cursor.format('MMMM YYYY');
+
+                    const segCls = (on) => `rounded-md px-3 py-1 text-xs font-medium transition ${on ? 'bg-white text-indigo-700 shadow-sm dark:bg-gray-700 dark:text-indigo-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`;
+                    const segBtn = (view, label) => `<button type="button" data-view="${view}" class="cal-view-btn ${segCls(this.calView === view)}">${label}</button>`;
+                    const levelBtn = (level, icon, label) => `<button type="button" data-level="${level}" class="cal-level-btn inline-flex items-center gap-1.5 ${segCls(this.calLevel === level)}"><i class="fas ${icon} text-[10px]"></i>${label}</button>`;
+
+                    const toolbar = $(`
+                        <div class="mb-3 flex shrink-0 flex-wrap items-center gap-2">
+                            <div class="flex items-center gap-1">
+                                <button type="button" class="cal-nav flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-indigo-600 dark:border-white/10 dark:text-gray-400 dark:hover:bg-gray-800" data-step="-1" title="Previous"><i class="fas fa-chevron-left text-[10px]"></i></button>
+                                <button type="button" class="cal-nav h-8 rounded-lg border border-gray-200 px-3 text-xs font-medium text-gray-600 transition hover:bg-gray-50 hover:text-indigo-600 dark:border-white/10 dark:text-gray-300 dark:hover:bg-gray-800" data-step="0">Today</button>
+                                <button type="button" class="cal-nav flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-indigo-600 dark:border-white/10 dark:text-gray-400 dark:hover:bg-gray-800" data-step="1" title="Next"><i class="fas fa-chevron-right text-[10px]"></i></button>
+                            </div>
+                            <h3 class="ml-1 text-base font-semibold text-gray-800 dark:text-gray-100">${title}</h3>
+                            ${undated > 0 ? `<span class="text-xs text-gray-400" title="Set a start or end date to place these on the calendar">${undated} ${noun}${undated > 1 ? 's' : ''} without dates</span>` : ''}
+                            <div class="ml-auto flex flex-wrap items-center gap-2">
+                                ${scoped ? `<div class="flex items-center rounded-lg bg-gray-100 p-0.5 dark:bg-gray-800">
+                                    ${levelBtn('task', 'fa-square-check', 'Task')}${levelBtn('subtask', 'fa-list-check', 'Subtask')}
+                                </div>` : ''}
+                                <div class="flex items-center rounded-lg bg-gray-100 p-0.5 dark:bg-gray-800">
+                                    ${segBtn('week', 'Week')}${segBtn('month', 'Month')}
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                    toolbar.find('.cal-nav').on('click', (e) => this.calendarGo(Number(e.currentTarget.dataset.step)));
+                    toolbar.find('.cal-view-btn').on('click', (e) => { this.calView = e.currentTarget.dataset.view; this.renderCalendar(); });
+                    toolbar.find('.cal-level-btn').on('click', (e) => { this.calLevel = e.currentTarget.dataset.level; this.renderCalendar(); });
+                    panel.append(toolbar);
+
+                    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                    const grid = $('<div class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.06] dark:bg-gray-900"></div>');
+                    panel.append(grid);
+                    // Height left for the grid's rows: #calendarPanel is
+                    // h-full of the tab area, minus the toolbar and the
+                    // grid's own 1px top/bottom borders.
+                    const gridAvail = () => panel.height() - toolbar.outerHeight(true) - 2;
+                    // Tinted weekend columns, drawn behind the bars.
+                    const colBg = (i) => i >= 5 ? 'bg-gray-50/70 dark:bg-white/[0.015]' : '';
+
+                    if (isWeek) {
+                        const days = [...Array(7)].map((_, i) => wkStart.add(i, 'day'));
+                        grid.append(`
+                            <div class="grid grid-cols-7 border-b border-gray-200 dark:border-white/[0.06]">
+                                ${days.map((d, i) => {
+                                    const isToday = d.isSame(today, 'day');
+                                    return `<div class="border-l border-gray-100 px-2 py-2 text-center first:border-l-0 dark:border-white/[0.04] ${colBg(i)}">
+                                        <p class="text-[11px] font-medium uppercase tracking-wide ${isToday ? 'text-indigo-600 dark:text-indigo-300' : 'text-gray-400'}">${dayNames[i]}</p>
+                                        <p class="mt-0.5 inline-flex h-7 min-w-[1.75rem] items-center justify-center rounded-full px-1.5 text-sm font-semibold ${isToday ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-200'}">${d.format('DD')}</p>
+                                    </div>`;
+                                }).join('')}
+                            </div>
+                        `);
+
+                        const { segs, laneCount } = this.layoutCalendarWeek(items, wkStart);
+                        const laneH = 80, pad = 8;
+                        const fillH = gridAvail() - grid.children().first().outerHeight();
+                        const body = $(`<div class="relative" style="height:${Math.max(laneCount * laneH + pad * 2, fillH, 280)}px"></div>`);
+                        body.append(`<div class="absolute inset-0 grid grid-cols-7">${days.map((d, i) =>
+                            `<div class="border-l border-gray-100 first:border-l-0 dark:border-white/[0.04] ${colBg(i)} ${d.isSame(today, 'day') ? '!bg-indigo-50/50 dark:!bg-indigo-500/[0.05]' : ''}"></div>`).join('')}</div>`);
+                        segs.forEach(seg => {
+                            const $bar = $(this.calendarBarHtml(seg, false)).css({
+                                left: `calc(${seg.col / 7 * 100}% + ${seg.clipL ? 0 : 4}px)`,
+                                width: `calc(${seg.span / 7 * 100}% - ${(seg.clipL ? 0 : 4) + (seg.clipR ? 0 : 4)}px)`,
+                                top: `${pad + seg.lane * laneH}px`,
+                                height: `${laneH - 6}px`,
+                            });
+                            body.append($bar);
+                        });
+                        if (!segs.length) {
+                            body.append(`<p class="absolute inset-x-0 top-10 text-center text-sm text-gray-400">No ${noun}s scheduled this week.</p>`);
+                        }
+                        grid.append(body);
+                    } else {
+                        const monthStart = cursor.startOf('month');
+                        const gridStart = startOfWeek(monthStart);
+                        const gridEnd = startOfWeek(cursor.endOf('month')).add(6, 'day');
+                        const weeks = gridEnd.diff(gridStart, 'week') + 1;
+                        const laneH = 22, headH = 28, moreH = 22;
+
+                        const $dow = $(`<div class="grid grid-cols-7 border-b border-gray-200 dark:border-white/[0.06]">${dayNames.map((n, i) =>
+                            `<div class="px-2 py-2 text-center text-[11px] font-medium uppercase tracking-wide text-gray-400 ${colBg(i)}">${n}</div>`).join('')}</div>`);
+                        grid.append($dow);
+
+                        // Week rows split the remaining height evenly (never
+                        // shorter than 3 bars), and as many bars show per
+                        // day as fit — the rest collapse into "+N more".
+                        const rowH = Math.max(Math.floor((gridAvail() - $dow.outerHeight() - (weeks - 1)) / weeks), headH + 3 * laneH + moreH);
+                        const maxLanes = Math.max(1, Math.floor((rowH - headH - moreH) / laneH));
+
+                        for (let w = 0; w < weeks; w++) {
+                            const weekStart = gridStart.add(w, 'week');
+                            const days = [...Array(7)].map((_, i) => weekStart.add(i, 'day'));
+                            const { segs } = this.layoutCalendarWeek(items, weekStart);
+
+                            // Per-day count of items that didn't fit the lane cap.
+                            const hidden = Array(7).fill(0);
+                            segs.filter(s => s.lane >= maxLanes).forEach(s => { for (let c = s.col; c < s.col + s.span; c++) hidden[c]++; });
+
+                            const row = $(`<div class="relative border-b border-gray-100 last:border-b-0 dark:border-white/[0.04]" style="height:${rowH}px"></div>`);
+                            row.append(`<div class="absolute inset-0 grid grid-cols-7">${days.map((d, i) => {
+                                const inMonth = d.month() === cursor.month();
+                                const isToday = d.isSame(today, 'day');
+                                return `<div class="cal-day relative cursor-pointer border-l border-gray-100 px-1.5 pt-1 transition first:border-l-0 hover:bg-indigo-50/40 dark:border-white/[0.04] dark:hover:bg-indigo-500/[0.05] ${colBg(i)} ${inMonth ? '' : 'opacity-50'}" data-date="${d.format('YYYY-MM-DD')}" title="Open week view">
+                                    <span class="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full px-1 text-xs font-semibold ${isToday ? 'bg-indigo-600 text-white' : 'text-gray-600 dark:text-gray-300'}">${d.format('D')}</span>
+                                    ${hidden[i] ? `<span class="absolute bottom-1 left-2 text-[11px] font-medium text-indigo-600 hover:underline dark:text-indigo-300">+${hidden[i]} more</span>` : ''}
+                                </div>`;
+                            }).join('')}</div>`);
+
+                            segs.filter(s => s.lane < maxLanes).forEach(seg => {
+                                const $bar = $(this.calendarBarHtml(seg, true)).css({
+                                    left: `calc(${seg.col / 7 * 100}% + ${seg.clipL ? 0 : 3}px)`,
+                                    width: `calc(${seg.span / 7 * 100}% - ${(seg.clipL ? 0 : 3) + (seg.clipR ? 0 : 3)}px)`,
+                                    top: `${headH + seg.lane * laneH}px`,
+                                    height: `${laneH - 3}px`,
+                                });
+                                row.append($bar);
+                            });
+                            grid.append(row);
+                        }
+
+                        // Clicking a day (or its "+N more") drills into that week.
+                        grid.on('click', '.cal-day', (e) => {
+                            this.calCursor = e.currentTarget.dataset.date;
+                            this.calView = 'week';
+                            this.renderCalendar();
+                        });
+                    }
+
+                    grid.on('click', '.cal-bar', (e) => {
+                        e.stopPropagation();
+                        hideCardTooltip();
+                        const ev = byId.get(e.currentTarget.dataset.id);
+                        if (ev) this.openCalendarItem(ev);
+                    });
+                    grid.on('mouseenter', '.cal-bar', (e) => {
+                        const ev = byId.get(e.currentTarget.dataset.id);
+                        if (ev) showCardTooltip(e.currentTarget, this.calendarTooltipHtml(ev));
+                    });
+                    grid.on('mouseleave', '.cal-bar', hideCardTooltip);
                 },
 
                 // "By Spreadsheet" for the Projects portfolio — same status
@@ -2221,7 +2618,13 @@
                 // children) instead of top-level cards only.
                 renderTeamSpreadsheet() {
                     const panel = $('#spreadsheetPanel').empty();
-                    spreadsheetCollapsedIds = new Set();
+                    // Keep collapsed rows collapsed across a refresh of the
+                    // same board (add subtask, drag-and-drop); reset on switch.
+                    const boardKey = `${this.taskDoctype}:${this.teamId || this.projectId}`;
+                    if (spreadsheetBoardKey !== boardKey) {
+                        spreadsheetCollapsedIds = new Set();
+                        spreadsheetBoardKey = boardKey;
+                    }
                     const wrap = $('<div class="space-y-4"></div>');
 
                     this.teamTaskStatuses.forEach(status => {
@@ -2235,6 +2638,9 @@
                                         <i class="fas fa-pencil text-[10px]"></i>
                                     </button>
                                     <span class="text-xs text-gray-400">${items.length}</span>
+                                </div>
+                                <div class="spreadsheet-top-drop mx-3 mt-2 hidden items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-gray-200 px-3 py-2 text-xs text-gray-400 transition dark:border-gray-700" data-status-id="${status.status_id}">
+                                    <i class="fas fa-arrow-turn-up text-[10px]"></i> Drop here to make it a main task in ${this.escapeHtml(status.status_name)}
                                 </div>
                                 <div class="overflow-x-auto">
                                     <table class="w-full min-w-[820px] text-left">
@@ -2287,8 +2693,17 @@
                         toggleTaskProgress(t, () => this.refreshTaskBoard());
                     });
 
+                    wrap.on('click', '.spreadsheet-add-sub-btn', (e) => {
+                        e.stopPropagation();
+                        const t = findTaskInTree($(e.currentTarget).closest('tr').attr('data-task-id'), currentTasksCache);
+                        if (!t) return;
+                        this.openQuickAddCard(t.status_id, t);
+                    });
+
+                    this.bindSpreadsheetDragDrop(wrap);
+
                     wrap.on('click', '.spreadsheet-row', (e) => {
-                        if ($(e.target).closest('.spreadsheet-toggle-btn, .spreadsheet-check').length) return;
+                        if ($(e.target).closest('.spreadsheet-toggle-btn, .spreadsheet-check, .spreadsheet-add-sub-btn').length) return;
                         const $tr = $(e.currentTarget);
                         const t = findTaskInTree($tr.attr('data-task-id'), currentTasksCache);
                         if (!t) return;
@@ -2301,6 +2716,98 @@
 
                     panel.append(wrap);
                     applySpreadsheetCollapse(wrap);
+                },
+
+                // Spreadsheet drag-and-drop: a row dropped onto another row
+                // becomes its subtask (whole subtree comes along); dropped on
+                // a group's "Drop here" strip it becomes a main Task in that
+                // status. A row never highlights as a target under itself or
+                // its own descendants. Saved via POST {taskApiBase}/{id}/parent.
+                bindSpreadsheetDragDrop(wrap) {
+                    let dragId = null;
+                    const rowHi = 'bg-indigo-100 outline outline-2 -outline-offset-2 outline-indigo-400 dark:bg-indigo-900/40';
+                    const zoneHi = 'border-indigo-400 bg-indigo-50 text-indigo-600 dark:border-indigo-500 dark:bg-indigo-900/30 dark:text-indigo-300';
+                    const clearHi = () => {
+                        wrap.find('tr[data-task-row]').removeClass(rowHi);
+                        wrap.find('.spreadsheet-top-drop').removeClass(zoneHi);
+                    };
+                    const canNestUnder = ($tr) => {
+                        const id = $tr.attr('data-task-id');
+                        return !!dragId && id !== dragId && !($tr.attr('data-ancestors') || '').split(',').includes(dragId);
+                    };
+                    const $dragRow = () => wrap.find(`tr[data-task-row][data-task-id="${dragId}"]`);
+
+                    wrap.on('dragstart', 'tr[data-task-row]', (e) => {
+                        const tr = e.currentTarget;
+                        dragId = $(tr).attr('data-task-id');
+                        e.originalEvent.dataTransfer.effectAllowed = 'move';
+                        e.originalEvent.dataTransfer.setData('text/plain', dragId);
+                        // Next tick — changing layout inside dragstart cancels the drag in Chromium.
+                        setTimeout(() => {
+                            $(tr).addClass('opacity-40');
+                            wrap.find('.spreadsheet-top-drop').removeClass('hidden').addClass('flex');
+                        });
+                    });
+
+                    wrap.on('dragend', 'tr[data-task-row]', (e) => {
+                        dragId = null;
+                        $(e.currentTarget).removeClass('opacity-40');
+                        wrap.find('.spreadsheet-top-drop').addClass('hidden').removeClass('flex');
+                        clearHi();
+                    });
+
+                    wrap.on('dragover', 'tr[data-task-row]', (e) => {
+                        const $tr = $(e.currentTarget);
+                        if (!canNestUnder($tr)) return;
+                        e.preventDefault();
+                        e.originalEvent.dataTransfer.dropEffect = 'move';
+                        if (!$tr.hasClass('outline-indigo-400')) {
+                            clearHi();
+                            $tr.addClass(rowHi);
+                        }
+                    });
+
+                    wrap.on('dragleave', 'tr[data-task-row]', (e) => {
+                        // Also fires when moving between the row's own cells.
+                        if (!e.currentTarget.contains(e.originalEvent.relatedTarget)) $(e.currentTarget).removeClass(rowHi);
+                    });
+
+                    wrap.on('drop', 'tr[data-task-row]', (e) => {
+                        const $tr = $(e.currentTarget);
+                        if (!canNestUnder($tr)) return;
+                        e.preventDefault();
+                        const parentId = $tr.attr('data-task-id');
+                        if ($dragRow().attr('data-parent-id') === parentId) return;
+                        spreadsheetCollapsedIds.delete(parentId);
+                        this.moveSpreadsheetTask(dragId, { parent_task_id: parentId });
+                    });
+
+                    wrap.on('dragover', '.spreadsheet-top-drop', (e) => {
+                        if (!dragId) return;
+                        e.preventDefault();
+                        e.originalEvent.dataTransfer.dropEffect = 'move';
+                        clearHi();
+                        $(e.currentTarget).addClass(zoneHi);
+                    });
+
+                    wrap.on('dragleave', '.spreadsheet-top-drop', (e) => {
+                        if (!e.currentTarget.contains(e.originalEvent.relatedTarget)) $(e.currentTarget).removeClass(zoneHi);
+                    });
+
+                    wrap.on('drop', '.spreadsheet-top-drop', (e) => {
+                        if (!dragId) return;
+                        e.preventDefault();
+                        const statusId = $(e.currentTarget).attr('data-status-id');
+                        const t = findTaskInTree(dragId, currentTasksCache);
+                        if (!$dragRow().attr('data-parent-id') && t?.status_id === statusId) return;
+                        this.moveSpreadsheetTask(dragId, { parent_task_id: '', status_id: statusId });
+                    });
+                },
+
+                moveSpreadsheetTask(taskId, data) {
+                    $.post(`${this.taskApiBase}/${taskId}/parent`, { ...data, _token: '{{ csrf_token() }}' })
+                        .done(() => this.refreshTaskBoard())
+                        .fail((xhr) => toastr.error(xhr.responseJSON?.message || 'Something went wrong.'));
                 },
 
                 // statusId: pre-select a status column when opened from that
@@ -2355,7 +2862,7 @@
             if ($cardTooltip) $cardTooltip.addClass('hidden');
         }
 
-        $('#kanbanPanel, #ganttPanel').on('scroll', hideCardTooltip);
+        $('#kanbanPanel, #calendarPanel').on('scroll', hideCardTooltip);
         window.addEventListener('scroll', hideCardTooltip, true);
 
         // Shared by the "Add Card" PIC picker (single Team context) — offers
@@ -2779,6 +3286,7 @@
         let currentTaskStatuses = [];    // whichever status list currentTasksCache's tree was loaded with (for the shared detail modal's status pill)
         let taskDetailStack = [];        // ancestor task_ids, for the detail modal's Back button
         let spreadsheetCollapsedIds = new Set(); // task_ids collapsed in the current "By Spreadsheet" render
+        let spreadsheetBoardKey = null; // which board spreadsheetCollapsedIds belongs to
 
         // The shared detail modal (#projectDetailModal) always shows exactly
         // one entity — either a Project ('PRJ') or a Task/Team-Task ('TSK'/
@@ -3162,10 +3670,11 @@
                 const late = isLate(t.end_date, displayPct, cancelled);
 
                 const row = `
-                    <tr data-task-row data-task-id="${t.task_id}" data-ancestors="${ancestors.join(',')}" data-depth="${depth}"
+                    <tr data-task-row data-task-id="${t.task_id}" data-parent-id="${ancestors[ancestors.length - 1] || ''}" data-ancestors="${ancestors.join(',')}" data-depth="${depth}" draggable="true"
                         class="spreadsheet-row group cursor-pointer border-b border-gray-100 last:border-0 transition hover:bg-indigo-50/40 dark:border-white/[0.04] dark:hover:bg-indigo-900/10 ${cancelled ? 'opacity-60' : ''}">
                         <td class="px-3 py-2.5">
                             <div class="flex items-center gap-2" style="padding-left:${depth * 20}px">
+                                <i class="fas fa-grip-vertical w-2 shrink-0 cursor-grab text-[10px] text-gray-300 opacity-0 transition group-hover:opacity-100 dark:text-gray-600" title="Drag onto another task to make it a subtask"></i>
                                 ${allChildren.length
                                     ? `<button type="button" class="spreadsheet-toggle-btn flex h-5 w-5 shrink-0 items-center justify-center rounded text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fas fa-chevron-down spreadsheet-toggle-icon text-[10px]"></i></button>`
                                     : `<span class="inline-block h-5 w-5 shrink-0"></span>`}
@@ -3176,6 +3685,7 @@
                                 ${cancelled ? `<span class="shrink-0 rounded-full bg-gray-200 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:bg-white/10 dark:text-gray-400">Cancelled</span>` : ''}
                                 ${late ? `<span class="shrink-0 inline-flex items-center gap-1 rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-600 dark:bg-red-500/10 dark:text-red-400"><i class="fas fa-triangle-exclamation text-[9px]"></i> Late</span>` : ''}
                                 ${activeChildren.length ? `<span class="shrink-0 rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-500 dark:bg-white/10 dark:text-gray-400">${childDone}/${activeChildren.length}</span>` : ''}
+                                ${cancelled ? '' : `<button type="button" class="spreadsheet-add-sub-btn hidden h-5 shrink-0 items-center gap-1 rounded px-1.5 text-[11px] font-medium text-gray-400 transition hover:bg-indigo-100 hover:text-indigo-600 group-hover:inline-flex dark:hover:bg-indigo-900/40 dark:hover:text-indigo-300" title="Add subtask"><i class="fas fa-plus text-[9px]"></i> Subtask</button>`}
                             </div>
                         </td>
                         <td class="max-w-[220px] truncate px-3 py-2.5 text-xs text-gray-400">${desc || '—'}</td>
@@ -3639,7 +4149,7 @@
         function openTaskEntityDetail(task, historyMode = 'push') {
             // Locked Project Task the current user isn't assigned to —
             // board-data already masked it; every open path funnels through
-            // here, so this one check covers cards, Gantt, spreadsheet and
+            // here, so this one check covers cards, calendar, spreadsheet and
             // subtask rows alike. The server enforces the same rule.
             if (task.can_access === false) {
                 Swal.fire({
@@ -4339,9 +4849,9 @@
             return html + highlightMentions(text.slice(last));
         }
 
-        function chatFileChipHtml(id, fallbackName) {
+        function chatFileChipHtml(id, fallbackName, attachmentsById = entityAttachmentsById) {
             const esc = s => $('<div>').text(s ?? '').html();
-            const at = entityAttachmentsById[id];
+            const at = attachmentsById[id];
             if (!at) {
                 return `<div class="mt-1.5 inline-flex max-w-full items-center gap-2 rounded-lg border border-dashed border-gray-300 px-3 py-2 text-xs text-gray-400 dark:border-white/15"><i class="fas fa-file-circle-xmark"></i><span class="truncate line-through">${esc(fallbackName)}</span><span class="shrink-0">· removed</span></div>`;
             }
@@ -4362,13 +4872,15 @@
                 </button>`;
         }
 
-        function renderChatMessage(message) {
+        // attachmentsById: the thread's own files by id — the open detail
+        // modal's by default, or a board Message thread's (boardChat).
+        function renderChatMessage(message, attachmentsById = entityAttachmentsById) {
             const text = String(message ?? '');
             let html = '', last = 0;
             for (const m of text.matchAll(CHAT_FILE_MARKER)) {
                 const before = text.slice(last, m.index).trim();
                 if (before) html += `<p class="whitespace-pre-line break-words">${linkifyChatText(before)}</p>`;
-                html += chatFileChipHtml(m[1], m[2]);
+                html += chatFileChipHtml(m[1], m[2], attachmentsById);
                 last = m.index + m[0].length;
             }
             const rest = text.slice(last).trim();
@@ -4392,6 +4904,290 @@
                     </span>`);
             });
         }
+
+        // ── Team / Project "Message" tab (board-wide chat) ─────────────
+        // One thread per scope: doctype 'TEAM' (refnbr = team_id) or 'PRJ'
+        // (refnbr = project_id — the same thread as the Project Detail
+        // modal's Chat tab). Same /comments + /attachments endpoints as a
+        // Task's chat, so @mentions, links and shared files all work the
+        // same; bell notifications come from DocumentNotificationService.
+        // Polled every 10s while the tab is showing.
+        const boardChat = { doctype: null, id: null, messages: [], attachmentsById: {}, checkedFileIds: new Set(), staged: [], timer: null, sig: '' };
+        const boardChatKey = () => boardChat.id ? `${boardChat.doctype}/${boardChat.id}` : null;
+
+        function boardChatMentionUrl() {
+            if (!boardChat.id) return null;
+            return boardChat.doctype === 'TEAM'
+                ? `{{ url('all-team') }}/${boardChat.id}/tasks/mentionable-users`
+                : `{{ url('projects') }}/${boardChat.id}/mentionable-users`;
+        }
+
+        function openBoardChat(doctype, id) {
+            if (boardChat.doctype !== doctype || boardChat.id !== id) {
+                Object.assign(boardChat, { doctype, id, messages: [], attachmentsById: {}, checkedFileIds: new Set(), staged: [], sig: '' });
+                $('#boardChatInput').val('');
+                autosizeBoardChatInput();
+                renderBoardChatStaged();
+                $('#boardChatPeople').empty();
+                $('#boardChatList').html('<p class="py-10 text-center text-sm italic text-gray-400">Loading messages…</p>');
+                loadBoardChatPeople();
+            }
+            loadBoardChat(true);
+
+            clearInterval(boardChat.timer);
+            boardChat.timer = setInterval(() => {
+                if (document.visibilityState === 'visible') loadBoardChat(false);
+            }, 10000);
+        }
+
+        function closeBoardChat() {
+            clearInterval(boardChat.timer);
+            boardChat.timer = null;
+        }
+
+        // scrollToEnd: jump to the newest message (opening the tab, or
+        // after sending); otherwise only re-renders when something changed.
+        function loadBoardChat(scrollToEnd) {
+            const key = boardChatKey();
+            if (!key) return;
+
+            $.get(`/comments/${key}`).done(res => {
+                if (key !== boardChatKey()) return;
+                const messages = (res.comments || []).slice().reverse(); // oldest first
+
+                const finish = () => {
+                    const sig = messages.map(m => m.id).join(',');
+                    if (sig === boardChat.sig && !scrollToEnd) return;
+                    boardChat.sig = sig;
+                    boardChat.messages = messages;
+                    renderBoardChat(scrollToEnd);
+                };
+
+                // Only (re)load the file list when a message points at a
+                // file we haven't looked up yet — not on every poll.
+                const fileIds = messages.flatMap(m => [...String(m.message ?? '').matchAll(CHAT_FILE_MARKER)].map(x => x[1]));
+                const unknown = fileIds.filter(fid => !boardChat.attachmentsById[fid] && !boardChat.checkedFileIds.has(fid));
+                if (!unknown.length) return finish();
+
+                $.get(`{{ url('attachments') }}/${key}`).done(r => {
+                    if (key !== boardChatKey()) return;
+                    boardChat.attachmentsById = {};
+                    (r.attachments || []).forEach(at => { boardChat.attachmentsById[at.id] = at; });
+                    unknown.forEach(fid => boardChat.checkedFileIds.add(fid)); // removed files: don't re-check every poll
+                }).always(finish);
+            }).fail(xhr => {
+                if (key !== boardChatKey() || boardChat.messages.length) return;
+                $('#boardChatList').html(`<p class="py-10 text-center text-sm text-red-500">${$('<div>').text(xhr.responseJSON?.message || 'Could not load messages.').html()}</p>`);
+            });
+        }
+
+        function loadBoardChatPeople() {
+            const url = boardChatMentionUrl(), key = boardChatKey();
+            if (!url) return;
+            $.get(url).done(list => {
+                if (key !== boardChatKey()) return;
+                const people = [{ username: PM_CURRENT_USER.username, name: PM_CURRENT_USER.name }, ...(Array.isArray(list) ? list : [])];
+                const shown = people.slice(0, 5).map((p, i) =>
+                    `<span class="inline-block rounded-full ring-2 ring-white dark:ring-gray-900" style="margin-left:${i ? '-8px' : '0'}">${initialsAvatar(p.name || p.username, 28)}</span>`).join('');
+                const more = people.length > 5 ? `<span class="-ml-2 flex h-7 min-w-[1.75rem] items-center justify-center rounded-full bg-gray-100 px-1.5 text-[10px] font-semibold text-gray-500 ring-2 ring-white dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-900">+${people.length - 5}</span>` : '';
+                $('#boardChatPeople')
+                    .attr('title', people.map(p => p.name || p.username).join(', '))
+                    .html(`<div class="flex items-center">${shown}${more}</div><span class="ml-2 hidden text-xs text-gray-400 sm:inline">${people.length} ${people.length === 1 ? 'person' : 'people'}</span>`);
+            });
+        }
+
+        function renderBoardChat(scrollToEnd) {
+            const $list = $('#boardChatList');
+            const el = $list[0];
+            const wasNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+            const prevCount = $list.data('count') || 0;
+            const msgs = boardChat.messages;
+            const esc = s => $('<div>').text(s ?? '').html();
+            const me = (PM_CURRENT_USER.username || '').trim().toLowerCase();
+
+            if (!msgs.length) {
+                $list.data('count', 0).html(`
+                    <div class="flex h-full flex-col items-center justify-center gap-2 text-center">
+                        <span class="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50 text-indigo-500 dark:bg-indigo-500/10 dark:text-indigo-300"><i class="fas fa-comments text-lg"></i></span>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-300">No messages yet</p>
+                        <p class="max-w-xs text-xs text-gray-400">Start the conversation — everyone here will see it, and anyone you @mention gets a notification.</p>
+                    </div>`);
+                $('#boardChatNewPill').addClass('hidden').removeClass('inline-flex');
+                return;
+            }
+
+            const dayLabel = (d) => d.isSame(dayjs(), 'day') ? 'Today'
+                : d.isSame(dayjs().subtract(1, 'day'), 'day') ? 'Yesterday'
+                : d.format(d.year() === dayjs().year() ? 'dddd, DD MMM' : 'DD MMM YYYY');
+
+            let html = '', prev = null;
+            msgs.forEach(m => {
+                const at = dayjs(m.message_date);
+                const user = (m.username || '').trim().toLowerCase();
+                const mine = user === me;
+                const newDay = !prev || !dayjs(prev.message_date).isSame(at, 'day');
+                // Consecutive messages from one person within 5 minutes
+                // stack under a single name/avatar.
+                const grouped = !newDay && (prev.username || '').trim().toLowerCase() === user && at.diff(dayjs(prev.message_date), 'minute') < 5;
+                const mentionsMe = !mine && me && new RegExp(`@${me.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(m.message || '');
+
+                if (newDay) {
+                    html += `<div class="my-4 flex items-center gap-3 text-[11px] font-medium text-gray-400"><span class="h-px flex-1 bg-gray-100 dark:bg-white/[0.06]"></span>${dayLabel(at)}<span class="h-px flex-1 bg-gray-100 dark:bg-white/[0.06]"></span></div>`;
+                }
+
+                const body = renderChatMessage(m.message, boardChat.attachmentsById);
+                const time = `<span class="text-[11px] text-gray-400" title="${at.format('DD MMM YYYY HH:mm')}">${at.format('HH:mm')}</span>`;
+
+                if (mine) {
+                    html += `
+                        <div class="flex justify-end ${grouped ? 'mt-1' : 'mt-3'}">
+                            <div class="flex max-w-[75%] flex-col items-end">
+                                ${grouped ? '' : `<div class="mb-1 flex items-center gap-2">${time}<span class="text-xs font-semibold text-gray-700 dark:text-gray-200">You</span></div>`}
+                                <div class="rounded-2xl ${grouped ? '' : 'rounded-tr-sm'} bg-indigo-50 px-3.5 py-2 text-sm text-gray-800 dark:bg-indigo-500/15 dark:text-gray-100" title="${at.format('DD MMM YYYY HH:mm')}">${body}</div>
+                            </div>
+                        </div>`;
+                } else {
+                    html += `
+                        <div class="flex items-start gap-2.5 ${grouped ? 'mt-1' : 'mt-3'}">
+                            <div class="w-8 shrink-0">${grouped ? '' : initialsAvatar(m.name || m.username, 32)}</div>
+                            <div class="flex min-w-0 max-w-[75%] flex-col items-start">
+                                ${grouped ? '' : `<div class="mb-1 flex items-center gap-2"><span class="text-xs font-semibold text-gray-700 dark:text-gray-200">${esc(m.name || m.username)}</span>${time}</div>`}
+                                <div class="rounded-2xl ${grouped ? '' : 'rounded-tl-sm'} px-3.5 py-2 text-sm text-gray-800 dark:text-gray-100 ${mentionsMe ? 'bg-amber-50 ring-1 ring-amber-200 dark:bg-amber-500/10 dark:ring-amber-500/30' : 'bg-gray-100 dark:bg-white/[0.06]'}" title="${at.format('DD MMM YYYY HH:mm')}">${body}</div>
+                            </div>
+                        </div>`;
+                }
+                prev = m;
+            });
+
+            $list.data('count', msgs.length).html(html);
+
+            const stick = scrollToEnd || wasNearBottom;
+            if (stick) {
+                el.scrollTop = el.scrollHeight;
+                // Shared images finish loading after this — keep the view pinned.
+                $list.find('img').one('load', () => { el.scrollTop = el.scrollHeight; });
+                $('#boardChatNewPill').addClass('hidden').removeClass('inline-flex');
+            } else if (msgs.length > prevCount) {
+                $('#boardChatNewPill').removeClass('hidden').addClass('inline-flex');
+            }
+        }
+
+        function renderBoardChatStaged() {
+            const esc = s => $('<div>').text(s ?? '').html();
+            const $box = $('#boardChatStagedFiles').empty()
+                .toggleClass('hidden', !boardChat.staged.length).toggleClass('flex', !!boardChat.staged.length);
+            boardChat.staged.forEach((f, i) => {
+                const tooBig = f.size > 5 * 1024 * 1024;
+                $box.append(`
+                    <span class="inline-flex max-w-[16rem] items-center gap-1.5 rounded-full px-2.5 py-1 text-xs ${tooBig ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400' : 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300'}" title="${tooBig ? 'Over 5MB — will be skipped' : esc(f.name)}">
+                        <i class="fas ${tooBig ? 'fa-triangle-exclamation' : 'fa-paperclip'} text-[10px]"></i>
+                        <span class="truncate">${esc(f.name)}</span>
+                        <button type="button" class="board-chat-staged-remove ml-0.5 opacity-60 hover:opacity-100" data-i="${i}"><i class="fas fa-times text-[10px]"></i></button>
+                    </span>`);
+            });
+        }
+
+        function autosizeBoardChatInput() {
+            const el = document.getElementById('boardChatInput');
+            if (!el) return;
+            el.style.height = 'auto';
+            el.style.height = Math.min(el.scrollHeight, 128) + 'px';
+        }
+
+        function sendBoardChat() {
+            const $btn = $('#boardChatSendBtn');
+            const key = boardChatKey();
+            const val = $('#boardChatInput').val().trim();
+            if (!key || (!val && !boardChat.staged.length) || $btn.prop('disabled')) return;
+
+            const { doctype, id } = boardChat;
+            const tooBig = boardChat.staged.filter(f => f.size > 5 * 1024 * 1024);
+            if (tooBig.length) {
+                toastr.warning(`Not sent (over 5MB): ${tooBig.map(f => f.name).join(', ')}`);
+                boardChat.staged = boardChat.staged.filter(f => !tooBig.includes(f));
+                renderBoardChatStaged();
+            }
+            const files = boardChat.staged.slice();
+            $btn.prop('disabled', true);
+
+            const post = (attachmentIds) => {
+                if (!val && !attachmentIds.length) { $btn.prop('disabled', false); return; }
+                $.post(`/comments/${doctype}/${id}`, { comment: val, attachment_ids: attachmentIds, _token: '{{ csrf_token() }}' })
+                    .done(() => {
+                        if (key !== boardChatKey()) return;
+                        $('#boardChatInput').val('');
+                        autosizeBoardChatInput();
+                        boardChat.staged = [];
+                        renderBoardChatStaged();
+                        loadBoardChat(true);
+                    })
+                    .fail(xhr => toastr.error(xhr.responseJSON?.message || 'Message could not be sent.'))
+                    .always(() => $btn.prop('disabled', false));
+            };
+
+            if (!files.length) return post([]);
+
+            uploadFilesToProjectAttachments(files, doctype, id, (res) => {
+                if (!res) { $btn.prop('disabled', false); return; } // upload failed — keep text & files staged
+                post(res.uploaded_ids || []);
+            });
+        }
+
+        $(function () {
+            // Registered before the Enter-to-send keydown below, so an open
+            // @mention dropdown gets Enter first (it stops propagation).
+            attachMentionAutocomplete({ inputSelector: '#boardChatInput', fetchUrlFn: boardChatMentionUrl });
+
+            $(document).on('keydown', '#boardChatInput', function (e) {
+                if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+                    e.preventDefault();
+                    sendBoardChat();
+                }
+            });
+            $(document).on('input', '#boardChatInput', autosizeBoardChatInput);
+
+            $('#boardChatSendBtn').on('click', sendBoardChat);
+
+            $('#boardChatMentionBtn').on('click', function () {
+                const $input = $('#boardChatInput');
+                const val = $input.val();
+                $input.val(val + (val && !/\s$/.test(val) ? ' @' : '@')).trigger('input').focus();
+            });
+
+            const stage = (files) => {
+                if (!files.length) return;
+                boardChat.staged = boardChat.staged.concat(files).slice(0, 10);
+                renderBoardChatStaged();
+            };
+            $('#boardChatAttachBtn').on('click', () => $('#boardChatFileInput').trigger('click'));
+            $('#boardChatFileInput').on('change', function () {
+                stage(Array.from(this.files));
+                this.value = '';
+            });
+            $('#boardChatInput').on('paste', function (e) {
+                const files = Array.from(e.originalEvent.clipboardData?.files || []);
+                if (!files.length) return; // plain text / links paste normally
+                e.preventDefault();
+                stage(files.map(f => f.name === 'image.png'
+                    ? new File([f], `pasted-${dayjs().format('YYYYMMDD-HHmmss')}.png`, { type: f.type })
+                    : f));
+            });
+            $(document).on('click', '.board-chat-staged-remove', function () {
+                boardChat.staged.splice($(this).data('i'), 1);
+                renderBoardChatStaged();
+            });
+
+            $('#boardChatNewPill').on('click', function () {
+                const el = document.getElementById('boardChatList');
+                el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+                $(this).addClass('hidden').removeClass('inline-flex');
+            });
+            $('#boardChatList').on('scroll', function () {
+                if (this.scrollHeight - this.scrollTop - this.clientHeight < 80) {
+                    $('#boardChatNewPill').addClass('hidden').removeClass('inline-flex');
+                }
+            });
+        });
 
         $(document).ready(function () {
             dayjs.extend(dayjs_plugin_relativeTime);

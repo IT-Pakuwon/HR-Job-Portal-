@@ -160,8 +160,15 @@ class TrProjectTask extends Model
 
     // Used by the shared comment/attachment endpoints, which only know a
     // doctype + refnbr — anything that isn't an existing TSK passes through.
+    // A Team's Message thread ('TEAM', refnbr = team_id) is gated here too,
+    // since every comment/attachment path already funnels through this.
     public static function abortUnlessAccessible(string $doctype, $taskId): void
     {
+        if (strtoupper($doctype) === 'TEAM') {
+            MsTeam::abortUnlessChatAccessible((string) $taskId);
+            return;
+        }
+
         if (!in_array(strtoupper($doctype), ['TSK', 'TSKCOVER'], true)) {
             return;
         }

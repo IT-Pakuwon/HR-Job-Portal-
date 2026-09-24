@@ -1619,6 +1619,7 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/{taskId}', 'update')->name('update');
             Route::get('/{taskId}/activity', 'activity')->name('activity');
             Route::post('/{taskId}/status', 'updateStatus')->name('status');
+            Route::post('/{taskId}/parent', 'reparent')->name('parent');
             Route::post('/{taskId}/cancel', 'cancel')->name('cancel');
             Route::post('/{taskId}/assignees', 'addAssignees')->name('assignees.add');
             Route::post('/{taskId}/cover', 'uploadCover')->name('cover.store');
@@ -1628,7 +1629,13 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/statuses/{statusId}', 'updateStatusColumn')->name('statuses.update');
             Route::delete('/statuses/{statusId}', 'destroyStatusColumn')->name('statuses.destroy');
             Route::get('/{taskId}/mentionable-users', 'mentionableUsers')->name('mentionable-users');
+            // Team-wide Message tab (no task).
+            Route::get('/mentionable-users', 'mentionableUsers')->name('board-mentionable-users');
         });
+
+        // Deep links into a Team / Project board's Message tab (bell notifications).
+        Route::get('/team-chat/{eid}', [TeamTaskController::class, 'chat'])->name('team-chat.show');
+        Route::get('/project-chat/{eid}', [PmProjectController::class, 'chat'])->name('project-chat.show');
 
         // Deep link into a single Task/Subtask's detail modal — /task/{eid},
         // same convention as /projects/{eid} (see TeamTaskController::show()).
@@ -1677,6 +1684,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/', 'store')->name('store');
             Route::put('/{taskId}', 'update')->name('update');
             Route::post('/{taskId}/status', 'updateStatus')->name('status');
+            Route::post('/{taskId}/parent', 'reparent')->name('parent');
             Route::post('/{taskId}/lock', 'toggleLock')->name('lock');
             Route::post('/{taskId}/assignees', 'addAssignees')->name('assignees.add');
             Route::post('/{taskId}/cover', 'uploadCover')->name('cover.store');

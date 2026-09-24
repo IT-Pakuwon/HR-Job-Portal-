@@ -519,7 +519,10 @@ class DocumentNotificationService
                 'TIC' => ['model' => TrTicket::class,       'idCol' => 'ticketid', 'url' => '/showticket',           'statusCol' => 'status_pekerjaan', 'terminalStatuses' => ['COMPLETED', 'CANCEL', 'ENVISION CHECKED / SOLVED']],
                 'ACR' => ['model' => TrAccess::class,        'idCol' => 'docid',    'url' => '/showaccessrequest',    'terminalStatuses' => ['F', 'X', 'R']],
                 'ITR' => ['model' => TrItrecommend::class,   'idCol' => 'docid',    'url' => '/showitrecommendation', 'terminalStatuses' => ['C', 'R']],
-                'PRJ' => ['model' => \App\Models\MsProject::class,     'idCol' => 'project_id', 'url' => '/projects'],
+                // Project / Team board Message tab (the Project thread is the
+                // same one as the Project Detail modal's Chat tab).
+                'PRJ'  => ['model' => \App\Models\MsProject::class,    'idCol' => 'project_id', 'url' => '/project-chat'],
+                'TEAM' => ['model' => \App\Models\MsTeam::class,       'idCol' => 'team_id',    'url' => '/team-chat', 'terminalStatuses' => ['X']],
                 'TSK' => ['model' => \App\Models\TrProjectTask::class, 'idCol' => 'task_id',    'url' => '/project-task'],
                 'TTK' => ['model' => \App\Models\TrTeamTask::class,    'idCol' => 'task_id',    'url' => '/task'],
             ];
@@ -555,8 +558,8 @@ class DocumentNotificationService
                     // time-sensitive operational notices, not a discussion thread — they clear
                     // themselves out H+1 (24h after posting) regardless of read state, unlike a
                     // genuine comment/mention which uses the 5-business-day isCommentExpired() window.
-                    // Project module chat (PRJ/TSK/TTK) also clears out H+1.
-                    ->filter(fn($row) => str_starts_with((string) $row->message_type, 'S_') || in_array($commentDoctype, ['PRJ', 'TSK', 'TTK'], true)
+                    // Project module chat (PRJ/TEAM/TSK/TTK) also clears out H+1.
+                    ->filter(fn($row) => str_starts_with((string) $row->message_type, 'S_') || in_array($commentDoctype, ['PRJ', 'TEAM', 'TSK', 'TTK'], true)
                         ? \Carbon\Carbon::parse($row->message_date)->addDay()->isFuture()
                         : !self::isCommentExpired($row->message_date, $commentHolidays))
                     ->reject(fn($row) => $readKeys->contains('CMT_' . $commentDoctype . '_' . $row->id));
@@ -1217,6 +1220,14 @@ class DocumentNotificationService
                         \App\Models\TrProjectTask::where('project_id', $doc->project_id)->where('status', 'A')->pluck('task_id')
                     )->where('status', 'A')->pluck('username')
                 )
+                ->filter()
+                ->map(fn($u) => strtolower(trim($u)))
+                ->unique();
+        }
+
+        // A Team's Message thread reaches every member of the Team.
+        if ($doctype === 'TEAM') {
+            return $doc->members()->pluck('username')
                 ->filter()
                 ->map(fn($u) => strtolower(trim($u)))
                 ->unique();
