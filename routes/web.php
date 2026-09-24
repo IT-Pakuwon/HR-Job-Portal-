@@ -83,6 +83,7 @@ use App\Http\Controllers\JobpostingController;
 use App\Http\Controllers\KendaraanController;
 use App\Http\Controllers\KontrakController;
 use App\Http\Controllers\LastOrderController;
+use App\Http\Controllers\LegalAgreementController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\LuckydrawSetupController;
 use App\Http\Controllers\MailboxController;
@@ -112,13 +113,12 @@ use App\Http\Controllers\PersonnelController;
 use App\Http\Controllers\PgTrekDashboardController;
 use App\Http\Controllers\PmGroupController;
 use App\Http\Controllers\PmProjectController;
-use App\Http\Controllers\ProjectArchiveController;
 use App\Http\Controllers\PmTaskController;
 use App\Http\Controllers\PmTaskMoveController;
-use App\Http\Controllers\PmTaskDetailController;
 use App\Http\Controllers\PoController;
 use App\Http\Controllers\PoListController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProjectArchiveController;
 use App\Http\Controllers\ProjectTaskController;
 use App\Http\Controllers\PurchasingDashboardController;
 use App\Http\Controllers\ReceiptController;
@@ -148,12 +148,11 @@ use App\Http\Controllers\StrukturOrgController;
 use App\Http\Controllers\SysAccessRightController;
 use App\Http\Controllers\SysApplicationController;
 use App\Http\Controllers\SysCalendarController;
-use App\Http\Controllers\SysMenuController;
 // INTEGRATION
+use App\Http\Controllers\SysMenuController;
 use App\Http\Controllers\SysMenuFavouriteController;
 use App\Http\Controllers\SysRoleController;
 use App\Http\Controllers\SysRoleMenuController;
-use App\Http\Controllers\LegalAgreementController;
 use App\Http\Controllers\SysScreenController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
@@ -1690,7 +1689,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{taskId}/mentionable-users', 'mentionableUsers')->name('mentionable-users');
         });
 
-Route::controller(BookingCarController::class)->group(function () {
+        Route::controller(BookingCarController::class)->group(function () {
             Route::middleware('access:BOOKINGCAR,VIEW')->group(function () {
                 Route::get('/bookingcar', 'index')->name('bookingcar');
                 Route::get('/showbookingcar/{eid}', 'index')->name('bookingcar.show');
@@ -2331,10 +2330,10 @@ Route::controller(BookingCarController::class)->group(function () {
                 Route::get('/api/vpl-usage-by-reason', 'vplUsageByReason')->name('gm.vpl-usage-by-reason');
 
                 // Valet Parking API endpoints
-                Route::get('/api/valet-income-trend',     'valetIncomeTrend')     ->name('gm.valet-income-trend');
-                Route::get('/api/valet-peak-hour',        'valetPeakHour')        ->name('gm.valet-peak-hour');
-                Route::get('/api/valet-repetitive-nopol', 'valetRepetitiveNopol') ->name('gm.valet-repetitive-nopol');
-                Route::get('/api/valet-top-transactions', 'valetTopTransactions') ->name('gm.valet-top-transactions');
+                Route::get('/api/valet-income-trend', 'valetIncomeTrend')->name('gm.valet-income-trend');
+                Route::get('/api/valet-peak-hour', 'valetPeakHour')->name('gm.valet-peak-hour');
+                Route::get('/api/valet-repetitive-nopol', 'valetRepetitiveNopol')->name('gm.valet-repetitive-nopol');
+                Route::get('/api/valet-top-transactions', 'valetTopTransactions')->name('gm.valet-top-transactions');
 
                 // Export endpoints
                 Route::get('/export/pdf', 'exportPdf')->name('gm.export.pdf');
