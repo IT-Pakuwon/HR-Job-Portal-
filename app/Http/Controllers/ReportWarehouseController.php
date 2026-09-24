@@ -844,7 +844,10 @@ class ReportWarehouseController extends Controller
         });
 
         return Excel::download(
-            new \App\Exports\ArrayExport($rows),
+            new \App\Exports\ArrayExport($rows, [
+                'Price'       => '"Rp" #,##0.00',
+                'Total Price' => '"Rp" #,##0.00',
+            ]),
             'warehouse_issue_report.xlsx'
         );
     }
