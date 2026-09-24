@@ -162,15 +162,24 @@
                             Add Approval
                         </h1>
                     </div>
+                    {{-- Collapsed "Copy Template" flag — opens the left panel --}}
+                    <button type="button" id="openCopyTemplateBtn"
+                        class="ml-auto inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-sm font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-100 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20">
+                        <i class="fa-solid fa-clone"></i> Copy Template
+                    </button>
                 </div>
 
                 <div class="grid grid-cols-1 gap-5 lg:grid-cols-5 lg:items-start">
-                    {{-- Copy from Existing Template (left panel) --}}
+                    {{-- Copy from Existing Template (left panel, collapsed by default) --}}
                     <div id="copyTemplateSection"
-                        class="min-w-0 overflow-hidden rounded-lg border border-indigo-200 bg-indigo-50/60 dark:border-indigo-500/20 dark:bg-indigo-500/10 lg:col-span-2">
+                        class="hidden min-w-0 overflow-hidden rounded-lg border border-indigo-200 bg-indigo-50/60 dark:border-indigo-500/20 dark:bg-indigo-500/10 lg:col-span-2">
                         <div class="border-b border-indigo-100 px-4 py-3 dark:border-indigo-500/20">
                             <div class="flex items-center gap-2 text-sm font-semibold text-indigo-700 dark:text-indigo-300">
                                 <i class="fa-solid fa-clone"></i> Copy from Existing Template
+                                <button type="button" id="closeCopyTemplateBtn" title="Close"
+                                    class="ml-auto inline-flex h-6 w-6 items-center justify-center rounded-md text-indigo-500 transition hover:bg-indigo-100 hover:text-indigo-700 dark:text-indigo-300 dark:hover:bg-indigo-500/20">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
                             </div>
                             <p class="mt-1 text-xs leading-relaxed text-indigo-700/70 dark:text-indigo-300/70">
                                 Pick an existing combination to copy its approval lines. They'll appear here as a
@@ -260,7 +269,7 @@
                     </div>
 
                     {{-- Main form (right panel) --}}
-                    <div class="min-w-0 lg:col-span-3">
+                    <div id="approvalFormPanel" class="min-w-0 lg:col-span-5">
                         <form id="approvalForm">
                             @csrf
                             <input type="hidden" id="id" name="id">
@@ -818,6 +827,19 @@
         #linesContainer .select2-search--inline .select2-search__field,
         #editLinesContainer .select2-search--inline .select2-search__field {
             font-size: 13px;
+            /* @tailwindcss/forms pads/borders this textarea, making the box taller than the other fields */
+            height: 26px !important;
+            margin-top: 5px;
+            padding: 0 !important;
+            line-height: 26px;
+            border: 0 !important;
+            box-shadow: none !important;
+            vertical-align: top;
+        }
+
+        #linesContainer .select2-container--default .select2-selection--multiple,
+        #editLinesContainer .select2-container--default .select2-selection--multiple {
+            padding-bottom: 5px;
         }
 
         .dark #linesContainer .select2-container--default .select2-selection--multiple,
@@ -848,6 +870,47 @@
         .dark #editLinesContainer .select2-selection--multiple .select2-selection__choice__remove {
             color: #a5b4fc !important;
             border-color: rgba(99, 102, 241, 0.3) !important;
+        }
+
+        /* Type / Condition single-select: same 38px box as the other line fields */
+        #linesContainer .select2-container--default .select2-selection--single,
+        #editLinesContainer .select2-container--default .select2-selection--single {
+            height: 38px;
+            border-radius: 0.5rem;
+            border-color: #d1d5db;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
+
+        #linesContainer .select2-selection--single .select2-selection__rendered,
+        #editLinesContainer .select2-selection--single .select2-selection__rendered {
+            line-height: 36px;
+            padding-left: 0.625rem;
+            font-size: 0.875rem;
+        }
+
+        #linesContainer .select2-selection--single .select2-selection__arrow,
+        #editLinesContainer .select2-selection--single .select2-selection__arrow {
+            height: 36px;
+            right: 4px;
+        }
+
+        #linesContainer .select2-container--default.select2-container--focus .select2-selection--single,
+        #linesContainer .select2-container--default.select2-container--open .select2-selection--single,
+        #editLinesContainer .select2-container--default.select2-container--focus .select2-selection--single,
+        #editLinesContainer .select2-container--default.select2-container--open .select2-selection--single {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgb(99 102 241 / 0.15);
+        }
+
+        .dark #linesContainer .select2-container--default .select2-selection--single,
+        .dark #editLinesContainer .select2-container--default .select2-selection--single {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .dark #linesContainer .select2-selection--single .select2-selection__rendered,
+        .dark #editLinesContainer .select2-selection--single .select2-selection__rendered {
+            color: #f3f4f6;
         }
     </style>
 
@@ -1358,7 +1421,7 @@
                     const endNom = data?.aprv_end_nominal ?? '';
 
                     const fieldClass =
-                        'w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm shadow-sm transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-gray-100';
+                        'block h-[38px] w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm shadow-sm transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-gray-100';
                     const labelClass = 'mb-1 block text-xs font-medium text-gray-500 md:hidden dark:text-gray-400';
 
                     return `
@@ -1380,7 +1443,7 @@
                         <div class="md:col-span-2">
                             <label class="${labelClass}">Type</label>
                             <select name="aprv_type[${idx}]"
-                            class="sel-type ${fieldClass}">
+                            class="sel-type w-full">
                             ${buildOptions(TYPE_OPTIONS, typeVal)}
                             </select>
                         </div>
@@ -1388,7 +1451,7 @@
                         <div class="md:col-span-2">
                             <label class="${labelClass}">Condition</label>
                             <select name="aprv_condition[${idx}]"
-                            class="sel-condition ${fieldClass}">
+                            class="sel-condition w-full">
                             ${buildOptions(condOptions, condVal)}
                             </select>
                         </div>
@@ -1434,6 +1497,19 @@
                     }
                     $usernameSelect.select2(select2Opts);
 
+                    // Type has only a handful of options — no search box needed
+                    $row.find('.sel-type').select2({
+                        ...select2Opts,
+                        placeholder: 'choose',
+                        allowClear: true,
+                        minimumResultsForSearch: Infinity
+                    });
+                    $row.find('.sel-condition').select2({
+                        ...select2Opts,
+                        placeholder: 'choose',
+                        allowClear: true
+                    });
+
                     if (data && data.aprv_username) {
                         let selected = data.aprv_username;
                         if (typeof selected === 'string') {
@@ -1448,7 +1524,7 @@
                         items : [...GLOBAL_CONDITION_OPTIONS];
                     $(config.containerSel).find('.sel-condition').each(function() {
                         const current = $(this).val();
-                        $(this).html(buildOptions(condOptions, current));
+                        $(this).html(buildOptions(condOptions, current)).trigger('change.select2');
                     });
                 }
 
@@ -1527,6 +1603,23 @@
             });
 
             // ===== Add / Duplicate tab =====
+            // Copy-from-template panel: collapsed by default, opened via the "Copy Template" flag.
+            // The form panel widens to the full row while the template panel is closed.
+            function setCopyTemplateOpen(open) {
+                $('#copyTemplateSection').toggleClass('hidden', !open);
+                $('#openCopyTemplateBtn').toggleClass('hidden', open);
+                $('#approvalFormPanel')
+                    .toggleClass('lg:col-span-3', open)
+                    .toggleClass('lg:col-span-5', !open);
+            }
+
+            $('#openCopyTemplateBtn').click(function() {
+                setCopyTemplateOpen(true);
+            });
+            $('#closeCopyTemplateBtn').click(function() {
+                setCopyTemplateOpen(false);
+            });
+
             function resetAddForm() {
                 $('#approvalFormTitle').text('Add Approval');
                 $('#approvalForm')[0].reset();
@@ -1543,7 +1636,7 @@
                 $('#aprv_cpnyid_select').val('').trigger('change');
                 $('#aprv_doctype').val(LOCKED_DOCTYPE).trigger('change');
 
-                $('#copyTemplateSection').removeClass('hidden');
+                setCopyTemplateOpen(false);
                 $('#copySrcDoctype').val(LOCKED_DOCTYPE).trigger('change');
                 $('#copySrcCompany').val('').trigger('change');
                 $('#copySrcDepartment').empty().append('<option value="">choose </option>').val('').trigger(
@@ -1745,6 +1838,7 @@
                 showTab('form');
                 resetAddForm();
                 $('#approvalFormTitle').text('Duplicate Approval Template');
+                setCopyTemplateOpen(true);
 
                 $('#copySrcDoctype').val(doctype).trigger('change');
                 $('#copySrcCompany').val(cpnyid).trigger('change');
