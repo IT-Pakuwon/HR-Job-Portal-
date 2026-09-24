@@ -113,6 +113,7 @@ use App\Http\Controllers\PgTrekDashboardController;
 use App\Http\Controllers\PmGroupController;
 use App\Http\Controllers\PmProjectController;
 use App\Http\Controllers\PmTaskController;
+use App\Http\Controllers\PmTaskDetailController;
 use App\Http\Controllers\PoController;
 use App\Http\Controllers\PoListController;
 use App\Http\Controllers\ProfileController;
