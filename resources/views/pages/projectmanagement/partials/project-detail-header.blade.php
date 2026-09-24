@@ -28,7 +28,7 @@
                  cancelled flag (openTaskEntityDetail()'s cancel toggle). --}}
             <span id="detailProjectCancelledBadge" class="hidden shrink-0 rounded-full bg-gray-200 px-2.5 py-1 text-xs font-bold text-gray-600 dark:bg-white/10 dark:text-gray-300">Cancelled</span>
             <span id="detailLockedBadge" class="hidden shrink-0 items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
-                <i class="fas fa-lock text-[10px]"></i> Locked
+                <i class="fas fa-lock text-[10px]"></i> Private
             </span>
         </div>
         <div class="flex shrink-0 items-center gap-2">
@@ -62,9 +62,9 @@
             </button>
             {{-- Project Tasks only (doctype TSK) — shown/labelled by
                  openTaskEntityDetail(); toggled via PmTaskController::toggleLock(). --}}
-            <button id="detailLockBtn" type="button" title="Lock task — only assignees can open it"
+            <button id="detailLockBtn" type="button" title="Make task private — only assignees can open it"
                 class="hidden h-9 items-center gap-1.5 rounded-lg border border-gray-200 px-3 text-xs font-medium text-gray-600 transition hover:border-amber-200 hover:bg-amber-50 hover:text-amber-700 dark:border-white/10 dark:text-gray-300 dark:hover:bg-amber-900/20 dark:hover:text-amber-300">
-                <i class="fas fa-lock-open text-[10px]"></i> <span>Lock</span>
+                <i class="fas fa-lock-open text-[10px]"></i> <span>Make private</span>
             </button>
             <button id="projectDetailEditBtn" type="button" x-show="kind === 'project' ? canCreateProject : true"
                 class="inline-flex h-9 items-center gap-1.5 rounded-lg border border-gray-200 px-3 text-xs font-medium text-gray-600 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 dark:border-white/10 dark:text-gray-300 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-300">

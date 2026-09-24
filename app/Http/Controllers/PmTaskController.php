@@ -55,7 +55,7 @@ class PmTaskController extends Controller
     {
         $task = TrProjectTask::where('project_id', $projectId)->where('task_id', $taskId)->firstOrFail();
 
-        abort_unless($task->isAccessibleBy(Auth::user()), 403, 'This task is locked. Only its assignees can open it.');
+        abort_unless($task->isAccessibleBy(Auth::user()), 403, 'This task is private. Only its assignees can open it.');
 
         return $task;
     }
@@ -282,7 +282,7 @@ class PmTaskController extends Controller
 
         $task = TrProjectTask::where('status', 'A')->findOrFail($id);
         $this->project($task->project_id);
-        abort_unless($task->isAccessibleBy(Auth::user()), 403, 'This task is locked. Only its assignees can open it.');
+        abort_unless($task->isAccessibleBy(Auth::user()), 403, 'This task is private. Only its assignees can open it.');
 
         $user = Auth::user();
 
@@ -511,7 +511,7 @@ class PmTaskController extends Controller
                 && empty(array_filter($request->input('assignees', [])))
                 && empty(array_filter($request->input('team_ids', []))),
             422,
-            'A locked task needs at least one PIC — unlock it first.'
+            'A private task needs at least one PIC — make it public first.'
         );
 
         $username = Auth::user()->username;
@@ -586,10 +586,10 @@ class PmTaskController extends Controller
         $me = strtolower(trim(Auth::user()->username));
         $effective = TrProjectTask::effectiveAssigneeMap([$task->task_id])->get($task->task_id);
 
-        abort_unless($effective->contains($me) || TrProjectTask::bypassesLock(Auth::user()), 403, 'Only people assigned to this task can lock or unlock it.');
+        abort_unless($effective->contains($me) || TrProjectTask::bypassesLock(Auth::user()), 403, 'Only people assigned to this task can change its privacy.');
 
         $locked = $request->boolean('locked');
-        abort_if($locked && $effective->isEmpty(), 422, 'Assign at least one person or Team before locking this task.');
+        abort_if($locked && $effective->isEmpty(), 422, 'Assign at least one person or Team before making this task private.');
 
         $task->update([
             'is_locked' => $locked,
@@ -599,12 +599,12 @@ class PmTaskController extends Controller
             'updated_at' => now(),
         ]);
 
-        $this->logTask($task, $locked ? 'locked' : 'unlocked', ($locked ? 'locked the ' : 'unlocked the ') . $this->noun($task));
+        $this->logTask($task, $locked ? 'locked' : 'unlocked', 'made the ' . $this->noun($task) . ($locked ? ' private' : ' public'));
 
         return response()->json([
             'success' => true,
             'is_locked' => $locked,
-            'message' => $locked ? 'Task locked — only its assignees can open it now.' : 'Task unlocked.',
+            'message' => $locked ? 'Task is now private — only its assignees can open it.' : 'Task is now public.',
         ]);
     }
 

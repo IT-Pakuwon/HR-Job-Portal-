@@ -205,9 +205,9 @@ class PmTaskMoveController extends Controller
 
         if ($fromType === 'PROJECT') {
             $canOpen = TrProjectTask::accessMap($boardRows, Auth::user());
-            abort_unless($canOpen[$root->task_id] ?? false, 403, 'This task is locked. Only its assignees can open it.');
+            abort_unless($canOpen[$root->task_id] ?? false, 403, 'This task is private. Only its assignees can open it.');
             abort_if($ids->contains(fn ($id) => !($canOpen[$id] ?? false)), 403,
-                'This task has locked subtasks you can\'t open, so it can\'t be moved.');
+                'This task has private subtasks you can\'t open, so it can\'t be moved.');
         }
 
         // Root lands in the picked column; subtasks keep a same-named

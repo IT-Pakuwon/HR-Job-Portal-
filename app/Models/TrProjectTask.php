@@ -175,6 +175,6 @@ class TrProjectTask extends Model
 
         $task = self::where('task_id', $taskId)->first();
 
-        abort_if($task && !$task->isAccessibleBy(auth()->user()), 403, 'This task is locked.');
+        abort_if($task && !$task->isAccessibleBy(auth()->user()), 403, 'This task is private.');
     }
 }

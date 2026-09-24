@@ -646,7 +646,7 @@
                         <div id="taskMoveStatuses" class="flex flex-wrap gap-2"></div>
                     </div>
                     <p class="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
-                        <i class="fas fa-circle-info mr-1"></i> Subtasks, chat and files move along. People who aren't on the destination board are removed from it. Moving to a Team removes the task's lock.
+                        <i class="fas fa-circle-info mr-1"></i> Subtasks, chat and files move along. People who aren't on the destination board are removed from it. Moving to a Team makes the task public again.
                     </p>
                 </div>
                 <div class="flex justify-end gap-2 border-t border-gray-100 px-5 py-3 dark:border-white/[0.06]">
@@ -2022,7 +2022,7 @@
                                     ${t.file_count != null ? meta('fas fa-paperclip', t.file_count, `${t.file_count} file(s)`) : ''}
                                     ${t.comment_count != null ? meta('far fa-comment', t.comment_count, `${t.comment_count} comment(s)`) : ''}
                                     ${children.length ? meta('fas fa-list-check', `${childDone}/${children.length}`, `${childDone} of ${children.length} subtask(s) done`) : ''}
-                                    ${t.is_locked ? `<i class="fas fa-lock text-[10px] text-amber-500" title="${t.can_access === false ? 'Locked — assignees only' : 'Locked'}"></i>` : ''}
+                                    ${t.is_locked ? `<i class="fas fa-lock text-[10px] text-amber-500" title="${t.can_access === false ? 'Private — assignees only' : 'Private'}"></i>` : ''}
                                 </div>
                                 <div class="flex items-center gap-0.5 opacity-0 transition group-hover:opacity-100">
                                     ${this.teamId ? `
@@ -2275,7 +2275,7 @@
                     const icon = ev.cancelled ? '<i class="fas fa-ban text-[9px] text-gray-400"></i>'
                         : ev.done ? '<i class="fas fa-circle-check text-[10px] text-emerald-500"></i>'
                         : ev.late ? '<i class="fas fa-triangle-exclamation text-[9px] text-red-500"></i>' : '';
-                    const lock = ev.isLocked ? `<i class="fas fa-lock text-[9px] text-amber-500" title="${ev.lockedOut ? 'Locked — assignees only' : 'Locked'}"></i>` : '';
+                    const lock = ev.isLocked ? `<i class="fas fa-lock text-[9px] text-amber-500" title="${ev.lockedOut ? 'Private — assignees only' : 'Private'}"></i>` : '';
                     const shortDate = (d) => d.format(d.year() === dayjs().year() ? 'DD MMM' : 'DD MMM YY');
                     const range = ev.start.isSame(ev.end, 'day') ? shortDate(ev.start) : `${shortDate(ev.start)} → ${shortDate(ev.end)}`;
 
@@ -2285,7 +2285,7 @@
                     // parent Task; a Task/Project shows its own Subtask
                     // count (if any) and a one-line description excerpt.
                     const infoLine = ev.lockedOut
-                        ? `<span class="truncate italic text-amber-600 dark:text-amber-400"><i class="fas fa-lock mr-1 text-[9px]"></i>Locked — assignees only</span>`
+                        ? `<span class="truncate italic text-amber-600 dark:text-amber-400"><i class="fas fa-lock mr-1 text-[9px]"></i>Private — assignees only</span>`
                         : parent
                         ?`<span class="inline-flex min-w-0 items-center gap-1 truncate rounded bg-white/70 px-1.5 py-px text-[10px] font-semibold text-indigo-600 dark:bg-white/10 dark:text-indigo-300" title="Task: ${esc(ev.parentPath.join(' › '))}">
                                <i class="fas fa-turn-up fa-rotate-90 text-[8px]"></i><span class="truncate">${esc(ev.parentPath.join(' › '))}</span>
@@ -2328,7 +2328,7 @@
                     return `
                         ${ev.parentPath.length ? `<p class="mb-1 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-indigo-300"><i class="fas fa-turn-up fa-rotate-90 text-[8px]"></i> ${esc(ev.parentPath.join(' › '))}</p>` : ''}
                         <p class="text-xs font-semibold text-white">${ev.isLocked ? '<i class="fas fa-lock mr-1 text-[10px] text-amber-400"></i>' : ''}${esc(ev.name)}</p>
-                        ${ev.lockedOut ? '<p class="mt-1 text-[11px] italic text-amber-300">Locked — only its assignees can open it.</p>' : ''}
+                        ${ev.lockedOut ? '<p class="mt-1 text-[11px] italic text-amber-300">Private — only its assignees can open it.</p>' : ''}
                         ${desc ?`<p class="mt-1 text-[11px] leading-snug text-gray-300">${esc(desc)}</p>` : ''}
                         ${ev.subTotal ? `<p class="mt-1 text-[11px] text-gray-400"><span class="font-medium text-gray-300">Subtasks:</span> ${ev.subDone}/${ev.subTotal} done</p>` : ''}
                         <p class="mt-1 flex items-center gap-1.5 text-[11px] text-gray-300">
@@ -3786,9 +3786,9 @@
             const showBtn = isProjectTask && (assigned || PM_BYPASSES_TASK_LOCK);
 
             $btn.toggleClass('hidden', !showBtn).toggleClass('inline-flex', showBtn)
-                .attr('title', locked ? 'Unlock task — everyone on the project can open it' : 'Lock task — only assignees can open it');
+                .attr('title', locked ? 'Make task public — everyone on the project can open it' : 'Make task private — only assignees can open it');
             $btn.find('i').toggleClass('fa-lock', !locked).toggleClass('fa-lock-open', locked);
-            $btn.find('span').text(locked ? 'Unlock' : 'Lock');
+            $btn.find('span').text(locked ? 'Make public' : 'Make private');
         }
 
         $(document).on('click', '#detailLockBtn', function () {
@@ -3809,10 +3809,10 @@
 
             Swal.fire({
                 icon: 'question',
-                title: 'Lock this task?',
+                title: 'Make this task private?',
                 text: 'Only people assigned to it (and its subtasks) will be able to open it, chat, or see its files.',
                 showCancelButton: true,
-                confirmButtonText: 'Lock',
+                confirmButtonText: 'Make private',
             }).then(r => { if (r.isConfirmed) send(); });
         });
 
@@ -4154,7 +4154,7 @@
             if (task.can_access === false) {
                 Swal.fire({
                     icon: 'info',
-                    title: 'This task is locked',
+                    title: 'This task is private',
                     text: 'Only people assigned to this task can open it.',
                 });
                 return;
