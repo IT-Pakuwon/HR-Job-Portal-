@@ -2342,6 +2342,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{email}/attachments/{index}', 'downloadAttachment')->whereNumber('email')->whereNumber('index')->name('attachments.download');
             Route::post('/{email}/archive', 'archive')->whereNumber('email')->name('archive');
             Route::delete('/{email}', 'destroy')->whereNumber('email')->name('destroy');
+            Route::post('/folders', 'createFolder')->name('folders.create');
+            Route::delete('/folders/{folder}', 'deleteFolder')->where('folder', '.*')->name('folders.delete');
             // Folder as a path segment for a clean, bookmarkable URL
             // (/mailbox/Drafts) instead of a query string (/mailbox?folder=Drafts).
             // Must stay last: it's a catch-all and would otherwise swallow the

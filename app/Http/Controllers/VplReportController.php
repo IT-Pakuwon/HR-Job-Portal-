@@ -2203,8 +2203,6 @@ class VplReportController extends Controller
             $month = (int) substr((string) $row->perpost, 4, 2);
             $qty   = (float) $row->qty;
 
-            $isUsageWhs = in_array($row->whs_id, [self::WHS_LOYALTY, self::WHS_PROMOTION], true);
-
             if ($row->transaction_source === 'Receive') {
                 // A Receive can post directly to WHLOYALTY/WHPROMOTION (migration/opening
                 // balance docs, e.g. VPR26090002) as well as the normal WHCOLLECTION path
@@ -2231,7 +2229,7 @@ class VplReportController extends Controller
                 $monthlyOut[$key][$month] = ($monthlyOut[$key][$month] ?? 0) + $qty;
             } elseif ($row->whs_id === self::WHS_PROMOTION && $row->transaction_source === 'Usage') {
                 $monthlyOut[$key][$month] = ($monthlyOut[$key][$month] ?? 0) - $qty;
-            } elseif ($isUsageWhs && $row->transaction_source === 'Return') {
+            } elseif ($row->whs_id === self::WHS_PROMOTION && $row->transaction_source === 'Return') {
                 $monthlyIn[$key][$month] = ($monthlyIn[$key][$month] ?? 0) + $qty;
             }
         }
