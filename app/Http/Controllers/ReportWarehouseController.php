@@ -115,6 +115,7 @@ class ReportWarehouseController extends Controller
                 'd.inventory_descr',
                 'd.issue_qty',
                 'd.uom',
+                'd.unitcost',
                 'd.siteid',
 
                 'd.budget_business_unit_id',
@@ -810,6 +811,11 @@ class ReportWarehouseController extends Controller
                 'Qty Issued' => number_format($row->issue_qty ?? 0,3,'.',''),
 
                 'UOM' => $row->uom ?? '',
+
+                'Price' => round((float) ($row->unitcost ?? 0), 2),
+
+                // Computed, not d.totalcost: return lines store totalcost = 0
+                'Total Price' => round((float) ($row->issue_qty ?? 0) * (float) ($row->unitcost ?? 0), 2),
 
                 'Issued By' => $users[$row->issue_created_by] ?? $row->issue_created_by,
 
