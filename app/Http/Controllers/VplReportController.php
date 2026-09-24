@@ -552,11 +552,13 @@ class VplReportController extends Controller
     /**
      * Per-product+expiry-batch beginning/in/out/ending for the given month, keyed by
      * "product_id|expiredKey". Shared by the detail (Stock Voucher) and summary
-     * (Stock Summary) reports so the balance/cumulative math only lives in one place.
+     * (Stock Summary) reports so the balance/cumulative math only lives in one place —
+     * see ledgerMonthlyInOut() for what $loyaltyOutIsUsage switches between the two
+     * reports' different Out-at-Loyalty conventions.
      *
      * @return array<string, array{product: MsVplProduct, bal: MsVplProductBal, category_label: string, beginning: float, month_in: float, month_out: float, ending: float}>
      */
-    private function batchStockRows(string $cpnyid, int $year, int $month): array
+    private function batchStockRows(string $cpnyid, int $year, int $month, bool $loyaltyOutIsUsage = false): array
     {
         // Universe of tenant+expiry batches: normally everything is received at
         // WHCOLLECTION first and moves out from there, but a migration/opening-balance
@@ -582,7 +584,7 @@ class VplReportController extends Controller
         // Monthly In/Out per product+expiry, derived from the ledger so Promotion's
         // "out at usage" rule can override what sp_process_vpl actually posted to
         // WHCOLLECTION's own balance at transfer time.
-        [$monthlyIn, $monthlyOutAmt] = $this->ledgerMonthlyInOut($cpnyid, $year);
+        [$monthlyIn, $monthlyOutAmt] = $this->ledgerMonthlyInOut($cpnyid, $year, $loyaltyOutIsUsage);
 
         $rows = [];
 
@@ -1312,7 +1314,10 @@ class VplReportController extends Controller
         // its own month-end.
         $agingAsOf = Carbon::now()->lt($monthEnd) ? Carbon::now() : $monthEnd;
 
-        $batchRows = $this->batchStockRows($cpnyid, $year, $month);
+        // true = Out-at-Loyalty is actual usage, not the transfer itself — see
+        // ledgerMonthlyInOut(). Scoped to this report only; Stock Voucher (report 1)
+        // keeps the transfer-based convention via batchStockRows()'s default.
+        $batchRows = $this->batchStockRows($cpnyid, $year, $month, true);
 
         if (empty($batchRows)) {
             return [];
@@ -2140,25 +2145,54 @@ class VplReportController extends Controller
      * @return array{0: array<string, array<int, float>>, 1: array<string, array<int, float>>}
      */
     /**
-     * Beginning/Ending is scoped to the combined WHCOLLECTION+WHLOYALTY+WHPROMOTION
-     * balance (see batchStockRows()), so a Transfer between those 3 warehouses is purely
-     * an internal move and is intentionally left uncounted on both the In and Out side —
-     * only Receive (stock entering the tracked universe) and actual Usage (stock being
-     * redeemed/consumed at WHLOYALTY or WHPROMOTION) change the total. Return Usage at
-     * either warehouse is added to In rather than subtracted from Out — it isn't new
-     * stock, it's a prior Usage reversing — so it's surfaced as its own line instead of
-     * quietly shrinking the Out total. This split doesn't change Beginning/Ending math
-     * (still In-Out either way); it only changes how the total decomposes for display.
+     * Two Out conventions for the WHCOLLECTION+WHLOYALTY+WHPROMOTION combined balance,
+     * selected by $loyaltyOutIsUsage:
+     *
+     * - false (default, Stock Voucher / report 1's convention): a Transfer to WHLOYALTY
+     *   counts as Out the moment it's transferred, regardless of whether it's actually
+     *   been redeemed there yet. A "Transfer In" ledger row at WHCOLLECTION only counts
+     *   as stock coming back (Return Transfer) when it was actually sourced from
+     *   WHLOYALTY — the ledger row itself doesn't carry the source warehouse, so this
+     *   joins back to the transfer line that produced it (matched by
+     *   refnbr=transfer_id + linenbr) to read from_whs_id.
+     * - true (Stock & Aging Summary / report 2's convention): the Transfer itself is a
+     *   purely internal move between tracked warehouses and is left uncounted on both
+     *   sides; only actual Usage at WHLOYALTY counts as Out, the same way WHPROMOTION's
+     *   Usage already does.
+     *
+     * Either way, a WHCOLLECTION<->WHPROMOTION transfer is out of scope and left
+     * uncounted, and Return Usage is added to In rather than subtracted from Out — it
+     * isn't new stock, it's a prior Usage reversing — so it's surfaced as its own line
+     * instead of quietly shrinking the Out total. This split doesn't change
+     * Beginning/Ending math (still In-Out either way); it only changes how the total
+     * decomposes for display.
      */
-    private function ledgerMonthlyInOut(string $cpnyid, int $year): array
+    private function ledgerMonthlyInOut(string $cpnyid, int $year, bool $loyaltyOutIsUsage = false): array
     {
-        $rows = DB::connection('pgsql5')->table('tr_vpl_ledger as l')
+        $transactionSources = $loyaltyOutIsUsage
+            ? ['Receive', 'Usage', 'Return']
+            : ['Receive', 'Transfer In', 'Usage', 'Return'];
+
+        $query = DB::connection('pgsql5')->table('tr_vpl_ledger as l');
+
+        if (!$loyaltyOutIsUsage) {
+            $query->leftJoin('tr_vpl_transfer_detail as td', function ($join) {
+                $join->on('td.transfer_id', '=', 'l.refnbr')
+                    ->on('td.linenbr', '=', 'l.linenbr')
+                    ->where('l.transaction_source', '=', 'Transfer In');
+            });
+        }
+
+        $rows = $query
             ->where('l.cpnyid', $cpnyid)
             ->where('l.perpost', 'like', $year.'%')
             ->where('l.status', 'A')
             ->whereIn('l.whs_id', [self::WHS_COLLECTION, self::WHS_LOYALTY, self::WHS_PROMOTION])
-            ->whereIn('l.transaction_source', ['Receive', 'Usage', 'Return'])
-            ->select('l.product_id', 'l.expired_date', 'l.whs_id', 'l.transaction_source', 'l.perpost', 'l.qty')
+            ->whereIn('l.transaction_source', $transactionSources)
+            ->select(array_filter([
+                'l.product_id', 'l.expired_date', 'l.whs_id', 'l.transaction_source', 'l.perpost', 'l.qty',
+                $loyaltyOutIsUsage ? null : 'td.from_whs_id',
+            ]))
             ->get();
 
         $monthlyIn  = [];
@@ -2169,16 +2203,33 @@ class VplReportController extends Controller
             $month = (int) substr((string) $row->perpost, 4, 2);
             $qty   = (float) $row->qty;
 
-            $isUsageWhs = in_array($row->whs_id, [self::WHS_LOYALTY, self::WHS_PROMOTION], true);
-
             if ($row->transaction_source === 'Receive') {
                 // A Receive can post directly to WHLOYALTY/WHPROMOTION (migration/opening
                 // balance docs, e.g. VPR26090002) as well as the normal WHCOLLECTION path
                 // — count it as In wherever it landed so its value isn't silently dropped.
                 $monthlyIn[$key][$month] = ($monthlyIn[$key][$month] ?? 0) + $qty;
-            } elseif ($isUsageWhs && $row->transaction_source === 'Usage') {
+                continue;
+            }
+
+            if ($loyaltyOutIsUsage) {
+                $isUsageWhs = in_array($row->whs_id, [self::WHS_LOYALTY, self::WHS_PROMOTION], true);
+
+                if ($isUsageWhs && $row->transaction_source === 'Usage') {
+                    $monthlyOut[$key][$month] = ($monthlyOut[$key][$month] ?? 0) - $qty;
+                } elseif ($isUsageWhs && $row->transaction_source === 'Return') {
+                    $monthlyIn[$key][$month] = ($monthlyIn[$key][$month] ?? 0) + $qty;
+                }
+
+                continue;
+            }
+
+            if ($row->whs_id === self::WHS_COLLECTION && $row->transaction_source === 'Transfer In' && $row->from_whs_id === self::WHS_LOYALTY) {
+                $monthlyIn[$key][$month] = ($monthlyIn[$key][$month] ?? 0) + $qty;
+            } elseif ($row->whs_id === self::WHS_LOYALTY && $row->transaction_source === 'Transfer In') {
+                $monthlyOut[$key][$month] = ($monthlyOut[$key][$month] ?? 0) + $qty;
+            } elseif ($row->whs_id === self::WHS_PROMOTION && $row->transaction_source === 'Usage') {
                 $monthlyOut[$key][$month] = ($monthlyOut[$key][$month] ?? 0) - $qty;
-            } elseif ($isUsageWhs && $row->transaction_source === 'Return') {
+            } elseif ($row->whs_id === self::WHS_PROMOTION && $row->transaction_source === 'Return') {
                 $monthlyIn[$key][$month] = ($monthlyIn[$key][$month] ?? 0) + $qty;
             }
         }
