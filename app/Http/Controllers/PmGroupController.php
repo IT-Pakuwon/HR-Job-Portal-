@@ -14,17 +14,15 @@ class PmGroupController extends Controller
 {
     use HasAutonbr;
 
-    // Creating/managing Groups & Teams is a dedicated org-admin capability,
-    // separate from PROJECTACCESS (which gates Project/Task/Subtask creation
-    // and day-to-day module use).
+    // Legacy Groups are managed by admins only (the old ORGPROJECTACCESS
+    // role has been retired).
     private function hasOrgAccess(): bool
     {
-        return (bool) Auth::user()?->hasRole('ORGPROJECTACCESS');
+        return (bool) Auth::user()?->isPrimaryAdmin();
     }
 
-    // Either role can browse the Teams list (a PROJECTACCESS holder needs
-    // this to reach "Manage Teams" from the Projects page) — only
-    // ORGPROJECTACCESS can actually create/edit/deactivate a Team.
+    // PROJECTACCESS holders can browse the Groups list; only admins can
+    // create/edit/deactivate a Group.
     private function canView(): bool
     {
         return $this->hasOrgAccess() || (bool) Auth::user()?->hasRole('PROJECTACCESS');

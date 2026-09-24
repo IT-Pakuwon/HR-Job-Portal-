@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Traits\BuildsTaskTree;
+use App\Http\Controllers\Traits\AddsTaskAssignees;
 use App\Http\Controllers\Traits\HasAutonbr;
+use App\Http\Controllers\Traits\RequiresTaskAccess;
+use App\Http\Controllers\Traits\ManagesTaskCover;
 use App\Models\MsProject;
 use App\Models\MsProjectTaskStatus;
 use App\Models\MsTaskTag;
@@ -11,15 +14,21 @@ use App\Models\MsTeam;
 use App\Models\TrProjectTask;
 use App\Models\TrProjectTaskAssignee;
 use App\Models\TrProjectTaskTag;
+use App\Models\TrProjectTaskTeam;
 use App\Models\User;
+use App\Services\PmActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Vinkla\Hashids\Facades\Hashids;
 
 class PmTaskController extends Controller
 {
     use HasAutonbr;
+    use RequiresTaskAccess;
     use BuildsTaskTree;
+    use ManagesTaskCover;
+    use AddsTaskAssignees;
 
     private function project(string $projectId): MsProject
     {
@@ -29,12 +38,23 @@ class PmTaskController extends Controller
 
         abort_unless(
             $eligible->contains(strtolower(Auth::user()->username))
-                || Auth::user()->isAdmin()
+                || Auth::user()->isPrimaryAdmin()
                 || Auth::user()->hasRole('PROADMINACCESS'),
             403
         );
 
         return $project;
+    }
+
+    // A Task of this Project that the current user is allowed into — a
+    // locked task (or anything under one) is assignees-only.
+    private function accessibleTask(string $projectId, string $taskId): TrProjectTask
+    {
+        $task = TrProjectTask::where('project_id', $projectId)->where('task_id', $taskId)->firstOrFail();
+
+        abort_unless($task->isAccessibleBy(Auth::user()), 403, 'This task is locked. Only its assignees can open it.');
+
+        return $task;
     }
 
     // Union of member usernames across every Team linked to the Project,
@@ -122,6 +142,140 @@ class PmTaskController extends Controller
         }
     }
 
+    // Teams assigned as PIC on a Task — only Teams already linked to the
+    // Project are accepted (the picker offers nothing else either).
+    private function syncTaskTeams(MsProject $project, string $taskId, array $teamIds, string $username, $now): void
+    {
+        $allowed = $project->teams->pluck('team_id');
+        $teamIds = collect($teamIds)->map(fn ($t) => trim($t))->filter()->unique();
+
+        abort_if($teamIds->diff($allowed)->isNotEmpty(), 422, 'Only Teams linked to this project can be assigned.');
+
+        TrProjectTaskTeam::where('task_id', $taskId)->update(['status' => 'X']);
+
+        foreach ($teamIds as $teamId) {
+            $existing = TrProjectTaskTeam::where('task_id', $taskId)->where('team_id', $teamId)->first();
+
+            if ($existing) {
+                $existing->update(['status' => 'A']);
+            } else {
+                TrProjectTaskTeam::create([
+                    'task_id' => $taskId,
+                    'team_id' => $teamId,
+                    'assigned_by' => $username,
+                    'assigned_at' => $now,
+                    'status' => 'A',
+                ]);
+            }
+        }
+    }
+
+    // What a Task looks like to a human, for the before/after activity diff.
+    private function taskSnapshot(TrProjectTask $task): array
+    {
+        $statusName = MsProjectTaskStatus::where('project_id', $task->project_id)->where('status_id', $task->status_id)->value('status_name');
+        $tagIds = TrProjectTaskTag::where('task_id', $task->task_id)->where('status', 'A')->pluck('tag_id');
+
+        return [
+            'task_name' => $task->task_name,
+            'task_description' => $task->task_description,
+            'start_date' => PmActivityLogger::formatDate($task->start_date),
+            'end_date' => PmActivityLogger::formatDate($task->end_date),
+            'status' => $statusName ?? $task->status_id,
+            'progress' => PmActivityLogger::formatPercent($task->progress_percent),
+            'assignees' => PmActivityLogger::userNames(TrProjectTaskAssignee::where('task_id', $task->task_id)->where('status', 'A')->pluck('username')),
+            'teams' => PmActivityLogger::teamNames(TrProjectTaskTeam::where('task_id', $task->task_id)->where('status', 'A')->pluck('team_id')),
+            'tags' => MsTaskTag::whereIn('tag_id', $tagIds)->pluck('tag_name')->all(),
+        ];
+    }
+
+    private const TASK_LABELS = [
+        'task_name' => 'Name',
+        'task_description' => 'Description',
+        'start_date' => 'Start date',
+        'end_date' => 'End date',
+        'status' => 'Status',
+        'progress' => 'Progress',
+        'assignees' => 'PIC',
+        'teams' => 'PIC Teams',
+        'tags' => 'Tags',
+    ];
+
+    private function logTask(TrProjectTask $task, string $action, string $description, array $changes = []): void
+    {
+        PmActivityLogger::log('PROJECT', $task->project_id, $task->task_id, $action, $description, $changes);
+    }
+
+    // Diff against $before and log it — nothing when nothing changed. A
+    // lone progress flip to/from 100% (the subtask checkbox) reads as
+    // "marked done" / "reopened" rather than a generic edit.
+    private function logTaskUpdate(TrProjectTask $task, array $before): void
+    {
+        $changes = PmActivityLogger::diff($before, $this->taskSnapshot($task->fresh()), self::TASK_LABELS, ['task_description']);
+        if (!$changes) {
+            return;
+        }
+
+        $noun = $this->noun($task);
+        [$action, $text] = ['updated', "updated the {$noun}"];
+        if (count($changes) === 1 && $changes[0]['label'] === 'Progress') {
+            if ($changes[0]['to'] === '100%') {
+                [$action, $text] = ['completed', "marked the {$noun} as done"];
+            } elseif ($changes[0]['from'] === '100%') {
+                [$action, $text] = ['reopened', "reopened the {$noun}"];
+            }
+        } elseif (count($changes) === 1 && $changes[0]['label'] === 'Status') {
+            [$action, $text] = ['status', "moved the {$noun}"];
+        }
+
+        $this->logTask($task, $action, $text, $changes);
+    }
+
+    private function noun(TrProjectTask $task): string
+    {
+        return $task->parent_task_id ? 'subtask' : 'task';
+    }
+
+    // Task Detail → Activity tab: this task and everything under it,
+    // newest first, minus anything behind a lock the viewer can't open.
+    public function activity(string $projectId, string $taskId)
+    {
+        $this->project($projectId);
+        $this->accessibleTask($projectId, $taskId);
+
+        $all = TrProjectTask::where('project_id', $projectId)->get(['task_id', 'parent_task_id', 'task_name', 'is_locked']);
+        $canOpen = TrProjectTask::accessMap($all, Auth::user());
+        $subtree = PmActivityLogger::subtree($all, $taskId);
+
+        $tasks = $all->whereIn('task_id', $subtree)->filter(fn ($t) => $canOpen[$t->task_id])
+            ->mapWithKeys(fn ($t) => [$t->task_id => ['name' => $t->task_name, 'parent' => $t->task_id !== $taskId]])
+            ->all();
+
+        return response()->json(['items' => PmActivityLogger::feed('PROJECT', $projectId, $tasks, 'TSK', false)]);
+    }
+
+    // Deep link into a Project Task's detail modal — /project-task/{eid},
+    // same convention as TeamTaskController::show(): a Hashids-encoded
+    // tr_project_task.id, opening the modal on the Project's own Task board.
+    public function show(string $eid)
+    {
+        $id = Hashids::decode($eid)[0] ?? null;
+        abort_if(! $id, 404);
+
+        $task = TrProjectTask::where('status', 'A')->findOrFail($id);
+        $this->project($task->project_id);
+        abort_unless($task->isAccessibleBy(Auth::user()), 403, 'This task is locked. Only its assignees can open it.');
+
+        $user = Auth::user();
+
+        return view('pages.projectmanagement.projects', [
+            'initialTab' => 'kanban',
+            'canCreateProject' => $user->hasRole('PROADMINACCESS') || $user->isPrimaryAdmin(),
+            'openProjectBoardId' => $task->project_id,
+            'openTaskEid' => $eid,
+        ]);
+    }
+
     // Master tag palette for the Task modal's Tags picker.
     public function tags(string $projectId)
     {
@@ -168,12 +322,36 @@ class PmTaskController extends Controller
             })->values();
         };
 
-        $flat = $tasks->map(function ($t) use ($assignees, $taskTags, $tagMaster, $withPeople) {
+        // Lock visibility: a locked task stays on the board (name, status,
+        // dates, assignees — so people know who to ask) but is masked for
+        // non-assignees, and everything beneath it is dropped entirely.
+        // "Assigned" = direct PIC people + members of PIC Teams.
+        $me = strtolower(trim(Auth::user()->username));
+        $effective = TrProjectTask::effectiveAssigneeMap($tasks->pluck('task_id'));
+        $canOpen = TrProjectTask::accessMap($tasks, Auth::user());
+        $resolve = fn ($taskId) => $canOpen[$taskId];
+        $tasks = $tasks->filter(fn ($t) => !$t->parent_task_id || !isset($canOpen[$t->parent_task_id]) || $canOpen[$t->parent_task_id]);
+
+        $taskTeams = TrProjectTaskTeam::whereIn('task_id', $tasks->pluck('task_id'))->where('status', 'A')->get()->groupBy('task_id');
+        $teamNames = MsTeam::whereIn('team_id', $taskTeams->flatten()->pluck('team_id')->unique())->pluck('team_name', 'team_id');
+
+        $flat = $tasks->map(function ($t) use ($assignees, $taskTags, $tagMaster, $withPeople, $resolve, $effective, $me, $taskTeams, $teamNames) {
+            $canAccess = $resolve($t->task_id);
+
             return [
+                'is_locked' => (bool) $t->is_locked,
+                'locked_by' => $t->locked_by,
+                'can_access' => $canAccess,
+                'cover_url' => $canAccess ? self::coverUrl($t->cover_attachment_id) : null,
+                'is_assignee' => $effective->get($t->task_id)->contains($me),
+                'teams' => ($taskTeams->get($t->task_id) ?? collect())
+                    ->map(fn ($tt) => ['team_id' => $tt->team_id, 'team_name' => $teamNames->get($tt->team_id, $tt->team_id)])
+                    ->values(),
+                'eid' => Hashids::encode($t->id),
                 'task_id' => $t->task_id,
                 'parent_task_id' => $t->parent_task_id,
                 'task_name' => $t->task_name,
-                'task_description' => $t->task_description,
+                'task_description' => $canAccess ? $t->task_description : null,
                 'start_date' => optional($t->start_date)->toDateString(),
                 'end_date' => optional($t->end_date)->toDateString(),
                 'status_id' => $t->status_id,
@@ -182,10 +360,10 @@ class PmTaskController extends Controller
                 'created_at' => optional($t->created_at)->toDateTimeString(),
                 'assignees' => ($assignees->get($t->task_id) ?? collect())->pluck('username'),
                 'assignee_people' => $withPeople($assignees->get($t->task_id) ?? collect()),
-                'tags' => ($taskTags->get($t->task_id) ?? collect())
+                'tags' => $canAccess ? ($taskTags->get($t->task_id) ?? collect())
                     ->map(fn ($tt) => $tagMaster->get($tt->tag_id))
                     ->filter()
-                    ->values(),
+                    ->values() : [],
             ];
         });
 
@@ -197,7 +375,8 @@ class PmTaskController extends Controller
 
     public function store(Request $request, string $projectId)
     {
-        $this->project($projectId);
+        $this->assertCanEditTasks();
+        $project = $this->project($projectId);
 
         $request->validate([
             'task_name' => ['required', 'string', 'max:255'],
@@ -207,6 +386,8 @@ class PmTaskController extends Controller
             'parent_task_id' => ['nullable', 'string', 'exists:pgsql5.tr_project_task,task_id'],
             'assignees' => ['nullable', 'array'],
             'assignees.*' => ['string'],
+            'team_ids' => ['nullable', 'array'],
+            'team_ids.*' => ['string'],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['string'],
         ]);
@@ -219,6 +400,7 @@ class PmTaskController extends Controller
                 422,
                 'Parent task must belong to the same project.'
             );
+            $this->accessibleTask($projectId, $request->parent_task_id);
         }
 
         $username = Auth::user()->username;
@@ -229,7 +411,7 @@ class PmTaskController extends Controller
 
         $defaultStatus = MsProjectTaskStatus::where('project_id', $projectId)->where('status_id', 'TODO')->where('status', 'A')->exists() ? 'TODO' : null;
 
-        DB::connection('pgsql5')->transaction(function () use ($request, $projectId, $taskId, $username, $now, $defaultStatus) {
+        DB::connection('pgsql5')->transaction(function () use ($request, $project, $projectId, $taskId, $username, $now, $defaultStatus) {
             TrProjectTask::create([
                 'task_id' => $taskId,
                 'project_id' => $projectId,
@@ -255,8 +437,14 @@ class PmTaskController extends Controller
                 ]);
             }
 
+            $this->syncTaskTeams($project, $taskId, $request->input('team_ids', []), $username, $now);
             $this->syncTaskTags($taskId, $request->input('tags', []), $username, $now);
         });
+
+        $task = TrProjectTask::where('task_id', $taskId)->first();
+        $snapshot = $this->taskSnapshot($task);
+        $this->logTask($task, 'created', $task->parent_task_id ? 'added the subtask' : 'created the task',
+            PmActivityLogger::diff([], $snapshot, array_diff_key(self::TASK_LABELS, array_flip(['task_name', 'task_description', 'progress'])), ['task_description']));
 
         $this->recalcProjectProgress($projectId);
 
@@ -265,8 +453,9 @@ class PmTaskController extends Controller
 
     public function update(Request $request, string $projectId, string $taskId)
     {
-        $this->project($projectId);
-        $task = TrProjectTask::where('project_id', $projectId)->where('task_id', $taskId)->firstOrFail();
+        $this->assertCanEditTasks();
+        $project = $this->project($projectId);
+        $task = $this->accessibleTask($projectId, $taskId);
 
         $request->validate([
             'task_name' => ['required', 'string', 'max:255'],
@@ -277,14 +466,29 @@ class PmTaskController extends Controller
             'status_id' => ['nullable', 'string'],
             'assignees' => ['nullable', 'array'],
             'assignees.*' => ['string'],
+            'team_ids' => ['nullable', 'array'],
+            'team_ids.*' => ['string'],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['string'],
         ]);
 
+        // The PIC picker posts pic_submitted=1 so clearing every person and
+        // Team still syncs (an empty array never makes it into the form data).
+        $syncPics = $request->has('assignees') || $request->has('team_ids') || $request->boolean('pic_submitted');
+
+        abort_if(
+            $task->is_locked && $syncPics
+                && empty(array_filter($request->input('assignees', [])))
+                && empty(array_filter($request->input('team_ids', []))),
+            422,
+            'A locked task needs at least one PIC — unlock it first.'
+        );
+
         $username = Auth::user()->username;
         $now = now();
+        $before = $this->taskSnapshot($task);
 
-        DB::connection('pgsql5')->transaction(function () use ($request, $task, $username, $now) {
+        DB::connection('pgsql5')->transaction(function () use ($request, $project, $task, $username, $now, $syncPics) {
             $task->update([
                 'task_name' => $request->task_name,
                 'task_description' => $request->task_description,
@@ -296,7 +500,11 @@ class PmTaskController extends Controller
                 'updated_at' => $now,
             ]);
 
-            if ($request->has('assignees')) {
+            if ($request->has('team_ids') || $request->boolean('pic_submitted')) {
+                $this->syncTaskTeams($project, $task->task_id, $request->input('team_ids', []), $username, $now);
+            }
+
+            if ($request->has('assignees') || $request->boolean('pic_submitted')) {
                 TrProjectTaskAssignee::where('task_id', $task->task_id)->update(['status' => 'X']);
 
                 foreach ($request->input('assignees', []) as $assigneeUsername) {
@@ -323,28 +531,110 @@ class PmTaskController extends Controller
             }
         });
 
+        $this->logTaskUpdate($task, $before);
+
         $this->recalcProjectProgress($task->project_id);
 
         return response()->json(['success' => true, 'message' => 'Task updated successfully']);
     }
 
+    // Lock/unlock toggle in the Task detail header. Only someone assigned
+    // to the task (or an admin) may flip it — so nobody can lock a task
+    // they'd immediately be locked out of, and a lock always has at least
+    // one assignee who can still get in.
+    public function toggleLock(Request $request, string $projectId, string $taskId)
+    {
+        $this->assertCanEditTasks();
+        $this->project($projectId);
+        $task = $this->accessibleTask($projectId, $taskId);
+
+        $request->validate(['locked' => ['required', 'boolean']]);
+
+        $me = strtolower(trim(Auth::user()->username));
+        $effective = TrProjectTask::effectiveAssigneeMap([$task->task_id])->get($task->task_id);
+
+        abort_unless($effective->contains($me) || TrProjectTask::bypassesLock(Auth::user()), 403, 'Only people assigned to this task can lock or unlock it.');
+
+        $locked = $request->boolean('locked');
+        abort_if($locked && $effective->isEmpty(), 422, 'Assign at least one person or Team before locking this task.');
+
+        $task->update([
+            'is_locked' => $locked,
+            'locked_by' => $locked ? Auth::user()->username : null,
+            'locked_at' => $locked ? now() : null,
+            'updated_by' => Auth::user()->username,
+            'updated_at' => now(),
+        ]);
+
+        $this->logTask($task, $locked ? 'locked' : 'unlocked', ($locked ? 'locked the ' : 'unlocked the ') . $this->noun($task));
+
+        return response()->json([
+            'success' => true,
+            'is_locked' => $locked,
+            'message' => $locked ? 'Task locked — only its assignees can open it now.' : 'Task unlocked.',
+        ]);
+    }
+
+    // Detail header → "+" next to the PIC avatars: adds people to the task
+    // without touching anyone already on it (the Edit form is still where
+    // PICs/Teams get removed). Only people eligible for the Project.
+    public function addAssignees(Request $request, string $projectId, string $taskId)
+    {
+        $this->assertCanEditTasks();
+        $project = $this->project($projectId);
+        $task = $this->accessibleTask($projectId, $taskId);
+
+        $request->validate(['usernames' => ['required', 'array', 'min:1'], 'usernames.*' => ['string']]);
+
+        $eligible = $this->eligibleUsernames($project);
+        $usernames = collect($request->input('usernames'))->map(fn ($u) => trim($u))->filter()->unique();
+        abort_unless($usernames->every(fn ($u) => $eligible->contains(strtolower($u))), 422, 'Only people on this project can be added.');
+
+        $before = $this->taskSnapshot($task);
+        $this->activateAssignees(TrProjectTaskAssignee::class, $task->task_id, $usernames);
+        $this->logTaskUpdate($task, $before);
+
+        return response()->json(['success' => true, 'message' => 'People added to the task.']);
+    }
+
+    // Detail header → Cover: add/replace (POST) or remove (DELETE).
+    public function uploadCover(Request $request, string $projectId, string $taskId)
+    {
+        $this->assertCanEditTasks();
+        $this->project($projectId);
+
+        return $this->saveCover($request, $this->accessibleTask($projectId, $taskId), 'TSKCOVER');
+    }
+
+    public function destroyCover(string $projectId, string $taskId)
+    {
+        $this->assertCanEditTasks();
+        $this->project($projectId);
+
+        return $this->removeCover($this->accessibleTask($projectId, $taskId));
+    }
+
     // Drag-and-drop status change on the per-project Task Kanban.
     public function updateStatus(Request $request, string $projectId, string $taskId)
     {
+        $this->assertCanEditTasks();
         $this->project($projectId);
-        $task = TrProjectTask::where('project_id', $projectId)->where('task_id', $taskId)->firstOrFail();
+        $task = $this->accessibleTask($projectId, $taskId);
 
         $request->validate(['status_id' => ['required', 'string']]);
 
+        $before = $this->taskSnapshot($task);
         $task->update(['status_id' => $request->status_id, 'updated_by' => Auth::user()->username, 'updated_at' => now()]);
+        $this->logTaskUpdate($task, $before);
 
         return response()->json(['success' => true]);
     }
 
     public function destroy(string $projectId, string $taskId)
     {
+        $this->assertCanEditTasks();
         $this->project($projectId);
-        $task = TrProjectTask::where('project_id', $projectId)->where('task_id', $taskId)->firstOrFail();
+        $task = $this->accessibleTask($projectId, $taskId);
 
         $now = now();
         $username = Auth::user()->username;
@@ -359,6 +649,9 @@ class PmTaskController extends Controller
             ->update(['status' => 'X', 'updated_by' => $username, 'updated_at' => $now]);
         TrProjectTaskAssignee::whereIn('task_id', $ids)->update(['status' => 'X']);
 
+        $nested = $ids->count() - 1;
+        $this->logTask($task, 'archived', "archived the {$this->noun($task)}" . ($nested ? " (and {$nested} subtask" . ($nested > 1 ? 's' : '') . ')' : ''));
+
         $this->recalcProjectProgress($projectId);
 
         return response()->json(['success' => true, 'message' => 'Task archived successfully']);
@@ -368,6 +661,7 @@ class PmTaskController extends Controller
     // isolated status list (mirrors TeamTaskController::storeStatus()).
     public function storeStatus(Request $request, string $projectId)
     {
+        $this->assertCanEditTasks();
         $this->project($projectId);
 
         $request->validate([
@@ -410,6 +704,8 @@ class PmTaskController extends Controller
             ]);
         }
 
+        PmActivityLogger::log('PROJECT', $projectId, null, 'status_column', "added the status column \"{$statusName}\"");
+
         return response()->json(['success' => true, 'status' => $status]);
     }
 
@@ -417,6 +713,7 @@ class PmTaskController extends Controller
     // Tasks already sitting in it keep pointing at the same row.
     public function updateStatusColumn(Request $request, string $projectId, string $statusId)
     {
+        $this->assertCanEditTasks();
         $this->project($projectId);
 
         $request->validate([
@@ -425,6 +722,7 @@ class PmTaskController extends Controller
         ]);
 
         $status = MsProjectTaskStatus::where('project_id', $projectId)->where('status_id', $statusId)->firstOrFail();
+        $before = ['status_name' => $status->status_name, 'color' => $status->color, 'sort_order' => $status->sort_order];
 
         $status->update([
             'status_name' => trim($request->status_name),
@@ -434,6 +732,11 @@ class PmTaskController extends Controller
             'updated_at' => now(),
         ]);
 
+        $changes = PmActivityLogger::diff($before, $status->only(['status_name', 'color', 'sort_order']), ['status_name' => 'Name', 'color' => 'Color', 'sort_order' => 'Order']);
+        if ($changes) {
+            PmActivityLogger::log('PROJECT', $projectId, null, 'status_column', "edited the status column \"{$status->status_name}\"", $changes);
+        }
+
         return response()->json(['success' => true, 'status' => $status]);
     }
 
@@ -442,6 +745,7 @@ class PmTaskController extends Controller
     // orphaned onto a column that no longer exists.
     public function destroyStatusColumn(string $projectId, string $statusId)
     {
+        $this->assertCanEditTasks();
         $this->project($projectId);
 
         $status = MsProjectTaskStatus::where('project_id', $projectId)->where('status_id', $statusId)->firstOrFail();
@@ -454,6 +758,8 @@ class PmTaskController extends Controller
 
         $status->update(['status' => 'X', 'updated_by' => Auth::user()->username, 'updated_at' => now()]);
 
+        PmActivityLogger::log('PROJECT', $projectId, null, 'status_column', "deleted the status column \"{$status->status_name}\"");
+
         return response()->json(['success' => true]);
     }
 
@@ -462,6 +768,7 @@ class PmTaskController extends Controller
     public function mentionableUsers(string $projectId, string $taskId)
     {
         $project = $this->project($projectId);
+        $this->accessibleTask($projectId, $taskId);
         $usernames = $this->eligibleUsernames($project)
             ->reject(fn ($u) => $u === strtolower(Auth::user()->username));
 

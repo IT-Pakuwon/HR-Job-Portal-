@@ -40,7 +40,7 @@
     <div x-show="kind === 'project'">
         <div class="flex items-center justify-between">
             <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Linked Projects</p>
-            <button @click="openLinkModal()" class="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">
+            <button x-show="canCreateProject" @click="openLinkModal()" class="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">
                 <i class="fas fa-link text-[10px]"></i> Link a project
             </button>
         </div>

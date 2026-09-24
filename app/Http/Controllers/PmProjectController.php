@@ -17,6 +17,7 @@ use App\Models\TrProjectTask;
 use App\Models\TrProjectTeam;
 use App\Models\TrTeamMember;
 use App\Models\User;
+use App\Services\PmActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -38,12 +39,22 @@ class PmProjectController extends Controller
         return (bool) Auth::user()?->hasRole('PROADMINACCESS');
     }
 
-    // Org admins (ORGPROJECTACCESS, who manage Groups/Teams) can also browse
-    // the Projects pages, even though only PROJECTACCESS holders can
-    // actually create/use Projects.
     private function canBrowse(): bool
     {
-        return $this->hasProjectAccess() || $this->hasAdminAccess() || (bool) Auth::user()?->hasRole('ORGPROJECTACCESS');
+        return $this->hasProjectAccess() || $this->hasAdminAccess() || (bool) Auth::user()?->isPrimaryAdmin();
+    }
+
+    // Creating Projects and managing them (edit, stage, link, archive,
+    // portfolio stages) is PROADMINACCESS work. PROJECTACCESS holders work
+    // on Tasks only (see RequiresTaskAccess).
+    private function canManageProjects(): bool
+    {
+        return $this->hasAdminAccess() || (bool) Auth::user()?->isPrimaryAdmin();
+    }
+
+    private function assertCanManageProjects(): void
+    {
+        abort_unless($this->canManageProjects(), 403, 'Only Project admins (PROADMINACCESS) can create or change projects.');
     }
 
     // Teams the current user can see Projects for. PROADMINACCESS holders
@@ -85,7 +96,7 @@ class PmProjectController extends Controller
             $teamIds->intersect($projectTeamIds)->isNotEmpty()
                 || $project->picUsernames()->contains($me)
                 || strtolower(trim((string) $project->created_by)) === $me
-                || Auth::user()->isAdmin(),
+                || Auth::user()->isPrimaryAdmin(),
             403
         );
     }
@@ -139,21 +150,21 @@ class PmProjectController extends Controller
     {
         abort_unless($this->canBrowse(), 403);
 
-        return view('pages.projectmanagement.projects', ['initialTab' => 'kanban', 'canCreateProject' => $this->hasProjectAccess()]);
+        return view('pages.projectmanagement.projects', ['initialTab' => 'kanban', 'canCreateProject' => $this->canManageProjects()]);
     }
 
     public function kanban()
     {
         abort_unless($this->canBrowse(), 403);
 
-        return view('pages.projectmanagement.projects', ['initialTab' => 'kanban', 'canCreateProject' => $this->hasProjectAccess()]);
+        return view('pages.projectmanagement.projects', ['initialTab' => 'kanban', 'canCreateProject' => $this->canManageProjects()]);
     }
 
     public function gantt()
     {
         abort_unless($this->canBrowse(), 403);
 
-        return view('pages.projectmanagement.projects', ['initialTab' => 'gantt', 'canCreateProject' => $this->hasProjectAccess()]);
+        return view('pages.projectmanagement.projects', ['initialTab' => 'gantt', 'canCreateProject' => $this->canManageProjects()]);
     }
 
     // Starred Teams/Projects (username-scoped) — drives the sidebar's "pin
@@ -360,6 +371,56 @@ class PmProjectController extends Controller
         ];
     }
 
+    // What a Project looks like to a human, for the before/after activity diff.
+    private function projectSnapshot(MsProject $project): array
+    {
+        $pics = TrProjectPic::where('project_id', $project->project_id)->where('status', 'A')->get();
+        $tagIds = TrProjectTag::where('project_id', $project->project_id)->where('status', 'A')->pluck('tag_id');
+
+        return [
+            'project_name' => $project->project_name,
+            'project_description' => $project->project_description,
+            'start_date' => PmActivityLogger::formatDate($project->start_date),
+            'end_date' => PmActivityLogger::formatDate($project->end_date),
+            'status' => MsProjectStatus::where('status_id', $project->status_id)->value('status_name') ?? $project->status_id,
+            'teams' => PmActivityLogger::teamNames(TrProjectTeam::where('project_id', $project->project_id)->where('status', 'A')->pluck('team_id')),
+            'pics' => array_merge(
+                array_map(fn ($n) => "{$n} (Team)", PmActivityLogger::teamNames($pics->where('pic_type', 'TEAM')->pluck('ref_id'))),
+                PmActivityLogger::userNames($pics->where('pic_type', 'USER')->pluck('ref_id'))
+            ),
+            'tags' => MsTaskTag::whereIn('tag_id', $tagIds)->pluck('tag_name')->all(),
+        ];
+    }
+
+    private const PROJECT_LABELS = [
+        'project_name' => 'Name',
+        'project_description' => 'Description',
+        'start_date' => 'Start date',
+        'end_date' => 'End date',
+        'status' => 'Status',
+        'teams' => 'Teams',
+        'pics' => 'PIC',
+        'tags' => 'Tags',
+    ];
+
+    // Board header → History: everything that happened in this Project
+    // and its tasks (chat and files included), newest first. Tasks behind a
+    // lock the viewer can't open are left out entirely.
+    public function history(string $projectId)
+    {
+        $project = MsProject::where('project_id', $projectId)->firstOrFail();
+        $this->assertTeamAccess($project);
+
+        $all = TrProjectTask::where('project_id', $projectId)->get(['task_id', 'parent_task_id', 'task_name', 'is_locked']);
+        $canOpen = TrProjectTask::accessMap($all, Auth::user());
+
+        $tasks = $all->filter(fn ($t) => $canOpen[$t->task_id])
+            ->mapWithKeys(fn ($t) => [$t->task_id => ['name' => $t->task_name, 'parent' => (bool) $t->parent_task_id]])
+            ->all();
+
+        return response()->json(['items' => PmActivityLogger::feed('PROJECT', $projectId, $tasks, 'TSK', true, 'PRJ')]);
+    }
+
     // Master tag palette — shared by the New Project / Add Card Tags picker.
     // Not scoped to a Project since it also needs to work while creating one.
     public function tags()
@@ -505,7 +566,7 @@ class PmProjectController extends Controller
 
     public function store(Request $request)
     {
-        abort_unless($this->hasProjectAccess(), 403);
+        $this->assertCanManageProjects();
 
         $request->validate([
             'team_ids' => ['nullable', 'array'],
@@ -524,7 +585,7 @@ class PmProjectController extends Controller
 
         $teamIds = collect($request->input('team_ids', []))->unique()->values();
         $myTeamIds = $this->myTeams()->pluck('team_id');
-        abort_unless($teamIds->every(fn ($t) => $myTeamIds->contains($t)) || Auth::user()->isAdmin(), 403);
+        abort_unless($teamIds->every(fn ($t) => $myTeamIds->contains($t)) || Auth::user()->isPrimaryAdmin(), 403);
 
         $picEntries = $request->input('pics', []);
         $this->validatePicEntries($picEntries, $teamIds->all());
@@ -577,6 +638,9 @@ class PmProjectController extends Controller
             return $project;
         });
 
+        PmActivityLogger::log('PROJECT', $project->project_id, null, 'created', 'created the project',
+            PmActivityLogger::diff([], $this->projectSnapshot($project), array_diff_key(self::PROJECT_LABELS, array_flip(['project_name', 'project_description']))));
+
         return response()->json(['success' => true, 'message' => 'Project created successfully', 'project_id' => $project->project_id]);
     }
 
@@ -596,7 +660,7 @@ class PmProjectController extends Controller
 
         return view('pages.projectmanagement.projects', [
             'initialTab' => 'kanban',
-            'canCreateProject' => $this->hasProjectAccess(),
+            'canCreateProject' => $this->canManageProjects(),
             'openProjectId' => $project->project_id,
         ]);
     }
@@ -676,6 +740,7 @@ class PmProjectController extends Controller
     {
         $project = MsProject::where('project_id', $projectId)->firstOrFail();
         $this->assertTeamAccess($project);
+        $this->assertCanManageProjects();
 
         $request->validate([
             'project_name' => ['required', 'string', 'max:255'],
@@ -694,7 +759,7 @@ class PmProjectController extends Controller
 
         $teamIds = collect($request->input('team_ids', []))->unique()->values();
         $myTeamIds = $this->myTeams()->pluck('team_id');
-        abort_unless($teamIds->every(fn ($t) => $myTeamIds->contains($t)) || Auth::user()->isAdmin(), 403);
+        abort_unless($teamIds->every(fn ($t) => $myTeamIds->contains($t)) || Auth::user()->isPrimaryAdmin(), 403);
 
         $picEntries = $request->input('pics', []);
         $this->validatePicEntries($picEntries, $teamIds->all());
@@ -702,6 +767,7 @@ class PmProjectController extends Controller
 
         $username = Auth::user()->username;
         $now = now();
+        $before = $this->projectSnapshot($project);
 
         DB::connection('pgsql5')->transaction(function () use ($project, $request, $projectId, $username, $now, $teamIds, $picEntries) {
             $project->update([
@@ -719,6 +785,11 @@ class PmProjectController extends Controller
             $this->syncProjectTags($projectId, $request->input('tags', []), $username, $now);
         });
 
+        $changes = PmActivityLogger::diff($before, $this->projectSnapshot($project->fresh()), self::PROJECT_LABELS, ['project_description']);
+        if ($changes) {
+            PmActivityLogger::log('PROJECT', $projectId, null, 'updated', 'updated the project', $changes);
+        }
+
         return response()->json(['success' => true, 'message' => 'Project updated successfully']);
     }
 
@@ -727,14 +798,25 @@ class PmProjectController extends Controller
     {
         $project = MsProject::where('project_id', $projectId)->firstOrFail();
         $this->assertTeamAccess($project);
+        $this->assertCanManageProjects();
 
         $request->validate(['status_id' => ['required', 'string', 'exists:pgsql5.ms_project_status,status_id']]);
 
+        $oldStatus = $project->status_id;
         $project->update([
             'status_id' => $request->status_id,
             'updated_by' => Auth::user()->username,
             'updated_at' => now(),
         ]);
+
+        if ($oldStatus !== $request->status_id) {
+            $names = MsProjectStatus::whereIn('status_id', [$oldStatus, $request->status_id])->pluck('status_name', 'status_id');
+            PmActivityLogger::log('PROJECT', $projectId, null, 'status', 'moved the project', [[
+                'label' => 'Status',
+                'from' => $names->get($oldStatus, $oldStatus ?? '—'),
+                'to' => $names->get($request->status_id, $request->status_id),
+            ]]);
+        }
 
         return response()->json(['success' => true]);
     }
@@ -743,6 +825,7 @@ class PmProjectController extends Controller
     {
         $project = MsProject::where('project_id', $projectId)->firstOrFail();
         $this->assertTeamAccess($project);
+        $this->assertCanManageProjects();
 
         $username = Auth::user()->username;
         $now = now();
@@ -759,6 +842,8 @@ class PmProjectController extends Controller
                 ->update(['status' => 'X', 'updated_by' => $username, 'updated_at' => $now]);
         });
 
+        PmActivityLogger::log('PROJECT', $project->project_id, null, 'archived', 'archived the project');
+
         return response()->json(['success' => true, 'message' => 'Project archived successfully']);
     }
 
@@ -772,7 +857,7 @@ class PmProjectController extends Controller
     // tr_project_status_team — it doesn't touch other Teams' boards.
     public function storeStatus(Request $request)
     {
-        abort_unless($this->hasProjectAccess(), 403);
+        $this->assertCanManageProjects();
 
         $request->validate([
             'status_name' => ['required', 'string', 'max:100'],
@@ -833,6 +918,7 @@ class PmProjectController extends Controller
     {
         $project = MsProject::where('project_id', $projectId)->firstOrFail();
         $this->assertTeamAccess($project);
+        $this->assertCanManageProjects();
 
         $request->validate(['linked_project_id' => ['required', 'string', 'exists:pgsql5.ms_project,project_id', 'different:project_id']]);
 
@@ -852,6 +938,8 @@ class PmProjectController extends Controller
                 'created_by' => Auth::user()->username,
                 'created_at' => now(),
             ]);
+
+            $this->logLink($projectId, $linkedId, 'linked');
         }
 
         return response()->json(['success' => true, 'message' => 'Projects linked successfully']);
@@ -861,6 +949,7 @@ class PmProjectController extends Controller
     {
         $project = MsProject::where('project_id', $projectId)->firstOrFail();
         $this->assertTeamAccess($project);
+        $this->assertCanManageProjects();
 
         TrProject::where('status', 'A')
             ->where(function ($q) use ($projectId, $linkedProjectId) {
@@ -869,7 +958,19 @@ class PmProjectController extends Controller
             })
             ->update(['status' => 'X', 'updated_by' => Auth::user()->username, 'updated_at' => now()]);
 
+        $this->logLink($projectId, $linkedProjectId, 'unlinked');
+
         return response()->json(['success' => true, 'message' => 'Projects unlinked successfully']);
+    }
+
+    // A link is two-way, so it goes into both Projects' history.
+    private function logLink(string $projectId, string $otherId, string $action): void
+    {
+        $names = MsProject::whereIn('project_id', [$projectId, $otherId])->pluck('project_name', 'project_id');
+        $verb = $action === 'linked' ? 'linked this project with' : 'unlinked this project from';
+
+        PmActivityLogger::log('PROJECT', $projectId, null, $action, "{$verb} \"{$names->get($otherId, $otherId)}\"");
+        PmActivityLogger::log('PROJECT', $otherId, null, $action, "{$verb} \"{$names->get($projectId, $projectId)}\"");
     }
 
     // @mention autocomplete for a Project's chat — eligible members across

@@ -20,6 +20,7 @@ class TrTeamTask extends Model
         'status_id',
         'progress_percent',
         'status',
+        'cover_attachment_id',
         'created_by',
         'created_at',
         'updated_by',

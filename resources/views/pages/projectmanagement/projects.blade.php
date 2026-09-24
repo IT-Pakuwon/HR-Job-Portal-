@@ -1,5 +1,14 @@
 <x-app-layout>
-    <div id="pmPortfolioRoot" class="mx-auto flex h-[calc(100dvh-72px)] w-full max-w-9xl gap-4 p-2" x-data='pmPortfolio(@json(["tab" => $initialTab, "openTeamId" => $openTeamId ?? null, "openTaskEid" => $openTaskEid ?? null]))'>
+    {{-- Built up front: @json() splits its argument on commas, so an inline array literal breaks. --}}
+    @php
+        $pmPortfolioOpts = [
+            'tab' => $initialTab,
+            'openTeamId' => $openTeamId ?? null,
+            'openProjectBoardId' => $openProjectBoardId ?? null,
+            'openTaskEid' => $openTaskEid ?? null,
+        ];
+    @endphp
+    <div id="pmPortfolioRoot" class="mx-auto flex h-[calc(100dvh-72px)] w-full max-w-9xl gap-4 p-2" x-data='pmPortfolio(@json($pmPortfolioOpts))'>
 
         {{-- LEFT NAV: Teams / Projects --}}
         <div class="h-full shrink-0 transition-all duration-200" :class="sidebarOpen ? 'w-64' : 'w-14'">
@@ -16,7 +25,7 @@
                 </div>
 
                 <div x-show="sidebarOpen" x-cloak class="border-t border-gray-100 p-3 dark:border-white/[0.06]">
-                    <button @click="openNewProject()"
+                    <button x-show="canCreateProject" @click="openNewProject()"
                         class="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500">
                         <i class="fas fa-plus text-xs"></i> New Project
                     </button>
@@ -111,7 +120,7 @@
 
                 {{-- Collapsed icon rail --}}
                 <div x-show="!sidebarOpen" x-cloak class="flex flex-col items-center gap-1 border-t border-gray-100 p-2 dark:border-white/[0.06]">
-                    <button @click="openNewProject()" title="New Project"
+                    <button x-show="canCreateProject" @click="openNewProject()" title="New Project"
                         class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 text-white shadow-sm transition hover:bg-indigo-500">
                         <i class="fas fa-plus text-xs"></i>
                     </button>
@@ -143,14 +152,18 @@
                         <i class="fas fa-gear text-sm"></i>
                     </button>
                 </div>
-                <div x-show="projectId" x-cloak class="flex shrink-0 items-center gap-1">
-                    <button @click="editSelectedProject()" title="Edit Project"
+                <div x-show="teamId || projectId" x-cloak class="flex shrink-0 items-center gap-1">
+                    <button x-show="projectId" @click="editSelectedProject()" title="Edit Project"
                         class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-50 hover:text-indigo-600 dark:hover:bg-gray-800 dark:hover:text-indigo-400">
                         <i class="fas fa-pen text-xs"></i>
                     </button>
-                    <button @click="archiveSelectedProject()" title="Archive Project"
+                    <button x-show="projectId" @click="archiveSelectedProject()" title="Archive Project"
                         class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-red-50 hover:text-red-500 dark:hover:bg-gray-800 dark:hover:text-red-400">
                         <i class="fas fa-box-archive text-xs"></i>
+                    </button>
+                    <button @click="openHistory()" :title="teamId ? 'Team history' : 'Project history'"
+                        class="ml-1 inline-flex h-8 items-center gap-1.5 rounded-lg border border-gray-200 px-3 text-xs font-medium text-gray-600 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 dark:border-white/10 dark:text-gray-300 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-300">
+                        <i class="fas fa-clock-rotate-left text-[11px]"></i> History
                     </button>
                 </div>
             </div>
@@ -415,6 +428,62 @@
         </div>
     </div>
 
+    {{-- HISTORY PANEL — everything that happened on the current Team/Project
+         board (task changes, chat, files), newest first, with exact
+         date/time. Fed by PmProjectController::history() /
+         TeamTaskController::history(); rows rendered by activityFeedHtml(). --}}
+    <div x-show="historyOpen" x-cloak class="fixed inset-0 z-50" @keydown.escape.window="historyOpen = false">
+        <div x-show="historyOpen" x-transition.opacity class="absolute inset-0 bg-slate-900/40" @click="historyOpen = false"></div>
+        <div x-show="historyOpen"
+            x-transition:enter="transform transition ease-out duration-200" x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
+            x-transition:leave="transform transition ease-in duration-150" x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full"
+            class="absolute inset-y-0 right-0 flex w-full max-w-xl flex-col bg-white shadow-2xl dark:bg-[#0f172a]">
+            <div class="border-b border-gray-100 px-5 py-4 dark:border-white/[0.06]">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="flex min-w-0 items-center gap-3">
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-300">
+                            <i class="fas fa-clock-rotate-left text-sm"></i>
+                        </span>
+                        <div class="min-w-0">
+                            <h2 class="text-base font-semibold text-gray-800 dark:text-gray-100" x-text="teamId ? 'Team history' : 'Project history'"></h2>
+                            <p class="truncate text-xs text-gray-400" x-text="headerTitle"></p>
+                        </div>
+                    </div>
+                    <div class="flex shrink-0 items-center gap-1">
+                        <button type="button" @click="loadHistory()" title="Refresh" class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
+                            <i class="fas fa-rotate-right text-sm" :class="historyLoading ? 'fa-spin' : ''"></i>
+                        </button>
+                        <button type="button" @click="historyOpen = false" title="Close" class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10"><i class="fas fa-times text-sm"></i></button>
+                    </div>
+                </div>
+
+                <div class="mt-3 flex flex-wrap items-center gap-1.5">
+                    <template x-for="f in historyFilters" :key="f.key">
+                        <button type="button" @click="historyFilter = f.key"
+                            class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition"
+                            :class="historyFilter === f.key ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10'">
+                            <span x-text="f.label"></span>
+                            <span class="opacity-70" x-text="historyCount(f.key)"></span>
+                        </button>
+                    </template>
+                </div>
+                <div class="relative mt-2.5">
+                    <i class="fas fa-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400"></i>
+                    <input type="text" x-model.debounce.200ms="historySearch" placeholder="Search by person, task, or change…"
+                        class="h-9 w-full rounded-lg border border-gray-200 pl-8 pr-3 text-sm text-gray-800 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-white dark:focus:ring-indigo-900/30">
+                </div>
+            </div>
+
+            <div class="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+                <div x-show="historyLoading && !historyItems.length" class="flex items-center justify-center gap-2 py-16 text-sm text-gray-400">
+                    <i class="fas fa-spinner fa-spin"></i> Loading history…
+                </div>
+                <div x-show="!historyLoading || historyItems.length" x-html="activityFeedHtml(filteredHistory, { showTask: true })"></div>
+                <p x-show="historyItems.length >= {{ \App\Services\PmActivityLogger::FEED_LIMIT }}" class="mt-4 text-center text-[11px] text-gray-400">Showing the latest {{ \App\Services\PmActivityLogger::FEED_LIMIT }} activities.</p>
+            </div>
+        </div>
+    </div>
+
     {{-- QUICK ADD CARD MODAL --}}
     <div id="quickAddCardModal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-slate-900/50" @click="closeQuickAddCard()"></div>
@@ -468,7 +537,7 @@
                             <label class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
                                 <i class="fas fa-user text-[10px]"></i> PIC
                             </label>
-                            <select id="qc_pic" class="select2 w-full" multiple data-placeholder="Select person(s) in charge"></select>
+                            <select id="qc_pic" class="select2 w-full" multiple data-placeholder="Select team(s) and/or person(s) in charge"></select>
                         </div>
                         <div>
                             <label class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -507,6 +576,78 @@
          No backdrop-click-to-close: only the X / Close buttons dismiss it.
          Broken into partials/project-detail-*.blade.php by section. --}}
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+    {{-- Move a Task (with its subtasks) to another Team/Project board —
+         opened from the detail header's Move button (openTaskMoveModal()). --}}
+    <div id="taskMoveModal" class="fixed inset-0 z-[60] hidden">
+        <div class="absolute inset-0 bg-slate-900/50"></div>
+        <div class="relative flex h-full items-center justify-center p-4">
+            <div class="w-full max-w-md rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 dark:bg-[#0f172a] dark:ring-white/10">
+                <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-white/[0.06]">
+                    <div class="min-w-0">
+                        <h3 class="text-base font-semibold text-gray-800 dark:text-gray-100">Move task</h3>
+                        <p id="taskMoveTaskName" class="truncate text-xs text-gray-400"></p>
+                    </div>
+                    <button type="button" class="task-move-close flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="space-y-4 px-5 py-4">
+                    <div>
+                        <label for="taskMoveTarget" class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Team or Project</label>
+                        <select id="taskMoveTarget" class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:border-indigo-400 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-gray-200"></select>
+                    </div>
+                    <div>
+                        <p class="mb-1.5 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Status</p>
+                        <div id="taskMoveStatuses" class="flex flex-wrap gap-2"></div>
+                    </div>
+                    <p class="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
+                        <i class="fas fa-circle-info mr-1"></i> Subtasks, chat and files move along. People who aren't on the destination board are removed from it. Moving to a Team removes the task's lock.
+                    </p>
+                </div>
+                <div class="flex justify-end gap-2 border-t border-gray-100 px-5 py-3 dark:border-white/[0.06]">
+                    <button type="button" class="task-move-close h-9 rounded-lg bg-gray-100 px-4 text-sm font-medium text-gray-600 hover:bg-gray-200 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10">Cancel</button>
+                    <button type="button" id="taskMoveSave" disabled class="h-9 rounded-lg bg-indigo-600 px-4 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40">Move</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Full-size, uncropped view of a task's cover — opened from the cover
+         banner's "Full preview" button or by clicking the banner image.
+         Backdrop click, the X, or Esc closes it. --}}
+    <div id="coverPreviewModal" class="fixed inset-0 z-[80] hidden">
+        <div class="cover-preview-close absolute inset-0 bg-slate-950/85 backdrop-blur-sm"></div>
+        <div class="pointer-events-none relative flex h-full items-center justify-center p-6 sm:p-10">
+            <img id="coverPreviewImg" src="" alt="Task cover" class="pointer-events-auto max-h-full max-w-full rounded-xl object-contain shadow-2xl">
+        </div>
+        <div class="absolute right-4 top-4 flex items-center gap-2">
+            <a id="coverPreviewOpen" href="#" target="_blank" rel="noopener" title="Open original in new tab"
+                class="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"><i class="fas fa-up-right-from-square text-sm"></i></a>
+            <button type="button" title="Close"
+                class="cover-preview-close flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+
+    {{-- Book a Meeting Room / Zoom for a subtask — opened from a subtask
+         row's "Meeting Room" / "Zoom" buttons (openMeetingBooking()). Embeds
+         the Meeting module's own page (/meeting or /meetingteams, ?embed=1)
+         so its existing Create-booking modal, validation, conflict checks and
+         emails are reused as-is; that page postMessage()s 'pm-meeting-booked'
+         back here on a successful save. --}}
+    <div id="meetingBookingModal" class="fixed inset-0 z-[70] hidden">
+        <div class="absolute inset-0 bg-slate-900/60"></div>
+        <div class="relative flex h-full items-center justify-center p-4">
+            <div class="flex h-[92vh] w-full max-w-7xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 dark:bg-[#0f172a] dark:ring-white/10">
+                <div class="flex shrink-0 items-center justify-between border-b border-gray-100 px-5 py-3 dark:border-white/[0.06]">
+                    <div class="min-w-0">
+                        <h3 id="meetingBookingTitle" class="text-base font-semibold text-gray-800 dark:text-gray-100">Booking Meeting Room</h3>
+                        <p id="meetingBookingTaskName" class="truncate text-xs text-gray-400"></p>
+                    </div>
+                    <button type="button" class="meeting-booking-close flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10"><i class="fas fa-times"></i></button>
+                </div>
+                <iframe id="meetingBookingFrame" class="min-h-0 w-full flex-1 border-0" src="about:blank"></iframe>
+            </div>
+        </div>
+    </div>
+
     <div id="projectDetailModal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
         <div class="relative flex h-full items-center justify-center p-4">
@@ -522,6 +663,7 @@
                     <button @click="tab = 'tasks'; renderTaskTab()" :class="tab === 'tasks' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5'" class="rounded-t-lg px-4 py-2 text-sm font-medium">Sub Task</button>
                     <button @click="tab = 'chat'" :class="tab === 'chat' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5'" class="rounded-t-lg px-4 py-2 text-sm font-medium">Chat</button>
                     <button @click="tab = 'attachments'" :class="tab === 'attachments' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5'" class="rounded-t-lg px-4 py-2 text-sm font-medium">File</button>
+                    <button x-show="kind === 'task'" @click="tab = 'activity'; loadTaskActivity()" :class="tab === 'activity' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5'" class="rounded-t-lg px-4 py-2 text-sm font-medium">Activity List</button>
                 </div>
 
                 {{-- For kind 'subtask' the two panels below render together
@@ -538,6 +680,9 @@
                         </div>
                         @include('pages.projectmanagement.partials.project-detail-tab-file')
                         @include('pages.projectmanagement.partials.project-detail-tab-chat')
+                        <div :class="kind === 'subtask' ? 'border-t border-gray-100 pt-6 lg:col-span-5 dark:border-white/[0.06]' : ''">
+                            @include('pages.projectmanagement.partials.project-detail-tab-activity')
+                        </div>
                     </div>
                 </div>
 
@@ -612,7 +757,8 @@
                         </div>
                         <div>
                             <label class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400"><i class="fas fa-user-group text-[10px] text-gray-300 dark:text-gray-500"></i> PIC</label>
-                            <select id="task_assignees" name="assignees[]" class="select2 w-full" multiple data-placeholder="Assign person(s) in charge"></select>
+                            {{-- No name attr — #taskForm's submit splits TEAM:/USER: values into assignees[]/team_ids[] (splitTaskPicValues()). --}}
+                            <select id="task_assignees" class="select2 w-full" multiple data-placeholder="Assign team(s) and/or person(s) in charge"></select>
                         </div>
                         <div>
                             <label class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400"><i class="fas fa-paperclip text-[10px] text-gray-300 dark:text-gray-500"></i> Attachment</label>
@@ -650,11 +796,12 @@
     </div>
 
     {{-- FILE PREVIEW MODAL — click a file row in any Files tab; image/video/PDF
-         render inline, anything else falls back to a Download prompt. --}}
+         render inline, Word/Excel/CSV/text render client-side (openFilePreview),
+         anything else falls back to a Download prompt. --}}
     <div id="filePreviewModal" class="fixed inset-0 z-[60] hidden">
         <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm"></div>
         <div class="relative flex h-full items-center justify-center p-6">
-            <div class="flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-[#0f172a]">
+            <div id="filePreviewPanel" class="flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-[#0f172a]">
                 <div class="flex items-center justify-between gap-4 border-b border-gray-100 px-5 py-3.5 dark:border-white/[0.06]">
                     <p id="filePreviewName" class="min-w-0 truncate text-sm font-semibold text-gray-800 dark:text-gray-100"></p>
                     <div class="flex shrink-0 items-center gap-2">
@@ -969,6 +1116,13 @@
             stroke: #EF4444;
             stroke-width: 2px;
         }
+
+        /* File preview — SheetJS emits a bare <table>; give it grid lines. */
+        .sheet-preview table { border-collapse: collapse; }
+        .sheet-preview td { border: 1px solid rgba(148, 163, 184, .35); padding: 4px 8px; white-space: nowrap; }
+        /* docx-preview draws white pages on a grey backdrop; keep it inside the modal. */
+        #filePreviewBody .docx-wrapper { padding: 16px; border-radius: 8px; }
+        #filePreviewBody .docx-wrapper > section.docx { max-width: 100%; }
     </style>
 
     @push('scripts')
@@ -1012,6 +1166,20 @@
                 teamTasks: [],
                 canCreateProject: @json($canCreateProject),
                 loaded: false,
+
+                // History panel (header's History button) — see openHistory().
+                historyOpen: false,
+                historyLoading: false,
+                historyItems: [],
+                historyFilter: 'all',
+                historySearch: '',
+                historyFilters: [
+                    { key: 'all', label: 'All' },
+                    { key: 'task', label: 'Tasks' },
+                    { key: 'board', label: 'Team / Project' },
+                    { key: 'chat', label: 'Chat' },
+                    { key: 'file', label: 'Files' },
+                ],
 
                 defaultApplied: false,
 
@@ -1101,6 +1269,41 @@
                     });
                 },
 
+                openHistory() {
+                    if (!this.teamId && !this.projectId) return;
+                    this.historyFilter = 'all';
+                    this.historySearch = '';
+                    this.historyItems = [];
+                    this.historyOpen = true;
+                    this.loadHistory();
+                },
+
+                loadHistory() {
+                    const url = this.teamId
+                        ? `{{ url('all-team') }}/${this.teamId}/tasks/history`
+                        : `{{ url('projects') }}/${this.projectId}/history`;
+                    this.historyLoading = true;
+                    $.get(url, (res) => { this.historyItems = res.items || []; })
+                        .fail(xhr => toastr.error(xhr.responseJSON?.message || 'Could not load history.'))
+                        .always(() => { this.historyLoading = false; });
+                },
+
+                historyMatches(item, filter) {
+                    if (filter === 'all') return true;
+                    if (filter === 'board') return item.kind === 'team' || item.kind === 'project';
+                    return item.kind === filter;
+                },
+
+                historyCount(filter) {
+                    return this.historyItems.filter(i => this.historyMatches(i, filter)).length;
+                },
+
+                get filteredHistory() {
+                    const q = this.historySearch.trim().toLowerCase();
+                    return this.historyItems.filter(i => this.historyMatches(i, this.historyFilter)
+                        && (!q || activitySearchText(i).includes(q)));
+                },
+
                 archiveSelectedProject() {
                     if (!this.projectId) return;
                     const p = this.projects.find(x => x.project_id === this.projectId);
@@ -1152,7 +1355,14 @@
                             this.defaultApplied = true;
                             // A /task/{eid} deep link names its own Team —
                             // takes priority over the favorited-Team default.
-                            this.teamId = opts.openTeamId || this.defaultTeamId();
+                            // A /project-task/{eid} deep link opens that
+                            // Project's own Task board instead.
+                            if (opts.openProjectBoardId) {
+                                this.teamId = '';
+                                this.projectId = opts.openProjectBoardId;
+                            } else {
+                                this.teamId = opts.openTeamId || this.defaultTeamId();
+                            }
                         }
 
                         this.loaded = true;
@@ -1218,6 +1428,18 @@
                         currentTaskStatuses = res.statuses;
                         this.renderTab();
 
+                        // A /project-task/{eid} deep link — same as the
+                        // Team board's handling in loadTeamTaskBoard().
+                        if (this.pendingOpenTaskEid) {
+                            const eid = this.pendingOpenTaskEid;
+                            this.pendingOpenTaskEid = null;
+                            const target = findTaskByEid(eid, res.tasks);
+                            if (target) {
+                                taskDetailStack = findAncestorTaskIds(eid, res.tasks) || [];
+                                openTaskEntityDetail(target, 'replace');
+                            }
+                        }
+
                         if (typeof cb === 'function') cb();
                     });
 
@@ -1227,6 +1449,7 @@
                     // people to offer without going through that modal first.
                     $.get(`{{ url('projects') }}/${this.projectId}/detail`, (res) => {
                         Alpine.$data(document.getElementById('pmProjectShowRoot')).eligibleUsers = res.eligible_users || [];
+                        Alpine.$data(document.getElementById('pmProjectShowRoot')).projectTeams = res.teams || [];
                     });
                 },
 
@@ -1492,7 +1715,7 @@
 
                 submitQuickAddCard() {
                     const name = $('#qc_name').val()?.trim();
-                    const assignees = $('#qc_pic').val() || [];
+                    const { assignees, team_ids } = splitTaskPicValues($('#qc_pic').val());
                     const tags = $('#qc_tags').val() || [];
                     if (!name || (!this.teamId && !this.projectId)) return;
 
@@ -1508,6 +1731,7 @@
                         end_date: $('#qc_end_date').val(),
                         status_id: this.quickAddStatusId,
                         assignees: assignees,
+                        team_ids: team_ids,
                         tags: tags,
                         _token: '{{ csrf_token() }}',
                     }, (res) => {
@@ -1544,22 +1768,32 @@
                         const list = col.find('.kanban-col');
                         items.forEach(p => list.append(this.projectCard(p)));
 
-                        col.find('.add-card-btn').on('click', () => this.openQuickAddCard(status.status_id));
+                        // Creating/moving Projects and adding stages is
+                        // Project-admin (PROADMINACCESS) only.
+                        if (this.canCreateProject) {
+                            col.find('.add-card-btn').on('click', () => this.openQuickAddCard(status.status_id));
+                        } else {
+                            col.find('.add-card-btn').parent().remove();
+                        }
 
                         wrap.append(col);
                     });
 
-                    const addStatusBtn = $(`
-                        <div class="w-72 shrink-0">
-                            <button class="w-full rounded-lg border-2 border-dashed border-gray-200 px-3 py-2.5 text-sm text-gray-400 hover:border-indigo-300 hover:text-indigo-500 dark:border-gray-700">
-                                + Add status
-                            </button>
-                        </div>
-                    `);
-                    addStatusBtn.find('button').on('click', () => this.openAddStatusModal());
-                    wrap.append(addStatusBtn);
+                    if (this.canCreateProject) {
+                        const addStatusBtn = $(`
+                            <div class="w-72 shrink-0">
+                                <button class="w-full rounded-lg border-2 border-dashed border-gray-200 px-3 py-2.5 text-sm text-gray-400 hover:border-indigo-300 hover:text-indigo-500 dark:border-gray-700">
+                                    + Add status
+                                </button>
+                            </div>
+                        `);
+                        addStatusBtn.find('button').on('click', () => this.openAddStatusModal());
+                        wrap.append(addStatusBtn);
+                    }
 
                     panel.append(wrap);
+
+                    if (!this.canCreateProject) return;
 
                     panel.find('.kanban-col').each((i, el) => {
                         Sortable.create(el, {
@@ -1637,7 +1871,8 @@
                             onEnd: (evt) => {
                                 const taskId = evt.item.dataset.taskId;
                                 const statusId = evt.to.dataset.statusId;
-                                $.post(`${this.taskApiBase}/${taskId}/status`, { status_id: statusId, _token: '{{ csrf_token() }}' });
+                                $.post(`${this.taskApiBase}/${taskId}/status`, { status_id: statusId, _token: '{{ csrf_token() }}' })
+                                    .fail(xhr => { toastr.error(xhr.responseJSON?.message || 'Could not move this task.'); this.refreshTaskBoard(); });
                             }
                         });
                     });
@@ -1679,6 +1914,8 @@
                         <div data-task-id="${t.task_id}"
                             class="group relative block cursor-move rounded-xl border ${late ? 'border-red-200 dark:border-red-500/30' : 'border-gray-200 dark:border-gray-700'} bg-white p-3.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:bg-gray-800 ${cancelled ? 'opacity-60' : ''}">
 
+                            ${t.cover_url ? `<div class="-mx-3.5 -mt-3.5 mb-2.5 h-28 overflow-hidden rounded-t-xl bg-gray-100 dark:bg-white/5"><img src="${t.cover_url}" alt="" loading="lazy" class="h-full w-full object-cover"></div>` : ''}
+
                             <div class="flex items-start justify-between">
                                 <span class="text-gray-300 transition group-hover:text-gray-400 dark:text-gray-600"><i class="fas fa-grip-vertical text-xs"></i></span>
                                 <div class="flex items-center gap-1">
@@ -1692,11 +1929,13 @@
                                             <i class="fas fa-box-archive text-xs"></i>
                                         </button>
                                     </div>
+                                    ${(t.teams || []).map(tm => `<span class="inline-flex max-w-[7rem] items-center gap-1 truncate rounded-full bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300" title="Team: ${this.escapeHtml(tm.team_name)}"><i class="fas fa-users text-[8px]"></i> ${this.escapeHtml(tm.team_name)}</span>`).join('')}
                                     ${avatars ? `<div class="flex items-center">${avatars}</div>` : ''}
                                 </div>
                             </div>
 
                             <div class="mt-1.5 flex items-center gap-1.5">
+                                ${t.is_locked ? `<i class="fas fa-lock shrink-0 text-[11px] text-amber-500" title="${t.can_access === false ? 'Locked — assignees only' : 'Locked'}"></i>` : ''}
                                 <p class="min-w-0 flex-1 truncate text-sm font-semibold leading-snug text-gray-800 dark:text-gray-100 ${cancelled ? 'text-gray-400 line-through dark:text-gray-500' : ''}">${this.escapeHtml(t.task_name)}</p>
                                 ${cancelled ? `<span class="shrink-0 rounded-full bg-gray-200 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:bg-white/10 dark:text-gray-400">Cancelled</span>` : ''}
                                 ${late ? `<span class="shrink-0 inline-flex items-center gap-1 rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-600 dark:bg-red-500/10 dark:text-red-400"><i class="fas fa-triangle-exclamation text-[9px]"></i> Late</span>` : ''}
@@ -2142,14 +2381,47 @@
         // linked to the Project (PmProjectController::detail()'s
         // eligible_users), same pool the Project Detail modal's Chat/
         // assignee pickers already use.
-        function loadProjectPicOptions($select, projectId, selectedUsernames = []) {
+        function loadProjectPicOptions($select, projectId) {
             $select.empty().trigger('change');
             if (!projectId) return;
 
             $.get(`{{ url('projects') }}/${projectId}/detail`, (res) => {
-                (res.eligible_users || []).forEach(m => $select.append(new Option(m.name, m.username, false, selectedUsernames.includes(m.username))));
-                $select.trigger('change');
+                fillTaskPicSelect($select, 'TSK', res.eligible_users || [], res.teams || []);
             });
+        }
+
+        // PIC picker for #taskModal and Quick Add. A Project Task (TSK) gets
+        // two optgroups, Teams (only the ones linked to this Project) and
+        // People (the Project's eligible users), valued "TEAM:<team_id>" /
+        // "USER:<username>". A Team Task (TTK) is people-only, plain usernames.
+        // Split back out with splitTaskPicValues() before posting.
+        function fillTaskPicSelect($select, doctype, people, teams, selectedUsernames = [], selectedTeamIds = []) {
+            $select.empty();
+
+            if (doctype !== 'TSK') {
+                people.forEach(u => $select.append(new Option(`${u.name} (${u.username})`, u.username, false, selectedUsernames.includes(u.username))));
+                $select.trigger('change');
+                return;
+            }
+
+            if (teams.length) {
+                const $teams = $('<optgroup label="Teams"></optgroup>');
+                teams.forEach(t => $teams.append(new Option(t.team_name, `TEAM:${t.team_id}`, false, selectedTeamIds.includes(t.team_id))));
+                $select.append($teams);
+            }
+            const $people = $('<optgroup label="People"></optgroup>');
+            people.forEach(u => $people.append(new Option(`${u.name} (${u.username})`, `USER:${u.username}`, false, selectedUsernames.includes(u.username))));
+            $select.append($people);
+            $select.trigger('change');
+        }
+
+        function splitTaskPicValues(values) {
+            const assignees = [], team_ids = [];
+            (values || []).forEach(v => {
+                if (v.startsWith('TEAM:')) team_ids.push(v.slice(5));
+                else assignees.push(v.startsWith('USER:') ? v.slice(5) : v);
+            });
+            return { assignees, team_ids };
         }
 
         // "New/Edit Project" combined Team(s) + PIC picker — one select2,
@@ -2316,6 +2588,7 @@
                 statuses: [],
                 tasks: [],
                 eligibleUsers: [],
+                projectTeams: [],   // Teams linked to the open Project — PIC picker's Teams group
 
                 openNewTask() {
                     resetTaskForm();
@@ -2434,7 +2707,8 @@
                             onEnd: (evt) => {
                                 const taskId = evt.item.dataset.taskId;
                                 const statusId = evt.to.dataset.statusId;
-                                $.post(`{{ url('projects') }}/${PM_PROJECT_ID}/tasks/${taskId}/status`, { status_id: statusId, _token: '{{ csrf_token() }}' });
+                                $.post(`{{ url('projects') }}/${PM_PROJECT_ID}/tasks/${taskId}/status`, { status_id: statusId, _token: '{{ csrf_token() }}' })
+                                    .fail(xhr => { toastr.error(xhr.responseJSON?.message || 'Could not move this task.'); this.renderTaskTab(); });
                             }
                         });
                     });
@@ -2456,8 +2730,9 @@
 
                     return $(`
                         <div class="task-card cursor-pointer rounded-xl border border-gray-200 bg-white p-3.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-white/10 dark:bg-white/[0.03]" data-task-id="${t.task_id}">
+                            ${t.cover_url ? `<div class="-mx-3.5 -mt-3.5 mb-2.5 h-28 overflow-hidden rounded-t-xl bg-gray-100 dark:bg-white/5"><img src="${t.cover_url}" alt="" loading="lazy" class="h-full w-full object-cover"></div>` : ''}
                             ${badges ? `<div class="mb-1.5 flex flex-wrap gap-1">${badges}</div>` : ''}
-                            <p class="text-sm font-medium text-gray-800 dark:text-gray-100">${t.task_name}</p>
+                            <p class="text-sm font-medium text-gray-800 dark:text-gray-100">${t.is_locked ? '<i class="fas fa-lock mr-1 text-[11px] text-amber-500"></i>' : ''}${t.task_name}</p>
                             <div class="mt-2 h-1.5 w-full rounded-full bg-gray-100 dark:bg-white/10">
                                 <div class="h-1.5 rounded-full bg-indigo-500" style="width:${t.progress_percent}%"></div>
                             </div>
@@ -2587,6 +2862,159 @@
             return d.isValid() ? d.format('DD MMM YYYY') : dateStr;
         }
 
+        // ── Activity feed (History panel + a Task's Activity tab) ─────────
+        // Items come from PmActivityLogger::feed(): {kind, action, at
+        // ('YYYY-MM-DD HH:mm:ss', server time), name, text, task_id,
+        // task_name, is_subtask, changes[], message?, file?}.
+        const ACTIVITY_ICONS = {
+            created: ['fa-plus', '#059669'],
+            updated: ['fa-pen', '#6366F1'],
+            status: ['fa-arrow-right-arrow-left', '#3B82F6'],
+            completed: ['fa-circle-check', '#059669'],
+            reopened: ['fa-rotate-left', '#F59E0B'],
+            locked: ['fa-lock', '#D97706'],
+            unlocked: ['fa-lock-open', '#D97706'],
+            cover: ['fa-image', '#8B5CF6'],
+            moved: ['fa-arrow-right-arrow-left', '#0EA5E9'],
+            archived: ['fa-box-archive', '#DC2626'],
+            cancelled: ['fa-ban', '#DC2626'],
+            restored: ['fa-rotate-left', '#059669'],
+            commented: ['fa-comment', '#0EA5E9'],
+            uploaded: ['fa-paperclip', '#8B5CF6'],
+            file_deleted: ['fa-trash', '#DC2626'],
+            file_renamed: ['fa-i-cursor', '#8B5CF6'],
+            linked: ['fa-link', '#6366F1'],
+            unlinked: ['fa-link-slash', '#6B7280'],
+            status_column: ['fa-table-columns', '#6B7280'],
+            meeting_room: ['fa-door-open', '#0284C7'],
+            meeting_zoom: ['fa-video', '#7C3AED'],
+            meeting_teams: ['fa-video', '#4F46E5'],
+        };
+
+        function activityEsc(str) {
+            return $('<div>').text(str == null ? '' : String(str)).html();
+        }
+
+        function activitySearchText(i) {
+            return [i.name, i.text, i.task_name, i.message, i.file,
+                ...(i.changes || []).flatMap(c => [c.label, c.from, c.to, c.value, ...(c.added || []), ...(c.removed || [])])]
+                .filter(Boolean).join(' ').toLowerCase();
+        }
+
+        function activityChangesHtml(changes) {
+            if (!changes || !changes.length) return '';
+            const rows = changes.map(c => {
+                const label = `<span class="w-24 shrink-0 text-gray-400">${activityEsc(c.label)}</span>`;
+                if (c.note) {
+                    return `<div class="flex gap-2">${label}<span class="italic text-gray-500 dark:text-gray-400">${activityEsc(c.note)}</span></div>`;
+                }
+                // Plain detail line, no before/after (e.g. a booked meeting's Room / When).
+                if ('value' in c) {
+                    return `<div class="flex gap-2">${label}<span class="min-w-0 break-words font-medium text-gray-700 dark:text-gray-200">${activityEsc(c.value)}</span></div>`;
+                }
+                if (c.added || c.removed) {
+                    const chips = [
+                        ...(c.added || []).map(v => `<span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"><i class="fas fa-plus text-[8px]"></i>${activityEsc(v)}</span>`),
+                        ...(c.removed || []).map(v => `<span class="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-red-600 line-through dark:bg-red-500/10 dark:text-red-300"><i class="fas fa-minus text-[8px]"></i>${activityEsc(v)}</span>`),
+                    ].join('');
+                    return `<div class="flex gap-2">${label}<span class="flex min-w-0 flex-wrap gap-1">${chips}</span></div>`;
+                }
+                return `<div class="flex gap-2">${label}<span class="min-w-0 break-words"><span class="text-gray-400 line-through">${activityEsc(c.from)}</span> <i class="fas fa-arrow-right mx-1 text-[9px] text-gray-400"></i> <span class="font-medium text-gray-700 dark:text-gray-200">${activityEsc(c.to)}</span></span></div>`;
+            }).join('');
+            return `<div class="mt-2 space-y-1 rounded-lg border border-gray-100 bg-gray-50/70 px-3 py-2 text-xs dark:border-white/[0.06] dark:bg-white/[0.03]">${rows}</div>`;
+        }
+
+        // opts.showTask: link the task/subtask each row is about (off inside
+        // a single task's own Activity tab, where it's the task itself).
+        // opts.currentTaskId: rows about that task don't repeat its name.
+        function activityFeedHtml(items, opts = {}) {
+            if (!items || !items.length) {
+                return '<p class="rounded-xl border border-dashed border-gray-200 px-4 py-8 text-center text-sm text-gray-400 dark:border-white/10">No activity yet.</p>';
+            }
+
+            const today = dayjs().format('YYYY-MM-DD');
+            const yesterday = dayjs().subtract(1, 'day').format('YYYY-MM-DD');
+            let html = '';
+            let lastDay = null;
+
+            items.forEach(i => {
+                const at = dayjs(i.at);
+                const day = at.format('YYYY-MM-DD');
+                if (day !== lastDay) {
+                    lastDay = day;
+                    const prefix = day === today ? 'Today · ' : (day === yesterday ? 'Yesterday · ' : '');
+                    html += `<div class="sticky top-0 z-10 -mx-1 mb-2 mt-4 bg-white/95 px-1 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400 backdrop-blur first:mt-0 dark:bg-[#0f172a]/95">${prefix}${at.format('dddd, DD MMM YYYY')}</div>`;
+                }
+
+                const [icon, color] = ACTIVITY_ICONS[i.action] || ['fa-circle-info', '#6B7280'];
+                const showTarget = i.task_id && i.task_name && i.task_id !== opts.currentTaskId && (opts.showTask || i.is_subtask);
+                const target = showTarget
+                    ? ` <button type="button" class="activity-task-link font-medium text-indigo-600 hover:underline dark:text-indigo-400" data-task-id="${activityEsc(i.task_id)}">${i.is_subtask ? '<i class="fas fa-list-check mr-0.5 text-[10px]"></i>' : ''}${activityEsc(i.task_name)}</button>`
+                    : '';
+                const message = i.message
+                    ? `<div class="mt-2 rounded-2xl rounded-tl-sm bg-sky-50 px-3 py-2 text-sm text-gray-700 dark:bg-sky-500/10 dark:text-gray-200">${highlightMentions(i.message)}</div>` : '';
+                const file = i.file
+                    ? `<div class="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1 text-xs text-gray-600 dark:border-white/10 dark:text-gray-300"><i class="fas fa-file text-[10px] text-violet-500"></i><span class="truncate">${activityEsc(i.file)}</span></div>` : '';
+
+                html += `
+                    <div class="relative flex gap-3 pb-4 last:pb-1">
+                        <div class="relative flex flex-col items-center">
+                            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white shadow-sm" style="background:${color}"><i class="fas ${icon} text-[11px]"></i></span>
+                            <span class="mt-1 w-px flex-1 bg-gray-100 dark:bg-white/[0.06]"></span>
+                        </div>
+                        <div class="min-w-0 flex-1 pt-0.5">
+                            <p class="text-sm leading-snug text-gray-600 dark:text-gray-300"><span class="font-semibold text-gray-800 dark:text-gray-100">${activityEsc(i.name)}</span> ${activityEsc(i.text)}${target}</p>
+                            <p class="mt-0.5 font-mono text-[11px] text-gray-400" title="${activityEsc(at.fromNow())}"><i class="far fa-clock mr-1"></i>${at.format('DD MMM YYYY, HH:mm:ss')}</p>
+                            ${activityChangesHtml(i.changes)}${message}${file}
+                        </div>
+                    </div>`;
+            });
+
+            return html;
+        }
+
+        // task_ids from the root down to (not including) taskId, or null if
+        // it's not on the current board (archived, or behind a lock).
+        function findTaskPath(taskId, nodes, trail = []) {
+            for (const n of (nodes || [])) {
+                if (n.task_id === taskId) return trail;
+                const found = findTaskPath(taskId, n.children, [...trail, n.task_id]);
+                if (found) return found;
+            }
+            return null;
+        }
+
+        $(document).on('click', '.activity-task-link', function () {
+            const taskId = $(this).data('task-id');
+            const path = findTaskPath(taskId, currentTasksCache);
+            const task = path && findTaskInTree(taskId, currentTasksCache);
+            if (!task) {
+                toastr.info('This task is no longer on the board (it may have been archived).');
+                return;
+            }
+            const portfolio = Alpine.$data(document.getElementById('pmPortfolioRoot'));
+            if (portfolio) portfolio.historyOpen = false;
+            taskDetailStack = path;
+            openTaskEntityDetail(task);
+        });
+
+        // Task Detail → Activity tab (and the always-visible section when
+        // drilled into a subtask). Stale responses are dropped if the user
+        // has since opened a different task.
+        function loadTaskActivity() {
+            const taskId = currentDetailTaskId;
+            if (!taskId || !currentTaskApiBase) return;
+            const $list = $('#taskActivityList');
+            if (!$list.children().length) $list.html('<p class="py-6 text-center text-sm text-gray-400"><i class="fas fa-spinner fa-spin mr-1"></i> Loading activity…</p>');
+
+            $.get(`${currentTaskApiBase}/${taskId}/activity`, function (res) {
+                if (currentDetailTaskId !== taskId) return;
+                const items = res.items || [];
+                $('#taskActivityCount').text(items.length ? `${items.length} ${items.length === 1 ? 'entry' : 'entries'}` : '');
+                $list.html(activityFeedHtml(items, { showTask: false, currentTaskId: taskId }));
+            }).fail(() => $list.html('<p class="py-6 text-center text-sm text-red-500">Could not load activity.</p>'));
+        }
+
         // A row/card/bar is "late" once its own end_date has passed with it
         // still short of 100% — cancelled items and already-done items are
         // never late regardless of date. `progressPct` should already be
@@ -2616,6 +3044,20 @@
             ).join('')}</div>`;
         }
 
+        // "Meeting Room" / "Zoom" pills on a subtask/task row — open
+        // openMeetingBooking() (see the .meeting-book-btn handler below).
+        function meetingBookBtnsHtml(taskId) {
+            const pill = 'meeting-book-btn inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-[11px] font-medium ring-1 transition dark:bg-white/5';
+            return `
+                <button type="button" class="${pill} text-sky-600 ring-sky-200 hover:bg-sky-50 dark:text-sky-300 dark:ring-sky-500/30 dark:hover:bg-sky-900/20" data-kind="room" data-task-id="${taskId}" title="Booking Meeting Room">
+                    <i class="fas fa-door-open text-[9px]"></i> Meeting Room
+                </button>
+                <button type="button" class="${pill} text-violet-600 ring-violet-200 hover:bg-violet-50 dark:text-violet-300 dark:ring-violet-500/30 dark:hover:bg-violet-900/20" data-kind="zoom" data-task-id="${taskId}" title="Booking Zoom">
+                    <i class="fas fa-video text-[9px]"></i> Zoom
+                </button>
+            `;
+        }
+
         // Shared row markup for both the Task-edit-modal subtask list and the
         // read-only Task-detail subtask list; `deleteClass` differentiates the
         // two contexts' delegated delete-click handlers (see below). Rows are
@@ -2643,7 +3085,7 @@
                     </button>
                     <div class="min-w-0 flex-1">
                         <div class="flex items-center gap-1.5">
-                            <p class="truncate text-sm font-medium text-gray-700 dark:text-gray-200 ${(done || cancelled) ? 'text-gray-400 line-through dark:text-gray-500' : ''}">${s.task_name}</p>
+                            <p class="truncate text-sm font-medium text-gray-700 dark:text-gray-200 ${(done || cancelled) ? 'text-gray-400 line-through dark:text-gray-500' : ''}">${s.is_locked ? '<i class="fas fa-lock mr-1 text-[10px] text-amber-500"></i>' : ''}${s.task_name}</p>
                             ${cancelled ? `<span class="shrink-0 rounded-full bg-gray-200 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:bg-white/10 dark:text-gray-400">Cancelled</span>` : ''}
                         </div>
                         ${stripHtml(s.task_description || '') ? `<p class="mt-0.5 truncate text-xs text-gray-400">${stripHtml(s.task_description)}</p>` : ''}
@@ -2653,6 +3095,7 @@
                             </span>
                             ${children.length ? `<span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-[11px] text-gray-500 ring-1 ring-gray-200 dark:bg-white/5 dark:text-gray-400 dark:ring-white/10"><i class="fas fa-list-check text-[9px]"></i> ${childDone}/${children.length}</span>` : ''}
                             ${subtaskPicHtml(s.assignee_people)}
+                            ${cancelled ? '' : meetingBookBtnsHtml(s.task_id)}
                         </div>
                     </div>
                     <div class="flex shrink-0 items-center gap-1 opacity-0 transition group-hover:opacity-100">
@@ -2683,13 +3126,14 @@
                     </button>
                     <div class="min-w-0 flex-1">
                         ${tags ? `<div class="mb-1 flex flex-wrap gap-1">${tags}</div>` : ''}
-                        <p class="truncate text-sm font-medium text-gray-700 dark:text-gray-200 ${done ? 'text-gray-400 line-through dark:text-gray-500' : ''}">${t.task_name}</p>
+                        <p class="truncate text-sm font-medium text-gray-700 dark:text-gray-200 ${done ? 'text-gray-400 line-through dark:text-gray-500' : ''}">${t.is_locked ? '<i class="fas fa-lock mr-1 text-[10px] text-amber-500"></i>' : ''}${t.task_name}</p>
                         ${stripHtml(t.task_description || '') ? `<p class="mt-0.5 truncate text-xs text-gray-400">${stripHtml(t.task_description)}</p>` : ''}
                         <div class="mt-1.5 flex flex-wrap items-center gap-2">
                             <span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-[11px] text-gray-500 ring-1 ring-gray-200 dark:bg-white/5 dark:text-gray-400 dark:ring-white/10">
                                 <i class="fas fa-calendar text-[9px]"></i> ${formatDate(t.start_date)} → ${formatDate(t.end_date)}
                             </span>
                             ${subtaskPicHtml(t.assignee_people)}
+                            ${meetingBookBtnsHtml(t.task_id)}
                         </div>
                     </div>
                 </div>
@@ -2728,7 +3172,7 @@
                                 <button type="button" class="spreadsheet-check flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 transition ${done ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-gray-300 text-transparent hover:border-emerald-400 dark:border-white/20'}" title="Mark ${done ? 'incomplete' : 'complete'}" ${cancelled ? 'disabled' : ''}>
                                     <i class="fas fa-check text-[8px]"></i>
                                 </button>
-                                <span class="truncate text-sm font-medium text-gray-700 dark:text-gray-200 ${(done || cancelled) ? 'text-gray-400 line-through dark:text-gray-500' : ''}">${t.task_name}</span>
+                                <span class="truncate text-sm font-medium text-gray-700 dark:text-gray-200 ${(done || cancelled) ? 'text-gray-400 line-through dark:text-gray-500' : ''}">${t.is_locked ? '<i class="fas fa-lock mr-1 text-[10px] text-amber-500"></i>' : ''}${t.task_name}</span>
                                 ${cancelled ? `<span class="shrink-0 rounded-full bg-gray-200 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:bg-white/10 dark:text-gray-400">Cancelled</span>` : ''}
                                 ${late ? `<span class="shrink-0 inline-flex items-center gap-1 rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-600 dark:bg-red-500/10 dark:text-red-400"><i class="fas fa-triangle-exclamation text-[9px]"></i> Late</span>` : ''}
                                 ${activeChildren.length ? `<span class="shrink-0 rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-500 dark:bg-white/10 dark:text-gray-400">${childDone}/${activeChildren.length}</span>` : ''}
@@ -2797,10 +3241,10 @@
                     ${initialsAvatar(c.username, 30)}
                     <div class="min-w-0 flex-1 rounded-2xl rounded-tl-sm bg-gray-100 px-3.5 py-2.5 dark:bg-white/[0.06]">
                         <div class="flex items-baseline gap-2">
-                            <span class="text-xs font-semibold text-gray-700 dark:text-gray-200">${c.username}</span>
+                            <span class="text-xs font-semibold text-gray-700 dark:text-gray-200">${$('<div>').text(c.username ?? '').html()}</span>
                             <span class="text-[11px] text-gray-400">${timeAgo}</span>
                         </div>
-                        <p class="mt-0.5 text-sm text-gray-700 dark:text-gray-200">${highlightMentions(c.message)}</p>
+                        <div class="mt-0.5 text-sm text-gray-700 dark:text-gray-200">${renderChatMessage(c.message)}</div>
                     </div>
                 </div>
             `;
@@ -2813,7 +3257,399 @@
         // Assumes the caller already set currentTaskApiBase/currentTaskDoctype
         // (and currentTaskRefreshFn) for `task`'s own children/CRUD, exactly
         // like the old openTaskDetail() did.
+        const PM_BYPASSES_TASK_LOCK = @json(\App\Models\TrProjectTask::bypassesLock(Auth::user()));
+
+        // Header lock button + "Locked" badge. Project Tasks (TSK) only —
+        // Team Tasks and Projects never show it. The button itself is only
+        // offered to the task's assignees (or admins), matching
+        // PmTaskController::toggleLock(); everyone else just sees the badge.
+        function renderTaskLockState(task) {
+            const $btn = $('#detailLockBtn');
+            const isProjectTask = !!task && currentTaskDoctype === 'TSK';
+            const locked = isProjectTask && !!task.is_locked;
+
+            $('#detailLockedBadge').toggleClass('hidden', !locked).toggleClass('inline-flex', locked);
+
+            const me = (PM_CURRENT_USER.username || '').trim().toLowerCase();
+            // is_assignee (board-data) already counts PIC Team membership.
+            const assigned = isProjectTask && (task.is_assignee ?? (task.assignees || []).some(u => (u || '').trim().toLowerCase() === me));
+            const showBtn = isProjectTask && (assigned || PM_BYPASSES_TASK_LOCK);
+
+            $btn.toggleClass('hidden', !showBtn).toggleClass('inline-flex', showBtn)
+                .attr('title', locked ? 'Unlock task — everyone on the project can open it' : 'Lock task — only assignees can open it');
+            $btn.find('i').toggleClass('fa-lock', !locked).toggleClass('fa-lock-open', locked);
+            $btn.find('span').text(locked ? 'Unlock' : 'Lock');
+        }
+
+        $(document).on('click', '#detailLockBtn', function () {
+            const task = findTaskInTree(currentDetailTaskId, currentTasksCache);
+            if (!task) return;
+
+            const lock = !task.is_locked;
+            const send = () => $.post(`${currentTaskApiBase}/${task.task_id}/lock`, { locked: lock ? 1 : 0, _token: '{{ csrf_token() }}' })
+                .done(res => {
+                    task.is_locked = res.is_locked;
+                    renderTaskLockState(task);
+                    toastr.success(res.message);
+                    refreshTaskDetailContext();
+                })
+                .fail(xhr => Swal.fire({ icon: 'error', title: 'Error', text: xhr.responseJSON?.message || 'Something went wrong.' }));
+
+            if (!lock) { send(); return; }
+
+            Swal.fire({
+                icon: 'question',
+                title: 'Lock this task?',
+                text: 'Only people assigned to it (and its subtasks) will be able to open it, chat, or see its files.',
+                showCancelButton: true,
+                confirmButtonText: 'Lock',
+            }).then(r => { if (r.isConfirmed) send(); });
+        });
+
+        // Header cover banner + Cover button (Tasks/Subtasks of both
+        // doctypes; a Project passes null and hides both). The button adds
+        // straight away when there's no cover, else opens Replace/Remove.
+        function renderTaskCover(task) {
+            const url = task?.cover_url || null;
+            $('#detailCoverBanner').toggleClass('hidden', !url);
+            $('#detailCoverImg').attr('src', url || '');
+            $('#detailCoverWrap').toggleClass('hidden', !task);
+            $('#detailCoverBtn').attr('title', url ? 'Replace or remove the cover' : 'Add a cover image')
+                .find('span').text(url ? 'Cover' : 'Add cover');
+            $('#detailCoverMenu').addClass('hidden');
+        }
+
+        function saveTaskCover(task, request) {
+            const $btn = $('#detailCoverBtn').prop('disabled', true);
+            $.ajax(Object.assign({ url: `${currentTaskApiBase}/${task.task_id}/cover` }, request))
+                .done(res => {
+                    task.cover_url = res.cover_url;
+                    renderTaskCover(task);
+                    toastr.success(res.message);
+                    refreshTaskDetailContext();
+                })
+                .fail(xhr => Swal.fire({ icon: 'error', title: 'Error', text: xhr.responseJSON?.message || 'Something went wrong.' }))
+                .always(() => $btn.prop('disabled', false));
+        }
+
+        $(document).on('click', '#detailCoverBtn', function (e) {
+            e.stopPropagation();
+            const task = findTaskInTree(currentDetailTaskId, currentTasksCache);
+            if (!task) return;
+            if (task.cover_url) $('#detailCoverMenu').toggleClass('hidden');
+            else $('#detailCoverInput').trigger('click');
+        });
+
+        // Cover banner → full, uncropped preview (#coverPreviewModal).
+        $(document).on('click', '#detailCoverPreviewBtn, #detailCoverImg', function () {
+            const url = $('#detailCoverImg').attr('src');
+            if (!url) return;
+            $('#coverPreviewImg').attr('src', url);
+            $('#coverPreviewOpen').attr('href', url);
+            $('#coverPreviewModal').removeClass('hidden');
+        });
+
+        $(document).on('click', '.cover-preview-close', () => $('#coverPreviewModal').addClass('hidden'));
+
+        // Capture phase so Esc closes only the preview, not the detail modal behind it.
+        document.addEventListener('keydown', function (e) {
+            if (e.key !== 'Escape' || $('#coverPreviewModal').hasClass('hidden')) return;
+            e.stopImmediatePropagation();
+            $('#coverPreviewModal').addClass('hidden');
+        }, true);
+
+        $(document).on('click', '#detailCoverReplace', function () {
+            $('#detailCoverMenu').addClass('hidden');
+            $('#detailCoverInput').trigger('click');
+        });
+
+        $(document).on('click', function (e) {
+            if (!document.contains(e.target)) return;
+            if (!$(e.target).closest('#detailCoverWrap').length) $('#detailCoverMenu').addClass('hidden');
+        });
+
+        $(document).on('change', '#detailCoverInput', function () {
+            const file = this.files[0];
+            this.value = '';
+            const task = findTaskInTree(currentDetailTaskId, currentTasksCache);
+            if (!file || !task) return;
+            if (!file.type.startsWith('image/')) { toastr.error('Please pick an image file.'); return; }
+            if (file.size > 5 * 1024 * 1024) { toastr.error('Cover image must be 5 MB or smaller.'); return; }
+
+            const fd = new FormData();
+            fd.append('cover', file);
+            fd.append('_token', '{{ csrf_token() }}');
+            saveTaskCover(task, { method: 'POST', data: fd, processData: false, contentType: false });
+        });
+
+        $(document).on('click', '#detailCoverRemove', function () {
+            $('#detailCoverMenu').addClass('hidden');
+            const task = findTaskInTree(currentDetailTaskId, currentTasksCache);
+            if (!task) return;
+
+            Swal.fire({
+                icon: 'question',
+                title: 'Remove this cover?',
+                showCancelButton: true,
+                confirmButtonText: 'Remove',
+                confirmButtonColor: '#dc2626',
+            }).then(r => {
+                if (r.isConfirmed) saveTaskCover(task, { method: 'DELETE', data: { _token: '{{ csrf_token() }}' } });
+            });
+        });
+
+        // Header "+" next to the PIC avatars (Tasks/Subtasks, both doctypes).
+        // Offers whoever is eligible for the task (same pool as the Edit
+        // form's picker) minus people already on it; saves additively via
+        // addAssignees() — removing people still goes through Edit.
+        let addPeoplePool = [];
+        let addPeoplePicked = new Set();
+
+        function renderAddPeoplePicker(task, eligible) {
+            $('#detailAddPeopleWrap').toggleClass('hidden', !task);
+            $('#detailAddPeopleMenu').addClass('hidden');
+            if (!task) return;
+
+            const onTask = new Set((task.assignees || []).map(u => (u || '').trim().toLowerCase()));
+            addPeoplePool = (eligible || []).filter(u => !onTask.has((u.username || '').trim().toLowerCase()));
+            addPeoplePicked = new Set();
+        }
+
+        function renderAddPeopleList() {
+            const q = ($('#detailAddPeopleSearch').val() || '').trim().toLowerCase();
+            const rows = addPeoplePool.filter(u => !q || `${u.name} ${u.username}`.toLowerCase().includes(q));
+            const esc = s => $('<div>').text(s ?? '').html();
+            const $list = $('#detailAddPeopleList').empty();
+
+            if (!rows.length) {
+                $list.append(`<p class="px-3 py-4 text-center text-xs text-gray-400">${addPeoplePool.length ? 'No one matches.' : 'Everyone eligible is already on this task.'}</p>`);
+            }
+            rows.forEach(u => {
+                const picked = addPeoplePicked.has(u.username);
+                $list.append(`
+                    <button type="button" class="add-people-row flex w-full items-center gap-2.5 px-3 py-1.5 text-left hover:bg-gray-50 dark:hover:bg-white/5" data-username="${esc(u.username)}">
+                        ${u.photo_url ? `<img src="${u.photo_url}" class="h-7 w-7 rounded-full object-cover">` : initialsAvatar(u.name, 28)}
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-medium text-gray-700 dark:text-gray-200">${esc(u.name)}</span>
+                            <span class="block truncate text-[11px] text-gray-400">${esc(u.username)}</span>
+                        </span>
+                        <i class="fas fa-circle-check text-sm ${picked ? 'text-indigo-600' : 'text-gray-200 dark:text-white/10'}"></i>
+                    </button>
+                `);
+            });
+
+            $('#detailAddPeopleCount').text(addPeoplePicked.size ? `${addPeoplePicked.size} selected` : 'None selected');
+            $('#detailAddPeopleSave').prop('disabled', !addPeoplePicked.size);
+        }
+
+        $(document).on('click', '#detailAddPeopleBtn', function (e) {
+            e.stopPropagation();
+            const $menu = $('#detailAddPeopleMenu').toggleClass('hidden');
+            if ($menu.hasClass('hidden')) return;
+            addPeoplePicked = new Set();
+            $('#detailAddPeopleSearch').val('');
+            renderAddPeopleList();
+            $('#detailAddPeopleSearch').trigger('focus');
+        });
+
+        $(document).on('input', '#detailAddPeopleSearch', renderAddPeopleList);
+
+        $(document).on('click', '.add-people-row', function () {
+            const username = $(this).data('username').toString();
+            addPeoplePicked.has(username) ? addPeoplePicked.delete(username) : addPeoplePicked.add(username);
+            renderAddPeopleList();
+        });
+
+        // Picking a row re-renders the list, detaching the clicked element
+        // before this runs — a detached target isn't an outside click.
+        $(document).on('click', function (e) {
+            if (!document.contains(e.target)) return;
+            if (!$(e.target).closest('#detailAddPeopleWrap').length) $('#detailAddPeopleMenu').addClass('hidden');
+        });
+
+        $(document).on('click', '#detailAddPeopleSave', function () {
+            const task = findTaskInTree(currentDetailTaskId, currentTasksCache);
+            if (!task || !addPeoplePicked.size) return;
+
+            const $btn = $(this).prop('disabled', true).text('Adding…');
+            $.post(`${currentTaskApiBase}/${task.task_id}/assignees`, { usernames: [...addPeoplePicked], _token: '{{ csrf_token() }}' })
+                .done(res => {
+                    toastr.success(res.message);
+                    $('#detailAddPeopleMenu').addClass('hidden');
+                    // Re-open from the freshly loaded tree so the avatars,
+                    // Overview PIC list and this picker's pool all update.
+                    refreshTaskDetailContext(() => {
+                        const fresh = findTaskInTree(task.task_id, currentTasksCache);
+                        if (fresh) openTaskEntityDetail(fresh, 'none');
+                    });
+                })
+                .fail(xhr => Swal.fire({ icon: 'error', title: 'Error', text: xhr.responseJSON?.message || 'Something went wrong.' }))
+                .always(() => $btn.text('Add'));
+        });
+
+        // ── Move task (header Move button → #taskMoveModal) ─────────────
+        // The source board comes from currentTaskApiBase
+        // (`.../projects/{id}/tasks` or `.../all-team/{id}/tasks`). Targets
+        // (every Team/Project the user can open, with status columns) come
+        // from PmTaskMoveController::targets(); the move itself re-homes the
+        // whole subtree server-side.
+        let taskMoveTargets = { teams: [], projects: [] };
+        let taskMoveStatusId = null;
+
+        function currentTaskBoard() {
+            const m = (currentTaskApiBase || '').match(/\/(projects|all-team)\/([^/]+)\/tasks$/);
+            return m ? { type: m[1] === 'projects' ? 'PROJECT' : 'TEAM', id: decodeURIComponent(m[2]) } : null;
+        }
+
+        function renderTaskMoveStatuses() {
+            const [type, id] = ($('#taskMoveTarget').val() || '').split('|');
+            const board = (type === 'TEAM' ? taskMoveTargets.teams : taskMoveTargets.projects).find(b => b.id === id);
+            const statuses = board?.statuses || [];
+            const esc = s => $('<div>').text(s ?? '').html();
+
+            if (!statuses.some(s => s.status_id === taskMoveStatusId)) taskMoveStatusId = statuses[0]?.status_id || null;
+
+            const $wrap = $('#taskMoveStatuses').empty();
+            if (!board) {
+                $wrap.append('<p class="text-sm text-gray-400">Pick a Team or Project first.</p>');
+            } else if (!statuses.length) {
+                $wrap.append('<p class="text-sm text-gray-400">This board has no status columns yet.</p>');
+            }
+            statuses.forEach(s => {
+                const color = s.color || '#6366F1';
+                const active = s.status_id === taskMoveStatusId;
+                $wrap.append(`
+                    <button type="button" class="task-move-status rounded-full border px-3 py-1.5 text-xs font-semibold transition" data-status-id="${esc(s.status_id)}"
+                        style="border-color:${color};${active ? `background:${color};color:#fff;` : `color:${color};background:${hexToRgba(color, 0.08)};`}">
+                        ${active ? '<i class="fas fa-check mr-1 text-[10px]"></i>' : ''}${esc(s.status_name)}
+                    </button>
+                `);
+            });
+
+            $('#taskMoveSave').prop('disabled', !board || !taskMoveStatusId);
+        }
+
+        function openTaskMoveModal() {
+            const task = findTaskInTree(currentDetailTaskId, currentTasksCache);
+            const source = currentTaskBoard();
+            if (!task || !source) return;
+
+            $('#taskMoveTaskName').text(task.task_name);
+            $('#taskMoveTarget').html('<option>Loading…</option>').prop('disabled', true);
+            $('#taskMoveStatuses').empty();
+            $('#taskMoveSave').prop('disabled', true);
+            $('#taskMoveModal').removeClass('hidden');
+
+            $.get('{{ route('pm-task-move.targets') }}', res => {
+                taskMoveTargets = res;
+                const esc = s => $('<div>').text(s ?? '').html();
+                const group = (label, type, boards) => boards.length ? `<optgroup label="${label}">${boards.map(b => {
+                    const current = type === source.type && b.id === source.id;
+                    return `<option value="${type}|${esc(b.id)}" ${current ? 'disabled' : ''}>${esc(b.name)}${current ? ' (current)' : ''}</option>`;
+                }).join('')}</optgroup>` : '';
+
+                $('#taskMoveTarget').html('<option value="">Choose a Team or Project…</option>'
+                    + group('Teams', 'TEAM', res.teams) + group('Projects', 'PROJECT', res.projects)).prop('disabled', false);
+                taskMoveStatusId = null;
+                renderTaskMoveStatuses();
+            }).fail(() => { toastr.error('Could not load Teams/Projects.'); $('#taskMoveModal').addClass('hidden'); });
+        }
+
+        $(document).on('click', '#detailMoveBtn', openTaskMoveModal);
+        $(document).on('click', '.task-move-close', () => $('#taskMoveModal').addClass('hidden'));
+
+        // ── Book a Meeting Room / Zoom for a subtask (#meetingBookingModal) ──
+        // kind 'room' → /meeting (Create modal auto-opens, room pickable);
+        // kind 'zoom' → /meetingteams (user picks a slot on a Zoom/Teams row).
+        // Title/Description/date come prefilled from the subtask.
+        function openMeetingBooking(task, kind) {
+            const parentName = $('#detailProjectName').text().trim();
+            const params = new URLSearchParams({
+                embed: 1,
+                title: task.task_name || '',
+                descr: parentName && parentName !== task.task_name
+                    ? `Meeting for "${task.task_name}" — ${parentName}`
+                    : `Meeting for "${task.task_name}"`,
+                date: task.start_date ? dayjs(task.start_date).format('YYYY-MM-DD') : '',
+                // MeetingController::logPmTaskMeeting() writes the booking
+                // into this task's Activity List on save.
+                pm_doctype: currentTaskDoctype,
+                pm_task_id: task.task_id,
+            });
+            const path = kind === 'zoom' ? '{{ url('meetingteams') }}' : '{{ url('meeting') }}';
+
+            $('#meetingBookingTitle').text(kind === 'zoom' ? 'Booking Zoom' : 'Booking Meeting Room');
+            $('#meetingBookingTaskName').text(task.task_name || '');
+            $('#meetingBookingFrame').attr('src', `${path}?${params.toString()}`);
+            $('#meetingBookingModal').removeClass('hidden');
+        }
+
+        function closeMeetingBooking() {
+            $('#meetingBookingModal').addClass('hidden');
+            $('#meetingBookingFrame').attr('src', 'about:blank');
+        }
+
+        $(document).on('click', '.meeting-book-btn', function (e) {
+            e.stopPropagation(); // don't drill into / open the row itself
+            const task = findTaskInTree($(this).data('task-id'), currentTasksCache);
+            if (!task) return;
+            openMeetingBooking(task, $(this).data('kind'));
+        });
+
+        $(document).on('click', '.meeting-booking-close', closeMeetingBooking);
+
+        window.addEventListener('message', function (e) {
+            if (e.origin !== window.location.origin || e.data?.type !== 'pm-meeting-booked') return;
+            closeMeetingBooking();
+            toastr.success(e.data.message || 'Meeting booked.');
+            if (currentDetailTaskId) loadTaskActivity();
+        });
+        $(document).on('change', '#taskMoveTarget', renderTaskMoveStatuses);
+        $(document).on('click', '.task-move-status', function () {
+            taskMoveStatusId = $(this).data('status-id').toString();
+            renderTaskMoveStatuses();
+        });
+
+        $(document).on('click', '#taskMoveSave', function () {
+            const task = findTaskInTree(currentDetailTaskId, currentTasksCache);
+            const source = currentTaskBoard();
+            const [toType, toId] = ($('#taskMoveTarget').val() || '').split('|');
+            if (!task || !source || !toId || !taskMoveStatusId) return;
+
+            const $btn = $(this).prop('disabled', true).text('Moving…');
+            $.post('{{ route('pm-task-move') }}', {
+                from_type: source.type,
+                from_id: source.id,
+                task_id: task.task_id,
+                to_type: toType,
+                to_id: toId,
+                status_id: taskMoveStatusId,
+                _token: '{{ csrf_token() }}',
+            })
+                .done(res => {
+                    $('#taskMoveModal').addClass('hidden');
+                    closeProjectDetail('replace');
+                    refreshTaskDetailContext();
+                    toastr.success(res.message);
+                })
+                .fail(xhr => Swal.fire({ icon: 'error', title: 'Could not move', text: xhr.responseJSON?.message || 'Something went wrong.' }))
+                .always(() => $btn.prop('disabled', false).text('Move'));
+        });
+
         function openTaskEntityDetail(task, historyMode = 'push') {
+            // Locked Project Task the current user isn't assigned to —
+            // board-data already masked it; every open path funnels through
+            // here, so this one check covers cards, Gantt, spreadsheet and
+            // subtask rows alike. The server enforces the same rule.
+            if (task.can_access === false) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'This task is locked',
+                    text: 'Only people assigned to this task can open it.',
+                });
+                return;
+            }
+
             currentDetailTaskId = task.task_id;
             PM_ENTITY_DOCTYPE = currentTaskDoctype;
             PM_ENTITY_ID = task.task_id;
@@ -2839,6 +3675,9 @@
             $('#detailProjectDescription').html(task.task_description || '—');
             $('#detailProjectDates').text(`${formatDate(task.start_date)} → ${formatDate(task.end_date)}`);
             $('#detailProjectCancelledBadge').toggleClass('hidden', task.status !== 'C');
+            renderTaskLockState(task);
+            renderTaskCover(task);
+            $('#detailMoveBtn').removeClass('hidden').addClass('inline-flex');
 
             // Cancelled children are excluded from the completion math
             // entirely (not counted as done, not counted toward the total)
@@ -2869,7 +3708,21 @@
                 : `<span title="${p.name}" style="margin-left:${i === 0 ? '0' : '-8px'}" class="inline-block rounded-full ring-2 ring-white dark:ring-[#0f172a]">${initialsAvatar(p.name, 24)}</span>`
             ));
 
+            // PIC Teams (Project Tasks only) — header chip + one row each
+            // in the Overview PIC list, above the individual people.
+            const picTeams = task.teams || [];
+            picTeams.forEach(t => $picsHeader.append(`
+                <span class="ml-2 inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300"><i class="fas fa-users text-[9px]"></i> ${t.team_name}</span>
+            `));
+
             const $picList = $('#detailProjectPicList').empty();
+            picTeams.forEach(t => $picList.append(`
+                <div class="flex items-center gap-2.5">
+                    <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300"><i class="fas fa-users text-[11px]"></i></span>
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200">${t.team_name}</span>
+                    <span class="text-[11px] text-gray-400">Team</span>
+                </div>
+            `));
             if (pics.length) {
                 pics.forEach(p => $picList.append(`
                     <div class="flex items-center gap-2.5">
@@ -2877,7 +3730,7 @@
                         <span class="text-sm font-medium text-gray-700 dark:text-gray-200">${p.name}</span>
                     </div>
                 `));
-            } else {
+            } else if (!picTeams.length) {
                 $picList.append('<p class="text-sm text-gray-400">Unassigned.</p>');
             }
 
@@ -2900,15 +3753,17 @@
             $('#chatParticipantsLabel').text(eligible.length ? `${eligible.length} people in this chat` : '');
             $('#chatSelfAvatar').html(initialsAvatar(PM_CURRENT_USER.name, 30));
 
-            const $assignees = $('#task_assignees');
-            const keepSelected = $assignees.val() || [];
-            $assignees.empty();
-            eligible.forEach(u => $assignees.append(new Option(`${u.name} (${u.username})`, u.username, false, keepSelected.includes(u.username))));
-            $assignees.trigger('change');
+            renderAddPeoplePicker(task, eligible);
+
+            const keep = splitTaskPicValues($('#task_assignees').val());
+            fillTaskPicSelect($('#task_assignees'), currentTaskDoctype, eligible, root.projectTeams || [], keep.assignees, keep.team_ids);
 
             $('#projectDetailModal').removeClass('hidden');
             refreshEntityAttachments();
             loadEntityComments();
+            $('#taskActivityList').empty();
+            $('#taskActivityCount').text('');
+            loadTaskActivity();
 
             // A Team Task/Subtask gets its own shareable /task/{eid} URL
             // (same convention as a Project's /projects/{eid}) — a Project's
@@ -3023,10 +3878,9 @@
             const eligible = currentTaskDoctype === 'TTK'
                 ? (window.PM_CURRENT_TEAM_MEMBERS || [])
                 : (Alpine.$data(document.getElementById('pmProjectShowRoot')).eligibleUsers || []);
-            const selected = task.assignees || [];
-            const $sel = $('#task_assignees').empty();
-            eligible.forEach(u => $sel.append(new Option(`${u.name} (${u.username})`, u.username, false, selected.includes(u.username))));
-            $sel.trigger('change');
+            const root = Alpine.$data(document.getElementById('pmProjectShowRoot'));
+            fillTaskPicSelect($('#task_assignees'), currentTaskDoctype, eligible, root.projectTeams || [],
+                task.assignees || [], (task.teams || []).map(t => t.team_id));
 
             $('#deleteTaskBtn').removeClass('hidden');
             // Cancel/Restore only exists on the Team Task route today (see
@@ -3056,7 +3910,11 @@
                     </span>
                 `);
                 $chip.find('.linked-project-open').on('click', () => openProjectDetail(lp.project_id, 'push'));
-                $chip.find('.linked-project-unlink').on('click', () => Alpine.$data(document.getElementById('pmProjectShowRoot')).unlinkProject(lp.project_id));
+                if (Alpine.$data(document.getElementById('pmProjectShowRoot')).canCreateProject) {
+                    $chip.find('.linked-project-unlink').on('click', () => Alpine.$data(document.getElementById('pmProjectShowRoot')).unlinkProject(lp.project_id));
+                } else {
+                    $chip.find('.linked-project-unlink').remove();
+                }
                 $wrap.append($chip);
             });
         }
@@ -3077,6 +3935,10 @@
                 $('#detailProjectDescription').text(data.project_description || '—');
                 $('#detailProjectDates').text(`${formatDate(data.start_date)} → ${formatDate(data.end_date)}`);
                 $('#detailProjectCancelledBadge').addClass('hidden');
+                renderTaskLockState(null);
+                renderTaskCover(null);
+                renderAddPeoplePicker(null);
+                $('#detailMoveBtn').addClass('hidden').removeClass('inline-flex');
 
                 const subtaskTotal = data.subtask_total || 0;
                 const subtaskDone = data.subtask_done || 0;
@@ -3137,16 +3999,13 @@
                 const $linkSelect = $('#linkProjectSelect').empty();
                 (data.linkable_projects || []).forEach(lp => $linkSelect.append(`<option value="${lp.project_id}">${lp.project_name}</option>`));
 
-                const $assignees = $('#task_assignees');
-                const keepSelected = $assignees.val() || [];
-                $assignees.empty();
-                (data.eligible_users || []).forEach(u => $assignees.append(new Option(`${u.name} (${u.username})`, u.username, false, keepSelected.includes(u.username))));
-                $assignees.trigger('change');
-
+                const keep = splitTaskPicValues($('#task_assignees').val());
+                fillTaskPicSelect($('#task_assignees'), 'TSK', data.eligible_users || [], data.teams || [], keep.assignees, keep.team_ids);
                 const root = Alpine.$data(document.getElementById('pmProjectShowRoot'));
                 root.kind = 'project';
                 root.tab = 'overview';
                 root.eligibleUsers = data.eligible_users || [];
+                root.projectTeams = data.teams || [];
 
                 $('#projectDetailModal').removeClass('hidden');
                 refreshEntityAttachments();
@@ -3227,49 +4086,155 @@
             return { label: ext.slice(0, 4) || 'FILE', bg: hexToRgba(color, 0.15), color };
         }
 
+        // attachment_name is stored without its extension (it lives in
+        // `extention`), so rejoin them for display, badge and preview.
         function attachmentRowHtml(at) {
-            const badge = fileTypeBadge(at.name || '');
+            const fullName = at.extention ? `${at.name}.${at.extention}` : (at.name || '');
+            const badge = fileTypeBadge(fullName);
+            const esc = s => $('<div>').text(s ?? '').html();
+            const iconBtn = 'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 opacity-0 transition hover:bg-white group-hover:opacity-100 dark:hover:bg-white/10';
             return `
-                <div class="attachment-row group flex items-center gap-3.5 rounded-xl bg-gray-50 px-4 py-3 transition dark:bg-white/[0.03] ${at.url ? 'cursor-pointer hover:bg-indigo-50/60 dark:hover:bg-indigo-900/10' : ''}" data-url="${at.url || ''}" data-name="${at.name}">
-                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[10px] font-extrabold" style="background:${badge.bg};color:${badge.color}">${badge.label}</span>
+                <div class="attachment-row group flex items-center gap-3.5 rounded-xl bg-gray-50 px-4 py-3 transition dark:bg-white/[0.03] ${at.url ? 'cursor-pointer hover:bg-indigo-50/60 dark:hover:bg-indigo-900/10' : ''}" data-id="${at.id}" data-url="${esc(at.url)}" data-name="${esc(fullName)}" data-label="${esc(at.name)}">
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[10px] font-extrabold" style="background:${badge.bg};color:${badge.color}">${esc(badge.label)}</span>
                     <div class="min-w-0 flex-1">
-                        <p class="truncate text-sm font-medium text-gray-800 dark:text-gray-100">${at.name}</p>
-                        <p class="mt-0.5 text-xs text-gray-400">${at.created_by || '—'} · ${at.created_at || '—'}</p>
+                        <p class="truncate text-sm font-medium text-gray-800 dark:text-gray-100">${esc(fullName)}</p>
+                        <p class="mt-0.5 text-xs text-gray-400">${esc(at.created_by || '—')} · ${esc(at.created_at || '—')}</p>
                     </div>
-                    ${at.url ? `<a href="${at.url}" target="_blank" onclick="event.stopPropagation()" class="attachment-download flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 opacity-0 transition hover:bg-white hover:text-indigo-600 group-hover:opacity-100 dark:hover:bg-white/10 dark:hover:text-indigo-400"><i class="fas fa-arrow-down-to-bracket text-xs"></i></a>` : ''}
+                    ${at.url ? `<a href="${esc(at.url)}" target="_blank" onclick="event.stopPropagation()" title="Download" class="attachment-download ${iconBtn} hover:text-indigo-600 dark:hover:text-indigo-400"><i class="fas fa-arrow-down-to-bracket text-xs"></i></a>` : ''}
+                    <button type="button" title="Rename" class="attachment-rename ${iconBtn} hover:text-amber-600 dark:hover:text-amber-400"><i class="fas fa-pen text-xs"></i></button>
+                    <button type="button" title="Delete" class="attachment-delete ${iconBtn} hover:text-red-600 dark:hover:text-red-400"><i class="fas fa-trash text-xs"></i></button>
                 </div>
             `;
         }
 
-        // Click-to-preview: images/video/PDF render inline; anything else
-        // falls back to a Download-only prompt in the same modal.
-        function openFilePreview(name, url) {
+        // Preview libraries are only fetched the first time a file of that
+        // type is opened — most visits never need them.
+        const previewScriptCache = {};
+        function loadPreviewScript(src) {
+            return previewScriptCache[src] ??= new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = src;
+                s.onload = resolve;
+                s.onerror = () => { delete previewScriptCache[src]; reject(new Error('Failed to load ' + src)); };
+                document.head.appendChild(s);
+            });
+        }
+
+        // Bumped on every open/close so a slow Word/Excel render can't land
+        // in the modal after the user has moved on to another file.
+        let filePreviewSeq = 0;
+
+        // Click-to-preview: images/video/PDF render straight from the signed
+        // GCS URL; Word/Excel/CSV/text are fetched through the same-origin
+        // /attachments/{id}/stream endpoint and rendered client-side, so file
+        // contents never go to a third-party viewer. Anything else (legacy
+        // .doc/.xls, PowerPoint, archives…) falls back to a Download prompt.
+        function openFilePreview(name, url, id) {
             if (!url) return;
+            const seq = ++filePreviewSeq;
             const ext = (name.split('.').pop() || '').toLowerCase();
-            const image = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'heic'].includes(ext);
-            const video = ['mp4', 'mov', 'webm', 'avi'].includes(ext);
-            const pdf = ext === 'pdf';
+            const esc = s => $('<div>').text(s ?? '').html();
+            const streamUrl = id ? `{{ url('attachments') }}/${id}/stream` : null;
+            const kind =
+                ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg'].includes(ext) ? 'image' :
+                ['mp4', 'mov', 'webm', 'm4v', 'ogg'].includes(ext) ? 'video' :
+                ext === 'pdf' ? 'pdf' :
+                streamUrl && ext === 'docx' ? 'docx' :
+                streamUrl && ['xlsx', 'xlsm', 'xls', 'csv', 'ods'].includes(ext) ? 'sheet' :
+                streamUrl && ['txt', 'log', 'json', 'xml', 'md'].includes(ext) ? 'text' : 'other';
 
             $('#filePreviewName').text(name);
             $('#filePreviewDownload').attr('href', url);
 
-            const $body = $('#filePreviewBody').empty();
-            if (image) {
-                $body.append(`<img src="${url}" alt="${name}" class="max-h-full max-w-full rounded-lg object-contain">`);
-            } else if (video) {
-                $body.append(`<video src="${url}" controls autoplay class="max-h-full max-w-full rounded-lg"></video>`);
-            } else if (pdf) {
-                $body.append(`<iframe src="${url}" class="h-[70vh] w-full rounded-lg border-0 bg-white"></iframe>`);
+            // Documents read better wide and top-aligned; media stays centered.
+            const isDoc = ['docx', 'sheet', 'text'].includes(kind);
+            $('#filePreviewPanel').toggleClass('max-w-3xl', !isDoc).toggleClass('max-w-5xl', isDoc);
+            const $body = $('#filePreviewBody').empty()
+                .toggleClass('items-center justify-center', !isDoc)
+                .toggleClass('items-start justify-start', isDoc);
+
+            const downloadFallback = (msg) => `
+                <div class="flex w-full flex-col items-center gap-3 py-10 text-center">
+                    <span class="flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-400 dark:bg-white/10"><i class="fas fa-file text-xl"></i></span>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">${msg}</p>
+                    <a href="${esc(url)}" target="_blank" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"><i class="fas fa-arrow-down-to-bracket text-xs"></i> Download</a>
+                </div>`;
+
+            if (kind === 'image') {
+                $body.append(`<img src="${esc(url)}" alt="${esc(name)}" class="max-h-full max-w-full rounded-lg object-contain">`);
+            } else if (kind === 'video') {
+                $body.append(`<video src="${esc(url)}" controls autoplay playsinline class="max-h-[75vh] max-w-full rounded-lg bg-black"></video>`);
+                $body.find('video').on('error', () => $body.html(downloadFallback("This video format can't be played in the browser.")));
+            } else if (kind === 'pdf') {
+                $body.append(`<iframe src="${esc(url)}" class="h-[70vh] w-full rounded-lg border-0 bg-white"></iframe>`);
+            } else if (kind === 'other') {
+                $body.append(downloadFallback('No inline preview for this file type.'));
             } else {
-                $body.append(`
-                    <div class="flex flex-col items-center gap-3 py-10 text-center">
-                        <span class="flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-400 dark:bg-white/10"><i class="fas fa-file text-xl"></i></span>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">No inline preview for this file type.</p>
-                        <a href="${url}" target="_blank" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"><i class="fas fa-arrow-down-to-bracket text-xs"></i> Download</a>
-                    </div>
-                `);
+                $body.append('<p class="w-full py-10 text-center text-sm text-gray-400"><i class="fas fa-spinner fa-spin mr-2"></i>Loading preview…</p>');
+                renderDocumentPreview(kind, ext, streamUrl)
+                    .then(node => { if (seq === filePreviewSeq) $body.empty().append(node); })
+                    .catch(err => {
+                        console.error('File preview failed', err);
+                        if (seq === filePreviewSeq) $body.html(downloadFallback("Couldn't render a preview for this file."));
+                    });
             }
             $('#filePreviewModal').removeClass('hidden');
+        }
+
+        async function renderDocumentPreview(kind, ext, streamUrl) {
+            const res = await fetch(streamUrl, { credentials: 'same-origin' });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+            if (kind === 'text') {
+                const pre = document.createElement('pre');
+                pre.className = 'w-full whitespace-pre-wrap break-words rounded-lg bg-white p-4 font-mono text-xs text-gray-800 dark:bg-white/[0.03] dark:text-gray-200';
+                pre.textContent = await res.text();
+                return pre;
+            }
+
+            const buf = await res.arrayBuffer();
+
+            if (kind === 'docx') {
+                await loadPreviewScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+                await loadPreviewScript('https://cdn.jsdelivr.net/npm/docx-preview@0.3.5/dist/docx-preview.min.js');
+                const wrap = document.createElement('div');
+                wrap.className = 'w-full overflow-auto rounded-lg';
+                await docx.renderAsync(buf, wrap, null, { inWrapper: true, ignoreLastRenderedPageBreak: true });
+                return wrap;
+            }
+
+            // Spreadsheets: one tab per sheet, rendered as a plain HTML table.
+            await loadPreviewScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js');
+            const wb = ext === 'csv'
+                ? XLSX.read(new TextDecoder().decode(buf), { type: 'string' })
+                : XLSX.read(buf, { type: 'array' });
+
+            const wrap = document.createElement('div');
+            wrap.className = 'w-full';
+            const tabs = document.createElement('div');
+            tabs.className = 'mb-3 flex flex-wrap gap-1.5';
+            const sheetBox = document.createElement('div');
+            sheetBox.className = 'sheet-preview w-full overflow-auto rounded-lg border border-gray-200 bg-white text-xs text-gray-800 dark:border-white/10 dark:bg-white/[0.03] dark:text-gray-200';
+
+            const showSheet = (i) => {
+                sheetBox.innerHTML = XLSX.utils.sheet_to_html(wb.Sheets[wb.SheetNames[i]], { header: '', footer: '' });
+                [...tabs.children].forEach((b, j) => {
+                    b.className = 'rounded-md px-2.5 py-1 text-xs font-medium ' + (i === j
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300');
+                });
+            };
+            wb.SheetNames.forEach((sheetName, i) => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.textContent = sheetName;
+                b.onclick = () => showSheet(i);
+                tabs.appendChild(b);
+            });
+            if (wb.SheetNames.length > 1) wrap.appendChild(tabs);
+            wrap.appendChild(sheetBox);
+            showSheet(0);
+            return wrap;
         }
 
         // Shared by the File tab's own upload button and the subtask form's
@@ -3292,20 +4257,34 @@
 
             $.ajax({
                 url: `{{ url('attachments') }}/${doctype}/${entityId}`, method: 'POST', data: fd, processData: false, contentType: false,
+                // onDone gets the response (res.uploaded_ids = the new rows) or null on failure.
                 success: function (res) {
                     if (!res.success) toastr.error(res.message);
-                    if (onDone) onDone();
+                    if (onDone) onDone(res.success ? res : null);
                 },
                 error: function (xhr) {
                     toastr.error(xhr.responseJSON?.message || 'Attachment upload failed.');
-                    if (onDone) onDone();
+                    if (onDone) onDone(null);
                 },
             });
         }
 
+        // The open entity's attachments by id — the chat resolves its
+        // [[file:id|name]] markers against this, so a chat file chip shows
+        // the file's current (renamed) name, or "removed" once deleted.
+        let entityAttachmentsById = {};
+        let entityCommentsCache = [];
+        const currentEntityKey = () => `${PM_ENTITY_DOCTYPE}/${PM_ENTITY_ID}`;
+
         function refreshEntityAttachments() {
-            const listUrl = `{{ url('attachments') }}/${PM_ENTITY_DOCTYPE}/${PM_ENTITY_ID}`;
+            const key = currentEntityKey();
+            const listUrl = `{{ url('attachments') }}/${key}`;
             $.get(listUrl).done(res => {
+                if (key !== currentEntityKey()) return;
+                entityAttachmentsById = {};
+                (res.attachments || []).forEach(at => { entityAttachmentsById[at.id] = at; });
+                renderEntityComments();
+
                 const $list = $('#projectAttachmentList').empty();
                 if (!res.success || !res.attachments || !res.attachments.length) {
                     $list.append('<p class="rounded-xl border border-dashed border-gray-200 px-4 py-6 text-center text-sm text-gray-400 dark:border-white/10">No attachments yet.</p>');
@@ -3315,15 +4294,102 @@
             });
         }
 
+        let lastCommentsEntityKey = null;
         function loadEntityComments() {
-            const $list = $('#projectCommentList').html('<p class="italic text-gray-400">Loading comments...</p>');
-            $.get(`/comments/${PM_ENTITY_DOCTYPE}/${PM_ENTITY_ID}`, function (res) {
-                $list.empty();
-                if (!res.comments || !res.comments.length) {
-                    $list.append('<p class="text-sm italic text-gray-400">No comments yet.</p>');
-                    return;
-                }
-                res.comments.forEach(c => $list.append(commentItemHtml(c)));
+            const key = currentEntityKey();
+            if (key !== lastCommentsEntityKey) {
+                // Switched to a different Project/Task — drop anything staged for the old one.
+                lastCommentsEntityKey = key;
+                stagedChatFiles = [];
+                renderStagedChatFiles();
+                entityCommentsCache = [];
+                $('#projectCommentList').html('<p class="italic text-gray-400">Loading comments...</p>');
+            }
+            $.get(`/comments/${key}`, function (res) {
+                if (key !== currentEntityKey()) return;
+                entityCommentsCache = res.comments || [];
+                renderEntityComments();
+            });
+        }
+
+        function renderEntityComments() {
+            const $list = $('#projectCommentList').empty();
+            if (!entityCommentsCache.length) {
+                $list.append('<p class="text-sm italic text-gray-400">No comments yet.</p>');
+                return;
+            }
+            entityCommentsCache.forEach(c => $list.append(commentItemHtml(c)));
+        }
+
+        // ── Chat message body: links, @mentions and shared files ──
+        const CHAT_FILE_MARKER = /\[\[file:(\d+)\|([^\]]*)\]\]/g;
+        const CHAT_URL = /\b(https?:\/\/[^\s<>"']+|www\.[^\s<>"']+)/gi;
+
+        function linkifyChatText(text) {
+            let html = '', last = 0;
+            for (const m of text.matchAll(CHAT_URL)) {
+                // Trailing punctuation is almost always sentence, not URL.
+                const url = m[0].replace(/[.,;:!?)\]]+$/, '');
+                html += highlightMentions(text.slice(last, m.index));
+                const href = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+                const esc = s => $('<div>').text(s).html();
+                html += `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer" class="break-all text-indigo-600 underline decoration-indigo-300 underline-offset-2 hover:text-indigo-500 dark:text-indigo-400">${esc(url)}</a>`;
+                last = m.index + url.length;
+            }
+            return html + highlightMentions(text.slice(last));
+        }
+
+        function chatFileChipHtml(id, fallbackName) {
+            const esc = s => $('<div>').text(s ?? '').html();
+            const at = entityAttachmentsById[id];
+            if (!at) {
+                return `<div class="mt-1.5 inline-flex max-w-full items-center gap-2 rounded-lg border border-dashed border-gray-300 px-3 py-2 text-xs text-gray-400 dark:border-white/15"><i class="fas fa-file-circle-xmark"></i><span class="truncate line-through">${esc(fallbackName)}</span><span class="shrink-0">· removed</span></div>`;
+            }
+            const fullName = at.extention ? `${at.name}.${at.extention}` : at.name;
+            const badge = fileTypeBadge(fullName);
+            const isImage = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'].includes((at.extention || '').toLowerCase());
+            const size = at.size ? (at.size >= 1048576 ? (at.size / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(at.size / 1024)) + ' KB') : '';
+            return `
+                <button type="button" class="chat-file mt-1.5 block max-w-full overflow-hidden rounded-lg border border-gray-200 bg-white text-left transition hover:border-indigo-300 hover:shadow-sm dark:border-white/10 dark:bg-white/[0.04] dark:hover:border-indigo-500/50" data-id="${at.id}" data-url="${esc(at.url)}" data-name="${esc(fullName)}">
+                    ${isImage && at.url ? `<img src="${esc(at.url)}" alt="${esc(fullName)}" loading="lazy" class="max-h-44 w-auto max-w-full bg-gray-100 object-contain dark:bg-black/20">` : ''}
+                    <span class="flex items-center gap-2.5 px-3 py-2">
+                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[9px] font-extrabold" style="background:${badge.bg};color:${badge.color}">${esc(badge.label)}</span>
+                        <span class="min-w-0">
+                            <span class="block truncate text-xs font-medium text-gray-800 dark:text-gray-100">${esc(fullName)}</span>
+                            <span class="block text-[11px] text-gray-400">${size ? size + ' · ' : ''}Click to preview</span>
+                        </span>
+                    </span>
+                </button>`;
+        }
+
+        function renderChatMessage(message) {
+            const text = String(message ?? '');
+            let html = '', last = 0;
+            for (const m of text.matchAll(CHAT_FILE_MARKER)) {
+                const before = text.slice(last, m.index).trim();
+                if (before) html += `<p class="whitespace-pre-line break-words">${linkifyChatText(before)}</p>`;
+                html += chatFileChipHtml(m[1], m[2]);
+                last = m.index + m[0].length;
+            }
+            const rest = text.slice(last).trim();
+            if (rest) html += `<p class="whitespace-pre-line break-words">${linkifyChatText(rest)}</p>`;
+            return html;
+        }
+
+        // Files picked/pasted into the chat composer, uploaded on Send.
+        let stagedChatFiles = [];
+        function renderStagedChatFiles() {
+            const esc = s => $('<div>').text(s ?? '').html();
+            const $box = $('#chatStagedFiles').empty()
+                .toggleClass('hidden', !stagedChatFiles.length).toggleClass('flex', !!stagedChatFiles.length);
+            stagedChatFiles.forEach((f, i) => {
+                const tooBig = f.size > 5 * 1024 * 1024;
+                $box.append(`
+                    <span class="inline-flex max-w-[16rem] items-center gap-1.5 rounded-full px-2.5 py-1 text-xs ${tooBig ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400' : 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300'}" title="${tooBig ? 'Over 5MB — will be skipped' : esc(f.name)}">
+                        <i class="fas ${tooBig ? 'fa-triangle-exclamation' : 'fa-paperclip'} text-[10px]"></i>
+                        <span class="truncate">${esc(f.name)}</span>
+                        <button type="button" class="chat-staged-remove ml-0.5 opacity-60 hover:opacity-100" data-i="${i}"><i class="fas fa-times text-[10px]"></i></button>
+                    </span>`);
             });
         }
 
@@ -3517,6 +4583,10 @@
                 const parentId = !taskId ? pendingSubtaskParentId : null;
                 let serialized = $(this).serialize();
                 if (parentId) serialized += `&parent_task_id=${encodeURIComponent(parentId)}`;
+                const pics = splitTaskPicValues($('#task_assignees').val());
+                serialized += '&' + $.param({ assignees: pics.assignees, team_ids: pics.team_ids });
+                // Lets the server tell "cleared every PIC" apart from "didn't send PICs".
+                if (currentTaskDoctype === 'TSK') serialized += '&pic_submitted=1';
 
                 $.ajax({
                     url, method,
@@ -3670,10 +4740,56 @@
             });
 
             $(document).on('click', '.attachment-row', function () {
-                openFilePreview($(this).data('name'), $(this).data('url'));
+                openFilePreview($(this).data('name'), $(this).data('url'), $(this).data('id'));
+            });
+
+            $(document).on('click', '.attachment-rename', function (e) {
+                e.stopPropagation();
+                const $row = $(this).closest('.attachment-row');
+                Swal.fire({
+                    title: 'Rename file',
+                    input: 'text',
+                    inputValue: String($row.data('label') ?? ''),
+                    showCancelButton: true,
+                    confirmButtonText: 'Save',
+                    confirmButtonColor: '#4F46E5',
+                    inputValidator: v => (!v || !v.trim()) ? 'Name cannot be empty.' : undefined,
+                }).then(result => {
+                    if (!result.isConfirmed) return;
+                    $.ajax({
+                        url: `{{ url('attachments') }}/${$row.data('id')}/rename`,
+                        method: 'PUT',
+                        data: { name: result.value.trim(), _token: '{{ csrf_token() }}' },
+                        success: () => { toastr.success('Renamed.'); refreshEntityAttachments(); },
+                        error: xhr => toastr.error(xhr.responseJSON?.message || 'Rename failed.'),
+                    });
+                });
+            });
+
+            $(document).on('click', '.attachment-delete', function (e) {
+                e.stopPropagation();
+                const $row = $(this).closest('.attachment-row');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Delete this file?',
+                    html: `<b>${$('<div>').text($row.data('name')).html()}</b> will be removed from this item's files.`,
+                    showCancelButton: true,
+                    confirmButtonText: 'Delete',
+                    confirmButtonColor: '#DC2626',
+                }).then(result => {
+                    if (!result.isConfirmed) return;
+                    $.ajax({
+                        url: `{{ url('attachments') }}/${$row.data('id')}/soft`,
+                        method: 'DELETE',
+                        data: { _token: '{{ csrf_token() }}' },
+                        success: () => { toastr.success('Deleted.'); refreshEntityAttachments(); },
+                        error: xhr => toastr.error(xhr.responseJSON?.message || 'Delete failed.'),
+                    });
+                });
             });
 
             $('#closeFilePreviewModal').on('click', function () {
+                filePreviewSeq++; // drop any Word/Excel render still in flight
                 $('#filePreviewModal').addClass('hidden');
                 $('#filePreviewBody').empty(); // stop any playing <video>
             });
@@ -3697,16 +4813,75 @@
                 $input.val(val + (val && !val.endsWith(' ') ? ' @' : '@')).trigger('input').focus();
             });
 
-            $('#projectAttachChatBtn').on('click', function () {
-                Alpine.$data(document.getElementById('pmProjectShowRoot')).tab = 'attachments';
+            // ── Chat file sharing: pick via the paperclip or paste straight
+            // into the input; files go to this item's Files tab on Send and
+            // the message links to them. ──
+            const stageChatFiles = (files) => {
+                if (!files.length) return;
+                stagedChatFiles = stagedChatFiles.concat(files).slice(0, 10);
+                renderStagedChatFiles();
+            };
+
+            $('#projectAttachChatBtn').on('click', () => $('#chatFileInput').trigger('click'));
+
+            $('#chatFileInput').on('change', function () {
+                stageChatFiles(Array.from(this.files));
+                this.value = '';
+            });
+
+            $('#projectCommentInput').on('paste', function (e) {
+                const files = Array.from(e.originalEvent.clipboardData?.files || []);
+                if (!files.length) return; // plain text / links paste normally
+                e.preventDefault();
+                // Pasted screenshots all arrive as "image.png" — give them a unique name.
+                stageChatFiles(files.map(f => f.name === 'image.png'
+                    ? new File([f], `pasted-${dayjs().format('YYYYMMDD-HHmmss')}.png`, { type: f.type })
+                    : f));
+            });
+
+            $(document).on('click', '.chat-staged-remove', function () {
+                stagedChatFiles.splice($(this).data('i'), 1);
+                renderStagedChatFiles();
+            });
+
+            $(document).on('click', '.chat-file', function () {
+                openFilePreview($(this).data('name'), $(this).data('url'), $(this).data('id'));
             });
 
             $('#projectPostCommentBtn').on('click', function () {
+                const $btn = $(this);
                 const val = $('#projectCommentInput').val().trim();
-                if (!val || !PM_ENTITY_ID) return;
-                $.post(`/comments/${PM_ENTITY_DOCTYPE}/${PM_ENTITY_ID}`, { comment: val, _token: '{{ csrf_token() }}' }, function () {
-                    $('#projectCommentInput').val('');
-                    loadEntityComments();
+                if ((!val && !stagedChatFiles.length) || !PM_ENTITY_ID || $btn.prop('disabled')) return;
+
+                const doctype = PM_ENTITY_DOCTYPE, entityId = PM_ENTITY_ID;
+                const tooBig = stagedChatFiles.filter(f => f.size > 5 * 1024 * 1024);
+                if (tooBig.length) {
+                    toastr.warning(`Not sent (over 5MB): ${tooBig.map(f => f.name).join(', ')}`);
+                    stagedChatFiles = stagedChatFiles.filter(f => !tooBig.includes(f));
+                    renderStagedChatFiles();
+                }
+                const files = stagedChatFiles.slice();
+                $btn.prop('disabled', true);
+
+                const postComment = (attachmentIds) => {
+                    if (!val && !attachmentIds.length) { $btn.prop('disabled', false); return; }
+                    $.post(`/comments/${doctype}/${entityId}`, { comment: val, attachment_ids: attachmentIds, _token: '{{ csrf_token() }}' })
+                        .done(() => {
+                            $('#projectCommentInput').val('');
+                            stagedChatFiles = [];
+                            renderStagedChatFiles();
+                            loadEntityComments();
+                        })
+                        .fail(xhr => toastr.error(xhr.responseJSON?.message || 'Message could not be sent.'))
+                        .always(() => $btn.prop('disabled', false));
+                };
+
+                if (!files.length) return postComment([]);
+
+                uploadFilesToProjectAttachments(files, doctype, entityId, (res) => {
+                    refreshEntityAttachments(); // Files tab + chat chips
+                    if (!res) { $btn.prop('disabled', false); return; } // upload failed — keep text & files staged
+                    postComment(res.uploaded_ids || []);
                 });
             });
         });

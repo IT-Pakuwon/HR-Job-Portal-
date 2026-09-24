@@ -74,7 +74,7 @@
     <div class="max-w-9xl mx-auto flex h-screen min-h-0 w-full flex-col overflow-hidden p-2">
         {{-- HEADER --}}
         <div
-            class="mb-4 shrink-0 rounded-2xl border border-gray-200 bg-white/70 p-5 shadow-sm      dark:border-white/10 dark:bg-white/5">
+            class="{{ request()->boolean('embed') ? 'hidden' : '' }} mb-4 shrink-0 rounded-2xl border border-gray-200 bg-white/70 p-5 shadow-sm      dark:border-white/10 dark:bg-white/5">
 
             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
@@ -214,6 +214,11 @@
                     {{-- FORM --}}
                     <form id="meetingForm" action="{{ url('/savemeeting') }}" method="post">
                         @csrf
+                        @if (request()->boolean('embed'))
+                            {{-- Links the booking to the PM subtask it was opened from (Activity List). --}}
+                            <input type="hidden" name="pm_doctype" value="{{ request('pm_doctype') }}">
+                            <input type="hidden" name="pm_task_id" value="{{ request('pm_task_id') }}">
+                        @endif
 
                         <div class="space-y-6 px-6 py-5">
 
@@ -605,6 +610,20 @@
     window.editMeetingId = null;
     window.isEditMode = false;
     window.currentUsername = @json(auth()->user()->name);
+
+    // Set when this page is iframed (?embed=1) from a Project/Team subtask's
+    // "Meeting Room" button — auto-opens the Create modal prefilled from the
+    // subtask, and reports a successful save back to the parent page.
+    // (built in a PHP block first — the json directive splits its argument on
+    // commas, so an inline array literal compiles to broken PHP)
+    @php
+        $meetingEmbed = request()->boolean('embed') ? [
+            'title' => (string) request('title', ''),
+            'descr' => (string) request('descr', ''),
+            'date' => (string) request('date', ''),
+        ] : null;
+    @endphp
+    window.meetingEmbed = @json($meetingEmbed);
 
     document.addEventListener('DOMContentLoaded', function() {
 
@@ -1407,6 +1426,7 @@
 
 
         calendar.render();
+        if (window.meetingEmbed) openEmbedBooking();
         const toggle = document.getElementById('is_external_participant');
         const externalSection = document.getElementById('externalParticipantSection');
 
@@ -1633,6 +1653,11 @@
                         if (!res.success) throw new Error(res.message);
 
                         closeModal();
+
+                        if (window.meetingEmbed && window.parent !== window) {
+                            window.parent.postMessage({ type: 'pm-meeting-booked', kind: 'room', message: res.message }, window.location.origin);
+                            return;
+                        }
 
                         Swal.fire({
                             icon: 'success',
@@ -1913,6 +1938,41 @@
 
         modal.classList.remove('hidden');
         modal.classList.add('flex');
+    }
+
+    // Embed mode (see window.meetingEmbed): open the Create modal on the
+    // subtask's start date (never before today / after maxBookingDate), next
+    // free-ish hour slot, first bookable room — user can still change all of it.
+    function openEmbedBooking() {
+        const pre = window.meetingEmbed;
+        const today = moment().startOf('day');
+        const maxDay = moment(window.maxBookingDate, 'YYYY-MM-DD');
+
+        let day = pre.date ? moment(pre.date, 'YYYY-MM-DD') : today.clone();
+        if (!day.isValid() || day.isBefore(today)) day = today.clone();
+        if (maxDay.isValid() && day.isAfter(maxDay)) day = maxDay.clone();
+
+        let start = day.clone().hour(9).minute(0);
+        if (day.isSame(today, 'day')) {
+            start = moment().add(1, 'hour').startOf('hour');
+            if (start.hour() < 7) start.hour(9);
+            if (start.hour() >= 21 || !start.isSame(today, 'day')) {
+                start = today.clone().add(1, 'day').hour(9).minute(0);
+            }
+        }
+        const end = start.clone().add(1, 'hour');
+
+        const firstRoom = document.querySelector('#room_id option');
+        if (!firstRoom) {
+            Swal.fire({ icon: 'info', title: 'No room available', text: 'You do not have access to any meeting room.' });
+            return;
+        }
+
+        window.calendar?.gotoDate(start.toDate());
+        openModal(start.toDate(), end.toDate(), firstRoom.value);
+
+        document.getElementById('title').value = pre.title || '';
+        document.getElementById('descr').value = pre.descr || '';
     }
 
     function openEditModal(event) {

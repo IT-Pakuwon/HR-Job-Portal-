@@ -7,14 +7,18 @@
 
     <div id="projectCommentList" class="custom-scrollbar max-h-96 flex-1 space-y-3 overflow-y-auto pr-1"></div>
 
+    {{-- Files picked (or pasted) into the chat — uploaded to this item's Files on Send --}}
+    <div id="chatStagedFiles" class="mt-3 hidden flex-wrap gap-1.5"></div>
+
     <div class="mt-3 flex items-center gap-2.5 border-t border-gray-100 pt-3 dark:border-white/[0.06]">
         <div id="chatSelfAvatar" class="shrink-0"></div>
         <div class="flex flex-1 items-center gap-1 rounded-full border border-gray-200 bg-gray-50 pl-4 pr-1.5 dark:border-white/10 dark:bg-white/[0.04]">
-            <input id="projectCommentInput" type="text" placeholder="Write a message… use @ to mention someone"
+            <input id="projectCommentInput" type="text" placeholder="Write a message, paste a link or a file… use @ to mention"
                 class="flex-1 border-none bg-transparent py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-0 dark:text-white">
             <button type="button" id="projectMentionBtn" title="Mention someone" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold text-gray-400 transition hover:bg-white hover:text-indigo-600 dark:hover:bg-white/10 dark:hover:text-indigo-400">@</button>
-            <button type="button" id="projectAttachChatBtn" title="Go to Files" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-gray-400 transition hover:bg-white hover:text-indigo-600 dark:hover:bg-white/10 dark:hover:text-indigo-400"><i class="fas fa-paperclip text-xs"></i></button>
+            <button type="button" id="projectAttachChatBtn" title="Attach files (max 5MB each)" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-gray-400 transition hover:bg-white hover:text-indigo-600 dark:hover:bg-white/10 dark:hover:text-indigo-400"><i class="fas fa-paperclip text-xs"></i></button>
+            <input type="file" id="chatFileInput" multiple class="hidden">
         </div>
-        <button id="projectPostCommentBtn" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white shadow-sm transition hover:bg-indigo-500"><i class="fas fa-paper-plane text-xs"></i></button>
+        <button id="projectPostCommentBtn" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-wait disabled:opacity-60"><i class="fas fa-paper-plane text-xs"></i></button>
     </div>
 </div>
