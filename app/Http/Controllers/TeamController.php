@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\MsProjectStatus;
 use App\Models\MsTeam;
+use App\Models\MsTeamTaskStatus;
 use App\Models\TrProjectStatusTeam;
 use App\Models\TrTeamMember;
 use App\Models\User;
+use App\Services\PmActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -33,7 +35,7 @@ class TeamController extends Controller
     {
         $user = Auth::user();
 
-        return $team->isCaptain($user->username) || $user->isAdmin();
+        return $team->isCaptain($user->username) || $user->isPrimaryAdmin();
     }
 
     public function index()
@@ -215,7 +217,35 @@ class TeamController extends Controller
                     ['status' => 'A', 'created_by' => $username, 'created_at' => $now]
                 );
             }
+
+            // Default Task-board columns for the Team's own Kanban — unlike
+            // the Project-lifecycle statuses above, these are the Team's own
+            // rows from the start (ms_team_task_status is already a genuine
+            // per-team table), fully editable/deletable like any status the
+            // Team adds itself.
+            foreach ([
+                ['TODO', 'To Do', '#9CA3AF', 0],
+                ['INPROGRESS', 'On Progress', '#3B82F6', 1],
+                ['DONE', 'Done', '#10B981', 2],
+                // "Closed", not "Archive" — the card's Archive button hides a
+                // Task entirely (status 'X') and never moves it into a column.
+                ['CLOSED', 'Closed', '#6B7280', 3],
+            ] as [$id, $name, $color, $order]) {
+                MsTeamTaskStatus::create([
+                    'status_id' => $id,
+                    'team_id' => $teamId,
+                    'status_name' => $name,
+                    'color' => $color,
+                    'sort_order' => $order,
+                    'status' => 'A',
+                    'created_by' => $username,
+                    'created_at' => $now,
+                ]);
+            }
         });
+
+        PmActivityLogger::log('TEAM', $teamId, null, 'created', 'created the team',
+            PmActivityLogger::diff([], ['members' => PmActivityLogger::userNames($members)], ['members' => 'Members']));
 
         return response()->json([
             'success' => true,
@@ -260,6 +290,13 @@ class TeamController extends Controller
             ->reject(fn ($u) => strtolower($u) === strtolower((string) $captainUsername))
             ->unique(fn ($u) => strtolower($u));
 
+        $snapshot = fn (MsTeam $t) => [
+            'team_name' => $t->team_name,
+            'team_description' => $t->team_description,
+            'members' => PmActivityLogger::userNames($t->members()->pluck('username')),
+        ];
+        $before = $snapshot($team);
+
         DB::connection('pgsql5')->transaction(function () use ($team, $request, $username, $now, $members) {
             $team->update([
                 'team_name' => $request->team_name,
@@ -293,6 +330,12 @@ class TeamController extends Controller
             }
         });
 
+        $changes = PmActivityLogger::diff($before, $snapshot($team->fresh()),
+            ['team_name' => 'Name', 'team_description' => 'Description', 'members' => 'Members'], ['team_description']);
+        if ($changes) {
+            PmActivityLogger::log('TEAM', $team->team_id, null, 'updated', 'updated the team', $changes);
+        }
+
         return response()->json(['success' => true, 'message' => 'Team updated successfully']);
     }
 
@@ -306,6 +349,8 @@ class TeamController extends Controller
             'updated_by' => Auth::user()->username,
             'updated_at' => now(),
         ]);
+
+        PmActivityLogger::log('TEAM', $team->team_id, null, 'archived', 'archived the team');
 
         return response()->json(['success' => true, 'message' => 'Team archived successfully']);
     }

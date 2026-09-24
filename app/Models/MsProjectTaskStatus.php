@@ -4,13 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class MsTaskStatus extends Model
+class MsProjectTaskStatus extends Model
 {
     protected $connection = 'pgsql5';
-    protected $table = 'ms_task_status';
+    protected $table = 'ms_project_task_status';
 
     protected $fillable = [
         'status_id',
+        'project_id',
         'status_name',
         'color',
         'sort_order',
@@ -22,4 +23,9 @@ class MsTaskStatus extends Model
         'deleted_by',
         'deleted_at',
     ];
+
+    public function project()
+    {
+        return $this->belongsTo(MsProject::class, 'project_id', 'project_id');
+    }
 }

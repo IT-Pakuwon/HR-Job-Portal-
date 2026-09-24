@@ -114,6 +114,9 @@
 
                         $addSearchItem('integration.ifcaintegration', 'IFCA Integration', 'Integration Setup');
                         $addSearchItem('integration.acumvms.index', 'ACUM VMS Integration', 'Integration Setup');
+
+                        $addSearchItem('project-archive', 'Project Archive', 'Project Setup');
+                        $addSearchItem('task-archive', 'Task Archive', 'Project Setup');
                     } elseif (\App\Models\SysUserRole::where('username', auth()->user()->username ?? '')
                             ->whereIn('role_id', ['COSTCTRLACCESS', 'APFINACCESS'])
                             ->where(function ($q) { $q->whereNull('status')->orWhere('status', 'A'); })
@@ -430,6 +433,8 @@
                                 'manage-approvals',
                                 'budgetmonitor',
                                 'ifcaintegration',
+                                'project-archive',
+                                'task-archive',
                             ];
                         @endphp
 
@@ -700,6 +705,39 @@
                                                 class="{{ Request::segment(1) === 'acumvms' ? 'text-indigo-600' : '' }} sidebar-link text-sm">
                                                 ACUM VMS Integration
                                             </a>
+                                        </li>
+                                    </ul>
+                                </li>
+
+                                <!-- ================================================= -->
+                                <!-- PROJECT SETUP -->
+                                <!-- ================================================= -->
+                                @php $projectSetup = ['project-archive', 'task-archive']; @endphp
+                                <li x-data="{ open: {{ in_array(Request::segment(1), $projectSetup) ? 'true' : 'false' }} }">
+
+                                    <button @click="open = !open"
+                                        class="flex w-full items-center justify-between min-h-9 rounded-lg px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
+
+                                        <span class="flex flex-1 items-center gap-2 text-left">
+                                            <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z" /></svg>
+                                            <span class="whitespace-normal wrap-break-word leading-snug">Project Setup</span>
+                                        </span>
+
+                                        <svg class="chevron h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M6 9l6 6 6-6" />
+                                        </svg>
+                                    </button>
+
+                                    <ul x-show="open" x-collapse class="space-y-0.5 pl-4">
+                                        <li><a href="{{ route('project-archive') }}"
+                                                class="{{ Request::segment(1) === 'project-archive' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Project
+                                                Archive</a>
+                                        </li>
+                                        <li><a href="{{ route('task-archive') }}"
+                                                class="{{ Request::segment(1) === 'task-archive' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Task
+                                                Archive</a>
                                         </li>
                                     </ul>
                                 </li>

@@ -2203,8 +2203,6 @@ class VplReportController extends Controller
             $month = (int) substr((string) $row->perpost, 4, 2);
             $qty   = (float) $row->qty;
 
-            $isUsageWhs = in_array($row->whs_id, [self::WHS_LOYALTY, self::WHS_PROMOTION], true);
-
             if ($row->transaction_source === 'Receive') {
                 // A Receive can post directly to WHLOYALTY/WHPROMOTION (migration/opening
                 // balance docs, e.g. VPR26090002) as well as the normal WHCOLLECTION path
@@ -2231,7 +2229,7 @@ class VplReportController extends Controller
                 $monthlyOut[$key][$month] = ($monthlyOut[$key][$month] ?? 0) + $qty;
             } elseif ($row->whs_id === self::WHS_PROMOTION && $row->transaction_source === 'Usage') {
                 $monthlyOut[$key][$month] = ($monthlyOut[$key][$month] ?? 0) - $qty;
-            } elseif ($isUsageWhs && $row->transaction_source === 'Return') {
+            } elseif ($row->whs_id === self::WHS_PROMOTION && $row->transaction_source === 'Return') {
                 $monthlyIn[$key][$month] = ($monthlyIn[$key][$month] ?? 0) + $qty;
             }
         }
@@ -2239,7 +2237,7 @@ class VplReportController extends Controller
         return [$monthlyIn, $monthlyOut];
     }
 
-    /** Receive lines (any of the 3 tracked warehouses — see batchStockRows()), in the given month. */
+    /** Receive (any of the 3 tracked warehouses — see batchStockRows()) + Return-Transfer-In lines landing at WHCOLLECTION, in the given month. */
     private function inMovementRows(string $cpnyid, Carbon $monthStart, Carbon $monthEnd): array
     {
         $rows = [];
@@ -2277,19 +2275,89 @@ class VplReportController extends Controller
             ];
         }
 
+        $returnTransfers = TrxVplTransferDetail::query()
+            ->join('tr_vpl_transfer', 'tr_vpl_transfer.transfer_id', '=', 'tr_vpl_transfer_detail.transfer_id')
+            ->where('tr_vpl_transfer.cpnyid', $cpnyid)
+            ->where('tr_vpl_transfer.status', 'C')
+            ->where('tr_vpl_transfer.transfertype', 'ReturnTf')
+            ->where('tr_vpl_transfer_detail.from_whs_id', self::WHS_LOYALTY)
+            ->where('tr_vpl_transfer_detail.to_whs_id', self::WHS_COLLECTION)
+            ->whereBetween('tr_vpl_transfer.transfer_date', [$monthStart, $monthEnd])
+            ->select([
+                'tr_vpl_transfer_detail.product_id',
+                'tr_vpl_transfer_detail.expired_date',
+                'tr_vpl_transfer_detail.qty_transfer as qty',
+                'tr_vpl_transfer.transfer_date as doc_date',
+                'tr_vpl_transfer.transfer_id as doc_no',
+                'tr_vpl_transfer.department as diterima_dari',
+                'tr_vpl_transfer.created_user as diambil_oleh',
+            ])
+            ->get();
+
+        foreach ($returnTransfers as $r) {
+            $key = $r->product_id.'|'.$this->expiredKey($r->expired_date);
+            $rows[$key][] = [
+                'direction'         => 'in',
+                'doc_label'         => 'Return Transfer',
+                'doc_no'            => $r->doc_no,
+                'date'              => Carbon::parse($r->doc_date),
+                'qty'               => abs((float) $r->qty),
+                'diterima_dari'     => $r->diterima_dari,
+                'untuk_pembayaran'  => null,
+                'diambil_oleh'      => $r->diambil_oleh,
+                'keperluan'         => $r->diterima_dari,
+                'keterangan'        => 'Retur ke Collection',
+            ];
+        }
+
         return $rows;
     }
 
-    /** Usage/Return lines at WHLOYALTY and WHPROMOTION in the given month. */
+    /** Transfer-to-Loyalty + Usage/Return-at-Promotion lines in the given month. */
     private function outMovementRows(string $cpnyid, Carbon $monthStart, Carbon $monthEnd): array
     {
         $rows = [];
+
+        $transfers = TrxVplTransferDetail::query()
+            ->join('tr_vpl_transfer', 'tr_vpl_transfer.transfer_id', '=', 'tr_vpl_transfer_detail.transfer_id')
+            ->where('tr_vpl_transfer.cpnyid', $cpnyid)
+            ->where('tr_vpl_transfer.status', 'C')
+            ->where('tr_vpl_transfer.transfertype', 'Transfer')
+            ->where('tr_vpl_transfer_detail.from_whs_id', self::WHS_COLLECTION)
+            ->where('tr_vpl_transfer_detail.to_whs_id', self::WHS_LOYALTY)
+            ->whereBetween('tr_vpl_transfer.transfer_date', [$monthStart, $monthEnd])
+            ->select([
+                'tr_vpl_transfer_detail.product_id',
+                'tr_vpl_transfer_detail.expired_date',
+                'tr_vpl_transfer_detail.qty_transfer as qty',
+                'tr_vpl_transfer.transfer_date as doc_date',
+                'tr_vpl_transfer.transfer_id as doc_no',
+                'tr_vpl_transfer.created_user as diambil_oleh',
+                'tr_vpl_transfer.department as keperluan',
+            ])
+            ->get();
+
+        foreach ($transfers as $t) {
+            $key = $t->product_id.'|'.$this->expiredKey($t->expired_date);
+            $rows[$key][] = [
+                'direction'         => 'out',
+                'doc_label'         => 'Transfer',
+                'doc_no'            => $t->doc_no,
+                'date'              => Carbon::parse($t->doc_date),
+                'qty'               => abs((float) $t->qty),
+                'diterima_dari'     => null,
+                'untuk_pembayaran'  => null,
+                'diambil_oleh'      => $t->diambil_oleh,
+                'keperluan'         => $t->keperluan,
+                'keterangan'        => null,
+            ];
+        }
 
         $usages = TrxVplUsageDetail::query()
             ->join('tr_vpl_usage', 'tr_vpl_usage.usage_id', '=', 'tr_vpl_usage_detail.usage_id')
             ->where('tr_vpl_usage.cpnyid', $cpnyid)
             ->where('tr_vpl_usage.status', 'C')
-            ->whereIn('tr_vpl_usage_detail.whs_id', [self::WHS_PROMOTION, self::WHS_LOYALTY])
+            ->where('tr_vpl_usage_detail.whs_id', self::WHS_PROMOTION)
             ->whereBetween('tr_vpl_usage.usage_date', [$monthStart, $monthEnd])
             ->select([
                 'tr_vpl_usage_detail.product_id',
@@ -2317,7 +2385,7 @@ class VplReportController extends Controller
                 'untuk_pembayaran'  => null,
                 'diambil_oleh'      => $u->diambil_oleh,
                 'keperluan'         => $u->keperluan,
-                'keterangan'        => $isReturn ? 'Retur Usage' : null,
+                'keterangan'        => $isReturn ? 'Retur ke Collection' : null,
             ];
         }
 

@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Traits\BuildsTaskTree;
+use App\Http\Controllers\Traits\AddsTaskAssignees;
 use App\Http\Controllers\Traits\HasAutonbr;
+use App\Http\Controllers\Traits\RequiresTaskAccess;
+use App\Http\Controllers\Traits\ManagesTaskCover;
 use App\Models\MsTeam;
 use App\Models\MsTeamTaskStatus;
 use App\Models\MsTaskTag;
@@ -11,6 +14,7 @@ use App\Models\TrTeamTask;
 use App\Models\TrTeamTaskAssignee;
 use App\Models\TrTeamTaskTag;
 use App\Models\User;
+use App\Services\PmActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +27,10 @@ use Vinkla\Hashids\Facades\Hashids;
 class TeamTaskController extends Controller
 {
     use HasAutonbr;
+    use RequiresTaskAccess;
     use BuildsTaskTree;
+    use ManagesTaskCover;
+    use AddsTaskAssignees;
 
     private function team(string $teamId): MsTeam
     {
@@ -33,7 +40,7 @@ class TeamTaskController extends Controller
 
         abort_unless(
             $eligible->contains(strtolower(Auth::user()->username))
-                || Auth::user()->isAdmin()
+                || Auth::user()->isPrimaryAdmin()
                 || Auth::user()->hasRole('PROADMINACCESS'),
             403
         );
@@ -102,30 +109,102 @@ class TeamTaskController extends Controller
         }
     }
 
+    // What a Team Task looks like to a human, for the before/after activity diff.
+    private function taskSnapshot(TrTeamTask $task): array
+    {
+        $statusName = MsTeamTaskStatus::where('team_id', $task->team_id)->where('status_id', $task->status_id)->value('status_name');
+        $tagIds = TrTeamTaskTag::where('task_id', $task->task_id)->where('status', 'A')->pluck('tag_id');
+
+        return [
+            'task_name' => $task->task_name,
+            'task_description' => $task->task_description,
+            'start_date' => PmActivityLogger::formatDate($task->start_date),
+            'end_date' => PmActivityLogger::formatDate($task->end_date),
+            'status' => $statusName ?? $task->status_id,
+            'progress' => PmActivityLogger::formatPercent($task->progress_percent),
+            'assignees' => PmActivityLogger::userNames(TrTeamTaskAssignee::where('task_id', $task->task_id)->where('status', 'A')->pluck('username')),
+            'tags' => MsTaskTag::whereIn('tag_id', $tagIds)->pluck('tag_name')->all(),
+        ];
+    }
+
+    private const TASK_LABELS = [
+        'task_name' => 'Name',
+        'task_description' => 'Description',
+        'start_date' => 'Start date',
+        'end_date' => 'End date',
+        'status' => 'Status',
+        'progress' => 'Progress',
+        'assignees' => 'PIC',
+        'tags' => 'Tags',
+    ];
+
+    private function logTask(TrTeamTask $task, string $action, string $description, array $changes = [], ?string $by = null): void
+    {
+        PmActivityLogger::log('TEAM', $task->team_id, $task->task_id, $action, $description, $changes, $by);
+    }
+
+    private function noun(TrTeamTask $task): string
+    {
+        return $task->parent_task_id ? 'subtask' : 'task';
+    }
+
+    // Same wording rules as PmTaskController::logTaskUpdate().
+    private function logTaskUpdate(TrTeamTask $task, array $before): void
+    {
+        $changes = PmActivityLogger::diff($before, $this->taskSnapshot($task->fresh()), self::TASK_LABELS, ['task_description']);
+        if (!$changes) {
+            return;
+        }
+
+        $noun = $this->noun($task);
+        [$action, $text] = ['updated', "updated the {$noun}"];
+        if (count($changes) === 1 && $changes[0]['label'] === 'Progress') {
+            if ($changes[0]['to'] === '100%') {
+                [$action, $text] = ['completed', "marked the {$noun} as done"];
+            } elseif ($changes[0]['from'] === '100%') {
+                [$action, $text] = ['reopened', "reopened the {$noun}"];
+            }
+        } elseif (count($changes) === 1 && $changes[0]['label'] === 'Status') {
+            [$action, $text] = ['status', "moved the {$noun}"];
+        }
+
+        $this->logTask($task, $action, $text, $changes);
+    }
+
+    // Board header → History: the Team itself (members, edits) plus every
+    // one of its Tasks, chat and files included, newest first.
+    public function history(string $teamId)
+    {
+        $this->team($teamId);
+
+        $tasks = TrTeamTask::where('team_id', $teamId)->get(['task_id', 'parent_task_id', 'task_name'])
+            ->mapWithKeys(fn ($t) => [$t->task_id => ['name' => $t->task_name, 'parent' => (bool) $t->parent_task_id]])
+            ->all();
+
+        return response()->json(['items' => PmActivityLogger::feed('TEAM', $teamId, $tasks, 'TTK', true)]);
+    }
+
+    // Task Detail → Activity tab: this task and everything under it.
+    public function activity(string $teamId, string $taskId)
+    {
+        $this->team($teamId);
+        TrTeamTask::where('team_id', $teamId)->where('task_id', $taskId)->firstOrFail();
+
+        $all = TrTeamTask::where('team_id', $teamId)->get(['task_id', 'parent_task_id', 'task_name']);
+        $subtree = PmActivityLogger::subtree($all, $taskId);
+
+        $tasks = $all->whereIn('task_id', $subtree)
+            ->mapWithKeys(fn ($t) => [$t->task_id => ['name' => $t->task_name, 'parent' => $t->task_id !== $taskId]])
+            ->all();
+
+        return response()->json(['items' => PmActivityLogger::feed('TEAM', $teamId, $tasks, 'TTK', false)]);
+    }
+
     public function tags(string $teamId)
     {
         $this->team($teamId);
 
         return response()->json(MsTaskTag::where('status', 'A')->orderBy('tag_name')->get(['tag_id', 'tag_name', 'color']));
-    }
-
-    // A built-in, non-deletable "Archive" column every Team's Task board
-    // gets — archiving a top-level Task (see destroy()) moves it here
-    // instead of hiding it outright, so it stays visible/reversible (drag
-    // it back out to un-archive). Idempotent: safe to call on every load.
-    private function ensureArchiveStatus(string $teamId): void
-    {
-        MsTeamTaskStatus::firstOrCreate(
-            ['team_id' => $teamId, 'status_id' => 'ARCHIVE'],
-            [
-                'status_name' => 'Archive',
-                'color' => '#6B7280',
-                'sort_order' => (int) MsTeamTaskStatus::where('team_id', $teamId)->max('sort_order') + 1,
-                'status' => 'A',
-                'created_by' => 'system',
-                'created_at' => now(),
-            ]
-        );
     }
 
     // Whenever a Task/Subtask's own completion could have changed (its
@@ -157,7 +236,13 @@ class TeamTaskController extends Controller
             $hasDoneColumn = MsTeamTaskStatus::where('team_id', $teamId)->where('status_id', 'DONE')->where('status', 'A')->exists();
 
             if ($hasDoneColumn) {
+                $fromStatus = MsTeamTaskStatus::where('team_id', $teamId)->where('status_id', $task->status_id)->value('status_name') ?? $task->status_id;
                 $task->update(['status_id' => 'DONE', 'updated_by' => $username, 'updated_at' => $now]);
+                $this->logTask($task, 'status', "moved the {$this->noun($task)} to Done automatically (it reached 100%)", [[
+                    'label' => 'Status',
+                    'from' => $fromStatus ?? '—',
+                    'to' => MsTeamTaskStatus::where('team_id', $teamId)->where('status_id', 'DONE')->value('status_name') ?? 'Done',
+                ]], 'system');
             }
         }
 
@@ -175,13 +260,7 @@ class TeamTaskController extends Controller
     {
         $team = $this->team($teamId);
 
-        $this->ensureArchiveStatus($teamId);
-
-        // Archive always renders last regardless of sort_order — otherwise
-        // a later "+ Add status" column (sort_order = current max + 1)
-        // would land after it.
-        $statuses = MsTeamTaskStatus::where('team_id', $teamId)->where('status', 'A')->orderBy('sort_order')->get()
-            ->sortBy(fn ($s) => $s->status_id === 'ARCHIVE' ? 1 : 0)->values();
+        $statuses = MsTeamTaskStatus::where('team_id', $teamId)->where('status', 'A')->orderBy('sort_order')->get();
 
         // 'C' (cancelled) tasks stay in the board/tree — only 'X' (archived)
         // is actually excluded. The frontend reads `status` to grey a
@@ -234,6 +313,7 @@ class TeamTaskController extends Controller
                 // Hashids-encoded ms id (not the task_id business key) — the
                 // /task/{eid} deep-link URL, same convention as Projects.
                 'eid' => Hashids::encode($t->id),
+                'cover_url' => self::coverUrl($t->cover_attachment_id),
                 'parent_task_id' => $t->parent_task_id,
                 'task_name' => $t->task_name,
                 'task_description' => $t->task_description,
@@ -282,6 +362,7 @@ class TeamTaskController extends Controller
 
     public function store(Request $request, string $teamId)
     {
+        $this->assertCanEditTasks();
         $team = $this->team($teamId);
 
         $request->validate([
@@ -320,7 +401,7 @@ class TeamTaskController extends Controller
         $taskId = 'TTK' . substr((string) $now->year, 2) . $now->format('m') . sprintf('%04d', $auto['next']);
 
         $defaultStatus = $request->status_id
-            ?? (MsTeamTaskStatus::where('team_id', $teamId)->where('status_id', 'TODO')->exists() ? 'TODO' : null);
+            ?? (MsTeamTaskStatus::where('team_id', $teamId)->where('status_id', 'TODO')->where('status', 'A')->exists() ? 'TODO' : null);
 
         DB::connection('pgsql5')->transaction(function () use ($request, $teamId, $taskId, $username, $now, $defaultStatus) {
             TrTeamTask::create([
@@ -351,11 +432,16 @@ class TeamTaskController extends Controller
             $this->syncTaskTags($taskId, $request->input('tags', []), $username, $now);
         });
 
+        $task = TrTeamTask::where('task_id', $taskId)->first();
+        $this->logTask($task, 'created', $task->parent_task_id ? 'added the subtask' : 'created the task',
+            PmActivityLogger::diff([], $this->taskSnapshot($task), array_diff_key(self::TASK_LABELS, array_flip(['task_name', 'task_description', 'progress'])), ['task_description']));
+
         return response()->json(['success' => true, 'message' => 'Task created successfully', 'task_id' => $taskId]);
     }
 
     public function update(Request $request, string $teamId, string $taskId)
     {
+        $this->assertCanEditTasks();
         $team = $this->team($teamId);
         $task = TrTeamTask::where('team_id', $teamId)->where('task_id', $taskId)->firstOrFail();
 
@@ -383,6 +469,7 @@ class TeamTaskController extends Controller
 
         $username = Auth::user()->username;
         $now = now();
+        $before = $this->taskSnapshot($task);
 
         DB::connection('pgsql5')->transaction(function () use ($request, $task, $username, $now) {
             $task->update([
@@ -423,6 +510,8 @@ class TeamTaskController extends Controller
             }
         });
 
+        $this->logTaskUpdate($task, $before);
+
         // Covers both: this task's own progress_percent just changed (a
         // leaf, via the subtask checkbox toggle), and this task is a
         // Subtask whose parent's completion% just shifted because of it.
@@ -434,14 +523,60 @@ class TeamTaskController extends Controller
     // Drag-and-drop status change on the Team's own Task Kanban.
     public function updateStatus(Request $request, string $teamId, string $taskId)
     {
+        $this->assertCanEditTasks();
         $this->team($teamId);
         $task = TrTeamTask::where('team_id', $teamId)->where('task_id', $taskId)->firstOrFail();
 
         $request->validate(['status_id' => ['required', 'string']]);
 
+        $before = $this->taskSnapshot($task);
         $task->update(['status_id' => $request->status_id, 'updated_by' => Auth::user()->username, 'updated_at' => now()]);
+        $this->logTaskUpdate($task, $before);
 
         return response()->json(['success' => true]);
+    }
+
+    // Detail header → "+" next to the PIC avatars — same as
+    // PmTaskController::addAssignees(), limited to this Team's members.
+    public function addAssignees(Request $request, string $teamId, string $taskId)
+    {
+        $this->assertCanEditTasks();
+        $team = $this->team($teamId);
+        $task = $this->liveTask($teamId, $taskId);
+
+        $request->validate(['usernames' => ['required', 'array', 'min:1'], 'usernames.*' => ['string']]);
+
+        $members = $team->memberUsers()->pluck('username')->map(fn ($u) => strtolower(trim($u)));
+        $usernames = collect($request->input('usernames'))->map(fn ($u) => trim($u))->filter()->unique();
+        abort_unless($usernames->every(fn ($u) => $members->contains(strtolower($u))), 422, 'Assignee must be a member of the Team.');
+
+        $before = $this->taskSnapshot($task);
+        $this->activateAssignees(TrTeamTaskAssignee::class, $task->task_id, $usernames);
+        $this->logTaskUpdate($task, $before);
+
+        return response()->json(['success' => true, 'message' => 'People added to the task.']);
+    }
+
+    // Detail header → Cover: add/replace (POST) or remove (DELETE).
+    public function uploadCover(Request $request, string $teamId, string $taskId)
+    {
+        $this->assertCanEditTasks();
+        $this->team($teamId);
+
+        return $this->saveCover($request, $this->liveTask($teamId, $taskId), 'TTKCOVER');
+    }
+
+    public function destroyCover(string $teamId, string $taskId)
+    {
+        $this->assertCanEditTasks();
+        $this->team($teamId);
+
+        return $this->removeCover($this->liveTask($teamId, $taskId));
+    }
+
+    private function liveTask(string $teamId, string $taskId): TrTeamTask
+    {
+        return TrTeamTask::where('team_id', $teamId)->where('task_id', $taskId)->whereIn('status', ['A', 'C'])->firstOrFail();
     }
 
     // Toggle a single task's 'C' (cancelled) flag — distinct from status_id
@@ -452,6 +587,7 @@ class TeamTaskController extends Controller
     // each task/subtask is cancelled independently.
     public function cancel(string $teamId, string $taskId)
     {
+        $this->assertCanEditTasks();
         $this->team($teamId);
         $task = TrTeamTask::where('team_id', $teamId)->where('task_id', $taskId)->firstOrFail();
 
@@ -462,6 +598,9 @@ class TeamTaskController extends Controller
             'updated_by' => Auth::user()->username,
             'updated_at' => now(),
         ]);
+
+        $this->logTask($task, $task->status === 'C' ? 'cancelled' : 'restored',
+            ($task->status === 'C' ? 'cancelled the ' : 'restored the ') . $this->noun($task));
 
         // Cancelling a Subtask drops it out of its parent's completion math
         // (see class comment above) — that alone can push the parent to
@@ -480,35 +619,29 @@ class TeamTaskController extends Controller
 
     public function destroy(string $teamId, string $taskId)
     {
+        $this->assertCanEditTasks();
         $this->team($teamId);
         $task = TrTeamTask::where('team_id', $teamId)->where('task_id', $taskId)->firstOrFail();
 
         $now = now();
         $username = Auth::user()->username;
 
-        // A top-level Task lives on the Kanban board — "Archive" just
-        // relocates its card to the board's own Archive column, same as any
-        // other status_id change (reversible by dragging it back out). Its
-        // own subtree is left untouched, unlike archiving a Subtask below.
-        if ($task->parent_task_id === null) {
-            $this->ensureArchiveStatus($teamId);
-            $task->update(['status_id' => 'ARCHIVE', 'updated_by' => $username, 'updated_at' => $now]);
-
-            return response()->json(['success' => true, 'message' => 'Task archived successfully']);
-        }
-
-        // A Subtask has no Kanban column of its own to move to — "Archive"
-        // keeps its original meaning: hide it and its own descendants (if
-        // any) from every view, same as before.
+        // "Archive" hides the Task and its whole subtree (if any) from
+        // every view — a status column is never a required destination, so
+        // this works the same regardless of depth or which/whether a status
+        // column exists.
         $ids = $this->subtreeTaskIds($teamId, $taskId);
 
         TrTeamTask::where('team_id', $teamId)->whereIn('task_id', $ids)
             ->update(['status' => 'X', 'updated_by' => $username, 'updated_at' => $now]);
         TrTeamTaskAssignee::whereIn('task_id', $ids)->update(['status' => 'X']);
 
+        $nested = $ids->count() - 1;
+        $this->logTask($task, 'archived', "archived the {$this->noun($task)}" . ($nested ? " (and {$nested} subtask" . ($nested > 1 ? 's' : '') . ')' : ''));
+
         // Archiving a Subtask drops it out of its parent's completion math
-        // (boardData()/subtaskRowHtml only ever see 'A'/'C' rows) — same as
-        // cancelling one, that alone can complete the parent.
+        // (boardData() only ever sees 'A'/'C' rows) — same as cancelling
+        // one, that alone can complete the parent.
         if ($task->parent_task_id) {
             $this->maybeAutoCompleteToDone(
                 TrTeamTask::where('team_id', $teamId)->where('task_id', $task->parent_task_id)->first(),
@@ -524,26 +657,106 @@ class TeamTaskController extends Controller
     // Per-team custom Task-board status columns ("+ Add status").
     public function storeStatus(Request $request, string $teamId)
     {
+        $this->assertCanEditTasks();
         $this->team($teamId);
 
-        $request->validate(['status_name' => ['required', 'string', 'max:100']]);
+        $request->validate([
+            'status_name' => ['required', 'string', 'max:100'],
+            'status_id' => ['nullable', 'string', 'max:20'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+        ]);
 
-        $statusId = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $request->status_name));
-        $nextOrder = (int) MsTeamTaskStatus::where('team_id', $teamId)->max('sort_order') + 1;
+        // A custom status_id / sort_order is only honored for admins (the
+        // Status Settings panel); everyone else gets one derived from the name.
+        $isAdmin = Auth::user()->isPrimaryAdmin();
+        $statusName = trim($request->status_name);
+        $statusId = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', ($isAdmin && $request->filled('status_id')) ? $request->status_id : $statusName));
+        abort_if($statusId === '', 422, 'Status ID must contain at least one letter or number.');
 
-        $status = MsTeamTaskStatus::firstOrCreate(
-            ['team_id' => $teamId, 'status_id' => $statusId],
-            [
-                'status_name' => $request->status_name,
-                'color' => $request->input('color', '#6366F1'),
-                'sort_order' => $nextOrder,
-                'status' => 'A',
+        $sortOrder = ($isAdmin && $request->filled('sort_order'))
+            ? (int) $request->sort_order
+            : (int) MsTeamTaskStatus::where('team_id', $teamId)->where('status', 'A')->max('sort_order') + 1;
+
+        // A previously deleted (status 'X') row with the same id is revived
+        // instead of silently returned as-is (it would never reappear).
+        $status = MsTeamTaskStatus::where('team_id', $teamId)->where('status_id', $statusId)->first();
+        abort_if($status && $status->status === 'A', 422, "Status ID \"{$statusId}\" already exists.");
+
+        $values = [
+            'status_name' => $statusName,
+            'color' => $request->input('color', '#6366F1'),
+            'sort_order' => $sortOrder,
+            'status' => 'A',
+        ];
+
+        if ($status) {
+            $status->update($values + ['updated_by' => Auth::user()->username, 'updated_at' => now()]);
+        } else {
+            $status = MsTeamTaskStatus::create($values + [
+                'team_id' => $teamId,
+                'status_id' => $statusId,
                 'created_by' => Auth::user()->username,
                 'created_at' => now(),
-            ]
-        );
+            ]);
+        }
+
+        PmActivityLogger::log('TEAM', $teamId, null, 'status_column', "added the status column \"{$statusName}\"");
 
         return response()->json(['success' => true, 'status' => $status]);
+    }
+
+    // Rename/recolor a status column — status_id itself never changes, so
+    // Tasks already sitting in it keep pointing at the same row.
+    public function updateStatusColumn(Request $request, string $teamId, string $statusId)
+    {
+        $this->assertCanEditTasks();
+        $this->team($teamId);
+
+        $request->validate([
+            'status_name' => ['required', 'string', 'max:100'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        $status = MsTeamTaskStatus::where('team_id', $teamId)->where('status_id', $statusId)->firstOrFail();
+        $before = ['status_name' => $status->status_name, 'color' => $status->color, 'sort_order' => $status->sort_order];
+
+        $status->update([
+            'status_name' => trim($request->status_name),
+            'color' => $request->input('color', $status->color),
+            'sort_order' => (Auth::user()->isPrimaryAdmin() && $request->filled('sort_order')) ? (int) $request->sort_order : $status->sort_order,
+            'updated_by' => Auth::user()->username,
+            'updated_at' => now(),
+        ]);
+
+        $changes = PmActivityLogger::diff($before, $status->only(['status_name', 'color', 'sort_order']), ['status_name' => 'Name', 'color' => 'Color', 'sort_order' => 'Order']);
+        if ($changes) {
+            PmActivityLogger::log('TEAM', $teamId, null, 'status_column', "edited the status column \"{$status->status_name}\"", $changes);
+        }
+
+        return response()->json(['success' => true, 'status' => $status]);
+    }
+
+    // Every default and custom status is equally deletable — blocked only
+    // while a Task is still sitting in it, so a card is never silently
+    // orphaned onto a column that no longer exists.
+    public function destroyStatusColumn(string $teamId, string $statusId)
+    {
+        $this->assertCanEditTasks();
+        $this->team($teamId);
+
+        $status = MsTeamTaskStatus::where('team_id', $teamId)->where('status_id', $statusId)->firstOrFail();
+
+        abort_if(
+            TrTeamTask::where('team_id', $teamId)->where('status_id', $statusId)->where('status', 'A')->exists(),
+            422,
+            'Move or delete the tasks in this status first.'
+        );
+
+        $status->update(['status' => 'X', 'updated_by' => Auth::user()->username, 'updated_at' => now()]);
+
+        PmActivityLogger::log('TEAM', $teamId, null, 'status_column', "deleted the status column \"{$status->status_name}\"");
+
+        return response()->json(['success' => true]);
     }
 
     // @mention autocomplete for a Team Task's chat — eligible members of the Team.

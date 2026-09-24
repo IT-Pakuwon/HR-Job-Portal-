@@ -112,7 +112,9 @@ use App\Http\Controllers\PersonnelController;
 use App\Http\Controllers\PgTrekDashboardController;
 use App\Http\Controllers\PmGroupController;
 use App\Http\Controllers\PmProjectController;
+use App\Http\Controllers\ProjectArchiveController;
 use App\Http\Controllers\PmTaskController;
+use App\Http\Controllers\PmTaskMoveController;
 use App\Http\Controllers\PmTaskDetailController;
 use App\Http\Controllers\PoController;
 use App\Http\Controllers\PoListController;
@@ -1414,8 +1416,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/coa/by-deptwo', [MasterController::class, 'CoaBudgetbyDept'])->name('coa.byDeptWo');
 
     Route::post('/attachments/{doctype}/{refnbr}', [TrAttachmentController::class, 'uploadAttachments'])->name('attachments.upload');
+    // Must stay above attachments.list — otherwise /attachments/{id}/stream
+    // matches it as {doctype}/{refnbr} = {id}/"stream".
+    Route::get('/attachments/{id}/stream', [TrAttachmentController::class, 'streamAttachment'])->whereNumber('id')->name('attachments.stream');
     Route::get('/attachments/{doctype}/{refnbr}', [TrAttachmentController::class, 'listAttachments'])->name('attachments.list');
     Route::delete('/attachments/{id}', [TrAttachmentController::class, 'deleteAttachment'])->name('attachments.delete');
+    Route::put('/attachments/{id}/rename', [TrAttachmentController::class, 'renameAttachment'])->name('attachments.rename');
+    // DELETE /attachments/{id} above is shadowed by the Global Settings
+    // attachments-master route (hard delete) — this is the soft-delete path.
+    Route::delete('/attachments/{id}/soft', [TrAttachmentController::class, 'deleteAttachment'])->name('attachments.soft-delete');
     Route::put('/remove-attachment/{id}', [TrAttachmentController::class, 'removeAttachment']);
     Route::get('/comments/{doctype}/{id}', [SendCommentController::class, 'fetchComments']);
     Route::post('/comments/{doctype}/{id}', [SendCommentController::class, 'storeComment']);
@@ -1605,19 +1614,28 @@ Route::middleware(['auth'])->group(function () {
         // A Team's own recursive Task tree — independent of Project.
         Route::controller(TeamTaskController::class)->prefix('all-team/{teamId}/tasks')->name('all-team.tasks.')->group(function () {
             Route::get('/board-data', 'boardData')->name('board-data');
+            Route::get('/history', 'history')->name('history');
             Route::get('/tags', 'tags')->name('tags');
             Route::post('/', 'store')->name('store');
             Route::put('/{taskId}', 'update')->name('update');
+            Route::get('/{taskId}/activity', 'activity')->name('activity');
             Route::post('/{taskId}/status', 'updateStatus')->name('status');
             Route::post('/{taskId}/cancel', 'cancel')->name('cancel');
+            Route::post('/{taskId}/assignees', 'addAssignees')->name('assignees.add');
+            Route::post('/{taskId}/cover', 'uploadCover')->name('cover.store');
+            Route::delete('/{taskId}/cover', 'destroyCover')->name('cover.destroy');
             Route::delete('/{taskId}', 'destroy')->name('destroy');
             Route::post('/statuses', 'storeStatus')->name('statuses.store');
+            Route::put('/statuses/{statusId}', 'updateStatusColumn')->name('statuses.update');
+            Route::delete('/statuses/{statusId}', 'destroyStatusColumn')->name('statuses.destroy');
             Route::get('/{taskId}/mentionable-users', 'mentionableUsers')->name('mentionable-users');
         });
 
         // Deep link into a single Task/Subtask's detail modal — /task/{eid},
         // same convention as /projects/{eid} (see TeamTaskController::show()).
         Route::get('/task/{eid}', [TeamTaskController::class, 'show'])->name('task.show');
+        // Same idea for a Project's own Task (used by bell notifications).
+        Route::get('/project-task/{eid}', [PmTaskController::class, 'show'])->name('project-task.show');
 
         Route::controller(PmGroupController::class)->prefix('project-groups')->name('project-groups.')->group(function () {
             Route::get('/', 'index')->name('index');
@@ -1640,6 +1658,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/', 'store')->name('store');
             Route::post('/statuses', 'storeStatus')->name('statuses.store');
             Route::get('/{projectId}/detail', 'detail')->name('detail');
+            Route::get('/{projectId}/history', 'history')->name('history');
             Route::put('/{projectId}', 'update')->name('update');
             Route::post('/{projectId}/status', 'updateStatus')->name('status');
             Route::delete('/{projectId}', 'destroy')->name('destroy');
@@ -1649,14 +1668,25 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{eid}', 'show')->name('show');
         });
 
+        // Move a Task (and its subtree) to another Team/Project board.
+        Route::get('/pm-task-move/targets', [PmTaskMoveController::class, 'targets'])->name('pm-task-move.targets');
+        Route::post('/pm-task-move', [PmTaskMoveController::class, 'move'])->name('pm-task-move');
+
         Route::controller(PmTaskController::class)->prefix('projects/{projectId}/tasks')->name('projects.tasks.')->group(function () {
             Route::get('/board-data', 'boardData')->name('board-data');
             Route::get('/tags', 'tags')->name('tags');
             Route::post('/', 'store')->name('store');
             Route::put('/{taskId}', 'update')->name('update');
             Route::post('/{taskId}/status', 'updateStatus')->name('status');
+            Route::post('/{taskId}/lock', 'toggleLock')->name('lock');
+            Route::post('/{taskId}/assignees', 'addAssignees')->name('assignees.add');
+            Route::post('/{taskId}/cover', 'uploadCover')->name('cover.store');
+            Route::delete('/{taskId}/cover', 'destroyCover')->name('cover.destroy');
+            Route::get('/{taskId}/activity', 'activity')->name('activity');
             Route::delete('/{taskId}', 'destroy')->name('destroy');
             Route::post('/statuses', 'storeStatus')->name('statuses.store');
+            Route::put('/statuses/{statusId}', 'updateStatusColumn')->name('statuses.update');
+            Route::delete('/statuses/{statusId}', 'destroyStatusColumn')->name('statuses.destroy');
             Route::get('/{taskId}/mentionable-users', 'mentionableUsers')->name('mentionable-users');
         });
 
@@ -2380,6 +2410,8 @@ Route::controller(BookingCarController::class)->group(function () {
             Route::get('/{email}/attachments/{index}', 'downloadAttachment')->whereNumber('email')->whereNumber('index')->name('attachments.download');
             Route::post('/{email}/archive', 'archive')->whereNumber('email')->name('archive');
             Route::delete('/{email}', 'destroy')->whereNumber('email')->name('destroy');
+            Route::post('/folders', 'createFolder')->name('folders.create');
+            Route::delete('/folders/{folder}', 'deleteFolder')->where('folder', '.*')->name('folders.delete');
             // Folder as a path segment for a clean, bookmarkable URL
             // (/mailbox/Drafts) instead of a query string (/mailbox?folder=Drafts).
             // Must stay last: it's a catch-all and would otherwise swallow the
@@ -2910,6 +2942,17 @@ Route::controller(BookingCarController::class)->group(function () {
         Route::put('/attachments-master/{id}/toggle-status', [AttachmentMasterController::class, 'toggleStatus'])->name('attachments-master.toggle-status');
         Route::delete('/attachments/{id}', [AttachmentMasterController::class, 'delete'])
             ->name('attachments.delete');
+
+        // Global Settings > Project Setup — restore archived Projects/Tasks.
+        Route::controller(ProjectArchiveController::class)->group(function () {
+            Route::get('/project-archive', 'projects')->name('project-archive');
+            Route::get('/project-archive/json', 'projectsJson')->name('project-archive.json');
+            Route::put('/project-archive/{projectId}/restore', 'restoreProject')->name('project-archive.restore');
+
+            Route::get('/task-archive', 'tasks')->name('task-archive');
+            Route::get('/task-archive/json', 'tasksJson')->name('task-archive.json');
+            Route::put('/task-archive/{source}/{taskId}/restore', 'restoreTask')->name('task-archive.restore');
+        });
     }); // end admin middleware
 
     // ── Vendors: accessible to admin and PURCHACCESS (authorization enforced in VendorController) ──

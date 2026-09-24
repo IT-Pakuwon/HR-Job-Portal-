@@ -520,7 +520,8 @@ class DocumentNotificationService
                 'ACR' => ['model' => TrAccess::class,        'idCol' => 'docid',    'url' => '/showaccessrequest',    'terminalStatuses' => ['F', 'X', 'R']],
                 'ITR' => ['model' => TrItrecommend::class,   'idCol' => 'docid',    'url' => '/showitrecommendation', 'terminalStatuses' => ['C', 'R']],
                 'PRJ' => ['model' => \App\Models\MsProject::class,     'idCol' => 'project_id', 'url' => '/projects'],
-                'TSK' => ['model' => \App\Models\TrProjectTask::class, 'idCol' => 'task_id',    'url' => '/projects'],
+                'TSK' => ['model' => \App\Models\TrProjectTask::class, 'idCol' => 'task_id',    'url' => '/project-task'],
+                'TTK' => ['model' => \App\Models\TrTeamTask::class,    'idCol' => 'task_id',    'url' => '/task'],
             ];
 
             foreach (self::extendedDocTypeConfig() as $extDoctype => $extCfg) {
@@ -554,7 +555,8 @@ class DocumentNotificationService
                     // time-sensitive operational notices, not a discussion thread — they clear
                     // themselves out H+1 (24h after posting) regardless of read state, unlike a
                     // genuine comment/mention which uses the 5-business-day isCommentExpired() window.
-                    ->filter(fn($row) => str_starts_with((string) $row->message_type, 'S_')
+                    // Project module chat (PRJ/TSK/TTK) also clears out H+1.
+                    ->filter(fn($row) => str_starts_with((string) $row->message_type, 'S_') || in_array($commentDoctype, ['PRJ', 'TSK', 'TTK'], true)
                         ? \Carbon\Carbon::parse($row->message_date)->addDay()->isFuture()
                         : !self::isCommentExpired($row->message_date, $commentHolidays))
                     ->reject(fn($row) => $readKeys->contains('CMT_' . $commentDoctype . '_' . $row->id));
@@ -593,7 +595,7 @@ class DocumentNotificationService
                         }
                     }
 
-                    $hid = self::commentDocHid($commentDoctype, $doc);
+                    $hid = Hashids::encode($doc->id);
 
                     // System-generated lifecycle notices (offer/approve/reject/etc., written by
                     // notifyDocSystem()/TrainingWaitlistNotifier with message_type 'S_<code>' — the
@@ -638,7 +640,8 @@ class DocumentNotificationService
                         continue;
                     }
 
-                    preg_match_all('/@([\w.]+)/', (string) $row->message, $m);
+                    // Strip chat file markers first so a file named "a@b.pdf" isn't read as a mention.
+                    preg_match_all('/@([\w.]+)/', preg_replace(TrMessage::FILE_MARKER_PATTERN, '', (string) $row->message), $m);
                     $tokens = collect($m[1] ?? [])->map(fn($t) => strtolower($t))->unique();
 
                     $mentionedUsernames = collect();
@@ -661,7 +664,7 @@ class DocumentNotificationService
                             'status'     => 'MENTION',
                             'label'      => 'Mentioned',
                             'message'    => 'You are mentioned in this document, please check.',
-                            'comment'    => \Illuminate\Support\Str::limit((string) $row->message, 500),
+                            'comment'    => \Illuminate\Support\Str::limit(TrMessage::plainText($row->message), 500),
                             'cpnyid'     => $row->cpny_id,
                             'url'        => $cfg['url'],
                             'by'         => $row->name,
@@ -682,7 +685,7 @@ class DocumentNotificationService
                         'status'     => 'COMMENT',
                         'label'      => 'New Comment',
                         'message'    => 'There is a new comment in this document, please check.',
-                        'comment'    => \Illuminate\Support\Str::limit((string) $row->message, 500),
+                        'comment'    => \Illuminate\Support\Str::limit(TrMessage::plainText($row->message), 500),
                         'cpnyid'     => $row->cpny_id,
                         'url'        => $cfg['url'],
                         'by'         => $row->name,
@@ -1125,25 +1128,6 @@ class DocumentNotificationService
         return now()->greaterThanOrEqualTo($expiry);
     }
 
-    // Most doctypes have their own dedicated "show" page keyed by a Hashids-
-    // encoded internal id (`{url}/{hid}`). Project/Task pages are instead
-    // keyed by their plain business-key string (`/projects/{project_id}`,
-    // no separate Task page — it's a tab within the parent Project page),
-    // so PRJ/TSK need their own hid resolution rather than the generic
-    // Hashids::encode($doc->id) used everywhere else.
-    private static function commentDocHid(string $doctype, $doc)
-    {
-        if ($doctype === 'PRJ') {
-            return $doc->project_id;
-        }
-
-        if ($doctype === 'TSK') {
-            return $doc->project_id;
-        }
-
-        return Hashids::encode($doc->id);
-    }
-
     // Maps a 'S_<code>' TrMessage event code (the short form stored in the
     // varchar(10) message_type column — see notifyDocSystem()/TrainingWaitlistNotifier)
     // to the bell's [status, label]. status also selects the icon/color in
@@ -1217,14 +1201,20 @@ class DocumentNotificationService
                 ->unique();
         }
 
+        // A Project's chat reaches everyone on the Project: members of its
+        // linked Teams, its PIC people, its creator, and anyone assigned to
+        // one of its active Tasks.
         if ($doctype === 'PRJ') {
-            $group = \App\Models\MsGroup::where('group_id', $doc->group_id)->first();
+            $teamIds = \App\Models\TrProjectTeam::where('project_id', $doc->project_id)
+                ->where('status', 'A')->pluck('team_id');
 
-            return collect([$doc->created_by, $group?->created_by])
+            return collect([$doc->created_by])
+                ->merge(\App\Models\TrTeamMember::whereIn('team_id', $teamIds)->where('status', 'A')->pluck('username'))
+                ->merge($doc->picUsernames())
                 ->merge(
                     \App\Models\TrProjectTaskAssignee::whereIn(
                         'task_id',
-                        \App\Models\TrProjectTask::where('project_id', $doc->project_id)->pluck('task_id')
+                        \App\Models\TrProjectTask::where('project_id', $doc->project_id)->where('status', 'A')->pluck('task_id')
                     )->where('status', 'A')->pluck('username')
                 )
                 ->filter()
@@ -1232,12 +1222,26 @@ class DocumentNotificationService
                 ->unique();
         }
 
+        // A Task's chat: its creator, the Project's creator, and its
+        // effective assignees (PIC people + members of its PIC Teams).
         if ($doctype === 'TSK') {
             $project = \App\Models\MsProject::where('project_id', $doc->project_id)->first();
 
             return collect([$doc->created_by, $project?->created_by])
+                ->merge(\App\Models\TrProjectTask::effectiveAssigneeMap([$doc->task_id])->get($doc->task_id))
+                ->filter()
+                ->map(fn($u) => strtolower(trim($u)))
+                ->unique();
+        }
+
+        // A Team Task's chat: its creator, the Team's Captain, and its PICs.
+        if ($doctype === 'TTK') {
+            $captain = \App\Models\TrTeamMember::where('team_id', $doc->team_id)
+                ->where('member_role', 'CAPTAIN')->where('status', 'A')->value('username');
+
+            return collect([$doc->created_by, $captain])
                 ->merge(
-                    \App\Models\TrProjectTaskAssignee::where('task_id', $doc->task_id)
+                    \App\Models\TrTeamTaskAssignee::where('task_id', $doc->task_id)
                         ->where('status', 'A')->pluck('username')
                 )
                 ->filter()
