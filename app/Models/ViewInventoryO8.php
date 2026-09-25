@@ -7,7 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class ViewInventoryO8 extends Model
 {
-    protected $connection = 'sqlsrv5';
+    // protected $connection = 'sqlsrv5';
+    protected $connection = 'pgsql';
     protected $table = "view_inventory_o8";
 
     
