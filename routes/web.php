@@ -157,6 +157,7 @@ use App\Http\Controllers\SysScreenController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TeamTaskController;
+use App\Http\Controllers\TenancyMasterController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\TestEmailController;
 use App\Http\Controllers\TicketController;
@@ -1608,6 +1609,10 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/{teamId}', 'update')->name('update');
             Route::delete('/{teamId}', 'destroy')->name('destroy');
             Route::get('/{eid}', 'show')->name('show');
+        });
+
+        Route::controller(TenancyMasterController::class)->prefix('tenancy')->name('tenancy.')->group(function () {
+            Route::get('/master', 'index')->name('master');
         });
 
         // A Team's own recursive Task tree — independent of Project.
