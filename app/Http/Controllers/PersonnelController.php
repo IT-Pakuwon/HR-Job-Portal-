@@ -200,9 +200,23 @@ class PersonnelController extends Controller
             return $q;
         }
 
-        // SBY + RECACCESS saja (tanpa role di atas) -> hanya PRF yang dia buat sendiri
+        // SBY + RECACCESS saja (tanpa role di atas) -> hanya PRF di company & department yang sama dengan user
         if ($groupCompanyId === 'SBY') {
-            return $q->where('created_user', $user->username);
+            $cpnyIds = $this->userCpnyIds($user);
+
+            if (empty($cpnyIds)) {
+                return $q->whereRaw('1=0');
+            }
+
+            $q->whereIn('cpnyid', $cpnyIds);
+
+            $deptIds = $this->userDeptIds($user);
+
+            if (empty($deptIds)) {
+                return $q->whereRaw('1=0');
+            }
+
+            return $q->whereIn('departementid', $deptIds);
         }
 
         $cpnyIds = $this->userCpnyIds($user);
@@ -2942,13 +2956,14 @@ class PersonnelController extends Controller
     {
         $divisionId = $request->query('division_id');
         $selectedDepartmentId = $request->query('selected_department_id');
-        $groupCompanyId = strtoupper(trim((string) ($request->user()->group_cpny_id ?? '')));
+        $user = $request->user();
+        $groupCompanyId = strtoupper(trim((string) ($user->group_cpny_id ?? '')));
 
         if (!$divisionId || !$groupCompanyId) {
             return response()->json([], 200);
         }
 
-        $departments = DepartmentHR::query()
+        $query = DepartmentHR::query()
             ->select('department_id', 'department_name', 'division_id')
             ->where('group_cpny_id', $groupCompanyId)
             ->where(function ($query) use ($divisionId, $selectedDepartmentId) {
@@ -2960,9 +2975,29 @@ class PersonnelController extends Controller
                 if ($selectedDepartmentId) {
                     $query->orWhere('department_id', $selectedDepartmentId);
                 }
-            })
-            ->orderBy('department_name')
-            ->get();
+            });
+
+        // SBY -> hanya department yang di-assign ke user (kecuali department yang sudah tersimpan di edit mode)
+        if ($groupCompanyId === 'SBY') {
+            $userDeptIds = Userdept::query()
+                ->where('username', $user->username)
+                ->where('status', 'A')
+                ->pluck('department_id')
+                ->filter()
+                ->unique()
+                ->values()
+                ->toArray();
+
+            $query->where(function ($q) use ($userDeptIds, $selectedDepartmentId) {
+                $q->whereIn('department_id', $userDeptIds);
+
+                if ($selectedDepartmentId) {
+                    $q->orWhere('department_id', $selectedDepartmentId);
+                }
+            });
+        }
+
+        $departments = $query->orderBy('department_name')->get();
 
         return response()->json($departments, 200);
     }

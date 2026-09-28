@@ -430,20 +430,18 @@
                                             </select>
                                         </div>
 
-                                        @unless ($usersSby)
-                                            <div>
-                                                <label class="mb-2 block text-sm font-medium">Department</label>
-                                                <select name="department_id[]" class="select2 w-full" multiple
-                                                    data-placeholder="Search and select department access">
-                                                    <option></option>
-                                                    @foreach ($department as $d)
-                                                        <option value="{{ $d->department_id }}">
-                                                            {{ $d->department_id }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                        @endunless
+                                        <div>
+                                            <label class="mb-2 block text-sm font-medium">Department</label>
+                                            <select name="department_id[]" class="select2 w-full" multiple
+                                                data-placeholder="Search and select department access">
+                                                <option></option>
+                                                @foreach ($department as $d)
+                                                    <option value="{{ $d->department_id }}">
+                                                        {{ $d->department_id }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
 
                                         <div>
                                             <label class="mb-2 block text-sm font-medium">Division</label>
