@@ -3061,7 +3061,8 @@ class IMBudgetController extends Controller
         }
 
         $loginUsername = $user->username ?? $user->name ?? null;
-        $canUpload = $imbudget->user_peminta === $loginUsername;
+        $canUpload = $imbudget->user_peminta === $loginUsername
+            || $imbudget->created_by === $loginUsername;
 
         $isApprover = TrApproval::where('refnbr', $imbudget->imbudgetid)
             ->where('aprv_doctype', 'IM')
