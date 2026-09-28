@@ -230,8 +230,8 @@
                     }
                 },
                 order: [
-                    [2, 'desc'],
-                    [1, 'desc']
+                    [12, 'asc'],
+                    [4, 'desc']
                 ],
                 ajax: {
                     url: "{{ route('polist.json') }}",
