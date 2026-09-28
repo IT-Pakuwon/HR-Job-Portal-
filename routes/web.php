@@ -2473,7 +2473,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{folder?}', 'index')->where('folder', '.*')->name('index');
         });
 
-        Route::view('/data-hub', 'pages.data_hub.index')->name('datahub.index');
+        Route::view('/data-hub', 'pages.data_hub.index')->name('datahub.index')->middleware('access:DATAHUB,VIEW');
 
         Route::get('/global-search', [GlobalSearchController::class, 'search'])->name('global-search');
 
