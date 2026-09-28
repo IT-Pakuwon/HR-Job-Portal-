@@ -90,6 +90,17 @@ class PersonnelController extends Controller
             ->exists();
     }
 
+    private function hasRecDirAccess($user): bool
+    {
+        return SysUserRole::query()
+            ->where('username', $user->username)
+            ->where('role_id', 'RECDIRACCESS')
+            ->where(function ($q) {
+                $q->whereNull('status')->orWhere('status', 'A');
+            })
+            ->exists();
+    }
+
     private function personnelMailMasterNames(Personnel $personnel): array
     {
         $companyName = MsCompany::query()
@@ -180,9 +191,18 @@ class PersonnelController extends Controller
         $q = Personnel::query()
             ->where('group_cpny_id', $groupCompanyId);
 
-        // RECACCALLDEPT / DIRECTORACCESS -> bisa lihat semua company & semua division
-        if ($user->hasFullDataScope() || $this->hasRoleAllDept($user)) {
+        // RECACCALLDEPT / RECDIRACCESS / HCBPACCESS / DIRECTORACCESS -> bisa lihat semua PRF
+        if ($user->hasFullDataScope()
+            || $this->hasRoleAllDept($user)
+            || $this->hasRecDirAccess($user)
+            || $this->hasHcbpAccess($user)
+        ) {
             return $q;
+        }
+
+        // SBY + RECACCESS saja (tanpa role di atas) -> hanya PRF yang dia buat sendiri
+        if ($groupCompanyId === 'SBY') {
+            return $q->where('created_user', $user->username);
         }
 
         $cpnyIds = $this->userCpnyIds($user);
