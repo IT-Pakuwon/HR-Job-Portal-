@@ -149,18 +149,25 @@
         <!-- LOCATION MODAL (Add / View / Edit) -->
         <div id="locationModal" class="tsModalBackdrop fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/60 p-4 opacity-0 backdrop-blur-sm transition-opacity duration-200">
             <div class="ts-modal-panel relative flex max-h-[90vh] w-full max-w-xl scale-95 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
-                <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-white/[0.06]">
-                    <h2 id="locationModalTitle" class="text-base font-semibold text-gray-800 dark:text-gray-100">📍 Add Location</h2>
-                    <button type="button" class="tsModalClose text-gray-400 transition hover:text-gray-600 dark:hover:text-gray-200"
+                <div class="flex items-center justify-between gap-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50/80 to-white px-6 py-4 dark:border-white/[0.06] dark:from-indigo-500/10 dark:to-transparent">
+                    <div class="flex items-center gap-3">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </span>
+                        <div>
+                            <h2 id="locationModalTitle" class="text-base font-semibold leading-tight text-gray-800 dark:text-gray-100">Add Location</h2>
+                            <p class="text-xs text-gray-400 dark:text-gray-500">Physical location within a site</p>
+                        </div>
+                    </div>
+                    <button type="button" class="tsModalClose flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/5 dark:hover:text-gray-200"
                         data-modal="locationModal" aria-label="Close"><i class="fas fa-times"></i></button>
                 </div>
                 <form id="locationForm" class="flex flex-1 flex-col overflow-hidden">
                     <input type="hidden" id="loc_id" name="id">
-                    <div class="grid flex-1 grid-cols-1 gap-4 overflow-y-auto px-5 py-5 md:grid-cols-2">
+                    <div class="grid flex-1 grid-cols-1 gap-4 overflow-y-auto px-6 py-5 md:grid-cols-2">
                         <div>
                             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Site <span class="text-red-500">*</span></label>
-                            <select id="loc_siteid" name="siteid"
-                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
+                            <select id="loc_siteid" name="siteid" class="ts-select2 w-full" required>
                                 <option value="">-- Select Site --</option>
                             </select>
                         </div>
@@ -170,11 +177,11 @@
                                 class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
                         </div>
                     </div>
-                    <div class="flex justify-end gap-2 border-t border-gray-100 px-5 py-4 dark:border-white/[0.06]">
+                    <div class="flex justify-end gap-2 border-t border-gray-100 bg-gray-50/60 px-6 py-4 dark:border-white/[0.06] dark:bg-white/[0.02]">
                         <button type="button" class="tsModalClose rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/5"
                             data-modal="locationModal">Cancel</button>
                         <button type="submit" id="locationSaveBtn"
-                            class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"><i class="fas fa-save"></i> Save</button>
+                            class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 hover:shadow focus:outline-none focus:ring-2 focus:ring-indigo-500/50"><i class="fas fa-save"></i> Save</button>
                     </div>
                 </form>
             </div>
@@ -183,18 +190,25 @@
         <!-- FLOOR MODAL (Add / View / Edit) -->
         <div id="floorModal" class="tsModalBackdrop fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/60 p-4 opacity-0 backdrop-blur-sm transition-opacity duration-200">
             <div class="ts-modal-panel relative flex max-h-[90vh] w-full max-w-xl scale-95 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
-                <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-white/[0.06]">
-                    <h2 id="floorModalTitle" class="text-base font-semibold text-gray-800 dark:text-gray-100">🏢 Add Floor</h2>
-                    <button type="button" class="tsModalClose text-gray-400 transition hover:text-gray-600 dark:hover:text-gray-200"
+                <div class="flex items-center justify-between gap-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50/80 to-white px-6 py-4 dark:border-white/[0.06] dark:from-indigo-500/10 dark:to-transparent">
+                    <div class="flex items-center gap-3">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
+                            <i class="fas fa-building"></i>
+                        </span>
+                        <div>
+                            <h2 id="floorModalTitle" class="text-base font-semibold leading-tight text-gray-800 dark:text-gray-100">Add Floor</h2>
+                            <p class="text-xs text-gray-400 dark:text-gray-500">Floor level within a site</p>
+                        </div>
+                    </div>
+                    <button type="button" class="tsModalClose flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/5 dark:hover:text-gray-200"
                         data-modal="floorModal" aria-label="Close"><i class="fas fa-times"></i></button>
                 </div>
                 <form id="floorForm" class="flex flex-1 flex-col overflow-hidden">
                     <input type="hidden" id="flr_id" name="id">
-                    <div class="grid flex-1 grid-cols-1 gap-4 overflow-y-auto px-5 py-5 md:grid-cols-2">
+                    <div class="grid flex-1 grid-cols-1 gap-4 overflow-y-auto px-6 py-5 md:grid-cols-2">
                         <div>
                             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Site Type <span class="text-red-500">*</span></label>
-                            <select id="flr_sitetype" name="sitetype"
-                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
+                            <select id="flr_sitetype" name="sitetype" class="ts-select2 w-full" required>
                                 <option value="">-- Select Site Type --</option>
                             </select>
                         </div>
@@ -209,11 +223,11 @@
                                 class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
                         </div>
                     </div>
-                    <div class="flex justify-end gap-2 border-t border-gray-100 px-5 py-4 dark:border-white/[0.06]">
+                    <div class="flex justify-end gap-2 border-t border-gray-100 bg-gray-50/60 px-6 py-4 dark:border-white/[0.06] dark:bg-white/[0.02]">
                         <button type="button" class="tsModalClose rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/5"
                             data-modal="floorModal">Cancel</button>
                         <button type="submit" id="floorSaveBtn"
-                            class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"><i class="fas fa-save"></i> Save</button>
+                            class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 hover:shadow focus:outline-none focus:ring-2 focus:ring-indigo-500/50"><i class="fas fa-save"></i> Save</button>
                     </div>
                 </form>
             </div>
@@ -222,51 +236,69 @@
         <!-- TENANT MODAL (Add / View / Edit) -->
         <div id="tenantModal" class="tsModalBackdrop fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/60 p-4 opacity-0 backdrop-blur-sm transition-opacity duration-200">
             <div class="ts-modal-panel relative flex max-h-[90vh] w-full max-w-2xl scale-95 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
-                <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-white/[0.06]">
-                    <h2 id="tenantModalTitle" class="text-base font-semibold text-gray-800 dark:text-gray-100">🏬 Add Tenant</h2>
-                    <button type="button" class="tsModalClose text-gray-400 transition hover:text-gray-600 dark:hover:text-gray-200"
+                <div class="flex items-center justify-between gap-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50/80 to-white px-6 py-4 dark:border-white/[0.06] dark:from-indigo-500/10 dark:to-transparent">
+                    <div class="flex items-center gap-3">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
+                            <i class="fas fa-store"></i>
+                        </span>
+                        <div>
+                            <h2 id="tenantModalTitle" class="text-base font-semibold leading-tight text-gray-800 dark:text-gray-100">Add Tenant</h2>
+                            <p class="text-xs text-gray-400 dark:text-gray-500">Store placement &amp; unit details</p>
+                        </div>
+                    </div>
+                    <button type="button" class="tsModalClose flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/5 dark:hover:text-gray-200"
                         data-modal="tenantModal" aria-label="Close"><i class="fas fa-times"></i></button>
                 </div>
                 <form id="tenantForm" class="flex flex-1 flex-col overflow-hidden">
                     <input type="hidden" id="tnt_id" name="id">
-                    <div class="grid flex-1 grid-cols-1 gap-4 overflow-y-auto px-5 py-5 md:grid-cols-2">
+                    <div class="flex-1 space-y-6 overflow-y-auto px-6 py-5">
+
                         <div>
-                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Location <span class="text-red-500">*</span></label>
-                            <select id="tnt_location_id" name="locationid"
-                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
-                                <option value="">-- Select Location --</option>
-                            </select>
+                            <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Placement</p>
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div>
+                                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Location <span class="text-red-500">*</span></label>
+                                    <select id="tnt_location_id" name="locationid" class="ts-select2 w-full" required>
+                                        <option value="">-- Select Location --</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Floor <span class="text-red-500">*</span></label>
+                                    <select id="tnt_floor_id" name="floorid" class="ts-select2 w-full" required>
+                                        <option value="">-- Select Floor --</option>
+                                    </select>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Unit</label>
+                                    <input type="text" id="tnt_unit" name="unit"
+                                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]">
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Floor <span class="text-red-500">*</span></label>
-                            <select id="tnt_floor_id" name="floorid"
-                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
-                                <option value="">-- Select Floor --</option>
-                            </select>
+
+                        <div class="border-t border-gray-100 pt-5 dark:border-white/[0.06]">
+                            <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Store</p>
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div>
+                                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Tenant Company <span class="text-red-500">*</span></label>
+                                    <select id="tnt_tenantcompanyid" name="tenantcompanyid" class="ts-select2 w-full" required>
+                                        <option value="">-- Select Tenant Company --</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Store Name <span class="text-red-500">*</span></label>
+                                    <input type="text" id="tnt_storename" name="storename"
+                                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Tenant Company <span class="text-red-500">*</span></label>
-                            <select id="tnt_tenantcompanyid" name="tenantcompanyid"
-                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
-                                <option value="">-- Select Tenant Company --</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Unit</label>
-                            <input type="text" id="tnt_unit" name="unit"
-                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]">
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Store Name <span class="text-red-500">*</span></label>
-                            <input type="text" id="tnt_storename" name="storename"
-                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
-                        </div>
+
                     </div>
-                    <div class="flex justify-end gap-2 border-t border-gray-100 px-5 py-4 dark:border-white/[0.06]">
+                    <div class="flex justify-end gap-2 border-t border-gray-100 bg-gray-50/60 px-6 py-4 dark:border-white/[0.06] dark:bg-white/[0.02]">
                         <button type="button" class="tsModalClose rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/5"
                             data-modal="tenantModal">Cancel</button>
                         <button type="submit" id="tenantSaveBtn"
-                            class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"><i class="fas fa-save"></i> Save</button>
+                            class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 hover:shadow focus:outline-none focus:ring-2 focus:ring-indigo-500/50"><i class="fas fa-save"></i> Save</button>
                     </div>
                 </form>
             </div>
@@ -275,59 +307,79 @@
         <!-- USER TENANT MODAL (Add / View / Edit) -->
         <div id="userTenantModal" class="tsModalBackdrop fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/60 p-4 opacity-0 backdrop-blur-sm transition-opacity duration-200">
             <div class="ts-modal-panel relative flex max-h-[90vh] w-full max-w-2xl scale-95 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
-                <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-white/[0.06]">
-                    <h2 id="userTenantModalTitle" class="text-base font-semibold text-gray-800 dark:text-gray-100">👤 Add User Tenant</h2>
-                    <button type="button" class="tsModalClose text-gray-400 transition hover:text-gray-600 dark:hover:text-gray-200"
+                <div class="flex items-center justify-between gap-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50/80 to-white px-6 py-4 dark:border-white/[0.06] dark:from-indigo-500/10 dark:to-transparent">
+                    <div class="flex items-center gap-3">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
+                            <i class="fas fa-user-tag"></i>
+                        </span>
+                        <div>
+                            <h2 id="userTenantModalTitle" class="text-base font-semibold leading-tight text-gray-800 dark:text-gray-100">Add User Tenant</h2>
+                            <p class="text-xs text-gray-400 dark:text-gray-500">Tenant account &amp; login access</p>
+                        </div>
+                    </div>
+                    <button type="button" class="tsModalClose flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/5 dark:hover:text-gray-200"
                         data-modal="userTenantModal" aria-label="Close"><i class="fas fa-times"></i></button>
                 </div>
                 <form id="userTenantForm" class="flex flex-1 flex-col overflow-hidden">
                     <input type="hidden" id="ut_id" name="id">
-                    <div class="grid flex-1 grid-cols-1 gap-4 overflow-y-auto px-5 py-5 md:grid-cols-2">
-                        <div class="md:col-span-2">
-                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Tenant <span class="text-red-500">*</span></label>
-                            <select id="ut_tenantid" name="tenantid"
-                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
-                                <option value="">-- Select Tenant --</option>
-                            </select>
-                        </div>
+                    <div class="flex-1 space-y-6 overflow-y-auto px-6 py-5">
+
                         <div>
-                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Name <span class="text-red-500">*</span></label>
-                            <input type="text" id="ut_name" name="name"
-                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
+                            <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Tenant Assignment</p>
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div class="md:col-span-2">
+                                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Tenant <span class="text-red-500">*</span></label>
+                                    <select id="ut_tenantid" name="tenantid" class="ts-select2 w-full" required>
+                                        <option value="">-- Select Tenant --</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Name <span class="text-red-500">*</span></label>
+                                    <input type="text" id="ut_name" name="name"
+                                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
+                                </div>
+                                <div>
+                                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Company Name</label>
+                                    <input type="text" id="ut_companyname" name="companyname"
+                                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]">
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Company Name</label>
-                            <input type="text" id="ut_companyname" name="companyname"
-                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]">
+
+                        <div class="border-t border-gray-100 pt-5 dark:border-white/[0.06]">
+                            <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Contact &amp; Login</p>
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div>
+                                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Email <span class="text-red-500">*</span></label>
+                                    <input type="email" id="ut_email" name="email"
+                                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
+                                </div>
+                                <div>
+                                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Phone</label>
+                                    <input type="text" id="ut_phone" name="phone"
+                                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]">
+                                </div>
+                                <div>
+                                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Username <span class="text-red-500">*</span></label>
+                                    <input type="text" id="ut_username" name="username" autocomplete="off"
+                                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
+                                </div>
+                                <div>
+                                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                        Password <span id="ut_password_hint" class="text-xs font-normal text-gray-400"></span>
+                                    </label>
+                                    <input type="password" id="ut_password" name="password" autocomplete="new-password"
+                                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]">
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Email <span class="text-red-500">*</span></label>
-                            <input type="email" id="ut_email" name="email"
-                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
-                        </div>
-                        <div>
-                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Phone</label>
-                            <input type="text" id="ut_phone" name="phone"
-                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]">
-                        </div>
-                        <div>
-                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Username <span class="text-red-500">*</span></label>
-                            <input type="text" id="ut_username" name="username" autocomplete="off"
-                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
-                        </div>
-                        <div>
-                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">
-                                Password <span id="ut_password_hint" class="text-xs font-normal text-gray-400"></span>
-                            </label>
-                            <input type="password" id="ut_password" name="password" autocomplete="new-password"
-                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]">
-                        </div>
+
                     </div>
-                    <div class="flex justify-end gap-2 border-t border-gray-100 px-5 py-4 dark:border-white/[0.06]">
+                    <div class="flex justify-end gap-2 border-t border-gray-100 bg-gray-50/60 px-6 py-4 dark:border-white/[0.06] dark:bg-white/[0.02]">
                         <button type="button" class="tsModalClose rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/5"
                             data-modal="userTenantModal">Cancel</button>
                         <button type="submit" id="userTenantSaveBtn"
-                            class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"><i class="fas fa-save"></i> Save</button>
+                            class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 hover:shadow focus:outline-none focus:ring-2 focus:ring-indigo-500/50"><i class="fas fa-save"></i> Save</button>
                     </div>
                 </form>
             </div>
@@ -343,6 +395,65 @@
             </div>
         </div>
     </div>
+
+    <style>
+        .ts-select2-container.select2-container--default .select2-selection--single {
+            height: 42px !important;
+            display: flex;
+            align-items: center;
+            border-radius: 0.5rem !important;
+            border: 1px solid rgb(209 213 219) !important;
+            padding: 0 !important;
+            background-color: #fff !important;
+        }
+        .ts-select2-container.select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 40px !important;
+            padding-left: 0.75rem !important;
+            color: rgb(17 24 39);
+        }
+        .ts-select2-container.select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 40px !important;
+            right: 6px !important;
+        }
+        .ts-select2-container.select2-container--default.select2-container--focus .select2-selection--single,
+        .ts-select2-container.select2-container--default.select2-container--open .select2-selection--single {
+            border-color: #6366f1 !important;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+        }
+        .ts-select2-container.select2-container--default .select2-selection--single .select2-selection__placeholder {
+            color: rgb(156 163 175);
+        }
+        html.dark .ts-select2-container.select2-container--default .select2-selection--single {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        html.dark .ts-select2-container.select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #fff !important;
+        }
+        html.dark .ts-select2-dropdown.select2-dropdown {
+            background-color: #0f172a !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        html.dark .ts-select2-dropdown .select2-search--dropdown .select2-search__field {
+            background-color: #0b1220 !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+            color: #e5e7eb !important;
+        }
+        html.dark .ts-select2-dropdown .select2-results__option {
+            color: #e5e7eb !important;
+        }
+        html.dark .ts-select2-dropdown .select2-results__option--highlighted[aria-selected] {
+            background-color: #4f46e5 !important;
+            color: #fff !important;
+        }
+        .ts-select2-container.select2-container--disabled .select2-selection--single {
+            background-color: rgb(243 244 246) !important;
+            cursor: not-allowed;
+        }
+        html.dark .ts-select2-container.select2-container--disabled .select2-selection--single {
+            background-color: rgba(255, 255, 255, 0.03) !important;
+        }
+    </style>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
@@ -446,6 +557,15 @@
             });
             window.tsTables.location = locationTable;
 
+            $('#loc_siteid').select2({
+                width: '100%',
+                dropdownParent: $('#locationModal'),
+                placeholder: '-- Select Site --',
+                allowClear: true,
+                containerCssClass: 'ts-select2-container',
+                dropdownCssClass: 'ts-select2-dropdown',
+            });
+
             function loadSiteOptions($select, selectedId) {
                 return $.get("{{ route('tenancy.master.sites.options') }}", function(res) {
                     $select.find('option:not(:first)').remove();
@@ -453,6 +573,7 @@
                         $select.append(`<option value="${site.siteid}">${site.sitename} (${site.siteid})</option>`);
                     });
                     tsAutoSelect($select, selectedId, res.data.map(s => s.siteid));
+                    $select.trigger('change');
                 });
             }
 
@@ -462,6 +583,7 @@
                 $('#loc_id').val('');
                 $('#locationModalTitle').text(mode === 'add' ? 'Add Location' : (mode === 'view' ? 'View Location' : 'Edit Location'));
                 $('#locationForm input, #locationForm select').prop('disabled', readOnly);
+                $('#loc_siteid').prop('disabled', readOnly).trigger('change');
                 $('#locationSaveBtn').toggle(!readOnly);
 
                 loadSiteOptions($('#loc_siteid'), data ? data.siteid : null);
@@ -568,6 +690,15 @@
             });
             window.tsTables.floor = floorTable;
 
+            $('#flr_sitetype').select2({
+                width: '100%',
+                dropdownParent: $('#floorModal'),
+                placeholder: '-- Select Site Type --',
+                allowClear: true,
+                containerCssClass: 'ts-select2-container',
+                dropdownCssClass: 'ts-select2-dropdown',
+            });
+
             function loadSiteTypeOptions($select, selectedValue) {
                 return $.get("{{ route('tenancy.master.sites.site-types') }}", function(res) {
                     $select.find('option:not(:first)').remove();
@@ -575,6 +706,7 @@
                         $select.append(`<option value="${type}">${type}</option>`);
                     });
                     tsAutoSelect($select, selectedValue, res.data || []);
+                    $select.trigger('change');
                 });
             }
 
@@ -585,6 +717,7 @@
                         $select.append(`<option value="${loc.id}">${loc.locationname} (${loc.siteid})</option>`);
                     });
                     tsAutoSelect($select, selectedId, (res.data || []).map(loc => loc.id));
+                    $select.trigger('change');
                 });
             }
 
@@ -594,6 +727,7 @@
                 $('#flr_id').val('');
                 $('#floorModalTitle').text(mode === 'add' ? 'Add Floor' : (mode === 'view' ? 'View Floor' : 'Edit Floor'));
                 $('#floorForm input, #floorForm select').prop('disabled', readOnly);
+                $('#flr_sitetype').prop('disabled', readOnly).trigger('change');
                 $('#floorSaveBtn').toggle(!readOnly);
 
                 loadSiteTypeOptions($('#flr_sitetype'), data ? data.sitetype : null);
@@ -703,6 +837,17 @@
             });
             window.tsTables.tenant = tenantTable;
 
+            $('#tnt_location_id, #tnt_floor_id, #tnt_tenantcompanyid').each(function() {
+                $(this).select2({
+                    width: '100%',
+                    dropdownParent: $('#tenantModal'),
+                    placeholder: $(this).find('option:first').text(),
+                    allowClear: true,
+                    containerCssClass: 'ts-select2-container',
+                    dropdownCssClass: 'ts-select2-dropdown',
+                });
+            });
+
             function loadFloorOptions($select, selectedId) {
                 return $.get("{{ route('tenancy.master.floors.options') }}", function(res) {
                     $select.find('option:not(:first)').remove();
@@ -710,6 +855,7 @@
                         $select.append(`<option value="${flr.id}">${flr.floor} (${flr.sitetype})</option>`);
                     });
                     tsAutoSelect($select, selectedId, (res.data || []).map(flr => flr.id));
+                    $select.trigger('change');
                 });
             }
 
@@ -720,6 +866,7 @@
                         $select.append(`<option value="${c.id}">${c.tenantcompanyname}</option>`);
                     });
                     tsAutoSelect($select, selectedId, (res.data || []).map(c => c.id));
+                    $select.trigger('change');
                 });
             }
 
@@ -729,6 +876,7 @@
                 $('#tnt_id').val('');
                 $('#tenantModalTitle').text(mode === 'add' ? 'Add Tenant' : (mode === 'view' ? 'View Tenant' : 'Edit Tenant'));
                 $('#tenantForm input, #tenantForm select').prop('disabled', readOnly);
+                $('#tnt_location_id, #tnt_floor_id, #tnt_tenantcompanyid').prop('disabled', readOnly).trigger('change');
                 $('#tenantSaveBtn').toggle(!readOnly);
 
                 loadLocationOptions($('#tnt_location_id'), data ? data.locationid : null);
@@ -840,6 +988,15 @@
             });
             window.tsTables.user_tenant = userTenantTable;
 
+            $('#ut_tenantid').select2({
+                width: '100%',
+                dropdownParent: $('#userTenantModal'),
+                placeholder: '-- Select Tenant --',
+                allowClear: true,
+                containerCssClass: 'ts-select2-container',
+                dropdownCssClass: 'ts-select2-dropdown',
+            });
+
             function loadTenantOptions($select, selectedId) {
                 return $.get("{{ route('tenancy.master.tenants.options') }}", function(res) {
                     $select.find('option:not(:first)').remove();
@@ -847,6 +1004,7 @@
                         $select.append(`<option value="${t.id}">${t.storename}</option>`);
                     });
                     tsAutoSelect($select, selectedId, (res.data || []).map(t => t.id));
+                    $select.trigger('change');
                 });
             }
 
@@ -856,6 +1014,7 @@
                 $('#ut_id').val('');
                 $('#userTenantModalTitle').text(mode === 'add' ? 'Add User Tenant' : (mode === 'view' ? 'View User Tenant' : 'Edit User Tenant'));
                 $('#userTenantForm input, #userTenantForm select').prop('disabled', readOnly);
+                $('#ut_tenantid').prop('disabled', readOnly).trigger('change');
                 $('#userTenantSaveBtn').toggle(!readOnly);
                 $('#ut_password').prop('required', mode === 'add');
                 $('#ut_password_hint').text(mode === 'add' ? '' : '(leave blank to keep current password)');

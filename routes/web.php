@@ -158,12 +158,19 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TeamTaskController;
 use App\Http\Controllers\TenancyMasterController;
+use App\Http\Controllers\TenancyUserController;
+use App\Http\Controllers\TenancyOrganizationController;
+use App\Http\Controllers\TenancyApprovalController;
 use App\Http\Controllers\Tenancy\TsLocationController;
 use App\Http\Controllers\Tenancy\TsFloorController;
 use App\Http\Controllers\Tenancy\TsTenantController;
 use App\Http\Controllers\Tenancy\TsUserTenantController;
+use App\Http\Controllers\Tenancy\TsUserController;
 use App\Http\Controllers\Tenancy\TsSiteController;
 use App\Http\Controllers\Tenancy\TsTenantCompanyController;
+use App\Http\Controllers\Tenancy\TsCompanyController;
+use App\Http\Controllers\Tenancy\TsDepartmentController;
+use App\Http\Controllers\Tenancy\TsApprovalController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\TestEmailController;
 use App\Http\Controllers\TicketController;
@@ -1665,6 +1672,66 @@ Route::middleware(['auth'])->group(function () {
                 Route::put('/{id}', 'update')->name('update');
                 Route::put('/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
             });
+        });
+
+        Route::controller(TenancyUserController::class)->prefix('tenancy/user')->name('tenancy.user.')->group(function () {
+            Route::get('/', 'index')->name('index');
+        });
+
+        Route::controller(TsUserController::class)->prefix('tenancy/user')->name('tenancy.user.')->group(function () {
+            Route::get('/json', 'json')->name('json');
+            Route::post('/', 'store')->name('store');
+            Route::get('/{id}/edit', 'edit')->name('edit');
+            Route::put('/{id}', 'update')->name('update');
+            Route::put('/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
+            Route::put('/{id}/reset-password', 'resetPassword')->name('reset-password');
+        });
+
+        Route::controller(TenancyOrganizationController::class)->prefix('tenancy/organization')->name('tenancy.organization.')->group(function () {
+            Route::get('/', 'index')->name('index');
+        });
+
+        Route::prefix('tenancy/organization')->name('tenancy.organization.')->group(function () {
+            Route::controller(TsSiteController::class)->prefix('sites')->name('sites.')->group(function () {
+                Route::get('/json', 'json')->name('json');
+                Route::post('/', 'store')->name('store');
+                Route::get('/{id}/edit', 'edit')->name('edit');
+                Route::put('/{id}', 'update')->name('update');
+                Route::put('/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
+            });
+
+            Route::controller(TsCompanyController::class)->prefix('companies')->name('companies.')->group(function () {
+                Route::get('/json', 'json')->name('json');
+                Route::get('/options', 'options')->name('options');
+                Route::post('/', 'store')->name('store');
+                Route::get('/{id}/edit', 'edit')->name('edit');
+                Route::put('/{id}', 'update')->name('update');
+                Route::put('/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
+            });
+
+            Route::controller(TsDepartmentController::class)->prefix('departments')->name('departments.')->group(function () {
+                Route::get('/json', 'json')->name('json');
+                Route::get('/options', 'options')->name('options');
+                Route::get('/doctypes', 'doctypes')->name('doctypes');
+                Route::get('/catalog', 'catalog')->name('catalog');
+                Route::post('/', 'store')->name('store');
+                Route::get('/{id}/edit', 'edit')->name('edit');
+                Route::put('/{id}', 'update')->name('update');
+                Route::put('/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
+            });
+        });
+
+        Route::controller(TenancyApprovalController::class)->prefix('tenancy/approval')->name('tenancy.approval.')->group(function () {
+            Route::get('/', 'index')->name('index');
+        });
+
+        Route::controller(TsApprovalController::class)->prefix('tenancy/approval')->name('tenancy.approval.')->group(function () {
+            Route::get('/json', 'json')->name('json');
+            Route::get('/doctypes', 'doctypes')->name('doctypes');
+            Route::post('/', 'store')->name('store');
+            Route::get('/{id}/edit', 'edit')->name('edit');
+            Route::put('/{id}', 'update')->name('update');
+            Route::put('/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
         });
 
         // A Team's own recursive Task tree — independent of Project.

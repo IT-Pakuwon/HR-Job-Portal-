@@ -16,4 +16,9 @@ class TsSite extends Model
         'siteaddress', 'sitephone', 'sitefax', 'sitefilename', 'status',
         'created_user', 'created_datetime', 'lastupdate_user', 'lastupdate_datetime',
     ];
+
+    public function company()
+    {
+        return $this->belongsTo(TsCompany::class, 'companyid', 'id');
+    }
 }
