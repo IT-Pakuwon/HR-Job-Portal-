@@ -1,21 +1,19 @@
-@extends('emails.layouts.system')
+<!DOCTYPE html>
+<html>
 
-@section('title', 'Waiting Approval')
-@section('preheader', ($info ?? 'A request') . ' from ' . ($name ?? '') . ' needs your approval.')
-@section('icon', '🗂️')
-@section('header', 'Waiting Your Approval')
-@section('subtitle', $info ?? 'Approval Request')
+<head>
+    <title></title>
+</head>
 
-@section('content')
-    <p style="margin:0 0 4px;">Hi {{ $to_name ?? '' }},</p>
-    <p style="margin:0 0 4px;">A request is waiting for your approval for candidate with the details below.</p>
+<body>    
+    <h4>Info : {{ $info }}</h4>
+    <p>Click Here : <a href={{ $url }}>{{ $url }}</a></p>
+    <p>Name : {{ $name }}</p>
+    <p>Company : {{ $cpnyid }}</p>
+    <p>Department : {{ $deptname }}</p>
+    <p>Date : {{ $date }}</p>
+  
 
-    @include('emails.partials.detail-table', ['rows' => [
-        ['label' => 'Name', 'value' => $name],
-        ['label' => 'Company', 'value' => $cpnyid],
-        ['label' => 'Department', 'value' => $deptname],
-        ['label' => 'Date', 'value' => $date],
-    ]])
+</body>
 
-    @include('emails.partials.button', ['url' => $url, 'label' => 'Review Request'])
-@endsection
+</html>
