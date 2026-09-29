@@ -115,11 +115,20 @@ class PoListController extends Controller
             13 => "$poTable.status",
         ];
 
-        // $orderIdx = (int) $req->input('order.0.column', 1);
-        // $orderDir = $req->input('ordFORCE order by podate DESC
-        $orderCol = "$poTable.podate";
-        $orderDir = 'desc';
-        // $orderCol = $columns[$orderIdx] ?? "$poTable.podate";
+        // FORCE order by status priority: Unsend, Purchase - Unsend Email, Purchase,
+        // Partial, Completed, Cancelled, Reuse — then podate/ponbr desc as tiebreaker.
+        $statusOrderRaw = "
+            CASE
+                WHEN $poTable.status = 'H' THEN 1
+                WHEN $poTable.status = 'P' AND $poTable.send_email = false THEN 2
+                WHEN $poTable.status = 'P' THEN 3
+                WHEN $poTable.status = 'O' THEN 4
+                WHEN $poTable.status = 'C' THEN 5
+                WHEN $poTable.status = 'X' THEN 6
+                WHEN $poTable.status = 'D' THEN 7
+                ELSE 8
+            END
+        ";
 
         if ($search !== '') {
             $base->where(function ($q) use ($search, $poTable) {
@@ -166,7 +175,8 @@ class PoListController extends Controller
             "$poTable.status",
             "$poTable.send_email"
         )
-        ->orderBy($orderCol, $orderDir)
+        ->orderByRaw($statusOrderRaw)
+        ->orderBy("$poTable.podate", 'desc')
         ->orderBy("$poTable.ponbr", 'desc')
         ->skip($start)->take($length)
         ->get();
@@ -198,7 +208,7 @@ class PoListController extends Controller
                 case 'O':
                     $statusText = 'Partial';
                     $statusClass = 'bg-amber-200/60 text-amber-800 border border-amber-600/40';
-                    // no break
+                    break;
                 case 'C':
                     $statusText = 'Completed';
                     $statusClass = 'bg-emerald-100 text-emerald-700 border-emerald-200';
