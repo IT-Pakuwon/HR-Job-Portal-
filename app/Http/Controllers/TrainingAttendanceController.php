@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\TrainingAttendanceExport;
 use App\Exports\TrainingFeedbackExport;
+use App\Exports\TrainingReportEmployeesExport;
 use App\Http\Controllers\Traits\HasAttendanceWindow;
 use App\Models\MsCompany;
 use App\Models\MsDepartment;
@@ -598,5 +599,17 @@ class TrainingAttendanceController extends Controller
         })->values()->sortByDesc('sessions_count')->values();
 
         return response()->json(['data' => $rows]);
+    }
+
+    /**
+     * Excel download of the Training Report tab's employee table, honoring
+     * whatever filters/search are currently applied on screen.
+     */
+    public function reportExport(Request $request)
+    {
+        return Excel::download(
+            new TrainingReportEmployeesExport($request->only(['date_from', 'date_to', 'training_id', 'cpny_id', 'department_id', 'search'])),
+            'training-report.xlsx'
+        );
     }
 }

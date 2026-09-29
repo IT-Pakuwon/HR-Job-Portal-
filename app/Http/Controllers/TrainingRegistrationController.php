@@ -154,8 +154,8 @@ class TrainingRegistrationController extends Controller
      */
     public function showAllRegs($eid)
     {
-        if (!Auth::user()->hasRole('HCDEVACCESS')) {
-            abort(403, 'You do not have HCDEVACCESS access');
+        if (!Auth::user()->hasRole('HCDEVACCESS') && !Auth::user()->hasRole('HCBPACCESS')) {
+            abort(403, 'You do not have HCDEVACCESS or HCBPACCESS access');
         }
 
         $id = Hashids::decode($eid)[0] ?? null;
@@ -967,7 +967,7 @@ class TrainingRegistrationController extends Controller
         $registration = TrLndTrainingRegistration::findOrFail($id);
         $user = Auth::user();
 
-        if (!$user->hasRole('HCDEVACCESS')) {
+        if (!$user->hasRole('HCDEVACCESS') && !$user->hasRole('HCBPACCESS')) {
             abort(403);
         }
 
@@ -1339,8 +1339,8 @@ class TrainingRegistrationController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user->hasRole('HCDEVACCESS')) {
-            abort(403, 'You do not have HCDEVACCESS access');
+        if (!$user->hasRole('HCDEVACCESS') && !$user->hasRole('HCBPACCESS')) {
+            abort(403, 'You do not have HCDEVACCESS or HCBPACCESS access');
         }
 
         // Same "past Draft" scoping as registrationSummary()'s cards/filter
@@ -1472,8 +1472,8 @@ class TrainingRegistrationController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user->hasRole('HCDEVACCESS')) {
-            abort(403, 'You do not have HCDEVACCESS access');
+        if (!$user->hasRole('HCDEVACCESS') && !$user->hasRole('HCBPACCESS')) {
+            abort(403, 'You do not have HCDEVACCESS or HCBPACCESS access');
         }
 
         return Excel::download(
@@ -1501,8 +1501,8 @@ class TrainingRegistrationController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user->hasRole('HCDEVACCESS')) {
-            abort(403, 'You do not have HCDEVACCESS access');
+        if (!$user->hasRole('HCDEVACCESS') && !$user->hasRole('HCBPACCESS')) {
+            abort(403, 'You do not have HCDEVACCESS or HCBPACCESS access');
         }
 
         $trainingId = $request->query('training_id');
@@ -1649,8 +1649,8 @@ class TrainingRegistrationController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user->hasRole('HCDEVACCESS')) {
-            abort(403, 'You do not have HCDEVACCESS access');
+        if (!$user->hasRole('HCDEVACCESS') && !$user->hasRole('HCBPACCESS')) {
+            abort(403, 'You do not have HCDEVACCESS or HCBPACCESS access');
         }
 
         $registration = TrLndTrainingRegistration::findOrFail($id);
