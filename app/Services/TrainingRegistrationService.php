@@ -44,16 +44,17 @@ class TrainingRegistrationService
     /**
      * Offer a freed slot: set status_registration = 'O' and stamp
      * process_registration_date = now() — the 24h offer window is always
-     * computed from that timestamp.
+     * computed from that timestamp. $actor is 'system' for auto-promotion/
+     * cascade, or the HCDEVACCESS username for a manual offer.
      */
-    public static function offerSlot(TrLndTrainingRegistration $registration): void
+    public static function offerSlot(TrLndTrainingRegistration $registration, string $actor = 'system'): void
     {
         $now = now();
 
         $registration->status_registration = TrLndTrainingRegistration::REG_STATUS_OFFERED;
-        $registration->process_registration_user = 'system';
+        $registration->process_registration_user = $actor;
         $registration->process_registration_date = $now;
-        $registration->updated_by = 'system';
+        $registration->updated_by = $actor;
         $registration->updated_at = $now;
         $registration->save();
 

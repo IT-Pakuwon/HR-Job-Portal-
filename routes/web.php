@@ -452,6 +452,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/{id}/offer/accept', [TrainingRegistrationController::class, 'acceptOffer'])->name('training-list.offer.accept')->where('id', '[0-9]+');
             Route::post('/{id}/offer/decline', [TrainingRegistrationController::class, 'declineOffer'])->name('training-list.offer.decline')->where('id', '[0-9]+');
             Route::post('/{id}/manual-accept', [TrainingRegistrationController::class, 'manualAccept'])->name('training-list.manual-accept')->where('id', '[0-9]+');
+            Route::post('/{id}/manual-offer', [TrainingRegistrationController::class, 'offerManually'])->name('training-list.manual-offer')->where('id', '[0-9]+');
             Route::post('/my/{id}/feedback', [TrainingFeedbackController::class, 'submit'])->name('training-list.feedback.submit')->where('id', '[0-9]+');
         });
 

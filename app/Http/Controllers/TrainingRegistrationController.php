@@ -1455,6 +1455,7 @@ class TrainingRegistrationController extends Controller
                 'registered_at' => $r->created_at,
                 'has_attended' => (bool) $r->completed_at,
                 'can_accept' => $canAccept,
+                'can_offer' => $canAccept,
                 'quota_options' => $quotaOptions,
             ];
         })->values();
@@ -1718,6 +1719,92 @@ class TrainingRegistrationController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to accept participant',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * HCDEVACCESS-only: manually send a waiting-list participant the same
+     * 24h accept/decline offer that auto-promotion sends on a still-open
+     * schedule (see TrainingRegistrationService::offerSlot()) — for use once
+     * the schedule is CLOSED, when nothing will auto-offer it anymore.
+     * Gated the same as manualAccept() (waitlisted, approval already
+     * completed, schedule closed), except quota is a soft cap here: if the
+     * chosen company's quota is already full this returns 'quota_full' =>
+     * true instead of failing, and the caller must resend with force=1 to
+     * knowingly seat the offer over quota.
+     */
+    public function offerManually(Request $request, $id)
+    {
+        $user = Auth::user();
+
+        if (!$user->hasRole('HCDEVACCESS') && !$user->hasRole('HCBPACCESS')) {
+            abort(403, 'You do not have HCDEVACCESS or HCBPACCESS access');
+        }
+
+        $registration = TrLndTrainingRegistration::findOrFail($id);
+
+        if ($registration->status_registration !== TrLndTrainingRegistration::REG_STATUS_WAITLISTED) {
+            return response()->json(['success' => false, 'message' => 'This registration is not on the waiting list'], 422);
+        }
+
+        if ($registration->status !== TrLndTrainingRegistration::STATUS_APPROVED) {
+            return response()->json(['success' => false, 'message' => 'Approval for this participant is not finished yet — wait until approval completes'], 422);
+        }
+
+        $detail = MsLndTrainingSchedule::where('schedule_id', $registration->schedule_id)->first();
+
+        if (!$detail || $detail->status !== self::SCHEDULE_CLOSED) {
+            return response()->json(['success' => false, 'message' => 'Manual offer is only for schedules that are already closed'], 422);
+        }
+
+        $cpnyId = trim((string) ($request->input('cpny_id') ?: $registration->cpny_id));
+        $force = $request->boolean('force');
+
+        DB::connection('pgsql5')->beginTransaction();
+
+        try {
+            $quota = MsLndTrainingQuota::where('schedule_id', $registration->schedule_id)
+                ->where('cpny_id', $cpnyId)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$quota) {
+                DB::connection('pgsql5')->rollBack();
+
+                return response()->json(['success' => false, 'message' => 'Quota for the selected company was not found on this schedule'], 422);
+            }
+
+            $seatCount = $this->activeSeatCount($registration->schedule_id, $cpnyId);
+
+            if ($seatCount >= $quota->quota_pax && !$force) {
+                DB::connection('pgsql5')->rollBack();
+
+                return response()->json([
+                    'success' => false,
+                    'quota_full' => true,
+                    'used' => $seatCount,
+                    'quota_pax' => $quota->quota_pax,
+                    'message' => "Quota for {$cpnyId} is already full ({$seatCount}/{$quota->quota_pax}). Offering anyway will exceed quota.",
+                ], 422);
+            }
+
+            $registration->cpny_id = $cpnyId;
+            TrainingRegistrationService::offerSlot($registration, $user->username);
+
+            DB::connection('pgsql5')->commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => $registration->user_registration.' has been offered the slot'.($seatCount >= $quota->quota_pax ? ' (over quota)' : ''),
+            ]);
+        } catch (\Throwable $e) {
+            DB::connection('pgsql5')->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to offer slot',
                 'error' => $e->getMessage(),
             ], 500);
         }
