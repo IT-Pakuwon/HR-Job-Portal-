@@ -11,6 +11,7 @@ class Mschecklist extends Model
     protected $table = "hr_ms_doc_checklist";   
     protected $fillable = [     
         'checklist_id',
+        'group_cpny_id',
         'checklist_descr',
         'checklist_type',
         'step_order',

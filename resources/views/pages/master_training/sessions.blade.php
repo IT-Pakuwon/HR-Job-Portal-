@@ -68,7 +68,7 @@
                     </div>
                 </div>
 
-                <form id="scheduleForm" class="flex min-h-0 flex-1 flex-col" enctype="multipart/form-data">
+                <form id="scheduleForm" class="flex min-h-0 flex-1 flex-col" enctype="multipart/form-data" novalidate>
                     @csrf
                     <input type="hidden" id="schedule_id" name="id">
 
@@ -515,7 +515,9 @@
             if ($deadline.data('touched') || !this.value) return;
             let d = new Date(this.value);
             d.setDate(d.getDate() - 3);
-            $deadline.val(d.toISOString().slice(0, 10));
+            let computed = d.toISOString().slice(0, 10);
+            let min = $deadline.attr('min');
+            $deadline.val(min && computed < min ? min : computed);
         });
 
         $(document).on('input', '.date-registration_deadline', function() {
@@ -672,13 +674,27 @@
 
             if (step === 2) {
                 let incomplete = false;
+                let pastDate = false;
                 let isExt = $('#is_ext_speaker').val() === '1';
 
                 $('#datesContainer .date-block').each(function() {
                     let $b = $(this);
-                    if (!$b.find('.date-schedule_date').val() || !$b.find('.date-start_time').val()
+                    let $scheduleDate = $b.find('.date-schedule_date');
+                    let $deadline = $b.find('.date-registration_deadline');
+
+                    if (!$scheduleDate.val() || !$b.find('.date-start_time').val()
                         || !$b.find('.date-end_time').val() || !$b.find('.date-mode').val()) {
                         incomplete = true;
+                    }
+
+                    // novalidate is set on the form (native constraint validation can't
+                    // focus fields on hidden steps), so the min-date checks the browser
+                    // used to enforce have to be done here instead.
+                    if ($scheduleDate.val() && $scheduleDate.val() < $scheduleDate.attr('min')) {
+                        pastDate = true;
+                    }
+                    if ($deadline.val() && $deadline.val() < $deadline.attr('min')) {
+                        pastDate = true;
                     }
 
                     let mode = $b.find('.date-mode').val();
@@ -697,6 +713,11 @@
 
                 if (incomplete) {
                     Swal.fire({ icon: 'warning', title: 'Incomplete dates', text: 'Fill in date, start/end time, mode, place and speaker for every date.' });
+                    return false;
+                }
+
+                if (pastDate) {
+                    Swal.fire({ icon: 'warning', title: 'Invalid date', text: 'Schedule date and registration deadline cannot be in the past.' });
                     return false;
                 }
             }

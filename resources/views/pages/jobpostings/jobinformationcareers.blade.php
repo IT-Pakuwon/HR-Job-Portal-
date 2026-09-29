@@ -21,12 +21,12 @@
             <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
                 <div class="flex items-center gap-1.5">
                     <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Company</span>
-                    <span class="text-xs font-semibold text-gray-700 dark:text-gray-200">{{ $jobposting->cpnyid ?: '—' }}</span>
+                    <span class="text-xs font-semibold text-gray-700 dark:text-gray-200">{{ $companyName ?? $jobposting->cpnyid ?? '—' }}</span>
                 </div>
                 <span class="h-3 w-px bg-gray-200 dark:bg-gray-600"></span>
                 <div class="flex items-center gap-1.5">
                     <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Department</span>
-                    <span class="text-xs font-semibold text-gray-700 dark:text-gray-200">{{ $jobposting->departementid ?: '—' }}</span>
+                    <span class="text-xs font-semibold text-gray-700 dark:text-gray-200">{{ $departmentName ?? $jobposting->departementid ?? '—' }}</span>
                 </div>
                 <span class="h-3 w-px bg-gray-200 dark:bg-gray-600"></span>
                 <div class="flex items-center gap-1.5">

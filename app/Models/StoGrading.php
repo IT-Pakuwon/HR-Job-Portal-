@@ -33,10 +33,11 @@ class StoGrading extends Model
      * else (and any numeric value with no matching grade) passed through as-is.
      *
      * A schedule created via the Level picker's multi-select stores several
-     * group_job_level labels joined with a comma (e.g. "Officer,Manager") in
+     * group_job_level labels joined with '|' (e.g. "Officer|Manager") in
      * that same single job_level value — never numeric, so it always falls
-     * through to the passthrough branch, which adds a space after each comma
-     * for display.
+     * through to the passthrough branch, which turns each '|' into ", " for
+     * display. '|' rather than a comma because the labels themselves contain
+     * commas (e.g. "Sr. Officer, Officer, Crew").
      *
      * @return \Illuminate\Support\Collection<string, string> jobLevel => label
      */
@@ -50,7 +51,7 @@ class StoGrading extends Model
             ? collect()
             : static::whereIn('grade_id', $numericIds)->pluck('grade_name', 'grade_id');
 
-        return $jobLevels->mapWithKeys(fn ($v) => [$v => $names[$v] ?? str_replace(',', ', ', (string) $v)]);
+        return $jobLevels->mapWithKeys(fn ($v) => [$v => $names[$v] ?? str_replace('|', ', ', (string) $v)]);
     }
 }
 

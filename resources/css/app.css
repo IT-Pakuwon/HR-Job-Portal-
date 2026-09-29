@@ -89,7 +89,7 @@
 
     --font-inter: "Inter", "sans-serif";
 
-    --text-xs: 10px;
+    --text-xs: 12px;
     --text-xs--line-height: 1.5;
     --text-sm: 12px;
     --text-sm--line-height: 1.5715;
@@ -103,7 +103,7 @@
     --text-xl--line-height: 1.5;
     --text-xl--letter-spacing: -0.01em;
     --text-smm: 11.5px;
-    /* 
+    /*
     --text-2xl: 1.5rem;
     --text-2xl--line-height: 1.33;
     --text-2xl--letter-spacing: -0.01em;
@@ -168,4 +168,53 @@
 .select2-container--default .select2-selection--single .select2-selection__arrow {
     height: 100% !important;
     top: 0 !important;
+}
+
+/* SweetAlert2 — the popup/toast is appended straight to <body>, so in dark
+   mode it was inheriting the app's dark:text-gray-400 body color onto a
+   white popup background (near-invisible text). Give it its own palette.
+
+   Excluded here: the ticket-cancel popup (public/assets/js/ticket/cancel.js,
+   eng-ticket/cancel.js) hardcodes its own colors inline and isn't part of
+   this pass — forcing a dark background under its fixed-color text would
+   make it unreadable. The training-list custom popups (viewModalPopup,
+   ticketModalPopup, approveModalPopup, feedbackModalPopup) DO get this dark
+   shell; their own internal card/text colors are re-themed for dark mode
+   directly in training_list/index.blade.php. posterPreviewPopup is also
+   excluded — it's deliberately transparent (just an image + close button),
+   not a card that needs a background at all. */
+.dark .swal2-popup:not(.swal-cancel-ticket-popup):not(.posterPreviewPopup) {
+    background: var(--color-gray-800) !important;
+    color: var(--color-gray-100) !important;
+}
+
+.dark .swal2-close {
+    color: var(--color-gray-400) !important;
+}
+
+.dark .swal2-close:hover {
+    color: var(--color-gray-100) !important;
+}
+
+.dark .swal2-input,
+.dark .swal2-textarea,
+.dark .swal2-select,
+.dark .swal2-file {
+    background: var(--color-gray-700) !important;
+    border-color: var(--color-gray-600) !important;
+    color: var(--color-gray-100) !important;
+}
+
+.dark .swal2-popup:not(.swal-cancel-ticket-popup) .swal2-validation-message {
+    background: var(--color-gray-700) !important;
+    color: var(--color-gray-100) !important;
+}
+
+.dark .swal2-footer {
+    color: var(--color-gray-300) !important;
+    border-top-color: var(--color-gray-700) !important;
+}
+
+.dark .swal2-timer-progress-bar {
+    background: rgba(255, 255, 255, 0.35) !important;
 }

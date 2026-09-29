@@ -1,0 +1,13 @@
+-- =====================================================================
+-- OBSOLETE — do not run.
+--
+-- This file originally created a fresh ms_location/ms_floor/ms_tenant/
+-- ms_user_tenant schema, but that schema was never the real one: the
+-- `mysql5` connection (dbtenancytest) already held a live legacy schema
+-- with real production data (mslocation/msfloor/mstenant/msusertenant +
+-- mssite/mstenantcompany + user). The Tenancy module (TsLocation,
+-- TsFloor, TsTenant, TsTenantCompany, TsUser, TsUserTenant and their
+-- controllers) was remapped in-place to that legacy schema instead.
+--
+-- See app/Models/Tenancy/*.php for the current, accurate field mapping.
+-- =====================================================================

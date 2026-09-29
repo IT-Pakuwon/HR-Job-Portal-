@@ -15,7 +15,7 @@ class CloseTrainingRegistrations extends Command
     {
         $due = MsLndTrainingSchedule::where('status', 'P')
             ->whereNotNull('registration_deadline')
-            ->where('registration_deadline', '<=', now()->toDateString())
+            ->where('registration_deadline', '<', now()->toDateString())
             ->get();
 
         foreach ($due as $detail) {

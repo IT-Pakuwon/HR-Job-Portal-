@@ -14,7 +14,7 @@
                 <button class="tabBtn flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-semibold text-gray-500 transition hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="mine">
                     <span>📝</span> Registration List
                 </button>
-                @if (Auth::user()->hasRole('HCDEVACCESS'))
+                @if (Auth::user()->hasRole('HCDEVACCESS') || Auth::user()->hasRole('HCBPACCESS'))
                     <button class="tabBtn flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-semibold text-gray-500 transition hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-tab="allregs">
                         <span>📋</span> List Registration
                     </button>
@@ -157,8 +157,8 @@
                 </div>
             </div>
 
-            {{-- List Registration (HCDEVACCESS) --}}
-            @if (Auth::user()->hasRole('HCDEVACCESS'))
+            {{-- List Registration (HCDEVACCESS / HCBPACCESS) --}}
+            @if (Auth::user()->hasRole('HCDEVACCESS') || Auth::user()->hasRole('HCBPACCESS'))
                 <div id="tab-allregs" class="tab-panel hidden space-y-4">
                     {{-- Filters — Training Event also rescopes the summary cards below --}}
                     <div class="rounded-2xl border border-gray-200 bg-linear-to-br from-gray-50 to-cyan-50/30 p-6 shadow-sm dark:border-gray-700 dark:from-gray-800/40 dark:to-cyan-900/10">
@@ -1468,6 +1468,144 @@
             font-size: 11px;
             color: #9ca3af;
         }
+
+        /* Dark mode — these modals (ticketModalPopup, viewModalPopup,
+           approveModalPopup, feedbackModalPopup) were built as fixed "light
+           card" popups with hardcoded hex colors. app.css gives the popup
+           itself a dark shell (background: gray-800); everything below
+           re-themes the cards/text/borders inside so it reads properly on
+           that dark shell instead of staying a white card. */
+        html.dark .ticketModalPopup .swal2-actions,
+        html.dark .approveModalPopup .swal2-actions,
+        html.dark .feedbackModalPopup .swal2-actions,
+        html.dark .viewModalPopup .swal2-actions {
+            background: #111827;
+            border-top-color: #374151;
+        }
+        html.dark .ticketModal-header,
+        html.dark .viewModal-header,
+        html.dark .feedbackModal-header {
+            border-bottom-color: #374151;
+        }
+        html.dark .ticketModal-title,
+        html.dark .viewModal-title,
+        html.dark .approveModal-title,
+        html.dark .feedbackModal-title,
+        html.dark .feedbackModal-qText,
+        html.dark .viewModal-value,
+        html.dark .viewModal-gridValue,
+        html.dark .approveModal-value,
+        html.dark .approvalStep-name,
+        html.dark .approvalStep-nameChip,
+        html.dark .viewModal-participant-name {
+            color: #f3f4f6;
+        }
+        html.dark .ticketModal-subtitle,
+        html.dark .viewModal-subtitle,
+        html.dark .feedbackModal-subtitle {
+            color: #9ca3af;
+        }
+        html.dark .ticketModal-card,
+        html.dark .viewModal-card,
+        html.dark .approveModal-card,
+        html.dark .feedbackModal-question,
+        html.dark .viewModal-gridItem,
+        html.dark .approvalStep-body {
+            background: #374151;
+            border-color: #4b5563;
+        }
+        html.dark .viewModal-row + .viewModal-row,
+        html.dark .approveModal-row + .approveModal-row {
+            border-top-color: #4b5563;
+        }
+        html.dark .approvalStep::before {
+            background: #374151;
+        }
+        html.dark .approvalStep-marker {
+            border-color: #1f2937;
+            box-shadow: 0 0 0 1px #374151;
+        }
+        html.dark .approvalStep-nameChip {
+            background: #374151;
+            border-color: #4b5563;
+        }
+        html.dark .viewModal-participant {
+            background: linear-gradient(135deg, #312e81, #3730a3);
+            border-color: #4338ca;
+        }
+        html.dark .viewModal-participant-label {
+            color: #a5b4fc;
+        }
+        html.dark .viewModal-offerBanner {
+            background: linear-gradient(135deg, #451a03, #78350f);
+            border-color: #92400e;
+        }
+        html.dark .viewModal-offerText {
+            color: #fde68a;
+        }
+        html.dark .viewModal-offerText strong {
+            color: #fef3c7;
+        }
+        html.dark .feedbackModal-notice {
+            background: #451a03;
+            border-color: #92400e;
+            color: #fde68a;
+        }
+        html.dark .ticketModal-select,
+        html.dark .feedbackModal-textarea,
+        html.dark .feedbackModal-choice,
+        html.dark .feedbackModal-ratingItem {
+            background: #374151;
+            border-color: #4b5563;
+            color: #e5e7eb;
+        }
+        html.dark .feedbackModal-textarea:disabled {
+            background: #1f2937;
+            color: #9ca3af;
+        }
+        html.dark .feedbackModal-choice:has(input:checked) {
+            border-color: #755ff8;
+            background: #755ff8;
+            color: #fff;
+        }
+        html.dark .feedbackModal-ratingItem:has(input:checked) {
+            border-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+        }
+        html.dark .dateCardOption {
+            border-color: #4b5563;
+        }
+        html.dark .dateCardOption:hover {
+            border-color: #6b7280;
+        }
+        html.dark .dateCardOption.selected {
+            border-color: #755ff8;
+            background: rgba(117, 95, 248, 0.12);
+            box-shadow: 0 0 0 1px #755ff8;
+        }
+        html.dark .ticketConfirmBtn,
+        html.dark .feedbackConfirmBtn {
+            background: #755ff8 !important;
+        }
+        html.dark .ticketConfirmBtn:hover,
+        html.dark .feedbackConfirmBtn:hover {
+            background: #5d47de !important;
+        }
+        html.dark .ticketCancelBtn {
+            color: #9ca3af !important;
+        }
+        html.dark .ticketCancelBtn:hover {
+            color: #f3f4f6 !important;
+        }
+        html.dark .modalRejectBtn {
+            background: rgba(220, 38, 38, 0.15) !important;
+            color: #f87171 !important;
+            border-color: rgba(220, 38, 38, 0.4) !important;
+        }
+        html.dark .modalRejectBtn:hover {
+            background: rgba(220, 38, 38, 0.25) !important;
+        }
     </style>
     <script>
         const jsonUrl = "{{ route('training-list.json') }}";
@@ -1480,8 +1618,8 @@
         const colleaguesUrl = "{{ route('training-list.colleagues') }}";
         const pendingApprovalsUrl = "{{ route('training-list.pending-approvals') }}";
         const approvalUrlTpl = "{{ route('approval.get', ['refnbr' => '__REF__', 'doctype' => 'TRN']) }}";
-        const isHcdevaccess = @json(Auth::user()->hasRole('HCDEVACCESS'));
-        @if (Auth::user()->hasRole('HCDEVACCESS'))
+        const isHcdevaccess = @json(Auth::user()->hasRole('HCDEVACCESS') || Auth::user()->hasRole('HCBPACCESS'));
+        @if (Auth::user()->hasRole('HCDEVACCESS') || Auth::user()->hasRole('HCBPACCESS'))
         const allRegistrationsUrl = "{{ route('training-list.all-registrations') }}";
         const registrationSummaryUrl = "{{ route('training-list.registration-summary') }}";
         const allRegistrationsExportUrl = "{{ route('training-list.all-registrations.export') }}";
@@ -2968,7 +3106,7 @@
             if (row) openFeedbackModal(row);
         });
 
-        @if (Auth::user()->hasRole('HCDEVACCESS'))
+        @if (Auth::user()->hasRole('HCDEVACCESS') || Auth::user()->hasRole('HCBPACCESS'))
         $('#allRegsTrainingFilter').select2({
             containerCssClass: 'select2-filter',
             dropdownCssClass: 'select2-filter',

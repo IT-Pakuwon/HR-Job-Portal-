@@ -59,7 +59,7 @@
     <div class="max-w-9xl mx-auto flex h-screen min-h-0 w-full flex-col overflow-hidden p-2">
 
         {{-- HEADER --}}
-        <div class="mb-4 rounded-2xl border border-gray-200 bg-white/70      p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
+        <div class="{{ request()->boolean('embed') ? 'hidden' : '' }} mb-4 rounded-2xl border border-gray-200 bg-white/70      p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
 
             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
@@ -165,6 +165,12 @@
             </div>
         </div>
 
+        @if (request()->boolean('embed'))
+            <div class="mb-2 shrink-0 rounded-lg border border-blue-100 bg-blue-50 px-4 py-2 text-sm text-blue-700 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300">
+                ℹ️ Drag across a time slot on a Zoom / Teams room row to open the booking form. Zoom accounts cannot be double-booked.
+            </div>
+        @endif
+
         <div
             class="dark:border-white/1 flex h-full flex-1 flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm min-h-0 dark:bg-gray-800">
 
@@ -204,6 +210,11 @@
                         {{-- BODY --}}
                         <form id="meetingForm" action="{{ url('/saveteams') }}" method="post">
                             @csrf
+                            @if (request()->boolean('embed'))
+                                {{-- Links the booking to the PM subtask it was opened from (Activity List). --}}
+                                <input type="hidden" name="pm_doctype" value="{{ request('pm_doctype') }}">
+                                <input type="hidden" name="pm_task_id" value="{{ request('pm_task_id') }}">
+                            @endif
 
                             <div class="space-y-5 px-6 py-5">
 
@@ -410,6 +421,21 @@
         window.currentUserId = @json(auth()->user()->username);
         window.hasCSACCESS = @json($hasCsAccess ?? false);
 
+        // Set when this page is iframed (?embed=1) from a Project/Team
+        // subtask's "Zoom" button — jumps to the subtask's date, prefills
+        // Title/Description when a slot is picked, and reports a successful
+        // save back to the parent page instead of reloading.
+        // (built in a PHP block first — the json directive splits its argument on
+        // commas, so an inline array literal compiles to broken PHP)
+        @php
+            $meetingEmbed = request()->boolean('embed') ? [
+                'title' => (string) request('title', ''),
+                'descr' => (string) request('descr', ''),
+                'date' => (string) request('date', ''),
+            ] : null;
+        @endphp
+        window.meetingEmbed = @json($meetingEmbed);
+
         document.addEventListener('DOMContentLoaded', function() {
             const calendarEl = document.getElementById('calendar');
             const modal = document.getElementById('schedule-show');
@@ -563,6 +589,11 @@
 
                     resetMeetingForm();
 
+                    if (window.meetingEmbed) {
+                        $('#title').val(window.meetingEmbed.title || '');
+                        $('#meetingForm [name="descr"]').val(window.meetingEmbed.descr || '');
+                    }
+
                     // Fill form
                     $('#datetimes').val(
                         start.format('YYYY-MM-DD HH:mm') + ' - ' + end.format('YYYY-MM-DD HH:mm')
@@ -603,6 +634,13 @@
             });
 
             calendarInstance.render();
+
+            if (window.meetingEmbed && window.meetingEmbed.date) {
+                const embedDay = moment(window.meetingEmbed.date, 'YYYY-MM-DD');
+                if (embedDay.isValid() && !embedDay.isBefore(moment(), 'day')) {
+                    calendarInstance.gotoDate(embedDay.toDate());
+                }
+            }
 
             $('#meetingForm').on('submit', function(e) {
                 e.preventDefault();
@@ -649,6 +687,11 @@
                     success: function() {
                         resetSubmitState();
                         closeModal();
+
+                        if (window.meetingEmbed && window.parent !== window) {
+                            window.parent.postMessage({ type: 'pm-meeting-booked', kind: 'zoom', message: 'Meeting berhasil disimpan.' }, window.location.origin);
+                            return;
+                        }
 
                         Swal.fire({
                             icon: 'success',

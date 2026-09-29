@@ -10,6 +10,7 @@ use App\Models\MsMeetingRoomAccess;
 use App\Models\SysUserRole;
 use App\Models\TrMeeting;
 use App\Models\User;
+use App\Services\PmActivityLogger;
 use App\Services\ZoomApi;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -712,6 +713,8 @@ class MeetingController extends Controller
 
             DB::connection('pgsql5')->commit();
 
+            $this->logPmTaskMeeting($request, $meeting, false);
+
             $this->sendMeetingEmail($meeting, 'create');
 
             // kalau acc_id ada -> coba create Teams meeting
@@ -1042,6 +1045,8 @@ class MeetingController extends Controller
             // ✅ 3. COMMIT DB
             DB::connection('pgsql5')->commit();
 
+            $this->logPmTaskMeeting($request, $meeting, true);
+
             // ✅ 4. SEND EMAIL (AFTER TEAMS/ZOOM READY)
             $this->sendTeamsEmail($meeting, 'create');
 
@@ -1141,6 +1146,43 @@ class MeetingController extends Controller
         }
 
         return null;
+    }
+
+    // Booked from a Project/Team subtask's "Meeting Room" / "Zoom" button
+    // (the ?embed=1 form carries pm_doctype + pm_task_id) — record it in
+    // that task's Activity List. logForDocument() ignores unknown tasks.
+    protected function logPmTaskMeeting(Request $request, TrMeeting $meeting, bool $online): void
+    {
+        $doctype = strtoupper((string) $request->input('pm_doctype'));
+        $taskId = trim((string) $request->input('pm_task_id'));
+
+        if (!in_array($doctype, ['TSK', 'TTK'], true) || $taskId === '') {
+            return;
+        }
+
+        try {
+            $start = Carbon::parse($meeting->start_meeting_time);
+            $end = Carbon::parse($meeting->end_meeting_time);
+            $roomName = MsMeetingRoom::where('room_id', $meeting->room_id)->value('room_name');
+
+            if ($online) {
+                $isZoom = $this->isZoomMeeting($meeting);
+                $action = $isZoom ? 'meeting_zoom' : 'meeting_teams';
+                $description = $isZoom ? 'booked a Zoom meeting' : 'booked a Teams meeting';
+            } else {
+                $action = 'meeting_room';
+                $description = 'booked a meeting room';
+            }
+
+            PmActivityLogger::logForDocument($doctype, $taskId, $action, $description, [
+                ['label' => 'Meeting', 'value' => $meeting->meeting_title],
+                ['label' => 'Doc No', 'value' => $meeting->docid],
+                ['label' => $online ? 'Account' : 'Room', 'value' => $roomName ?: $meeting->room_id],
+                ['label' => 'When', 'value' => $start->format('d M Y, H:i') . ' – ' . $end->format('H:i')],
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('PM task meeting log failed', ['task' => $taskId, 'docid' => $meeting->docid, 'error' => $e->getMessage()]);
+        }
     }
 
     protected function isZoomMeeting($meeting): bool

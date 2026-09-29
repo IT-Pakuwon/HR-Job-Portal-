@@ -173,16 +173,19 @@
                 <div class="flex flex-wrap items-center justify-between gap-2">
                     <input type="text" id="reportSearch" placeholder="🔎 Search employee by name…"
                         class="w-full flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200 sm:w-auto">
-                    <label class="flex flex-none items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400">
-                        Show
-                        <select id="reportPerPage" class="min-w-17 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-center text-sm font-semibold text-gray-700 shadow-sm focus:border-gray-900 focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
-                            <option value="10">10</option>
-                            <option value="25">25</option>
-                            <option value="50">50</option>
-                            <option value="100">100</option>
-                        </select>
-                        entries
-                    </label>
+                    <div class="flex flex-none items-center gap-2">
+                        <a id="reportExportBtn" href="#" class="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm transition hover:bg-emerald-50 active:scale-[0.98] dark:border-gray-600 dark:bg-transparent dark:text-emerald-400 dark:hover:bg-emerald-900/20">⬇ Export</a>
+                        <label class="flex flex-none items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400">
+                            Show
+                            <select id="reportPerPage" class="min-w-17 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-center text-sm font-semibold text-gray-700 shadow-sm focus:border-gray-900 focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            entries
+                        </label>
+                    </div>
                 </div>
 
                 <div class="overflow-hidden rounded-2xl border border-gray-200 shadow-sm dark:border-gray-700">
@@ -230,7 +233,8 @@
                         </div>
                     </div>
 
-                    <div id="feedbackQuestions" class="grid grid-cols-1 gap-3 lg:grid-cols-2"></div>
+                    <div id="feedbackChartQuestions" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"></div>
+                    <div id="feedbackQuestions" class="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-2"></div>
                     <div id="feedbackEmpty" class="hidden flex flex-col items-center gap-1 rounded-2xl border border-dashed border-gray-300 p-10 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
                         <span class="text-2xl">💬</span>
                         No feedback submitted yet.
@@ -359,6 +363,7 @@
             reportFilters: "{{ route('training-attendance.report.filters') }}",
             reportSummary: "{{ route('training-attendance.report.summary') }}",
             reportEmployees: "{{ route('training-attendance.report.employees') }}",
+            reportExport: "{{ route('training-attendance.report.export') }}",
             feedbackResults: "{{ route('training-attendance.feedback.results', ['scheduleId' => '__ID__']) }}",
             feedbackOpen: "{{ route('training-attendance.feedback.open', ['scheduleId' => '__ID__']) }}",
             feedbackClose: "{{ route('training-attendance.feedback.close', ['scheduleId' => '__ID__']) }}",
@@ -857,12 +862,12 @@
                 const keys = Object.keys(dist).sort((a, b) => Number(a) - Number(b));
                 if (!keys.length) return feedbackNoResponseCardHtml(q, ['#8B5CF6', '#7C3AED']);
 
-                return feedbackChartCardHtml(q, 'bar', {
-                    series: [{ name: 'Responses', data: keys.map((k) => dist[k]) }],
-                    categories: keys,
-                    height: 180,
+                return feedbackChartCardHtml(q, 'donut', {
+                    series: keys.map((k) => dist[k]),
+                    labels: keys,
+                    height: 220,
                     color: 'violet',
-                    showLegend: false,
+                    legendPosition: 'bottom',
                 }, ['#8B5CF6', '#7C3AED']);
             }
 
@@ -884,7 +889,7 @@
             const alpineData = `{
                 answers: ${JSON.stringify(answers)},
                 page: 1,
-                perPage: 10,
+                perPage: 5,
                 get totalPages() { return Math.max(1, Math.ceil(this.answers.length / this.perPage)); },
                 get pageItems() { return this.answers.slice((this.page - 1) * this.perPage, this.page * this.perPage); },
             }`;
@@ -954,10 +959,18 @@
 
                 const questions = res.questions || [];
                 $('#feedbackEmpty').toggleClass('hidden', questions.length > 0);
-                $('#feedbackQuestions').html(questions.map(feedbackQuestionCardHtml).join(''));
 
-                document.querySelectorAll('#feedbackQuestions [data-chart-type="bar"]').forEach(window.CardChart.initBar);
-                document.querySelectorAll('#feedbackQuestions [data-chart-type="donut"]').forEach(window.CardChart.initDonut);
+                // Rating/Single Choice render as compact donut cards and share
+                // one row-friendly grid; Long Text answer lists need the wider
+                // 2-col grid below to stay readable.
+                const chartQuestions = questions.filter((q) => q.question_type === 'Rating' || q.question_type === 'Single Choice');
+                const textQuestions = questions.filter((q) => q.question_type !== 'Rating' && q.question_type !== 'Single Choice');
+
+                $('#feedbackChartQuestions').html(chartQuestions.map(feedbackQuestionCardHtml).join(''));
+                $('#feedbackQuestions').html(textQuestions.map(feedbackQuestionCardHtml).join(''));
+
+                document.querySelectorAll('#feedbackChartQuestions [data-chart-type="bar"], #feedbackQuestions [data-chart-type="bar"]').forEach(window.CardChart.initBar);
+                document.querySelectorAll('#feedbackChartQuestions [data-chart-type="donut"], #feedbackQuestions [data-chart-type="donut"]').forEach(window.CardChart.initDonut);
             });
         }
 
@@ -1196,6 +1209,8 @@
 
         function loadReportEmployees() {
             const params = Object.assign({}, reportFilterParams(), { search: $('#reportSearch').val().trim() });
+
+            $('#reportExportBtn').attr('href', routeTemplates.reportExport + '?' + $.param(params));
 
             $.get(routeTemplates.reportEmployees, params, function (res) {
                 reportEmployeeRows = res.data || [];

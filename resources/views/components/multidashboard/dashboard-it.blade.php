@@ -391,4 +391,4 @@
     }
 </style>
 
-<script src="{{ asset('assets/js/multidashboard/dashit.js') }}?v={{ filemtime(public_path('assets/js/multidashboard/dashit.js')) }}"></script>
+<script src="{{ asset('assets/js/multidashboard/dashit.js') }}?v={{ file_exists(public_path('assets/js/multidashboard/dashit.js')) ? filemtime(public_path('assets/js/multidashboard/dashit.js')) : time() }}"></script>

@@ -10,7 +10,8 @@ use Vinkla\Hashids\Facades\Hashids;
 
 class AgreementCreatedMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable;
+    use SerializesModels;
 
     public $agreement;
 
@@ -26,8 +27,8 @@ class AgreementCreatedMail extends Mailable
 
             ->subject(
                 '[LEGAL AGREEMENT][SENT] '
-                . $this->agreement->agreement_id
-                . ' - PSM/Addendum Delivered to Tenant'
+                .$this->agreement->agreement_id
+                .' - PSM/Addendum Delivered to Tenant'
             )
 
             ->view(

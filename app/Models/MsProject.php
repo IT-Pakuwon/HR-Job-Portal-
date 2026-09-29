@@ -11,7 +11,6 @@ class MsProject extends Model
 
     protected $fillable = [
         'project_id',
-        'group_id',
         'project_name',
         'project_description',
         'start_date',
@@ -32,9 +31,13 @@ class MsProject extends Model
         'end_date' => 'date',
     ];
 
-    public function group()
+    // A Project can now be handled by more than one Team — plain hasMany
+    // onto the pivot row, same style as pics()/tags() below (no
+    // belongsToMany, kept consistent with this model's existing pattern).
+    public function teams()
     {
-        return $this->belongsTo(MsGroup::class, 'group_id', 'group_id');
+        return $this->hasMany(TrProjectTeam::class, 'project_id', 'project_id')
+            ->where('status', 'A');
     }
 
     public function projectStatus()
@@ -42,9 +45,11 @@ class MsProject extends Model
         return $this->belongsTo(MsProjectStatus::class, 'status_id', 'status_id');
     }
 
+    // Task-board statuses — this Project's own, isolated from every other
+    // Project's (same shape as MsTeam::taskStatuses()).
     public function taskStatuses()
     {
-        return $this->hasMany(MsTaskStatus::class, 'project_id', 'project_id')
+        return $this->hasMany(MsProjectTaskStatus::class, 'project_id', 'project_id')
             ->where('status', 'A')
             ->orderBy('sort_order');
     }
@@ -52,6 +57,22 @@ class MsProject extends Model
     public function tasks()
     {
         return $this->hasMany(TrProjectTask::class, 'project_id', 'project_id');
+    }
+
+    public function pics()
+    {
+        return $this->hasMany(TrProjectPic::class, 'project_id', 'project_id')
+            ->where('status', 'A');
+    }
+
+    // Individually-picked PIC people (pic_type USER), lowercased — a Project
+    // may have no linked Team at all, so these people need access on their own.
+    public function picUsernames()
+    {
+        return $this->pics()->where('pic_type', 'USER')->pluck('ref_id')
+            ->map(fn ($u) => strtolower(trim($u)))
+            ->unique()
+            ->values();
     }
 
     // Links out (this project -> others it points to)
