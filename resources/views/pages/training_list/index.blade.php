@@ -3302,6 +3302,10 @@
                     ? `<button type="button" class="allRegsAcceptBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-green-600 transition hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20" data-id="${r.id}">✅ Accept</button>`
                     : '';
 
+                const offerHtml = r.can_offer
+                    ? `<button type="button" class="allRegsOfferBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-purple-600 transition hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20" data-id="${r.id}">📨 Offer Slot</button>`
+                    : '';
+
                 // Same guard as TrainingRegistrationController::cancel(): a
                 // Rejected/already-Cancelled row has nothing left to cancel,
                 // an already-attended row can't be backed out of, and a past
@@ -3354,6 +3358,7 @@
                                         class="z-50 w-48 origin-top-right overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
                                         ${viewHtml}
                                         ${acceptHtml}
+                                        ${offerHtml}
                                         ${cancelHtml}
                                     </div>
                                 </template>
@@ -3473,6 +3478,75 @@
                         toast('error', xhr.responseJSON?.message || 'Gagal menerima peserta');
                     },
                 });
+            });
+        });
+
+        function submitManualOffer(id, cpnyId, force) {
+            $.ajax({
+                url: `/training-list/${id}/manual-offer`,
+                method: 'POST',
+                headers: csrfHeaders,
+                data: { cpny_id: cpnyId, force: force ? 1 : 0 },
+                success: function (res) {
+                    toast(res.success ? 'success' : 'error', res.message);
+                    if (res.success) loadAllRegistrations();
+                },
+                error: function (xhr) {
+                    const body = xhr.responseJSON;
+                    if (body?.quota_full && !force) {
+                        Swal.fire({
+                            title: 'Quota is already full',
+                            html: `This company's quota is full (${body.used}/${body.quota_pax}). Offering this slot will exceed the quota.`,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Offer anyway',
+                            cancelButtonText: 'Cancel',
+                        }).then((result) => {
+                            if (result.isConfirmed) submitManualOffer(id, cpnyId, true);
+                        });
+                        return;
+                    }
+                    toast('error', body?.message || 'Gagal menawarkan slot');
+                },
+            });
+        }
+
+        $(document).on('click', '.allRegsOfferBtn', function () {
+            const id = $(this).data('id');
+            const r = allRegistrationRows.find((row) => String(row.id) === String(id));
+            if (!r) return;
+
+            const opts = (r.quota_options || []).map((q) => {
+                const sel = q.cpny_id === r.cpny_id ? ' selected' : '';
+                const label = `${q.cpny_name} — ${q.available}/${q.quota_pax} seats${q.available <= 0 ? ' (FULL)' : ''}`;
+                return `<option value="${q.cpny_id}"${sel}>${label}</option>`;
+            }).join('');
+
+            Swal.fire({
+                title: `Offer slot to ${r.name ?? r.username}?`,
+                html: `
+                    <div style="text-align:left;font-size:13px;">
+                        <p><strong>Doc ID:</strong> ${r.docid}</p>
+                        <p><strong>Training:</strong> ${r.training_name ?? '-'}</p>
+                        <p><strong>Date:</strong> ${fmtDate(r.schedule_date)}</p>
+                        <p style="margin-top:8px;">Sends the same 24h accept/decline offer as the automatic waitlist promotion.</p>
+                        <div style="margin-top:12px;">
+                            <label class="ticketModal-label">🏢 Use Quota From</label>
+                            <select id="swalAllRegsOfferCpny" class="ticketModal-select">${opts}</select>
+                            <p style="font-size:11px;color:#6b7280;margin-top:6px;">
+                                Defaults to the participant's own company (${r.cpny_id}). If a company's quota is already full you'll be asked to confirm before exceeding it.
+                            </p>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Yes, offer slot',
+                cancelButtonText: 'Cancel',
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                const cpnyId = document.getElementById('swalAllRegsOfferCpny')?.value ?? r.cpny_id;
+                submitManualOffer(id, cpnyId, false);
             });
         });
 

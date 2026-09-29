@@ -1316,6 +1316,7 @@ class ItRecommendationController extends Controller
             'installasi kabel jaringan',
             'jasa perbaikan',
             'jasa pekerjaan',
+            'instalasi kabel jaringan',
         ];
 
         $data = MsInventory::query()
