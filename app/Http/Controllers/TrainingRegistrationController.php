@@ -283,7 +283,7 @@ class TrainingRegistrationController extends Controller
                 'level_match' => $levelMatch,
                 'speaker_name' => $d->training_speaker_name ?: $d->training_ext_speaker_name,
                 'registration_deadline' => $d->registration_deadline,
-                'is_open' => (!$d->registration_deadline || !Carbon::parse($d->registration_deadline)->isPast()) && !$d->is_schedule_over,
+                'is_open' => (!$d->registration_deadline || !Carbon::parse($d->registration_deadline)->endOfDay()->isPast()) && !$d->is_schedule_over,
                 'eligible_companies' => $eligibleCompanies,
                 'my_status' => $mine ? $mine->effective_status : null,
                 'my_registration_id' => $mine->id ?? null,
@@ -697,7 +697,7 @@ class TrainingRegistrationController extends Controller
             return response()->json(['success' => false, 'message' => 'Registration for this schedule is already closed'], 422);
         }
 
-        if ($detail->registration_deadline && Carbon::parse($detail->registration_deadline)->isPast()) {
+        if ($detail->registration_deadline && Carbon::parse($detail->registration_deadline)->endOfDay()->isPast()) {
             return response()->json(['success' => false, 'message' => 'The registration deadline has passed'], 422);
         }
 
