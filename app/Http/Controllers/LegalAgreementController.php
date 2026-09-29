@@ -1001,11 +1001,14 @@ class LegalAgreementController extends Controller
 
             $agreement->psm_or_addendum_delivery_date = $request->psm_or_addendum_delivery_date;
 
+            $deliveryNote = 'The Revised PSM/Addendum already sent at '
+                .Carbon::parse($request->psm_or_addendum_delivery_date)->format('d M Y').'.';
+
             $this->transitionStep(
                 $agreement,
                 'ACTIVE',
                 'Revised PSM/Addendum Sent - Agreement Activated',
-                $request->response_descr
+                trim($deliveryNote."\n\n".$request->response_descr)
             );
 
             foreach ($request->file('bukti_pengiriman') as $file) {

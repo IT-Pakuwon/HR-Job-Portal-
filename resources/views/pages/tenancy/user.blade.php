@@ -3,18 +3,26 @@
     <div class="max-w-9xl mx-auto w-full p-2" x-data="{ activeType: 'ALL' }">
         <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
-            <div class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-4 dark:border-white/[0.06] sm:flex-row sm:items-center">
-                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">👤 User List</h2>
+            <div class="flex flex-row items-start justify-between gap-4 rounded-t-xl border-b border-gray-100 bg-gray-50/60 px-5 py-4 dark:border-white/[0.06] dark:bg-white/[0.02] sm:flex-row sm:items-center">
                 <div class="flex items-center gap-3">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-map-marker-alt text-sm text-gray-400 dark:text-gray-500"></i>
-                        <select id="filterSiteId" class="ts-select2">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
+                        <i class="fas fa-users text-sm"></i>
+                    </span>
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">User List</h2>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="relative">
+                        <i class="fas fa-map-marker-alt pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-xs text-indigo-400 dark:text-indigo-400/70"></i>
+                        <select id="filterSiteId"
+                            class="h-10 w-55 appearance-none rounded-full border border-gray-200 bg-gray-50 pl-8 pr-9 text-sm font-medium text-gray-700 shadow-sm transition hover:border-indigo-200 hover:bg-white focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-indigo-500/15 dark:border-white/10 dark:bg-white/5 dark:text-gray-200 dark:hover:border-indigo-400/40 dark:hover:bg-white/10 dark:focus:bg-white/10">
                             <option value="ALL">All Sites</option>
                         </select>
+                        <i class="fas fa-chevron-down pointer-events-none absolute right-3.5 top-1/2 z-10 -translate-y-1/2 text-[10px] text-indigo-400"></i>
                     </div>
                     <button id="addUserBtn"
-                        class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
-                        + Add User
+                        class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 text-sm font-medium text-white shadow-sm shadow-indigo-600/20 transition hover:bg-indigo-500 hover:shadow-md hover:shadow-indigo-600/30 active:bg-indigo-700">
+                        <i class="fas fa-plus text-xs"></i>
+                        Add User
                     </button>
                 </div>
             </div>
@@ -205,37 +213,83 @@
 
     <style>
         .ts-select2-container.select2-container--default .select2-selection--single {
-            height: 42px !important;
+            height: 38px !important;
             display: flex;
             align-items: center;
-            border-radius: 0.5rem !important;
-            border: 1px solid rgb(209 213 219) !important;
+            border-radius: 9999px !important;
+            border: 1px solid rgb(226 232 240) !important;
             padding: 0 !important;
+            background-color: rgb(248 250 252) !important;
+            box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+            transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+        }
+        .ts-select2-container.select2-container--default .select2-selection--single:hover {
+            border-color: rgb(199 210 254) !important;
             background-color: #fff !important;
         }
         .ts-select2-container.select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 40px !important;
+            line-height: 36px !important;
             padding-left: 0.75rem !important;
-            color: rgb(17 24 39);
+            padding-right: 1.75rem !important;
+            color: rgb(51 65 85);
+            font-weight: 500;
         }
         .ts-select2-container.select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 40px !important;
-            right: 6px !important;
+            height: 36px !important;
+            right: 10px !important;
+        }
+        .ts-select2-container.select2-container--default .select2-selection--single .select2-selection__arrow b {
+            border-color: #818cf8 transparent transparent transparent !important;
+            border-width: 5px 4px 0 4px !important;
+        }
+        .ts-select2-container.select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
+            border-color: transparent transparent #818cf8 transparent !important;
+            border-width: 0 4px 5px 4px !important;
         }
         .ts-select2-container.select2-container--default.select2-container--focus .select2-selection--single,
         .ts-select2-container.select2-container--default.select2-container--open .select2-selection--single {
             border-color: #6366f1 !important;
-            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+            background-color: #fff !important;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
         }
         .ts-select2-container.select2-container--default .select2-selection--single .select2-selection__placeholder {
-            color: rgb(156 163 175);
+            color: rgb(148 163 184);
+            font-weight: 400;
         }
         html.dark .ts-select2-container.select2-container--default .select2-selection--single {
             background-color: rgba(255, 255, 255, 0.05) !important;
             border-color: rgba(255, 255, 255, 0.1) !important;
+            box-shadow: none;
+        }
+        html.dark .ts-select2-container.select2-container--default .select2-selection--single:hover {
+            border-color: rgba(129, 140, 248, 0.4) !important;
+            background-color: rgba(255, 255, 255, 0.08) !important;
+        }
+        html.dark .ts-select2-container.select2-container--default.select2-container--focus .select2-selection--single,
+        html.dark .ts-select2-container.select2-container--default.select2-container--open .select2-selection--single {
+            background-color: rgba(255, 255, 255, 0.08) !important;
         }
         html.dark .ts-select2-container.select2-container--default .select2-selection--single .select2-selection__rendered {
-            color: #fff !important;
+            color: rgb(226 232 240) !important;
+        }
+        .ts-select2-dropdown.select2-dropdown {
+            border-radius: 0.75rem !important;
+            border-color: rgb(226 232 240) !important;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.1) !important;
+            overflow: hidden;
+            padding: 4px;
+        }
+        .ts-select2-dropdown .select2-results__option {
+            border-radius: 0.5rem !important;
+        }
+        .ts-select2-dropdown .select2-results__option--highlighted[aria-selected] {
+            background-color: #eef2ff !important;
+            color: #4338ca !important;
+        }
+        .ts-select2-dropdown .select2-results__option[aria-selected="true"] {
+            background-color: #eef2ff !important;
+            color: #4338ca !important;
+            font-weight: 600;
         }
         html.dark .ts-select2-dropdown.select2-dropdown {
             background-color: #0f172a !important;
@@ -244,12 +298,14 @@
         html.dark .ts-select2-dropdown .select2-search--dropdown .select2-search__field {
             background-color: #0b1220 !important;
             border-color: rgba(255, 255, 255, 0.1) !important;
+            border-radius: 0.5rem !important;
             color: #e5e7eb !important;
         }
         html.dark .ts-select2-dropdown .select2-results__option {
             color: #e5e7eb !important;
         }
-        html.dark .ts-select2-dropdown .select2-results__option--highlighted[aria-selected] {
+        html.dark .ts-select2-dropdown .select2-results__option--highlighted[aria-selected],
+        html.dark .ts-select2-dropdown .select2-results__option[aria-selected="true"] {
             background-color: #4f46e5 !important;
             color: #fff !important;
         }
@@ -394,14 +450,6 @@
 
             userTable.on('xhr', function() {
                 updateUserTypeCounts(userTable.ajax.json().data || []);
-            });
-
-            $('#filterSiteId').select2({
-                width: '220px',
-                placeholder: 'All Sites',
-                allowClear: false,
-                containerCssClass: 'ts-select2-container',
-                dropdownCssClass: 'ts-select2-dropdown',
             });
 
             $.get("{{ route('tenancy.master.sites.options') }}", function(res) {
