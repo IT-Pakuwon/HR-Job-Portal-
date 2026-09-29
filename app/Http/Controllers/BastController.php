@@ -353,7 +353,9 @@ class BastController extends Controller
         // ===== Link ke PO (opsional)
         $poUrl = null;
         if (!empty($bast->ponbr)) {
-            $poId = TrPO::where('ponbr', $bast->ponbr)->value('id');
+            $poId = TrPO::where('ponbr', $bast->ponbr)
+                ->where('cpny_id', $bast->cpny_id)
+                ->value('id');
             if ($poId) {
                 $poHash = Hashids::encode($poId);
                 $poUrl = url("/showpo/{$poHash}");
