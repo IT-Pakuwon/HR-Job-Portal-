@@ -3,18 +3,22 @@
 namespace App\Http\Controllers\Tenancy;
 
 use App\Http\Controllers\Controller;
+use App\Models\Tenancy\TsLocation;
 use App\Models\Tenancy\TsTenant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 
 class TsTenantController extends Controller
 {
     public function json()
     {
-        $tenants = TsTenant::with('floor:id,location_id,floor_name', 'floor.location:id,location_name')
-            ->select(['id', 'floor_id', 'tenant_code', 'tenant_name', 'unit_no', 'status'])
+        $tenants = TsTenant::with([
+                'location:id,locationname,siteid',
+                'floor:id,floor',
+                'tenantCompany:id,tenantcompanyname',
+            ])
+            ->select(['id', 'storename', 'tenantcompanyid', 'siteid', 'locationid', 'floorid', 'unit', 'status'])
             ->orderByDesc('id')
             ->get();
 
@@ -23,36 +27,42 @@ class TsTenantController extends Controller
 
     public function options(Request $request)
     {
-        $q = TsTenant::where('status', 'A')->orderBy('tenant_name');
+        $q = TsTenant::where('status', 'A')->orderBy('storename');
 
-        if ($request->filled('floor_id')) {
-            $q->where('floor_id', $request->floor_id);
+        if ($request->filled('locationid')) {
+            $q->where('locationid', $request->locationid);
         }
 
-        return response()->json(['data' => $q->get(['id', 'floor_id', 'tenant_code', 'tenant_name'])]);
+        return response()->json(['data' => $q->get(['id', 'storename', 'locationid', 'floorid'])]);
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'floor_id'    => 'required|exists:mysql5.ms_floor,id',
-            'tenant_code' => 'required|string|max:50|unique:mysql5.ms_tenant,tenant_code',
-            'tenant_name' => 'required|string|max:200',
-            'unit_no'     => 'nullable|string|max:50',
+            'tenantcompanyid' => 'required|exists:mysql5.mstenantcompany,id',
+            'locationid'      => 'required|exists:mysql5.mslocation,id',
+            'floorid'         => 'required|exists:mysql5.msfloor,id',
+            'storename'       => 'required|string|max:255',
+            'unit'            => 'nullable|string|max:50',
         ]);
 
         DB::connection('mysql5')->beginTransaction();
         try {
             $loginUser = Auth::user();
+            $location = TsLocation::findOrFail($request->locationid);
 
             $tenant = TsTenant::create([
-                'floor_id'    => $request->floor_id,
-                'tenant_code' => strtoupper($request->tenant_code),
-                'tenant_name' => $request->tenant_name,
-                'unit_no'     => $request->unit_no,
-                'status'      => 'A',
-                'created_by'  => $loginUser->username ?? 'system',
-                'created_at'  => now(),
+                'storename'           => $request->storename,
+                'tenantcompanyid'     => $request->tenantcompanyid,
+                'siteid'              => $location->siteid,
+                'locationid'          => $request->locationid,
+                'floorid'             => $request->floorid,
+                'unit'                => $request->unit,
+                'status'              => 'A',
+                'created_user'        => $loginUser->username ?? 'system',
+                'created_datetime'    => now(),
+                'lastupdate_user'     => $loginUser->username ?? 'system',
+                'lastupdate_datetime' => now(),
             ]);
 
             DB::connection('mysql5')->commit();
@@ -68,16 +78,16 @@ class TsTenantController extends Controller
 
     public function edit($id)
     {
-        $tenant = TsTenant::with('floor:id,location_id')->findOrFail($id);
+        $tenant = TsTenant::findOrFail($id);
 
         return response()->json([
-            'id'          => $tenant->id,
-            'floor_id'    => $tenant->floor_id,
-            'location_id' => $tenant->floor->location_id ?? null,
-            'tenant_code' => $tenant->tenant_code,
-            'tenant_name' => $tenant->tenant_name,
-            'unit_no'     => $tenant->unit_no,
-            'status'      => $tenant->status,
+            'id'              => $tenant->id,
+            'tenantcompanyid' => $tenant->tenantcompanyid,
+            'locationid'      => $tenant->locationid,
+            'floorid'         => $tenant->floorid,
+            'storename'       => $tenant->storename,
+            'unit'            => $tenant->unit,
+            'status'          => $tenant->status,
         ]);
     }
 
@@ -86,23 +96,27 @@ class TsTenantController extends Controller
         $tenant = TsTenant::findOrFail($id);
 
         $request->validate([
-            'floor_id'    => 'required|exists:mysql5.ms_floor,id',
-            'tenant_code' => ['required', 'string', 'max:50', Rule::unique('mysql5.ms_tenant', 'tenant_code')->ignore($tenant->id)],
-            'tenant_name' => 'required|string|max:200',
-            'unit_no'     => 'nullable|string|max:50',
+            'tenantcompanyid' => 'required|exists:mysql5.mstenantcompany,id',
+            'locationid'      => 'required|exists:mysql5.mslocation,id',
+            'floorid'         => 'required|exists:mysql5.msfloor,id',
+            'storename'       => 'required|string|max:255',
+            'unit'            => 'nullable|string|max:50',
         ]);
 
         DB::connection('mysql5')->beginTransaction();
         try {
             $loginUser = Auth::user();
+            $location = TsLocation::findOrFail($request->locationid);
 
             $tenant->update([
-                'floor_id'    => $request->floor_id,
-                'tenant_code' => strtoupper($request->tenant_code),
-                'tenant_name' => $request->tenant_name,
-                'unit_no'     => $request->unit_no,
-                'updated_by'  => $loginUser->username ?? 'system',
-                'updated_at'  => now(),
+                'storename'           => $request->storename,
+                'tenantcompanyid'     => $request->tenantcompanyid,
+                'siteid'              => $location->siteid,
+                'locationid'          => $request->locationid,
+                'floorid'             => $request->floorid,
+                'unit'                => $request->unit,
+                'lastupdate_user'     => $loginUser->username ?? 'system',
+                'lastupdate_datetime' => now(),
             ]);
 
             DB::connection('mysql5')->commit();
@@ -122,9 +136,9 @@ class TsTenantController extends Controller
         $newStatus = request('status'); // A / X
 
         $tenant->update([
-            'status'     => $newStatus,
-            'updated_by' => Auth::user()->username ?? 'system',
-            'updated_at' => now(),
+            'status'              => $newStatus,
+            'lastupdate_user'     => Auth::user()->username ?? 'system',
+            'lastupdate_datetime' => now(),
         ]);
 
         return response()->json(['message' => 'Status updated']);

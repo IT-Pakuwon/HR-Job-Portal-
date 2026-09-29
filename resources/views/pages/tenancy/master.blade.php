@@ -50,9 +50,8 @@
                             <tr
                                 class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                                 <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
-                                <th class="px-4 py-3 text-left font-medium">Location Code</th>
+                                <th class="px-4 py-3 text-left font-medium">Site</th>
                                 <th class="px-4 py-3 text-left font-medium">Location Name</th>
-                                <th class="px-4 py-3 text-left font-medium">Address</th>
                                 <th class="w-28 px-4 py-3 text-left font-medium">Status</th>
                             </tr>
                         </thead>
@@ -77,9 +76,9 @@
                             <tr
                                 class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                                 <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
-                                <th class="px-4 py-3 text-left font-medium">Location</th>
-                                <th class="px-4 py-3 text-left font-medium">Floor Code</th>
-                                <th class="px-4 py-3 text-left font-medium">Floor Name</th>
+                                <th class="px-4 py-3 text-left font-medium">Site Type</th>
+                                <th class="px-4 py-3 text-left font-medium">Floor</th>
+                                <th class="w-20 px-4 py-3 text-left font-medium">Order</th>
                                 <th class="w-28 px-4 py-3 text-left font-medium">Status</th>
                             </tr>
                         </thead>
@@ -106,9 +105,9 @@
                                 <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
                                 <th class="px-4 py-3 text-left font-medium">Location</th>
                                 <th class="px-4 py-3 text-left font-medium">Floor</th>
-                                <th class="px-4 py-3 text-left font-medium">Tenant Code</th>
-                                <th class="px-4 py-3 text-left font-medium">Tenant Name</th>
-                                <th class="px-4 py-3 text-left font-medium">Unit No</th>
+                                <th class="px-4 py-3 text-left font-medium">Tenant Company</th>
+                                <th class="px-4 py-3 text-left font-medium">Store Name</th>
+                                <th class="px-4 py-3 text-left font-medium">Unit</th>
                                 <th class="w-28 px-4 py-3 text-left font-medium">Status</th>
                             </tr>
                         </thead>
@@ -134,10 +133,10 @@
                                 class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                                 <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
                                 <th class="px-4 py-3 text-left font-medium">Tenant</th>
-                                <th class="px-4 py-3 text-left font-medium">User Name</th>
+                                <th class="px-4 py-3 text-left font-medium">Name</th>
+                                <th class="px-4 py-3 text-left font-medium">Username</th>
                                 <th class="px-4 py-3 text-left font-medium">Email</th>
                                 <th class="px-4 py-3 text-left font-medium">Phone</th>
-                                <th class="px-4 py-3 text-left font-medium">Position</th>
                                 <th class="w-28 px-4 py-3 text-left font-medium">Status</th>
                             </tr>
                         </thead>
@@ -148,160 +147,187 @@
         </div>
 
         <!-- LOCATION MODAL (Add / View / Edit) -->
-        <div id="locationModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-            <div class="relative w-full max-w-xl rounded-lg bg-white p-4 dark:bg-gray-700">
-                <h2 id="locationModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add Location</h2>
-                <form id="locationForm">
+        <div id="locationModal" class="tsModalBackdrop fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/60 p-4 opacity-0 backdrop-blur-sm transition-opacity duration-200">
+            <div class="ts-modal-panel relative flex max-h-[90vh] w-full max-w-xl scale-95 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+                <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-white/[0.06]">
+                    <h2 id="locationModalTitle" class="text-base font-semibold text-gray-800 dark:text-gray-100">📍 Add Location</h2>
+                    <button type="button" class="tsModalClose text-gray-400 transition hover:text-gray-600 dark:hover:text-gray-200"
+                        data-modal="locationModal" aria-label="Close"><i class="fas fa-times"></i></button>
+                </div>
+                <form id="locationForm" class="flex flex-1 flex-col overflow-hidden">
                     <input type="hidden" id="loc_id" name="id">
-                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div class="grid flex-1 grid-cols-1 gap-4 overflow-y-auto px-5 py-5 md:grid-cols-2">
                         <div>
-                            <label class="block text-gray-700 dark:text-white">Location Code</label>
-                            <input type="text" id="loc_location_code" name="location_code"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Site <span class="text-red-500">*</span></label>
+                            <select id="loc_siteid" name="siteid"
+                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
+                                <option value="">-- Select Site --</option>
+                            </select>
                         </div>
                         <div>
-                            <label class="block text-gray-700 dark:text-white">Location Name</label>
-                            <input type="text" id="loc_location_name" name="location_name"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-gray-700 dark:text-white">Address</label>
-                            <input type="text" id="loc_address" name="address"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Location Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="loc_locationname" name="locationname"
+                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
                         </div>
                     </div>
-                    <div class="mt-4 flex justify-end space-x-2">
-                        <button type="button" id="closeLocationModal"
-                            class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
+                    <div class="flex justify-end gap-2 border-t border-gray-100 px-5 py-4 dark:border-white/[0.06]">
+                        <button type="button" class="tsModalClose rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/5"
+                            data-modal="locationModal">Cancel</button>
                         <button type="submit" id="locationSaveBtn"
-                            class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
+                            class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"><i class="fas fa-save"></i> Save</button>
                     </div>
                 </form>
             </div>
         </div>
 
         <!-- FLOOR MODAL (Add / View / Edit) -->
-        <div id="floorModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-            <div class="relative w-full max-w-xl rounded-lg bg-white p-4 dark:bg-gray-700">
-                <h2 id="floorModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add Floor</h2>
-                <form id="floorForm">
+        <div id="floorModal" class="tsModalBackdrop fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/60 p-4 opacity-0 backdrop-blur-sm transition-opacity duration-200">
+            <div class="ts-modal-panel relative flex max-h-[90vh] w-full max-w-xl scale-95 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+                <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-white/[0.06]">
+                    <h2 id="floorModalTitle" class="text-base font-semibold text-gray-800 dark:text-gray-100">🏢 Add Floor</h2>
+                    <button type="button" class="tsModalClose text-gray-400 transition hover:text-gray-600 dark:hover:text-gray-200"
+                        data-modal="floorModal" aria-label="Close"><i class="fas fa-times"></i></button>
+                </div>
+                <form id="floorForm" class="flex flex-1 flex-col overflow-hidden">
                     <input type="hidden" id="flr_id" name="id">
-                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div class="md:col-span-2">
-                            <label class="block text-gray-700 dark:text-white">Location</label>
-                            <select id="flr_location_id" name="location_id"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                                <option value="">-- Select Location --</option>
+                    <div class="grid flex-1 grid-cols-1 gap-4 overflow-y-auto px-5 py-5 md:grid-cols-2">
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Site Type <span class="text-red-500">*</span></label>
+                            <select id="flr_sitetype" name="sitetype"
+                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
+                                <option value="">-- Select Site Type --</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-gray-700 dark:text-white">Floor Code</label>
-                            <input type="text" id="flr_floor_code" name="floor_code"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Order</label>
+                            <input type="number" id="flr_order" name="order"
+                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]">
                         </div>
-                        <div>
-                            <label class="block text-gray-700 dark:text-white">Floor Name</label>
-                            <input type="text" id="flr_floor_name" name="floor_name"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                        <div class="md:col-span-2">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Floor <span class="text-red-500">*</span></label>
+                            <input type="text" id="flr_floor" name="floor"
+                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
                         </div>
                     </div>
-                    <div class="mt-4 flex justify-end space-x-2">
-                        <button type="button" id="closeFloorModal"
-                            class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
+                    <div class="flex justify-end gap-2 border-t border-gray-100 px-5 py-4 dark:border-white/[0.06]">
+                        <button type="button" class="tsModalClose rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/5"
+                            data-modal="floorModal">Cancel</button>
                         <button type="submit" id="floorSaveBtn"
-                            class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
+                            class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"><i class="fas fa-save"></i> Save</button>
                     </div>
                 </form>
             </div>
         </div>
 
         <!-- TENANT MODAL (Add / View / Edit) -->
-        <div id="tenantModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-            <div class="relative w-full max-w-2xl rounded-lg bg-white p-4 dark:bg-gray-700">
-                <h2 id="tenantModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add Tenant</h2>
-                <form id="tenantForm">
+        <div id="tenantModal" class="tsModalBackdrop fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/60 p-4 opacity-0 backdrop-blur-sm transition-opacity duration-200">
+            <div class="ts-modal-panel relative flex max-h-[90vh] w-full max-w-2xl scale-95 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+                <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-white/[0.06]">
+                    <h2 id="tenantModalTitle" class="text-base font-semibold text-gray-800 dark:text-gray-100">🏬 Add Tenant</h2>
+                    <button type="button" class="tsModalClose text-gray-400 transition hover:text-gray-600 dark:hover:text-gray-200"
+                        data-modal="tenantModal" aria-label="Close"><i class="fas fa-times"></i></button>
+                </div>
+                <form id="tenantForm" class="flex flex-1 flex-col overflow-hidden">
                     <input type="hidden" id="tnt_id" name="id">
-                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div class="grid flex-1 grid-cols-1 gap-4 overflow-y-auto px-5 py-5 md:grid-cols-2">
                         <div>
-                            <label class="block text-gray-700 dark:text-white">Location</label>
-                            <select id="tnt_location_id"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Location <span class="text-red-500">*</span></label>
+                            <select id="tnt_location_id" name="locationid"
+                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
                                 <option value="">-- Select Location --</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-gray-700 dark:text-white">Floor</label>
-                            <select id="tnt_floor_id" name="floor_id"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Floor <span class="text-red-500">*</span></label>
+                            <select id="tnt_floor_id" name="floorid"
+                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
                                 <option value="">-- Select Floor --</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-gray-700 dark:text-white">Tenant Code</label>
-                            <input type="text" id="tnt_tenant_code" name="tenant_code"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Tenant Company <span class="text-red-500">*</span></label>
+                            <select id="tnt_tenantcompanyid" name="tenantcompanyid"
+                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
+                                <option value="">-- Select Tenant Company --</option>
+                            </select>
                         </div>
                         <div>
-                            <label class="block text-gray-700 dark:text-white">Unit No</label>
-                            <input type="text" id="tnt_unit_no" name="unit_no"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Unit</label>
+                            <input type="text" id="tnt_unit" name="unit"
+                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]">
                         </div>
                         <div class="md:col-span-2">
-                            <label class="block text-gray-700 dark:text-white">Tenant Name</label>
-                            <input type="text" id="tnt_tenant_name" name="tenant_name"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Store Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="tnt_storename" name="storename"
+                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
                         </div>
                     </div>
-                    <div class="mt-4 flex justify-end space-x-2">
-                        <button type="button" id="closeTenantModal"
-                            class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
+                    <div class="flex justify-end gap-2 border-t border-gray-100 px-5 py-4 dark:border-white/[0.06]">
+                        <button type="button" class="tsModalClose rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/5"
+                            data-modal="tenantModal">Cancel</button>
                         <button type="submit" id="tenantSaveBtn"
-                            class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
+                            class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"><i class="fas fa-save"></i> Save</button>
                     </div>
                 </form>
             </div>
         </div>
 
         <!-- USER TENANT MODAL (Add / View / Edit) -->
-        <div id="userTenantModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-            <div class="relative w-full max-w-2xl rounded-lg bg-white p-4 dark:bg-gray-700">
-                <h2 id="userTenantModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add User Tenant</h2>
-                <form id="userTenantForm">
+        <div id="userTenantModal" class="tsModalBackdrop fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/60 p-4 opacity-0 backdrop-blur-sm transition-opacity duration-200">
+            <div class="ts-modal-panel relative flex max-h-[90vh] w-full max-w-2xl scale-95 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+                <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-white/[0.06]">
+                    <h2 id="userTenantModalTitle" class="text-base font-semibold text-gray-800 dark:text-gray-100">👤 Add User Tenant</h2>
+                    <button type="button" class="tsModalClose text-gray-400 transition hover:text-gray-600 dark:hover:text-gray-200"
+                        data-modal="userTenantModal" aria-label="Close"><i class="fas fa-times"></i></button>
+                </div>
+                <form id="userTenantForm" class="flex flex-1 flex-col overflow-hidden">
                     <input type="hidden" id="ut_id" name="id">
-                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div class="grid flex-1 grid-cols-1 gap-4 overflow-y-auto px-5 py-5 md:grid-cols-2">
                         <div class="md:col-span-2">
-                            <label class="block text-gray-700 dark:text-white">Tenant</label>
-                            <select id="ut_tenant_id" name="tenant_id"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Tenant <span class="text-red-500">*</span></label>
+                            <select id="ut_tenantid" name="tenantid"
+                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
                                 <option value="">-- Select Tenant --</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-gray-700 dark:text-white">User Name</label>
-                            <input type="text" id="ut_user_name" name="user_name"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="ut_name" name="name"
+                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
                         </div>
                         <div>
-                            <label class="block text-gray-700 dark:text-white">Position</label>
-                            <input type="text" id="ut_position" name="position"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Company Name</label>
+                            <input type="text" id="ut_companyname" name="companyname"
+                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]">
                         </div>
                         <div>
-                            <label class="block text-gray-700 dark:text-white">Email</label>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Email <span class="text-red-500">*</span></label>
                             <input type="email" id="ut_email" name="email"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
                         </div>
                         <div>
-                            <label class="block text-gray-700 dark:text-white">Phone</label>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Phone</label>
                             <input type="text" id="ut_phone" name="phone"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]">
+                        </div>
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Username <span class="text-red-500">*</span></label>
+                            <input type="text" id="ut_username" name="username" autocomplete="off"
+                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
+                        </div>
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                Password <span id="ut_password_hint" class="text-xs font-normal text-gray-400"></span>
+                            </label>
+                            <input type="password" id="ut_password" name="password" autocomplete="new-password"
+                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]">
                         </div>
                     </div>
-                    <div class="mt-4 flex justify-end space-x-2">
-                        <button type="button" id="closeUserTenantModal"
-                            class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
+                    <div class="flex justify-end gap-2 border-t border-gray-100 px-5 py-4 dark:border-white/[0.06]">
+                        <button type="button" class="tsModalClose rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/5"
+                            data-modal="userTenantModal">Cancel</button>
                         <button type="submit" id="userTenantSaveBtn"
-                            class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
+                            class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"><i class="fas fa-save"></i> Save</button>
                     </div>
                 </form>
             </div>
@@ -345,7 +371,44 @@
             }
         }
 
+        // Auto-select the option when there's exactly one to choose from.
+        function tsAutoSelect($select, selectedValue, values) {
+            if (selectedValue) {
+                $select.val(selectedValue);
+            } else if (values.length === 1) {
+                $select.val(values[0]).trigger('change');
+            }
+        }
+
+        function tsOpenModal(id) {
+            let $modal = $('#' + id);
+            $modal.removeClass('hidden').addClass('flex');
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                    $modal.removeClass('opacity-0').addClass('opacity-100');
+                    $modal.find('.ts-modal-panel').removeClass('scale-95 opacity-0').addClass('scale-100 opacity-100');
+                });
+            });
+        }
+
+        function tsCloseModal(id) {
+            let $modal = $('#' + id);
+            $modal.removeClass('opacity-100').addClass('opacity-0');
+            $modal.find('.ts-modal-panel').removeClass('scale-100 opacity-100').addClass('scale-95 opacity-0');
+            setTimeout(function() {
+                $modal.addClass('hidden').removeClass('flex');
+            }, 200);
+        }
+
         $(document).ready(function() {
+
+            $(document).on('click', '.tsModalClose', function() {
+                tsCloseModal($(this).data('modal'));
+            });
+
+            $(document).on('click', '.tsModalBackdrop', function(e) {
+                if (e.target === this) tsCloseModal(this.id);
+            });
 
             /* =========================================================
              * LOCATION
@@ -373,30 +436,42 @@
                             `;
                         }
                     },
-                    { data: 'location_code' },
-                    { data: 'location_name' },
-                    { data: 'address', render: d => d ?? '-' },
+                    {
+                        data: 'site.sitename',
+                        render: (d, type, row) => d ? `${d} (${row.siteid})` : row.siteid
+                    },
+                    { data: 'locationname' },
                     { data: 'status', render: statusBadge },
                 ]
             });
             window.tsTables.location = locationTable;
+
+            function loadSiteOptions($select, selectedId) {
+                return $.get("{{ route('tenancy.master.sites.options') }}", function(res) {
+                    $select.find('option:not(:first)').remove();
+                    res.data.forEach(function(site) {
+                        $select.append(`<option value="${site.siteid}">${site.sitename} (${site.siteid})</option>`);
+                    });
+                    tsAutoSelect($select, selectedId, res.data.map(s => s.siteid));
+                });
+            }
 
             function openLocationModal(mode, data) {
                 let readOnly = mode === 'view';
                 $('#locationForm')[0].reset();
                 $('#loc_id').val('');
                 $('#locationModalTitle').text(mode === 'add' ? 'Add Location' : (mode === 'view' ? 'View Location' : 'Edit Location'));
-                $('#locationForm input').prop('disabled', readOnly);
+                $('#locationForm input, #locationForm select').prop('disabled', readOnly);
                 $('#locationSaveBtn').toggle(!readOnly);
+
+                loadSiteOptions($('#loc_siteid'), data ? data.siteid : null);
 
                 if (data) {
                     $('#loc_id').val(data.id);
-                    $('#loc_location_code').val(data.location_code);
-                    $('#loc_location_name').val(data.location_name);
-                    $('#loc_address').val(data.address);
+                    $('#loc_locationname').val(data.locationname);
                 }
 
-                $('#locationModal').removeClass('hidden').addClass('flex');
+                tsOpenModal('locationModal');
             }
 
             $('#addLocationBtn').click(function() {
@@ -418,10 +493,6 @@
                 });
             });
 
-            $('#closeLocationModal').click(function() {
-                $('#locationModal').addClass('hidden').removeClass('flex');
-            });
-
             $('#locationForm').submit(function(e) {
                 e.preventDefault();
                 let id = $('#loc_id').val();
@@ -439,7 +510,7 @@
                     contentType: false,
                     success: function() {
                         hideLoading();
-                        $('#locationModal').addClass('hidden').removeClass('flex');
+                        tsCloseModal('locationModal');
                         locationTable.ajax.reload(null, false);
                         toastSuccess('Location saved successfully');
                     },
@@ -489,21 +560,31 @@
                             `;
                         }
                     },
-                    { data: 'location.location_name', defaultContent: '-' },
-                    { data: 'floor_code' },
-                    { data: 'floor_name' },
+                    { data: 'sitetype' },
+                    { data: 'floor' },
+                    { data: 'order', render: d => d ?? '-' },
                     { data: 'status', render: statusBadge },
                 ]
             });
             window.tsTables.floor = floorTable;
 
+            function loadSiteTypeOptions($select, selectedValue) {
+                return $.get("{{ route('tenancy.master.sites.site-types') }}", function(res) {
+                    $select.find('option:not(:first)').remove();
+                    (res.data || []).forEach(function(type) {
+                        $select.append(`<option value="${type}">${type}</option>`);
+                    });
+                    tsAutoSelect($select, selectedValue, res.data || []);
+                });
+            }
+
             function loadLocationOptions($select, selectedId) {
                 return $.get("{{ route('tenancy.master.locations.options') }}", function(res) {
                     $select.find('option:not(:first)').remove();
                     (res.data || []).forEach(function(loc) {
-                        $select.append(`<option value="${loc.id}">${loc.location_name} (${loc.location_code})</option>`);
+                        $select.append(`<option value="${loc.id}">${loc.locationname} (${loc.siteid})</option>`);
                     });
-                    if (selectedId) $select.val(selectedId);
+                    tsAutoSelect($select, selectedId, (res.data || []).map(loc => loc.id));
                 });
             }
 
@@ -515,15 +596,15 @@
                 $('#floorForm input, #floorForm select').prop('disabled', readOnly);
                 $('#floorSaveBtn').toggle(!readOnly);
 
-                loadLocationOptions($('#flr_location_id'), data ? data.location_id : null);
+                loadSiteTypeOptions($('#flr_sitetype'), data ? data.sitetype : null);
 
                 if (data) {
                     $('#flr_id').val(data.id);
-                    $('#flr_floor_code').val(data.floor_code);
-                    $('#flr_floor_name').val(data.floor_name);
+                    $('#flr_floor').val(data.floor);
+                    $('#flr_order').val(data.order);
                 }
 
-                $('#floorModal').removeClass('hidden').addClass('flex');
+                tsOpenModal('floorModal');
             }
 
             $('#addFloorBtn').click(function() {
@@ -545,10 +626,6 @@
                 });
             });
 
-            $('#closeFloorModal').click(function() {
-                $('#floorModal').addClass('hidden').removeClass('flex');
-            });
-
             $('#floorForm').submit(function(e) {
                 e.preventDefault();
                 let id = $('#flr_id').val();
@@ -566,7 +643,7 @@
                     contentType: false,
                     success: function() {
                         hideLoading();
-                        $('#floorModal').addClass('hidden').removeClass('flex');
+                        tsCloseModal('floorModal');
                         floorTable.ajax.reload(null, false);
                         toastSuccess('Floor saved successfully');
                     },
@@ -616,29 +693,35 @@
                             `;
                         }
                     },
-                    { data: 'floor.location.location_name', defaultContent: '-' },
-                    { data: 'floor.floor_name', defaultContent: '-' },
-                    { data: 'tenant_code' },
-                    { data: 'tenant_name' },
-                    { data: 'unit_no', render: d => d ?? '-' },
+                    { data: 'location.locationname', defaultContent: '-' },
+                    { data: 'floor.floor', defaultContent: '-' },
+                    { data: 'tenant_company.tenantcompanyname', defaultContent: '-' },
+                    { data: 'storename' },
+                    { data: 'unit', render: d => d ?? '-' },
                     { data: 'status', render: statusBadge },
                 ]
             });
             window.tsTables.tenant = tenantTable;
 
-            function loadFloorOptions($select, locationId, selectedId) {
-                return $.get("{{ route('tenancy.master.floors.options') }}", { location_id: locationId }, function(res) {
+            function loadFloorOptions($select, selectedId) {
+                return $.get("{{ route('tenancy.master.floors.options') }}", function(res) {
                     $select.find('option:not(:first)').remove();
                     (res.data || []).forEach(function(flr) {
-                        $select.append(`<option value="${flr.id}">${flr.floor_name} (${flr.floor_code})</option>`);
+                        $select.append(`<option value="${flr.id}">${flr.floor} (${flr.sitetype})</option>`);
                     });
-                    if (selectedId) $select.val(selectedId);
+                    tsAutoSelect($select, selectedId, (res.data || []).map(flr => flr.id));
                 });
             }
 
-            $('#tnt_location_id').on('change', function() {
-                loadFloorOptions($('#tnt_floor_id'), $(this).val(), null);
-            });
+            function loadTenantCompanyOptions($select, selectedId) {
+                return $.get("{{ route('tenancy.master.tenant-companies.options') }}", function(res) {
+                    $select.find('option:not(:first)').remove();
+                    (res.data || []).forEach(function(c) {
+                        $select.append(`<option value="${c.id}">${c.tenantcompanyname}</option>`);
+                    });
+                    tsAutoSelect($select, selectedId, (res.data || []).map(c => c.id));
+                });
+            }
 
             function openTenantModal(mode, data) {
                 let readOnly = mode === 'view';
@@ -648,18 +731,17 @@
                 $('#tenantForm input, #tenantForm select').prop('disabled', readOnly);
                 $('#tenantSaveBtn').toggle(!readOnly);
 
-                loadLocationOptions($('#tnt_location_id'), data ? data.location_id : null).then(function() {
-                    loadFloorOptions($('#tnt_floor_id'), data ? data.location_id : null, data ? data.floor_id : null);
-                });
+                loadLocationOptions($('#tnt_location_id'), data ? data.locationid : null);
+                loadFloorOptions($('#tnt_floor_id'), data ? data.floorid : null);
+                loadTenantCompanyOptions($('#tnt_tenantcompanyid'), data ? data.tenantcompanyid : null);
 
                 if (data) {
                     $('#tnt_id').val(data.id);
-                    $('#tnt_tenant_code').val(data.tenant_code);
-                    $('#tnt_tenant_name').val(data.tenant_name);
-                    $('#tnt_unit_no').val(data.unit_no);
+                    $('#tnt_storename').val(data.storename);
+                    $('#tnt_unit').val(data.unit);
                 }
 
-                $('#tenantModal').removeClass('hidden').addClass('flex');
+                tsOpenModal('tenantModal');
             }
 
             $('#addTenantBtn').click(function() {
@@ -681,10 +763,6 @@
                 });
             });
 
-            $('#closeTenantModal').click(function() {
-                $('#tenantModal').addClass('hidden').removeClass('flex');
-            });
-
             $('#tenantForm').submit(function(e) {
                 e.preventDefault();
                 let id = $('#tnt_id').val();
@@ -702,7 +780,7 @@
                     contentType: false,
                     success: function() {
                         hideLoading();
-                        $('#tenantModal').addClass('hidden').removeClass('flex');
+                        tsCloseModal('tenantModal');
                         tenantTable.ajax.reload(null, false);
                         toastSuccess('Tenant saved successfully');
                     },
@@ -752,11 +830,11 @@
                             `;
                         }
                     },
-                    { data: 'tenant.tenant_name', defaultContent: '-' },
-                    { data: 'user_name' },
+                    { data: 'tenant.storename', defaultContent: '-' },
+                    { data: 'name' },
+                    { data: 'username' },
                     { data: 'email', render: d => d ?? '-' },
                     { data: 'phone', render: d => d ?? '-' },
-                    { data: 'position', render: d => d ?? '-' },
                     { data: 'status', render: statusBadge },
                 ]
             });
@@ -766,9 +844,9 @@
                 return $.get("{{ route('tenancy.master.tenants.options') }}", function(res) {
                     $select.find('option:not(:first)').remove();
                     (res.data || []).forEach(function(t) {
-                        $select.append(`<option value="${t.id}">${t.tenant_name} (${t.tenant_code})</option>`);
+                        $select.append(`<option value="${t.id}">${t.storename}</option>`);
                     });
-                    if (selectedId) $select.val(selectedId);
+                    tsAutoSelect($select, selectedId, (res.data || []).map(t => t.id));
                 });
             }
 
@@ -779,18 +857,21 @@
                 $('#userTenantModalTitle').text(mode === 'add' ? 'Add User Tenant' : (mode === 'view' ? 'View User Tenant' : 'Edit User Tenant'));
                 $('#userTenantForm input, #userTenantForm select').prop('disabled', readOnly);
                 $('#userTenantSaveBtn').toggle(!readOnly);
+                $('#ut_password').prop('required', mode === 'add');
+                $('#ut_password_hint').text(mode === 'add' ? '' : '(leave blank to keep current password)');
 
-                loadTenantOptions($('#ut_tenant_id'), data ? data.tenant_id : null);
+                loadTenantOptions($('#ut_tenantid'), data ? data.tenantid : null);
 
                 if (data) {
                     $('#ut_id').val(data.id);
-                    $('#ut_user_name').val(data.user_name);
+                    $('#ut_name').val(data.name);
+                    $('#ut_companyname').val(data.companyname);
                     $('#ut_email').val(data.email);
                     $('#ut_phone').val(data.phone);
-                    $('#ut_position').val(data.position);
+                    $('#ut_username').val(data.username);
                 }
 
-                $('#userTenantModal').removeClass('hidden').addClass('flex');
+                tsOpenModal('userTenantModal');
             }
 
             $('#addUserTenantBtn').click(function() {
@@ -812,10 +893,6 @@
                 });
             });
 
-            $('#closeUserTenantModal').click(function() {
-                $('#userTenantModal').addClass('hidden').removeClass('flex');
-            });
-
             $('#userTenantForm').submit(function(e) {
                 e.preventDefault();
                 let id = $('#ut_id').val();
@@ -833,7 +910,7 @@
                     contentType: false,
                     success: function() {
                         hideLoading();
-                        $('#userTenantModal').addClass('hidden').removeClass('flex');
+                        tsCloseModal('userTenantModal');
                         userTenantTable.ajax.reload(null, false);
                         toastSuccess('User Tenant saved successfully');
                     },

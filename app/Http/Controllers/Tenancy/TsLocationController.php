@@ -7,13 +7,13 @@ use App\Models\Tenancy\TsLocation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 
 class TsLocationController extends Controller
 {
     public function json()
     {
-        $locations = TsLocation::select(['id', 'location_code', 'location_name', 'address', 'status'])
+        $locations = TsLocation::with('site:siteid,sitename')
+            ->select(['id', 'locationname', 'siteid', 'status'])
             ->orderByDesc('id')
             ->get();
 
@@ -23,8 +23,8 @@ class TsLocationController extends Controller
     public function options()
     {
         $locations = TsLocation::where('status', 'A')
-            ->orderBy('location_name')
-            ->get(['id', 'location_code', 'location_name']);
+            ->orderBy('locationname')
+            ->get(['id', 'locationname', 'siteid']);
 
         return response()->json(['data' => $locations]);
     }
@@ -32,9 +32,8 @@ class TsLocationController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'location_code' => 'required|string|max:50|unique:mysql5.ms_location,location_code',
-            'location_name' => 'required|string|max:200',
-            'address'       => 'nullable|string|max:255',
+            'locationname' => 'required|string|max:255',
+            'siteid'       => 'required|string|max:5|exists:mysql5.mssite,siteid',
         ]);
 
         DB::connection('mysql5')->beginTransaction();
@@ -42,12 +41,13 @@ class TsLocationController extends Controller
             $loginUser = Auth::user();
 
             $location = TsLocation::create([
-                'location_code' => strtoupper($request->location_code),
-                'location_name' => $request->location_name,
-                'address'       => $request->address,
-                'status'        => 'A',
-                'created_by'    => $loginUser->username ?? 'system',
-                'created_at'    => now(),
+                'locationname'        => $request->locationname,
+                'siteid'              => $request->siteid,
+                'status'              => 'A',
+                'created_user'        => $loginUser->username ?? 'system',
+                'created_datetime'    => now(),
+                'lastupdate_user'     => $loginUser->username ?? 'system',
+                'lastupdate_datetime' => now(),
             ]);
 
             DB::connection('mysql5')->commit();
@@ -66,11 +66,10 @@ class TsLocationController extends Controller
         $location = TsLocation::findOrFail($id);
 
         return response()->json([
-            'id'            => $location->id,
-            'location_code' => $location->location_code,
-            'location_name' => $location->location_name,
-            'address'       => $location->address,
-            'status'        => $location->status,
+            'id'           => $location->id,
+            'locationname' => $location->locationname,
+            'siteid'       => $location->siteid,
+            'status'       => $location->status,
         ]);
     }
 
@@ -79,9 +78,8 @@ class TsLocationController extends Controller
         $location = TsLocation::findOrFail($id);
 
         $request->validate([
-            'location_code' => ['required', 'string', 'max:50', Rule::unique('mysql5.ms_location', 'location_code')->ignore($location->id)],
-            'location_name' => 'required|string|max:200',
-            'address'       => 'nullable|string|max:255',
+            'locationname' => 'required|string|max:255',
+            'siteid'       => 'required|string|max:5|exists:mysql5.mssite,siteid',
         ]);
 
         DB::connection('mysql5')->beginTransaction();
@@ -89,11 +87,10 @@ class TsLocationController extends Controller
             $loginUser = Auth::user();
 
             $location->update([
-                'location_code' => strtoupper($request->location_code),
-                'location_name' => $request->location_name,
-                'address'       => $request->address,
-                'updated_by'    => $loginUser->username ?? 'system',
-                'updated_at'    => now(),
+                'locationname'        => $request->locationname,
+                'siteid'              => $request->siteid,
+                'lastupdate_user'     => $loginUser->username ?? 'system',
+                'lastupdate_datetime' => now(),
             ]);
 
             DB::connection('mysql5')->commit();
@@ -113,9 +110,9 @@ class TsLocationController extends Controller
         $newStatus = request('status'); // A / X
 
         $location->update([
-            'status'     => $newStatus,
-            'updated_by' => Auth::user()->username ?? 'system',
-            'updated_at' => now(),
+            'status'              => $newStatus,
+            'lastupdate_user'     => Auth::user()->username ?? 'system',
+            'lastupdate_datetime' => now(),
         ]);
 
         return response()->json(['message' => 'Status updated']);

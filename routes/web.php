@@ -162,6 +162,8 @@ use App\Http\Controllers\Tenancy\TsLocationController;
 use App\Http\Controllers\Tenancy\TsFloorController;
 use App\Http\Controllers\Tenancy\TsTenantController;
 use App\Http\Controllers\Tenancy\TsUserTenantController;
+use App\Http\Controllers\Tenancy\TsSiteController;
+use App\Http\Controllers\Tenancy\TsTenantCompanyController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\TestEmailController;
 use App\Http\Controllers\TicketController;
@@ -1620,6 +1622,11 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::prefix('tenancy/master')->name('tenancy.master.')->group(function () {
+            Route::controller(TsSiteController::class)->prefix('sites')->name('sites.')->group(function () {
+                Route::get('/options', 'options')->name('options');
+                Route::get('/site-types', 'siteTypes')->name('site-types');
+            });
+
             Route::controller(TsLocationController::class)->prefix('locations')->name('locations.')->group(function () {
                 Route::get('/json', 'json')->name('json');
                 Route::get('/options', 'options')->name('options');
@@ -1636,6 +1643,10 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/{id}/edit', 'edit')->name('edit');
                 Route::put('/{id}', 'update')->name('update');
                 Route::put('/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
+            });
+
+            Route::controller(TsTenantCompanyController::class)->prefix('tenant-companies')->name('tenant-companies.')->group(function () {
+                Route::get('/options', 'options')->name('options');
             });
 
             Route::controller(TsTenantController::class)->prefix('tenants')->name('tenants.')->group(function () {

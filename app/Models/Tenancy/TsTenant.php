@@ -7,20 +7,31 @@ use Illuminate\Database\Eloquent\Model;
 class TsTenant extends Model
 {
     protected $connection = 'mysql5';
-    protected $table = 'ms_tenant';
+    protected $table = 'mstenant';
+    public $timestamps = false;
 
     protected $fillable = [
-        'floor_id', 'tenant_code', 'tenant_name', 'unit_no', 'status',
-        'created_by', 'created_at', 'updated_by', 'updated_at',
+        'storename', 'tenantcompanyid', 'siteid', 'locationid', 'floorid', 'unit', 'status',
+        'created_user', 'created_datetime', 'lastupdate_user', 'lastupdate_datetime',
     ];
+
+    public function location()
+    {
+        return $this->belongsTo(TsLocation::class, 'locationid');
+    }
 
     public function floor()
     {
-        return $this->belongsTo(TsFloor::class, 'floor_id');
+        return $this->belongsTo(TsFloor::class, 'floorid');
+    }
+
+    public function tenantCompany()
+    {
+        return $this->belongsTo(TsTenantCompany::class, 'tenantcompanyid');
     }
 
     public function userTenants()
     {
-        return $this->hasMany(TsUserTenant::class, 'tenant_id');
+        return $this->hasMany(TsUserTenant::class, 'tenantid');
     }
 }

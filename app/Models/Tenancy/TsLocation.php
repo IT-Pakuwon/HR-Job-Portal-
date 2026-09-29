@@ -7,15 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 class TsLocation extends Model
 {
     protected $connection = 'mysql5';
-    protected $table = 'ms_location';
+    protected $table = 'mslocation';
+    public $timestamps = false;
 
     protected $fillable = [
-        'location_code', 'location_name', 'address', 'status',
-        'created_by', 'created_at', 'updated_by', 'updated_at',
+        'locationname', 'siteid', 'status',
+        'created_user', 'created_datetime', 'lastupdate_user', 'lastupdate_datetime',
     ];
 
-    public function floors()
+    public function site()
     {
-        return $this->hasMany(TsFloor::class, 'location_id');
+        return $this->belongsTo(TsSite::class, 'siteid', 'siteid');
     }
 }

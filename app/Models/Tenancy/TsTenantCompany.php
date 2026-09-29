@@ -4,14 +4,14 @@ namespace App\Models\Tenancy;
 
 use Illuminate\Database\Eloquent\Model;
 
-class TsFloor extends Model
+class TsTenantCompany extends Model
 {
     protected $connection = 'mysql5';
-    protected $table = 'msfloor';
+    protected $table = 'mstenantcompany';
     public $timestamps = false;
 
     protected $fillable = [
-        'sitetype', 'floor', 'order', 'status',
+        'tenantcompanyname', 'badanusaha', 'status',
         'created_user', 'created_datetime', 'lastupdate_user', 'lastupdate_datetime',
     ];
 }
