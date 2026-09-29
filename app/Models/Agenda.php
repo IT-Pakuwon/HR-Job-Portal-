@@ -17,6 +17,7 @@ class Agenda extends Model
         'agendadate',
         'agendatype',
         'cpnyid',
+        'group_cpny_id',
         'departementid',
         'agendapriority',
         'title',

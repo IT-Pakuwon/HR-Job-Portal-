@@ -18,7 +18,7 @@ class TrainingWaitlistNotifier
         $scheduleDateLabel = $scheduleDate?->format('d M Y');
 
         $eid = Hashids::encode($registration->id);
-        $url = url('/training-list/my/' . $eid);
+        $url = url('/training-list/my/'.$eid);
 
         TrMessage::create([
             'refnbr' => $registration->training_regist_id,
@@ -29,7 +29,7 @@ class TrainingWaitlistNotifier
             'department_id' => $registration->department_id,
             'username' => 'system',
             'name' => 'System',
-            'message' => "A slot is available for {$trainingName}" . ($scheduleDateLabel ? " ({$scheduleDateLabel})" : '') . '. You have 24 hours to confirm before this slot is offered to the next person on the waiting list.',
+            'message' => "A slot is available for {$trainingName}".($scheduleDateLabel ? " ({$scheduleDateLabel})" : '').'. You have 24 hours to confirm before this slot is offered to the next person on the waiting list.',
             'status' => 'A',
             'created_by' => 'system',
         ]);
@@ -50,7 +50,7 @@ class TrainingWaitlistNotifier
             'url' => $url,
         ], function ($m) use ($to, $registration) {
             $m->to($to)
-                ->subject($registration->training_regist_id . ' - Training Slot Available (Waiting List)')
+                ->subject($registration->training_regist_id.' - Training Slot Available (Waiting List)')
                 ->from(config('mail.from.address'), config('app.name'));
         });
     }
@@ -70,7 +70,7 @@ class TrainingWaitlistNotifier
         $participantName = $participant->name ?? $registration->user_registration;
 
         $eid = Hashids::encode($registration->id);
-        $url = url('/training-list/my/' . $eid);
+        $url = url('/training-list/my/'.$eid);
         $verb = $accepted ? 'accepted' : 'declined';
 
         TrMessage::create([
@@ -82,7 +82,7 @@ class TrainingWaitlistNotifier
             'department_id' => $registration->department_id,
             'username' => 'system',
             'name' => 'System',
-            'message' => "{$participantName} has {$verb} the waiting list slot for {$trainingName}" . ($scheduleDateLabel ? " ({$scheduleDateLabel})" : '') . '.',
+            'message' => "{$participantName} has {$verb} the waiting list slot for {$trainingName}".($scheduleDateLabel ? " ({$scheduleDateLabel})" : '').'.',
             'status' => 'A',
             'created_by' => 'system',
         ]);
@@ -112,7 +112,7 @@ class TrainingWaitlistNotifier
                 'url' => $url,
             ], function ($m) use ($to, $registration, $accepted) {
                 $m->to($to)
-                    ->subject($registration->training_regist_id . ' - Waiting List ' . ($accepted ? 'Accepted' : 'Declined'))
+                    ->subject($registration->training_regist_id.' - Waiting List '.($accepted ? 'Accepted' : 'Declined'))
                     ->from(config('mail.from.address'), config('app.name'));
             });
         }
@@ -132,7 +132,7 @@ class TrainingWaitlistNotifier
         $participantName = $participant->name ?? $registration->user_registration;
 
         $eid = Hashids::encode($registration->id);
-        $url = url('/training-list/my/' . $eid);
+        $url = url('/training-list/my/'.$eid);
 
         TrMessage::create([
             'refnbr' => $registration->training_regist_id,
@@ -143,7 +143,7 @@ class TrainingWaitlistNotifier
             'department_id' => $registration->department_id,
             'username' => 'system',
             'name' => 'System',
-            'message' => "{$participantName} was accepted from the waiting list for {$trainingName}" . ($scheduleDateLabel ? " ({$scheduleDateLabel})" : '') . " by {$actorName}.",
+            'message' => "{$participantName} was accepted from the waiting list for {$trainingName}".($scheduleDateLabel ? " ({$scheduleDateLabel})" : '')." by {$actorName}.",
             'status' => 'A',
             'created_by' => 'system',
         ]);
@@ -169,7 +169,7 @@ class TrainingWaitlistNotifier
             'url' => $url,
         ], function ($m) use ($to, $registration) {
             $m->to($to)
-                ->subject($registration->training_regist_id . ' - Participant Accepted from Waiting List')
+                ->subject($registration->training_regist_id.' - Participant Accepted from Waiting List')
                 ->from(config('mail.from.address'), config('app.name'));
         });
     }
@@ -185,7 +185,7 @@ class TrainingWaitlistNotifier
         $trainingName = $registration->schedule?->schedule?->training?->training_name ?? 'Training';
 
         $eid = Hashids::encode($registration->id);
-        $url = url('/training-list/my/' . $eid);
+        $url = url('/training-list/my/'.$eid);
 
         TrMessage::create([
             'refnbr' => $registration->training_regist_id,
@@ -196,7 +196,7 @@ class TrainingWaitlistNotifier
             'department_id' => $registration->department_id,
             'username' => 'system',
             'name' => 'System',
-            'message' => "The schedule for {$trainingName} has changed" . ($oldDate ? " from {$oldDate}" : '') . " to {$newDate}. Reason: {$reason}",
+            'message' => "The schedule for {$trainingName} has changed".($oldDate ? " from {$oldDate}" : '')." to {$newDate}. Reason: {$reason}",
             'status' => 'A',
             'created_by' => 'system',
         ]);
@@ -219,7 +219,7 @@ class TrainingWaitlistNotifier
             'systemLabel' => 'Learning & Development System',
         ], function ($m) use ($to, $registration) {
             $m->to($to)
-                ->subject($registration->training_regist_id . ' - Training Schedule Changed')
+                ->subject($registration->training_regist_id.' - Training Schedule Changed')
                 ->from(config('mail.from.address'), config('app.name'));
         });
     }
@@ -237,7 +237,7 @@ class TrainingWaitlistNotifier
         $scheduleDateLabel = $scheduleDate?->format('d M Y');
 
         $eid = Hashids::encode($registration->id);
-        $url = url('/training-list/my/' . $eid);
+        $url = url('/training-list/my/'.$eid);
 
         TrMessage::create([
             'refnbr' => $registration->training_regist_id,
@@ -248,7 +248,7 @@ class TrainingWaitlistNotifier
             'department_id' => $registration->department_id,
             'username' => 'system',
             'name' => 'System',
-            'message' => "The certificate for {$trainingName}" . ($scheduleDateLabel ? " ({$scheduleDateLabel})" : '') . ' is now available for download.',
+            'message' => "The certificate for {$trainingName}".($scheduleDateLabel ? " ({$scheduleDateLabel})" : '').' is now available for download.',
             'status' => 'A',
             'created_by' => 'system',
         ]);
@@ -268,7 +268,7 @@ class TrainingWaitlistNotifier
             'url' => $url,
         ], function ($m) use ($to, $registration) {
             $m->to($to)
-                ->subject($registration->training_regist_id . ' - Training Certificate Available')
+                ->subject($registration->training_regist_id.' - Training Certificate Available')
                 ->from(config('mail.from.address'), config('app.name'));
         });
     }

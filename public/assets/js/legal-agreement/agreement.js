@@ -393,6 +393,7 @@ function initDataTable() {
             },
             { data: 'pic_legal_names', name: 'pic_legal_names', orderable: false, render: (d) => d || '-' },
             { data: 'pic_leasing_names', name: 'pic_leasing_names', orderable: false, render: (d) => d || '-' },
+            { data: 'psm_or_addendum_delivery_date', name: 'psm_or_addendum_delivery_date', render: (d) => formatDate(d) },
             { data: 'agreement_step_id', name: 'agreement_step_id', render: (d) => renderStepBadge(d) },
             { data: 'cycle_info', orderable: false, searchable: false, render: (info) => renderDaysCell(info) },
             { data: 'cycle_info', orderable: false, searchable: false, render: (info) => renderCycleBadge(info) },

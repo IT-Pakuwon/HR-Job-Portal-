@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\TrAttachment;
+use App\Models\TrProjectTask;
+use App\Services\PmActivityLogger;
 use Carbon\Carbon;
 use Google\Cloud\Storage\StorageClient;
 use Illuminate\Http\UploadedFile;
@@ -171,6 +173,8 @@ class TrAttachmentController extends Controller
 
 public function uploadAttachments(Request $request, string $doctype, string $refnbr)
 {
+    TrProjectTask::abortUnlessAccessible($doctype, $refnbr);
+
     $user = Auth::user();
     $username = $user->username ?? 'system';
 
@@ -271,10 +275,14 @@ public function uploadAttachments(Request $request, string $doctype, string $ref
 
     try {
         // Panggil uploadInternal langsung (tidak perlu app(self::class))
-        $this->uploadInternal($meta, $validFiles);
+        $uploaded = $this->uploadInternal($meta, $validFiles);
 
-        // setelah sukses, kirim daftar terbaru
-        return $this->listAttachments($request, $doctype, $refnbr);
+        // setelah sukses, kirim daftar terbaru — plus the new rows' ids, so a
+        // caller (e.g. the PM chat) can reference exactly what it just uploaded.
+        $response = $this->listAttachments($request, $doctype, $refnbr);
+        $data = $response->getData(true);
+        $data['uploaded_ids'] = array_column($uploaded['items'], 'id');
+        return $response->setData($data);
 
     } catch (\Throwable $e) {
         \Log::error('uploadAttachments error', [
@@ -328,6 +336,8 @@ public function uploadAttachments(Request $request, string $doctype, string $ref
     public function listAttachments(Request $request, string $doctype, string $refnbr)
     {
         // dd($request->all());
+        TrProjectTask::abortUnlessAccessible($doctype, $refnbr);
+
         $cpnyId = $request->input('cpny_id') ?? $request->input('cpnyid');
         $query = TrAttachment::where('refnbr', $refnbr)
             ->where('doctype', strtoupper($doctype))
@@ -392,10 +402,86 @@ public function uploadAttachments(Request $request, string $doctype, string $ref
         if (!$row) {
             return response()->json(['success' => false, 'message' => 'Attachment not found.'], 404);
         }
+        TrProjectTask::abortUnlessAccessible((string) $row->doctype, $row->refnbr);
         $row->status = 'X';
         $row->save();
 
+        PmActivityLogger::logForDocument((string) $row->doctype, (string) $row->refnbr, 'file_deleted',
+            'deleted the file "' . $row->attachment_name . ($row->extention ? '.' . $row->extention : '') . '"');
+
         return response()->json(['success' => true]);
+    }
+
+    // === API: Stream file bytes same-origin, so the browser can render
+    // Word/Excel/text previews client-side without GCS CORS or a third-party viewer ===
+    public function streamAttachment(int $id)
+    {
+        $row = TrAttachment::where('id', $id)->where('status', 'A')->first();
+        abort_unless($row, 404);
+        TrProjectTask::abortUnlessAccessible((string) $row->doctype, $row->refnbr);
+
+        $config      = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+        $object = $storage->bucket($config['bucket'])
+            ->object(rtrim($row->folder, '/').'/'.$row->filename);
+
+        try {
+            $content = $object->downloadAsString();
+            $mime    = $object->info()['contentType'] ?? 'application/octet-stream';
+        } catch (\Throwable $e) {
+            Log::warning('streamAttachment gagal', ['id' => $id, 'error' => $e->getMessage()]);
+            abort(404);
+        }
+
+        return response($content, 200, [
+            'Content-Type'           => $mime,
+            'Content-Disposition'    => 'inline',
+            'X-Content-Type-Options' => 'nosniff',
+            // Same-origin user content — never let an uploaded HTML/SVG run script.
+            'Content-Security-Policy' => 'sandbox; default-src \'none\'',
+            'Cache-Control'          => 'private, max-age=300',
+        ]);
+    }
+
+    // === API: Rename (label only — the stored GCS object keeps its name) ===
+    public function renameAttachment(Request $request, int $id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $row = TrAttachment::where('id', $id)->where('status', 'A')->first();
+        if (!$row) {
+            return response()->json(['success' => false, 'message' => 'Attachment not found.'], 404);
+        }
+        TrProjectTask::abortUnlessAccessible((string) $row->doctype, $row->refnbr);
+
+        $name = trim(str_replace(['%', '\\', '/'], '', $request->input('name')));
+        // Users often retype the extension — strip it so it isn't doubled on display.
+        if ($row->extention && Str::endsWith(Str::lower($name), '.' . Str::lower($row->extention))) {
+            $name = substr($name, 0, -(strlen($row->extention) + 1));
+        }
+        if ($name === '') {
+            return response()->json(['success' => false, 'message' => 'Name cannot be empty.'], 422);
+        }
+
+        $oldName = $row->attachment_name;
+        $row->attachment_name = $name;
+        $row->save();
+
+        if ($oldName !== $name) {
+            PmActivityLogger::logForDocument((string) $row->doctype, (string) $row->refnbr, 'file_renamed', 'renamed a file',
+                [['label' => 'File name', 'from' => $oldName, 'to' => $name]]);
+        }
+
+        return response()->json(['success' => true, 'name' => $name]);
     }
 
     public function removeAttachment($id)

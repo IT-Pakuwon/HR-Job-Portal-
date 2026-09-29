@@ -12,7 +12,6 @@ class TrProjectTaskAssignee extends Model
 
     protected $fillable = [
         'task_id',
-        'task_detail_id',
         'username',
         'assigned_by',
         'assigned_at',
@@ -22,11 +21,6 @@ class TrProjectTaskAssignee extends Model
     public function task()
     {
         return $this->belongsTo(TrProjectTask::class, 'task_id', 'task_id');
-    }
-
-    public function subtask()
-    {
-        return $this->belongsTo(TrProjectTaskDetail::class, 'task_detail_id', 'task_detail_id');
     }
 
     public function user()

@@ -39,7 +39,6 @@ class LegalAgreementController extends Controller
     }
 
     protected array $workflowTransitions = [
-
         'hold' => [
             'ACTIVE',
             'ESCALATED',
@@ -108,6 +107,7 @@ class LegalAgreementController extends Controller
                        });
                 });
             }
+
             return $q;
         };
 
@@ -206,14 +206,14 @@ class LegalAgreementController extends Controller
             $search = $request->search;
 
             $query->where(function ($q) use ($search) {
-                $q->where('agreement_id',   'ilike', "%{$search}%")
+                $q->where('agreement_id', 'ilike', "%{$search}%")
                   ->orWhere('business_name', 'ilike', "%{$search}%")
-                  ->orWhere('trade_name',    'ilike', "%{$search}%")
-                  ->orWhere('tenant_no',     'ilike', "%{$search}%")
-                  ->orWhere('pic_legal',     'ilike', "%{$search}%")
-                  ->orWhere('pic_leasing',   'ilike', "%{$search}%")
-                  ->orWhere('created_user',  'ilike', "%{$search}%")
-                  ->orWhere('cpny_id',       'ilike', "%{$search}%")
+                  ->orWhere('trade_name', 'ilike', "%{$search}%")
+                  ->orWhere('tenant_no', 'ilike', "%{$search}%")
+                  ->orWhere('pic_legal', 'ilike', "%{$search}%")
+                  ->orWhere('pic_leasing', 'ilike', "%{$search}%")
+                  ->orWhere('created_user', 'ilike', "%{$search}%")
+                  ->orWhere('cpny_id', 'ilike', "%{$search}%")
                   ->orWhere('agreement_step_id', 'ilike', "%{$search}%");
             });
         }
@@ -1001,11 +1001,14 @@ class LegalAgreementController extends Controller
 
             $agreement->psm_or_addendum_delivery_date = $request->psm_or_addendum_delivery_date;
 
+            $deliveryNote = 'The Revised PSM/Addendum already sent at '
+                .Carbon::parse($request->psm_or_addendum_delivery_date)->format('d M Y').'.';
+
             $this->transitionStep(
                 $agreement,
                 'ACTIVE',
                 'Revised PSM/Addendum Sent - Agreement Activated',
-                $request->response_descr
+                trim($deliveryNote."\n\n".$request->response_descr)
             );
 
             foreach ($request->file('bukti_pengiriman') as $file) {
@@ -1543,10 +1546,10 @@ class LegalAgreementController extends Controller
 
     public function counts()
     {
-        $user      = auth()->user();
+        $user = auth()->user();
         $isManager = $this->isManagerRole();
 
-        $userCompanies = collect(explode(',', $user->cpny_id))->filter()->map(fn($v) => trim($v))->toArray();
+        $userCompanies = collect(explode(',', $user->cpny_id))->filter()->map(fn ($v) => trim($v))->toArray();
 
         $base = function () use ($isManager, $userCompanies, $user) {
             $q = TrAgreement::query();
@@ -1559,6 +1562,7 @@ class LegalAgreementController extends Controller
                        });
                 });
             }
+
             return $q;
         };
 
@@ -1732,8 +1736,8 @@ class LegalAgreementController extends Controller
             ->get(['cpny_id', 'cpny_name']);
 
         return response()->json([
-            'results' => $companies->map(fn($c) => [
-                'id'   => $c->cpny_id,
+            'results' => $companies->map(fn ($c) => [
+                'id' => $c->cpny_id,
                 'text' => $c->cpny_name,
             ])->values(),
         ]);

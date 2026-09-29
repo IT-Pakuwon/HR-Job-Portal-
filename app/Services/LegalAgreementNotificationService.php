@@ -257,7 +257,7 @@ class LegalAgreementNotificationService
         $commenterName = $commenter?->name ?? $commenterUsername;
 
         $emails = $this->recipientEmails($agreement)
-            ->reject(fn($email) => $email === $commenterEmail)
+            ->reject(fn ($email) => $email === $commenterEmail)
             ->values();
 
         foreach ($emails as $email) {
@@ -274,8 +274,8 @@ class LegalAgreementNotificationService
             } catch (\Throwable $e) {
                 Log::error('Agreement Comment Mail Failed', [
                     'agreement_id' => $agreement->agreement_id,
-                    'email'    => $email,
-                    'error'    => $e->getMessage(),
+                    'email' => $email,
+                    'error' => $e->getMessage(),
                 ]);
             }
         }

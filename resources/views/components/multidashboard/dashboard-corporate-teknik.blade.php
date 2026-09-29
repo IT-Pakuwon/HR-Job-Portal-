@@ -367,4 +367,4 @@
     }
 </style>
 
-<script src="{{ asset('assets/js/multidashboard/dashcorptek.js') }}?v={{ filemtime(public_path('assets/js/multidashboard/dashcorptek.js')) }}"></script>
+<script src="{{ asset('assets/js/multidashboard/dashcorptek.js') }}?v={{ file_exists(public_path('assets/js/multidashboard/dashcorptek.js')) ? filemtime(public_path('assets/js/multidashboard/dashcorptek.js')) : time() }}"></script>

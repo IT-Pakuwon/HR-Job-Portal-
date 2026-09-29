@@ -212,7 +212,7 @@
                         Next <i class="fa-solid fa-arrow-right"></i>
                     </button>
                     <button type="submit" id="btnSubmitCreateAgreement" class="hidden flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">
-                        <i class="fa-solid fa-paper-plane"></i> Submit Agreement
+                        <i class="fa-solid fa-paper-plane"></i> Submit
                     </button>
                 </div>
             </div>

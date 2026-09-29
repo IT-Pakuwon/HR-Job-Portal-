@@ -128,7 +128,13 @@
     }">
 
 
-    @if(session('impersonate_original_username'))
+    {{-- ?embed=1 renders the page bare (no header/sidebar/impersonate bar) so
+         it can sit inside another page's <iframe> — e.g. the Project/Team
+         subtask "Meeting Room" / "Zoom" booking modal, which embeds
+         /meeting and /meetingteams to reuse their create-booking modal. --}}
+    @php($isEmbed = request()->boolean('embed'))
+
+    @if(!$isEmbed && session('impersonate_original_username'))
         <div class="sticky top-0 z-60 flex flex-wrap items-center justify-center gap-3 bg-black px-4 py-2 text-center text-sm font-semibold text-white">
             <span>🔑 You are logged in as <strong>{{ auth()->user()->name ?? auth()->user()->username }}</strong>.</span>
             <form action="{{ route('users.stop-impersonate') }}" method="POST" class="inline">
@@ -140,6 +146,7 @@
         </div>
     @endif
 
+    @unless($isEmbed)
     <!-- HEADER -->
     <x-app.header_new />
 
@@ -148,10 +155,11 @@
          together in sidebar_menu.blade.php — do not re-wrap it here, it was previously
          nested inside a duplicate backdrop/aside pair which rendered the drawer twice. --}}
     <x-app.sidebar_menu />
+    @endunless
 
 
     <!-- ================= MAIN CONTENT ================= -->
-    <main class="min-h-[calc(100dvh-56px)] overflow-y-auto p-2">
+    <main class="{{ $isEmbed ? 'h-screen' : 'min-h-[calc(100dvh-56px)]' }} overflow-y-auto p-2">
         {{ $slot }}
     </main>
 

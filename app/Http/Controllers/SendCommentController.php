@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\SysUserRole;
 use App\Models\TrApproval;
+use App\Models\TrAttachment;
 use App\Models\TrMessage;
+use App\Models\TrProjectTask;
 use App\Models\User;
 use App\Services\DocumentNotificationService;
 use Illuminate\Support\Carbon;
@@ -179,6 +181,8 @@ class SendCommentController extends Controller
 
     public function fetchComments(string $doctype, $id)
     {
+        TrProjectTask::abortUnlessAccessible($doctype, $id);
+
         $comments = TrMessage::where('doctype', $doctype)
             ->where('refnbr', $id)
             ->where('status', 'A')
@@ -199,10 +203,33 @@ class SendCommentController extends Controller
     public function storeComment(Request $request, string $doctype, $id)
     {
         $request->validate([
-            'comment' => 'required|string|max:500',
+            'comment'          => 'required_without:attachment_ids|nullable|string|max:500',
+            'attachment_ids'   => 'nullable|array|max:10',
+            'attachment_ids.*' => 'integer',
         ]);
 
+        TrProjectTask::abortUnlessAccessible($doctype, $id);
+
         $user = $request->user();
+
+        // Files shared in chat: already uploaded to this same doc's attachments
+        // (so they're in its Files tab); only accept ids that belong to it.
+        $message = trim((string) $request->comment);
+        if ($ids = $request->input('attachment_ids')) {
+            $markers = TrAttachment::whereIn('id', $ids)
+                ->where('doctype', strtoupper($doctype))
+                ->where('refnbr', (string) $id)
+                ->where('status', 'A')
+                ->orderBy('id')
+                ->get()
+                ->map(fn ($att) => TrMessage::fileMarker($att))
+                ->implode("\n");
+            $message = trim($message . "\n" . $markers);
+        }
+
+        if ($message === '') {
+            return response()->json(['status' => 'error', 'message' => 'Message is empty.'], 422);
+        }
 
         $comment = TrMessage::create([
             'refnbr'        => $id,
@@ -211,7 +238,7 @@ class SendCommentController extends Controller
             'message_type'  => 'Public',
             'username'      => $user->username ?? ($user->email ?? 'system'),
             'name'          => $user->name ?? $user->username ?? 'System',
-            'message'       => $request->comment,
+            'message'       => $message,
             'status'        => 'A',
             'created_by'    => $user->username ?? ($user->email ?? 'system'),
             'updated_by'    => $user->username ?? ($user->email ?? 'system'),

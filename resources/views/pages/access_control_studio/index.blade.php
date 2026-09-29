@@ -1585,7 +1585,11 @@
                         if (!hasLeafDescendant(m)) return; // empty folder branch: nothing to show
                         const kids = childrenOf(m.menu_id);
                         let childAncestors = ancestors;
-                        if (!isRootLevel) {
+                        // A root node that is itself a screen (standalone top-level menu,
+                        // e.g. Data Hub / Mailbox — no parent, no children) must still get
+                        // a row: only root FOLDERS skip their own row, since the app-group
+                        // header above already covers them.
+                        if (!(isRootLevel && !m.screen_id)) {
                             const pad = (0.75 + depth * 1.15).toFixed(2) + 'rem';
                             if (m.screen_id) {
                                 const key = m.menu_id + '|' + appId;

@@ -351,4 +351,4 @@
     };
 </script>
 
-<script src="{{ asset('assets/js/multidashboard/dashapproval.js') }}?v={{ filemtime(public_path('assets/js/multidashboard/dashapproval.js')) }}"></script>
+<script src="{{ asset('assets/js/multidashboard/dashapproval.js') }}?v={{ file_exists(public_path('assets/js/multidashboard/dashapproval.js')) ? filemtime(public_path('assets/js/multidashboard/dashapproval.js')) : time() }}"></script>

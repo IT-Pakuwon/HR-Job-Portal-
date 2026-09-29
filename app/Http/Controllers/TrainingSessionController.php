@@ -277,10 +277,13 @@ class TrainingSessionController extends Controller
 
     /**
      * Several group_job_level labels picked in the Level multi-select are
-     * stored as one comma-joined string in job_level (varchar(1000), plenty
-     * of room) — no schema change needed, and every other job_level reader
-     * (StoGrading::labelsFor, the registration eligibility gate) already
-     * knows to split back on the comma.
+     * stored as one string in job_level (varchar(1000), plenty of room) —
+     * no schema change needed. Joined with '|' rather than a comma because
+     * the group_job_level labels themselves contain commas (e.g. "Sr.
+     * Officer, Officer, Crew"), which would make a comma-joined multi-select
+     * string indistinguishable from a single label — every other job_level
+     * reader (StoGrading::labelsFor, the registration eligibility gate)
+     * knows to split back on '|'.
      */
     private function combineJobLevels(array $levels): string
     {
@@ -288,7 +291,7 @@ class TrainingSessionController extends Controller
             ->map(fn ($level) => trim((string) $level))
             ->filter()
             ->unique()
-            ->implode(',');
+            ->implode('|');
     }
 
     /**

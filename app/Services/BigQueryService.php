@@ -22,15 +22,13 @@ class BigQueryService
     /**
      * Run a SQL query and return rows as an array of associative arrays.
      */
-    public function query(string $sql, array $params = []): array
+    public function query(string $sql, array $params = [], ?string $location = null): array
     {
-        $options = ['query' => $sql, 'useLegacySql' => false];
-
-        if (!empty($params)) {
-            $options['queryParameters'] = $params;
-        }
-
         $queryJobConfig = $this->client->query($sql)->useLegacySql(false);
+
+        if ($location) {
+            $queryJobConfig->location($location);
+        }
 
         if (!empty($params)) {
             $queryJobConfig->parameters($params);

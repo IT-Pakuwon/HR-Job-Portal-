@@ -83,6 +83,7 @@ use App\Http\Controllers\JobpostingController;
 use App\Http\Controllers\KendaraanController;
 use App\Http\Controllers\KontrakController;
 use App\Http\Controllers\LastOrderController;
+use App\Http\Controllers\LegalAgreementController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\LuckydrawSetupController;
 use App\Http\Controllers\MailboxController;
@@ -113,10 +114,11 @@ use App\Http\Controllers\PgTrekDashboardController;
 use App\Http\Controllers\PmGroupController;
 use App\Http\Controllers\PmProjectController;
 use App\Http\Controllers\PmTaskController;
-use App\Http\Controllers\PmTaskDetailController;
+use App\Http\Controllers\PmTaskMoveController;
 use App\Http\Controllers\PoController;
 use App\Http\Controllers\PoListController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProjectArchiveController;
 use App\Http\Controllers\ProjectTaskController;
 use App\Http\Controllers\PurchasingDashboardController;
 use App\Http\Controllers\ReceiptController;
@@ -146,14 +148,29 @@ use App\Http\Controllers\StrukturOrgController;
 use App\Http\Controllers\SysAccessRightController;
 use App\Http\Controllers\SysApplicationController;
 use App\Http\Controllers\SysCalendarController;
-use App\Http\Controllers\SysMenuController;
 // INTEGRATION
+use App\Http\Controllers\SysMenuController;
 use App\Http\Controllers\SysMenuFavouriteController;
 use App\Http\Controllers\SysRoleController;
 use App\Http\Controllers\SysRoleMenuController;
-use App\Http\Controllers\LegalAgreementController;
 use App\Http\Controllers\SysScreenController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TeamController;
+use App\Http\Controllers\TeamTaskController;
+use App\Http\Controllers\TenancyMasterController;
+use App\Http\Controllers\TenancyUserController;
+use App\Http\Controllers\TenancyOrganizationController;
+use App\Http\Controllers\TenancyApprovalController;
+use App\Http\Controllers\Tenancy\TsLocationController;
+use App\Http\Controllers\Tenancy\TsFloorController;
+use App\Http\Controllers\Tenancy\TsTenantController;
+use App\Http\Controllers\Tenancy\TsUserTenantController;
+use App\Http\Controllers\Tenancy\TsUserController;
+use App\Http\Controllers\Tenancy\TsSiteController;
+use App\Http\Controllers\Tenancy\TsTenantCompanyController;
+use App\Http\Controllers\Tenancy\TsCompanyController;
+use App\Http\Controllers\Tenancy\TsDepartmentController;
+use App\Http\Controllers\Tenancy\TsApprovalController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\TestEmailController;
 use App\Http\Controllers\TicketController;
@@ -460,6 +477,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/report/filters', [TrainingAttendanceController::class, 'reportFilters'])->name('training-attendance.report.filters');
             Route::get('/report/summary', [TrainingAttendanceController::class, 'reportSummary'])->name('training-attendance.report.summary');
             Route::get('/report/employees', [TrainingAttendanceController::class, 'reportEmployees'])->name('training-attendance.report.employees');
+            Route::get('/report/export', [TrainingAttendanceController::class, 'reportExport'])->name('training-attendance.report.export');
             Route::get('/{scheduleId}/roster', [TrainingAttendanceController::class, 'roster'])->name('training-attendance.roster')->where('scheduleId', '[A-Za-z0-9_-]+');
             Route::get('/{scheduleId}/after-event', [TrainingAttendanceController::class, 'afterEvent'])->name('training-attendance.after-event')->where('scheduleId', '[A-Za-z0-9_-]+');
             Route::get('/{scheduleId}/export/excel', [TrainingAttendanceController::class, 'exportExcel'])->name('training-attendance.export.excel')->where('scheduleId', '[A-Za-z0-9_-]+');
@@ -1412,8 +1430,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/coa/by-deptwo', [MasterController::class, 'CoaBudgetbyDept'])->name('coa.byDeptWo');
 
     Route::post('/attachments/{doctype}/{refnbr}', [TrAttachmentController::class, 'uploadAttachments'])->name('attachments.upload');
+    // Must stay above attachments.list — otherwise /attachments/{id}/stream
+    // matches it as {doctype}/{refnbr} = {id}/"stream".
+    Route::get('/attachments/{id}/stream', [TrAttachmentController::class, 'streamAttachment'])->whereNumber('id')->name('attachments.stream');
     Route::get('/attachments/{doctype}/{refnbr}', [TrAttachmentController::class, 'listAttachments'])->name('attachments.list');
     Route::delete('/attachments/{id}', [TrAttachmentController::class, 'deleteAttachment'])->name('attachments.delete');
+    Route::put('/attachments/{id}/rename', [TrAttachmentController::class, 'renameAttachment'])->name('attachments.rename');
+    // DELETE /attachments/{id} above is shadowed by the Global Settings
+    // attachments-master route (hard delete) — this is the soft-delete path.
+    Route::delete('/attachments/{id}/soft', [TrAttachmentController::class, 'deleteAttachment'])->name('attachments.soft-delete');
     Route::put('/remove-attachment/{id}', [TrAttachmentController::class, 'removeAttachment']);
     Route::get('/comments/{doctype}/{id}', [SendCommentController::class, 'fetchComments']);
     Route::post('/comments/{doctype}/{id}', [SendCommentController::class, 'storeComment']);
@@ -1588,6 +1613,161 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/category/status/{id}', 'updateCategoryStatus')->name('category.status');
             });
 
+        Route::controller(TeamController::class)->prefix('all-team')->name('all-team.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/json', 'json')->name('json');
+            Route::get('/search-users', 'searchUsers')->name('search-users');
+            Route::post('/', 'store')->name('store');
+            Route::get('/{teamId}/edit', 'edit')->name('edit');
+            Route::get('/{teamId}/detail', 'detail')->name('detail');
+            Route::put('/{teamId}', 'update')->name('update');
+            Route::delete('/{teamId}', 'destroy')->name('destroy');
+            Route::get('/{eid}', 'show')->name('show');
+        });
+
+        Route::controller(TenancyMasterController::class)->prefix('tenancy')->name('tenancy.')->group(function () {
+            Route::get('/master', 'index')->name('master');
+        });
+
+        Route::prefix('tenancy/master')->name('tenancy.master.')->group(function () {
+            Route::controller(TsSiteController::class)->prefix('sites')->name('sites.')->group(function () {
+                Route::get('/options', 'options')->name('options');
+                Route::get('/site-types', 'siteTypes')->name('site-types');
+            });
+
+            Route::controller(TsLocationController::class)->prefix('locations')->name('locations.')->group(function () {
+                Route::get('/json', 'json')->name('json');
+                Route::get('/options', 'options')->name('options');
+                Route::post('/', 'store')->name('store');
+                Route::get('/{id}/edit', 'edit')->name('edit');
+                Route::put('/{id}', 'update')->name('update');
+                Route::put('/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
+            });
+
+            Route::controller(TsFloorController::class)->prefix('floors')->name('floors.')->group(function () {
+                Route::get('/json', 'json')->name('json');
+                Route::get('/options', 'options')->name('options');
+                Route::post('/', 'store')->name('store');
+                Route::get('/{id}/edit', 'edit')->name('edit');
+                Route::put('/{id}', 'update')->name('update');
+                Route::put('/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
+            });
+
+            Route::controller(TsTenantCompanyController::class)->prefix('tenant-companies')->name('tenant-companies.')->group(function () {
+                Route::get('/options', 'options')->name('options');
+            });
+
+            Route::controller(TsTenantController::class)->prefix('tenants')->name('tenants.')->group(function () {
+                Route::get('/json', 'json')->name('json');
+                Route::get('/options', 'options')->name('options');
+                Route::post('/', 'store')->name('store');
+                Route::get('/{id}/edit', 'edit')->name('edit');
+                Route::put('/{id}', 'update')->name('update');
+                Route::put('/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
+            });
+
+            Route::controller(TsUserTenantController::class)->prefix('user-tenants')->name('user-tenants.')->group(function () {
+                Route::get('/json', 'json')->name('json');
+                Route::post('/', 'store')->name('store');
+                Route::get('/{id}/edit', 'edit')->name('edit');
+                Route::put('/{id}', 'update')->name('update');
+                Route::put('/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
+            });
+        });
+
+        Route::controller(TenancyUserController::class)->prefix('tenancy/user')->name('tenancy.user.')->group(function () {
+            Route::get('/', 'index')->name('index');
+        });
+
+        Route::controller(TsUserController::class)->prefix('tenancy/user')->name('tenancy.user.')->group(function () {
+            Route::get('/json', 'json')->name('json');
+            Route::post('/', 'store')->name('store');
+            Route::get('/{id}/edit', 'edit')->name('edit');
+            Route::put('/{id}', 'update')->name('update');
+            Route::put('/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
+            Route::put('/{id}/reset-password', 'resetPassword')->name('reset-password');
+        });
+
+        Route::controller(TenancyOrganizationController::class)->prefix('tenancy/organization')->name('tenancy.organization.')->group(function () {
+            Route::get('/', 'index')->name('index');
+        });
+
+        Route::prefix('tenancy/organization')->name('tenancy.organization.')->group(function () {
+            Route::controller(TsSiteController::class)->prefix('sites')->name('sites.')->group(function () {
+                Route::get('/json', 'json')->name('json');
+                Route::post('/', 'store')->name('store');
+                Route::get('/{id}/edit', 'edit')->name('edit');
+                Route::put('/{id}', 'update')->name('update');
+                Route::put('/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
+            });
+
+            Route::controller(TsCompanyController::class)->prefix('companies')->name('companies.')->group(function () {
+                Route::get('/json', 'json')->name('json');
+                Route::get('/options', 'options')->name('options');
+                Route::post('/', 'store')->name('store');
+                Route::get('/{id}/edit', 'edit')->name('edit');
+                Route::put('/{id}', 'update')->name('update');
+                Route::put('/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
+            });
+
+            Route::controller(TsDepartmentController::class)->prefix('departments')->name('departments.')->group(function () {
+                Route::get('/json', 'json')->name('json');
+                Route::get('/options', 'options')->name('options');
+                Route::get('/doctypes', 'doctypes')->name('doctypes');
+                Route::get('/catalog', 'catalog')->name('catalog');
+                Route::post('/', 'store')->name('store');
+                Route::get('/{id}/edit', 'edit')->name('edit');
+                Route::put('/{id}', 'update')->name('update');
+                Route::put('/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
+            });
+        });
+
+        Route::controller(TenancyApprovalController::class)->prefix('tenancy/approval')->name('tenancy.approval.')->group(function () {
+            Route::get('/', 'index')->name('index');
+        });
+
+        Route::controller(TsApprovalController::class)->prefix('tenancy/approval')->name('tenancy.approval.')->group(function () {
+            Route::get('/json', 'json')->name('json');
+            Route::get('/doctypes', 'doctypes')->name('doctypes');
+            Route::post('/', 'store')->name('store');
+            Route::get('/{id}/edit', 'edit')->name('edit');
+            Route::put('/{id}', 'update')->name('update');
+            Route::put('/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
+        });
+
+        // A Team's own recursive Task tree — independent of Project.
+        Route::controller(TeamTaskController::class)->prefix('all-team/{teamId}/tasks')->name('all-team.tasks.')->group(function () {
+            Route::get('/board-data', 'boardData')->name('board-data');
+            Route::get('/history', 'history')->name('history');
+            Route::get('/tags', 'tags')->name('tags');
+            Route::post('/', 'store')->name('store');
+            Route::put('/{taskId}', 'update')->name('update');
+            Route::get('/{taskId}/activity', 'activity')->name('activity');
+            Route::post('/{taskId}/status', 'updateStatus')->name('status');
+            Route::post('/{taskId}/parent', 'reparent')->name('parent');
+            Route::post('/{taskId}/cancel', 'cancel')->name('cancel');
+            Route::post('/{taskId}/assignees', 'addAssignees')->name('assignees.add');
+            Route::post('/{taskId}/cover', 'uploadCover')->name('cover.store');
+            Route::delete('/{taskId}/cover', 'destroyCover')->name('cover.destroy');
+            Route::delete('/{taskId}', 'destroy')->name('destroy');
+            Route::post('/statuses', 'storeStatus')->name('statuses.store');
+            Route::put('/statuses/{statusId}', 'updateStatusColumn')->name('statuses.update');
+            Route::delete('/statuses/{statusId}', 'destroyStatusColumn')->name('statuses.destroy');
+            Route::get('/{taskId}/mentionable-users', 'mentionableUsers')->name('mentionable-users');
+            // Team-wide Message tab (no task).
+            Route::get('/mentionable-users', 'mentionableUsers')->name('board-mentionable-users');
+        });
+
+        // Deep links into a Team / Project board's Message tab (bell notifications).
+        Route::get('/team-chat/{eid}', [TeamTaskController::class, 'chat'])->name('team-chat.show');
+        Route::get('/project-chat/{eid}', [PmProjectController::class, 'chat'])->name('project-chat.show');
+
+        // Deep link into a single Task/Subtask's detail modal — /task/{eid},
+        // same convention as /projects/{eid} (see TeamTaskController::show()).
+        Route::get('/task/{eid}', [TeamTaskController::class, 'show'])->name('task.show');
+        // Same idea for a Project's own Task (used by bell notifications).
+        Route::get('/project-task/{eid}', [PmTaskController::class, 'show'])->name('project-task.show');
+
         Route::controller(PmGroupController::class)->prefix('project-groups')->name('project-groups.')->group(function () {
             Route::get('/', 'index')->name('index');
             Route::get('/json', 'json')->name('json');
@@ -1603,32 +1783,43 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/kanban', 'kanban')->name('kanban');
             Route::get('/gantt', 'gantt')->name('gantt');
             Route::get('/board-data', 'boardData')->name('board-data');
+            Route::get('/tags', 'tags')->name('tags');
+            Route::get('/pic-users', 'picUsers')->name('pic-users');
+            Route::post('/favorites/toggle', 'toggleFavorite')->name('favorites.toggle');
             Route::post('/', 'store')->name('store');
             Route::post('/statuses', 'storeStatus')->name('statuses.store');
-            Route::get('/{projectId}', 'show')->name('show');
+            Route::get('/{projectId}/detail', 'detail')->name('detail');
+            Route::get('/{projectId}/history', 'history')->name('history');
             Route::put('/{projectId}', 'update')->name('update');
             Route::post('/{projectId}/status', 'updateStatus')->name('status');
             Route::delete('/{projectId}', 'destroy')->name('destroy');
             Route::post('/{projectId}/link', 'link')->name('link');
             Route::delete('/{projectId}/link/{linkedProjectId}', 'unlink')->name('unlink');
             Route::get('/{projectId}/mentionable-users', 'mentionableUsers')->name('mentionable-users');
+            Route::get('/{eid}', 'show')->name('show');
         });
+
+        // Move a Task (and its subtree) to another Team/Project board.
+        Route::get('/pm-task-move/targets', [PmTaskMoveController::class, 'targets'])->name('pm-task-move.targets');
+        Route::post('/pm-task-move', [PmTaskMoveController::class, 'move'])->name('pm-task-move');
 
         Route::controller(PmTaskController::class)->prefix('projects/{projectId}/tasks')->name('projects.tasks.')->group(function () {
             Route::get('/board-data', 'boardData')->name('board-data');
+            Route::get('/tags', 'tags')->name('tags');
             Route::post('/', 'store')->name('store');
             Route::put('/{taskId}', 'update')->name('update');
             Route::post('/{taskId}/status', 'updateStatus')->name('status');
+            Route::post('/{taskId}/parent', 'reparent')->name('parent');
+            Route::post('/{taskId}/lock', 'toggleLock')->name('lock');
+            Route::post('/{taskId}/assignees', 'addAssignees')->name('assignees.add');
+            Route::post('/{taskId}/cover', 'uploadCover')->name('cover.store');
+            Route::delete('/{taskId}/cover', 'destroyCover')->name('cover.destroy');
+            Route::get('/{taskId}/activity', 'activity')->name('activity');
             Route::delete('/{taskId}', 'destroy')->name('destroy');
             Route::post('/statuses', 'storeStatus')->name('statuses.store');
+            Route::put('/statuses/{statusId}', 'updateStatusColumn')->name('statuses.update');
+            Route::delete('/statuses/{statusId}', 'destroyStatusColumn')->name('statuses.destroy');
             Route::get('/{taskId}/mentionable-users', 'mentionableUsers')->name('mentionable-users');
-        });
-
-        Route::controller(PmTaskDetailController::class)->prefix('projects/{projectId}/tasks/{taskId}/subtasks')->name('projects.subtasks.')->group(function () {
-            Route::post('/', 'store')->name('store');
-            Route::put('/{taskDetailId}', 'update')->name('update');
-            Route::post('/{taskDetailId}/status', 'updateStatus')->name('status');
-            Route::delete('/{taskDetailId}', 'destroy')->name('destroy');
         });
 
         Route::controller(BookingCarController::class)->group(function () {
@@ -2241,6 +2432,9 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/api/isort-top-areas', 'isortTopAreas')->name('gm.isort-top-areas');
                 Route::get('/api/isort-detail', 'isortDetail')->name('gm.isort-detail');
 
+                // Parking API endpoints
+                Route::get('/api/parking-sites', 'parkingSites')->name('gm.parking-sites');
+
                 // PG Card API endpoints
                 Route::get('/api/pgcard-top-customers', 'pgcardTopCustomers')->name('gm.pgcard-top-customers');
                 Route::get('/api/pgcard-top-tenants', 'pgcardTopTenants')->name('gm.pgcard-top-tenants');
@@ -2267,6 +2461,12 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/api/vpl-top-out', 'vplTopOut')->name('gm.vpl-top-out');
                 Route::get('/api/vpl-by-category', 'vplByCategory')->name('gm.vpl-by-category');
                 Route::get('/api/vpl-usage-by-reason', 'vplUsageByReason')->name('gm.vpl-usage-by-reason');
+
+                // Valet Parking API endpoints
+                Route::get('/api/valet-income-trend', 'valetIncomeTrend')->name('gm.valet-income-trend');
+                Route::get('/api/valet-peak-hour', 'valetPeakHour')->name('gm.valet-peak-hour');
+                Route::get('/api/valet-repetitive-nopol', 'valetRepetitiveNopol')->name('gm.valet-repetitive-nopol');
+                Route::get('/api/valet-top-transactions', 'valetTopTransactions')->name('gm.valet-top-transactions');
 
                 // Export endpoints
                 Route::get('/export/pdf', 'exportPdf')->name('gm.export.pdf');
@@ -2352,7 +2552,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{folder?}', 'index')->where('folder', '.*')->name('index');
         });
 
-        Route::view('/data-hub', 'pages.data_hub.index')->name('datahub.index');
+        Route::view('/data-hub', 'pages.data_hub.index')->name('datahub.index')->middleware('access:DATAHUB,VIEW');
 
         Route::get('/global-search', [GlobalSearchController::class, 'search'])->name('global-search');
 
@@ -2874,6 +3074,17 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/attachments-master/{id}/toggle-status', [AttachmentMasterController::class, 'toggleStatus'])->name('attachments-master.toggle-status');
         Route::delete('/attachments/{id}', [AttachmentMasterController::class, 'delete'])
             ->name('attachments.delete');
+
+        // Global Settings > Project Setup — restore archived Projects/Tasks.
+        Route::controller(ProjectArchiveController::class)->group(function () {
+            Route::get('/project-archive', 'projects')->name('project-archive');
+            Route::get('/project-archive/json', 'projectsJson')->name('project-archive.json');
+            Route::put('/project-archive/{projectId}/restore', 'restoreProject')->name('project-archive.restore');
+
+            Route::get('/task-archive', 'tasks')->name('task-archive');
+            Route::get('/task-archive/json', 'tasksJson')->name('task-archive.json');
+            Route::put('/task-archive/{source}/{taskId}/restore', 'restoreTask')->name('task-archive.restore');
+        });
     }); // end admin middleware
 
     // ── Vendors: accessible to admin and PURCHACCESS (authorization enforced in VendorController) ──
