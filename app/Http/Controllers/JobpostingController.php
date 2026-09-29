@@ -72,16 +72,13 @@ class JobpostingController extends Controller
         return view('pages.jobpostings.showjobpostings', compact('jobposting','jobres','jobqua','approval','attachment'));
     }
 
-    public function list(Request $request)
+    public function list()
     {
-        $groupCompanyId = strtoupper(trim((string) ($request->user()->group_cpny_id ?? '')));
-
         return DB::connection('mysql3')
             ->table('hr_trx_jobposting as jp')
             ->select(
                 'jp.docid',
                 'jp.status',
-                'jp.group_cpny_id',
                 DB::raw("
                     CONCAT(
                         IFNULL(jp.name_job, IFNULL(jp.job_title,'-')),
@@ -91,9 +88,7 @@ class JobpostingController extends Controller
                     ) as job_name
                 ")
             )
-            ->where('jp.group_cpny_id', $groupCompanyId)
             ->whereIn('jp.status', ['P', 'U'])
-            ->orderByDesc('jp.id')
             ->get();
     }
 
