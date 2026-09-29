@@ -259,9 +259,11 @@ class TrainingRegistrationController extends Controller
             // as a match — HR-maintained level mapping may not cover every
             // employee yet, and that gap shouldn't silently lock people out.
             // A batch created via the multi-select stores several levels
-            // comma-joined in that same field — matching any one of them
-            // is enough, since they all share this batch's dates/quota.
-            $scheduleLevels = $this->splitMulti($d->schedule->job_level);
+            // '|'-joined in that same field (not comma — group_job_level
+            // labels contain commas themselves, e.g. "Sr. Officer, Officer,
+            // Crew") — matching any one of them is enough, since they all
+            // share this batch's dates/quota.
+            $scheduleLevels = $this->splitJobLevels($d->schedule->job_level);
             $isLegacyLevel = $scheduleLevels->count() === 1 && ctype_digit($scheduleLevels->first());
             $levelMatch = $isLegacyLevel || $myLevelGroup === null || $scheduleLevels->contains($myLevelGroup);
 
@@ -338,6 +340,20 @@ class TrainingRegistrationController extends Controller
     private function splitMulti(?string $raw): \Illuminate\Support\Collection
     {
         return collect(explode(',', (string) $raw))
+            ->map(fn ($v) => trim($v))
+            ->filter()
+            ->values();
+    }
+
+    /**
+     * Same shape as splitMulti(), but for job_level specifically — that
+     * field is joined with '|' rather than ',' because the group_job_level
+     * labels it stores contain commas themselves (e.g. "Sr. Officer,
+     * Officer, Crew"), which a comma split would incorrectly break apart.
+     */
+    private function splitJobLevels(?string $raw): \Illuminate\Support\Collection
+    {
+        return collect(explode('|', (string) $raw))
             ->map(fn ($v) => trim($v))
             ->filter()
             ->values();
@@ -744,13 +760,13 @@ class TrainingRegistrationController extends Controller
         }
 
         // Level gate: a schedule's job_level is one-or-more group_job_level
-        // buckets comma-joined (see TrainingSessionController::levelSearch /
+        // buckets '|'-joined (see TrainingSessionController::levelSearch /
         // combineJobLevels) — every participant must resolve to one of those
         // buckets via their own npk. A participant who can't be resolved (no
         // npk/Talenta record/subgrade mapping) is let through rather than
         // blocked, since this is HR-maintained reference data that may not
         // cover everyone yet.
-        $scheduleLevels = $this->splitMulti($detail->schedule?->job_level);
+        $scheduleLevels = $this->splitJobLevels($detail->schedule?->job_level);
         $isLegacyLevel = $scheduleLevels->count() === 1 && ctype_digit($scheduleLevels->first());
         if ($scheduleLevels->isNotEmpty() && !$isLegacyLevel) {
             $levelGroups = $this->jobLevelGroupsFor($participants);
