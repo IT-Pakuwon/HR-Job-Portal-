@@ -347,13 +347,14 @@ class CalrNonPurchController extends Controller
             $orderColumns = [
                 0 => 'rfpnonpurchaseid',
                 1 => 'rfpnonpurchaseid',
-                2 => 'rfpnonpurchasedate',
-                3 => 'imnonpurchaseid',
+                2 => 'rfpnonpurchaseid',
+                3 => 'rfpnonpurchasedate',
                 4 => 'cpny_id',
                 5 => 'department_id',
                 6 => 'pleasepayto',
-                7 => 'amountrequestpayment',
-                8 => 'created_by',
+                7 => 'keperluan',
+                8 => 'amountrequestpayment',
+                9 => 'created_by',
             ];
 
             if ($search !== '') {
@@ -471,6 +472,15 @@ class CalrNonPurchController extends Controller
                 'created_at',
             ]);
 
+            $rfpPurpose = TrRfpNonPurch::query()
+                ->select('keperluan')
+                ->whereColumn('tr_rfp_nonpurchase.rfpnonpurchaseid', 'tr_calr_nonpurchase.rfpnonpurchaseid')
+                ->whereColumn('tr_rfp_nonpurchase.cpny_id', 'tr_calr_nonpurchase.cpny_id')
+                ->orderBy('id')
+                ->limit(1);
+
+            $base->selectSub($rfpPurpose, 'rfp_keperluan');
+
             $orderColumns = [
                 0 => 'calrnonpurchaseid',
                 1 => 'calrnonpurchaseid',
@@ -478,21 +488,23 @@ class CalrNonPurchController extends Controller
                 3 => 'rfpnonpurchaseid',
                 4 => 'cpny_id',
                 5 => 'department_id',
-                6 => 'amountrfp',
-                7 => 'amountsettlement',
-                8 => 'amountdiff',
-                9 => 'created_by',
-                10 => 'status',
+                6 => 'rfp_keperluan',
+                7 => 'amountrfp',
+                8 => 'amountsettlement',
+                9 => 'amountdiff',
+                10 => 'created_by',
+                12 => 'status',
             ];
 
             if ($search !== '') {
-                $base->where(function ($q) use ($search) {
+                $base->where(function ($q) use ($search, $rfpPurpose) {
                     $q->where('calrnonpurchaseid', 'ilike', "%{$search}%")
                         ->orWhere('rfpnonpurchaseid', 'ilike', "%{$search}%")
                         ->orWhere('cpny_id', 'ilike', "%{$search}%")
                         ->orWhere('department_id', 'ilike', "%{$search}%")
                         ->orWhere('user_peminta', 'ilike', "%{$search}%")
                         ->orWhere('keperluan', 'ilike', "%{$search}%")
+                        ->orWhere($rfpPurpose->toBase(), 'ilike', "%{$search}%")
                         ->orWhere('created_by', 'ilike', "%{$search}%")
                         ->orWhereRaw("TO_CHAR(calrnonpurchasedate, 'YYYY-MM-DD') ILIKE ?", ["%{$search}%"])
                         ->orWhereRaw("CAST(amountrfp AS TEXT) ILIKE ?", ["%{$search}%"])
