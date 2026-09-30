@@ -168,20 +168,23 @@ class CalrListController extends Controller
                     'tr_rfca.ponbr',
                     'tr_rfca.cpny_id',
                     'tr_rfca.vendorname',
+                    'tr_rfca.keperluan',
                     'tr_rfca.created_by',
                     'current_step.rfca_step_descr',
                     'current_step.rfca_type',
                 ]);
 
             $orderColumns = [
-                0 => 'rfcaid',          // Action (dummy)
-                1 => 'rfcaid',
-                2 => 'ponbr',
-                3 => 'cpny_id',
-                4 => 'vendorname',
-                5 => 'rfca_step_descr',
-                6 => 'rfca_type',
-                7 => 'created_by',
+                0 => 'tr_rfca.rfcaid', // Responsive control
+                1 => 'tr_rfca.rfcaid', // Action
+                2 => 'tr_rfca.rfcaid',
+                3 => 'tr_rfca.ponbr',
+                4 => 'tr_rfca.cpny_id',
+                5 => 'tr_rfca.vendorname',
+                6 => 'tr_rfca.keperluan',
+                7 => 'current_step.rfca_step_descr',
+                8 => 'current_step.rfca_type',
+                9 => 'tr_rfca.created_by',
             ];
 
             if ($search !== '') {
@@ -190,6 +193,7 @@ class CalrListController extends Controller
                     ->orWhere('tr_rfca.ponbr','ilike',"%{$search}%")
                     ->orWhere('tr_rfca.cpny_id','ilike',"%{$search}%")
                     ->orWhere('tr_rfca.vendorname','ilike',"%{$search}%")
+                    ->orWhere('tr_rfca.keperluan','ilike',"%{$search}%")
                     ->orWhere('tr_rfca.created_by','ilike',"%{$search}%")
                     ->orWhere('current_step.rfca_step_descr','ilike',"%{$search}%")
                     ->orWhere('current_step.rfca_type','ilike',"%{$search}%");
@@ -231,19 +235,22 @@ class CalrListController extends Controller
                 'csid',
                 'cpny_id',
                 'vendorname',
+                'keperluan',
                 'created_by',
                 'status',
             ]);
 
             $orderColumns = [
-                0 => 'calrid',
-                1 => 'calrdate',
-                2 => 'rfcaid',
-                3 => 'csid',
-                4 => 'cpny_id',
-                5 => 'vendorname',
-                6 => 'created_by',
-                7 => 'status',
+                0 => 'calrid', // Responsive control
+                1 => 'calrid',
+                2 => 'calrdate',
+                3 => 'rfcaid',
+                4 => 'csid',
+                5 => 'cpny_id',
+                6 => 'vendorname',
+                7 => 'keperluan',
+                8 => 'created_by',
+                9 => 'status',
             ];
 
             if ($search !== '') {
@@ -253,6 +260,7 @@ class CalrListController extends Controller
                     ->orWhere('csid','ilike',"%{$search}%")
                     ->orWhere('cpny_id','ilike',"%{$search}%")
                     ->orWhere('vendorname','ilike',"%{$search}%")
+                    ->orWhere('keperluan','ilike',"%{$search}%")
                     ->orWhere('created_by','ilike',"%{$search}%")
                     ->orWhereRaw("TO_CHAR(calrdate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
                 });

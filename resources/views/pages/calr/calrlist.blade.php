@@ -152,6 +152,7 @@
                                 <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">PO Nbr</th>
                                 <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Company</th>
                                 <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Vendor</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Keperluan</th>
                                 <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">RFCA Step</th>
                                 <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">RFCA Type</th>
                                 <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Created By</th>
@@ -166,6 +167,7 @@
                             <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">CS ID</th>
                             <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Company</th>
                             <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Vendor</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Keperluan</th>
                             <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Created By</th>
                             <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Status</th>
                         `;
@@ -197,6 +199,12 @@
                         {
                             data: 'vendorname',
                             className: 'text-left'
+                        },
+                        {
+                            data: 'keperluan',
+                            defaultContent: '-',
+                            render: $.fn.dataTable.render.text(),
+                            className: 'text-left whitespace-normal'
                         },
                         {
                             data: 'rfca_step_descr',
@@ -236,6 +244,12 @@
                     {
                         data: 'vendorname',
                         className: 'text-left'
+                    },
+                    {
+                        data: 'keperluan',
+                        defaultContent: '-',
+                        render: $.fn.dataTable.render.text(),
+                        className: 'text-left whitespace-normal'
                     },
                     {
                         data: 'created_by'
@@ -279,11 +293,11 @@
 
             function orderFor(sc) {
                 if (sc === 'calrjobs') return [
-                    [1, 'desc']
-                ]; // sort by PONBR
+                    [2, 'desc']
+                ]; // RFCA ID
                 return [
-                    [1, 'desc'],
-                    [0, 'desc']
+                    [2, 'desc'],
+                    [1, 'desc']
                 ];
             }
 

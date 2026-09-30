@@ -316,6 +316,7 @@
                         <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Company</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Department</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Please Pay To</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Keperluan</th>
                         <th class="px-6 py-3 text-right text-sm font-semibold uppercase tracking-wider">Amount RFCA</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Created By</th>
                     `;
@@ -328,6 +329,7 @@
                     <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">RFCA ID</th>
                     <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Company</th>
                     <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Department</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Keperluan</th>
                     <th class="px-6 py-3 text-right text-sm font-semibold uppercase tracking-wider">Amount RFCA</th>
                     <th class="px-6 py-3 text-right text-sm font-semibold uppercase tracking-wider">Settlement</th>
                     <th class="px-6 py-3 text-right text-sm font-semibold uppercase tracking-wider">Diff</th>
@@ -370,6 +372,14 @@
                             className: 'text-left'
                         },
                         {
+                            data: 'keperluan',
+                            defaultContent: '',
+                            render: (value, type) => type === 'display'
+                                ? `<div style="min-width: 200px; white-space: normal; overflow-wrap: anywhere;">${escapeHtml(value || '-')}</div>`
+                                : (value || ''),
+                            className: 'text-left'
+                        },
+                        {
                             data: 'amountrequestpayment',
                             render: (_v, _t, row) => row.amountrequestpayment_fmt ?? formatMoney(row.amountrequestpayment),
                             className: 'text-right'
@@ -404,6 +414,14 @@
                     },
                     {
                         data: 'department_id',
+                        className: 'text-left'
+                    },
+                    {
+                        data: 'rfp_keperluan',
+                        defaultContent: '',
+                        render: (value, type) => type === 'display'
+                            ? `<div style="min-width: 200px; white-space: normal; overflow-wrap: anywhere;">${escapeHtml(value || '-')}</div>`
+                            : (value || ''),
                         className: 'text-left'
                     },
                     {
@@ -822,13 +840,13 @@
 
                     return `
                         <div class="inline-flex items-center gap-2">
-                            <a href="${editUrl}"
+                            <a href="${editUrl}" target="_blank" rel="noopener noreferrer"
                                 class="inline-flex items-center justify-center rounded bg-amber-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-amber-700"
                                 title="Edit Revise">
                                 ${escapeHtml(label)}
                             </a>
 
-                            <a href="${showUrl}" target="_blank"
+                            <a href="${showUrl}" target="_blank" rel="noopener noreferrer"
                                 class="inline-flex items-center justify-center rounded bg-gray-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-700"
                                 title="View Detail">
                                 <i class="fa-solid fa-eye"></i>
@@ -840,7 +858,7 @@
                 const url = `/showcalrnonpurch/${encodeURIComponent(hash)}`;
 
                 return `
-                    <a href="${url}"
+                    <a href="${url}" target="_blank" rel="noopener noreferrer"
                         class="inline-flex items-center justify-center rounded bg-gray-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-700">
                         ${escapeHtml(label)}
                     </a>
