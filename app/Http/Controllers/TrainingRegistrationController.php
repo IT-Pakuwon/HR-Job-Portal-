@@ -467,11 +467,21 @@ class TrainingRegistrationController extends Controller
         ]);
     }
 
+    /**
+     * Rows where you're the participant OR you're the one who submitted the
+     * batch (registered a colleague) — each viewer only ever sees this same
+     * union for themselves, so a colleague you registered still only shows
+     * up on THEIR own "My Registration" via the user_registration half of
+     * this OR, never anyone else's beyond that.
+     */
     public function myRegistrations()
     {
         $user = Auth::user();
 
-        $registrations = TrLndTrainingRegistration::where('user_registration', $user->username)
+        $registrations = TrLndTrainingRegistration::where(function ($q) use ($user) {
+                $q->where('user_registration', $user->username)
+                    ->orWhere('created_by', $user->username);
+            })
             ->with('schedule.schedule.training')
             ->orderByDesc('created_at')
             ->get();
@@ -485,7 +495,11 @@ class TrainingRegistrationController extends Controller
 
         $levelLabels = StoGrading::labelsFor($registrations->pluck('schedule.schedule.job_level'));
 
-        $rows = $registrations->map(function ($r) use ($answeredDocIds, $placeNames, $levelLabels) {
+        $participantUsernames = $registrations->pluck('user_registration')->filter()->unique();
+        $participantNames = $participantUsernames->isEmpty() ? collect() : User::whereIn('username', $participantUsernames)->pluck('name', 'username');
+
+        $rows = $registrations->map(function ($r) use ($user, $answeredDocIds, $placeNames, $levelLabels, $participantNames) {
+            $isOwn = strcasecmp((string) $r->user_registration, (string) $user->username) === 0;
             $hasAttended = (bool) $r->completed_at;
             $feedbackOpen = (bool) $r->schedule?->is_feedback_open;
             $feedbackSubmitted = $answeredDocIds->contains($r->training_regist_id);
@@ -507,15 +521,23 @@ class TrainingRegistrationController extends Controller
                 'speaker_name' => $r->schedule?->training_speaker_name ?: $r->schedule?->training_ext_speaker_name,
                 'grade_name' => $levelLabels[$r->schedule?->schedule?->job_level] ?? $r->schedule?->schedule?->job_level,
                 'status' => $r->effective_status,
-                'offer_expires_at' => $r->status_registration === TrLndTrainingRegistration::REG_STATUS_OFFERED
+                'is_own' => $isOwn,
+                'participant_username' => $r->user_registration,
+                'participant_name' => $participantNames[$r->user_registration] ?? $r->user_registration,
+                'offer_expires_at' => $isOwn && $r->status_registration === TrLndTrainingRegistration::REG_STATUS_OFFERED
                     ? $r->offer_expires_at
                     : null,
                 'has_attended' => $hasAttended,
                 'is_late_attendance' => $r->is_late_attendance,
                 'feedback_open' => $feedbackOpen,
                 'feedback_submitted' => $feedbackSubmitted,
-                'can_fill_feedback' => $hasAttended && $feedbackOpen,
-                'can_view_certificate' => $hasAttended && $isApproved && $certificateReady,
+                // Feedback/certificate/offer actions all require being the
+                // actual participant server-side (see submit()/myCertificate()/
+                // acceptOffer()/declineOffer()) — suppressed here too so a
+                // registration you only submitted for a colleague never shows
+                // an action that would just 403.
+                'can_fill_feedback' => $isOwn && $hasAttended && $feedbackOpen,
+                'can_view_certificate' => $isOwn && $hasAttended && $isApproved && $certificateReady,
                 'stars' => $r->stars,
                 'created_at' => $r->created_at,
             ];
@@ -870,12 +892,17 @@ class TrainingRegistrationController extends Controller
                 return response()->json(['success' => false, 'message' => "This training is not available for: {$labels}"], 422);
             }
 
+            // Plain array, not a Collection: $collection[$key]-- below is a no-op
+            // on Illuminate\Support\Collection (PHP can't do indirect
+            // modification of an overloaded ArrayAccess element without a
+            // by-reference offsetGet), which would silently leave every
+            // company's seat count undecremented for the rest of the batch.
             $seatsRemainingByCpny = $participantCpnyIds->mapWithKeys(function ($cpnyId) use ($quotasByCpny, $scheduleId) {
                 $quotaPax = $quotasByCpny[$cpnyId]->sum('quota_pax');
                 $seatCount = $this->activeSeatCount($scheduleId, $cpnyId);
 
                 return [$cpnyId => max(0, $quotaPax - $seatCount)];
-            });
+            })->all();
 
             // Approval always starts at registration time, whether or not
             // there's a seat free. status_registration is the SEATING flag on

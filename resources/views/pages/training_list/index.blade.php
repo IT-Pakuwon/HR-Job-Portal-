@@ -69,6 +69,7 @@
                             <thead>
                                 <tr class="text-left text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     <th class="py-2 pr-4">Doc ID</th>
+                                    <th class="py-2 pr-4">Participant</th>
                                     <th class="py-2 pr-4">Training</th>
                                     <th class="py-2 pr-4">Level</th>
                                     <th class="py-2 pr-4">Speaker</th>
@@ -2680,6 +2681,10 @@
         let myRegistrationsRows = [];
 
         function feedbackMenuItem(r) {
+            // Feedback show()/submit() both require being the actual
+            // participant server-side — a colleague's row you only
+            // submitted never gets a feedback action here.
+            if (!r.is_own) return '';
             if (r.can_fill_feedback) {
                 const label = r.feedback_submitted ? 'Edit Feedback' : 'Fill Feedback';
                 return `<button type="button" class="fillFeedbackBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-indigo-600 transition hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/20" data-id="${r.id}">📝 ${label}</button>`;
@@ -2707,6 +2712,8 @@
         }
 
         function certificateMenuItem(r) {
+            // myCertificate() is ownership-gated server-side too.
+            if (!r.is_own) return '';
             if (r.can_view_certificate) {
                 return `<a href="${certificateUrl.replace('__ID__', r.id)}" target="_blank" class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-amber-700 transition hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-900/20">🎓 Certificate</a>`;
             }
@@ -2729,13 +2736,13 @@
                 if (!initialMyEidHandled && initialMyEid) {
                     initialMyEidHandled = true;
                     const match = myRegistrationsRows.find((row) => row.eid === initialMyEid);
-                    if (match) openMyViewModal(match, { pushUrl: false, showOfferActions: match.status === 'O' });
+                    if (match) openMyViewModal(match, { pushUrl: false, showOfferActions: match.is_own && match.status === 'O' });
                 }
 
                 if (!initialFeedbackEidHandled && initialFeedbackEid) {
                     initialFeedbackEidHandled = true;
                     const match = myRegistrationsRows.find((row) => row.eid === initialFeedbackEid);
-                    if (match && (match.can_fill_feedback || match.feedback_submitted)) openFeedbackModal(match, { pushUrl: false });
+                    if (match && match.is_own && (match.can_fill_feedback || match.feedback_submitted)) openFeedbackModal(match, { pushUrl: false });
                 }
             });
         }
@@ -2755,14 +2762,29 @@
                 const feedbackHtml = feedbackMenuItem(r);
                 const certificateHtml = certificateMenuItem(r);
                 const viewHtml = `<button type="button" class="viewRegBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">👁 View</button>`;
-                const offerActionsHtml = r.status === 'O' ? `
+                // Offer accept/decline only apply to your own seat — a row you
+                // only submitted for a colleague (r.is_own === false) has this
+                // suppressed server-side too (offer_expires_at comes back null),
+                // since acceptOffer()/declineOffer() require being the actual participant.
+                const offerActionsHtml = r.is_own && r.status === 'O' ? `
                     <button type="button" class="mineAcceptOfferBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-green-600 transition hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20" data-id="${r.id}">✅ Accept Slot</button>
                     <button type="button" class="mineDeclineOfferBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${r.id}">✕ Decline Slot</button>
                 ` : '';
+                // Marked clearly either way, so it's never just an unlabeled name:
+                // your own seat gets a "You" pill; a colleague's gets a distinct
+                // "Registered by you" pill (this row isn't your seat) plus who
+                // it actually belongs to.
+                const participantHtml = r.is_own
+                    ? `<span class="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">🙋 You</span>`
+                    : `<div class="flex flex-col gap-1">
+                           <span class="inline-flex w-fit items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700 dark:bg-purple-900/30 dark:text-purple-300" title="You registered this colleague — it's their seat, not yours">👥 Registered by you</span>
+                           <span class="text-sm font-semibold text-gray-800 dark:text-gray-100">${r.participant_name ?? r.participant_username} <span class="text-xs font-normal text-gray-400">(${r.participant_username})</span></span>
+                       </div>`;
 
                 $body.append(`
                     <tr>
                         <td class="py-2 pr-4" data-label="Doc ID"><button type="button" class="viewRegBtn inline-flex items-center gap-1 rounded-lg border border-gray-300 px-2.5 py-1 font-mono text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">${r.docid}</button></td>
+                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Participant">${participantHtml}</td>
                         <td class="py-2 pr-4 wrap-break-word text-sm text-gray-800 dark:text-gray-100" data-label="Training">${r.training_name ?? '-'}</td>
                         <td class="py-2 pr-4 whitespace-nowrap" data-label="Level">${r.grade_name ?? '-'}</td>
                         <td class="py-2 pr-4 wrap-break-word" data-label="Speaker">${r.speaker_name ?? '-'}</td>
@@ -3087,7 +3109,13 @@
                 ? `${r.mode}${r.location || r.platform ? ' · ' + (r.location || r.platform) : ''}`
                 : '-';
 
-            const participantName = r.name || r.username;
+            // My Registration rows carry participant_name/participant_username
+            // instead of name/username, and only need the box for a colleague
+            // you registered (r.is_own === false) — your own row stays blank
+            // as before. Approval/All Registrations rows are unaffected
+            // (r.is_own is undefined there, so this just falls through to
+            // the original r.name/r.username).
+            const participantName = r.is_own ? '' : (r.participant_name || r.participant_username || r.name || r.username);
             const initials = participantName
                 ? participantName.trim().split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase() || '').join('')
                 : '';
@@ -3191,9 +3219,10 @@
             if (!r) return;
             openMyViewModal(r, {
                 showApprovalActions: r.approval_status === 'P',
-                // Only offer actions on the participant's own row (myRegistrationsRows) —
-                // never when an approver is viewing someone else's registration.
-                showOfferActions: !!mine && r.status === 'O',
+                // Only offer actions on the participant's own row (myRegistrationsRows,
+                // and not a colleague you merely submitted) — never when an approver
+                // is viewing someone else's registration.
+                showOfferActions: !!mine && r.is_own && r.status === 'O',
             });
         });
 
