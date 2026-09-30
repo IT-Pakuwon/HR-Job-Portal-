@@ -241,12 +241,11 @@ Route::post('/login', function (Request $request) {
         })
         ->first();
 
-    if (!$user || !Auth::attempt([
-        'email' => $user->email,
-        'password' => $credentials['password'],
-    ], $request->boolean('remember'))) {
+    if (!$user || !\Illuminate\Support\Facades\Hash::check($credentials['password'], $user->password)) {
         throw ValidationException::withMessages(['login' => ['These credentials do not match our records.']]);
     }
+
+    Auth::login($user, $request->boolean('remember'));
 
     return redirect()->intended('/dashboard');
 })->name('login.submit'); // ✅ FIXED (was duplicate)
