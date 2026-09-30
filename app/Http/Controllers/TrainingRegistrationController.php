@@ -1382,13 +1382,15 @@ class TrainingRegistrationController extends Controller
                 $group->sortBy('created_at')->values()->each(fn ($r, $i) => $queueNumbers->put($r->id, $i + 1));
             });
 
-        // Accept only ever applies to Waiting List rows whose approval has
-        // completed on a schedule that's already Closed (see manualAccept()
-        // above) — quota/usage is only worth fetching for that subset, not
-        // every registration on the page.
+        // Accept (force-seat) only ever applies to Waiting List rows whose
+        // approval has completed on a schedule that's already Closed (see
+        // manualAccept()); Offer applies to the same rows but on a schedule
+        // that's still Published/open instead (see offerManually()) — quota/
+        // usage is only worth fetching for that combined subset, not every
+        // registration on the page.
         $eligibleScheduleIds = $registrations->filter(fn ($r) => $r->status_registration === TrLndTrainingRegistration::REG_STATUS_WAITLISTED
                 && $r->status === TrLndTrainingRegistration::STATUS_APPROVED
-                && $r->schedule?->status === self::SCHEDULE_CLOSED)
+                && in_array($r->schedule?->status, [self::SCHEDULE_CLOSED, self::SCHEDULE_PUBLISHED], true))
             ->pluck('schedule_id')->unique();
 
         $quotas = $eligibleScheduleIds->isEmpty() ? collect() : MsLndTrainingQuota::whereIn('schedule_id', $eligibleScheduleIds)->get();
@@ -1406,17 +1408,21 @@ class TrainingRegistrationController extends Controller
             ->groupBy('schedule_id');
 
         $data = $registrations->map(function ($r) use ($names, $companyNames, $departmentNames, $placeNames, $levelLabels, $queueNumbers, $quotas, $quotaCompanyNames, $usage) {
-            // Both Accept (force-seat) and Offer (send the 24h accept/decline
-            // offer) are closed-schedule-only — on an open schedule the normal
-            // registration/waitlist-promotion flow should run its course;
-            // these are the HCDEVACCESS/HCBPACCESS fallback for once nothing
-            // auto-promotes anymore. Waitlisted + approval completed already
+            // Accept (force-seat, skipping the 24h offer step) stays closed-
+            // schedule-only — it's the fallback for once nothing auto-
+            // promotes anymore. Offer is the opposite: only on a still-
+            // Published/open schedule, so HR can push a waitlisted person a
+            // slot (e.g. under a different company's quota) without waiting
+            // on a cancellation to trigger auto-promotion — once a schedule
+            // is Closed, offering no longer makes sense since registration
+            // itself is done. Waitlisted + approval completed already
             // implies not cancelled and not already offered, since a row can
             // only hold one status_registration value at a time.
-            $canAccept = $r->status_registration === TrLndTrainingRegistration::REG_STATUS_WAITLISTED
-                && $r->status === TrLndTrainingRegistration::STATUS_APPROVED
-                && $r->schedule?->status === self::SCHEDULE_CLOSED;
-            $canOffer = $canAccept;
+            $isWaitlistedAndApproved = $r->status_registration === TrLndTrainingRegistration::REG_STATUS_WAITLISTED
+                && $r->status === TrLndTrainingRegistration::STATUS_APPROVED;
+
+            $canAccept = $isWaitlistedAndApproved && $r->schedule?->status === self::SCHEDULE_CLOSED;
+            $canOffer = $isWaitlistedAndApproved && $r->schedule?->status === self::SCHEDULE_PUBLISHED;
 
             $quotaOptions = collect();
             if ($canAccept || $canOffer) {
@@ -1734,15 +1740,20 @@ class TrainingRegistrationController extends Controller
 
     /**
      * HCDEVACCESS/HCBPACCESS-only: manually send a waiting-list participant
-     * the same 24h accept/decline offer that auto-promotion sends on a still-
-     * open schedule (see TrainingRegistrationService::offerSlot()) — for use
-     * once the schedule is CLOSED, when nothing will auto-offer it anymore.
-     * Gated the same as manualAccept() (waitlisted, approval already
-     * completed, schedule closed — not cancelled, not already offered, both
-     * already implied by status_registration being exactly WAITLISTED).
-     * Quota is a soft cap here: if the chosen company's quota is already full
-     * this returns 'quota_full' => true instead of failing, and the caller
-     * must resend with force=1 to knowingly seat the offer over quota.
+     * the same 24h accept/decline offer that auto-promotion sends (see
+     * TrainingRegistrationService::offerSlot()) — for use while the schedule
+     * is still Published/open, so HR can proactively push a slot to someone
+     * waitlisted (e.g. under a different company's quota that still has
+     * room) instead of waiting on a cancellation to trigger auto-promotion.
+     * Once the schedule is Closed, registration itself is done, so offering
+     * no longer applies (manualAccept() is the closed-schedule counterpart —
+     * a direct force-seat instead of a 24h offer).
+     * Gated to waitlisted + approval already completed (not cancelled, not
+     * already offered — both already implied by status_registration being
+     * exactly WAITLISTED). Quota is a soft cap here: if the chosen company's
+     * quota is already full this returns 'quota_full' => true instead of
+     * failing, and the caller must resend with force=1 to knowingly seat the
+     * offer over quota.
      */
     public function offerManually(Request $request, $id)
     {
@@ -1764,8 +1775,8 @@ class TrainingRegistrationController extends Controller
 
         $detail = MsLndTrainingSchedule::where('schedule_id', $registration->schedule_id)->first();
 
-        if (!$detail || $detail->status !== self::SCHEDULE_CLOSED) {
-            return response()->json(['success' => false, 'message' => 'Manual offer is only for schedules that are already closed'], 422);
+        if (!$detail || $detail->status !== self::SCHEDULE_PUBLISHED) {
+            return response()->json(['success' => false, 'message' => 'Manual offer is only available while the schedule is still open (Published)'], 422);
         }
 
         $cpnyId = trim((string) ($request->input('cpny_id') ?: $registration->cpny_id));

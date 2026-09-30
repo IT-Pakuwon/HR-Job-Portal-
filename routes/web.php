@@ -84,6 +84,7 @@ use App\Http\Controllers\KendaraanController;
 use App\Http\Controllers\KontrakController;
 use App\Http\Controllers\LastOrderController;
 use App\Http\Controllers\LegalAgreementController;
+use App\Http\Controllers\LegalNewAgreementController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\LuckydrawSetupController;
 use App\Http\Controllers\MailboxController;
@@ -2186,6 +2187,20 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/hold-legal-agreement/{eid}', 'index');
                 Route::get('/activate-legal-agreement/{eid}', 'index');
                 Route::get('/complete-legal-agreement/{eid}', 'index');
+            });
+        });
+
+        Route::prefix('legal-new-agreement')->controller(LegalNewAgreementController::class)->group(function () {
+            Route::middleware('access:PSMOLA,VIEW')->group(function () {
+                Route::get('/psm-ola', 'psmOla')->name('legal-new-agreement.psm-ola');
+            });
+
+            Route::middleware('access:ADDENDUM,VIEW')->group(function () {
+                Route::get('/addendum', 'addendum')->name('legal-new-agreement.addendum');
+            });
+
+            Route::middleware('access:OTHERS,VIEW')->group(function () {
+                Route::get('/others', 'others')->name('legal-new-agreement.others');
             });
         });
 
