@@ -213,7 +213,7 @@
                 ],
                 order: [[1, 'desc']],
                 pageLength: 10,
-                lengthMenu: [10, 25, 50, 100],
+                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']],
                 dom: 'lfrtip',
                 createdRow(row) {
                     $(row).addClass('border-b border-gray-100 dark:border-gray-700');

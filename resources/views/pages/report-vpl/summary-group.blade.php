@@ -23,7 +23,6 @@
                     <option value="">All Warehouses</option>
                     <option value="WHCOLLECTION">WHCOLLECTION</option>
                     <option value="WHLOYALTY">WHLOYALTY</option>
-                    <option value="WHPROMOTION">WHPROMOTION</option>
                 </select>
             </div>
 

@@ -1020,12 +1020,12 @@ class VplReportController extends Controller
         );
     }
 
-    /** Optional WhsOwner filter — only the three warehouses this module actually uses. */
+    /** Optional WhsOwner filter — only two real owners (WHCOLLECTION absorbs WHPROMOTION, see normalizeSummaryGroupWhsId()). */
     private function resolveSummaryGroupWhsId(Request $request): ?string
     {
         $whsId = $request->input('whs_id');
 
-        return in_array($whsId, [self::WHS_COLLECTION, self::WHS_LOYALTY, self::WHS_PROMOTION], true) ? $whsId : null;
+        return in_array($whsId, [self::WHS_COLLECTION, self::WHS_LOYALTY], true) ? $whsId : null;
     }
 
     /** Out columns: one per raw purpose_id already tracked by PURPOSE_MAP, plus a catch-all for anything unmapped — granular, not collapsed into the 4-bucket Loyalty/Promotion/Entertainment/Internal Use used elsewhere. */
@@ -1099,27 +1099,36 @@ class VplReportController extends Controller
         return $this->attachSummaryGroupCategoryHeaders($rows);
     }
 
+    /** WHPROMOTION shares WHCOLLECTION's balance — there are only two real owners (WHCOLLECTION incl. Promotion, and WHLOYALTY), matching the convention every other report in this controller already uses (see e.g. line ~2226). */
+    private function normalizeSummaryGroupWhsId(string $whsId): string
+    {
+        return $whsId === self::WHS_PROMOTION ? self::WHS_COLLECTION : $whsId;
+    }
+
     /**
-     * Raw Begin/In/Transfer/Out movement figures for every (product+expiry+warehouse)
+     * Raw Begin/In/Transfer/Out movement figures for every (product+expiry+owner)
      * batch touched anywhere in the given year, bucketed by calendar month so
      * buildSummaryGroupReport() can sum months 1..selected-month-1 for Beginning and
-     * read the selected month directly for In/Transfer/Out. "WhsOwner" is the warehouse
-     * itself (whs_id — WHCOLLECTION/WHLOYALTY/WHPROMOTION), each movement attributed to
-     * whichever warehouse it actually happened at — not a department.
+     * read the selected month directly for In/Transfer/Out. "WhsOwner" is the
+     * normalized owner (normalizeSummaryGroupWhsId() — WHCOLLECTION or WHLOYALTY;
+     * WHPROMOTION movements fold into WHCOLLECTION), not the raw whs_id and not a
+     * department.
      *
-     * In    = Receive (at whichever warehouse the receive detail targets — normally
-     *         WHCOLLECTION) + Return Usage (qty_return_usage), attributed to the
-     *         warehouse the usage was returned at. Return Usage reverses a prior
-     *         Usage-Out, so it's added back rather than netted against the Out-purpose
-     *         bucket it came from (same convention batchPurposeOut()/ledgerMonthlyInOut()
-     *         already use elsewhere in this controller).
-     * Transfer = both legs of a WHCOLLECTION<->WHLOYALTY Transfer/ReturnTf are posted:
-     *         the source warehouse's row gets a negative entry, the destination
-     *         warehouse's row gets a positive entry, so each warehouse's own balance
-     *         stays self-consistent.
-     * Out   = Usage (usagetype != 'Return') at WHPROMOTION/WHLOYALTY, attributed to the
-     *         warehouse it was used at and bucketed by its own purpose_id (falling back
-     *         to 'Other' for anything not in PURPOSE_MAP).
+     * In    = Receive (wherever the receive detail targets, normalized) + Return
+     *         Usage (qty_return_usage), attributed to the owner the usage was
+     *         returned at. Return Usage reverses a prior Usage-Out, so it's added
+     *         back rather than netted against the Out-purpose bucket it came from
+     *         (same convention batchPurposeOut()/ledgerMonthlyInOut() already use
+     *         elsewhere in this controller).
+     * Transfer = both legs of a Transfer/ReturnTf are posted after normalizing
+     *         from/to: the source owner's row gets a negative entry, the
+     *         destination owner's row gets a positive entry, so each owner's own
+     *         balance stays self-consistent. A Collection<->Promotion leg
+     *         normalizes to the same owner on both sides and is skipped — it's an
+     *         internal move, not a transfer between owners.
+     * Out   = Usage (usagetype != 'Return') at WHPROMOTION/WHLOYALTY, attributed to
+     *         its normalized owner and bucketed by its own purpose_id (falling
+     *         back to 'Other' for anything not in PURPOSE_MAP).
      *
      * @return array{0: array<string, array{product_id: string, expired_date: mixed, whs_id: string}>, 1: array<string, array<int, float>>, 2: array<string, array<int, float>>, 3: array<string, array<int, array<string, float>>>}
      */
@@ -1151,22 +1160,19 @@ class VplReportController extends Controller
             ->get();
 
         foreach ($receives as $r) {
-            $key = $r->product_id.'|'.$this->expiredKey($r->expired_date).'|'.$r->whs_id;
-            $touch($key, $r->product_id, $r->expired_date, $r->whs_id);
+            $whsId = $this->normalizeSummaryGroupWhsId($r->whs_id);
+            $key   = $r->product_id.'|'.$this->expiredKey($r->expired_date).'|'.$whsId;
+            $touch($key, $r->product_id, $r->expired_date, $whsId);
             $m = Carbon::parse($r->receive_date)->month;
             $inByMonth[$key][$m] = ($inByMonth[$key][$m] ?? 0) + (float) $r->qty_receive;
         }
 
         // A transfer has two legs (from_whs_id/to_whs_id), each attributed to its own
-        // warehouse's row: the source warehouse gets a negative entry (stock leaving),
-        // the destination warehouse gets a positive entry (stock arriving). Both legs
-        // are posted for every completed Transfer/ReturnTf regardless of which two
-        // warehouses are involved (WHCOLLECTION<->WHLOYALTY and WHCOLLECTION<->WHPROMOTION
-        // both occur live) — unlike the other reports in this controller, which only
-        // track the WHCOLLECTION<->WHLOYALTY leg because they roll everything up to a
-        // single WHCOLLECTION-scoped balance, this report needs every warehouse's own
-        // balance to be self-consistent, so a Collection->Promotion transfer can't be
-        // left out of scope the way it is elsewhere.
+        // warehouse's row (after normalizing WHPROMOTION into WHCOLLECTION): the source
+        // warehouse gets a negative entry (stock leaving), the destination warehouse gets
+        // a positive entry (stock arriving). A Collection<->Promotion leg normalizes to
+        // the same key on both sides and is skipped outright — it's an internal move
+        // within the same merged balance, not a real transfer between owners.
         $transfers = TrxVplTransferDetail::query()
             ->join('tr_vpl_transfer', 'tr_vpl_transfer.transfer_id', '=', 'tr_vpl_transfer_detail.transfer_id')
             ->where('tr_vpl_transfer.cpnyid', $cpnyid)
@@ -1188,10 +1194,17 @@ class VplReportController extends Controller
             $m          = Carbon::parse($t->transfer_date)->month;
             $qty        = abs((float) $t->qty_transfer);
 
-            $fromKey = $t->product_id.'|'.$expiredKey.'|'.$t->from_whs_id;
-            $toKey   = $t->product_id.'|'.$expiredKey.'|'.$t->to_whs_id;
-            $touch($fromKey, $t->product_id, $t->expired_date, $t->from_whs_id);
-            $touch($toKey, $t->product_id, $t->expired_date, $t->to_whs_id);
+            $fromWhs = $this->normalizeSummaryGroupWhsId($t->from_whs_id);
+            $toWhs   = $this->normalizeSummaryGroupWhsId($t->to_whs_id);
+
+            if ($fromWhs === $toWhs) {
+                continue;
+            }
+
+            $fromKey = $t->product_id.'|'.$expiredKey.'|'.$fromWhs;
+            $toKey   = $t->product_id.'|'.$expiredKey.'|'.$toWhs;
+            $touch($fromKey, $t->product_id, $t->expired_date, $fromWhs);
+            $touch($toKey, $t->product_id, $t->expired_date, $toWhs);
 
             $transferByMonth[$fromKey][$m] = ($transferByMonth[$fromKey][$m] ?? 0) - $qty;
             $transferByMonth[$toKey][$m]   = ($transferByMonth[$toKey][$m] ?? 0) + $qty;
@@ -1216,8 +1229,9 @@ class VplReportController extends Controller
             ->get();
 
         foreach ($usages as $u) {
-            $key = $u->product_id.'|'.$this->expiredKey($u->expired_date).'|'.$u->whs_id;
-            $touch($key, $u->product_id, $u->expired_date, $u->whs_id);
+            $whsId = $this->normalizeSummaryGroupWhsId($u->whs_id);
+            $key   = $u->product_id.'|'.$this->expiredKey($u->expired_date).'|'.$whsId;
+            $touch($key, $u->product_id, $u->expired_date, $whsId);
             $m = Carbon::parse($u->usage_date)->month;
 
             if ($u->usagetype === 'Return') {
