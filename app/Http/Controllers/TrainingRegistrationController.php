@@ -1406,12 +1406,20 @@ class TrainingRegistrationController extends Controller
             ->groupBy('schedule_id');
 
         $data = $registrations->map(function ($r) use ($names, $companyNames, $departmentNames, $placeNames, $levelLabels, $queueNumbers, $quotas, $quotaCompanyNames, $usage) {
+            // Both Accept (force-seat) and Offer (send the 24h accept/decline
+            // offer) are closed-schedule-only — on an open schedule the normal
+            // registration/waitlist-promotion flow should run its course;
+            // these are the HCDEVACCESS/HCBPACCESS fallback for once nothing
+            // auto-promotes anymore. Waitlisted + approval completed already
+            // implies not cancelled and not already offered, since a row can
+            // only hold one status_registration value at a time.
             $canAccept = $r->status_registration === TrLndTrainingRegistration::REG_STATUS_WAITLISTED
                 && $r->status === TrLndTrainingRegistration::STATUS_APPROVED
                 && $r->schedule?->status === self::SCHEDULE_CLOSED;
+            $canOffer = $canAccept;
 
             $quotaOptions = collect();
-            if ($canAccept) {
+            if ($canAccept || $canOffer) {
                 $usedByCpny = collect($usage->get($r->schedule_id, collect()));
                 $quotaOptions = $quotas->where('schedule_id', $r->schedule_id)
                     ->map(function ($q) use ($usedByCpny, $quotaCompanyNames) {
@@ -1455,7 +1463,7 @@ class TrainingRegistrationController extends Controller
                 'registered_at' => $r->created_at,
                 'has_attended' => (bool) $r->completed_at,
                 'can_accept' => $canAccept,
-                'can_offer' => $canAccept,
+                'can_offer' => $canOffer,
                 'quota_options' => $quotaOptions,
             ];
         })->values();
@@ -1725,15 +1733,16 @@ class TrainingRegistrationController extends Controller
     }
 
     /**
-     * HCDEVACCESS-only: manually send a waiting-list participant the same
-     * 24h accept/decline offer that auto-promotion sends on a still-open
-     * schedule (see TrainingRegistrationService::offerSlot()) — for use once
-     * the schedule is CLOSED, when nothing will auto-offer it anymore.
+     * HCDEVACCESS/HCBPACCESS-only: manually send a waiting-list participant
+     * the same 24h accept/decline offer that auto-promotion sends on a still-
+     * open schedule (see TrainingRegistrationService::offerSlot()) — for use
+     * once the schedule is CLOSED, when nothing will auto-offer it anymore.
      * Gated the same as manualAccept() (waitlisted, approval already
-     * completed, schedule closed), except quota is a soft cap here: if the
-     * chosen company's quota is already full this returns 'quota_full' =>
-     * true instead of failing, and the caller must resend with force=1 to
-     * knowingly seat the offer over quota.
+     * completed, schedule closed — not cancelled, not already offered, both
+     * already implied by status_registration being exactly WAITLISTED).
+     * Quota is a soft cap here: if the chosen company's quota is already full
+     * this returns 'quota_full' => true instead of failing, and the caller
+     * must resend with force=1 to knowingly seat the offer over quota.
      */
     public function offerManually(Request $request, $id)
     {

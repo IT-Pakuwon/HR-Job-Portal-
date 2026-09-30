@@ -160,13 +160,13 @@ class ItRecommendationController extends Controller
         if ($search !== '') {
             $statusMap = [
                 'waiting it revision' => ['I'],
-                'waiting it'          => ['W', 'I'],
-                'waiting approval'    => ['P'],
-                'waiting'             => ['W', 'I', 'P'],
-                'completed'           => ['C'],
-                'rejected'            => ['R'],
-                'revise'              => ['D'],
-                'cancelled'           => ['X'],
+                'waiting it' => ['W', 'I'],
+                'waiting approval' => ['P'],
+                'waiting' => ['W', 'I', 'P'],
+                'completed' => ['C'],
+                'rejected' => ['R'],
+                'revise' => ['D'],
+                'cancelled' => ['X'],
             ];
 
             $matchedStatuses = [];
@@ -251,7 +251,7 @@ class ItRecommendationController extends Controller
             ? array_map('trim', explode(',', $user->department_id))
             : (array) $user->department_id;
 
-        $ticketDeptIds = \App\Models\Userdept::where('username', $user->username)
+        $ticketDeptIds = Userdept::where('username', $user->username)
             ->pluck('department_id')
             ->merge($deptIds)
             ->filter()
@@ -1525,7 +1525,7 @@ class ItRecommendationController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $fmtUsers = fn(?string $u): string => $u
+        $fmtUsers = fn (?string $u): string => $u
             ? implode(', ', array_filter(array_map('trim', preg_split('/[,;|]/', $u))))
             : '';
 

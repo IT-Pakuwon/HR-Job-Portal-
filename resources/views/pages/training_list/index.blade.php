@@ -3442,16 +3442,23 @@
             }).join('');
 
             Swal.fire({
-                title: `Accept ${r.name ?? r.username}?`,
                 html: `
-                    <div style="text-align:left;font-size:13px;">
-                        <p><strong>Doc ID:</strong> ${r.docid}</p>
-                        <p><strong>Training:</strong> ${r.training_name ?? '-'}</p>
-                        <p><strong>Date:</strong> ${fmtDate(r.schedule_date)}</p>
-                        <div style="margin-top:12px;">
+                    <div class="ticketModal-header">
+                        <div class="ticketModal-thumbFallback">✅</div>
+                        <div style="min-width:0;">
+                            <h3 class="ticketModal-title">Accept ${r.name ?? r.username}?</h3>
+                            <p class="ticketModal-subtitle">${r.docid} · ${r.training_name ?? '-'}</p>
+                        </div>
+                    </div>
+                    <div class="ticketModal-body">
+                        <div class="ticketModal-card">
+                            <label class="ticketModal-label">📅 Schedule</label>
+                            <p style="margin:0;font-size:13px;color:#111827;">${fmtDate(r.schedule_date)}</p>
+                        </div>
+                        <div class="ticketModal-card">
                             <label class="ticketModal-label">🏢 Use Quota From</label>
                             <select id="swalAllRegsAcceptCpny" class="ticketModal-select">${opts}</select>
-                            <p style="font-size:11px;color:#6b7280;margin-top:6px;">
+                            <p style="font-size:11px;color:#6b7280;margin-top:8px;">
                                 Defaults to the participant's own company (${r.cpny_id}). Pick another company to consume its quota instead.
                             </p>
                         </div>
@@ -3460,6 +3467,8 @@
                 showCancelButton: true,
                 confirmButtonText: 'Yes, accept',
                 cancelButtonText: 'Cancel',
+                customClass: { popup: 'ticketModalPopup', confirmButton: 'ticketConfirmBtn', cancelButton: 'ticketCancelBtn' },
+                width: 440,
             }).then((result) => {
                 if (!result.isConfirmed) return;
 
@@ -3523,17 +3532,24 @@
             }).join('');
 
             Swal.fire({
-                title: `Offer slot to ${r.name ?? r.username}?`,
                 html: `
-                    <div style="text-align:left;font-size:13px;">
-                        <p><strong>Doc ID:</strong> ${r.docid}</p>
-                        <p><strong>Training:</strong> ${r.training_name ?? '-'}</p>
-                        <p><strong>Date:</strong> ${fmtDate(r.schedule_date)}</p>
-                        <p style="margin-top:8px;">Sends the same 24h accept/decline offer as the automatic waitlist promotion.</p>
-                        <div style="margin-top:12px;">
+                    <div class="ticketModal-header">
+                        <div class="ticketModal-thumbFallback">📨</div>
+                        <div style="min-width:0;">
+                            <h3 class="ticketModal-title">Offer slot to ${r.name ?? r.username}?</h3>
+                            <p class="ticketModal-subtitle">${r.docid} · ${r.training_name ?? '-'}</p>
+                        </div>
+                    </div>
+                    <div class="ticketModal-body">
+                        <div class="ticketModal-card">
+                            <label class="ticketModal-label">📅 Schedule</label>
+                            <p style="margin:0;font-size:13px;color:#111827;">${fmtDate(r.schedule_date)}</p>
+                            <p style="margin:8px 0 0;font-size:12px;color:#6b7280;">Sends the same 24h accept/decline offer as the automatic waitlist promotion.</p>
+                        </div>
+                        <div class="ticketModal-card">
                             <label class="ticketModal-label">🏢 Use Quota From</label>
                             <select id="swalAllRegsOfferCpny" class="ticketModal-select">${opts}</select>
-                            <p style="font-size:11px;color:#6b7280;margin-top:6px;">
+                            <p style="font-size:11px;color:#6b7280;margin-top:8px;">
                                 Defaults to the participant's own company (${r.cpny_id}). If a company's quota is already full you'll be asked to confirm before exceeding it.
                             </p>
                         </div>
@@ -3542,6 +3558,8 @@
                 showCancelButton: true,
                 confirmButtonText: 'Yes, offer slot',
                 cancelButtonText: 'Cancel',
+                customClass: { popup: 'ticketModalPopup', confirmButton: 'ticketConfirmBtn', cancelButton: 'ticketCancelBtn' },
+                width: 440,
             }).then((result) => {
                 if (!result.isConfirmed) return;
 
