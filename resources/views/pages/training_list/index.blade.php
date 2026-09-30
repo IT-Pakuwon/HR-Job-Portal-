@@ -63,7 +63,34 @@
                 </div>
 
                 {{-- My Registration --}}
-                <div id="subtab-myreg" class="sub-tab-panel">
+                <div id="subtab-myreg" class="sub-tab-panel space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                        <div class="flex flex-1 flex-wrap items-center gap-4">
+                            <span id="mineCount" class="text-sm font-medium text-gray-500 dark:text-gray-400"></span>
+                            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                <label for="mineTrainingFilter">Training</label>
+                                <select id="mineTrainingFilter" class="rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-8 text-sm text-gray-700 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                                    <option value="">All Trainings</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                <label for="mineScheduleFilter">Schedule</label>
+                                <select id="mineScheduleFilter" class="rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-8 text-sm text-gray-700 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                                    <option value="">All Schedules</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                <label for="minePageSize">Show</label>
+                                <select id="minePageSize" class="rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-8 text-sm text-gray-700 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                                    <option value="10">10</option>
+                                    <option value="25" selected>25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                    <option value="all">All</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                     <div class="overflow-x-auto">
                         <table class="responsive-table min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
                             <thead>
@@ -2724,6 +2751,7 @@
         }
 
         let minePage = 1;
+        let minePageSize = 25;
         let initialMyEidHandled = false;
         let initialFeedbackEidHandled = false;
 
@@ -2731,6 +2759,7 @@
             $.get(myUrl, function (res) {
                 myRegistrationsRows = res.data || [];
                 minePage = 1;
+                populateMineFilterOptions(myRegistrationsRows);
                 renderMine();
 
                 if (!initialMyEidHandled && initialMyEid) {
@@ -2747,12 +2776,54 @@
             });
         }
 
+        // Rebuilds the Training/Schedule filter option lists from whatever
+        // myRegistrationsRows actually contains (same pattern as
+        // populateApprovalFilterOptions()). Schedule options cascade off
+        // whichever Training is currently selected (or all trainings, when
+        // none is), so picking a Training first narrows Schedule to just
+        // that training's sessions.
+        function populateMineFilterOptions(rows) {
+            const $training = $('#mineTrainingFilter');
+            const $schedule = $('#mineScheduleFilter');
+            const selectedTraining = $training.val();
+            const selectedSchedule = $schedule.val();
+
+            const trainings = [...new Set(rows.map((r) => r.training_name).filter(Boolean))].sort();
+            $training.find('option:not(:first)').remove();
+            trainings.forEach((t) => $training.append(new Option(t, t)));
+            $training.val(trainings.includes(selectedTraining) ? selectedTraining : '');
+
+            const trainingVal = $training.val();
+            const scopedRows = trainingVal ? rows.filter((r) => r.training_name === trainingVal) : rows;
+            const schedules = new Map();
+            scopedRows.forEach((r) => {
+                if (r.schedule_id && !schedules.has(r.schedule_id)) {
+                    const label = trainingVal ? fmtDate(r.schedule_date) : `${r.training_name ?? '-'} — ${fmtDate(r.schedule_date)}`;
+                    schedules.set(r.schedule_id, label);
+                }
+            });
+            const scheduleEntries = [...schedules.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+
+            $schedule.find('option:not(:first)').remove();
+            scheduleEntries.forEach(([id, label]) => $schedule.append(new Option(label, id)));
+            $schedule.val(schedules.has(selectedSchedule) ? selectedSchedule : '');
+        }
+
         function renderMine() {
-            const rows = myRegistrationsRows;
+            const trainingFilterVal = $('#mineTrainingFilter').val();
+            const scheduleFilterVal = $('#mineScheduleFilter').val();
+
+            const rows = myRegistrationsRows.filter((r) => {
+                if (trainingFilterVal && r.training_name !== trainingFilterVal) return false;
+                if (scheduleFilterVal && String(r.schedule_id) !== scheduleFilterVal) return false;
+                return true;
+            });
+
             $('#mineEmpty').toggleClass('hidden', rows.length > 0);
+            $('#mineCount').text(`${rows.length} item${rows.length === 1 ? '' : 's'}`);
             const $body = $('#mineBody').empty();
 
-            const { pageRows, page, totalPages } = paginateRows(rows, minePage);
+            const { pageRows, page, totalPages } = paginateRows(rows, minePage, minePageSize);
             minePage = page;
 
             pageRows.forEach(function (r) {
@@ -2824,8 +2895,29 @@
             renderPagination('minePagination', rows.length, page, totalPages, (p) => {
                 minePage = p;
                 renderMine();
-            });
+            }, minePageSize);
         }
+
+        $('#mineTrainingFilter').on('change', function () {
+            // Training changed — rebuild Schedule's options scoped to it
+            // before re-rendering, so stale out-of-scope sessions don't
+            // linger in the dropdown.
+            populateMineFilterOptions(myRegistrationsRows);
+            minePage = 1;
+            renderMine();
+        });
+
+        $('#mineScheduleFilter').on('change', function () {
+            minePage = 1;
+            renderMine();
+        });
+
+        $('#minePageSize').on('change', function () {
+            const val = $(this).val();
+            minePageSize = val === 'all' ? Infinity : parseInt(val, 10);
+            minePage = 1;
+            renderMine();
+        });
 
         $('.subTabBtn').on('click', function () {
             const sub = $(this).data('subtab');
