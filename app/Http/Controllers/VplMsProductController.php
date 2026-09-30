@@ -20,13 +20,10 @@ use App\Models\MsDepartment;
 use App\Models\TrAttachment;
 use App\Models\Usercpny;
 use App\Http\Controllers\TrAttachmentController;
-use App\Http\Controllers\Traits\HasAutonbr;
 use DataTables;
 
 class VplMsProductController extends Controller
 {
-    use HasAutonbr;
-
     // Company → 1-digit prefix for product_id (e.g. V100001, P200001)
     // Update cpnyid keys to match your actual ms_company cpny_id values
     private const COMPANY_PREFIX = [
@@ -426,11 +423,24 @@ class VplMsProductController extends Controller
 
                 $msproduct->save();
             } else {
-                // Counter per (type + company), never resets
+                // Next number per (type + company) is derived from the highest
+                // existing product_id with this prefix, not from ms_autonbr —
+                // this keeps it correct even after manual/bulk data imports.
                 // Generates: V100001 (AW), V200001 (EP), P300001 (PSA), etc.
                 $cpnyPrefix = self::COMPANY_PREFIX[$request->cpnyid] ?? '0';
-                $auto       = $this->nextAutonbrByCpnyid($request->product_type, 0, '00', $request->cpnyid, $username, 'VPL Product');
-                $product_id = $request->product_type . $cpnyPrefix . sprintf('%05d', $auto['next']);
+                $prefix     = $request->product_type . $cpnyPrefix;
+
+                $product_id = DB::connection('pgsql5')->transaction(function () use ($prefix) {
+                    $maxSuffix = MsVplProduct::where('product_id', 'like', $prefix.'%')
+                        ->lockForUpdate()
+                        ->get(['product_id'])
+                        ->map(fn ($row) => (int) substr($row->product_id, strlen($prefix)))
+                        ->max();
+
+                    $next = ($maxSuffix ?? 0) + 1;
+
+                    return $prefix . sprintf('%05d', $next);
+                });
 
                 $photoPath = $request->hasFile('product_photo')
                     ? $this->uploadProductPhoto($request->file('product_photo'), $product_id)

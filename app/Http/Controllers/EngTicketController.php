@@ -368,6 +368,50 @@ class EngTicketController extends Controller
         return array_values(array_unique($types));
     }
 
+    /**
+     * Company ids the current user belongs to (ms_user.cpny_id is a
+     * comma-separated list), used to scope ticket visibility to colleagues
+     * within the same company.
+     */
+    protected function userCompanyIds(): array
+    {
+        return collect(explode(',', (string) auth()->user()->cpny_id))
+            ->map(fn ($item) => trim($item))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Restricts a ticket query to what the user is allowed to see: their own
+     * tickets (requester/PIC), tickets from their own company, and — for
+     * Eng/BS/FO staff and managers — every ticket of the type(s) they
+     * broadly handle, regardless of company. DIRECTORACCESS bypasses this
+     * entirely. Mirrors buildActions()'s can_view rule so a ticket visible
+     * in a list/calendar can always be opened without a 403.
+     */
+    protected function scopeVisibleTickets($query)
+    {
+        $user = auth()->user();
+
+        if ($user->hasFullDataScope()) {
+            return $query;
+        }
+
+        $broadTypes = $this->broadAccessTicketTypes();
+        $userCompanies = $this->userCompanyIds();
+
+        return $query->where(function ($q) use ($user, $broadTypes, $userCompanies) {
+            $q->where('created_by', $user->username)
+                ->orWhere('pic_ticket', $user->username)
+                ->orWhereIn('cpny_id', $userCompanies);
+
+            if (!empty($broadTypes)) {
+                $q->orWhereIn('ticket_type', $broadTypes);
+            }
+        });
+    }
+
     public function index(Request $request, $eid = null)
     {
         $user = auth()->user();
@@ -403,7 +447,9 @@ class EngTicketController extends Controller
         $engTypes = $this->engTicketTypes();
 
         $baseCount = function () use ($engTypes) {
-            return TrTicket::query()->whereIn('ticket_type', $engTypes);
+            return $this->scopeVisibleTickets(
+                TrTicket::query()->whereIn('ticket_type', $engTypes)
+            );
         };
 
         $counts = [
@@ -529,6 +575,8 @@ class EngTicketController extends Controller
         ])
             ->whereNull('deleted_at')
             ->whereIn('ticket_type', $engTypes);
+
+        $this->scopeVisibleTickets($query);
 
         if ($request->filled('status')) {
             if ($request->status === 'MY_TICKET') {
@@ -712,8 +760,10 @@ class EngTicketController extends Controller
     {
         $engTypes = $this->engTicketTypes();
 
-        $query = TrTicket::with(['responseActivity', 'site', 'location', 'subLocation'])
+        $query = TrTicket::with(['responseActivity', 'site', 'location', 'subLocation', 'company'])
             ->whereIn('ticket_type', $engTypes);
+
+        $this->scopeVisibleTickets($query);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -817,6 +867,8 @@ class EngTicketController extends Controller
                 'pic_ticket' => $ticket->pic_ticket,
 
                 'cpny_id' => $ticket->cpny_id,
+
+                'cpny_name' => optional($ticket->company)->cpny_name,
 
                 'department_id' => $ticket->department_id,
 
@@ -3124,7 +3176,9 @@ class EngTicketController extends Controller
         $engTypes = $this->engTicketTypes();
 
         $base = function () use ($engTypes) {
-            return TrTicket::query()->whereIn('ticket_type', $engTypes);
+            return $this->scopeVisibleTickets(
+                TrTicket::query()->whereIn('ticket_type', $engTypes)
+            );
         };
 
         $statuses = [
@@ -3663,24 +3717,13 @@ class EngTicketController extends Controller
         $isApprover = $ticket->status_pekerjaan === 'COMPLETE_REQUESTED'
             && $isPendingApprover;
 
-        $userCompanies = collect(explode(',', (string) $user->cpny_id))
-            ->map(fn ($item) => trim($item))
-            ->filter()
-            ->values();
-
-        $userDepartments = collect(explode(',', (string) $user->department_id))
-            ->map(fn ($item) => trim($item))
-            ->filter()
-            ->values();
-
-        $sameCompanyDept = $userCompanies->contains($ticket->cpny_id)
-            && $userDepartments->contains($ticket->department_id);
+        $sameCompany = collect($this->userCompanyIds())->contains($ticket->cpny_id);
 
         return [
             'can_view' => $isRequester
                 || $isPIC
                 || $isEng
-                || $sameCompanyDept
+                || $sameCompany
                 || $isPendingApprover,
 
             'can_edit' => $isRequester

@@ -215,10 +215,11 @@ const EngTicketCalendar = {
                     BA_FO:            '[BA FO]',
                 };
                 const prefix = prefixByType[ticket.ticket_type] || '[ENG]';
+                const companyTag = ticket.cpny_id || ticket.cpny_name;
 
                 return {
                     id:              ticket.eid,
-                    title:           `${prefix} ${ticket.ticketid} - ${ticket.issue_summary || ''}`,
+                    title:           `${prefix}${companyTag ? ' [' + companyTag + ']' : ''} ${ticket.ticketid} - ${ticket.issue_summary || ''}`,
                     start:           ticket.event_start,
                     end:             ticket.event_end || undefined,
                     allDay:          !!ticket.all_day,
@@ -232,6 +233,8 @@ const EngTicketCalendar = {
                         issue_summary:    ticket.issue_summary,
                         status_pekerjaan: ticket.status_pekerjaan,
                         pic_ticket:       ticket.pic_ticket,
+                        cpny_id:          ticket.cpny_id,
+                        cpny_name:        ticket.cpny_name,
                         location_name:    ticket.location_name,
                         calendar_state:   ticket.calendar_state,
                         can_edit:         !!ticket.can_edit,
