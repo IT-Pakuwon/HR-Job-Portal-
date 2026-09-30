@@ -752,6 +752,198 @@
         .ticketModal-pickerGrid + .ticketModal-capacity {
             margin-top: 14px;
         }
+        .ticketModal-colleagueToggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        .ticketModal-colleagueToggle input[type="checkbox"] {
+            width: 17px;
+            height: 17px;
+            accent-color: #111827;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .ticketModal-colleagueToggle-icon {
+            font-size: 15px;
+            line-height: 1;
+        }
+        .ticketModal-colleagueToggle-text {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #111827;
+        }
+        .ticketModal-colleagueToggle-hint {
+            display: block;
+            margin-top: 1px;
+            font-size: 10.5px;
+            font-weight: 500;
+            color: #6b7280;
+        }
+        .ticketModal-colleagueWrap {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid #f0f1f3;
+            display: none;
+        }
+        .ticketModal-scopeGroup {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .ticketModal-scopeOption {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 10px;
+            border-radius: 10px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            cursor: pointer;
+            transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+        }
+        .ticketModal-scopeOption input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .ticketModal-scopeOption:hover {
+            border-color: #9ca3af;
+        }
+        .ticketModal-scopeOption:has(input:checked) {
+            border-color: #111827;
+            background: #f9fafb;
+            box-shadow: 0 0 0 1px #111827;
+        }
+        .ticketModal-scopeOption-icon {
+            font-size: 16px;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+        .ticketModal-scopeOption-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.3;
+            min-width: 0;
+        }
+        .ticketModal-scopeOption-text strong {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #111827;
+        }
+        .ticketModal-scopeOption-text small {
+            font-size: 10px;
+            color: #6b7280;
+        }
+        .ticketModal-colleagueHint {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 8px;
+        }
+        .ticketModal-participantList {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ticketModal-participantRow {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border: 1px solid #f0f1f3;
+            border-radius: 10px;
+            background: #f9fafb;
+        }
+        .ticketModal-participantAvatar {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            color: #fff;
+            background: linear-gradient(135deg, #374151, #111827);
+        }
+        .ticketModal-participantInfo {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            flex: 1;
+        }
+        .ticketModal-participantName {
+            font-size: 12px;
+            font-weight: 600;
+            color: #111827;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .ticketModal-participantMeta {
+            font-size: 10px;
+            color: #6b7280;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .ticketModal-participantBadge {
+            flex-shrink: 0;
+            font-size: 9.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .02em;
+            padding: 3px 8px;
+            border-radius: 9999px;
+            background: #f3f4f6;
+            color: #374151;
+        }
+        .ticketModal-participantBadge.you {
+            background: #ede9fe;
+            color: #6d28d9;
+        }
+        .ticketModal-participantEmpty {
+            font-size: 11px;
+            color: #9ca3af;
+            margin: 6px 0 0;
+        }
+        .select2-filter-multi .select2-selection--multiple {
+            min-height: 40px !important;
+            border: 1px solid #d1d5db !important;
+            border-radius: 8px !important;
+            padding: 3px 6px !important;
+            background: #fff;
+        }
+        .select2-filter-multi.select2-container--focus .select2-selection--multiple,
+        .select2-filter-multi.select2-container--open .select2-selection--multiple {
+            border-color: #9ca3af !important;
+            box-shadow: 0 0 0 2px #e5e7eb;
+            outline: none;
+        }
+        .select2-filter-multi .select2-selection__choice {
+            background: #f3f4f6 !important;
+            border: 1px solid #e5e7eb !important;
+            border-radius: 6px !important;
+            color: #111827 !important;
+            font-size: 12px !important;
+            padding: 2px 8px !important;
+            margin: 3px 4px 3px 0 !important;
+        }
+        .select2-filter-multi .select2-selection__choice__remove {
+            color: #9ca3af !important;
+            margin-right: 4px !important;
+        }
+        .select2-filter-multi .select2-selection__choice__remove:hover {
+            color: #111827 !important;
+        }
+        .select2-filter-multi .select2-search__field {
+            font-size: 13px !important;
+        }
         .posterPreviewPopup {
             padding: 0 !important;
             background: transparent !important;
@@ -1568,6 +1760,92 @@
             background: #755ff8;
             color: #fff;
         }
+        html.dark .ticketModal-colleagueToggle-text {
+            color: #f3f4f6;
+        }
+        html.dark .ticketModal-colleagueToggle-hint {
+            color: #9ca3af;
+        }
+        html.dark .ticketModal-colleagueToggle input[type="checkbox"] {
+            accent-color: #755ff8;
+        }
+        html.dark .ticketModal-colleagueWrap {
+            border-top-color: #374151;
+        }
+        html.dark .ticketModal-scopeOption {
+            border-color: #4b5563;
+            background: #1f2937;
+        }
+        html.dark .ticketModal-scopeOption:hover {
+            border-color: #6b7280;
+        }
+        html.dark .ticketModal-scopeOption:has(input:checked) {
+            border-color: #755ff8;
+            background: rgba(117, 95, 248, 0.12);
+            box-shadow: 0 0 0 1px #755ff8;
+        }
+        html.dark .ticketModal-scopeOption-text strong {
+            color: #f3f4f6;
+        }
+        html.dark .ticketModal-scopeOption-text small {
+            color: #9ca3af;
+        }
+        html.dark .ticketModal-colleagueHint {
+            color: #9ca3af;
+        }
+        html.dark .ticketModal-participantRow {
+            background: #374151;
+            border-color: #4b5563;
+        }
+        html.dark .ticketModal-participantName {
+            color: #f3f4f6;
+        }
+        html.dark .ticketModal-participantMeta {
+            color: #9ca3af;
+        }
+        html.dark .ticketModal-participantBadge {
+            background: #4b5563;
+            color: #e5e7eb;
+        }
+        html.dark .ticketModal-participantBadge.you {
+            background: rgba(117, 95, 248, 0.2);
+            color: #c4b5fd;
+        }
+        html.dark .ticketModal-participantEmpty {
+            color: #6b7280;
+        }
+        html.dark .select2-filter-multi .select2-selection--multiple {
+            background: #374151 !important;
+            border-color: #4b5563 !important;
+        }
+        html.dark .select2-filter-multi.select2-container--focus .select2-selection--multiple,
+        html.dark .select2-filter-multi.select2-container--open .select2-selection--multiple {
+            border-color: #6b7280 !important;
+            box-shadow: 0 0 0 2px #4b5563;
+        }
+        html.dark .select2-filter-multi .select2-selection__choice {
+            background: #1f2937 !important;
+            border-color: #4b5563 !important;
+            color: #e5e7eb !important;
+        }
+        html.dark .select2-filter-multi .select2-selection__choice__remove {
+            color: #9ca3af !important;
+        }
+        html.dark .select2-filter-multi .select2-selection__choice__remove:hover {
+            color: #f3f4f6 !important;
+        }
+        html.dark .select2-filter-multi .select2-dropdown {
+            background: #1f2937;
+            border-color: #4b5563;
+        }
+        html.dark .select2-filter-multi .select2-results__option {
+            color: #e5e7eb;
+        }
+        html.dark .select2-filter-multi .select2-search__field {
+            background: #111827 !important;
+            border-color: #4b5563 !important;
+            color: #e5e7eb !important;
+        }
         html.dark .feedbackModal-ratingItem:has(input:checked) {
             border-color: #f59e0b;
             background: rgba(245, 158, 11, 0.15);
@@ -2105,6 +2383,7 @@
         });
 
         const selfUsername = @json(Auth::user()->username);
+        const selfName = @json(Auth::user()->name ?: Auth::user()->username);
 
         function submitRegistration(scheduleId, participants, closeDetail) {
             $.ajax({
@@ -2125,16 +2404,19 @@
             });
         }
 
-        // Batch registration modal: you are always included, plus any
-        // colleagues from the same origin company & department (searchable).
-        // A live preview lists everyone before the batch is submitted.
+        // Batch registration modal: with colleagues off, only you register.
+        // With colleagues on, only whoever is explicitly searched/added
+        // registers (you're not auto-included — add your own name to join
+        // too), scoped to either your exact company+department or any
+        // different company within your own department. A live preview
+        // lists everyone before the batch is submitted.
         function openColleaguePicker(training, sched, closeDetail) {
             const thumbHtml = training.poster_url
                 ? `<img class="ticketModal-thumb" src="${training.poster_url}">`
                 : `<div class="ticketModal-thumbFallback">🎓</div>`;
 
             const hint = myCompanyNameGlobal && myDepartmentNameGlobal
-                ? ` (${myCompanyNameGlobal} · ${myDepartmentNameGlobal})`
+                ? `${myCompanyNameGlobal} · ${myDepartmentNameGlobal}`
                 : '';
 
             const html = `
@@ -2147,14 +2429,36 @@
                 </div>
                 <div class="ticketModal-body">
                     <div class="ticketModal-card">
-                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-                            <input type="checkbox" id="swalAddColleagues" style="width:16px;height:16px;">
-                            <span class="ticketModal-label" style="margin:0;">👥 Also register colleagues${hint}</span>
+                        <label class="ticketModal-colleagueToggle">
+                            <input type="checkbox" id="swalAddColleagues">
+                            <span class="ticketModal-colleagueToggle-icon">👥</span>
+                            <span class="ticketModal-colleagueToggle-text">
+                                Also register colleagues
+                                ${hint ? `<span class="ticketModal-colleagueToggle-hint">${hint}</span>` : ''}
+                            </span>
                         </label>
-                        <div id="swalColleaguesWrap" style="margin-top:10px;display:none;">
+                        <div id="swalColleaguesWrap" class="ticketModal-colleagueWrap">
+                            <div class="ticketModal-scopeGroup">
+                                <label class="ticketModal-scopeOption">
+                                    <input type="radio" name="swalColleagueScope" value="same" checked>
+                                    <span class="ticketModal-scopeOption-icon">🏢</span>
+                                    <span class="ticketModal-scopeOption-text">
+                                        <strong>Same company</strong>
+                                        <small>&amp; department</small>
+                                    </span>
+                                </label>
+                                <label class="ticketModal-scopeOption">
+                                    <input type="radio" name="swalColleagueScope" value="diff">
+                                    <span class="ticketModal-scopeOption-icon">🌐</span>
+                                    <span class="ticketModal-scopeOption-text">
+                                        <strong>Different company</strong>
+                                        <small>same department</small>
+                                    </span>
+                                </label>
+                            </div>
                             <select id="swalColleagues" multiple></select>
-                            <p style="font-size:11px;color:#6b7280;margin-top:8px;">
-                                Search and add colleagues to register them in the same batch.
+                            <p class="ticketModal-colleagueHint">
+                                Search and add colleagues to register them in the same batch. Add your own name to register yourself too.
                             </p>
                         </div>
                         <div id="swalPreview" class="ticketModal-capacity"></div>
@@ -2174,11 +2478,21 @@
                     const $toggle = $popup.find('#swalAddColleagues');
                     const $wrap = $popup.find('#swalColleaguesWrap');
                     const $sel = $popup.find('#swalColleagues');
+                    const $scopeRadios = $popup.find('input[name="swalColleagueScope"]');
+
+                    const currentScope = () => $scopeRadios.filter(':checked').val() || 'same';
+
+                    // Name/company lookup for the preview list below — select2's
+                    // own .val() only returns raw usernames, so results seen while
+                    // searching are cached here as they come in.
+                    const colleagueMeta = { [selfUsername]: { name: selfName, cpny_name: '' } };
 
                     $sel.select2({
                         dropdownParent: $popup,
                         width: '100%',
                         multiple: true,
+                        containerCssClass: 'select2-filter-multi',
+                        dropdownCssClass: 'select2-filter-multi',
                         placeholder: 'Search colleagues...',
                         allowClear: true,
                         minimumInputLength: 1,
@@ -2186,24 +2500,49 @@
                             url: colleaguesUrl,
                             dataType: 'json',
                             delay: 250,
-                            data: (params) => ({ q: params.term || '' }),
+                            data: (params) => ({ q: params.term || '', scope: currentScope() }),
                             processResults: (res) => ({
-                                results: (res.data || []).map((c) => ({
-                                    id: c.username,
-                                    text: `${c.name} (${c.username})`,
-                                })),
+                                results: (res.data || []).map((c) => {
+                                    colleagueMeta[c.username] = { name: c.name, cpny_name: c.cpny_name };
+
+                                    return {
+                                        id: c.username,
+                                        text: c.username === selfUsername
+                                            ? `${c.name} (${c.username}) · You`
+                                            : `${c.name} (${c.username})${currentScope() === 'diff' ? ' · ' + (c.cpny_name || '') : ''}`,
+                                    };
+                                }),
                             }),
                         },
                     });
 
+                    const initials = (name) => (name || '?').trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+
+                    // No auto-added self here: when colleagues are added, only what's
+                    // actually picked in $sel is registered. You're only included if
+                    // you deliberately search and add your own name to the list.
                     const renderPreview = () => {
-                        const list = $toggle.is(':checked') ? [selfUsername, ...($sel.val() || [])] : [selfUsername];
-                        $popup.find('#swalPreview').html(list.map((u) => `
-                            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border:1px solid #f0f1f3;border-radius:8px;margin-top:6px;background:#f9fafb;">
-                                <span style="font-size:12px;font-weight:600;color:#111827;">${u}</span>
-                                <span style="font-size:10px;color:#6b7280;">${u === selfUsername ? 'You' : 'Colleague'}</span>
+                        const list = $toggle.is(':checked') ? ($sel.val() || []) : [selfUsername];
+
+                        $popup.find('#swalPreview').html(list.length ? `
+                            <div class="ticketModal-participantList">
+                                ${list.map((u) => {
+                                    const meta = colleagueMeta[u] || { name: u, cpny_name: '' };
+                                    const isSelf = u === selfUsername;
+
+                                    return `
+                                        <div class="ticketModal-participantRow">
+                                            <span class="ticketModal-participantAvatar">${initials(meta.name)}</span>
+                                            <span class="ticketModal-participantInfo">
+                                                <span class="ticketModal-participantName">${meta.name}</span>
+                                                <span class="ticketModal-participantMeta">${u}${meta.cpny_name ? ' · ' + meta.cpny_name : ''}</span>
+                                            </span>
+                                            <span class="ticketModal-participantBadge${isSelf ? ' you' : ''}">${isSelf ? 'You' : 'Colleague'}</span>
+                                        </div>
+                                    `;
+                                }).join('')}
                             </div>
-                        `).join(''));
+                        ` : `<p class="ticketModal-participantEmpty">No participants selected yet — search above to add colleagues.</p>`);
                     };
 
                     // Colleague search stays hidden/inert until the checkbox is ticked,
@@ -2215,6 +2554,13 @@
                         renderPreview();
                     });
 
+                    // Switching scope changes the eligible pool entirely, so the
+                    // current selection (picked under the old scope) is cleared.
+                    $scopeRadios.on('change', () => {
+                        $sel.val(null).trigger('change');
+                        renderPreview();
+                    });
+
                     $sel.on('change', renderPreview);
                     renderPreview();
                 },
@@ -2222,7 +2568,14 @@
                     const $popup = $(Swal.getPopup());
                     const $sel = $popup.find('#swalColleagues');
                     const addColleagues = $popup.find('#swalAddColleagues').is(':checked');
-                    return { participants: addColleagues ? [selfUsername, ...($sel.val() || [])] : [selfUsername] };
+                    const selected = $sel.val() || [];
+
+                    if (addColleagues && selected.length === 0) {
+                        Swal.showValidationMessage('Select at least one colleague, or uncheck "Also register colleagues" to register just yourself.');
+                        return false;
+                    }
+
+                    return { participants: addColleagues ? selected : [selfUsername] };
                 },
             }).then((result) => {
                 if (!result.isConfirmed) return;

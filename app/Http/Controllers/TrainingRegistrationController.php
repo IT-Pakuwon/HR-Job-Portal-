@@ -416,8 +416,10 @@ class TrainingRegistrationController extends Controller
     }
 
     /**
-     * Colleagues eligible for batch registration: active ms_user rows sharing
-     * the caller's exact origin company AND origin department.
+     * Colleagues eligible for batch registration: active ms_user rows in the
+     * caller's own origin department. `scope=same` (default) also requires
+     * the caller's exact origin company; `scope=diff` requires a DIFFERENT
+     * company instead (still same department) for cross-company batches.
      */
     public function colleagues(Request $request)
     {
@@ -429,10 +431,17 @@ class TrainingRegistrationController extends Controller
             return response()->json(['data' => []]);
         }
 
+        $scope = $request->get('scope', 'same');
+
         $query = User::query()
             ->where('status', 'A')
-            ->where('origin_cpny_id', $originCpnyId)
             ->where('origin_department_id', $originDeptId);
+
+        if ($scope === 'diff') {
+            $query->where('origin_cpny_id', '!=', $originCpnyId);
+        } else {
+            $query->where('origin_cpny_id', $originCpnyId);
+        }
 
         $search = trim((string) $request->get('q', ''));
         if ($search !== '') {
@@ -444,11 +453,15 @@ class TrainingRegistrationController extends Controller
 
         $rows = $query->orderBy('name')->limit(50)->get(['username', 'name', 'origin_cpny_id', 'origin_department_id']);
 
+        $cpnyNames = MsCompany::whereIn('cpny_id', $rows->pluck('origin_cpny_id')->filter()->unique())
+            ->pluck('cpny_name', 'cpny_id');
+
         return response()->json([
             'data' => $rows->map(fn ($u) => [
                 'username' => $u->username,
                 'name' => $u->name ?: $u->username,
                 'cpny_id' => $u->origin_cpny_id,
+                'cpny_name' => $cpnyNames[$u->origin_cpny_id] ?? $u->origin_cpny_id,
                 'department_id' => $u->origin_department_id,
             ])->values(),
         ]);
@@ -698,11 +711,14 @@ class TrainingRegistrationController extends Controller
     /**
      * Multi-participant registration. $scheduleId is the TSDxxxxx schedule
      * code. Defaults to self-registration; a non-empty `participants[]` list
-     * registers that exact set of colleagues (submitter may include
-     * themselves). Each participant gets their own row AND their own
-     * training_regist_id/approval chain — they are submitted together
-     * (one seat-availability check for the whole set) but approved
-     * independently, not as a shared batch document.
+     * registers that EXACT set of people (the submitter is NOT auto-included
+     * — they must be listed explicitly to register themselves too). Every
+     * participant must share the submitter's origin department; company may
+     * differ. Each participant gets their own row AND their own
+     * training_regist_id/approval chain, checked/consumed against their OWN
+     * company's quota and routed to their OWN company's approval line — they
+     * are submitted together but approved independently, not as a shared
+     * batch document.
      */
     public function register(Request $request, string $scheduleId)
     {
@@ -743,15 +759,15 @@ class TrainingRegistrationController extends Controller
                 return response()->json(['success' => false, 'message' => "Participant {$username} not found"], 422);
             }
 
-            // Colleagues must belong to the exact same origin org as the submitter.
+            // Colleagues must share the submitter's department — company may
+            // differ (see colleagues() 'diff' scope for cross-company picks).
             if (strcasecmp($username, $user->username) !== 0) {
-                $pCpny = trim((string) $participant->origin_cpny_id);
                 $pDept = trim((string) $participant->origin_department_id);
 
-                if ($pCpny !== $originCpnyId || $pDept !== $originDeptId) {
+                if ($pDept !== $originDeptId) {
                     return response()->json([
                         'success' => false,
-                        'message' => "Participant {$username} is not a colleague from your office",
+                        'message' => "Participant {$username} is not in your department",
                     ], 422);
                 }
             }
@@ -830,30 +846,46 @@ class TrainingRegistrationController extends Controller
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-            $quotas = MsLndTrainingQuota::where('schedule_id', $scheduleId)
-                ->where('cpny_id', $originCpnyId)
-                ->lockForUpdate()
-                ->get();
+            // Colleagues no longer have to share the submitter's company (only
+            // the department), so quota/seats are checked per PARTICIPANT'S
+            // OWN company rather than once against the submitter's company —
+            // each participant draws from and consumes their own company's
+            // quota pool, independent of who submitted the batch.
+            $participantCpnyIds = $participants->map(fn ($p) => trim((string) $p->origin_cpny_id))->unique()->values();
 
-            if ($quotas->isEmpty()) {
+            $quotasByCpny = MsLndTrainingQuota::where('schedule_id', $scheduleId)
+                ->whereIn('cpny_id', $participantCpnyIds)
+                ->lockForUpdate()
+                ->get()
+                ->groupBy('cpny_id');
+
+            $missingCpnyIds = $participantCpnyIds->filter(fn ($id) => !isset($quotasByCpny[$id]));
+
+            if ($missingCpnyIds->isNotEmpty()) {
                 DB::connection('pgsql5')->rollBack();
 
-                return response()->json(['success' => false, 'message' => 'This training is not available for your company'], 422);
+                $missingNames = MsCompany::whereIn('cpny_id', $missingCpnyIds)->pluck('cpny_name', 'cpny_id');
+                $labels = $missingCpnyIds->map(fn ($id) => $missingNames[$id] ?? $id)->implode(', ');
+
+                return response()->json(['success' => false, 'message' => "This training is not available for: {$labels}"], 422);
             }
 
-            $quotaPax = $quotas->sum('quota_pax');
-            $seatCount = $this->activeSeatCount($scheduleId, $originCpnyId);
-            $seatsRemaining = max(0, $quotaPax - $seatCount);
+            $seatsRemainingByCpny = $participantCpnyIds->mapWithKeys(function ($cpnyId) use ($quotasByCpny, $scheduleId) {
+                $quotaPax = $quotasByCpny[$cpnyId]->sum('quota_pax');
+                $seatCount = $this->activeSeatCount($scheduleId, $cpnyId);
+
+                return [$cpnyId => max(0, $quotaPax - $seatCount)];
+            });
 
             // Approval always starts at registration time, whether or not
             // there's a seat free. status_registration is the SEATING flag on
             // top of it: waitlisted people are still pending/approved in the
             // approval pipeline while they wait. Seats are handed out to the
-            // submitted set in order (first-come within the batch) rather than
-            // all-or-nothing, so a batch can land partly seated / partly
-            // waitlisted when fewer seats remain than participants — each
-            // participant still gets their own independent document/approval
-            // chain below.
+            // submitted set in order (first-come within the batch, per their
+            // own company) rather than all-or-nothing, so a batch can land
+            // partly seated / partly waitlisted when fewer seats remain than
+            // participants — each participant still gets their own
+            // independent document/approval chain below.
             $status = TrLndTrainingRegistration::STATUS_PENDING;
 
             $now = now();
@@ -869,12 +901,15 @@ class TrainingRegistrationController extends Controller
             // (needed so attendance logging can unambiguously tell participants
             // in the same submission apart).
             foreach ($participants as $participant) {
+                $pCpnyId = trim((string) $participant->origin_cpny_id);
+                $pDeptId = trim((string) $participant->origin_department_id);
+
                 $docId = $this->generateRegistrationCode($user->username);
                 $docIds->push($docId);
 
-                if ($seatsRemaining > 0) {
+                if ($seatsRemainingByCpny[$pCpnyId] > 0) {
                     $statusReg = null;
-                    $seatsRemaining--;
+                    $seatsRemainingByCpny[$pCpnyId]--;
                     $seatedCount++;
                 } else {
                     $statusReg = TrLndTrainingRegistration::REG_STATUS_WAITLISTED;
@@ -888,8 +923,9 @@ class TrainingRegistrationController extends Controller
                     'training_detail_id' => $detail->training_detail_id,
                     'schedule_id' => $detail->schedule_id,
                     'schedule_date' => $detail->schedule_date,
-                    'cpny_id' => trim((string) $participant->origin_cpny_id),
-                    'department_id' => trim((string) $participant->origin_department_id),
+                    'cpny_id' => $pCpnyId,
+                    'registration_cpny_id' => $pCpnyId,
+                    'department_id' => $pDeptId,
                     'user_registration' => $participant->username,
                     'qty_registration' => 1,
                     'status' => $status,
@@ -900,7 +936,7 @@ class TrainingRegistrationController extends Controller
                     'created_at' => $now,
                 ]);
 
-                $this->submitForApproval($docId, $originCpnyId, $originDeptId, $user, $now, $trainingName);
+                $this->submitForApproval($docId, $pCpnyId, $pDeptId, $user, $now, $trainingName);
             }
 
             DB::connection('pgsql5')->commit();

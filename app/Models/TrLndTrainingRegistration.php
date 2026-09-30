@@ -39,6 +39,7 @@ class TrLndTrainingRegistration extends Model
         'qty_registration',
         'status',
         'status_registration',
+        'registration_cpny_id',
         'process_registration_user',
         'process_registration_date',
         'attendance_code',
