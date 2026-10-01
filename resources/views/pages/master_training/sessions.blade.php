@@ -260,9 +260,12 @@
         </div>
     </div>
 
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {{-- Select2 and SweetAlert2 are already loaded globally by the app layout
+         (resources/views/layouts/app.blade.php) — loading a second, different
+         Select2 build here (4.1.0-rc.0 on top of the layout's 4.0.13) made
+         $.fn.select2 get redefined mid-page, which is why dropdowns like
+         Place would visually open (select2-container--open) but picking a
+         different option silently failed to register. --}}
 
     <style>
         #scheduleModal .select2-container--default .select2-selection--single {
@@ -960,7 +963,12 @@
 
                 // job_level can hold several pipe-joined levels (a batch shared
                 // across them, see combineJobLevels() on the controller) — one
-                // select2 option per level, all pre-selected.
+                // select2 option per level, all pre-selected. Emptied first:
+                // #job_level persists across modal opens (it's outside the
+                // dates/quota containers that get rebuilt from scratch), so
+                // appending without clearing stacked duplicate chips on every
+                // repeat Edit/View click in the same page session.
+                $('#job_level').empty();
                 (s.job_level || '').split('|').map(l => l.trim()).filter(l => l).forEach(function(level) {
                     $('#job_level').append(new Option(level, level, true, true));
                 });
