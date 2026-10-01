@@ -257,7 +257,7 @@
                         </button>
 
                         <div x-show="summaryOpen" x-transition class="space-y-3">
-                            <div class="grid grid-cols-2 gap-3 sm:grid-cols-5">
+                            <div class="grid grid-cols-2 gap-3 sm:grid-cols-6">
                                 <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
                                     <p class="text-sm font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400">Waiting Approval</p>
                                     <p id="statWaitingApproval" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
@@ -265,6 +265,10 @@
                                 <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
                                     <p class="text-sm font-bold uppercase tracking-wide text-sky-600 dark:text-sky-400">Waiting List</p>
                                     <p id="statWaitingList" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
+                                </div>
+                                <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                                    <p class="text-sm font-bold uppercase tracking-wide text-violet-600 dark:text-violet-400">Waiting Offer</p>
+                                    <p id="statWaitingOffer" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
                                 </div>
                                 <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
                                     <p class="text-sm font-bold uppercase tracking-wide text-green-600 dark:text-green-400">Approved</p>
@@ -3840,6 +3844,7 @@
             const counts = res.status_counts || {};
             $('#statWaitingApproval').text(counts.waiting_approval ?? 0);
             $('#statWaitingList').text(counts.waiting_list ?? 0);
+            $('#statWaitingOffer').text(counts.waiting_offer ?? 0);
             $('#statApproved').text(counts.approved ?? 0);
             $('#statRejected').text(counts.rejected ?? 0);
             $('#statCancelled').text(counts.cancelled ?? 0);

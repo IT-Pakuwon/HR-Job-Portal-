@@ -1150,6 +1150,7 @@ class DocumentNotificationService
             'MANACC'  => ['TRN_MANUAL_ACCEPT', 'Seat Confirmed'],
             'RESCHED' => ['TRN_RESCHEDULE', 'Schedule Changed'],
             'CERTRDY' => ['TRN_CERT_READY', 'Certificate Ready'],
+            'CANCEL'  => ['TRN_CANCELLED', 'Registration Cancelled'],
         ];
 
         return $map[$eventCode] ?? ['COMMENT', 'New Comment'];
@@ -1175,7 +1176,7 @@ class DocumentNotificationService
 
         $recipients = match ($eventCode) {
             // The requester's outcome — both whoever submitted it and the participant care.
-            'APPROVE', 'REJECT' => $participant->merge($creator),
+            'APPROVE', 'REJECT', 'CANCEL' => $participant->merge($creator),
             // The participant is the only one with a 24h window to act on their own offer.
             'OFFER' => $participant,
             // HCDEV asked to be kept posted on how participants respond to offers.

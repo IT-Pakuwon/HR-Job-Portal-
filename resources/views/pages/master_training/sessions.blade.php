@@ -415,6 +415,11 @@
                         <input type="date" class="date-registration_deadline ${inputClass}" min="{{ now()->format('Y-m-d') }}">
                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Defaults to 3 days before this date &mdash; edit if needed.</p>
                     </div>
+                    <div class="mt-3">
+                        <label class="${labelClass}">Publish At</label>
+                        <input type="datetime-local" class="date-published_datetime ${inputClass}">
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Optional — schedule auto-publishes at this moment instead of staying DRAFT until manually published. Leave blank to publish manually.</p>
+                    </div>
                     <div class="date-speakerWrapper mt-3" style="display:none;">
                         <label class="${labelClass}">Speaker</label>
                         <select class="date-speaker w-full" multiple></select>
@@ -1003,6 +1008,7 @@
                 $block.find('.date-platform').val(s.platform);
                 $block.find('.date-meeting_link').val(s.meeting_link);
                 $block.find('.date-registration_deadline').val(s.registration_deadline).data('touched', true);
+                $block.find('.date-published_datetime').val(s.published_datetime || '');
 
                 // Up to 3 speakers stored comma-joined (see combineSpeakers()/
                 // combineExtSpeakers() on the controller) — one option per
@@ -1256,6 +1262,7 @@
                         platform: $block.find('.date-platform').val() || '',
                         meeting_link: $block.find('.date-meeting_link').val() || '',
                         registration_deadline: $block.find('.date-registration_deadline').val() || '',
+                        published_datetime: $block.find('.date-published_datetime').val() || '',
                         speaker_usernames: speaker.usernames,
                         speaker_names: speaker.names,
                         ext_speaker_names: $block.find('.date-ext-speaker').val() || [],
@@ -1288,6 +1295,7 @@
                     formData.append('platform', d.platform);
                     formData.append('meeting_link', d.meeting_link);
                     formData.append('registration_deadline', d.registration_deadline);
+                    formData.append('published_datetime', d.published_datetime);
                     d.speaker_usernames.forEach(v => formData.append('speaker_username[]', v));
                     d.speaker_names.forEach(v => formData.append('speaker_name[]', v));
                     d.ext_speaker_names.forEach(v => formData.append('ext_speaker_name[]', v));
@@ -1302,6 +1310,7 @@
                         formData.append(`dates[${i}][platform]`, d.platform);
                         formData.append(`dates[${i}][meeting_link]`, d.meeting_link);
                         formData.append(`dates[${i}][registration_deadline]`, d.registration_deadline);
+                        formData.append(`dates[${i}][published_datetime]`, d.published_datetime);
                         d.speaker_usernames.forEach(v => formData.append(`dates[${i}][speaker_username][]`, v));
                         d.speaker_names.forEach(v => formData.append(`dates[${i}][speaker_name][]`, v));
                         d.ext_speaker_names.forEach(v => formData.append(`dates[${i}][ext_speaker_name][]`, v));

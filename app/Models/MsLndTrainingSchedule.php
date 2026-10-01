@@ -31,6 +31,7 @@ class MsLndTrainingSchedule extends Model
         'training_speaker_username',
         'training_speaker_name',
         'training_ext_speaker_name',
+        'published_datetime',
         'status',
         'created_by',
         'updated_by',
@@ -44,6 +45,7 @@ class MsLndTrainingSchedule extends Model
     protected $casts = [
         'feedback_opened_at' => 'datetime',
         'feedback_closed_at' => 'datetime',
+        'published_datetime' => 'datetime',
         'schedule_date' => 'date',
         'deleted_at' => 'datetime',
     ];

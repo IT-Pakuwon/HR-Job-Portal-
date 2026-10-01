@@ -23,6 +23,7 @@ class ApprovalController extends Controller
         'D' => 'Revise Approval',
         'A' => 'Approved',
         'C' => 'Completed',
+        'X' => 'Cancelled',
     ];
 
     public function orderByLevel($query)

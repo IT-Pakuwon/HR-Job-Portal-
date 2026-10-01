@@ -215,7 +215,12 @@ class TrainingAttendanceController extends Controller
     {
         $registration = TrLndTrainingRegistration::findOrFail($registrationId);
 
-        if ($registration->status_registration) {
+        // Same guard as scan(): only an approved, seated registration can be
+        // checked in. Without this, a rejected/still-pending registration id
+        // called directly (or rejected in a race after already being shown on
+        // the roster) could be marked attended and would then also pass
+        // TrainingFeedbackController's feedback gate.
+        if ($registration->status !== TrLndTrainingRegistration::STATUS_APPROVED || $registration->status_registration) {
             return response()->json(['success' => false, 'message' => 'Peserta belum memiliki slot pada event ini'], 422);
         }
 

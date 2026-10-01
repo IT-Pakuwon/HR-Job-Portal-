@@ -148,6 +148,7 @@ class TrainingSessionController extends Controller
                     'training_speaker_name' => $this->refreshSpeakerNames($detail->training_speaker_username, $detail->training_speaker_name, $speakerNames),
                     'training_ext_speaker_name' => $detail->training_ext_speaker_name,
                     'registration_deadline' => $detail->registration_deadline,
+                    'published_datetime' => $detail->published_datetime?->format('Y-m-d\TH:i'),
                     'status' => self::STATUS_LABEL_MAP[$detail->status] ?? $detail->status,
                     'quota' => $detail->quota->map(fn ($q) => [
                         'cpny_id' => $q->cpny_id,
@@ -230,8 +231,28 @@ class TrainingSessionController extends Controller
      * and applied to every date in the batch (each date still tracks its
      * own quota independently from there on).
      */
-    private function batchRules(): array
+    private function batchRules(Request $request): array
     {
+        // schedule_date is date-only, so a plain before_or_equal:schedule_date
+        // would reject any published_datetime with a time-of-day on the event
+        // date itself (it'd compare against that date's midnight). Compare
+        // against end-of-day instead.
+        $publishedBeforeSchedule = function ($attribute, $value, $fail) use ($request) {
+            if (!preg_match('/^dates\.(\d+)\.published_datetime$/', $attribute, $m)) {
+                return;
+            }
+
+            $scheduleDate = $request->input("dates.{$m[1]}.schedule_date");
+
+            if (!$scheduleDate) {
+                return;
+            }
+
+            if (Carbon::parse($value)->greaterThan(Carbon::parse($scheduleDate)->endOfDay())) {
+                $fail('Publish date/time must be on or before the training date.');
+            }
+        };
+
         return [
             'job_level' => 'required|array|min:1',
             'job_level.*' => 'required|string|max:50',
@@ -247,6 +268,12 @@ class TrainingSessionController extends Controller
             'dates.*.platform' => 'nullable|string|max:100',
             'dates.*.meeting_link' => 'nullable|string|max:255',
             'dates.*.registration_deadline' => 'nullable|date|after_or_equal:today|before_or_equal:dates.*.schedule_date',
+            // When set, the schedule auto-publishes at this moment instead of
+            // sitting in DRAFT until someone clicks Publish (see
+            // training:publish-scheduled). Left blank, nothing changes —
+            // DRAFT stays DRAFT until a manual publish, same as before this
+            // field existed.
+            'dates.*.published_datetime' => ['nullable', 'date_format:Y-m-d\TH:i', $publishedBeforeSchedule],
             'dates.*.speaker_username' => 'nullable|array|max:3',
             'dates.*.speaker_username.*' => 'nullable|string|max:50',
             'dates.*.speaker_name' => 'nullable|array|max:3',
@@ -264,8 +291,20 @@ class TrainingSessionController extends Controller
      * batch-level (editing them here updates the shared header, affecting
      * every other date in the same batch too — that's intentional).
      */
-    private function dateRules(): array
+    private function dateRules(Request $request): array
     {
+        $publishedBeforeSchedule = function ($attribute, $value, $fail) use ($request) {
+            $scheduleDate = $request->input('schedule_date');
+
+            if (!$scheduleDate) {
+                return;
+            }
+
+            if (Carbon::parse($value)->greaterThan(Carbon::parse($scheduleDate)->endOfDay())) {
+                $fail('Publish date/time must be on or before the training date.');
+            }
+        };
+
         return [
             'job_level' => 'required|array|min:1',
             'job_level.*' => 'required|string|max:50',
@@ -280,6 +319,7 @@ class TrainingSessionController extends Controller
             'platform' => 'nullable|string|max:100',
             'meeting_link' => 'nullable|string|max:255',
             'registration_deadline' => 'nullable|date|after_or_equal:today|before_or_equal:schedule_date',
+            'published_datetime' => ['nullable', 'date_format:Y-m-d\TH:i', $publishedBeforeSchedule],
             'speaker_username' => 'nullable|array|max:3',
             'speaker_username.*' => 'nullable|string|max:50',
             'speaker_name' => 'nullable|array|max:3',
@@ -544,7 +584,7 @@ class TrainingSessionController extends Controller
     {
         $training = $this->resolveTraining($hash);
 
-        $request->validate($this->batchRules());
+        $request->validate($this->batchRules($request));
 
         $isExtSpeaker = $request->boolean('is_ext_speaker');
 
@@ -621,6 +661,7 @@ class TrainingSessionController extends Controller
                     'training_speaker_username' => $speakerUsername,
                     'training_speaker_name' => $speakerName,
                     'training_ext_speaker_name' => $extSpeakerName,
+                    'published_datetime' => $dateRow['published_datetime'] ?? null,
                     'status' => self::STATUS_CODE_MAP['DRAFT'],
                     'created_by' => $createdBy,
                 ]);
@@ -663,7 +704,7 @@ class TrainingSessionController extends Controller
 
         $schedule = MsLndTrainingDetail::where('training_detail_id', $detail->training_detail_id)->firstOrFail();
 
-        $request->validate($this->dateRules());
+        $request->validate($this->dateRules($request));
 
         $isExtSpeaker = $request->boolean('is_ext_speaker');
 
@@ -728,6 +769,7 @@ class TrainingSessionController extends Controller
                 'training_speaker_username' => $speakerUsername,
                 'training_speaker_name' => $speakerName,
                 'training_ext_speaker_name' => $extSpeakerName,
+                'published_datetime' => $request->published_datetime ?: null,
                 'updated_by' => $updatedBy,
             ]);
 

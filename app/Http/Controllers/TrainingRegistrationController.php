@@ -1110,6 +1110,30 @@ class TrainingRegistrationController extends Controller
 
             DB::connection('pgsql5')->commit();
 
+            // Unlike approve()/reject(), cancel() previously notified nobody —
+            // the participant (and whoever registered them, if different) only
+            // found out by reopening My Registration. Sent after commit so a
+            // notification never goes out for a change that then rolled back.
+            $docUrl = url('/training-list/my/'.Hashids::encode($registration->id));
+
+            app(ApprovalController::class)->notifyRequesterOnStatus(
+                $registration->training_regist_id,
+                'Training Registration',
+                'X',
+                $registration->created_by,
+                $docUrl
+            );
+
+            $this->notifyParticipantOnStatus($registration, 'X', $docUrl);
+
+            $this->notifyDocSystem(
+                $registration->training_regist_id,
+                $registration->cpny_id,
+                $registration->department_id,
+                'Your training registration has been cancelled.',
+                'CANCEL'
+            );
+
             return response()->json(['success' => true, 'message' => 'Registration cancelled successfully']);
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
@@ -1301,6 +1325,12 @@ class TrainingRegistrationController extends Controller
                 $wasOffered = $registration->status_registration === TrLndTrainingRegistration::REG_STATUS_OFFERED;
                 $heldSeat = !$registration->status_registration;
 
+                // Rejection is terminal — clear the lifecycle flag (same pattern
+                // as acceptOffer()/manualAccept() nulling it on acceptance) so
+                // effective_status falls through to the raw 'R' status instead
+                // of permanently showing a stale "Waiting List"/"Offered" chip
+                // and blocking re-registration on the browse page.
+                $registration->status_registration = null;
                 $registration->status = TrLndTrainingRegistration::STATUS_REJECTED;
                 $registration->updated_by = Auth::user()->username;
                 $registration->updated_at = $now;
@@ -1756,6 +1786,7 @@ class TrainingRegistrationController extends Controller
                 'rejected' => $statusCounts['R'] ?? 0,
                 'cancelled' => $statusCounts['X'] ?? 0,
                 'waiting_list' => $statusCounts[TrLndTrainingRegistration::REG_STATUS_WAITLISTED] ?? 0,
+                'waiting_offer' => $statusCounts[TrLndTrainingRegistration::REG_STATUS_OFFERED] ?? 0,
             ],
         ]);
     }

@@ -132,6 +132,12 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/training-expire-waitlist-offers.log'));
 
+        // Auto-publish DRAFT training schedules once their published_datetime arrives
+        $schedule->command('training:publish-scheduled')
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/training-publish-scheduled.log'));
+
         // Auto-close training registrations past their H-3 deadline
         $schedule->command('training:close-registrations')
             ->dailyAt('01:00')
