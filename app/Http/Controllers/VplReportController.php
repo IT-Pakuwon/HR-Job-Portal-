@@ -1115,11 +1115,12 @@ class VplReportController extends Controller
      * department.
      *
      * In    = Receive (wherever the receive detail targets, normalized) + Return
-     *         Usage (qty_return_usage), attributed to the owner the usage was
-     *         returned at. Return Usage reverses a prior Usage-Out, so it's added
-     *         back rather than netted against the Out-purpose bucket it came from
-     *         (same convention batchPurposeOut()/ledgerMonthlyInOut() already use
-     *         elsewhere in this controller).
+     *         Usage (qty_return_usage) + Settlement (qty_remain), attributed to the
+     *         owner the usage was returned/settled at. Both reverse a prior Usage-Out
+     *         rather than post new stock, so both are added back rather than netted
+     *         against the Out-purpose bucket they came from (same convention
+     *         batchPurposeOut()/ledgerMonthlyInOut() already use elsewhere in this
+     *         controller).
      * Transfer = both legs of a Transfer/ReturnTf are posted after normalizing
      *         from/to: the source owner's row gets a negative entry, the
      *         destination owner's row gets a positive entry, so each owner's own
@@ -1241,6 +1242,31 @@ class VplReportController extends Controller
 
             $bucket = array_key_exists($u->purpose_id, self::PURPOSE_MAP) ? $u->purpose_id : 'Other';
             $outByMonth[$key][$m][$bucket] = ($outByMonth[$key][$m][$bucket] ?? 0) + (float) $u->qty_usage;
+        }
+
+        $settlements = TrxVplSettlementDetail::query()
+            ->join('tr_vpl_settlement', 'tr_vpl_settlement.settlement_id', '=', 'tr_vpl_settlement_detail.settlement_id')
+            ->where('tr_vpl_settlement.cpnyid', $cpnyid)
+            ->where('tr_vpl_settlement.status', 'C')
+            ->whereIn('tr_vpl_settlement_detail.whs_id', [self::WHS_PROMOTION, self::WHS_LOYALTY])
+            ->where('tr_vpl_settlement_detail.qty_remain', '>', 0)
+            ->whereYear('tr_vpl_settlement.settlement_date', $year)
+            ->select([
+                'tr_vpl_settlement_detail.product_id',
+                'tr_vpl_settlement_detail.expired_date',
+                'tr_vpl_settlement_detail.whs_id',
+                'tr_vpl_settlement_detail.qty_remain',
+                'tr_vpl_settlement.settlement_date',
+            ])
+            ->get();
+
+        foreach ($settlements as $s) {
+            $whsId = $this->normalizeSummaryGroupWhsId($s->whs_id);
+            $key   = $s->product_id.'|'.$this->expiredKey($s->expired_date).'|'.$whsId;
+            $touch($key, $s->product_id, $s->expired_date, $whsId);
+            $m = Carbon::parse($s->settlement_date)->month;
+
+            $inByMonth[$key][$m] = ($inByMonth[$key][$m] ?? 0) + abs((float) $s->qty_remain);
         }
 
         return [$batchMeta, $inByMonth, $transferByMonth, $outByMonth];
@@ -1444,7 +1470,12 @@ class VplReportController extends Controller
      * Out columns always agree. Usage at WHLOYALTY (recorded by the CUSTOMERSERVICE
      * department) always buckets as Loyalty;
      * usage at WHPROMOTION buckets via PURPOSE_MAP. Return Usage is NOT netted out here
-     * — a return reverses stock that already left (it isn't new stock).
+     * — a return reverses stock that already left (it isn't new stock). Settlement
+     * (qty_remain) IS netted out, in the settlement's own month rather than the
+     * original Usage's month — a Settlement doesn't mean less was used physically, it
+     * means the declared Usage never happened, so leaving it in would overstate actual
+     * redemption and break the agreement with ledgerMonthlyInOut() this docblock
+     * promises (same cancelled-then-reused scenario documented there).
      *
      * @return array<string, array<string, float>>
      */
@@ -1474,6 +1505,33 @@ class VplReportController extends Controller
             $qty    = (float) $u->qty_usage;
 
             $out[$key][$bucket] = ($out[$key][$bucket] ?? 0) + $qty;
+        }
+
+        $settlements = TrxVplSettlementDetail::query()
+            ->join('tr_vpl_settlement', 'tr_vpl_settlement.settlement_id', '=', 'tr_vpl_settlement_detail.settlement_id')
+            ->join('tr_vpl_usage_detail as ud', function ($join) {
+                $join->on('ud.usage_id', '=', 'tr_vpl_settlement_detail.usage_id')
+                    ->on('ud.linenbr', '=', 'tr_vpl_settlement_detail.linenbr');
+            })
+            ->where('tr_vpl_settlement.cpnyid', $cpnyid)
+            ->where('tr_vpl_settlement.status', 'C')
+            ->whereIn('tr_vpl_settlement_detail.whs_id', [self::WHS_PROMOTION, self::WHS_LOYALTY])
+            ->where('tr_vpl_settlement_detail.qty_remain', '>', 0)
+            ->whereBetween('tr_vpl_settlement.settlement_date', [$monthStart, $monthEnd])
+            ->select([
+                'tr_vpl_settlement_detail.product_id',
+                'tr_vpl_settlement_detail.expired_date',
+                'tr_vpl_settlement_detail.whs_id',
+                'tr_vpl_settlement_detail.qty_remain',
+                'ud.purpose_id',
+            ])
+            ->get();
+
+        foreach ($settlements as $s) {
+            $key    = $s->product_id.'|'.$this->expiredKey($s->expired_date);
+            $bucket = $s->whs_id === self::WHS_LOYALTY ? 'Loyalty' : (self::PURPOSE_MAP[$s->purpose_id] ?? 'Internal Use');
+
+            $out[$key][$bucket] = ($out[$key][$bucket] ?? 0) - (float) $s->qty_remain;
         }
 
         return $out;
@@ -2180,12 +2238,22 @@ class VplReportController extends Controller
      * instead of quietly shrinking the Out total. This split doesn't change
      * Beginning/Ending math (still In-Out either way); it only changes how the total
      * decomposes for display.
+     *
+     * Settlement is treated the same way Return already is: a Settlement doesn't post
+     * new stock, it credits back whatever portion of a prior Usage's declared qty
+     * (qty_remain) was never actually redeemed — including the whole qty when a Usage
+     * is cancelled outright. Without this, a Usage that gets cancelled-then-reused
+     * (same batch used again after the first Usage is settled back) is counted as Out
+     * twice against a single In, producing a phantom negative Ending (e.g. VOUCHER
+     * BAKERZIN @100.000 batch V40072/2027-02-28: Usage VPU26090001 on 04-Sep was
+     * cancelled by Settlement VPS26090004 on 14-Sep, then the same stock was used again
+     * by VPU26090074 on 21-Sep — 91 In vs. 182 Out without this fix).
      */
     private function ledgerMonthlyInOut(string $cpnyid, int $year, bool $loyaltyOutIsUsage = false): array
     {
         $transactionSources = $loyaltyOutIsUsage
-            ? ['Receive', 'Usage', 'Return']
-            : ['Receive', 'Transfer In', 'Usage', 'Return'];
+            ? ['Receive', 'Usage', 'Return', 'Settlement']
+            : ['Receive', 'Transfer In', 'Usage', 'Return', 'Settlement'];
 
         $query = DB::connection('pgsql5')->table('tr_vpl_ledger as l');
 
@@ -2230,7 +2298,7 @@ class VplReportController extends Controller
 
                 if ($isUsageWhs && $row->transaction_source === 'Usage') {
                     $monthlyOut[$key][$month] = ($monthlyOut[$key][$month] ?? 0) - $qty;
-                } elseif ($isUsageWhs && $row->transaction_source === 'Return') {
+                } elseif ($isUsageWhs && in_array($row->transaction_source, ['Return', 'Settlement'], true)) {
                     $monthlyIn[$key][$month] = ($monthlyIn[$key][$month] ?? 0) + $qty;
                 }
 
@@ -2243,7 +2311,7 @@ class VplReportController extends Controller
                 $monthlyOut[$key][$month] = ($monthlyOut[$key][$month] ?? 0) + $qty;
             } elseif ($row->whs_id === self::WHS_PROMOTION && $row->transaction_source === 'Usage') {
                 $monthlyOut[$key][$month] = ($monthlyOut[$key][$month] ?? 0) - $qty;
-            } elseif ($row->whs_id === self::WHS_PROMOTION && $row->transaction_source === 'Return') {
+            } elseif ($row->whs_id === self::WHS_PROMOTION && in_array($row->transaction_source, ['Return', 'Settlement'], true)) {
                 $monthlyIn[$key][$month] = ($monthlyIn[$key][$month] ?? 0) + $qty;
             }
         }
@@ -2321,6 +2389,46 @@ class VplReportController extends Controller
                 'diambil_oleh'      => $r->diambil_oleh,
                 'keperluan'         => $r->diterima_dari,
                 'keterangan'        => 'Retur ke Collection',
+            ];
+        }
+
+        // A Settlement credits back qty_remain — the portion of a prior Usage doc's
+        // declared qty that was never actually redeemed (up to the whole qty when a
+        // Usage is cancelled outright) — mirroring how ledgerMonthlyInOut() counts it
+        // as In at WHPROMOTION, the only warehouse this report's convention tracks
+        // Usage/Settlement at (see ledgerMonthlyInOut()'s docblock).
+        $settlements = TrxVplSettlementDetail::query()
+            ->join('tr_vpl_settlement', 'tr_vpl_settlement.settlement_id', '=', 'tr_vpl_settlement_detail.settlement_id')
+            ->where('tr_vpl_settlement.cpnyid', $cpnyid)
+            ->where('tr_vpl_settlement.status', 'C')
+            ->where('tr_vpl_settlement_detail.whs_id', self::WHS_PROMOTION)
+            ->where('tr_vpl_settlement_detail.qty_remain', '>', 0)
+            ->whereBetween('tr_vpl_settlement.settlement_date', [$monthStart, $monthEnd])
+            ->select([
+                'tr_vpl_settlement_detail.product_id',
+                'tr_vpl_settlement_detail.expired_date',
+                'tr_vpl_settlement_detail.qty_remain as qty',
+                'tr_vpl_settlement.settlement_date as doc_date',
+                'tr_vpl_settlement.settlement_id as doc_no',
+                'tr_vpl_settlement.department as keperluan',
+                'tr_vpl_settlement.created_user as diambil_oleh',
+                'tr_vpl_settlement_detail.usage_id as ref_usage_id',
+            ])
+            ->get();
+
+        foreach ($settlements as $s) {
+            $key = $s->product_id.'|'.$this->expiredKey($s->expired_date);
+            $rows[$key][] = [
+                'direction'         => 'in',
+                'doc_label'         => 'Settlement',
+                'doc_no'            => $s->doc_no,
+                'date'              => Carbon::parse($s->doc_date),
+                'qty'               => abs((float) $s->qty),
+                'diterima_dari'     => null,
+                'untuk_pembayaran'  => null,
+                'diambil_oleh'      => $s->diambil_oleh,
+                'keperluan'         => $s->keperluan,
+                'keterangan'        => 'Pembatalan Usage '.$s->ref_usage_id,
             ];
         }
 
