@@ -24,7 +24,18 @@ const VplSettlementDetailModal = {
         document.getElementById('v_cpnyid').textContent   = t.cpnyid ?? '';
         document.getElementById('v_dept').textContent     = t.department ?? '';
         document.getElementById('v_vp_type').textContent  = data.vp_label ?? '';
-        document.getElementById('v_usage_id').textContent = t.usage_id ?? '';
+        const usageLink = document.getElementById('v_usage_id');
+        usageLink.textContent = t.usage_id ?? '';
+        if (data.usage_hash) {
+            usageLink.href = `/showusagevp/${data.usage_hash}`;
+            usageLink.target = '_blank';
+            usageLink.classList.remove('pointer-events-none', 'text-slate-800', 'dark:text-slate-100');
+            usageLink.classList.add('text-indigo-600', 'dark:text-indigo-400', 'hover:underline');
+        } else {
+            usageLink.removeAttribute('href');
+            usageLink.classList.add('pointer-events-none', 'text-slate-800', 'dark:text-slate-100');
+            usageLink.classList.remove('text-indigo-600', 'dark:text-indigo-400', 'hover:underline');
+        }
         document.getElementById('v_remark').textContent   = t.settlement_remark ?? '';
 
         document.getElementById('v_status_badge').innerHTML = VplSettlementHelper.statusBadgeHTML(t.status, data.status_label);

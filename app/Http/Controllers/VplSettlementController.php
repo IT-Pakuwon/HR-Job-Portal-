@@ -302,6 +302,7 @@ class VplSettlementController extends Controller
         return response()->json([
             'settlement' => $settlement,
             'hash' => Hashids::encode($settlement->id),
+            'usage_hash' => $settlement->usage ? Hashids::encode($settlement->usage->id) : null,
             'event_date' => optional($settlement->usage)->event_date?->format('Y-m-d'),
             'status_label' => $statusLabel,
             'vp_label' => $vpLabel,

@@ -445,7 +445,7 @@
                         <div><div class="text-xs text-slate-500 dark:text-slate-400">Company</div><div id="v_cpnyid" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
                         <div><div class="text-xs text-slate-500 dark:text-slate-400">Department</div><div id="v_dept" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
                         <div><div class="text-xs text-slate-500 dark:text-slate-400">V/P Type</div><div id="v_vp_type" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
-                        <div><div class="text-xs text-slate-500 dark:text-slate-400">Usage Doc</div><div id="v_usage_id" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
+                        <div><div class="text-xs text-slate-500 dark:text-slate-400">Usage Doc</div><a id="v_usage_id" href="#" class="mt-1 block text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400"></a></div>
                     </div>
                     <div class="border-t border-slate-100 px-4 py-3 dark:border-white/10">
                         <div class="text-xs text-slate-500 dark:text-slate-400">Remark</div>
