@@ -1030,22 +1030,33 @@
                 }
             }
 
+            /**
+             * Re-fetched fresh from the DB rather than read from the
+             * browser's cached `allSchedules` list, which can go stale
+             * (e.g. another admin updated it since this page's last load).
+             */
             $(document).on('click', '.editScheduleBtn', function() {
                 let id = $(this).data('id');
-                let s = allSchedules.find(row => row.id == id);
-                if (!s) return;
 
-                $('#scheduleModalTitle').text('Edit Schedule');
-                $('#scheduleModalSubtitle').text('Editing one date. Level/batch name/speaker-source changes apply to every date in this batch.');
-                $('#jobLevelHint').text('You can select more than one level — they will share the same dates and quota.');
-                isEditMode = true;
-                isViewMode = false;
-                $('#scheduleModal').removeClass('view-mode');
+                $.get(`/mastertraining/sessions/schedules/${id}`, function(res) {
+                    let s = res.data;
+                    if (!s) return;
 
-                fillScheduleForm(s);
+                    $('#scheduleModalTitle').text('Edit Schedule');
+                    $('#scheduleModalSubtitle').text('Editing one date. Level/batch name/speaker-source changes apply to every date in this batch.');
+                    $('#jobLevelHint').text('You can select more than one level — they will share the same dates and quota.');
+                    isEditMode = true;
+                    isViewMode = false;
+                    $('#scheduleModal').removeClass('view-mode');
 
-                goToStep(1);
-                $('#scheduleModal').removeClass('hidden');
+                    fillScheduleForm(s);
+
+                    goToStep(1);
+                    $('#scheduleModal').removeClass('hidden');
+                }).fail(function(xhr) {
+                    console.error(xhr.responseText);
+                    showToast('error', 'Gagal memuat data schedule');
+                });
             });
 
             $(document).on('click', '.viewScheduleBtn', function() {
@@ -1063,7 +1074,7 @@
 
                 goToStep(1);
                 $('#scheduleModal').removeClass('hidden');
-            }
+            });
 
             const statusConfirm = {
                 PUBLISHED: { title: 'Publish this schedule?', text: 'It will open for employee registration.', icon: 'question', confirmButtonText: 'Publish', confirmButtonColor: '#16a34a' },
