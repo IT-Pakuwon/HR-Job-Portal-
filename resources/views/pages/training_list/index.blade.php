@@ -2215,7 +2215,7 @@
                     // registration below is untouched.
                     const mandatoryBlocked = !!r.my_mandatory_block;
 
-                    const openSchedules = mandatoryBlocked ? [] : r.schedules.filter((s) => !s.my_status && s.is_open && s.level_match);
+                    const openSchedules = mandatoryBlocked ? [] : r.schedules.filter((s) => !s.my_status && s.is_open && s.level_match && s.eligible_companies.length > 0);
                     // Same as openSchedules but without the level_match requirement —
                     // used once your own path (self-register, or self-already-in) is
                     // exhausted, to check whether a colleague could still take a seat
@@ -2824,7 +2824,7 @@
             const training = cardsByDocid[docid];
             if (!training) return;
 
-            const openSchedules = training.schedules.filter((s) => !s.my_status && s.is_open && s.level_match);
+            const openSchedules = training.schedules.filter((s) => !s.my_status && s.is_open && s.level_match && s.eligible_companies.length > 0);
             openSessionPicker(training, openSchedules, false);
         });
 
