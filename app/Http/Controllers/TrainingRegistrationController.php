@@ -197,6 +197,26 @@ class TrainingRegistrationController extends Controller
 
         $scheduleIds = $details->pluck('schedule_id');
 
+        // Mandatory trainings only allow one schedule per participant (see
+        // register()'s $mandatoryDuplicates check) — and that rule applies
+        // across the whole training_id, not just within one "Add Schedule"
+        // batch (docid). So a mandatory training split into two separate
+        // batches/cards needs this looked up independently of $myRegs above,
+        // which is keyed by schedule_id and only covers currently-published
+        // schedules. Mirrors register()'s own duplicate definition exactly
+        // (active = not cancelled, not rejected) rather than $myRegs' display
+        // filter, and isn't limited to $scheduleIds since the blocking
+        // registration may be on a schedule that's since closed.
+        $myMandatoryRegsByTraining = TrLndTrainingRegistration::where('user_registration', $user->username)
+            ->whereIn('training_id', MsTrainingEvent::where('is_mandatory', true)->pluck('training_id'))
+            ->where(function ($q) {
+                $q->whereNull('status_registration')
+                    ->orWhere('status_registration', '!=', TrLndTrainingRegistration::REG_STATUS_CANCELLED);
+            })
+            ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
+            ->get(['training_id', 'schedule_id', 'schedule_date', 'status', 'status_registration'])
+            ->groupBy('training_id');
+
         $myRegs = TrLndTrainingRegistration::whereIn('schedule_id', $scheduleIds)
             ->where('user_registration', $user->username)
             ->where(function ($q) {
@@ -300,9 +320,29 @@ class TrainingRegistrationController extends Controller
         // One card per batch (training_detail_id — a distinct HR "Add
         // Schedule" batch with one level/speaker/poster). Different batches
         // are different cards even when they share a training name.
-        $rows = $scheduleOptions->groupBy('docid')->map(function ($schedules) use ($trainingsById, $categoryNames) {
+        $rows = $scheduleOptions->groupBy('docid')->map(function ($schedules) use ($trainingsById, $categoryNames, $myMandatoryRegsByTraining) {
             $first = $schedules->first();
             $training = $trainingsById->get($first['training_id']);
+
+            // Mandatory training, and the participant already holds an active
+            // registration on a schedule that isn't one of THIS card's own
+            // dates — registering themselves here would be rejected server
+            // -side, so surface it instead of offering a button that fails.
+            // A colleague isn't affected by this (it's a per-participant
+            // rule), so this only ever disables the self-register path.
+            $mandatoryBlock = null;
+            if ($training->is_mandatory ?? false) {
+                $scheduleIdsInCard = $schedules->pluck('id');
+                $other = ($myMandatoryRegsByTraining->get($first['training_id']) ?? collect())
+                    ->first(fn ($r) => !$scheduleIdsInCard->contains($r->schedule_id));
+
+                if ($other) {
+                    $mandatoryBlock = [
+                        'schedule_date' => $other->schedule_date?->format('Y-m-d'),
+                        'status' => $other->status_registration ?: $other->status,
+                    ];
+                }
+            }
 
             return [
                 'docid' => $first['docid'],
@@ -319,6 +359,7 @@ class TrainingRegistrationController extends Controller
                 'schedule_count' => $schedules->count(),
                 'level_eligible' => $schedules->contains(fn ($s) => $s['level_match']),
                 'eligible' => $schedules->contains(fn ($s) => count($s['eligible_companies']) > 0 && $s['level_match']),
+                'my_mandatory_block' => $mandatoryBlock,
                 'schedules' => $schedules->values(),
             ];
         })->values();
