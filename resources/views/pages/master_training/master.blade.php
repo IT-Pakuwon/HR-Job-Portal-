@@ -135,9 +135,9 @@
                                 class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 Description
                             </label>
-                            <textarea id="training_description" name="training_description" rows="3"
-                                placeholder="Optional notes about this training"
-                                class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:focus:border-white dark:focus:ring-white"></textarea>
+                            <textarea id="training_description" name="training_description" class="hidden"></textarea>
+                            <div id="training_description_editor"
+                                class="training-quill overflow-hidden rounded-lg border border-gray-300 shadow-sm dark:border-gray-600 dark:bg-gray-900"></div>
                         </div>
                     </div>
 
@@ -206,7 +206,7 @@
 
                         <div>
                             <div class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Description</div>
-                            <div id="view_description" class="mt-0.5 text-sm text-gray-900 dark:text-white"></div>
+                            <div id="view_description" class="mt-0.5 whitespace-pre-line text-sm text-gray-900 dark:text-white"></div>
                         </div>
 
                         <div class="border-t border-gray-100 pt-4 dark:border-gray-700">
@@ -248,6 +248,8 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
 
     <style>
         /* Monochrome (black/gray) theme for select2 inside this modal — no indigo/blue */
@@ -334,6 +336,74 @@
             background-color: #ffffff;
             color: #111827;
         }
+
+        /* Description — Quill editor, styled to match the modal's other inputs */
+        .training-quill .ql-toolbar.ql-snow {
+            border: none;
+            border-bottom: 1px solid rgb(229 231 235);
+            background: rgb(249 250 251 / .6);
+            padding: 6px 10px;
+        }
+        .training-quill .ql-container.ql-snow {
+            border: none;
+            font-family: inherit;
+            font-size: .875rem;
+        }
+        .training-quill .ql-editor {
+            min-height: 110px;
+            color: rgb(31 41 55);
+        }
+        .training-quill .ql-editor.ql-blank::before {
+            color: rgb(156 163 175);
+            font-style: normal;
+        }
+        .training-quill:focus-within {
+            border-color: rgb(17 24 39) !important;
+            box-shadow: 0 0 0 1px rgb(17 24 39);
+        }
+        .dark .training-quill .ql-toolbar.ql-snow {
+            background: rgb(255 255 255 / .03);
+            border-bottom-color: rgb(255 255 255 / .08);
+        }
+        .dark .training-quill .ql-container.ql-snow,
+        .dark .training-quill .ql-editor {
+            color: rgb(248 250 252);
+        }
+        .dark .training-quill .ql-editor.ql-blank::before {
+            color: rgb(100 116 139);
+        }
+        .dark .training-quill:focus-within {
+            border-color: #ffffff !important;
+            box-shadow: 0 0 0 1px #ffffff;
+        }
+        .dark .training-quill .ql-snow .ql-stroke {
+            stroke: rgb(148 163 184);
+        }
+        .dark .training-quill .ql-snow .ql-fill,
+        .dark .training-quill .ql-snow .ql-stroke.ql-fill {
+            fill: rgb(148 163 184);
+        }
+        .dark .training-quill .ql-snow .ql-picker-label {
+            color: rgb(148 163 184);
+        }
+        .dark .training-quill .ql-snow button:hover .ql-stroke,
+        .dark .training-quill .ql-snow .ql-picker-label:hover .ql-stroke {
+            stroke: rgb(248 250 252);
+        }
+        .dark .training-quill .ql-snow button:hover .ql-fill {
+            fill: rgb(248 250 252);
+        }
+        .dark .training-quill .ql-snow button.ql-active .ql-stroke,
+        .dark .training-quill .ql-snow .ql-picker-label.ql-active .ql-stroke {
+            stroke: #ffffff;
+        }
+        .dark .training-quill .ql-picker-options {
+            background: #111827;
+            border-color: rgb(255 255 255 / .08);
+        }
+        .dark .training-quill .ql-picker-item {
+            color: rgb(226 232 240);
+        }
     </style>
 
     <script>
@@ -350,6 +420,23 @@
                 $(this).toggleClass('is-active', $(this).data('value') == value);
             });
             $(`#${group}`).val(value);
+        }
+
+        function initTrainingDescrEditor() {
+            if (window.trainingDescrQuill) return;
+
+            window.trainingDescrQuill = new Quill('#training_description_editor', {
+                theme: 'snow',
+                placeholder: 'Optional notes about this training',
+                modules: {
+                    toolbar: [
+                        ['bold', 'italic', 'underline'],
+                        [{ list: 'ordered' }, { list: 'bullet' }],
+                        ['link'],
+                        ['clean'],
+                    ],
+                },
+            });
         }
 
         $(document).ready(function() {
@@ -516,6 +603,8 @@
                 $('#category_id').val(null).trigger('change');
                 setToggleGroup('is_mandatory', '0');
                 setToggleGroup('training_type', 'INTERNAL');
+                initTrainingDescrEditor();
+                window.trainingDescrQuill?.setText('');
             }
 
             // Open modal Add
@@ -539,6 +628,8 @@
                 $('#trainingForm')[0].reset();
                 $('#id').val(id);
                 $('#trainingModal').removeClass('hidden');
+                initTrainingDescrEditor();
+                window.trainingDescrQuill?.setText('');
                 showLoading();
 
                 $.get(`/mastertraining/${id}/edit`, function(data) {
@@ -551,7 +642,7 @@
 
                     setToggleGroup('is_mandatory', data.is_mandatory ? '1' : '0');
                     setToggleGroup('training_type', data.training_type);
-                    $('#training_description').val(data.training_description);
+                    window.trainingDescrQuill?.clipboard.dangerouslyPasteHTML(data.training_description || '');
 
                     hideLoading();
                 }).fail(function(xhr) {
@@ -587,7 +678,7 @@
                     $('#view_is_mandatory').text(t.is_mandatory ? 'Mandatory' : 'Not Mandatory');
                     $('#view_training_type').text(t.training_type);
                     $('#view_training_name').text(t.training_name);
-                    $('#view_description').text(t.training_description || '-');
+                    $('#view_description').html(t.training_description || '-');
 
                     let $levels = $('#view_levels').empty();
 
@@ -715,6 +806,10 @@
             // Submit (create / update)
             $('#trainingForm').submit(function(e) {
                 e.preventDefault();
+
+                if (window.trainingDescrQuill) {
+                    $('#training_description').val(window.trainingDescrQuill.root.innerHTML);
+                }
 
                 let id = $('#id').val();
                 let url = id ? `/mastertraining/${id}` : "{{ route('mastertraining.store') }}";

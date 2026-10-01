@@ -378,7 +378,7 @@
                         <div id="detailHeroBadges" class="mb-2 flex flex-wrap justify-start gap-1.5"></div>
                         <h2 id="detailHeroTitle" class="wrap-break-word text-xl font-bold text-gray-800 dark:text-white sm:text-2xl"></h2>
                         <p id="detailHeroMeta" class="mt-1 text-sm text-gray-500 dark:text-gray-400"></p>
-                        <p id="detailDescriptionText" class="mt-3 hidden rounded-lg bg-gray-50 p-3 text-sm leading-relaxed text-gray-600 dark:bg-gray-900/40 dark:text-gray-300"></p>
+                        <p id="detailDescriptionText" class="mt-3 hidden whitespace-pre-line rounded-lg bg-gray-50 p-3 text-sm leading-relaxed text-gray-600 dark:bg-gray-900/40 dark:text-gray-300"></p>
                     </div>
 
                     <div class="p-5 pt-4">
@@ -2298,7 +2298,7 @@
             $('#detailHeroBadges').html(badges.join(''));
 
             if (training.description) {
-                $('#detailDescriptionText').text(training.description).removeClass('hidden');
+                $('#detailDescriptionText').html(training.description).removeClass('hidden');
             } else {
                 $('#detailDescriptionText').addClass('hidden');
             }
