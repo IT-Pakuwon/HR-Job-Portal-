@@ -2854,10 +2854,10 @@
 
                 $body.append(`
                     <tr>
-                        <td class="py-2 pr-4" data-label="Doc ID"><button type="button" class="viewRegBtn inline-flex items-center gap-1 rounded-lg border border-gray-300 px-2.5 py-1 font-mono text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">${r.docid}</button></td>
+                        <td class="py-2 pr-4" data-label="Doc ID"><button type="button" class="viewRegBtn inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-gray-100 px-2.5 py-1 font-mono text-sm font-semibold text-gray-700 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600" data-id="${r.id}">${r.docid}</button></td>
                         <td class="py-2 pr-4 whitespace-nowrap" data-label="Participant">${participantHtml}</td>
                         <td class="py-2 pr-4 wrap-break-word text-sm text-gray-800 dark:text-gray-100" data-label="Training">${r.training_name ?? '-'}</td>
-                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Level">${r.grade_name ?? '-'}</td>
+                        <td class="py-2 pr-4 wrap-break-word" data-label="Level">${r.grade_name ?? '-'}</td>
                         <td class="py-2 pr-4 wrap-break-word" data-label="Speaker">${r.speaker_name ?? '-'}</td>
                         <td class="py-2 pr-4 whitespace-nowrap" data-label="Date">${fmtDate(r.schedule_date)}</td>
                         <td class="py-2 pr-4" data-label="Status">${statusBadge(r.status)}</td>
@@ -2871,7 +2871,7 @@
                                         left = b.right + window.scrollX - 192;
                                         open = !open;
                                     "
-                                    class="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-2.5 py-1 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                                    class="inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-gray-100 px-2.5 py-1 text-sm font-semibold text-gray-700 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                                     Actions
                                     <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
                                 </button>
@@ -3807,7 +3807,7 @@
                         </td>
                         <td class="py-2 pr-4" data-label="Company / Dept">${r.cpny_name ?? r.cpny_id} / ${r.department_name ?? r.department_id}</td>
                         <td class="py-2 pr-4" data-label="Training">${r.training_name ?? '-'}</td>
-                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Level">${r.grade_name ?? '-'}</td>
+                        <td class="py-2 pr-4 wrap-break-word" data-label="Level">${r.grade_name ?? '-'}</td>
                         <td class="py-2 pr-4 whitespace-nowrap" data-label="Schedule Date">${fmtDate(r.schedule_date)}</td>
                         <td class="py-2 pr-4" data-label="Training Status">${scheduleStatusBadge(r.schedule_status)}</td>
                         <td class="py-2 pr-4 whitespace-nowrap" data-label="Registered On">${fmtDate(r.registered_at)}</td>
