@@ -955,26 +955,16 @@
                 $('#scheduleModal').addClass('hidden');
             });
 
-            $(document).on('click', '.editScheduleBtn', function() {
-                let id = $(this).data('id');
-
-                $.get(`/mastertraining/sessions/schedules/${id}`, function(res) {
-                    fillScheduleEditForm(res.data);
-                }).fail(function(xhr) {
-                    console.error(xhr.responseText);
-                    showToast('error', 'Gagal memuat data schedule');
-                });
-            });
-
-            function fillScheduleEditForm(s) {
-                if (!s) return;
-
-                $('#scheduleModalTitle').text('Edit Schedule');
-                $('#scheduleModalSubtitle').text('Editing one date. Level/batch name/speaker-source changes apply to every date in this batch.');
+            function fillScheduleForm(s) {
                 $('#schedule_id').val(s.id);
 
-                let gradeOpt = new Option(s.grade_name, s.job_level, true, true);
-                $('#job_level').empty().append(gradeOpt).trigger('change');
+                // job_level can hold several pipe-joined levels (a batch shared
+                // across them, see combineJobLevels() on the controller) — one
+                // select2 option per level, all pre-selected.
+                (s.job_level || '').split('|').map(l => l.trim()).filter(l => l).forEach(function(level) {
+                    $('#job_level').append(new Option(level, level, true, true));
+                });
+                $('#job_level').trigger('change');
 
                 $('#training_detail_name').val(s.training_detail_name);
                 if (s.training_poster_url) {
