@@ -80,6 +80,10 @@ class ReportBastController extends Controller
             $query->where('b.bastid', 'ilike', "%{$request->bastid}%");
         }
 
+        if ($request->filled('ponbr')) {
+            $query->where('b.ponbr', 'ilike', '%' . trim($request->input('ponbr')) . '%');
+        }
+
         // Vendor
         if ($request->vendor) {
             $query->where('b.vendorname', 'ilike', "%{$request->vendor}%");
@@ -292,6 +296,7 @@ class ReportBastController extends Controller
                 'SPPBJKT' => $docs ?: '-',
 
                 'BQ No' => $row->bqid,
+                'PO No' => $row->ponbr,
 
                 'Terms' => $terms[$row->terms_id] ?? '-',
 

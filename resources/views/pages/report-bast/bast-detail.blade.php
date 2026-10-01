@@ -26,6 +26,12 @@
                     class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700">
             </div>
 
+            <div>
+                <label for="bast_ponbr" class="text-xs text-gray-500 dark:text-gray-400">PO No</label>
+                <input type="text" id="bast_ponbr" placeholder="POxxxx"
+                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700">
+            </div>
+
             <!-- Vendor -->
             <div>
                 <label class="text-xs text-gray-500 dark:text-gray-400">Vendor</label>
@@ -94,6 +100,7 @@
                         <th>CS No</th>
                         <th>SPPBJKT No</th>
                         <th>BQ No</th>
+                        <th>PO No</th>
                         <th>BAST No</th>
                         <th>Terms</th>
                         <th>Location</th>
@@ -144,6 +151,7 @@
                     d.date_from = $('#bast_date_from').val();
                     d.date_to = $('#bast_date_to').val();
                     d.bastid = $('#bast_id').val();
+                    d.ponbr = $('#bast_ponbr').val();
                     d.vendor = $('#bast_vendor').val();
 
                     d.csid = $('#bast_csid').val();
@@ -162,6 +170,12 @@
                 },
                 {
                     data: 'bqid'
+                },
+                {
+                    data: 'ponbr',
+                    name: 'b.ponbr',
+                    defaultContent: '-',
+                    render: $.fn.dataTable.render.text()
                 },
                 {
                     data: 'bastid',
@@ -293,7 +307,7 @@
         $('#bastFilter').click(() => table.ajax.reload());
 
         $('#bastReset').click(function() {
-            $('#bast_date_from, #bast_date_to, #bast_id, #bast_vendor, #bast_csid, #bast_sppbjktid').val('');
+            $('#bast_date_from, #bast_date_to, #bast_id, #bast_ponbr, #bast_vendor, #bast_csid, #bast_sppbjktid').val('');
             table.ajax.reload();
         });
 
@@ -304,6 +318,7 @@
             url += "?date_from=" + $('#bast_date_from').val();
             url += "&date_to=" + $('#bast_date_to').val();
             url += "&bastid=" + $('#bast_id').val();
+            url += "&ponbr=" + encodeURIComponent($('#bast_ponbr').val());
             url += "&vendor=" + $('#bast_vendor').val();
             url += "&csid=" + $('#bast_csid').val();
             url += "&sppbjktid=" + $('#bast_sppbjktid').val();
