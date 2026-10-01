@@ -390,6 +390,8 @@
                                             : 'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
                                         class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
                                         Comments
+                                        <span id="commentCountBadge"
+                                            class="ml-1 hidden rounded-full bg-indigo-600 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white dark:bg-indigo-500">0</span>
                                     </button>
                                 </nav>
                                 <button type="button" @click="tabsOpen = !tabsOpen"
@@ -414,6 +416,13 @@
                                 </div>
 
                                 <div x-show="activeTab === 'attachment'" class="flex-1 overflow-y-auto px-4">
+                                    <div class="flex justify-end pt-3">
+                                        <a id="btnDownloadAllRfpAttachment" href="{{ route('attachments.downloadAll', ['doctype' => 'RP', 'refnbr' => $rfp->rfp_id]) }}"
+                                            style="display: none;"
+                                            class="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700">
+                                            Download All Attachment
+                                        </a>
+                                    </div>
                                     <table class="w-full text-sm">
                                         <thead class="text-gray-600 dark:text-gray-300">
                                             <tr class="border-b border-gray-200 dark:border-gray-700">
@@ -790,6 +799,14 @@
                 type: 'GET',
                 success: function(response) {
                     commentList.empty();
+
+                    const total = (response.comments || []).length;
+                    const badge = $('#commentCountBadge');
+                    if (total > 0) {
+                        badge.text(total > 99 ? '99+' : total).removeClass('hidden');
+                    } else {
+                        badge.addClass('hidden');
+                    }
 
                     if (!response.comments || response.comments.length === 0) {
                         commentList.append('<p class="text-gray-500 text-sm italic dark:text-gray-400">No comments yet. Be the first to comment!</p>');
@@ -1226,6 +1243,9 @@
 
             function renderAttachmentRows(rows) {
                 const $tb = $tbody().empty();
+
+                // Download-all only covers persisted attachments (staging ones aren't saved yet).
+                $('#btnDownloadAllRfpAttachment').css('display', (rows && rows.length) ? 'inline-flex' : 'none');
 
                 // 🔥 gabungkan staging + existing
                 const allRows = [

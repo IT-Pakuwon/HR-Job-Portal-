@@ -1435,6 +1435,8 @@ Route::middleware(['auth'])->group(function () {
     // Must stay above attachments.list — otherwise /attachments/{id}/stream
     // matches it as {doctype}/{refnbr} = {id}/"stream".
     Route::get('/attachments/{id}/stream', [TrAttachmentController::class, 'streamAttachment'])->whereNumber('id')->name('attachments.stream');
+    // Must stay above attachments.list for the same reason as attachments.stream.
+    Route::get('/attachments/{doctype}/{refnbr}/download-all', [TrAttachmentController::class, 'downloadAllAttachments'])->name('attachments.downloadAll');
     Route::get('/attachments/{doctype}/{refnbr}', [TrAttachmentController::class, 'listAttachments'])->name('attachments.list');
     Route::delete('/attachments/{id}', [TrAttachmentController::class, 'deleteAttachment'])->name('attachments.delete');
     Route::put('/attachments/{id}/rename', [TrAttachmentController::class, 'renameAttachment'])->name('attachments.rename');

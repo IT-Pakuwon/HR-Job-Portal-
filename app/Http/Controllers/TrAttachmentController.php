@@ -395,6 +395,75 @@ public function uploadAttachments(Request $request, string $doctype, string $ref
         return response()->json(['success' => true, 'attachments' => $attachments]);
     }
 
+    // === API: Download all attachments for a document as a single zip ===
+    public function downloadAllAttachments(string $doctype, string $refnbr)
+    {
+        TrProjectTask::abortUnlessAccessible($doctype, $refnbr);
+
+        $rows = TrAttachment::where('refnbr', $refnbr)
+            ->where('doctype', strtoupper($doctype))
+            ->where('status', 'A')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        abort_if($rows->isEmpty(), 404, 'No attachments found.');
+
+        $config = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+        if (!Str::startsWith($keyFilePath, ['/', 'C:\\', 'D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+
+        $zipPath = tempnam(sys_get_temp_dir(), 'attach_') . '.zip';
+        $zip = new \ZipArchive();
+        $zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+
+        $usedNames = [];
+        foreach ($rows as $row) {
+            $objectPath = rtrim($row->folder, '/') . '/' . $row->filename;
+
+            try {
+                $content = $bucket->object($objectPath)->downloadAsString();
+            } catch (\Throwable $e) {
+                Log::warning('downloadAllAttachments: failed to fetch', ['id' => $row->id, 'error' => $e->getMessage()]);
+                continue;
+            }
+
+            $ext = $row->extention ? '.' . ltrim($row->extention, '.') : '';
+            $baseName = preg_replace('/[\\\\\/:*?"<>|]/', '_', $row->attachment_name ?: ('attachment_' . $row->id));
+            if ($ext !== '' && !Str::endsWith(strtolower($baseName), strtolower($ext))) {
+                $baseName .= $ext;
+            }
+
+            $name = $baseName;
+            $suffix = 1;
+            while (in_array($name, $usedNames, true)) {
+                $info = pathinfo($baseName);
+                $name = $info['filename'] . " ({$suffix})" . (isset($info['extension']) ? '.' . $info['extension'] : '');
+                $suffix++;
+            }
+            $usedNames[] = $name;
+
+            $zip->addFromString($name, $content);
+        }
+
+        $zip->close();
+
+        if (empty($usedNames)) {
+            @unlink($zipPath);
+            abort(404, 'No attachments could be retrieved.');
+        }
+
+        $zipName = strtoupper($doctype) . '_' . $refnbr . '_attachments.zip';
+
+        return response()->download($zipPath, $zipName)->deleteFileAfterSend(true);
+    }
+
     // === API: Soft-delete ===
     public function deleteAttachment(int $id)
     {
