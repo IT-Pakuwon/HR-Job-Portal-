@@ -217,6 +217,7 @@ class TrainingSessionController extends Controller
         $header->setRelation('details', collect([$detail]));
 
         $row = $this->decorateSchedules(collect([$header]))->first();
+        $row['job_level'] = $this->normalizeJobLevel($row['job_level'] ?? '');
 
         return response()->json([
             'data' => $row,
@@ -306,6 +307,48 @@ class TrainingSessionController extends Controller
         return collect($levels)
             ->map(fn ($level) => trim((string) $level))
             ->filter()
+            ->unique()
+            ->implode('|');
+    }
+
+    /**
+     * Maps a schedule's stored job_level segments back onto today's live
+     * group_job_level text wherever a match exists, so the Edit modal's
+     * Level field is backed by the same master data the Create flow reads
+     * — not whichever wording happened to be live when this schedule was
+     * first saved. hr_ms_sto_subgrading_joblevel.group_job_level is admin-
+     * editable free text with no id this schedule can key on, so a label
+     * can silently drift (reworded, reordered, re-punctuated) after a
+     * schedule is created; left unmatched, the registration eligibility
+     * gate (which compares a user's *current* group_job_level against this
+     * exact string) could wrongly reject someone whose level clearly
+     * belongs to the batch. Matching is done on the *set* of individual
+     * level names (case-insensitive, order- and separator-agnostic) rather
+     * than an exact string, so "Chief & Supervisor - Ast. Manager" still
+     * matches today's "Ast. Manager, Chief & Supervisor". Falls back to the
+     * original segment untouched when no current group matches at all
+     * (e.g. that group was since removed from master data).
+     */
+    private function normalizeJobLevel(string $rawJobLevel): string
+    {
+        $normalizeKey = fn (string $s) => collect(preg_split('/\s*,\s*|\s+-\s+/', $s))
+            ->map(fn ($part) => mb_strtolower(trim($part)))
+            ->filter()
+            ->sort()
+            ->values()
+            ->implode('|');
+
+        $currentByKey = StoSubGradingJobLevel::where('status', 'A')
+            ->where('group_cpny_id', $this->userGroupCpnyId())
+            ->whereNotNull('group_job_level')
+            ->distinct()
+            ->pluck('group_job_level')
+            ->mapWithKeys(fn ($group) => [$normalizeKey($group) => $group]);
+
+        return collect(explode('|', $rawJobLevel))
+            ->map(fn ($segment) => trim($segment))
+            ->filter()
+            ->map(fn ($segment) => $currentByKey[$normalizeKey($segment)] ?? $segment)
             ->unique()
             ->implode('|');
     }
