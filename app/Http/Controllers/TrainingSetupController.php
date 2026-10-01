@@ -358,8 +358,22 @@ class TrainingSetupController extends Controller
         }
     }
 
+    /**
+     * Derived straight from the row's own PK, so it's unique by construction
+     * — except against stale rows whose places_id doesn't match their own id
+     * (e.g. left over from a DB reseed). Falls back to bumping $id until the
+     * candidate is free so a stale row can't silently alias a new one.
+     */
     private function generatePlacesId(int $id): string
     {
-        return 'PL' . Carbon::now()->format('y') . '-' . str_pad((string) $id, 5, '0', STR_PAD_LEFT);
+        $prefix = 'PL' . Carbon::now()->format('y') . '-';
+        $candidate = $prefix . str_pad((string) $id, 5, '0', STR_PAD_LEFT);
+
+        while (MsLndPlaces::where('places_id', $candidate)->where('id', '!=', $id)->exists()) {
+            $id++;
+            $candidate = $prefix . str_pad((string) $id, 5, '0', STR_PAD_LEFT);
+        }
+
+        return $candidate;
     }
 }
