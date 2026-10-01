@@ -2204,10 +2204,18 @@
                     // Per-schedule status (Approved/Rejected/Waitlisted/etc.) is shown
                     // inside View Detail rather than duplicated here on the card.
                     const openSchedules = r.schedules.filter((s) => !s.my_status && s.is_open && s.level_match);
-                    const openSchedulesAnyLevel = r.schedules.filter((s) => !s.my_status && s.is_open && s.eligible_companies.length > 0);
+                    const hasMyRegistration = r.schedules.some((s) => s.my_status);
 
                     let registerBtnHtml = '';
-                    if (r.eligible) {
+                    if (hasMyRegistration && openSchedules.length === 0) {
+                        // Already holds a seat on every date left to pick from —
+                        // takes priority over the eligibility/quota reasons below,
+                        // since "you're in" is the one thing worth saying here.
+                        registerBtnHtml = `<span class="flex cursor-not-allowed items-center justify-center rounded-lg bg-gray-100 px-2 py-1.5 text-center text-sm font-semibold text-gray-400 dark:bg-gray-800 dark:text-gray-500">Already Registered</span>`;
+                    } else if (!r.eligible) {
+                        const reasonText = r.level_eligible ? 'Not available for your company' : 'Your level can\'t register to this training';
+                        registerBtnHtml = `<span class="flex items-center justify-center rounded-lg border border-dashed border-gray-200 px-2 py-1.5 text-center text-sm text-gray-400 dark:border-gray-700">${reasonText}</span>`;
+                    } else if (openSchedules.length > 0) {
                         const anyAvailable = openSchedules.some((s) => s.eligible_companies.some((c) => c.available > 0));
                         const btnCls = anyAvailable ? 'bg-gray-900 hover:bg-gray-700 dark:bg-white dark:text-gray-900' : 'bg-sky-600 hover:bg-sky-500 text-white';
                         const btnText = anyAvailable ? 'Register' : 'Join Waiting List';

@@ -1204,6 +1204,8 @@ class TrainingRegistrationController extends Controller
                     $docUrl
                 );
 
+                $this->notifyParticipantOnStatus($registration, 'C', $docUrl);
+
                 $this->notifyDocSystem(
                     $refnbr,
                     $registration->cpny_id,
@@ -1276,6 +1278,8 @@ class TrainingRegistrationController extends Controller
                     $registration->created_by,
                     $docUrl
                 );
+
+                $this->notifyParticipantOnStatus($registration, 'R', $docUrl);
 
                 $this->notifyDocSystem(
                     $refnbr,
@@ -1934,6 +1938,33 @@ class TrainingRegistrationController extends Controller
      * Kept to <=8 chars: tr_message.message_type is varchar(10) and the 'S_'
      * prefix (see trnSystemEventMeta()'s detection) already takes 2.
      */
+    /**
+     * notifyRequesterOnStatus() above only reaches created_by — the person who
+     * submitted the registration. When that's someone registering a colleague
+     * (participants[] in register(), L743+), user_registration (the actual
+     * attendee) never gets told their training was approved/rejected unless we
+     * email them here too. The bell notice already covers this correctly via
+     * trnSystemEventRecipients()'s APPROVE/REJECT case in
+     * DocumentNotificationService — this closes the same gap for email.
+     */
+    private function notifyParticipantOnStatus(TrLndTrainingRegistration $registration, string $statusCode, string $docUrl): void
+    {
+        if (!$registration->user_registration || $registration->user_registration === $registration->created_by) {
+            return;
+        }
+
+        $creator = User::where('username', $registration->created_by)->first();
+
+        app(ApprovalController::class)->notifyRequesterOnStatus(
+            $registration->training_regist_id,
+            'Training Registration',
+            $statusCode,
+            $registration->user_registration,
+            $docUrl,
+            ['createdby' => $creator->name ?? $registration->created_by]
+        );
+    }
+
     private function notifyDocSystem(string $docId, string $cpnyId, string $deptId, string $message, string $eventCode): void
     {
         TrMessage::create([

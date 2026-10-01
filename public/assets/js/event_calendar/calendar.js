@@ -385,10 +385,6 @@ const EventCalendarApp = {
         EventCalendarApp.state.calendar?.refetchEvents();
     },
 
-    reloadSoon() {
-        setTimeout(() => window.location.reload(), 600);
-    },
-
     // --------------------------------------------------------
     // MODAL
     // --------------------------------------------------------
@@ -647,7 +643,7 @@ const EventCalendarApp = {
 
             EventCalendarApp.toast('success', response.message || 'Saved successfully');
             EventCalendarApp.closeModal();
-            EventCalendarApp.reloadSoon();
+            EventCalendarApp.refresh();
         } catch (err) {
             const message = err?.data?.message
                 || Object.values(err?.data?.errors || {}).flat()[0]
@@ -684,7 +680,7 @@ const EventCalendarApp = {
 
             EventCalendarApp.toast('success', response.message || 'Event deleted');
             EventCalendarApp.closeModal();
-            EventCalendarApp.reloadSoon();
+            EventCalendarApp.refresh();
         } catch (err) {
             EventCalendarApp.toast('error', err?.data?.message || 'Failed to delete event');
         }
