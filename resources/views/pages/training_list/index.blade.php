@@ -2204,16 +2204,21 @@
                     // Per-schedule status (Approved/Rejected/Waitlisted/etc.) is shown
                     // inside View Detail rather than duplicated here on the card.
                     const openSchedules = r.schedules.filter((s) => !s.my_status && s.is_open && s.level_match);
+                    const openSchedulesAnyLevel = r.schedules.filter((s) => !s.my_status && s.is_open && s.eligible_companies.length > 0);
 
                     let registerBtnHtml = '';
-                    if (!r.eligible) {
-                        const reasonText = r.level_eligible ? 'Not available for your company' : 'Your level can\'t register to this training';
-                        registerBtnHtml = `<span class="flex items-center justify-center rounded-lg border border-dashed border-gray-200 px-2 py-1.5 text-center text-sm text-gray-400 dark:border-gray-700">${reasonText}</span>`;
-                    } else if (openSchedules.length > 0) {
+                    if (r.eligible) {
                         const anyAvailable = openSchedules.some((s) => s.eligible_companies.some((c) => c.available > 0));
                         const btnCls = anyAvailable ? 'bg-gray-900 hover:bg-gray-700 dark:bg-white dark:text-gray-900' : 'bg-sky-600 hover:bg-sky-500 text-white';
                         const btnText = anyAvailable ? 'Register' : 'Join Waiting List';
                         registerBtnHtml = `<button class="registerBtn rounded-lg px-3 py-1.5 text-sm font-semibold text-white ${btnCls}" data-docid="${r.docid}">${btnText}</button>`;
+                    } else if (!r.level_eligible && openSchedulesAnyLevel.length > 0) {
+                        // Your own level doesn't qualify, but a colleague's might —
+                        // offer to register them instead of yourself.
+                        registerBtnHtml = `<button class="registerColleagueBtn rounded-lg px-3 py-1.5 text-sm font-semibold text-white bg-purple-600 hover:bg-purple-500" data-docid="${r.docid}">👥 Register Colleague</button>`;
+                    } else {
+                        const reasonText = r.level_eligible ? 'Not available for your company' : 'Your level can\'t register to this training';
+                        registerBtnHtml = `<span class="flex items-center justify-center rounded-lg border border-dashed border-gray-200 px-2 py-1.5 text-center text-sm text-gray-400 dark:border-gray-700">${reasonText}</span>`;
                     }
 
                     // grid-cols-2 fits both actions side by side; when there's only one
@@ -2329,19 +2334,21 @@
                     const month = d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
                     const year = d.getFullYear();
 
-                    const quotaHtml = !s.level_match
-                        ? '<p class="text-sm text-gray-400">Your level can\'t register to this training</p>'
-                        : s.eligible_companies.length
-                            ? s.eligible_companies.map((c) => capacityBar(c)).join('')
-                            : '<p class="text-sm text-gray-400">Not available for your company</p>';
+                    const quotaHtml = s.eligible_companies.length
+                        ? s.eligible_companies.map((c) => capacityBar(c)).join('')
+                        : '<p class="text-sm text-gray-400">Not available for your company</p>';
 
                     let actionHtml;
                     if (s.my_status) {
                         actionHtml = myStatusChip(s.my_status);
                     } else if (!s.is_open) {
                         actionHtml = '<span class="text-sm text-gray-400">Registration closed</span>';
-                    } else if (!s.level_match || !s.eligible_companies.length) {
+                    } else if (!s.eligible_companies.length) {
                         actionHtml = '';
+                    } else if (!s.level_match) {
+                        // Your own level doesn't qualify for this date, but a
+                        // colleague's might.
+                        actionHtml = `<button class="registerColleagueScheduleBtn rounded-lg px-4 py-2 text-sm font-semibold text-white bg-purple-600 hover:bg-purple-500" data-id="${s.id}" data-docid="${training.docid}">👥 Register Colleague</button>`;
                     } else {
                         const anyAvailable = s.eligible_companies.some((c) => c.available > 0);
                         const btnCls = anyAvailable ? 'bg-gray-900 hover:bg-gray-700 dark:bg-white dark:text-gray-900' : 'bg-sky-600 hover:bg-sky-500 text-white';
@@ -2438,7 +2445,7 @@
         // too), scoped to either your exact company+department or any
         // different company within your own department. A live preview
         // lists everyone before the batch is submitted.
-        function openColleaguePicker(training, sched, closeDetail) {
+        function openColleaguePicker(training, sched, closeDetail, forceColleagueOnly = false) {
             const thumbHtml = training.poster_url
                 ? `<img class="ticketModal-thumb" src="${training.poster_url}">`
                 : `<div class="ticketModal-thumbFallback">🎓</div>`;
@@ -2446,6 +2453,26 @@
             const hint = myCompanyNameGlobal && myDepartmentNameGlobal
                 ? `${myCompanyNameGlobal} · ${myDepartmentNameGlobal}`
                 : '';
+
+            // forceColleagueOnly: the viewer's own level doesn't qualify for this
+            // schedule, so there's no "register yourself" option here at all —
+            // just a notice, and the colleague search is shown right away.
+            const toggleHtml = forceColleagueOnly
+                ? `<div class="ticketModal-colleagueToggle" style="cursor:default;">
+                        <span class="ticketModal-colleagueToggle-icon">👥</span>
+                        <span class="ticketModal-colleagueToggle-text">
+                            Register a colleague
+                            <span class="ticketModal-colleagueToggle-hint">Your own level doesn't qualify for this training — pick someone whose level does.</span>
+                        </span>
+                   </div>`
+                : `<label class="ticketModal-colleagueToggle">
+                        <input type="checkbox" id="swalAddColleagues">
+                        <span class="ticketModal-colleagueToggle-icon">👥</span>
+                        <span class="ticketModal-colleagueToggle-text">
+                            Also register colleagues
+                            ${hint ? `<span class="ticketModal-colleagueToggle-hint">${hint}</span>` : ''}
+                        </span>
+                   </label>`;
 
             const html = `
                 <div class="ticketModal-header">
@@ -2457,14 +2484,7 @@
                 </div>
                 <div class="ticketModal-body">
                     <div class="ticketModal-card">
-                        <label class="ticketModal-colleagueToggle">
-                            <input type="checkbox" id="swalAddColleagues">
-                            <span class="ticketModal-colleagueToggle-icon">👥</span>
-                            <span class="ticketModal-colleagueToggle-text">
-                                Also register colleagues
-                                ${hint ? `<span class="ticketModal-colleagueToggle-hint">${hint}</span>` : ''}
-                            </span>
-                        </label>
+                        ${toggleHtml}
                         <div id="swalColleaguesWrap" class="ticketModal-colleagueWrap">
                             <div class="ticketModal-scopeGroup">
                                 <label class="ticketModal-scopeOption">
@@ -2486,7 +2506,9 @@
                             </div>
                             <select id="swalColleagues" multiple></select>
                             <p class="ticketModal-colleagueHint">
-                                Search and add colleagues to register them in the same batch. Add your own name to register yourself too.
+                                ${forceColleagueOnly
+                                    ? 'Search and add a colleague whose level qualifies for this training.'
+                                    : 'Search and add colleagues to register them in the same batch. Add your own name to register yourself too.'}
                             </p>
                         </div>
                         <div id="swalPreview" class="ticketModal-capacity"></div>
@@ -2530,16 +2552,22 @@
                             delay: 250,
                             data: (params) => ({ q: params.term || '', scope: currentScope() }),
                             processResults: (res) => ({
-                                results: (res.data || []).map((c) => {
-                                    colleagueMeta[c.username] = { name: c.name, cpny_name: c.cpny_name };
+                                // Self doesn't qualify for this schedule's level in the
+                                // forced-colleague flow, so they're excluded from the
+                                // pool entirely rather than letting them pick themselves
+                                // and fail the server-side level check later.
+                                results: (res.data || [])
+                                    .filter((c) => !forceColleagueOnly || c.username !== selfUsername)
+                                    .map((c) => {
+                                        colleagueMeta[c.username] = { name: c.name, cpny_name: c.cpny_name };
 
-                                    return {
-                                        id: c.username,
-                                        text: c.username === selfUsername
-                                            ? `${c.name} (${c.username}) · You`
-                                            : `${c.name} (${c.username})${currentScope() === 'diff' ? ' · ' + (c.cpny_name || '') : ''}`,
-                                    };
-                                }),
+                                        return {
+                                            id: c.username,
+                                            text: c.username === selfUsername
+                                                ? `${c.name} (${c.username}) · You`
+                                                : `${c.name} (${c.username})${currentScope() === 'diff' ? ' · ' + (c.cpny_name || '') : ''}`,
+                                        };
+                                    }),
                             }),
                         },
                     });
@@ -2550,7 +2578,9 @@
                     // actually picked in $sel is registered. You're only included if
                     // you deliberately search and add your own name to the list.
                     const renderPreview = () => {
-                        const list = $toggle.is(':checked') ? ($sel.val() || []) : [selfUsername];
+                        const list = forceColleagueOnly
+                            ? ($sel.val() || [])
+                            : ($toggle.is(':checked') ? ($sel.val() || []) : [selfUsername]);
 
                         $popup.find('#swalPreview').html(list.length ? `
                             <div class="ticketModal-participantList">
@@ -2590,16 +2620,19 @@
                     });
 
                     $sel.on('change', renderPreview);
+                    if (forceColleagueOnly) $wrap.show();
                     renderPreview();
                 },
                 preConfirm: () => {
                     const $popup = $(Swal.getPopup());
                     const $sel = $popup.find('#swalColleagues');
-                    const addColleagues = $popup.find('#swalAddColleagues').is(':checked');
+                    const addColleagues = forceColleagueOnly || $popup.find('#swalAddColleagues').is(':checked');
                     const selected = $sel.val() || [];
 
                     if (addColleagues && selected.length === 0) {
-                        Swal.showValidationMessage('Select at least one colleague, or uncheck "Also register colleagues" to register just yourself.');
+                        Swal.showValidationMessage(forceColleagueOnly
+                            ? 'Select at least one colleague whose level qualifies for this training.'
+                            : 'Select at least one colleague, or uncheck "Also register colleagues" to register just yourself.');
                         return false;
                     }
 
@@ -2621,13 +2654,24 @@
             openColleaguePicker(training, sched, true);
         });
 
-        $(document).on('click', '.registerBtn', function () {
-            const docid = $(this).data('docid');
-            const training = cardsByDocid[docid];
+        // Same date, but the viewer's own level doesn't qualify — only a
+        // colleague can be registered here, never the viewer themselves.
+        $(document).on('click', '.registerColleagueScheduleBtn', function () {
+            const scheduleId = $(this).data('id');
+            const training = cardsByDocid[$(this).data('docid')];
             if (!training) return;
+            const sched = (training.schedules || []).find((s) => String(s.id) === String(scheduleId));
+            if (!sched) return;
 
-            const openSchedules = training.schedules.filter((s) => !s.my_status && s.is_open && s.level_match);
+            openColleaguePicker(training, sched, true, true);
+        });
 
+        // Shared by the card's "Register" (self-eligible schedules only) and
+        // "Register Colleague" (own level doesn't qualify, but a colleague's
+        // might — openColleaguePicker's forceColleagueOnly then keeps the
+        // viewer themselves out of the pick list) buttons: pick a date among
+        // the given schedules, then hand off to the colleague picker.
+        function openSessionPicker(training, openSchedules, forceColleagueOnly) {
             const thumbHtml = training.poster_url
                 ? `<img class="ticketModal-thumb" src="${training.poster_url}">`
                 : `<div class="ticketModal-thumbFallback">🎓</div>`;
@@ -2701,8 +2745,31 @@
                 },
             }).then((result) => {
                 if (!result.isConfirmed) return;
-                openColleaguePicker(training, result.value.sched, false);
+                openColleaguePicker(training, result.value.sched, false, forceColleagueOnly);
             });
+        }
+
+        $(document).on('click', '.registerBtn', function () {
+            const docid = $(this).data('docid');
+            const training = cardsByDocid[docid];
+            if (!training) return;
+
+            const openSchedules = training.schedules.filter((s) => !s.my_status && s.is_open && s.level_match);
+            openSessionPicker(training, openSchedules, false);
+        });
+
+        // Card-level equivalent of registerColleagueScheduleBtn: own level
+        // doesn't qualify for any open date, but company quota is still
+        // available, so a colleague might qualify — let the date be picked
+        // among every open schedule (not just the ones the viewer's own
+        // level matches), then force the colleague-only picker.
+        $(document).on('click', '.registerColleagueBtn', function () {
+            const docid = $(this).data('docid');
+            const training = cardsByDocid[docid];
+            if (!training) return;
+
+            const openSchedules = training.schedules.filter((s) => !s.my_status && s.is_open && s.eligible_companies.length > 0);
+            openSessionPicker(training, openSchedules, true);
         });
 
         let myRegistrationsRows = [];

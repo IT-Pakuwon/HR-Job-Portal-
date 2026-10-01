@@ -1046,7 +1046,10 @@
             $(document).on('click', '.editScheduleBtn', function() {
                 let id = $(this).data('id');
 
-                $.get(`/mastertraining/sessions/schedules/${id}`, function(res) {
+                $.ajax({
+                    url: `/mastertraining/sessions/schedules/${id}`,
+                    cache: false, // avoid the browser replaying a stale GET response for this same URL
+                }).done(function(res) {
                     let s = res.data;
                     if (!s) return;
 
