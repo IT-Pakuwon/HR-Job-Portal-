@@ -152,6 +152,10 @@
                                 Applied to every date entered in the previous step.
                             </p>
                             <div id="quotaRows" class="space-y-2"></div>
+                            <div class="mt-3 flex items-center justify-end gap-2 border-t border-gray-100 pt-3 text-sm dark:border-gray-700">
+                                <span class="font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Total Quota</span>
+                                <span id="quotaTotal" class="font-bold text-gray-900 dark:text-white">0</span>
+                            </div>
                         </div>
                     </div>
 
@@ -421,6 +425,29 @@
                 </div>`;
         }
 
+        /**
+         * Select2's dropdown panel is appended to dropdownParent (#scheduleModal),
+         * not inside the date block itself, so emptying #datesContainer leaves
+         * orphaned select2 DOM behind unless each instance is destroyed first —
+         * those leftovers were blocking clicks on the freshly rendered Place field.
+         */
+        function destroyDateSelect2s() {
+            $('#datesContainer .date-places, #datesContainer .date-speaker').each(function() {
+                if ($(this).hasClass('select2-hidden-accessible')) {
+                    $(this).select2('destroy');
+                }
+            });
+        }
+
+        // Same leftover-dropdown risk applies to the quota company picker.
+        function destroyQuotaSelect2s() {
+            $('#quotaRows .quota-company').each(function() {
+                if ($(this).hasClass('select2-hidden-accessible')) {
+                    $(this).select2('destroy');
+                }
+            });
+        }
+
         function renumberDateBlocks() {
             $('#datesContainer .date-block').each(function(i) {
                 $(this).find('.date-number').text(i + 1);
@@ -582,10 +609,23 @@
                 let opt = new Option(cpnyName || cpnyId, cpnyId, true, true);
                 $select.append(opt).trigger('change');
             }
+
+            updateQuotaTotal();
         }
+
+        function updateQuotaTotal() {
+            let total = 0;
+            $('#quotaRows .quota-qty').each(function() {
+                total += parseInt(this.value, 10) || 0;
+            });
+            $('#quotaTotal').text(total);
+        }
+
+        $(document).on('input', '.quota-qty', updateQuotaTotal);
 
         $(document).on('click', '.removeQuotaRow', function() {
             $(this).closest('[data-row-id]').remove();
+            updateQuotaTotal();
         });
 
         $(document).on('click', '#addQuotaRowBtn', function() {
@@ -616,14 +656,16 @@
         function resetScheduleForm() {
             $('#scheduleForm')[0].reset();
             $('#schedule_id').val('');
-            $('#job_level').val(null).trigger('change');
+            $('#job_level').empty().val(null).trigger('change');
             $('#training_detail_name').val('');
             $('#posterPreviewWrapper').addClass('hidden');
             $('#posterPreview').attr('src', '');
             setToggleGroup('is_ext_speaker', '0');
+            destroyQuotaSelect2s();
             $('#quotaRows').empty();
             addQuotaRow();
 
+            destroyDateSelect2s();
             $('#datesContainer').empty();
             dateIndex = 0;
             isEditMode = false;
@@ -913,16 +955,26 @@
                 $('#scheduleModal').addClass('hidden');
             });
 
-            function fillScheduleForm(s) {
+            $(document).on('click', '.editScheduleBtn', function() {
+                let id = $(this).data('id');
+
+                $.get(`/mastertraining/sessions/schedules/${id}`, function(res) {
+                    fillScheduleEditForm(res.data);
+                }).fail(function(xhr) {
+                    console.error(xhr.responseText);
+                    showToast('error', 'Gagal memuat data schedule');
+                });
+            });
+
+            function fillScheduleEditForm(s) {
+                if (!s) return;
+
+                $('#scheduleModalTitle').text('Edit Schedule');
+                $('#scheduleModalSubtitle').text('Editing one date. Level/batch name/speaker-source changes apply to every date in this batch.');
                 $('#schedule_id').val(s.id);
 
-                // job_level can hold several comma-joined levels (a batch
-                // shared across them) — one select2 option per level, all
-                // pre-selected.
-                (s.job_level || '').split(',').map(l => l.trim()).filter(l => l).forEach(function(level) {
-                    $('#job_level').append(new Option(level, level, true, true));
-                });
-                $('#job_level').trigger('change');
+                let gradeOpt = new Option(s.grade_name, s.job_level, true, true);
+                $('#job_level').empty().append(gradeOpt).trigger('change');
 
                 $('#training_detail_name').val(s.training_detail_name);
                 if (s.training_poster_url) {
@@ -933,6 +985,7 @@
                 }
                 setToggleGroup('is_ext_speaker', s.is_ext_speaker ? '1' : '0');
 
+                destroyDateSelect2s();
                 $('#datesContainer').empty();
                 dateIndex = 0;
                 addDateBlock();
@@ -978,6 +1031,7 @@
                     $block.find('.date-speaker').trigger('change');
                 }
 
+                destroyQuotaSelect2s();
                 $('#quotaRows').empty();
                 if (s.quota && s.quota.length) {
                     s.quota.forEach(q => addQuotaRow(q.cpny_id, q.cpny_name, q.quota_pax));
@@ -1019,7 +1073,7 @@
 
                 goToStep(1);
                 $('#scheduleModal').removeClass('hidden');
-            });
+            }
 
             const statusConfirm = {
                 PUBLISHED: { title: 'Publish this schedule?', text: 'It will open for employee registration.', icon: 'question', confirmButtonText: 'Publish', confirmButtonColor: '#16a34a' },

@@ -409,6 +409,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{hash}/show', [TrainingSessionController::class, 'show'])->name('mastertraining.show');
             Route::get('/{hash}/sessions', [TrainingSessionController::class, 'manage'])->name('mastertraining.sessions');
             Route::get('/{hash}/sessions/schedules', [TrainingSessionController::class, 'schedules'])->name('mastertraining.sessions.schedules');
+            Route::get('/sessions/schedules/{id}', [TrainingSessionController::class, 'editSchedule'])->name('mastertraining.sessions.schedules.edit');
             Route::get('/sessions/level-search', [TrainingSessionController::class, 'levelSearch'])->name('mastertraining.sessions.level-search');
             Route::get('/sessions/speaker-search', [TrainingSessionController::class, 'speakerSearch'])->name('mastertraining.sessions.speaker-search');
             Route::get('/sessions/company-search', [TrainingSessionController::class, 'companySearch'])->name('mastertraining.sessions.company-search');

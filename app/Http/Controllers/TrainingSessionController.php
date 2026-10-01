@@ -6,12 +6,12 @@ use App\Http\Controllers\Traits\HasAutonbr;
 use App\Http\Controllers\Traits\UploadsToGcs;
 use App\Models\MsCompany;
 use App\Models\MsLndPlaces;
+use App\Models\MsLndTrainingDetail;
+use App\Models\MsLndTrainingQuota;
+use App\Models\MsLndTrainingSchedule;
 use App\Models\MsTrainingEvent;
 use App\Models\StoGrading;
 use App\Models\StoSubGradingJobLevel;
-use App\Models\MsLndTrainingDetail;
-use App\Models\MsLndTrainingSchedule;
-use App\Models\MsLndTrainingQuota;
 use App\Models\TrLndTrainingRegistration;
 use App\Models\User;
 use App\Services\TrainingWaitlistNotifier;
@@ -206,12 +206,28 @@ class TrainingSessionController extends Controller
     }
 
     /**
-     * Rules for creating a batch: one-or-more levels, one batch name, one
-     * shared speaker-source toggle, and one-or-more dates. Quota is entered
-     * once and applied to every date in the batch (each date still tracks
-     * its own quota independently from there on) — a batch with several
-     * levels shares that same quota/dates across all of them, it does not
-     * get split per level.
+     * Single date, re-fetched fresh from the DB for the Edit modal — avoids
+     * trusting the browser's cached `allSchedules` list, which can go stale
+     * (e.g. another admin updated it since this page's last load).
+     */
+    public function editSchedule($id)
+    {
+        $detail = MsLndTrainingSchedule::with(['schedule', 'quota'])->findOrFail($id);
+        $header = $detail->schedule;
+        $header->setRelation('details', collect([$detail]));
+
+        $row = $this->decorateSchedules(collect([$header]))->first();
+
+        return response()->json([
+            'data' => $row,
+        ]);
+    }
+
+    /**
+     * Rules for creating a batch: one level, one batch name, one shared
+     * speaker-source toggle, and one-or-more dates. Quota is entered once
+     * and applied to every date in the batch (each date still tracks its
+     * own quota independently from there on).
      */
     private function batchRules(): array
     {
@@ -322,7 +338,7 @@ class TrainingSessionController extends Controller
         $pairs = [];
         $count = max(count($usernames), count($names));
 
-        for ($i = 0; $i < $count; $i++) {
+        for ($i = 0; $i < $count; ++$i) {
             $name = trim((string) ($names[$i] ?? ''));
             if ($name === '') {
                 continue;
@@ -460,7 +476,7 @@ class TrainingSessionController extends Controller
 
         $yy = substr((string) $year, 2, 2);
 
-        return self::DETAIL_DOCTYPE . $yy . $month . sprintf('%04d', $auto['next']);
+        return self::DETAIL_DOCTYPE.$yy.$month.sprintf('%04d', $auto['next']);
     }
 
     private function generateScheduleDateCode(string $username): string
@@ -478,7 +494,7 @@ class TrainingSessionController extends Controller
 
         $yy = substr((string) $year, 2, 2);
 
-        return self::SCHEDULE_DOCTYPE . $yy . $month . sprintf('%04d', $auto['next']);
+        return self::SCHEDULE_DOCTYPE.$yy.$month.sprintf('%04d', $auto['next']);
     }
 
     public function storeSchedule(Request $request, $hash)
@@ -575,7 +591,7 @@ class TrainingSessionController extends Controller
                 'success' => true,
                 'data' => $schedule,
                 'message' => count($request->dates) > 1
-                    ? count($request->dates) . ' schedules berhasil disimpan'
+                    ? count($request->dates).' schedules berhasil disimpan'
                     : 'Schedule berhasil disimpan',
             ]);
         } catch (\Throwable $e) {
@@ -792,7 +808,7 @@ class TrainingSessionController extends Controller
         return response()->json([
             'success' => true,
             'message' => count($registrations) > 0
-                ? 'Schedule berhasil di-reschedule, ' . count($registrations) . ' peserta telah diberi notifikasi'
+                ? 'Schedule berhasil di-reschedule, '.count($registrations).' peserta telah diberi notifikasi'
                 : 'Schedule berhasil di-reschedule',
         ]);
     }
