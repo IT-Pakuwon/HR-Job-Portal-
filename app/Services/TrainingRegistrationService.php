@@ -20,7 +20,7 @@ class TrainingRegistrationService
             return;
         }
 
-        $next = self::nextWaitlisted($cancelled->schedule_id, $cancelled->cpny_id);
+        $next = self::nextWaitlisted($cancelled->schedule_id, $cancelled->registration_cpny_id);
 
         if ($next) {
             self::offerSlot($next);
@@ -34,7 +34,7 @@ class TrainingRegistrationService
      */
     public static function cascadeToNextWaitlist(TrLndTrainingRegistration $declinedOrExpired): void
     {
-        $next = self::nextWaitlisted($declinedOrExpired->schedule_id, $declinedOrExpired->cpny_id);
+        $next = self::nextWaitlisted($declinedOrExpired->schedule_id, $declinedOrExpired->registration_cpny_id);
 
         if ($next) {
             self::offerSlot($next);
@@ -64,7 +64,7 @@ class TrainingRegistrationService
     private static function nextWaitlisted(string $scheduleId, string $cpnyId): ?TrLndTrainingRegistration
     {
         return TrLndTrainingRegistration::where('schedule_id', $scheduleId)
-            ->where('cpny_id', $cpnyId)
+            ->where('registration_cpny_id', $cpnyId)
             ->where('status_registration', TrLndTrainingRegistration::REG_STATUS_WAITLISTED)
             ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
             ->orderBy('created_at')

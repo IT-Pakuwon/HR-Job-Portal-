@@ -2619,7 +2619,7 @@
                             url: colleaguesUrl,
                             dataType: 'json',
                             delay: 250,
-                            data: (params) => ({ q: params.term || '', scope: currentScope() }),
+                            data: (params) => ({ q: params.term || '', scope: currentScope(), schedule_id: sched.id }),
                             processResults: (res) => ({
                                 // Self doesn't qualify for this schedule's level in the
                                 // forced-colleague flow, so they're excluded from the
@@ -3954,7 +3954,7 @@
                     : '';
 
                 const offerHtml = r.can_offer
-                    ? `<button type="button" class="allRegsOfferBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-purple-600 transition hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20" data-id="${r.id}">📨 Offer Slot</button>`
+                    ? `<button type="button" class="allRegsOfferBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-purple-600 transition hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20" data-id="${r.id}">${r.status_registration === 'W' ? '📨 Offer Slot' : '🔁 Reassign Quota'}</button>`
                     : '';
 
                 // Same guard as TrainingRegistrationController::cancel(): a
@@ -3988,7 +3988,12 @@
                             <span class="block text-sm font-semibold text-gray-800 dark:text-gray-100">${r.name ?? r.username}</span>
                             <span class="block text-sm text-gray-400">${r.username}</span>
                         </td>
-                        <td class="py-2 pr-4" data-label="Company / Dept">${r.cpny_name ?? r.cpny_id} / ${r.department_name ?? r.department_id}</td>
+                        <td class="py-2 pr-4" data-label="Company / Dept">
+                            ${r.cpny_name ?? r.cpny_id} / ${r.department_name ?? r.department_id}
+                            ${r.registration_cpny_id && r.registration_cpny_id !== r.cpny_id
+                                ? `<span class="block text-sm text-purple-600 dark:text-purple-400">quota: ${r.registration_cpny_name ?? r.registration_cpny_id}</span>`
+                                : ''}
+                        </td>
                         <td class="py-2 pr-4" data-label="Training">${r.training_name ?? '-'}</td>
                         <td class="py-2 pr-4 wrap-break-word" data-label="Level">${r.grade_name ?? '-'}</td>
                         <td class="py-2 pr-4 whitespace-nowrap" data-label="Schedule Date">${fmtDate(r.schedule_date)}</td>
@@ -4093,9 +4098,10 @@
             if (!r) return;
 
             const opts = (r.quota_options || []).map((q) => {
-                const sel = q.cpny_id === r.cpny_id ? ' selected' : '';
-                const label = `${q.cpny_name} — ${q.available}/${q.quota_pax} seats`;
-                return `<option value="${q.cpny_id}"${sel}>${label}</option>`;
+                const sel = q.cpny_id === (r.registration_cpny_id || r.cpny_id) ? ' selected' : '';
+                const full = q.available <= 0 && !sel;
+                const label = `${q.cpny_name} — ${q.available}/${q.quota_pax} seats${full ? ' (FULL)' : ''}`;
+                return `<option value="${q.cpny_id}"${sel}${full ? ' disabled' : ''}>${label}</option>`;
             }).join('');
 
             Swal.fire({
@@ -4116,9 +4122,13 @@
                             <label class="ticketModal-label">🏢 Use Quota From</label>
                             <select id="swalAllRegsAcceptCpny" class="ticketModal-select">${opts}</select>
                             <p style="font-size:11px;color:#6b7280;margin-top:8px;">
-                                Defaults to the participant's own company (${r.cpny_id}). Pick another company to consume its quota instead.
+                                Defaults to ${r.registration_cpny_id && r.registration_cpny_id !== r.cpny_id ? `the quota already reserved (${r.registration_cpny_name ?? r.registration_cpny_id})` : `the participant's own company (${r.cpny_id})`}. Pick another company to consume its quota instead.
                             </p>
                         </div>
+                        ${r.approval_status === 'P' ? `
+                        <p style="font-size:11px;color:#b45309;margin-top:8px;">
+                            ⚠️ Approval for this participant is still pending — that continues independently and isn't affected by seating them now.
+                        </p>` : ''}
                     </div>
                 `,
                 showCancelButton: true,
@@ -4147,28 +4157,24 @@
             });
         });
 
-        function submitManualOffer(id, cpnyId, force) {
+        function submitManualOffer(id, cpnyId) {
             $.ajax({
                 url: `/training-list/${id}/manual-offer`,
                 method: 'POST',
                 headers: csrfHeaders,
-                data: { cpny_id: cpnyId, force: force ? 1 : 0 },
+                data: { cpny_id: cpnyId },
                 success: function (res) {
                     toast(res.success ? 'success' : 'error', res.message);
                     if (res.success) loadAllRegistrations();
                 },
                 error: function (xhr) {
                     const body = xhr.responseJSON;
-                    if (body?.quota_full && !force) {
+                    if (body?.quota_full) {
                         Swal.fire({
                             title: 'Quota is already full',
-                            html: `This company's quota is full (${body.used}/${body.quota_pax}). Offering this slot will exceed the quota.`,
+                            html: `This company's quota is full (${body.used}/${body.quota_pax}). Pick a company with available seats instead.`,
                             icon: 'warning',
-                            showCancelButton: true,
-                            confirmButtonText: 'Offer anyway',
-                            cancelButtonText: 'Cancel',
-                        }).then((result) => {
-                            if (result.isConfirmed) submitManualOffer(id, cpnyId, true);
+                            confirmButtonText: 'OK',
                         });
                         return;
                     }
@@ -4183,9 +4189,10 @@
             if (!r) return;
 
             const opts = (r.quota_options || []).map((q) => {
-                const sel = q.cpny_id === r.cpny_id ? ' selected' : '';
-                const label = `${q.cpny_name} — ${q.available}/${q.quota_pax} seats${q.available <= 0 ? ' (FULL)' : ''}`;
-                return `<option value="${q.cpny_id}"${sel}>${label}</option>`;
+                const sel = q.cpny_id === (r.registration_cpny_id || r.cpny_id) ? ' selected' : '';
+                const full = q.available <= 0 && !sel;
+                const label = `${q.cpny_name} — ${q.available}/${q.quota_pax} seats${full ? ' (FULL)' : ''}`;
+                return `<option value="${q.cpny_id}"${sel}${full ? ' disabled' : ''}>${label}</option>`;
             }).join('');
 
             Swal.fire({
@@ -4193,7 +4200,7 @@
                     <div class="ticketModal-header">
                         <div class="ticketModal-thumbFallback">📨</div>
                         <div style="min-width:0;">
-                            <h3 class="ticketModal-title">Offer slot to ${r.name ?? r.username}?</h3>
+                            <h3 class="ticketModal-title">${r.status_registration === 'W' ? 'Offer slot to' : 'Reassign quota for'} ${r.name ?? r.username}?</h3>
                             <p class="ticketModal-subtitle">${r.docid} · ${r.training_name ?? '-'}</p>
                         </div>
                     </div>
@@ -4201,15 +4208,21 @@
                         <div class="ticketModal-card">
                             <label class="ticketModal-label">📅 Schedule</label>
                             <p style="margin:0;font-size:13px;color:#111827;">${fmtDate(r.schedule_date)}</p>
-                            <p style="margin:8px 0 0;font-size:12px;color:#6b7280;">Sends the same 24h accept/decline offer as the automatic waitlist promotion.</p>
+                            <p style="margin:8px 0 0;font-size:12px;color:#6b7280;">${r.status_registration === 'W'
+                                ? 'Sends the same 24h accept/decline offer as the automatic waitlist promotion.'
+                                : 'This participant already holds a seat/offer — this only moves which company\'s quota it counts against, no new offer is sent.'}</p>
                         </div>
                         <div class="ticketModal-card">
                             <label class="ticketModal-label">🏢 Use Quota From</label>
                             <select id="swalAllRegsOfferCpny" class="ticketModal-select">${opts}</select>
                             <p style="font-size:11px;color:#6b7280;margin-top:8px;">
-                                Defaults to the participant's own company (${r.cpny_id}). If a company's quota is already full you'll be asked to confirm before exceeding it.
+                                Defaults to ${r.registration_cpny_id && r.registration_cpny_id !== r.cpny_id ? `the quota already reserved (${r.registration_cpny_name ?? r.registration_cpny_id})` : `the participant's own company (${r.cpny_id})`}. Companies with no seats left are disabled — you can't exceed a company's quota.
                             </p>
                         </div>
+                        ${r.approval_status === 'P' ? `
+                        <p style="font-size:11px;color:#b45309;margin-top:8px;">
+                            ⚠️ Approval for this participant is still pending — that continues independently and isn't affected by offering them a slot now.
+                        </p>` : ''}
                     </div>
                 `,
                 showCancelButton: true,
@@ -4221,7 +4234,7 @@
                 if (!result.isConfirmed) return;
 
                 const cpnyId = document.getElementById('swalAllRegsOfferCpny')?.value ?? r.cpny_id;
-                submitManualOffer(id, cpnyId, false);
+                submitManualOffer(id, cpnyId);
             });
         });
 

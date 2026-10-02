@@ -230,14 +230,18 @@ class TrainingRegistrationController extends Controller
             ->get()
             ->keyBy('schedule_id');
 
+        // Grouped by registration_cpny_id — the quota pool a row actually
+        // draws from — not cpny_id (the participant's fixed home company),
+        // since a manually-reassigned row (see offerManually()/manualAccept())
+        // consumes a different company's quota than its home company.
         $usage = TrLndTrainingRegistration::whereIn('schedule_id', $scheduleIds)
             ->where(function ($q) {
                 $q->whereNull('status_registration')
                     ->orWhere('status_registration', TrLndTrainingRegistration::REG_STATUS_OFFERED);
             })
             ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
-            ->select('schedule_id', 'cpny_id', DB::raw('count(*) as cnt'))
-            ->groupBy('schedule_id', 'cpny_id')
+            ->select('schedule_id', 'registration_cpny_id', DB::raw('count(*) as cnt'))
+            ->groupBy('schedule_id', 'registration_cpny_id')
             ->get()
             ->groupBy('schedule_id');
 
@@ -258,7 +262,7 @@ class TrainingRegistrationController extends Controller
             $grouped = $usage->get($d->schedule_id, collect());
 
             $eligibleCompanies = $d->quota->map(function ($q) use ($grouped, $companyNames) {
-                $seatCount = (int) $grouped->where('cpny_id', $q->cpny_id)->sum('cnt');
+                $seatCount = (int) $grouped->where('registration_cpny_id', $q->cpny_id)->sum('cnt');
 
                 return [
                     'cpny_id' => $q->cpny_id,
@@ -482,6 +486,21 @@ class TrainingRegistrationController extends Controller
             $query->where('origin_cpny_id', '!=', $originCpnyId);
         } else {
             $query->where('origin_cpny_id', $originCpnyId);
+        }
+
+        $scheduleId = $request->get('schedule_id');
+        if ($scheduleId) {
+            $alreadyRegistered = TrLndTrainingRegistration::where('schedule_id', $scheduleId)
+                ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
+                ->where(function ($q) {
+                    $q->whereNull('status_registration')
+                        ->orWhere('status_registration', '!=', TrLndTrainingRegistration::REG_STATUS_CANCELLED);
+                })
+                ->pluck('user_registration');
+
+            if ($alreadyRegistered->isNotEmpty()) {
+                $query->whereNotIn('username', $alreadyRegistered);
+            }
         }
 
         $search = trim((string) $request->get('q', ''));
@@ -1506,7 +1525,12 @@ class TrainingRegistrationController extends Controller
         $usernames = $registrations->pluck('user_registration')->unique();
         $names = $usernames->isEmpty() ? collect() : User::whereIn('username', $usernames)->pluck('name', 'username');
 
-        $cpnyIds = $registrations->pluck('cpny_id')->filter()->unique();
+        // Includes registration_cpny_id too — once a row's been manually
+        // reassigned to a different company's quota, that company may not
+        // otherwise appear among the plain cpny_id values below.
+        $cpnyIds = $registrations->pluck('cpny_id')
+            ->merge($registrations->pluck('registration_cpny_id'))
+            ->filter()->unique();
         $companyNames = $cpnyIds->isEmpty() ? collect() : MsCompany::whereIn('cpny_id', $cpnyIds)->pluck('cpny_name', 'cpny_id');
 
         $deptIds = $registrations->pluck('department_id')->filter()->unique();
@@ -1533,28 +1557,45 @@ class TrainingRegistrationController extends Controller
                 $group->sortBy('created_at')->values()->each(fn ($r, $i) => $queueNumbers->put($r->id, $i + 1));
             });
 
-        // Accept (force-seat) only ever applies to Waiting List rows whose
-        // approval has completed on a schedule that's already Closed (see
-        // manualAccept()); Offer applies to the same rows but on a schedule
-        // that's still Published/open instead (see offerManually()) — quota/
-        // usage is only worth fetching for that combined subset, not every
-        // registration on the page.
-        $eligibleScheduleIds = $registrations->filter(fn ($r) => $r->status_registration === TrLndTrainingRegistration::REG_STATUS_WAITLISTED
-                && $r->status === TrLndTrainingRegistration::STATUS_APPROVED
-                && in_array($r->schedule?->status, [self::SCHEDULE_CLOSED, self::SCHEDULE_PUBLISHED], true))
-            ->pluck('schedule_id')->unique();
+        // Accept (force-seat) applies to Waiting List rows on a schedule
+        // that's already Closed (see manualAccept()); Offer applies to the
+        // same rows but on a schedule that's still Published/open instead
+        // (see offerManually()). Both allow approval to still be Pending —
+        // the approval chain runs independently of seating (see those
+        // methods' doc comments) — so only Rejected is excluded here.
+        // offerManually()'s second case (already seated/offered, not
+        // waitlisted, approval Pending) is Published-only, so it's added as
+        // a separate OR branch rather than folded into the waitlisted check.
+        // Quota/usage is only worth fetching for that combined subset, not
+        // every registration on the page.
+        $eligibleScheduleIds = $registrations->filter(function ($r) {
+            $scheduleStatus = $r->schedule?->status;
+            $notRejected = $r->status !== TrLndTrainingRegistration::STATUS_REJECTED;
+
+            $waitlistCase = $r->status_registration === TrLndTrainingRegistration::REG_STATUS_WAITLISTED
+                && $notRejected
+                && in_array($scheduleStatus, [self::SCHEDULE_CLOSED, self::SCHEDULE_PUBLISHED], true);
+
+            $activeReassignCase = in_array($r->status_registration, [null, TrLndTrainingRegistration::REG_STATUS_OFFERED], true)
+                && $r->status === TrLndTrainingRegistration::STATUS_PENDING
+                && $scheduleStatus === self::SCHEDULE_PUBLISHED;
+
+            return $waitlistCase || $activeReassignCase;
+        })->pluck('schedule_id')->unique();
 
         $quotas = $eligibleScheduleIds->isEmpty() ? collect() : MsLndTrainingQuota::whereIn('schedule_id', $eligibleScheduleIds)->get();
         $quotaCompanyNames = MsCompany::whereIn('cpny_id', $quotas->pluck('cpny_id')->unique())->pluck('cpny_name', 'cpny_id');
 
+        // Grouped by registration_cpny_id — the quota pool a row actually
+        // draws from — not cpny_id (see activeSeatCount()'s doc comment).
         $usage = $eligibleScheduleIds->isEmpty() ? collect() : TrLndTrainingRegistration::whereIn('schedule_id', $eligibleScheduleIds)
             ->where(function ($q) {
                 $q->whereNull('status_registration')
                     ->orWhere('status_registration', TrLndTrainingRegistration::REG_STATUS_OFFERED);
             })
             ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
-            ->select('schedule_id', 'cpny_id', DB::raw('count(*) as cnt'))
-            ->groupBy('schedule_id', 'cpny_id')
+            ->select('schedule_id', 'registration_cpny_id', DB::raw('count(*) as cnt'))
+            ->groupBy('schedule_id', 'registration_cpny_id')
             ->get()
             ->groupBy('schedule_id');
 
@@ -1566,21 +1607,42 @@ class TrainingRegistrationController extends Controller
             // slot (e.g. under a different company's quota) without waiting
             // on a cancellation to trigger auto-promotion — once a schedule
             // is Closed, offering no longer makes sense since registration
-            // itself is done. Waitlisted + approval completed already
-            // implies not cancelled and not already offered, since a row can
-            // only hold one status_registration value at a time.
-            $isWaitlistedAndApproved = $r->status_registration === TrLndTrainingRegistration::REG_STATUS_WAITLISTED
-                && $r->status === TrLndTrainingRegistration::STATUS_APPROVED;
+            // itself is done. Waitlisted + not Rejected already implies not
+            // cancelled and not already offered, since a row can only hold
+            // one status_registration value at a time. Pending approval is
+            // allowed through (see manualAccept()/offerManually() for why
+            // that's safe) so HR isn't stuck waiting on approval to finish
+            // before seating someone. A second, Published-only case covers
+            // offerManually()'s pure-reassignment path: not waitlisted
+            // (already seated or already offered) but still Pending.
+            $isWaitlistedAndEligible = $r->status_registration === TrLndTrainingRegistration::REG_STATUS_WAITLISTED
+                && $r->status !== TrLndTrainingRegistration::STATUS_REJECTED;
 
-            $canAccept = $isWaitlistedAndApproved && $r->schedule?->status === self::SCHEDULE_CLOSED;
-            $canOffer = $isWaitlistedAndApproved && $r->schedule?->status === self::SCHEDULE_PUBLISHED;
+            $isActiveReassignEligible = in_array($r->status_registration, [null, TrLndTrainingRegistration::REG_STATUS_OFFERED], true)
+                && $r->status === TrLndTrainingRegistration::STATUS_PENDING;
+
+            $canAccept = $isWaitlistedAndEligible && $r->schedule?->status === self::SCHEDULE_CLOSED;
+            $canOffer = ($isWaitlistedAndEligible || $isActiveReassignEligible) && $r->schedule?->status === self::SCHEDULE_PUBLISHED;
 
             $quotaOptions = collect();
             if ($canAccept || $canOffer) {
                 $usedByCpny = collect($usage->get($r->schedule_id, collect()));
+                // This row itself may already be counted in its own current
+                // pool (the active-reassign case: status_registration is
+                // null/'O' already) — exclude it so its own company doesn't
+                // show as more full than it actually is, same reasoning as
+                // activeSeatCount()'s $excludeId.
+                $selfCountsToward = in_array($r->status_registration, [null, TrLndTrainingRegistration::REG_STATUS_OFFERED], true)
+                    ? $r->registration_cpny_id
+                    : null;
+
                 $quotaOptions = $quotas->where('schedule_id', $r->schedule_id)
-                    ->map(function ($q) use ($usedByCpny, $quotaCompanyNames) {
-                        $used = (int) $usedByCpny->where('cpny_id', $q->cpny_id)->sum('cnt');
+                    ->map(function ($q) use ($usedByCpny, $quotaCompanyNames, $selfCountsToward) {
+                        $used = (int) $usedByCpny->where('registration_cpny_id', $q->cpny_id)->sum('cnt');
+
+                        if ($selfCountsToward === $q->cpny_id) {
+                            $used = max(0, $used - 1);
+                        }
 
                         return [
                             'cpny_id' => $q->cpny_id,
@@ -1602,6 +1664,8 @@ class TrainingRegistrationController extends Controller
                 'name' => $names[$r->user_registration] ?? $r->user_registration,
                 'cpny_id' => $r->cpny_id,
                 'cpny_name' => $companyNames[$r->cpny_id] ?? $r->cpny_id,
+                'registration_cpny_id' => $r->registration_cpny_id,
+                'registration_cpny_name' => $companyNames[$r->registration_cpny_id] ?? $r->registration_cpny_id,
                 'department_id' => $r->department_id,
                 'department_name' => $departmentNames[$r->department_id] ?? $r->department_id,
                 'grade_name' => $levelLabels[$r->schedule?->schedule?->job_level] ?? $r->schedule?->schedule?->job_level,
@@ -1757,15 +1821,17 @@ class TrainingRegistrationController extends Controller
 
         // Reserved = currently holding or offered a seat (not cancelled, not
         // rejected) — the same "used" definition as json()/waitlistForOffer().
+        // Grouped by registration_cpny_id (the quota pool actually consumed),
+        // not cpny_id — see activeSeatCount()'s doc comment.
         $reservedByCpny = TrLndTrainingRegistration::whereIn('schedule_id', $scheduleIds)
             ->where(function ($q) {
                 $q->whereNull('status_registration')
                     ->orWhere('status_registration', TrLndTrainingRegistration::REG_STATUS_OFFERED);
             })
             ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
-            ->select('cpny_id', DB::raw('count(*) as cnt'))
-            ->groupBy('cpny_id')
-            ->pluck('cnt', 'cpny_id');
+            ->select('registration_cpny_id', DB::raw('count(*) as cnt'))
+            ->groupBy('registration_cpny_id')
+            ->pluck('cnt', 'registration_cpny_id');
 
         $byCompany = $totalByCpny->keys()
             ->merge($reservedByCpny->keys())
@@ -1812,11 +1878,18 @@ class TrainingRegistrationController extends Controller
 
     /**
      * HCDEVACCESS-only: seat a waitlisted person on a closed schedule. The
-     * person's approval chain already ran at registration time, so HR can
-     * only accept people whose approval has COMPLETED (status 'C'). HR may
-     * pick a different company's quota than the person's origin company —
-     * that reassigns the row's cpny_id (the seat is then counted against the
-     * chosen company's quota).
+     * person's approval chain was already started at registration time (see
+     * submitForApproval()) and runs independently of this row's cpny_id/
+     * status_registration — approveStep()/rejectStep() act purely off the
+     * TrApproval rows keyed by refnbr, so reassigning the seat here never
+     * disturbs an in-flight approval. HR may therefore accept a person whose
+     * approval is still Pending ('P') as well as one already Approved ('C');
+     * only Rejected is blocked. HR may also pick a different company's quota
+     * than the person's origin company — that reassigns registration_cpny_id
+     * (the quota pool this seat is counted against), NOT cpny_id, which stays
+     * fixed as the participant's home company (used for scoping/approval/
+     * reports — see activeSeatCount()'s doc comment for why these two fields
+     * are kept separate).
      */
     public function manualAccept(Request $request, $id)
     {
@@ -1832,8 +1905,11 @@ class TrainingRegistrationController extends Controller
             return response()->json(['success' => false, 'message' => 'This registration is not on the waiting list'], 422);
         }
 
-        if ($registration->status !== TrLndTrainingRegistration::STATUS_APPROVED) {
-            return response()->json(['success' => false, 'message' => 'Approval for this participant is not finished yet — wait until approval completes'], 422);
+        if (!in_array($registration->status, [
+            TrLndTrainingRegistration::STATUS_PENDING,
+            TrLndTrainingRegistration::STATUS_APPROVED,
+        ], true)) {
+            return response()->json(['success' => false, 'message' => 'This registration has been rejected and can no longer be seated'], 422);
         }
 
         $detail = MsLndTrainingSchedule::where('schedule_id', $registration->schedule_id)->first();
@@ -1842,7 +1918,7 @@ class TrainingRegistrationController extends Controller
             return response()->json(['success' => false, 'message' => 'Manual acceptance is only for schedules that are already closed'], 422);
         }
 
-        $cpnyId = trim((string) ($request->input('cpny_id') ?: $registration->cpny_id));
+        $cpnyId = trim((string) ($request->input('cpny_id') ?: $registration->registration_cpny_id ?: $registration->cpny_id));
 
         DB::connection('pgsql5')->beginTransaction();
 
@@ -1858,7 +1934,7 @@ class TrainingRegistrationController extends Controller
                 return response()->json(['success' => false, 'message' => 'Quota for the selected company was not found on this schedule'], 422);
             }
 
-            $seatCount = $this->activeSeatCount($registration->schedule_id, $cpnyId);
+            $seatCount = $this->activeSeatCount($registration->schedule_id, $cpnyId, $registration->id);
 
             if ($seatCount >= $quota->quota_pax) {
                 DB::connection('pgsql5')->rollBack();
@@ -1869,7 +1945,7 @@ class TrainingRegistrationController extends Controller
             $companyName = MsCompany::where('cpny_id', $cpnyId)->value('cpny_name') ?? $cpnyId;
             $now = now();
 
-            $registration->cpny_id = $cpnyId;
+            $registration->registration_cpny_id = $cpnyId;
             $registration->status_registration = null;
             $registration->process_registration_user = $user->username;
             $registration->process_registration_date = $now;
@@ -1881,9 +1957,12 @@ class TrainingRegistrationController extends Controller
 
             DB::connection('pgsql5')->commit();
 
+            $approvalPending = $registration->status === TrLndTrainingRegistration::STATUS_PENDING;
+
             return response()->json([
                 'success' => true,
-                'message' => $registration->user_registration.' accepted (quota '.$companyName.')',
+                'message' => $registration->user_registration.' accepted (quota '.$companyName.')'
+                    .($approvalPending ? ' — approval still pending' : ''),
             ]);
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
@@ -1897,21 +1976,41 @@ class TrainingRegistrationController extends Controller
     }
 
     /**
-     * HCDEVACCESS/HCBPACCESS-only: manually send a waiting-list participant
-     * the same 24h accept/decline offer that auto-promotion sends (see
-     * TrainingRegistrationService::offerSlot()) — for use while the schedule
-     * is still Published/open, so HR can proactively push a slot to someone
-     * waitlisted (e.g. under a different company's quota that still has
-     * room) instead of waiting on a cancellation to trigger auto-promotion.
-     * Once the schedule is Closed, registration itself is done, so offering
-     * no longer applies (manualAccept() is the closed-schedule counterpart —
-     * a direct force-seat instead of a 24h offer).
-     * Gated to waitlisted + approval already completed (not cancelled, not
-     * already offered — both already implied by status_registration being
-     * exactly WAITLISTED). Quota is a soft cap here: if the chosen company's
-     * quota is already full this returns 'quota_full' => true instead of
-     * failing, and the caller must resend with force=1 to knowingly seat the
-     * offer over quota.
+     * HCDEVACCESS/HCBPACCESS-only: manually push a quota slot/reassignment
+     * onto a participant while the schedule is still Published/open. Two
+     * distinct cases are allowed, both gated to the schedule being Published
+     * (manualAccept() is the Closed-schedule counterpart and does NOT cover
+     * the second case below):
+     *
+     * 1. Waitlisted (status_registration='W'), approval Pending or Approved:
+     *    sends the same 24h accept/decline offer that auto-promotion sends
+     *    (see TrainingRegistrationService::offerSlot()), so HR can proactively
+     *    push a slot to someone waitlisted (e.g. under a different company's
+     *    quota that still has room) instead of waiting on a cancellation to
+     *    trigger auto-promotion.
+     * 2. NOT waitlisted — already holding an active seat (status_registration
+     *    null) or already sitting on an outstanding offer ('O') — but
+     *    approval is still Pending: this is a pure quota reassignment, not a
+     *    fresh offer. The participant already has (or is already deciding on)
+     *    a seat, so there's nothing to re-offer; this just moves which
+     *    company's quota that seat/offer counts against, with no 24h clock
+     *    restarted and no new offer notification sent. Approved rows are
+     *    excluded from this case since once approval is done and they're not
+     *    waitlisted, their seat is already final.
+     *
+     * Both cases rely on the approval chain running independently of this
+     * row's cpny_id/status_registration — TrApproval rows are keyed by
+     * refnbr and approveStep()/rejectStep() never re-derive company or seat
+     * info (see those methods), so reassigning/offering the seat never
+     * disturbs an in-flight approval. Rejected rows are excluded entirely.
+     * The quota pool a row draws from is tracked in registration_cpny_id,
+     * NOT cpny_id — cpny_id stays fixed as the participant's home company
+     * (scoping/approval/reports), while registration_cpny_id is what moves
+     * when HR reassigns to a different company (see activeSeatCount()).
+     * Quota is a hard cap: a company (own or another) with no free seats is
+     * never a valid target — this returns 'quota_full' => true and refuses,
+     * same as manualAccept()'s closed-schedule equivalent. There is no
+     * override; HR must pick a company that actually has room.
      */
     public function offerManually(Request $request, $id)
     {
@@ -1923,12 +2022,17 @@ class TrainingRegistrationController extends Controller
 
         $registration = TrLndTrainingRegistration::findOrFail($id);
 
-        if ($registration->status_registration !== TrLndTrainingRegistration::REG_STATUS_WAITLISTED) {
-            return response()->json(['success' => false, 'message' => 'This registration is not on the waiting list'], 422);
-        }
+        $isWaitlistCase = $registration->status_registration === TrLndTrainingRegistration::REG_STATUS_WAITLISTED
+            && in_array($registration->status, [
+                TrLndTrainingRegistration::STATUS_PENDING,
+                TrLndTrainingRegistration::STATUS_APPROVED,
+            ], true);
 
-        if ($registration->status !== TrLndTrainingRegistration::STATUS_APPROVED) {
-            return response()->json(['success' => false, 'message' => 'Approval for this participant is not finished yet — wait until approval completes'], 422);
+        $isActiveReassignCase = in_array($registration->status_registration, [null, TrLndTrainingRegistration::REG_STATUS_OFFERED], true)
+            && $registration->status === TrLndTrainingRegistration::STATUS_PENDING;
+
+        if (!$isWaitlistCase && !$isActiveReassignCase) {
+            return response()->json(['success' => false, 'message' => 'This registration is not eligible for a manual offer/reassignment'], 422);
         }
 
         $detail = MsLndTrainingSchedule::where('schedule_id', $registration->schedule_id)->first();
@@ -1937,8 +2041,7 @@ class TrainingRegistrationController extends Controller
             return response()->json(['success' => false, 'message' => 'Manual offer is only available while the schedule is still open (Published)'], 422);
         }
 
-        $cpnyId = trim((string) ($request->input('cpny_id') ?: $registration->cpny_id));
-        $force = $request->boolean('force');
+        $cpnyId = trim((string) ($request->input('cpny_id') ?: $registration->registration_cpny_id ?: $registration->cpny_id));
 
         DB::connection('pgsql5')->beginTransaction();
 
@@ -1954,9 +2057,12 @@ class TrainingRegistrationController extends Controller
                 return response()->json(['success' => false, 'message' => 'Quota for the selected company was not found on this schedule'], 422);
             }
 
-            $seatCount = $this->activeSeatCount($registration->schedule_id, $cpnyId);
+            $seatCount = $this->activeSeatCount($registration->schedule_id, $cpnyId, $registration->id);
 
-            if ($seatCount >= $quota->quota_pax && !$force) {
+            // Hard cap — a company (own or another) with no free seats simply
+            // isn't a valid target; this never exceeds quota_pax (same rule
+            // manualAccept() already enforces for the closed-schedule case).
+            if ($seatCount >= $quota->quota_pax) {
                 DB::connection('pgsql5')->rollBack();
 
                 return response()->json([
@@ -1964,18 +2070,34 @@ class TrainingRegistrationController extends Controller
                     'quota_full' => true,
                     'used' => $seatCount,
                     'quota_pax' => $quota->quota_pax,
-                    'message' => "Quota for {$cpnyId} is already full ({$seatCount}/{$quota->quota_pax}). Offering anyway will exceed quota.",
+                    'message' => "Quota for {$cpnyId} is already full ({$seatCount}/{$quota->quota_pax}) — pick a company with available seats.",
                 ], 422);
             }
 
-            $registration->cpny_id = $cpnyId;
-            TrainingRegistrationService::offerSlot($registration, $user->username);
+            $registration->registration_cpny_id = $cpnyId;
+
+            if ($isWaitlistCase) {
+                TrainingRegistrationService::offerSlot($registration, $user->username);
+            } else {
+                // Pure reassignment — no 24h clock, no offer notification;
+                // the seat/offer this row already holds just moves quota.
+                $registration->updated_by = $user->username;
+                $registration->updated_at = now();
+                $registration->save();
+            }
 
             DB::connection('pgsql5')->commit();
 
+            $approvalPending = $registration->status === TrLndTrainingRegistration::STATUS_PENDING;
+            $companyName = MsCompany::where('cpny_id', $cpnyId)->value('cpny_name') ?? $cpnyId;
+
+            $message = $isWaitlistCase
+                ? $registration->user_registration.' has been offered the slot'
+                : $registration->user_registration.'\'s registration is now using '.$companyName.'\'s quota';
+
             return response()->json([
                 'success' => true,
-                'message' => $registration->user_registration.' has been offered the slot'.($seatCount >= $quota->quota_pax ? ' (over quota)' : ''),
+                'message' => $message.($approvalPending ? ' — approval still pending' : ''),
             ]);
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
@@ -1989,18 +2111,29 @@ class TrainingRegistrationController extends Controller
     }
 
     /**
-     * Rows currently holding a seat on a schedule+company pool: pending
-     * approval, approved, or offered (waitlisted/cancelled/rejected don't).
+     * Rows currently holding a seat on a schedule+company quota pool:
+     * pending approval, approved, or offered (waitlisted/cancelled/rejected
+     * don't). Filtered by registration_cpny_id — the quota pool a row
+     * actually draws from — not cpny_id (the participant's fixed home
+     * company), since offerManually()/manualAccept() can reassign a row onto
+     * a different company's quota without changing its home company.
+     *
+     * $excludeId drops a specific row from the count — needed when checking
+     * room for a row that may already be counted in its OWN current pool
+     * (offerManually()'s active-reassign case: status_registration is
+     * already null/'O', so re-targeting the same company at exact capacity
+     * would otherwise self-block a no-op reassignment).
      */
-    private function activeSeatCount(string $scheduleId, string $cpnyId): int
+    private function activeSeatCount(string $scheduleId, string $cpnyId, ?int $excludeId = null): int
     {
         return TrLndTrainingRegistration::where('schedule_id', $scheduleId)
-            ->where('cpny_id', $cpnyId)
+            ->where('registration_cpny_id', $cpnyId)
             ->where(function ($q) {
                 $q->whereNull('status_registration')
                     ->orWhere('status_registration', TrLndTrainingRegistration::REG_STATUS_OFFERED);
             })
             ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
+            ->when($excludeId, fn ($q) => $q->where('id', '!=', $excludeId))
             ->count();
     }
 

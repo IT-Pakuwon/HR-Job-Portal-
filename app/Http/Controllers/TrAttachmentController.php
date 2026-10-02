@@ -4,15 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Models\TrAttachment;
 use App\Models\TrProjectTask;
+use App\Models\TrRfp;
+use App\Models\TrRfpStagingAttachment;
 use App\Services\PmActivityLogger;
 use Carbon\Carbon;
 use Google\Cloud\Storage\StorageClient;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\MsKontrakDocument; 
+use App\Models\MsKontrakDocument;
 
 class TrAttachmentController extends Controller
 {
@@ -400,13 +403,30 @@ public function uploadAttachments(Request $request, string $doctype, string $ref
     {
         TrProjectTask::abortUnlessAccessible($doctype, $refnbr);
 
+        $doctype = strtoupper($doctype);
+
         $rows = TrAttachment::where('refnbr', $refnbr)
-            ->where('doctype', strtoupper($doctype))
+            ->where('doctype', $doctype)
             ->where('status', 'A')
             ->orderBy('id', 'asc')
             ->get();
 
-        abort_if($rows->isEmpty(), 404, 'No attachments found.');
+        // RFP also carries read-only attachments staged over from the IR stage
+        // (tr_rfp_staging_att, stored in S3) which aren't TrAttachment rows.
+        $stagingRows = collect();
+        if ($doctype === 'RP') {
+            $rfp = TrRfp::where('rfp_id', $refnbr)->first();
+            if ($rfp) {
+                $stagingRows = TrRfpStagingAttachment::where('irid', $rfp->ir_id)
+                    ->where('cpny_id', $rfp->cpny_id)
+                    ->whereNotNull('filename')
+                    ->whereRaw("TRIM(COALESCE(filename, '')) <> ''")
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+            }
+        }
+
+        abort_if($rows->isEmpty() && $stagingRows->isEmpty(), 404, 'No attachments found.');
 
         $config = config('filesystems.disks.gcs');
         $keyFilePath = $config['key_file'];
@@ -424,6 +444,18 @@ public function uploadAttachments(Request $request, string $doctype, string $ref
         $zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
 
         $usedNames = [];
+        $addToZip = function (string $baseName, string $content) use ($zip, &$usedNames) {
+            $name = $baseName;
+            $suffix = 1;
+            while (in_array($name, $usedNames, true)) {
+                $info = pathinfo($baseName);
+                $name = $info['filename'] . " ({$suffix})" . (isset($info['extension']) ? '.' . $info['extension'] : '');
+                $suffix++;
+            }
+            $usedNames[] = $name;
+            $zip->addFromString($name, $content);
+        };
+
         foreach ($rows as $row) {
             $objectPath = rtrim($row->folder, '/') . '/' . $row->filename;
 
@@ -440,16 +472,39 @@ public function uploadAttachments(Request $request, string $doctype, string $ref
                 $baseName .= $ext;
             }
 
-            $name = $baseName;
-            $suffix = 1;
-            while (in_array($name, $usedNames, true)) {
-                $info = pathinfo($baseName);
-                $name = $info['filename'] . " ({$suffix})" . (isset($info['extension']) ? '.' . $info['extension'] : '');
-                $suffix++;
-            }
-            $usedNames[] = $name;
+            $addToZip($baseName, $content);
+        }
 
-            $zip->addFromString($name, $content);
+        $stagingBaseUrl = 'https://vendorportal-attachment.s3.ap-southeast-1.amazonaws.com/';
+        foreach ($stagingRows as $row) {
+            $path = trim((string) $row->file_location, '/');
+            $file = trim((string) $row->filename, '/');
+            if ($path === '' || $file === '') {
+                continue;
+            }
+
+            try {
+                $response = Http::timeout(30)->get($stagingBaseUrl . $path . '/' . $file);
+                if (!$response->successful()) {
+                    throw new \RuntimeException("HTTP {$response->status()}");
+                }
+                $content = $response->body();
+            } catch (\Throwable $e) {
+                Log::warning('downloadAllAttachments: failed to fetch staging attachment', [
+                    'id' => $row->attachid,
+                    'file' => $file,
+                    'error' => $e->getMessage(),
+                ]);
+                continue;
+            }
+
+            $ext = pathinfo($file, PATHINFO_EXTENSION);
+            $baseName = preg_replace('/[\\\\\/:*?"<>|]/', '_', $row->document_name ?: $file);
+            if ($ext !== '' && !Str::endsWith(strtolower($baseName), strtolower('.' . $ext))) {
+                $baseName .= '.' . $ext;
+            }
+
+            $addToZip($baseName, $content);
         }
 
         $zip->close();
@@ -459,7 +514,7 @@ public function uploadAttachments(Request $request, string $doctype, string $ref
             abort(404, 'No attachments could be retrieved.');
         }
 
-        $zipName = strtoupper($doctype) . '_' . $refnbr . '_attachments.zip';
+        $zipName = $doctype . '_' . $refnbr . '_attachments.zip';
 
         return response()->download($zipPath, $zipName)->deleteFileAfterSend(true);
     }

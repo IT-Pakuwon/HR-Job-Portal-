@@ -366,8 +366,10 @@
 
                 {{-- RIGHT CARD --}}
                 <div class="flex flex-1 flex-col gap-6">
-                    <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
-                        <div x-data="{ activeTab: 'attachment', tabsOpen: true }" class="flex max-h-[100%] flex-1 flex-col overflow-y-auto">
+                    <div x-data="{ activeTab: 'attachment', tabsOpen: true, hasAttachments: false }"
+                        x-on:rfp-attachments-updated.window="hasAttachments = $event.detail.has"
+                        class="flex flex-col rounded-xl bg-white dark:bg-gray-800" :class="tabsOpen ? 'flex-1' : 'flex-none'">
+                        <div class="flex max-h-[100%] flex-1 flex-col overflow-y-auto">
                             <header class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                                 <nav class="flex flex-grow">
                                     <button @click="activeTab = 'attachment'"
@@ -394,6 +396,14 @@
                                             class="ml-1 hidden rounded-full bg-indigo-600 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white dark:bg-indigo-500">0</span>
                                     </button>
                                 </nav>
+                                <a id="btnDownloadAllRfpAttachment"
+                                    href="{{ route('attachments.downloadAll', ['doctype' => 'RP', 'refnbr' => $rfp->rfp_id]) }}"
+                                    x-show="activeTab === 'attachment' && hasAttachments" x-cloak
+                                    title="Download All Attachment"
+                                    class="ml-3 inline-flex shrink-0 items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700">
+                                    <x-heroicon-o-arrow-down-tray class="h-4 w-4" />
+                                    Download All
+                                </a>
                                 <button type="button" @click="tabsOpen = !tabsOpen"
                                     class="ml-3 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-indigo-300 via-indigo-400 to-indigo-500 text-[10px] font-bold leading-none text-indigo-950 shadow-[0_1px_2px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.6),inset_0_-1px_1px_rgba(0,0,0,0.15)] transition hover:brightness-110 dark:from-indigo-400 dark:via-indigo-500 dark:to-indigo-600 dark:text-indigo-50 dark:shadow-[0_1px_2px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.4),inset_0_-1px_1px_rgba(0,0,0,0.25)]"
                                     x-text="tabsOpen ? '−' : '+'" :title="tabsOpen ? 'Minimize' : 'Restore'">
@@ -416,13 +426,6 @@
                                 </div>
 
                                 <div x-show="activeTab === 'attachment'" class="flex-1 overflow-y-auto px-4">
-                                    <div class="flex justify-end pt-3">
-                                        <a id="btnDownloadAllRfpAttachment" href="{{ route('attachments.downloadAll', ['doctype' => 'RP', 'refnbr' => $rfp->rfp_id]) }}"
-                                            style="display: none;"
-                                            class="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700">
-                                            Download All Attachment
-                                        </a>
-                                    </div>
                                     <table class="w-full text-sm">
                                         <thead class="text-gray-600 dark:text-gray-300">
                                             <tr class="border-b border-gray-200 dark:border-gray-700">
@@ -1244,8 +1247,13 @@
             function renderAttachmentRows(rows) {
                 const $tb = $tbody().empty();
 
-                // Download-all only covers persisted attachments (staging ones aren't saved yet).
-                $('#btnDownloadAllRfpAttachment').css('display', (rows && rows.length) ? 'inline-flex' : 'none');
+                // Download-all now also zips staged (IR-carryover) attachments, so show it
+                // whenever either source has files. Visibility (incl. the active-tab check)
+                // is owned by Alpine on the header button; we just report whether we have data.
+                const hasAnyAttachment = !!((rows && rows.length) || (stagingAttachments && stagingAttachments.length));
+                window.dispatchEvent(new CustomEvent('rfp-attachments-updated', {
+                    detail: { has: hasAnyAttachment }
+                }));
 
                 // 🔥 gabungkan staging + existing
                 const allRows = [
