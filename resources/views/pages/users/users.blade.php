@@ -143,6 +143,18 @@
                     </div>
                 @endunless
 
+                <div class="min-w-[200px] flex-1">
+                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                        Filter Talenta Status
+                    </label>
+                    <select id="filterTalentaStatus"
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
+                        <option value="">All Talenta Status</option>
+                        <option value="active">Active</option>
+                        <option value="resigned">Resigned</option>
+                        <option value="none">No Talenta Match</option>
+                    </select>
+                </div>
 
                 <div class="mt-6">
                     <button id="clearUserFilters" type="button"
@@ -1228,7 +1240,7 @@
                         data: 'id',
                         orderable: false,
                         searchable: false,
-                        className: 'text-center no-pointer',
+                        className: 'text-center',
                         render: function(data) {
                             return `<input type="checkbox" class="userRowCheckbox" value="${data}">`;
                         }
@@ -1336,6 +1348,32 @@
 
             initBulkDeactivate(table);
 
+            // ===== Filter Talenta Status =====
+            // Custom predicate (not column().search()) because the cell only renders
+            // the Talenta status as styled HTML — matching against row.talenta_status
+            // directly is simpler and more reliable than parsing the rendered markup.
+            // Guarded to #usersTable only since this extension is global to every
+            // DataTable on the page (dup/inactive/sby tables don't have this field).
+            $.fn.dataTable.ext.search.push(function(settings, searchData, dataIndex) {
+                if (settings.nTable.id !== 'usersTable') return true;
+
+                const val = $('#filterTalentaStatus').val();
+                if (!val) return true;
+
+                const rowData = settings.oInstance.api().row(dataIndex).data();
+                const status = rowData && rowData.talenta_status ? String(rowData.talenta_status) : '';
+                const isResigned = /resign/i.test(status);
+
+                if (val === 'resigned') return isResigned;
+                if (val === 'active') return status !== '' && !isResigned;
+                if (val === 'none') return status === '';
+                return true;
+            });
+
+            $('#filterTalentaStatus').on('change', function() {
+                table.draw();
+            });
+
             // ===== Filter Company (kolom 4) =====
             $('#filterCompany').on('change', function() {
                 const val = $(this).val();
@@ -1394,6 +1432,7 @@
                 $('#filterDepartment').val(null).trigger('change');
                 $('#filterBusinessUnit').val(null).trigger('change');
                 $('#filterJabatan').val(null).trigger('change');
+                $('#filterTalentaStatus').val(null).trigger('change');
 
                 // reset datatable filter untuk kolom yg benar
                 table.column(6).search(''); // division
@@ -1704,6 +1743,12 @@
 
             $('#filterJabatan').select2({
                 placeholder: 'All Position',
+                allowClear: true,
+                width: '100%'
+            });
+
+            $('#filterTalentaStatus').select2({
+                placeholder: 'All Talenta Status',
                 allowClear: true,
                 width: '100%'
             });

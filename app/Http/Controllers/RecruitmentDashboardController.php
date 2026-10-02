@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Applicant;
+use App\Models\Autonbr;
 use App\Models\Jobposting;
 use App\Models\MsCompany;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Vinkla\Hashids\Facades\Hashids;
 
 class RecruitmentDashboardController extends Controller
 {
@@ -1141,5 +1143,192 @@ class RecruitmentDashboardController extends Controller
             }
             fclose($fh);
         }, $filename, ['Content-Type' => 'text/csv']);
+    }
+
+    public function summaryJson(Request $request)
+    {
+        abort_unless($request->ajax(), 404);
+
+        $waitingApproval = collect(
+            $this->approvalDashboard
+                ->waitingJson($request)
+                ->getData(true)['data'] ?? []
+        )->count();
+
+        $approvalHistory = collect(
+            $this->approvalDashboard
+                ->approveJson($request)
+                ->getData(true)['data'] ?? []
+        )->count();
+
+        $uncheckedApplicant = DB::connection('mysql3')
+            ->table('viewtrxcareer')
+            ->where('status', '!=', 'X')
+            ->where('is_read', 'N')
+            ->count();
+
+        $selfRegister = $this->uncheckedSelfRegisterQuery()->distinct()->count('vc.id');
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'waiting_approval' => $waitingApproval,
+                'approval_history' => $approvalHistory,
+                'unchecked_applicant' => $uncheckedApplicant,
+                'self_register' => $selfRegister,
+            ],
+        ]);
+    }
+
+    /**
+     * "New" self applicants = unread self-posting rows (sp.is_read).
+     */
+    protected function uncheckedSelfRegisterQuery()
+    {
+        return DB::connection('mysql3')
+            ->table('viewselfregister as vc')
+            ->leftJoin('hr_trx_selfposting as sp', function ($join) {
+                $join->on('vc.id', '=', 'sp.id')
+                    ->on('vc.group_cpny_id', '=', 'sp.group_cpny_id');
+            })
+            ->where(function ($q) {
+                $q->where('sp.is_read', 'N')->orWhereNull('sp.is_read');
+            })
+            ->whereNotIn('vc.status', ['R', 'X']);
+    }
+
+    public function widgetWaitingApprovalJson(Request $request)
+    {
+        abort_unless($request->ajax(), 404);
+
+        return $this->approvalDashboard->waitingJson($request);
+    }
+
+    public function widgetApprovalHistoryJson(Request $request)
+    {
+        abort_unless($request->ajax(), 404);
+
+        return $this->approvalDashboard->approveJson($request);
+    }
+
+    public function widgetApplicantJson(Request $request)
+    {
+        abort_unless($request->ajax(), 404);
+
+        $rows = DB::connection('mysql3')
+            ->table('viewtrxcareer')
+            ->select(['id', 'docid', 'fullname', 'apply_date', 'job_title', 'cpnyid', 'apply_step', 'status', 'is_read'])
+            ->where('status', '!=', 'X')
+            ->where('is_read', 'N')
+            ->orderByDesc('apply_date')
+            ->get();
+
+        $companyNames = MsCompany::whereIn('cpny_id', $rows->pluck('cpnyid')->filter()->unique())
+            ->pluck('cpny_name', 'cpny_id');
+
+        $stepNames = DB::connection('mysql3')
+            ->table('hr_ms_job_step')
+            ->whereIn('step_id', $rows->pluck('apply_step')->filter()->unique())
+            ->pluck('step_descr', 'step_id');
+
+        $rows = $rows
+            ->map(fn ($row) => [
+                'eid' => Hashids::encode($row->id),
+                'docid' => $row->docid,
+                'fullname' => $row->fullname,
+                'apply_date' => $row->apply_date,
+                'job_title' => $row->job_title,
+                'cpnyid' => $companyNames->get($row->cpnyid, $row->cpnyid),
+                'apply_step' => $stepNames->get($row->apply_step, $row->apply_step),
+                'status' => $row->status,
+                'url' => '/showcareers',
+            ])
+            ->values();
+
+        return response()->json(['success' => true, 'data' => $rows]);
+    }
+
+    public function widgetSelfRegisterJson(Request $request)
+    {
+        abort_unless($request->ajax(), 404);
+
+        $rows = $this->uncheckedSelfRegisterQuery()
+            ->leftJoin('hr_ms_division as div', 'vc.division_id', '=', 'div.division_id')
+            ->leftJoin('hr_ms_department as dept', 'vc.departementid', '=', 'dept.department_id')
+            ->select([
+                'vc.id', 'vc.docid', 'vc.fullname', 'vc.apply_date', 'vc.job_title', 'vc.group_cpny_id as cpnyid', 'vc.status',
+                'div.division_name', 'dept.department_name',
+            ])
+            ->distinct()
+            ->orderByDesc('vc.apply_date')
+            ->get()
+            ->map(fn ($row) => [
+                'eid' => Hashids::encode($row->id),
+                'docid' => $row->docid,
+                'fullname' => $row->fullname,
+                'apply_date' => $row->apply_date,
+                'job_title' => $row->job_title,
+                'cpnyid' => $row->cpnyid,
+                'division' => $row->division_name,
+                'department' => $row->department_name,
+                'status' => $row->status,
+                'url' => '/showselfregister',
+            ])
+            ->values();
+
+        return response()->json(['success' => true, 'data' => $rows]);
+    }
+
+    public function widgetApprovalDocTypes(Request $request)
+    {
+        abort_unless($request->ajax(), 404);
+
+        $waiting = collect(
+            $this->approvalDashboard
+                ->waitingJson($request)
+                ->getData(true)['data'] ?? []
+        );
+
+        $history = collect(
+            $this->approvalDashboard
+                ->approveJson($request)
+                ->getData(true)['data'] ?? []
+        );
+
+        $doctypes = $waiting
+            ->merge($history)
+            ->pluck('docid')
+            ->filter()
+            ->map(function ($docid) {
+                preg_match('/^[A-Z]+/', $docid, $match);
+                return $match[0] ?? null;
+            })
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
+
+        // ms_autonbr is a per-group numbering sequence table (one row per
+        // doctype x group_cpny_id x year x month — its cpny_id column
+        // actually holds the company GROUP code, e.g. "SBY"/"JKT", not an
+        // individual company id), not a doctype lookup table. Querying it by
+        // doctype alone returns one row per group/month, all sharing the
+        // same doctype_descr. Scope it to the user's own group (same
+        // isGroupLocked rule as dashboard()) so a user only sees doctypes
+        // numbered under their own group.
+        $user = Auth::user();
+        $userGroupCpny = $user->group_cpny_id ?? null;
+        $isGroupLocked = !$user->isPrimaryAdmin() && !empty($userGroupCpny);
+
+        $rows = Autonbr::query()
+            ->select(['doctype', 'doctype_descr'])
+            ->whereIn('doctype', $doctypes)
+            ->when($isGroupLocked, fn ($q) => $q->where('cpny_id', $userGroupCpny))
+            ->get()
+            ->unique('doctype')
+            ->sortBy('doctype')
+            ->values();
+
+        return response()->json(['success' => true, 'data' => $rows]);
     }
 }
