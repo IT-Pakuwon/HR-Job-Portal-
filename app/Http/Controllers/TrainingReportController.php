@@ -321,6 +321,11 @@ class TrainingReportController extends Controller
     {
         $filters = $this->parseFilters($request);
 
+        return response()->json(['data' => $this->gatherQuotaFunnelData($filters)]);
+    }
+
+    protected function gatherQuotaFunnelData(array $filters): array
+    {
         $scheduleIds = MsLndTrainingSchedule::whereIn('status', ['P', 'C'])
             ->whereBetween('schedule_date', [$filters['dateFrom'], $filters['dateTo']])
             ->when($filters['trainingId'], fn ($q, $t) => $q->where('training_id', $t))
@@ -365,7 +370,7 @@ class TrainingReportController extends Controller
         $fillRate = $totalQuota > 0 ? round(($registered / $totalQuota) * 100) : 0;
         $noShowRate = $registered > 0 ? round((($registered - $attended) / $registered) * 100) : 0;
 
-        return response()->json(['data' => [
+        return [
             'quota' => $totalQuota,
             'registered' => $registered,
             'attended' => $attended,
@@ -376,7 +381,7 @@ class TrainingReportController extends Controller
                 'Registered' => $namedBreakdown($registeredByCpny),
                 'Attended' => $namedBreakdown($attendedByCpny),
             ],
-        ]]);
+        ];
     }
 
     // ── API: Charts ──────────────────────────────────────────────────────────────
@@ -513,6 +518,7 @@ class TrainingReportController extends Controller
                 'avg_satisfaction' => $withSatisfaction->count() ? round($withSatisfaction->avg('satisfaction'), 2) : null,
                 'avg_stars' => $totalAttendance ? round($rows->avg('stars'), 2) : 0,
             ],
+            'quotaFunnel' => $this->gatherQuotaFunnelData($g['filters']),
             'byDepartment' => $rows->groupBy('department_name')->map->count()->sortDesc(),
             'byLevel' => $rows->groupBy('level_name')->map->count()->sortDesc(),
             'sessionRows' => $this->sessionRows($rows),

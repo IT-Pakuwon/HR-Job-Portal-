@@ -129,7 +129,7 @@ body {
 </head>
 <body>
 
-@php $s = $summary; @endphp
+@php $s = $summary; $qf = $quotaFunnel; @endphp
 
 <div class="rpt-header">
     <h1>Training Report</h1>
@@ -165,6 +165,34 @@ body {
             <td>
                 <div class="s-lbl">Total Sessions</div>
                 <div class="s-val" style="color:#7c3aed">{{ $s['total_sessions'] }}</div>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div class="section">
+    <div class="sec-head">Capacity &ndash; Quota vs Registered vs Attended</div>
+    <table class="sum-tbl">
+        <tr>
+            <td>
+                <div class="s-lbl">Quota</div>
+                <div class="s-val">{{ $qf['quota'] }}</div>
+            </td>
+            <td>
+                <div class="s-lbl">Registered</div>
+                <div class="s-val" style="color:#7c3aed">{{ $qf['registered'] }}</div>
+            </td>
+            <td>
+                <div class="s-lbl">Attended</div>
+                <div class="s-val" style="color:#d97706">{{ $qf['attended'] }}</div>
+            </td>
+            <td>
+                <div class="s-lbl">Fill Rate</div>
+                <div class="s-val" style="color:#0891b2">{{ $qf['fill_rate'] }}%</div>
+            </td>
+            <td>
+                <div class="s-lbl">No-Show Rate</div>
+                <div class="s-val" style="color:#dc2626">{{ $qf['no_show_rate'] }}%</div>
             </td>
         </tr>
     </table>

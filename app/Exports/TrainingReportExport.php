@@ -46,6 +46,7 @@ class TrainingReportExport implements WithMultipleSheets
                 public function array(): array
                 {
                     $s = $this->d['summary'];
+                    $qf = $this->d['quotaFunnel'];
 
                     $rows = [
                         ['Training Report'],
@@ -60,6 +61,13 @@ class TrainingReportExport implements WithMultipleSheets
                         ['Total Training Hours', $s['total_training_hours']],
                         ['Avg. Satisfaction (/5)', $s['avg_satisfaction'] ?? '–'],
                         ['Avg. Stars (/5)', $s['avg_stars']],
+                        [],
+                        ['Capacity', 'Value'],
+                        ['Quota', $qf['quota']],
+                        ['Registered', $qf['registered']],
+                        ['Attended', $qf['attended']],
+                        ['Fill Rate (%)', $qf['fill_rate']],
+                        ['No-Show Rate (%)', $qf['no_show_rate']],
                         [],
                         ['By Department', 'Attendance'],
                     ];
@@ -97,6 +105,15 @@ class TrainingReportExport implements WithMultipleSheets
 
                     $sheet->getStyle('A8:A12')->getFont()->setBold(true);
                     $sheet->getStyle('B8:B12')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+
+                    $sheet->getStyle('A14:B14')->applyFromArray([
+                        'font' => ['bold' => true, 'color' => ['argb' => 'FF1D4ED8']],
+                        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFDBEAFE']],
+                        'borders' => ['bottom' => ['borderStyle' => Border::BORDER_MEDIUM, 'color' => ['argb' => 'FF93C5FD']]],
+                    ]);
+
+                    $sheet->getStyle('A15:A19')->getFont()->setBold(true);
+                    $sheet->getStyle('B15:B19')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
                 }
             },
 
