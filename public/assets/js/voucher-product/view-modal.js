@@ -73,6 +73,8 @@ const VplMasterViewModal = {
         document.getElementById('viewStockBody').innerHTML =
             '<tr><td colspan="3" class="px-4 py-6 text-center text-sm text-slate-400">Loading...</td></tr>';
         document.getElementById('viewStockTabs').innerHTML = '';
+        document.getElementById('viewRelatedTrxBody').innerHTML =
+            '<tr><td colspan="4" class="px-4 py-6 text-center text-sm text-slate-400">Loading...</td></tr>';
         VplMasterViewModal.currentStock = [];
         VplMasterViewModal.activeWhs = '';
         VplMasterViewModal.activeExp = '';
@@ -178,6 +180,41 @@ const VplMasterViewModal = {
         VplMasterViewModal.activeExp = '';
         VplMasterViewModal._buildStockControls();
         VplMasterViewModal._renderStockTable();
+        VplMasterViewModal._renderRelatedTransactions(res.related_transactions ?? []);
+    },
+
+    // --------------------------------------------------------
+    // RELATED TRANSACTIONS — Transfer/Return Transfer/Usage/Return Usage
+    // documents still On Progress (status 'P') that touch this product.
+    // --------------------------------------------------------
+    _renderRelatedTransactions(rows) {
+        const badgeClass = {
+            'Transfer':        'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300',
+            'Return Transfer': 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300',
+            'Usage':           'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300',
+            'Return Usage':    'bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300',
+        };
+
+        let html = '';
+        if (!rows.length) {
+            html = '<tr><td colspan="4" class="px-4 py-6 text-center text-sm text-slate-400">No on-progress transactions</td></tr>';
+        } else {
+            rows.forEach(row => {
+                const cls = badgeClass[row.type] ?? 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300';
+                html += `
+                    <tr>
+                        <td class="px-4 py-2.5 text-sm">
+                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${cls}">${row.type}</span>
+                        </td>
+                        <td class="px-4 py-2.5 text-sm">
+                            <a href="${row.url}" target="_blank" rel="noopener" class="font-semibold text-blue-600 hover:underline dark:text-blue-400">${row.doc_no}</a>
+                        </td>
+                        <td class="px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300">${row.whs ?? '-'}</td>
+                        <td class="px-4 py-2.5 text-sm font-semibold text-slate-900 dark:text-slate-100">${row.qty ?? 0}</td>
+                    </tr>`;
+            });
+        }
+        document.getElementById('viewRelatedTrxBody').innerHTML = html;
     },
 
     // --------------------------------------------------------

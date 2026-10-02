@@ -180,6 +180,7 @@ use App\Http\Controllers\TopController;
 use App\Http\Controllers\TrainingAttendanceController;
 use App\Http\Controllers\TrainingFeedbackController;
 use App\Http\Controllers\TrainingRegistrationController;
+use App\Http\Controllers\TrainingReportController;
 use App\Http\Controllers\TrainingSessionController;
 use App\Http\Controllers\TrainingSetupController;
 use App\Http\Controllers\TrAttachmentController;
@@ -2659,6 +2660,24 @@ Route::middleware(['auth'])->group(function () {
 
                 Route::get('/export/pdf', 'exportPdf')->name('it-support-report.export.pdf');
                 Route::get('/export/xlsx', 'exportXlsx')->name('it-support-report.export.xlsx');
+            });
+
+        Route::prefix('training-report')
+            ->controller(TrainingReportController::class)
+            ->middleware('access:REPORTTRAINING,VIEW')
+            ->group(function () {
+                Route::get('/dashboard', 'dashboard')->name('training-report.dashboard');
+
+                Route::get('/api/companies', 'companies')->name('training-report.companies');
+                Route::get('/api/summary', 'summaryJson')->name('training-report.summary');
+                Route::get('/api/by-department', 'byDepartmentJson')->name('training-report.by-department');
+                Route::get('/api/by-level', 'byLevelJson')->name('training-report.by-level');
+                Route::get('/api/top-trainings', 'topTrainingsJson')->name('training-report.top-trainings');
+                Route::get('/api/trend', 'trendJson')->name('training-report.trend');
+                Route::get('/api/table', 'tableJson')->name('training-report.table');
+
+                Route::get('/export/pdf', 'exportPdf')->name('training-report.export.pdf');
+                Route::get('/export/xlsx', 'exportXlsx')->name('training-report.export.xlsx');
             });
 
         Route::prefix('ga-dashboard')->controller(GADashboardController::class)->group(function () {

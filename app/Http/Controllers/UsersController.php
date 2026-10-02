@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\MsCompany;
 use App\Models\MsDepartment;
+use App\Models\DepartmentHR;
 use App\Models\Usercpny;
 use App\Models\Userdept;
 use App\Models\Userbusinessunit;
@@ -39,7 +40,15 @@ class UsersController extends Controller
         if (!$user) return redirect()->route('login');
 
         $company = MsCompany::select(['cpny_id', 'cpny_name', 'group_cpny_id'])->where('status', 'A')->get();
-        $department = MsDepartment::select(['department_id', 'department_name'])->where('status', 'A')->get();
+
+        // Add/Edit modal's Access Scope department list: SBY users are managed against
+        // hr_ms_department (scoped by group_cpny_id), not the shared ms_department master.
+        $department = $this->isSbyContext()
+            ? DepartmentHR::select(['department_id', 'department_name'])
+                ->where('status', 'A')
+                ->where('group_cpny_id', 'SBY')
+                ->get()
+            : MsDepartment::select(['department_id', 'department_name'])->where('status', 'A')->get();
 
         // Scoped lists for the Filter Company / Filter Department dropdowns only
         // (the Access Scope selects inside the Add/Edit modal keep the full, unscoped lists above).

@@ -18,6 +18,8 @@ use App\Models\MsCategory;
 use App\Models\MsBaseUom;
 use App\Models\MsDepartment;
 use App\Models\TrAttachment;
+use App\Models\TrxVplTransferDetail;
+use App\Models\TrxVplUsageDetail;
 use App\Models\Usercpny;
 use App\Http\Controllers\TrAttachmentController;
 use DataTables;
@@ -543,13 +545,71 @@ class VplMsProductController extends Controller
             ->orderByDesc('created_at')
             ->get(['attachment_name', 'created_by', 'created_at', 'extention']);
 
+        $relatedTransactions = $this->relatedOnProgressTransactions($msproduct->product_id);
+
         return response()->json([
-            'product'     => $msproduct,
-            'stock'       => $stock,
-            'attachments' => $attachments,
-            'photo_url'   => $this->photoSignedUrl($msproduct->product_photo),
-            'can_edit'    => $this->canEditProduct($msproduct),
+            'product'              => $msproduct,
+            'stock'                => $stock,
+            'attachments'          => $attachments,
+            'related_transactions' => $relatedTransactions,
+            'photo_url'            => $this->photoSignedUrl($msproduct->product_photo),
+            'can_edit'             => $this->canEditProduct($msproduct),
         ]);
+    }
+
+    // Transfer/Return Transfer/Usage/Return Usage documents still "On Progress"
+    // (header status 'P', i.e. not yet Completed/Rejected/Cancelled) that touch
+    // this product — so a user looking at Master Stock can see stock is already
+    // spoken for by a document in flight, not just what's currently on hand.
+    private function relatedOnProgressTransactions(string $productId)
+    {
+        $transfers = TrxVplTransferDetail::query()
+            ->join('tr_vpl_transfer as h', 'h.transfer_id', '=', 'tr_vpl_transfer_detail.transfer_id')
+            ->where('tr_vpl_transfer_detail.product_id', $productId)
+            ->where('h.status', 'P')
+            ->orderByDesc('h.transfer_date')
+            ->get([
+                'h.id as header_id',
+                'h.transfer_id',
+                'h.transfer_date',
+                'h.transfertype',
+                'tr_vpl_transfer_detail.from_whs_id',
+                'tr_vpl_transfer_detail.to_whs_id',
+                'tr_vpl_transfer_detail.qty_transfer',
+            ])
+            ->map(fn ($r) => [
+                'type'   => $r->transfertype === 'ReturnTf' ? 'Return Transfer' : 'Transfer',
+                'doc_no' => $r->transfer_id,
+                'date'   => $r->transfer_date,
+                'whs'    => trim(($r->from_whs_id ?? '-') . ' → ' . ($r->to_whs_id ?? '-')),
+                'qty'    => (float) $r->qty_transfer,
+                'url'    => route('transfervp.show', $r->header_id),
+            ]);
+
+        $usages = TrxVplUsageDetail::query()
+            ->join('tr_vpl_usage as h', 'h.usage_id', '=', 'tr_vpl_usage_detail.usage_id')
+            ->where('tr_vpl_usage_detail.product_id', $productId)
+            ->where('h.status', 'P')
+            ->orderByDesc('h.usage_date')
+            ->get([
+                'h.id as header_id',
+                'h.usage_id',
+                'h.usage_date',
+                'h.usagetype',
+                'tr_vpl_usage_detail.whs_id',
+                'tr_vpl_usage_detail.qty_usage',
+                'tr_vpl_usage_detail.qty_return_usage',
+            ])
+            ->map(fn ($r) => [
+                'type'   => $r->usagetype === 'Return' ? 'Return Usage' : 'Usage',
+                'doc_no' => $r->usage_id,
+                'date'   => $r->usage_date,
+                'whs'    => $r->whs_id ?? '-',
+                'qty'    => (float) ($r->usagetype === 'Return' ? $r->qty_return_usage : $r->qty_usage),
+                'url'    => route('usagevp.show', $r->header_id),
+            ]);
+
+        return $transfers->concat($usages)->sortByDesc('date')->values();
     }
 
     public function viewproduct($hash)

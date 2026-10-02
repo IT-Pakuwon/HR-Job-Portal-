@@ -766,6 +766,25 @@
                             </div>
                         </div>
 
+                        {{-- Related Transactions (On Progress) --}}
+                        <div class="overflow-hidden rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-500/20 dark:bg-amber-500/10">
+                            <div class="border-b border-amber-100 px-5 py-2.5 dark:border-amber-500/20">
+                                <h3 class="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-300">Related Transactions (On Progress)</h3>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full">
+                                    <thead class="border-b border-amber-100 dark:border-amber-500/20">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-300">Type</th>
+                                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-300">Doc No</th>
+                                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-300">Warehouse</th>
+                                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-300">Qty</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="viewRelatedTrxBody" class="divide-y divide-amber-100 dark:divide-amber-500/20"></tbody>
+                                </table>
+                            </div>
+                        </div>
 
                     </div>
                 </div>
