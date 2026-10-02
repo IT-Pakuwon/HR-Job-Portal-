@@ -2669,7 +2669,9 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/dashboard', 'dashboard')->name('training-report.dashboard');
 
                 Route::get('/api/companies', 'companies')->name('training-report.companies');
+                Route::get('/api/filters', 'filters')->name('training-report.filters');
                 Route::get('/api/summary', 'summaryJson')->name('training-report.summary');
+                Route::get('/api/quota-funnel', 'quotaFunnelJson')->name('training-report.quota-funnel');
                 Route::get('/api/by-department', 'byDepartmentJson')->name('training-report.by-department');
                 Route::get('/api/by-level', 'byLevelJson')->name('training-report.by-level');
                 Route::get('/api/top-trainings', 'topTrainingsJson')->name('training-report.top-trainings');

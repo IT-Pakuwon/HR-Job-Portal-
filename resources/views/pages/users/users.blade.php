@@ -102,7 +102,7 @@
                             class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700 dark:border-gray-700">
                             <option value="">All Department</option>
                             @foreach ($filterDepartments as $d)
-                                <option value="{{ $d->department_id }}">{{ $d->department_id }}</option>
+                                <option value="{{ $d->department_id }}">{{ $d->department_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -389,7 +389,7 @@
                                                     <option value="">-- Select Origin Department --</option>
                                                     @foreach ($department as $d)
                                                         <option value="{{ $d->department_id }}">
-                                                            {{ $d->department_id }}
+                                                            {{ $d->department_name }}
                                                         </option>
                                                     @endforeach
                                                 </select>
@@ -438,7 +438,7 @@
                                                 <option></option>
                                                 @foreach ($department as $d)
                                                     <option value="{{ $d->department_id }}">
-                                                        {{ $d->department_id }}
+                                                        {{ $d->department_name }}
                                                     </option>
                                                 @endforeach
                                             </select>

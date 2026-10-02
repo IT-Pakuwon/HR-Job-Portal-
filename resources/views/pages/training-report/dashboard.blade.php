@@ -17,6 +17,36 @@
                 <div class="flex w-full sm:w-auto">
                     <x-dashboard-filter.dashboard-filter :showDepartment="false" />
                 </div>
+                <div class="flex w-full sm:w-auto" id="trnrepExtraFilterWrap">
+                    <div class="flex flex-1 flex-col rounded-2xl border border-slate-200 bg-white shadow-sm sm:flex-none sm:flex-row divide-y divide-slate-200 sm:divide-y-0 sm:divide-x sm:divide-slate-200 dark:border-slate-700/60 dark:bg-slate-900 dark:divide-slate-700/60">
+                        <div class="flex items-center gap-1.5 px-3 py-1.5">
+                            <svg class="h-3.5 w-3.5 shrink-0 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                            </svg>
+                            <select id="trnrepTrainingFilter">
+                                <option value="">All Trainings</option>
+                            </select>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 px-3 py-1.5">
+                            <svg class="h-3.5 w-3.5 shrink-0 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <select id="trnrepScheduleFilter">
+                                <option value="">All Schedules</option>
+                            </select>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 px-3 py-1.5">
+                            <svg class="h-3.5 w-3.5 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5l7.5-6 7.5 6m-15 0v9a1.5 1.5 0 001.5 1.5h12a1.5 1.5 0 001.5-1.5v-9m-15 0l7.5 4.5 7.5-4.5" />
+                            </svg>
+                            <select id="trnrepLevelFilter">
+                                <option value="">All Levels</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
                 <div class="relative w-full sm:w-auto" id="trnrepExportWrap">
                     <button id="trnrepExportBtn" type="button"
                         onclick="document.getElementById('trnrepExportDropdown').classList.toggle('hidden')"
@@ -58,12 +88,39 @@
         </div>
 
         {{-- ── Stat Cards ───────────────────────────────────────────────────────── --}}
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <x-card-chart.stat-card title="Total Attendance" subtitle="Period" value="0" color="blue" valueId="trnrepStatAttendance" />
             <x-card-chart.stat-card title="Total Training Hours" subtitle="Man-hours delivered" value="0" color="cyan" valueId="trnrepStatHours" />
             <x-card-chart.stat-card title="Avg. Satisfaction" subtitle="Feedback rating" value="–" color="green" valueId="trnrepStatSatisfaction" />
-            <x-card-chart.stat-card title="Avg. Stars" subtitle="Attendance + feedback" value="–" color="orange" valueId="trnrepStatStars" />
             <x-card-chart.stat-card title="Completion Rate" subtitle="Attended / Registered" value="0%" color="violet" valueId="trnrepStatRate" />
+        </div>
+
+        {{-- ── Quota vs Registered vs Attended ─────────────────────────────────────── --}}
+        <div class="grid grid-cols-1 gap-3 lg:grid-cols-3" style="align-items:stretch">
+
+            <x-card-chart.card-shell class="lg:col-span-2 flex flex-col" subtitle="Capacity" title="Quota vs Registered vs Attended"
+                gradient="linear-gradient(to right,#06B6D4,#3B82F6)">
+                <div class="flex-1 px-2 pb-3 pt-1">
+                    <div id="trnrepQuotaFunnelChart" style="min-height:220px"></div>
+                </div>
+            </x-card-chart.card-shell>
+
+            <x-card-chart.card-shell class="flex flex-col" subtitle="Capacity" title="Highlights"
+                gradient="linear-gradient(to right,#8B5CF6,#06B6D4)">
+                <div class="flex-1 space-y-3 px-5 pb-5 pt-1">
+                    <div class="rounded-xl border border-slate-100 bg-slate-50 px-3.5 py-3 dark:border-slate-700/60 dark:bg-slate-800/50">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Fill Rate</p>
+                        <p class="mt-1 text-xl font-extrabold text-slate-900 dark:text-white" id="trnrepFillRate">0%</p>
+                        <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Registered ÷ Quota offered</p>
+                    </div>
+                    <div class="rounded-xl border border-slate-100 bg-slate-50 px-3.5 py-3 dark:border-slate-700/60 dark:bg-slate-800/50">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">No-show Rate</p>
+                        <p class="mt-1 text-xl font-extrabold text-slate-900 dark:text-white" id="trnrepNoShowRate">0%</p>
+                        <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Registered but never checked in</p>
+                    </div>
+                </div>
+            </x-card-chart.card-shell>
+
         </div>
 
         {{-- ── Trend + Top Trainings ───────────────────────────────────────────────── --}}
@@ -76,7 +133,7 @@
                 </div>
             </x-card-chart.card-shell>
 
-            <x-card-chart.card-shell class="flex flex-col" subtitle="Ranking" title="Top Trainings"
+            <x-card-chart.card-shell class="flex flex-col" subtitle="Ranking" title="Top 5 Training"
                 gradient="linear-gradient(to right,#8B5CF6,#06B6D4)">
                 <div class="flex-1 px-2 pb-3 pt-1">
                     <div id="trnrepTopTrainingsChart" style="min-height:320px"></div>
@@ -88,7 +145,7 @@
         {{-- ── Department + Level breakdown ────────────────────────────────────────── --}}
         <div class="grid grid-cols-1 gap-3 lg:grid-cols-2" style="align-items:stretch">
 
-            <x-card-chart.card-shell class="flex flex-col" subtitle="Participant Mix" title="Attendance by Department"
+            <x-card-chart.card-shell class="flex flex-col" subtitle="Participant Mix" title="Top 10 Attendance by Department"
                 gradient="linear-gradient(to right,#10B981,#06B6D4)">
                 <div class="flex-1 px-2 pb-3 pt-1">
                     <div id="trnrepByDepartmentChart" style="min-height:280px"></div>
@@ -178,7 +235,9 @@
 
         window.trainingReportRoutes = {
             companies: "{{ route('training-report.companies') }}",
+            filters: "{{ route('training-report.filters') }}",
             summary: "{{ route('training-report.summary') }}",
+            quotaFunnel: "{{ route('training-report.quota-funnel') }}",
             byDepartment: "{{ route('training-report.by-department') }}",
             byLevel: "{{ route('training-report.by-level') }}",
             topTrainings: "{{ route('training-report.top-trainings') }}",
@@ -186,6 +245,47 @@
             table: "{{ route('training-report.table') }}",
         };
     </script>
+
+    {{-- Select2 (Training/Schedule/Level filters) --}}
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <style>
+        #trnrepExtraFilterWrap .select2-container { display: inline-block; vertical-align: middle; }
+        #trnrepExtraFilterWrap .select2-selection--single {
+            height: 24px; display: flex; align-items: center;
+            border: none !important; background: transparent !important;
+            padding: 0 1.25rem 0 0;
+        }
+        #trnrepExtraFilterWrap .select2-container--open .select2-selection--single { box-shadow: none; }
+        #trnrepExtraFilterWrap .select2-selection__rendered {
+            padding: 0; line-height: 24px; color: #334155; font-weight: 600;
+            font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        #trnrepExtraFilterWrap .select2-selection__arrow { height: 24px; right: 0; }
+        #trnrepExtraFilterWrap .select2-selection__arrow b { border-color: #94a3b8 transparent transparent transparent; }
+        #trnrepExtraFilterWrap .select2-dropdown {
+            border-radius: 0.75rem; border: 1px solid #e2e8f0;
+            overflow: hidden; margin-top: 4px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.05);
+        }
+        #trnrepExtraFilterWrap .select2-search__field {
+            border-radius: 0.5rem; border: 1px solid #e2e8f0;
+            padding: 0.375rem 0.5rem; font-size: 0.75rem; outline: none;
+        }
+        #trnrepExtraFilterWrap .select2-search__field:focus { border-color: #8B5CF6; box-shadow: 0 0 0 3px rgba(139,92,246,0.12); }
+        #trnrepExtraFilterWrap .select2-results__option { font-size: 0.75rem; padding: 0.5rem 0.75rem; transition: background .1s; }
+        #trnrepExtraFilterWrap .select2-results__option--highlighted[aria-selected] { background-color: #F5F3FF; color: #7C3AED; }
+        #trnrepExtraFilterWrap .select2-results__option[aria-selected="true"] { background-color: #EDE9FE; color: #6D28D9; font-weight: 600; }
+
+        .dark #trnrepExtraFilterWrap .select2-selection__rendered { color: #e2e8f0; }
+        .dark #trnrepExtraFilterWrap .select2-selection__arrow b { border-color: #64748b transparent transparent transparent; }
+        .dark #trnrepExtraFilterWrap .select2-dropdown { background-color: #1e293b; border-color: #475569; }
+        .dark #trnrepExtraFilterWrap .select2-search__field { background-color: #334155; border-color: #475569; color: #e2e8f0; }
+        .dark #trnrepExtraFilterWrap .select2-results__option { color: #e2e8f0; }
+        .dark #trnrepExtraFilterWrap .select2-results__option--highlighted[aria-selected] { background-color: #4C1D95; color: #fff; }
+        .dark #trnrepExtraFilterWrap .select2-results__option[aria-selected="true"] { background-color: #5B21B6; color: #fff; }
+        .dark #trnrepExtraFilterWrap .select2-search__field:focus { border-color: #8B5CF6; }
+    </style>
 
     <script src="{{ asset('assets/js/gm-report/gm-core.js') }}"></script>
     <script src="{{ asset('assets/js/gm-report/gm-filter.js') }}"></script>
@@ -199,7 +299,9 @@
             };
 
             function updateExportLinks() {
-                var params = window.gmUtils ? window.gmUtils.buildParams() : '';
+                var params = window.trainingReportCombinedParams
+                    ? window.trainingReportCombinedParams()
+                    : (window.gmUtils ? window.gmUtils.buildParams() : '');
                 ['pdf', 'xlsx'].forEach(function (fmt) {
                     var el = document.getElementById('trnrepExport_' + fmt);
                     if (el) el.href = exportRoutes[fmt] + params;

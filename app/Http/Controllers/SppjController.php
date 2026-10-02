@@ -3413,6 +3413,15 @@ class SppjController extends Controller
             $sppb->updated_at = now(); // kalau kolom ada
             $sppb->save();
 
+            // Close out pending approval line(s) so a cancelled SPPJ stops
+            // showing up on the "waiting approval" dashboard (same convention
+            // as ApprovalController::rejectStep()/reviseStep()).
+            TrApproval::query()
+                ->where('refnbr', $sppb->sppjid)
+                ->where('aprv_doctype', 'PJ')
+                ->where('status', 'P')
+                ->update(['status' => 'X']);
+
             DB::commit();
 
             return response()->json([

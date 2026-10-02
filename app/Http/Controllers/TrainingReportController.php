@@ -7,11 +7,15 @@ use App\Models\MsCompany;
 use App\Models\MsDepartment;
 use App\Models\MsLndTrainingDetail;
 use App\Models\MsLndTrainingFeedback;
+use App\Models\MsLndTrainingQuota;
 use App\Models\MsLndTrainingSchedule;
 use App\Models\MsTrainingEvent;
 use App\Models\StoGrading;
+use App\Models\StoSubGradingJobLevel;
 use App\Models\TrLndTrainingFeedbackAnswer;
 use App\Models\TrLndTrainingRegistration;
+use App\Models\User;
+use App\Services\JobLevelResolver;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -47,18 +51,74 @@ class TrainingReportController extends Controller
             'dateFrom' => $request->input('date_from') ?: "{$y}-01-01",
             'dateTo' => $request->input('date_to') ?: "{$y}-12-31",
             'cpnyId' => $request->input('cpny_id') ?: null,
+            'trainingId' => $request->input('training_id') ?: null,
+            'scheduleId' => $request->input('schedule_id') ?: null,
+            'level' => $request->input('level') ?: null,
         ];
     }
 
-    protected function baseAttendedQuery(string $dateFrom, string $dateTo, ?string $cpnyId)
+    /**
+     * Batches whose TARGETED level includes the given label — job_level on
+     * ms_lnd_training_detail is a (possibly multi-select) batch-level
+     * setting, resolved via StoGrading the same way
+     * TrainingAttendanceController::events() does. Quota is allocated per
+     * batch, not per person, so this batch-level matching is what the quota
+     * funnel's level filter uses; everywhere else in this report (the
+     * charts/table of actual attendees) uses each person's own resolved
+     * level via usernamesForLevel() instead.
+     */
+    protected function trainingDetailIdsForLevel(?string $level): array
+    {
+        if (!$level) {
+            return [];
+        }
+
+        $jobLevelByDetail = MsLndTrainingDetail::pluck('job_level', 'training_detail_id');
+        $labels = StoGrading::labelsFor($jobLevelByDetail->values());
+
+        return $jobLevelByDetail
+            ->filter(fn ($jobLevel) => ($jobLevel ? ($labels[$jobLevel] ?? $jobLevel) : 'Unspecified') === $level)
+            ->keys()
+            ->all();
+    }
+
+    /**
+     * Usernames whose OWN current level (resolved via JobLevelResolver —
+     * ms_user.npk -> Talenta job title -> hr_ms_sto_subgrading_joblevel —
+     * same chain used to decorate each attended row's level_name) matches
+     * the given label. Scoped to everyone who's ever registered for L&D
+     * training, since that's the only population this report touches.
+     */
+    protected function usernamesForLevel(string $level): array
+    {
+        $usernames = TrLndTrainingRegistration::whereNotNull('user_registration')
+            ->distinct()
+            ->pluck('user_registration');
+
+        if ($usernames->isEmpty()) {
+            return [];
+        }
+
+        $users = User::whereIn('username', $usernames)->get(['username', 'npk', 'group_cpny_id']);
+
+        return JobLevelResolver::forUsers($users)
+            ->filter(fn ($resolved) => ($resolved ?: 'Unspecified') === $level)
+            ->keys()
+            ->all();
+    }
+
+    protected function baseAttendedQuery(array $filters)
     {
         $q = TrLndTrainingRegistration::where('status', TrLndTrainingRegistration::STATUS_APPROVED)
             ->whereNull('status_registration')
             ->whereNotNull('completed_at')
-            ->whereBetween('schedule_date', [$dateFrom, $dateTo]);
+            ->whereBetween('schedule_date', [$filters['dateFrom'], $filters['dateTo']])
+            ->when($filters['cpnyId'], fn ($q, $c) => $q->where('cpny_id', strtoupper(trim($c))))
+            ->when($filters['trainingId'], fn ($q, $t) => $q->where('training_id', $t))
+            ->when($filters['scheduleId'], fn ($q, $s) => $q->where('schedule_id', $s));
 
-        if ($cpnyId) {
-            $q->where('cpny_id', strtoupper(trim($cpnyId)));
+        if ($filters['level']) {
+            $q->whereIn('user_registration', $this->usernamesForLevel($filters['level']));
         }
 
         return $q;
@@ -67,17 +127,17 @@ class TrainingReportController extends Controller
     /**
      * One row per attended registration, decorated with everything the
      * charts/table need: training/company/department names, the
-     * participant's level (resolved from the batch's job_level the same
-     * way TrainingAttendanceController::events() does), the session's
-     * duration in hours, attendance+feedback stars, and the participant's
-     * own average Rating-type feedback score ("satisfaction"), if they
-     * submitted one.
+     * participant's OWN level (resolved via JobLevelResolver — their actual
+     * current grade, not the batch's possibly-multi-select target
+     * audience), the session's duration in hours, attendance+feedback
+     * stars, and the participant's own average Rating-type feedback score
+     * ("satisfaction"), if they submitted one.
      */
     protected function gatherAttendedRows(Request $request): array
     {
         $filters = $this->parseFilters($request);
 
-        $attended = $this->baseAttendedQuery($filters['dateFrom'], $filters['dateTo'], $filters['cpnyId'])->get();
+        $attended = $this->baseAttendedQuery($filters)->get();
 
         $scheduleIds = $attended->pluck('schedule_id')->filter()->unique();
         $schedules = $scheduleIds->isEmpty()
@@ -86,11 +146,11 @@ class TrainingReportController extends Controller
                 ->get(['schedule_id', 'schedule_start_time', 'schedule_end_time'])
                 ->keyBy('schedule_id');
 
-        $detailIds = $attended->pluck('training_detail_id')->filter()->unique();
-        $jobLevelByDetail = $detailIds->isEmpty()
+        $usernames = $attended->pluck('user_registration')->filter()->unique();
+        $users = $usernames->isEmpty()
             ? collect()
-            : MsLndTrainingDetail::whereIn('training_detail_id', $detailIds)->pluck('job_level', 'training_detail_id');
-        $levelLabels = StoGrading::labelsFor($jobLevelByDetail->values());
+            : User::whereIn('username', $usernames)->get(['username', 'npk', 'group_cpny_id']);
+        $levelByUsername = JobLevelResolver::forUsers($users);
 
         $trainingIds = $attended->pluck('training_id')->filter()->unique();
         $trainingNames = $trainingIds->isEmpty()
@@ -110,7 +170,7 @@ class TrainingReportController extends Controller
                 ->groupBy('training_regist_id')
                 ->map(fn ($rows) => round($rows->avg('answer_number'), 2));
 
-        $rows = $attended->map(function ($r) use ($schedules, $jobLevelByDetail, $levelLabels, $trainingNames, $cpnyNames, $deptNames, $satisfactionByRegist) {
+        $rows = $attended->map(function ($r) use ($schedules, $levelByUsername, $trainingNames, $cpnyNames, $deptNames, $satisfactionByRegist) {
             $schedule = $schedules->get($r->schedule_id);
             $durationHours = 0.0;
 
@@ -119,8 +179,6 @@ class TrainingReportController extends Controller
                 $end = Carbon::parse($schedule->schedule_end_time);
                 $durationHours = abs($start->diffInMinutes($end)) / 60;
             }
-
-            $jobLevel = $jobLevelByDetail[$r->training_detail_id] ?? null;
 
             return [
                 'training_regist_id' => $r->training_regist_id,
@@ -132,7 +190,7 @@ class TrainingReportController extends Controller
                 'cpny_name' => $cpnyNames[$r->cpny_id] ?? $r->cpny_id,
                 'department_id' => $r->department_id,
                 'department_name' => $deptNames[$r->department_id] ?? ($r->department_id ?: 'Unassigned'),
-                'level_name' => $jobLevel ? ($levelLabels[$jobLevel] ?? $jobLevel) : 'Unspecified',
+                'level_name' => $levelByUsername[$r->user_registration] ?? 'Unspecified',
                 'duration_hours' => round($durationHours, 2),
                 'stars' => $r->stars,
                 'satisfaction' => $satisfactionByRegist[$r->training_regist_id] ?? null,
@@ -158,6 +216,45 @@ class TrainingReportController extends Controller
         ]);
     }
 
+    /**
+     * Dropdown options for the Training/Schedule/Level filters. Schedule is
+     * narrowed to one training when `training_id` is passed, so picking a
+     * training first shrinks the schedule list to just its own sessions.
+     */
+    public function filters(Request $request)
+    {
+        $trainings = MsTrainingEvent::orderBy('training_name')->pluck('training_name', 'training_id');
+
+        $schedules = MsLndTrainingSchedule::whereIn('status', ['P', 'C'])
+            ->when($request->filled('training_id'), fn ($q) => $q->where('training_id', $request->input('training_id')))
+            ->orderByDesc('schedule_date')
+            ->get(['schedule_id', 'training_id', 'schedule_date']);
+
+        $scheduleOptions = $schedules->map(fn ($s) => [
+            'id' => $s->schedule_id,
+            'name' => ($trainings[$s->training_id] ?? $s->training_id).' — '.(optional($s->schedule_date)->format('d M Y') ?? '-'),
+        ]);
+
+        // The individual-level vocabulary JobLevelResolver can actually return
+        // (not the batch's possibly-combined job_level), so picking one here
+        // matches what gatherAttendedRows() resolves per attendee.
+        $levels = StoSubGradingJobLevel::where('status', 'A')
+            ->whereNotNull('group_job_level')
+            ->distinct()
+            ->pluck('group_job_level')
+            ->filter()
+            ->push('Unspecified')
+            ->unique()
+            ->sort()
+            ->values();
+
+        return response()->json([
+            'trainings' => $trainings->map(fn ($name, $id) => ['id' => $id, 'name' => $name])->values(),
+            'schedules' => $scheduleOptions->values(),
+            'levels' => $levels,
+        ]);
+    }
+
     // ── API: Stat cards ──────────────────────────────────────────────────────────
 
     public function summaryJson(Request $request)
@@ -174,11 +271,7 @@ class TrainingReportController extends Controller
         $withSatisfaction = $rows->filter(fn ($r) => $r['satisfaction'] !== null);
         $avgSatisfaction = $withSatisfaction->count() ? round($withSatisfaction->avg('satisfaction'), 2) : null;
 
-        $registered = TrLndTrainingRegistration::where('status', TrLndTrainingRegistration::STATUS_APPROVED)
-            ->whereNull('status_registration')
-            ->whereBetween('schedule_date', [$filters['dateFrom'], $filters['dateTo']])
-            ->when($filters['cpnyId'], fn ($q, $c) => $q->where('cpny_id', strtoupper(trim($c))))
-            ->count();
+        $registered = $this->registeredCount($filters);
         $completionRate = $registered > 0 ? round(($totalAttendance / $registered) * 100) : 0;
 
         return response()->json(['data' => [
@@ -191,7 +284,114 @@ class TrainingReportController extends Controller
         ]]);
     }
 
+    /**
+     * Everyone holding an approved, non-waitlisted/offered/cancelled seat in
+     * the period — regardless of whether they ever checked in. The
+     * denominator for both Completion Rate and the quota funnel's fill rate.
+     */
+    protected function registeredCount(array $filters): int
+    {
+        return $this->registeredQuery($filters)->count();
+    }
+
+    protected function registeredQuery(array $filters)
+    {
+        $q = TrLndTrainingRegistration::where('status', TrLndTrainingRegistration::STATUS_APPROVED)
+            ->whereNull('status_registration')
+            ->whereBetween('schedule_date', [$filters['dateFrom'], $filters['dateTo']])
+            ->when($filters['cpnyId'], fn ($q, $c) => $q->where('cpny_id', strtoupper(trim($c))))
+            ->when($filters['trainingId'], fn ($q, $t) => $q->where('training_id', $t))
+            ->when($filters['scheduleId'], fn ($q, $s) => $q->where('schedule_id', $s));
+
+        if ($filters['level']) {
+            $q->whereIn('user_registration', $this->usernamesForLevel($filters['level']));
+        }
+
+        return $q;
+    }
+
+    /**
+     * Seats offered (ms_lnd_training_quota.quota_pax) vs. seats actually
+     * registered vs. seats attended, for the sessions scheduled in this
+     * period. Quota is set per company per schedule, so it's filtered the
+     * same way as everything else (by the schedule's date and, if chosen,
+     * company) rather than by the registration rows themselves.
+     */
+    public function quotaFunnelJson(Request $request)
+    {
+        $filters = $this->parseFilters($request);
+
+        $scheduleIds = MsLndTrainingSchedule::whereIn('status', ['P', 'C'])
+            ->whereBetween('schedule_date', [$filters['dateFrom'], $filters['dateTo']])
+            ->when($filters['trainingId'], fn ($q, $t) => $q->where('training_id', $t))
+            ->when($filters['scheduleId'], fn ($q, $s) => $q->where('schedule_id', $s))
+            ->pluck('schedule_id');
+
+        $quotaQuery = MsLndTrainingQuota::where('status', 'A')
+            ->whereIn('schedule_id', $scheduleIds)
+            ->when($filters['cpnyId'], fn ($q, $c) => $q->where('cpny_id', strtoupper(trim($c))))
+            ->when($filters['trainingId'], fn ($q, $t) => $q->where('training_id', $t));
+
+        if ($filters['level']) {
+            $quotaQuery->whereIn('training_detail_id', $this->trainingDetailIdsForLevel($filters['level']));
+        }
+
+        $quotaByCpny = $quotaQuery->selectRaw('cpny_id, sum(quota_pax) as total')
+            ->groupBy('cpny_id')
+            ->pluck('total', 'cpny_id');
+
+        $registeredByCpny = $this->registeredQuery($filters)
+            ->selectRaw('cpny_id, count(*) as total')
+            ->groupBy('cpny_id')
+            ->pluck('total', 'cpny_id');
+
+        $attendedByCpny = $this->baseAttendedQuery($filters)
+            ->selectRaw('cpny_id, count(*) as total')
+            ->groupBy('cpny_id')
+            ->pluck('total', 'cpny_id');
+
+        $cpnyIds = $quotaByCpny->keys()->merge($registeredByCpny->keys())->merge($attendedByCpny->keys())->unique();
+        $cpnyNames = MsCompany::whereIn('cpny_id', $cpnyIds)->pluck('cpny_name', 'cpny_id');
+
+        $namedBreakdown = fn ($byCpny) => $cpnyIds
+            ->mapWithKeys(fn ($id) => [($cpnyNames[$id] ?? $id) => (int) ($byCpny[$id] ?? 0)])
+            ->filter()
+            ->sortDesc();
+
+        $totalQuota = (int) $quotaByCpny->sum();
+        $registered = (int) $registeredByCpny->sum();
+        $attended = (int) $attendedByCpny->sum();
+
+        $fillRate = $totalQuota > 0 ? round(($registered / $totalQuota) * 100) : 0;
+        $noShowRate = $registered > 0 ? round((($registered - $attended) / $registered) * 100) : 0;
+
+        return response()->json(['data' => [
+            'quota' => $totalQuota,
+            'registered' => $registered,
+            'attended' => $attended,
+            'fill_rate' => $fillRate,
+            'no_show_rate' => $noShowRate,
+            'breakdown' => [
+                'Quota' => $namedBreakdown($quotaByCpny),
+                'Registered' => $namedBreakdown($registeredByCpny),
+                'Attended' => $namedBreakdown($attendedByCpny),
+            ],
+        ]]);
+    }
+
     // ── API: Charts ──────────────────────────────────────────────────────────────
+
+    /**
+     * Per-category → {company_name: count} map, used to power the "which
+     * companies make up this bar" tooltip on the department/level/top
+     * trainings charts.
+     */
+    protected function companyBreakdown($rows, string $groupKey, $keys)
+    {
+        return $rows->groupBy($groupKey)
+            ->only($keys->all())
+            ->map(fn ($group) => $group->groupBy('cpny_name')->map->count()->sortDesc());
+    }
 
     public function byDepartmentJson(Request $request)
     {
@@ -202,6 +402,7 @@ class TrainingReportController extends Controller
         return response()->json(['data' => [
             'categories' => $counts->keys()->values(),
             'series' => [['name' => 'Attendance', 'data' => $counts->values()]],
+            'breakdown' => $this->companyBreakdown($rows, 'department_name', $counts->keys()),
         ]]);
     }
 
@@ -214,6 +415,7 @@ class TrainingReportController extends Controller
         return response()->json(['data' => [
             'categories' => $counts->keys()->values(),
             'series' => [['name' => 'Attendance', 'data' => $counts->values()]],
+            'breakdown' => $this->companyBreakdown($rows, 'level_name', $counts->keys()),
         ]]);
     }
 
@@ -221,11 +423,12 @@ class TrainingReportController extends Controller
     {
         $rows = $this->gatherAttendedRows($request)['rows'];
 
-        $counts = $rows->groupBy('training_name')->map->count()->sortDesc()->take(10);
+        $counts = $rows->groupBy('training_name')->map->count()->sortDesc()->take(5);
 
         return response()->json(['data' => [
             'categories' => $counts->keys()->values(),
             'series' => [['name' => 'Attendance', 'data' => $counts->values()]],
+            'breakdown' => $this->companyBreakdown($rows, 'training_name', $counts->keys()),
         ]]);
     }
 

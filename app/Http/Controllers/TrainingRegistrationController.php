@@ -16,13 +16,12 @@ use App\Models\MsLndTrainingQuota;
 use App\Models\MsLndTrainingSchedule;
 use App\Models\MsTrainingEvent;
 use App\Models\StoGrading;
-use App\Models\StoSubGradingJobLevel;
 use App\Models\TrApproval;
 use App\Models\TrLndTrainingFeedbackAnswer;
 use App\Models\TrLndTrainingRegistration;
 use App\Models\TrMessage;
 use App\Models\User;
-use App\Models\ViewUsersTalenta;
+use App\Services\JobLevelResolver;
 use App\Services\TrainingRegistrationService;
 use App\Services\TrainingWaitlistNotifier;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -424,40 +423,7 @@ class TrainingRegistrationController extends Controller
      */
     private function jobLevelGroupsFor(\Illuminate\Support\Collection $users): \Illuminate\Support\Collection
     {
-        $npks = $users->pluck('npk')->filter()->unique()->values();
-
-        if ($npks->isEmpty()) {
-            return $users->mapWithKeys(fn ($u) => [$u->username => null]);
-        }
-
-        $titlesByNpk = ViewUsersTalenta::whereIn('employee_id', $npks)->pluck('job_level', 'employee_id');
-
-        $groupCpnyIds = $users->pluck('group_cpny_id')->filter()
-            ->map(fn ($v) => strtoupper(trim($v)))->unique()->values();
-
-        $stripSuffix = fn ($title) => strtolower(trim(preg_replace('/\s*-\s*\d+$/', '', (string) $title)));
-
-        $groupByKey = [];
-        StoSubGradingJobLevel::where('status', 'A')
-            ->whereIn('group_cpny_id', $groupCpnyIds)
-            ->whereNotNull('job_level_id')
-            ->get(['group_cpny_id', 'job_level_id', 'group_job_level'])
-            ->each(function ($row) use (&$groupByKey, $stripSuffix) {
-                $key = strtoupper(trim($row->group_cpny_id)).'|'.$stripSuffix($row->job_level_id);
-                $groupByKey[$key] ??= $row->group_job_level;
-            });
-
-        return $users->mapWithKeys(function ($user) use ($titlesByNpk, $groupByKey, $stripSuffix) {
-            $title = $titlesByNpk[$user->npk] ?? null;
-
-            if (!$title) {
-                return [$user->username => null];
-            }
-
-            $key = strtoupper(trim($user->group_cpny_id)).'|'.$stripSuffix($title);
-
-            return [$user->username => $groupByKey[$key] ?? null];
-        });
+        return JobLevelResolver::forUsers($users);
     }
 
     /**
