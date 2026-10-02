@@ -101,7 +101,7 @@
             <x-card-chart.card-shell class="lg:col-span-2 flex flex-col" subtitle="Capacity" title="Quota vs Registered vs Attended"
                 gradient="linear-gradient(to right,#06B6D4,#3B82F6)">
                 <div class="flex-1 px-2 pb-3 pt-1">
-                    <div id="trnrepQuotaFunnelChart" style="min-height:220px"></div>
+                    <div id="trnrepQuotaFunnelChart" style="min-height:260px"></div>
                 </div>
             </x-card-chart.card-shell>
 

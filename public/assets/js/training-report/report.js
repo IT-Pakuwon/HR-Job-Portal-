@@ -131,53 +131,68 @@
     }
 
     // ── Quota vs Registered vs Attended (column + conversion-% line combo) ──────
-    function renderQuotaFunnel(quota, registered, attended, pctOfQuota, breakdown) {
+    // Same sqrt-scale-with-floor approach as the shared card-chart funnel
+    // component (public/assets/js/card-chart/funnel-chart.js) — a stage
+    // that's a tiny fraction of Quota (e.g. Attended: 14 vs Quota: 208)
+    // still renders wide enough to read instead of collapsing to a sliver.
+    // Rebuilt here (rather than using that component directly) because it
+    // only auto-inits static Blade-rendered data once on page load, while
+    // this chart needs to re-render on every filter change.
+    function renderQuotaFunnel(quota, registered, attended, breakdown) {
         var el = document.getElementById('trnrepQuotaFunnelChart');
         if (!el) return;
 
-        chartData.funnel = { quota: quota, registered: registered, attended: attended, pctOfQuota: pctOfQuota, breakdown: breakdown };
+        chartData.funnel = { quota: quota, registered: registered, attended: attended, breakdown: breakdown };
 
         if (charts.funnel) { charts.funnel.destroy(); charts.funnel = null; }
         el.innerHTML = '';
 
         var dark = isDark();
-        var categories = ['Quota', 'Registered', 'Attended'];
-        var counts = [quota, registered, attended];
+        var raw = [
+            { x: 'Quota', y: quota },
+            { x: 'Registered', y: registered },
+            { x: 'Attended', y: attended },
+        ];
+
+        var maxSqrt = Math.sqrt(Math.max.apply(null, raw.map(function (d) { return Math.max(0, d.y); }).concat([0])));
+        var floor = maxSqrt * 0.22;
+        var scaled = raw.map(function (d) {
+            var sqrtVal = Math.sqrt(Math.max(0, d.y));
+            return { x: d.x, y: sqrtVal > 0 ? Math.max(sqrtVal, floor) : 0, actual: d.y };
+        });
 
         charts.funnel = new ApexCharts(el, {
-            series: [
-                { name: 'Seats', type: 'column', data: counts },
-                { name: '% of Quota', type: 'line', data: pctOfQuota },
-            ],
+            series: [{ name: 'Seats', data: scaled }],
             chart: {
-                height: 260, toolbar: { show: false }, zoom: { enabled: false },
+                type: 'bar', height: 260, toolbar: { show: false }, zoom: { enabled: false },
                 fontFamily: 'Inter, sans-serif',
                 foreColor: dark ? '#94A3B8' : '#64748B',
                 background: 'transparent',
-                animations: { enabled: true, easing: 'easeinout', speed: 500 },
+                animations: { enabled: true, easing: 'easeinout', speed: 700 },
             },
-            colors: ['#3B82F6', '#EC4899'],
-            stroke: { width: [0, 3], curve: 'smooth' },
-            markers: { size: 4, colors: ['#EC4899'], strokeColors: '#fff', strokeWidth: 2 },
-            plotOptions: { bar: { columnWidth: '45%', borderRadius: 4 } },
+            colors: ['#3B82F6', '#60A5FA', '#2563EB'],
+            plotOptions: { bar: { horizontal: true, isFunnel: true, borderRadius: 4, borderRadiusApplication: 'around', distributed: true } },
             dataLabels: {
                 enabled: true,
-                enabledOnSeries: [0],
-                formatter: function (val) { return val; },
-                style: { fontSize: '11px', fontWeight: 700, colors: [dark ? '#E2E8F0' : '#1E293B'] },
+                formatter: function (val, opt) {
+                    var data = opt.w.config.series[opt.seriesIndex].data;
+                    var actual = data[opt.dataPointIndex].actual;
+                    var firstVal = data[0].actual;
+                    var pct = firstVal > 0 ? ((actual / firstVal) * 100).toFixed(1) : 0;
+                    return opt.w.globals.labels[opt.dataPointIndex] + ':  ' + actual.toLocaleString() + ' (' + pct + '%)';
+                },
+                style: { fontSize: '12px', fontWeight: 600, colors: [dark ? '#F1F5F9' : '#1E293B'] },
+                dropShadow: { enabled: false },
+                background: { enabled: true, foreColor: dark ? '#0F172A' : '#fff', opacity: 0.85, borderWidth: 0, padding: 6 },
             },
-            legend: { show: true, position: 'top', horizontalAlign: 'center', fontSize: '11px', markers: { radius: 6 } },
-            xaxis: { categories: categories, labels: { style: { fontSize: '12px', fontWeight: 600 } } },
-            yaxis: [
-                { title: { text: 'Seats', style: { fontSize: '11px' } }, labels: { style: { fontSize: '11px' } } },
-                { opposite: true, min: 0, max: 100, title: { text: '% of Quota', style: { fontSize: '11px' } }, labels: { style: { fontSize: '11px' }, formatter: function (v) { return v + '%'; } } },
-            ],
-            grid: { borderColor: dark ? '#1E293B' : '#F1F5F9', strokeDashArray: 4, padding: { left: 4, right: 4 } },
+            xaxis: { axisBorder: { show: false }, axisTicks: { show: false }, labels: { show: false } },
+            yaxis: { labels: { show: false } },
+            grid: { show: false },
+            legend: { show: false },
             tooltip: {
-                shared: true,
                 custom: function (opts) {
-                    var category = categories[opts.dataPointIndex];
-                    return companyTooltipHtml(breakdown, category, isDark());
+                    var dp = opts.w.config.series[opts.seriesIndex].data[opts.dataPointIndex];
+                    return companyTooltipHtml(breakdown, dp.x, isDark());
                 },
             },
         });
@@ -187,7 +202,7 @@
     function loadQuotaFunnel(params) {
         fetchJson(routes.quotaFunnel, params).then(function (res) {
             var d = res.data || {};
-            renderQuotaFunnel(d.quota || 0, d.registered || 0, d.attended || 0, d.pct_of_quota || [0, 0, 0], d.breakdown || {});
+            renderQuotaFunnel(d.quota || 0, d.registered || 0, d.attended || 0, d.breakdown || {});
             utils.setText('trnrepFillRate', (d.fill_rate || 0) + '%');
             utils.setText('trnrepNoShowRate', (d.no_show_rate || 0) + '%');
         }).catch(function () {});
@@ -448,7 +463,7 @@
         // Re-paint charts (not re-fetch) when dark mode toggles, using last-loaded data.
         new MutationObserver(function () {
             if (chartData.trend) renderTrend(chartData.trend.categories, chartData.trend.attendance, chartData.trend.satisfaction);
-            if (chartData.funnel) renderQuotaFunnel(chartData.funnel.quota, chartData.funnel.registered, chartData.funnel.attended, chartData.funnel.pctOfQuota, chartData.funnel.breakdown);
+            if (chartData.funnel) renderQuotaFunnel(chartData.funnel.quota, chartData.funnel.registered, chartData.funnel.attended, chartData.funnel.breakdown);
             ['top', 'dept', 'level'].forEach(function (key) {
                 var c = chartData[key];
                 if (c) renderBarChart(key, c.elId, c.categories, c.series, c.color, c.breakdown);
