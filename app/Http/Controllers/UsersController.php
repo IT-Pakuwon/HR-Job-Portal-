@@ -21,6 +21,7 @@ use App\Models\Division;
 use App\Models\Userdivision;
 use App\Models\UserDas;
 use App\Models\SysScreen;
+use App\Models\ViewUsersTalenta;
 
 class UsersController extends Controller
 {
@@ -32,6 +33,21 @@ class UsersController extends Controller
     private function isSbyContext(): bool
     {
         return request()->routeIs('users-sby*');
+    }
+
+    /**
+     * Talenta Live (view_users_talenta) status_talenta keyed by employee_id (NPK) —
+     * same pgsql2 connection as ms_user, so this is matched in PHP rather than a
+     * cross-database join. Used to show each ms_user row's current Talenta
+     * employment status (e.g. Resigned) without touching ms_user.status itself.
+     */
+    private function talentaStatusByNpk()
+    {
+        return ViewUsersTalenta::query()
+            ->whereNotNull('employee_id')
+            ->where('employee_id', '!=', '')
+            ->get(['employee_id', 'status_talenta'])
+            ->keyBy('employee_id');
     }
 
     public function index()
@@ -137,6 +153,12 @@ class UsersController extends Controller
             ->when($this->isSbyContext(), fn ($q) => $q->where('group_cpny_id', 'SBY'))
             ->orderByDesc('id')
             ->get();
+
+        $talentaByNpk = $this->talentaStatusByNpk();
+
+        $users->each(function ($u) use ($talentaByNpk) {
+            $u->talenta_status = $u->npk ? ($talentaByNpk->get($u->npk)->status_talenta ?? null) : null;
+        });
 
         return response()->json(['data' => $users]);
     }
@@ -579,6 +601,27 @@ class UsersController extends Controller
         $user->update(['status' => request('status')]);
 
         return response()->json(['message' => 'Status updated']);
+    }
+
+    /**
+     * Bulk-deactivate ms_user rows selected via the Users List checkboxes (e.g. the
+     * set of rows Talenta Status flags as Resigned) — same effect as toggleStatus()'s
+     * switch, just applied to many ids in one request instead of one at a time.
+     */
+    public function bulkDeactivate(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer',
+        ]);
+
+        $count = User::whereIn('id', $request->ids)
+            ->update([
+                'status' => 'X',
+                'updated_by' => Auth::user()->username ?? 'system',
+            ]);
+
+        return response()->json(['success' => true, 'count' => $count]);
     }
 
     public function updateDarkmode(Request $request)

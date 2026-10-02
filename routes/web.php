@@ -2869,6 +2869,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/users/{id}/edit', [UsersController::class, 'edit'])->name('users.edit');
         Route::put('/users/{post}', [UsersController::class, 'update'])->name('users.update');
         Route::put('/users/{id}/toggle-status', [UsersController::class, 'toggleStatus']);
+        Route::post('/users/bulk-deactivate', [UsersController::class, 'bulkDeactivate'])->name('users.bulk-deactivate');
         Route::post('/settings/password', [UsersController::class, 'updatePassword'])->name('password.update.custom');
 
         Route::post('/users/{id}/reset-password', [UsersController::class, 'resetPassword'])->name('users.reset-password');
@@ -3145,6 +3146,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/users-sby/{id}/edit', [UsersController::class, 'edit'])->name('users-sby.edit');
         Route::put('/users-sby/{post}', [UsersController::class, 'update'])->name('users-sby.update');
         Route::put('/users-sby/{id}/toggle-status', [UsersController::class, 'toggleStatus'])->name('users-sby.toggle-status');
+        Route::post('/users-sby/bulk-deactivate', [UsersController::class, 'bulkDeactivate'])->name('users-sby.bulk-deactivate');
         Route::post('/users-sby/{id}/impersonate', [UsersController::class, 'impersonate'])->name('users-sby.impersonate');
 
         Route::get('/manage-approvals-sby', [ManageApprovalController::class, 'index'])->name('manage-approvals-sby');

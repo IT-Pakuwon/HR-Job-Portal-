@@ -62,10 +62,17 @@
             <div
                 class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
                 <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Users List</h2>
-                <button id="addAppBtn"
-                    class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
-                    + Add User
-                </button>
+                <div class="flex items-center gap-2">
+                    <span id="bulkSelectedCount" class="hidden text-sm font-medium text-gray-500 dark:text-gray-400"></span>
+                    <button id="bulkDeactivateBtn" type="button" disabled
+                        class="inline-flex h-10 items-center justify-center rounded-lg bg-red-600 px-5 text-sm font-medium text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-40">
+                        Deactivate Selected
+                    </button>
+                    <button id="addAppBtn"
+                        class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
+                        + Add User
+                    </button>
+                </div>
             </div>
 
             {{-- Filter Company & Department --}}
@@ -163,6 +170,10 @@
                             <th class="px-4 py-3 text-left font-medium">BusinessUnit</th>
                             <th class="px-4 py-3 text-left font-medium">Jabatan</th>
                             <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
+                            <th class="w-36 px-4 py-3 text-left font-medium">Talenta Status</th>
+                            <th class="w-10 px-4 py-3 text-center">
+                                <input type="checkbox" id="selectAllUsers" title="Select all (filtered)">
+                            </th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -586,6 +597,17 @@
         const companiesData = {!! $company->toJson() !!};
         const divisionsData = {!! $divisions->toJson() !!};
         const isSbyUser = @json($usersSby);
+
+        // Talenta Live status_talenta, matched to this ms_user row by NPK — display only,
+        // does not change ms_user.status. '-' when there's no NPK or no Talenta match.
+        function renderTalentaStatusBadge(data) {
+            if (!data) return '<span class="text-gray-400">-</span>';
+            const isResigned = /resign/i.test(data);
+            const cls = isResigned ?
+                'bg-red-300/30 dark:bg-red-300 text-red-600' :
+                'bg-green-300/30 dark:bg-green-300 text-green-600';
+            return `<span class="w-full max-w-25 ${cls} focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">${data}</span>`;
+        }
 
         // Rebuild the Company multi-select options, scoped to the chosen company group.
         function renderCompanyOptions(group, selectedIds = []) {
@@ -1196,9 +1218,123 @@
                                 '<span class=" w-full max-w-25 bg-green-300/30 dark:bg-green-300 text-green-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Active</span>' :
                                 '<span class="  w-full max-w-25 bg-red-300/30 dark:bg-red-300 text-red-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Inactive</span>';
                         }
+                    },
+                    {
+                        data: 'talenta_status',
+                        className: 'no-pointer',
+                        render: renderTalentaStatusBadge
+                    },
+                    {
+                        data: 'id',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center no-pointer',
+                        render: function(data) {
+                            return `<input type="checkbox" class="userRowCheckbox" value="${data}">`;
+                        }
                     }
                 ]
             });
+
+            // Checkbox selection + bulk-deactivate for the Users List table (#usersTable).
+            // Defined inline (not as a top-level function) so it can close over
+            // inactiveTable/dupTable/sbyTable, which only exist inside this ready callback.
+            // "Select all" selects every row matching the *current* search/filter, not just
+            // the current page, so e.g. searching "Resigned" then Select All only grabs the
+            // Talenta-resigned rows — matching what the user can see.
+            function initBulkDeactivate(table) {
+                const $selectAll = $('#selectAllUsers');
+                const $bulkBtn = $('#bulkDeactivateBtn');
+                const $countLabel = $('#bulkSelectedCount');
+                let selected = new Set();
+
+                function refreshBulkUI() {
+                    $bulkBtn.prop('disabled', selected.size === 0);
+                    if (selected.size > 0) {
+                        $countLabel.removeClass('hidden').text(`${selected.size} selected`);
+                    } else {
+                        $countLabel.addClass('hidden').text('');
+                        $selectAll.prop('checked', false);
+                    }
+                }
+
+                $('#usersTable tbody').on('change', '.userRowCheckbox', function() {
+                    const id = parseInt($(this).val(), 10);
+                    if (this.checked) {
+                        selected.add(id);
+                    } else {
+                        selected.delete(id);
+                    }
+                    refreshBulkUI();
+                });
+
+                $selectAll.on('change', function() {
+                    const checked = this.checked;
+                    table.rows({ search: 'applied' }).every(function() {
+                        const rowData = this.data();
+                        if (checked) {
+                            selected.add(rowData.id);
+                        } else {
+                            selected.delete(rowData.id);
+                        }
+                        $(this.node()).find('.userRowCheckbox').prop('checked', checked);
+                    });
+                    refreshBulkUI();
+                });
+
+                // The id set on screen changes on every reload (add/edit/toggle/sync/bulk
+                // action), so a stale selection could silently deactivate the wrong rows.
+                table.on('xhr', function() {
+                    selected.clear();
+                    refreshBulkUI();
+                });
+
+                $bulkBtn.on('click', function() {
+                    if (selected.size === 0) return;
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: `Deactivate ${selected.size} user(s)?`,
+                        text: 'Sets their account status to Inactive (X). You can reactivate from the Inactive Users tab.',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc2626',
+                        confirmButtonText: 'Yes, deactivate',
+                    }).then((result) => {
+                        if (!result.isConfirmed) return;
+
+                        $.ajax({
+                            url: "{{ $usersBase }}/bulk-deactivate",
+                            type: 'POST',
+                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                            data: { ids: Array.from(selected) },
+                            success: function(res) {
+                                selected.clear();
+                                refreshBulkUI();
+                                table.ajax.reload(null, false);
+                                if (inactiveTable) inactiveTable.ajax.reload(null, false);
+                                if (dupTable) dupTable.ajax.reload(null, false);
+                                if (sbyTable) sbyTable.ajax.reload(null, false);
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Deactivated!',
+                                    text: `${res.count} user(s) deactivated.`,
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                });
+                            },
+                            error: function(xhr) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Failed!',
+                                    text: xhr.responseJSON?.message || 'Gagal menonaktifkan user.'
+                                });
+                            }
+                        });
+                    });
+                });
+            }
+
+            initBulkDeactivate(table);
 
             // ===== Filter Company (kolom 4) =====
             $('#filterCompany').on('change', function() {
