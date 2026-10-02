@@ -241,7 +241,7 @@
 
                 {{-- Right card (Tabs) --}}
                 <div x-data="{ activeTab: 'attachment', tabsOpen: true }" class="flex flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800"
-                    :class="tabsOpen ? 'h-[400px]' : 'h-auto'">
+                    :class="tabsOpen ? 'h-[400px]' : 'h-auto self-start'">
                     <div class="flex max-h-[100%] flex-1 flex-col overflow-y-auto">
                         {{-- Tabs Header --}}
                         <header

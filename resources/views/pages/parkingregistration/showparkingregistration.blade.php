@@ -133,8 +133,8 @@
                     </div>
                 </div>
                 {{-- Right card (Tabs) --}}
-                <div class="flex flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
-                    <div x-data="{ activeTab: 'attachment', tabsOpen: true }" class="flex max-h-[100%] flex-1 flex-col">
+                <div x-data="{ activeTab: 'attachment', tabsOpen: true }" class="flex flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800" :class="{ 'self-start': !tabsOpen }">
+                    <div class="flex max-h-[100%] flex-1 flex-col">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                             <nav class="flex flex-grow">
