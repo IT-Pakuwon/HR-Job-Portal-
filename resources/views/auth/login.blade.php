@@ -548,4 +548,29 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 @endif
 
+@if (session('error'))
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'warning',
+        title: @json(session('error')),
+        timer: 5000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        showCloseButton: true,
+        background: document.documentElement.classList.contains('dark')
+            ? '#111827'
+            : '#ffffff',
+        color: document.documentElement.classList.contains('dark')
+            ? '#f8fafc'
+            : '#111827'
+    });
+
+});
+</script>
+@endif
+
 </x-authentication-layout>

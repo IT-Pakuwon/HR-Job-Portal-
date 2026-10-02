@@ -10,6 +10,26 @@ window.axios = axios;
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
 /**
+ * If the session has expired (CSRF token mismatch / unauthenticated),
+ * send the user back to the login page instead of leaving them stuck
+ * on a failed AJAX request.
+ */
+window.axios.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        const status = error.response?.status;
+
+        if (status === 419 || status === 401) {
+            const redirect = error.response?.data?.redirect ?? '/login';
+            window.location.href = redirect;
+            return new Promise(() => {});
+        }
+
+        return Promise.reject(error);
+    }
+);
+
+/**
  * Echo exposes an expressive API for subscribing to channels and listening
  * for events that are broadcast by Laravel. Echo and event broadcasting
  * allows your team to easily build robust real-time web applications.

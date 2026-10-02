@@ -1102,6 +1102,19 @@ class TrainingRegistrationController extends Controller
             $registration->updated_at = now();
             $registration->save();
 
+            // Void any approval step still sitting at 'P' (same pattern as
+            // BookingCarController::cancel()) — otherwise the approver's
+            // Waiting Approval list keeps this doc forever, and they could
+            // still approve/reject a registration HR already cancelled.
+            TrApproval::where('refnbr', $registration->training_regist_id)
+                ->where('aprv_doctype', self::DOCTYPE)
+                ->where('status', 'P')
+                ->update([
+                    'status' => 'X',
+                    'updated_by' => $user->username,
+                    'updated_at' => now(),
+                ]);
+
             if ($heldSeat) {
                 TrainingRegistrationService::promoteWaitlistIfOpen($registration);
             } elseif ($wasOffered) {
@@ -1635,7 +1648,8 @@ class TrainingRegistrationController extends Controller
                 $request->query('status'),
                 $request->query('search'),
                 $request->query('level'),
-                $request->query('schedule_date')
+                $request->query('schedule_date'),
+                $request->query('company')
             ),
             'training-registrations-'.now()->format('Ymd_His').'.xlsx'
         );
@@ -1676,12 +1690,17 @@ class TrainingRegistrationController extends Controller
         }
         $scopedSchedules = $scheduleQuery->get(['schedule_id', 'training_detail_id', 'schedule_date', 'status']);
 
-        // Everything below — quota/reserved/status cards, Level/Schedule
-        // Date filter options, and (in allRegistrations()) the table rows
-        // themselves — stays scoped to schedules that are past Draft: a
-        // Draft schedule isn't open for registration yet, so it shouldn't
-        // contribute quota, counts, or filterable values anywhere on screen.
-        $liveSchedules = $scopedSchedules->where('status', '!=', self::SCHEDULE_DRAFT);
+        // Everything below — quota/reserved/status cards and Level/Schedule
+        // Date filter options — stays scoped to schedules that are past
+        // Draft and not Cancelled: a Draft schedule isn't open for
+        // registration yet, and a Cancelled schedule is dead, so neither
+        // should contribute quota, counts, or filterable values anywhere on
+        // screen (a level/date only reachable through a cancelled schedule
+        // shouldn't show up as a pickable option). The registration table
+        // itself (allRegistrations()) is scoped separately and still shows
+        // rows under a cancelled schedule, since those are real historical
+        // registrations.
+        $liveSchedules = $scopedSchedules->whereNotIn('status', [self::SCHEDULE_DRAFT, self::SCHEDULE_CANCELLED]);
 
         // Level/Schedule Date options: not every ms_lnd_training_detail batch
         // (a batch can have zero schedules under it) — only ones with a live

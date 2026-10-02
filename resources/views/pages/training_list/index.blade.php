@@ -304,6 +304,12 @@
                         <div class="flex flex-1 flex-wrap items-center gap-4">
                             <span id="allRegsCount" class="text-sm font-medium text-gray-500 dark:text-gray-400"></span>
                             <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                <label for="allRegsCompanyFilter">Company</label>
+                                <select id="allRegsCompanyFilter" class="rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-8 text-sm text-gray-700 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                                    <option value="">All Companies</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                                 <label for="allRegsPageSize">Show</label>
                                 <select id="allRegsPageSize" class="rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-8 text-sm text-gray-700 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700">
                                     <option value="10">10</option>
@@ -353,7 +359,7 @@
 
         {{-- Training Detail modal --}}
         <div id="detailModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-            <div class="relative flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-800 sm:min-h-140 sm:flex-row">
+            <div class="relative flex max-h-[94vh] w-full max-w-7xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-800 sm:min-h-180 sm:flex-row">
                 <button type="button" id="closeDetailModalX"
                     class="absolute right-4 top-4 z-20 rounded-lg bg-white/90 p-1.5 text-gray-500 shadow transition hover:bg-white hover:text-gray-900 dark:bg-gray-900/80 dark:text-gray-300">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -367,7 +373,7 @@
                      sm+, on top of it on mobile. Full Preview lives top-left
                      of the panel so it never collides with the modal's own
                      top-right close X. --}}
-                <div id="detailHeroWrap" class="relative h-72 w-full shrink-0 bg-gray-200 dark:bg-gray-700 sm:h-auto sm:w-80 md:w-96">
+                <div id="detailHeroWrap" class="relative h-72 w-full shrink-0 bg-gray-200 dark:bg-gray-700 sm:h-auto sm:w-96 md:w-md">
                     <div id="detailHeroPoster" class="absolute inset-0 bg-cover bg-center bg-no-repeat"></div>
                     <button type="button" id="detailHeroFullPreviewBtn"
                         class="absolute left-3 top-3 z-10 hidden items-center gap-1 rounded-lg bg-white/90 px-2.5 py-1.5 text-sm font-semibold text-gray-700 shadow transition hover:bg-white dark:bg-gray-900/80 dark:text-gray-200">
@@ -2378,9 +2384,12 @@
                         // date itself is full. If it's still open with company
                         // quota visible, offer to register a colleague too.
                         const canRegisterColleague = s.is_open && s.eligible_companies.length > 0;
-                        actionHtml = myStatusChip(s.my_status) + (canRegisterColleague
-                            ? `<div class="mt-2"><button class="registerColleagueScheduleBtn rounded-lg px-4 py-2 text-sm font-semibold text-white bg-purple-600 hover:bg-purple-500" data-id="${s.id}" data-docid="${training.docid}">👥 Register Colleague</button></div>`
-                            : '');
+                        actionHtml = canRegisterColleague
+                            ? `<div class="flex flex-col items-end gap-1">
+                                ${myStatusChip(s.my_status)}
+                                <button class="registerColleagueScheduleBtn rounded-lg px-4 py-2 text-sm font-semibold text-white bg-purple-600 hover:bg-purple-500" data-id="${s.id}" data-docid="${training.docid}">👥 Register Colleague</button>
+                            </div>`
+                            : myStatusChip(s.my_status);
                     } else if (!s.is_open) {
                         actionHtml = '<span class="text-sm text-gray-400">Registration closed</span>';
                     } else if (!s.eligible_companies.length) {
@@ -2419,7 +2428,7 @@
                                 </div>
                                 <div class="mt-2">${quotaHtml}</div>
                             </div>
-                            <div class="flex shrink-0 items-center justify-end sm:w-40">${actionHtml}</div>
+                            <div class="flex shrink-0 items-center justify-end sm:w-48">${actionHtml}</div>
                         </div>
                     `);
                 });
@@ -3768,6 +3777,7 @@
             $.get(allRegistrationsUrl, function (res) {
                 allRegistrationRows = res.data || [];
                 allRegsPage = 1;
+                populateAllRegsCompanyFilterOptions(allRegistrationRows);
                 renderAllRegistrations();
 
                 if (!initialAllRegsEidHandled && initialAllRegsEid) {
@@ -3875,16 +3885,37 @@
             });
         }
 
+        // Rebuilds the Company filter option list from whatever
+        // allRegistrationRows actually contains, preserving the current
+        // selection when it's still valid (same pattern as
+        // populateApprovalFilterOptions() on the Approval sub-tab).
+        function populateAllRegsCompanyFilterOptions(rows) {
+            const $company = $('#allRegsCompanyFilter');
+            const selectedCompany = $company.val();
+
+            const companies = new Map();
+            rows.forEach((r) => {
+                if (r.cpny_id != null) companies.set(String(r.cpny_id), r.cpny_name ?? r.cpny_id);
+            });
+            const companyEntries = [...companies.entries()].sort((a, b) => String(a[1]).localeCompare(String(b[1])));
+
+            $company.find('option:not(:first)').remove();
+            companyEntries.forEach(([id, name]) => $company.append(new Option(name, id)));
+            $company.val(companies.has(selectedCompany) ? selectedCompany : '');
+        }
+
         function renderAllRegistrations() {
             const search = ($('#allRegsSearch').val() || '').toLowerCase().trim();
             const statusFilter = $('#allRegsStatusFilter').val();
             const trainingFilter = $('#allRegsTrainingFilter').val();
             const levelFilter = $('#allRegsLevelFilter').val();
             const scheduleFilter = $('#allRegsScheduleFilter').val();
+            const companyFilter = $('#allRegsCompanyFilter').val();
 
             let rows = allRegistrationRows.filter((r) => {
                 if (statusFilter && r.status !== statusFilter) return false;
                 if (trainingFilter && String(r.training_id) !== trainingFilter) return false;
+                if (companyFilter && String(r.cpny_id) !== companyFilter) return false;
                 if (levelFilter && r.grade_name !== levelFilter) return false;
                 if (scheduleFilter && r.schedule_date !== scheduleFilter) return false;
                 if (search) {
@@ -3937,12 +3968,18 @@
 
                 // Approval progress, distinct from the combined Status column —
                 // this is what decides whether Accept can show up at all for a
-                // waitlisted row (see can_accept in allRegistrations()).
-                const approvalHtml = r.approval_status === 'C'
-                    ? '<span class="text-sm font-semibold text-green-600 dark:text-green-400">Approved</span>'
-                    : r.approval_status === 'R'
-                        ? '<span class="text-sm font-semibold text-red-600 dark:text-red-400">Rejected</span>'
-                        : '<span class="text-sm text-amber-600 dark:text-amber-400">Pending</span>';
+                // waitlisted row (see can_accept in allRegistrations()). A row
+                // cancelled while still mid-approval keeps approval_status 'P'
+                // forever (cancel() never touches it, only status_registration),
+                // so that's checked first — otherwise this kept showing a stale
+                // "Pending" for a registration that's actually dead.
+                const approvalHtml = r.status === 'X'
+                    ? '<span class="text-sm text-gray-400 dark:text-gray-500">Cancelled</span>'
+                    : r.approval_status === 'C'
+                        ? '<span class="text-sm font-semibold text-green-600 dark:text-green-400">Approved</span>'
+                        : r.approval_status === 'R'
+                            ? '<span class="text-sm font-semibold text-red-600 dark:text-red-400">Rejected</span>'
+                            : '<span class="text-sm text-amber-600 dark:text-amber-400">Pending</span>';
 
                 $body.append(`
                     <tr>
@@ -4211,12 +4248,17 @@
             renderAllRegistrations();
             loadRegistrationSummary();
         });
+        $('#allRegsCompanyFilter').on('change', function () {
+            allRegsPage = 1;
+            renderAllRegistrations();
+        });
         $('#allRegsResetBtn').on('click', function () {
             $('#allRegsSearch').val('');
             $('#allRegsStatusFilter').val('').trigger('change.select2');
             $('#allRegsTrainingFilter').val('').trigger('change.select2');
             $('#allRegsLevelFilter').val('').trigger('change.select2');
             $('#allRegsScheduleFilter').val('').trigger('change.select2');
+            $('#allRegsCompanyFilter').val('');
             $('#allRegsPageSize').val('10');
             allRegsPageSize = 10;
             allRegsSortField = null;
@@ -4237,12 +4279,14 @@
             const search = ($('#allRegsSearch').val() || '').trim();
             const level = $('#allRegsLevelFilter').val();
             const scheduleDate = $('#allRegsScheduleFilter').val();
+            const company = $('#allRegsCompanyFilter').val();
 
             if (trainingId) params.set('training_id', trainingId);
             if (status) params.set('status', status);
             if (search) params.set('search', search);
             if (level) params.set('level', level);
             if (scheduleDate) params.set('schedule_date', scheduleDate);
+            if (company) params.set('company', company);
 
             const qs = params.toString();
             window.location.href = allRegistrationsExportUrl + (qs ? '?' + qs : '');

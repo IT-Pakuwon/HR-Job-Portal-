@@ -155,6 +155,7 @@
                             <th class="w-48 px-4 py-3 text-left font-medium">Actions</th>
                             <th class="px-4 py-3 text-left font-medium">Name</th>
                             <th class="px-4 py-3 text-left font-medium">Username</th>
+                            <th class="px-4 py-3 text-left font-medium">NPK</th>
                             <th class="px-4 py-3 text-left font-medium">Email</th>
                             <th class="px-4 py-3 text-left font-medium">Division</th>
                             <th class="px-4 py-3 text-left font-medium">Company</th>
@@ -1070,19 +1071,19 @@
                         orderable: false
                     },
                     {
-                        targets: 5, // Division
+                        targets: 6, // Division
                         visible: {{ $usersSby ? 'true' : 'false' }}
                     },
                     {
-                        targets: 6, // Company
+                        targets: 7, // Company
                         visible: {{ $usersSby ? 'false' : 'true' }}
                     },
                     {
-                        targets: 7, // Department
+                        targets: 8, // Department
                         visible: {{ $usersSby ? 'false' : 'true' }}
                     },
                     {
-                        targets: 8, // Business Unit
+                        targets: 9, // Business Unit
                         visible: {{ $usersSby ? 'false' : 'true' }}
                     }
                 ],
@@ -1160,6 +1161,10 @@
                         className: 'no-pointer'
                     },
                     {
+                        data: 'npk',
+                        className: 'no-pointer'
+                    },
+                    {
                         data: 'email',
                         className: 'no-pointer'
                     },
@@ -1200,27 +1205,27 @@
                 const val = $(this).val();
 
                 table
-                    .column(6) // cpny_id
+                    .column(7) // cpny_id
                     .search(val || '', false, false)
                     .draw();
             });
 
-            // ===== Filter Division (kolom 5) =====
+            // ===== Filter Division (kolom 6) =====
             $('#filterDivision').on('change', function() {
                 const val = $(this).val();
 
                 table
-                    .column(5) // division_id
+                    .column(6) // division_id
                     .search(val || '', false, false)
                     .draw();
             });
 
-            // ===== Filter Department (kolom 5) =====
+            // ===== Filter Department (kolom 8) =====
             $('#filterDepartment').on('change', function() {
                 const val = $(this).val();
 
                 table
-                    .column(7) // department_id
+                    .column(8) // department_id
                     .search(val || '', false, false)
                     .draw();
             });
@@ -1228,16 +1233,16 @@
             $('#filterBusinessUnit').on('change', function() {
                 const val = $(this).val();
                 table
-                    .column(8) // business_unit_id
+                    .column(9) // business_unit_id
                     .search(val || '', false, false)
                     .draw();
             });
 
-            // ===== Filter Jabatan (kolom 9) =====
+            // ===== Filter Jabatan (kolom 10) =====
             $('#filterJabatan').on('change', function() {
                 const val = $(this).val();
                 table
-                    .column(9) // jabatan
+                    .column(10) // jabatan
                     .search(val || '', false, false)
                     .draw();
             });
@@ -1255,11 +1260,11 @@
                 $('#filterJabatan').val(null).trigger('change');
 
                 // reset datatable filter untuk kolom yg benar
-                table.column(5).search(''); // division
-                table.column(6).search(''); // company
-                table.column(7).search(''); // department
-                table.column(8).search(''); // business unit
-                table.column(9).search(''); // jabatan
+                table.column(6).search(''); // division
+                table.column(7).search(''); // company
+                table.column(8).search(''); // department
+                table.column(9).search(''); // business unit
+                table.column(10).search(''); // jabatan
 
                 // reset global search juga kalau ada
                 table.search('');

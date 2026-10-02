@@ -14,9 +14,9 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 
 /**
  * Mirrors TrainingRegistrationController::allRegistrations() — same rows,
- * same optional training_id/level/schedule_date/status/search filters — so
- * the download always matches whatever the List Registration tab is
- * currently showing.
+ * same optional training_id/level/schedule_date/status/search/company
+ * filters — so the download always matches whatever the List Registration
+ * tab is currently showing.
  */
 class TrainingAllRegistrationsExport implements
     FromCollection,
@@ -37,19 +37,22 @@ class TrainingAllRegistrationsExport implements
     protected ?string $search;
     protected ?string $level;
     protected ?string $scheduleDate;
+    protected ?string $cpnyId;
 
     public function __construct(
         ?string $trainingId = null,
         ?string $status = null,
         ?string $search = null,
         ?string $level = null,
-        ?string $scheduleDate = null
+        ?string $scheduleDate = null,
+        ?string $cpnyId = null
     ) {
         $this->trainingId = $trainingId ?: null;
         $this->status = $status ?: null;
         $this->search = $search ?: null;
         $this->level = $level ?: null;
         $this->scheduleDate = $scheduleDate ?: null;
+        $this->cpnyId = $cpnyId ?: null;
     }
 
     public function headings(): array
@@ -101,6 +104,7 @@ class TrainingAllRegistrationsExport implements
                     'docid' => $r->training_regist_id,
                     'name' => $names[$r->user_registration] ?? $r->user_registration,
                     'username' => $r->user_registration,
+                    'cpny_id' => $r->cpny_id,
                     'company' => $companyNames[$r->cpny_id] ?? $r->cpny_id,
                     'department' => $departmentNames[$r->department_id] ?? $r->department_id,
                     'training_name' => $r->schedule?->schedule?->training?->training_name ?? '-',
@@ -125,6 +129,10 @@ class TrainingAllRegistrationsExport implements
                     return false;
                 }
 
+                if ($this->cpnyId && (string) $row['cpny_id'] !== $this->cpnyId) {
+                    return false;
+                }
+
                 if ($search) {
                     $haystack = mb_strtolower($row['docid'] . ' ' . $row['name'] . ' ' . $row['username'] . ' ' . $row['training_name']);
                     if (!str_contains($haystack, $search)) {
@@ -134,7 +142,7 @@ class TrainingAllRegistrationsExport implements
 
                 return true;
             })
-            ->map(fn ($row) => collect($row)->except(['_effective_status', 'schedule_date_raw'])->all())
+            ->map(fn ($row) => collect($row)->except(['_effective_status', 'schedule_date_raw', 'cpny_id'])->all())
             ->values();
     }
 }
