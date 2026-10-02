@@ -64,9 +64,9 @@
 
     function initSelect2() {
         if (!hasSelect2) return;
-        $('#trnrepTrainingFilter').select2({ width: '160px', dropdownAutoWidth: true });
-        $('#trnrepScheduleFilter').select2({ width: '220px', dropdownAutoWidth: true });
-        $('#trnrepLevelFilter').select2({ width: '150px', dropdownAutoWidth: true });
+        $('#trnrepTrainingFilter').select2({ width: '160px' });
+        $('#trnrepScheduleFilter').select2({ width: '220px' });
+        $('#trnrepLevelFilter').select2({ width: '150px' });
     }
 
     // trainingId narrows the schedule list to just that training's sessions;
@@ -130,14 +130,10 @@
         }).catch(function () {});
     }
 
-    // ── Quota vs Registered vs Attended (column + conversion-% line combo) ──────
-    // Same sqrt-scale-with-floor approach as the shared card-chart funnel
-    // component (public/assets/js/card-chart/funnel-chart.js) — a stage
-    // that's a tiny fraction of Quota (e.g. Attended: 14 vs Quota: 208)
-    // still renders wide enough to read instead of collapsing to a sliver.
-    // Rebuilt here (rather than using that component directly) because it
-    // only auto-inits static Blade-rendered data once on page load, while
-    // this chart needs to re-render on every filter change.
+    // ── Quota vs Registered vs Attended (plain 3-column comparison) ─────────────
+    // Simple single-series column chart, one bar per stage, each with its own
+    // color and a value+% label. No combo/line/dual-axis — easiest to read at
+    // a glance, and avoids the distributed-color bug combo charts had here.
     function renderQuotaFunnel(quota, registered, attended, breakdown) {
         var el = document.getElementById('trnrepQuotaFunnelChart');
         if (!el) return;
@@ -148,21 +144,16 @@
         el.innerHTML = '';
 
         var dark = isDark();
-        var raw = [
-            { x: 'Quota', y: quota },
-            { x: 'Registered', y: registered },
-            { x: 'Attended', y: attended },
+        var palette = ['#3B82F6', '#8B5CF6', '#F59E0B'];
+        var data = [
+            { x: 'Quota', y: quota, fillColor: palette[0] },
+            { x: 'Registered', y: registered, fillColor: palette[1] },
+            { x: 'Attended', y: attended, fillColor: palette[2] },
         ];
-
-        var maxSqrt = Math.sqrt(Math.max.apply(null, raw.map(function (d) { return Math.max(0, d.y); }).concat([0])));
-        var floor = maxSqrt * 0.22;
-        var scaled = raw.map(function (d) {
-            var sqrtVal = Math.sqrt(Math.max(0, d.y));
-            return { x: d.x, y: sqrtVal > 0 ? Math.max(sqrtVal, floor) : 0, actual: d.y };
-        });
+        var pct = function (val) { return quota > 0 ? ((val / quota) * 100).toFixed(1) : 0; };
 
         charts.funnel = new ApexCharts(el, {
-            series: [{ name: 'Seats', data: scaled }],
+            series: [{ name: 'Seats', data: data }],
             chart: {
                 type: 'bar', height: 260, toolbar: { show: false }, zoom: { enabled: false },
                 fontFamily: 'Inter, sans-serif',
@@ -170,25 +161,21 @@
                 background: 'transparent',
                 animations: { enabled: true, easing: 'easeinout', speed: 700 },
             },
-            colors: ['#3B82F6', '#60A5FA', '#2563EB'],
-            plotOptions: { bar: { horizontal: true, isFunnel: true, borderRadius: 4, borderRadiusApplication: 'around', distributed: true } },
+            plotOptions: { bar: { columnWidth: '50%', borderRadius: 6, borderRadiusApplication: 'end' } },
             dataLabels: {
                 enabled: true,
-                formatter: function (val, opt) {
-                    var data = opt.w.config.series[opt.seriesIndex].data;
-                    var actual = data[opt.dataPointIndex].actual;
-                    var firstVal = data[0].actual;
-                    var pct = firstVal > 0 ? ((actual / firstVal) * 100).toFixed(1) : 0;
-                    return opt.w.globals.labels[opt.dataPointIndex] + ':  ' + actual.toLocaleString() + ' (' + pct + '%)';
-                },
-                style: { fontSize: '12px', fontWeight: 600, colors: [dark ? '#F1F5F9' : '#1E293B'] },
+                formatter: function (val) { return val.toLocaleString() + ' (' + pct(val) + '%)'; },
+                offsetY: -22,
+                style: { fontSize: '12px', fontWeight: 700, colors: [dark ? '#F1F5F9' : '#1E293B'] },
                 dropShadow: { enabled: false },
-                background: { enabled: true, foreColor: dark ? '#0F172A' : '#fff', opacity: 0.85, borderWidth: 0, padding: 6 },
             },
-            xaxis: { axisBorder: { show: false }, axisTicks: { show: false }, labels: { show: false } },
-            yaxis: { labels: { show: false } },
-            grid: { show: false },
             legend: { show: false },
+            xaxis: {
+                axisBorder: { show: false }, axisTicks: { show: false },
+                labels: { style: { fontSize: '12px', fontWeight: 600 } },
+            },
+            yaxis: { labels: { formatter: function (v) { return Math.round(v); } } },
+            grid: { borderColor: dark ? '#1E293B' : '#E2E8F0', strokeDashArray: 4 },
             tooltip: {
                 custom: function (opts) {
                     var dp = opts.w.config.series[opts.seriesIndex].data[opts.dataPointIndex];

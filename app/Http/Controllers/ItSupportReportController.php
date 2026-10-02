@@ -585,6 +585,7 @@ class ItSupportReportController extends Controller
 
         return view('pages.it-support-report.dashboard', [
             'user' => $user,
+            'lastUpdatedAt' => now()->format('d M Y, H:i'),
         ]);
     }
 }

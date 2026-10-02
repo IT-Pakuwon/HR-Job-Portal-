@@ -13,7 +13,13 @@
                 </p>
             </div>
 
-            <div class="flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+            <div class="flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+                <span class="order-last inline-flex items-center justify-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400 sm:order-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Last Updated: {{ $lastUpdatedAt }}
+                </span>
                 <div class="flex w-full sm:w-auto">
                     <x-dashboard-filter.dashboard-filter :showDepartment="false" />
                 </div>
@@ -266,6 +272,7 @@
         #trnrepExtraFilterWrap .select2-dropdown {
             border-radius: 0.75rem; border: 1px solid #e2e8f0;
             overflow: hidden; margin-top: 4px;
+            min-width: 240px; max-width: min(320px, calc(100vw - 2rem));
             box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.05);
         }
         #trnrepExtraFilterWrap .select2-search__field {
@@ -273,7 +280,7 @@
             padding: 0.375rem 0.5rem; font-size: 0.75rem; outline: none;
         }
         #trnrepExtraFilterWrap .select2-search__field:focus { border-color: #8B5CF6; box-shadow: 0 0 0 3px rgba(139,92,246,0.12); }
-        #trnrepExtraFilterWrap .select2-results__option { font-size: 0.75rem; padding: 0.5rem 0.75rem; transition: background .1s; }
+        #trnrepExtraFilterWrap .select2-results__option { font-size: 0.75rem; padding: 0.5rem 0.75rem; transition: background .1s; white-space: normal; word-break: break-word; }
         #trnrepExtraFilterWrap .select2-results__option--highlighted[aria-selected] { background-color: #F5F3FF; color: #7C3AED; }
         #trnrepExtraFilterWrap .select2-results__option[aria-selected="true"] { background-color: #EDE9FE; color: #6D28D9; font-weight: 600; }
 

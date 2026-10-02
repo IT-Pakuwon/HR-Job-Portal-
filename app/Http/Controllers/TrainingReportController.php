@@ -548,6 +548,7 @@ class TrainingReportController extends Controller
 
         return view('pages.training-report.dashboard', [
             'user' => $user,
+            'lastUpdatedAt' => now()->format('d M Y, H:i'),
         ]);
     }
 }
