@@ -2642,20 +2642,12 @@ class PersonnelController extends Controller
 
     public function getSitesByCompany($cpnyid)
     {
-        // $sites = Site::where('cpnyid', $cpnyid)
-        //     ->select('id', 'site')
-        //     ->get();
-
-        // $sites = Site::select('id', 'site')
-        //     ->get();
+        // Placement Location is no longer filtered by Company, only by the
+        // user's group company (tenant scope), so all sites are available.
         $groupCompanyId = strtoupper(trim((string) request()->user()->group_cpny_id));
 
         $sites = CompanyAddress::query()
             ->where('group_cpny_id', $groupCompanyId)
-            ->where(function ($query) use ($cpnyid) {
-                $query->where('cpnyid', $cpnyid)
-                    ->orWhere('cpnyid', 'ALL');
-            })
             ->pluck('sitelocation')
             ->map(fn ($site) => trim((string) $site))
             ->filter()

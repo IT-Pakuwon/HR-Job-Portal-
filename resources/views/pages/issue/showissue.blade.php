@@ -184,7 +184,10 @@
                                     :class="activeTab === 'comments' ?
                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                                         'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                    class="flex-1 px-4 py-2 text-center text-sm font-medium">Comments</button>
+                                    class="flex-1 px-4 py-2 text-center text-sm font-medium">Comments
+                                    <span id="commentCountBadge"
+                                        class="ml-1 hidden rounded-full bg-indigo-600 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white dark:bg-indigo-500">0</span>
+                                </button>
                             </nav>
                             <button type="button" @click="tabsOpen = !tabsOpen"
                                 class="ml-3 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-indigo-300 via-indigo-400 to-indigo-500 text-[10px] font-bold leading-none text-indigo-950 shadow-[0_1px_2px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.6),inset_0_-1px_1px_rgba(0,0,0,0.15)] transition hover:brightness-110 dark:from-indigo-400 dark:via-indigo-500 dark:to-indigo-600 dark:text-indigo-50 dark:shadow-[0_1px_2px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.4),inset_0_-1px_1px_rgba(0,0,0,0.25)]"
@@ -446,6 +449,14 @@
                     type: 'GET',
                     success: function(response) {
                         commentList.empty();
+
+                        const total = (response.comments || []).length;
+                        const badge = $('#commentCountBadge');
+                        if (total > 0) {
+                            badge.text(total > 99 ? '99+' : total).removeClass('hidden');
+                        } else {
+                            badge.addClass('hidden');
+                        }
 
                         if (!response.comments || response.comments.length === 0) {
                             commentList.append(

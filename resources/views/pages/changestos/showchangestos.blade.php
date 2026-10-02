@@ -193,6 +193,8 @@
                                 }"
                                 class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
                                 Comments
+                                <span id="commentCountBadge"
+                                    class="ml-1 hidden rounded-full bg-indigo-600 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white dark:bg-indigo-500">0</span>
                             </button>
                         </nav>
                     </header>
@@ -406,6 +408,14 @@
                     success: function(response) {
                         console.log("Comments Loaded:", response);
                         commentList.empty();
+
+                        const total = (response.comments || []).length;
+                        const badge = $('#commentCountBadge');
+                        if (total > 0) {
+                            badge.text(total > 99 ? '99+' : total).removeClass('hidden');
+                        } else {
+                            badge.addClass('hidden');
+                        }
 
                         if (response.comments.length === 0) {
                             commentList.append(
