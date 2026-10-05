@@ -30,6 +30,7 @@ use Vinkla\Hashids\Facades\Hashids;
 class VplReportController extends Controller
 {
     private const WHS_COLLECTION = 'WHCOLLECTION';
+    private const DEPT_COLLECTION = 'COLLECTION';
     private const WHS_LOYALTY    = 'WHLOYALTY';
     private const WHS_PROMOTION  = 'WHPROMOTION';
 
@@ -51,7 +52,7 @@ class VplReportController extends Controller
         'Write Off'      => 'Internal Use',
     ];
 
-    private const USED_COLUMNS = ['Loyalty', 'Promotion', 'Entertainment', 'Internal Use'];
+    private const USED_COLUMNS = ['Loyalty', 'Promotion', 'Entertainment', 'Internal Use', 'Write Off'];
 
     /** Per-request memoization for photoBytes() — the same product photo repeats across expiry batches. */
     private array $photoBytesCache = [];
@@ -1364,7 +1365,7 @@ class VplReportController extends Controller
         }
 
         $sources      = $this->batchSourceTypes($cpnyid);
-        $purposeOut   = $this->batchPurposeOut($cpnyid, $monthStart, $monthEnd);
+        $purposeOut   = $this->batchPurposeOut($cpnyid, $monthStart, $monthEnd, true);
         $agingBuckets = MsVplAging::where('status', 'A')->orderBy('order_age')->get();
 
         $rows = [];
@@ -1403,6 +1404,7 @@ class VplReportController extends Controller
                 'out_promotion'  => $out['Promotion'],
                 'out_entertain'  => $out['Entertainment'],
                 'out_internal'   => $out['Internal Use'],
+                'out_writeoff'   => $out['Write Off'],
                 'out_total'      => $row['month_out'],
                 'ending'         => $row['ending'],
                 'value'          => $row['ending'] * $nominal,
@@ -1417,13 +1419,16 @@ class VplReportController extends Controller
                     'Promotion'     => $used['Promotion'] * $nominal,
                     'Entertainment' => $used['Entertainment'] * $nominal,
                     'Internal Use'  => $used['Internal Use'] * $nominal,
+                    'Write Off'     => $used['Write Off'] * $nominal,
                 ],
             ];
         }
 
         usort($rows, function ($a, $b) {
-            return [$a['category_label'], $a['tenant'], $a['source_label'], $a['expired_date']]
-                <=> [$b['category_label'], $b['tenant'], $b['source_label'], $b['expired_date']];
+            // Natural order so V20039 < V200001 numerically, not as text.
+            return strcmp($a['category_label'], $b['category_label'])
+                ?: strnatcasecmp($a['product_id'], $b['product_id'])
+                ?: [$a['source_label'], $a['expired_date']] <=> [$b['source_label'], $b['expired_date']];
         });
 
         return $this->attachSummaryGroupingAndTotals($rows, $agingBuckets);
@@ -1479,15 +1484,25 @@ class VplReportController extends Controller
      *
      * @return array<string, array<string, float>>
      */
-    private function batchPurposeOut(string $cpnyid, Carbon $monthStart, Carbon $monthEnd): array
+    private function batchPurposeOut(string $cpnyid, Carbon $monthStart, Carbon $monthEnd, bool $splitWriteOff = false): array
     {
+        // $splitWriteOff: a COLLECTION-department Usage (from any warehouse) gets its own
+        // 'Write Off' bucket instead of Loyalty/Promotion/Internal Use. Off for the
+        // Loyalty Usage Rate report, where a write-off isn't a redemption.
         $usages = TrxVplUsageDetail::query()
             ->join('tr_vpl_usage', 'tr_vpl_usage.usage_id', '=', 'tr_vpl_usage_detail.usage_id')
             ->where('tr_vpl_usage.cpnyid', $cpnyid)
             ->where('tr_vpl_usage.status', 'C')
-            ->whereIn('tr_vpl_usage_detail.whs_id', [self::WHS_PROMOTION, self::WHS_LOYALTY])
+            ->where(function ($q) use ($splitWriteOff) {
+                $q->whereIn('tr_vpl_usage_detail.whs_id', [self::WHS_PROMOTION, self::WHS_LOYALTY]);
+
+                if ($splitWriteOff) {
+                    $q->orWhere('tr_vpl_usage.department', self::DEPT_COLLECTION);
+                }
+            })
             ->whereBetween('tr_vpl_usage.usage_date', [$monthStart, $monthEnd])
             ->select([
+                'tr_vpl_usage.department',
                 'tr_vpl_usage_detail.product_id',
                 'tr_vpl_usage_detail.expired_date',
                 'tr_vpl_usage_detail.whs_id',
@@ -1501,7 +1516,9 @@ class VplReportController extends Controller
 
         foreach ($usages as $u) {
             $key    = $u->product_id.'|'.$this->expiredKey($u->expired_date);
-            $bucket = $u->whs_id === self::WHS_LOYALTY ? 'Loyalty' : (self::PURPOSE_MAP[$u->purpose_id] ?? 'Internal Use');
+            $bucket = $splitWriteOff && $u->department === self::DEPT_COLLECTION
+                ? 'Write Off'
+                : ($u->whs_id === self::WHS_LOYALTY ? 'Loyalty' : (self::PURPOSE_MAP[$u->purpose_id] ?? 'Internal Use'));
             $qty    = (float) $u->qty_usage;
 
             $out[$key][$bucket] = ($out[$key][$bucket] ?? 0) + $qty;
@@ -1515,10 +1532,17 @@ class VplReportController extends Controller
             })
             ->where('tr_vpl_settlement.cpnyid', $cpnyid)
             ->where('tr_vpl_settlement.status', 'C')
-            ->whereIn('tr_vpl_settlement_detail.whs_id', [self::WHS_PROMOTION, self::WHS_LOYALTY])
+            ->where(function ($q) use ($splitWriteOff) {
+                $q->whereIn('tr_vpl_settlement_detail.whs_id', [self::WHS_PROMOTION, self::WHS_LOYALTY]);
+
+                if ($splitWriteOff) {
+                    $q->orWhere('tr_vpl_settlement.department', self::DEPT_COLLECTION);
+                }
+            })
             ->where('tr_vpl_settlement_detail.qty_remain', '>', 0)
             ->whereBetween('tr_vpl_settlement.settlement_date', [$monthStart, $monthEnd])
             ->select([
+                'tr_vpl_settlement.department',
                 'tr_vpl_settlement_detail.product_id',
                 'tr_vpl_settlement_detail.expired_date',
                 'tr_vpl_settlement_detail.whs_id',
@@ -1529,7 +1553,9 @@ class VplReportController extends Controller
 
         foreach ($settlements as $s) {
             $key    = $s->product_id.'|'.$this->expiredKey($s->expired_date);
-            $bucket = $s->whs_id === self::WHS_LOYALTY ? 'Loyalty' : (self::PURPOSE_MAP[$s->purpose_id] ?? 'Internal Use');
+            $bucket = $splitWriteOff && $s->department === self::DEPT_COLLECTION
+                ? 'Write Off'
+                : ($s->whs_id === self::WHS_LOYALTY ? 'Loyalty' : (self::PURPOSE_MAP[$s->purpose_id] ?? 'Internal Use'));
 
             $out[$key][$bucket] = ($out[$key][$bucket] ?? 0) - (float) $s->qty_remain;
         }
@@ -1578,6 +1604,7 @@ class VplReportController extends Controller
             foreach ($categoryRows->groupBy('tenant') as $tenant => $tenantRows) {
                 $subtotal = [
                     'type'          => 'tenant_subtotal',
+                    'product_id'    => $tenantRows->first()['product_id'],
                     'tenant'        => $tenant,
                     'nominal'       => $tenantRows->first()['nominal'],
                     'beginning'     => $tenantRows->sum('beginning'),
@@ -1586,6 +1613,7 @@ class VplReportController extends Controller
                     'out_promotion' => $tenantRows->sum('out_promotion'),
                     'out_entertain' => $tenantRows->sum('out_entertain'),
                     'out_internal'  => $tenantRows->sum('out_internal'),
+                    'out_writeoff'  => $tenantRows->sum('out_writeoff'),
                     'out_total'     => $tenantRows->sum('out_total'),
                     'ending'        => $tenantRows->sum('ending'),
                     'value'         => $tenantRows->sum('value'),
@@ -2265,6 +2293,11 @@ class VplReportController extends Controller
             });
         }
 
+        // Department of the Usage/Return/Settlement doc — a COLLECTION-dept Usage is a
+        // Write Off and counts as Out from whichever warehouse it was picked.
+        $query->leftJoin('tr_vpl_usage as u', 'u.usage_id', '=', 'l.refnbr')
+            ->leftJoin('tr_vpl_settlement as s', 's.settlement_id', '=', 'l.refnbr');
+
         $rows = $query
             ->where('l.cpnyid', $cpnyid)
             ->where('l.perpost', 'like', $year.'%')
@@ -2274,6 +2307,7 @@ class VplReportController extends Controller
             ->select(array_filter([
                 'l.product_id', 'l.expired_date', 'l.whs_id', 'l.transaction_source', 'l.perpost', 'l.qty',
                 $loyaltyOutIsUsage ? null : 'td.from_whs_id',
+                DB::raw('COALESCE(u.department, s.department) as doc_department'),
             ]))
             ->get();
 
@@ -2294,7 +2328,8 @@ class VplReportController extends Controller
             }
 
             if ($loyaltyOutIsUsage) {
-                $isUsageWhs = in_array($row->whs_id, [self::WHS_LOYALTY, self::WHS_PROMOTION], true);
+                $isUsageWhs = in_array($row->whs_id, [self::WHS_LOYALTY, self::WHS_PROMOTION], true)
+                    || $row->doc_department === self::DEPT_COLLECTION;
 
                 if ($isUsageWhs && $row->transaction_source === 'Usage') {
                     $monthlyOut[$key][$month] = ($monthlyOut[$key][$month] ?? 0) - $qty;
@@ -2309,9 +2344,9 @@ class VplReportController extends Controller
                 $monthlyIn[$key][$month] = ($monthlyIn[$key][$month] ?? 0) + $qty;
             } elseif ($row->whs_id === self::WHS_LOYALTY && $row->transaction_source === 'Transfer In') {
                 $monthlyOut[$key][$month] = ($monthlyOut[$key][$month] ?? 0) + $qty;
-            } elseif ($row->whs_id === self::WHS_PROMOTION && $row->transaction_source === 'Usage') {
+            } elseif ($row->transaction_source === 'Usage' && ($row->doc_department === self::DEPT_COLLECTION || in_array($row->whs_id, [self::WHS_PROMOTION, self::WHS_COLLECTION], true))) {
                 $monthlyOut[$key][$month] = ($monthlyOut[$key][$month] ?? 0) - $qty;
-            } elseif ($row->whs_id === self::WHS_PROMOTION && in_array($row->transaction_source, ['Return', 'Settlement'], true)) {
+            } elseif (in_array($row->transaction_source, ['Return', 'Settlement'], true) && ($row->doc_department === self::DEPT_COLLECTION || in_array($row->whs_id, [self::WHS_PROMOTION, self::WHS_COLLECTION], true))) {
                 $monthlyIn[$key][$month] = ($monthlyIn[$key][$month] ?? 0) + $qty;
             }
         }
@@ -2401,7 +2436,9 @@ class VplReportController extends Controller
             ->join('tr_vpl_settlement', 'tr_vpl_settlement.settlement_id', '=', 'tr_vpl_settlement_detail.settlement_id')
             ->where('tr_vpl_settlement.cpnyid', $cpnyid)
             ->where('tr_vpl_settlement.status', 'C')
-            ->where('tr_vpl_settlement_detail.whs_id', self::WHS_PROMOTION)
+            ->where(fn ($q) => $q
+                ->whereIn('tr_vpl_settlement_detail.whs_id', [self::WHS_PROMOTION, self::WHS_COLLECTION])
+                ->orWhere('tr_vpl_settlement.department', self::DEPT_COLLECTION))
             ->where('tr_vpl_settlement_detail.qty_remain', '>', 0)
             ->whereBetween('tr_vpl_settlement.settlement_date', [$monthStart, $monthEnd])
             ->select([
@@ -2479,9 +2516,12 @@ class VplReportController extends Controller
             ->join('tr_vpl_usage', 'tr_vpl_usage.usage_id', '=', 'tr_vpl_usage_detail.usage_id')
             ->where('tr_vpl_usage.cpnyid', $cpnyid)
             ->where('tr_vpl_usage.status', 'C')
-            ->where('tr_vpl_usage_detail.whs_id', self::WHS_PROMOTION)
+            ->where(fn ($q) => $q
+                ->whereIn('tr_vpl_usage_detail.whs_id', [self::WHS_PROMOTION, self::WHS_COLLECTION])
+                ->orWhere('tr_vpl_usage.department', self::DEPT_COLLECTION))
             ->whereBetween('tr_vpl_usage.usage_date', [$monthStart, $monthEnd])
             ->select([
+                'tr_vpl_usage.department',
                 'tr_vpl_usage_detail.product_id',
                 'tr_vpl_usage_detail.expired_date',
                 'tr_vpl_usage_detail.qty_usage',
@@ -2507,7 +2547,7 @@ class VplReportController extends Controller
                 'untuk_pembayaran'  => null,
                 'diambil_oleh'      => $u->diambil_oleh,
                 'keperluan'         => $u->keperluan,
-                'keterangan'        => $isReturn ? 'Retur ke Collection' : null,
+                'keterangan'        => $isReturn ? 'Retur ke Collection' : ($u->department === self::DEPT_COLLECTION ? 'Write Off' : null),
             ];
         }
 

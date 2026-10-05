@@ -6,7 +6,7 @@
     $agingCols = $meta['aging'] ?? [];
     $sourceCols = $meta['sources'] ?? []; // column label => group label (Promotion/Leasing)
     $usedCols  = $meta['used'] ?? [];
-    $totalCols = 12 + count($agingCols) + count($sourceCols) + count($usedCols);
+    $totalCols = 14 + count($agingCols) + count($sourceCols) + count($usedCols);
 
     $tenantSubtotals = collect($rows)->where('type', 'tenant_subtotal');
     $forExport = $forExport ?? false;
@@ -54,6 +54,7 @@
         <table class="min-w-full divide-y divide-gray-100 text-sm dark:divide-gray-700">
             <thead class="sticky top-0 z-10 border-b-2 border-indigo-100 bg-linear-to-b from-gray-50 to-gray-100/60 text-xs uppercase tracking-wide text-gray-500 shadow-sm dark:border-indigo-900/40 dark:from-gray-900 dark:to-gray-900 dark:text-gray-400">
                 <tr>
+                    <th class="px-3 py-3 text-left font-semibold" rowspan="2">Product ID</th>
                     <th class="px-3 py-3 text-left font-semibold" rowspan="2">Tenant</th>
                     <th class="px-3 py-3 text-left font-semibold" rowspan="2">Source</th>
                     <th class="px-3 py-3 text-left font-semibold" rowspan="2">Expiry Date</th>
@@ -64,6 +65,7 @@
                     <th class="px-3 py-3 text-right font-semibold" rowspan="2">Out Prm (Lbr)</th>
                     <th class="px-3 py-3 text-right font-semibold" rowspan="2">Out Ent (Lbr)</th>
                     <th class="px-3 py-3 text-right font-semibold" rowspan="2">Out Other (Lbr)</th>
+                    <th class="px-3 py-3 text-right font-semibold" rowspan="2">Out W/O (Lbr)</th>
                     <th class="px-3 py-3 text-right font-semibold" rowspan="2">Ending (Lbr)</th>
                     <th class="px-3 py-3 text-right font-semibold" rowspan="2">Value (Rp)</th>
                     <th class="px-3 py-2 text-center font-semibold border-l border-gray-200 dark:border-gray-700" colspan="{{ count($agingCols) }}">Aging Report Per {{ $agingAsOf->format('d-M-y') }} (Rp)</th>
@@ -98,6 +100,7 @@
 
                     @elseif($row['type'] === 'tenant_subtotal')
                         <tr class="border-t-2 border-t-gray-200 bg-gray-50/80 font-semibold text-gray-900 dark:border-t-gray-600 dark:bg-white/[0.03] dark:text-gray-100">
+                            <td class="px-3 py-2.5 align-top whitespace-nowrap" rowspan="{{ $tenantRowspan[$i] ?? 1 }}">{{ $row['product_id'] }}</td>
                             <td class="px-3 py-2.5 align-top" rowspan="{{ $tenantRowspan[$i] ?? 1 }}">{{ $row['tenant'] }}</td>
                             <td class="px-3 py-2.5"></td>
                             <td class="px-3 py-2.5"></td>
@@ -108,6 +111,7 @@
                             <td class="px-3 py-2.5 text-right tabular-nums">{{ $n($row['out_promotion']) }}</td>
                             <td class="px-3 py-2.5 text-right tabular-nums">{{ $n($row['out_entertain']) }}</td>
                             <td class="px-3 py-2.5 text-right tabular-nums">{{ $n($row['out_internal']) }}</td>
+                            <td class="px-3 py-2.5 text-right tabular-nums">{{ $n($row['out_writeoff']) }}</td>
                             <td class="px-3 py-2.5 text-right tabular-nums">{{ $n($row['ending']) }}</td>
                             <td class="px-3 py-2.5 text-right tabular-nums">{{ $n($row['value']) }}</td>
                             @foreach($agingCols as $label)
@@ -134,6 +138,7 @@
                             <td class="px-3 py-2 text-right tabular-nums">{{ $n($row['out_promotion']) }}</td>
                             <td class="px-3 py-2 text-right tabular-nums">{{ $n($row['out_entertain']) }}</td>
                             <td class="px-3 py-2 text-right tabular-nums">{{ $n($row['out_internal']) }}</td>
+                            <td class="px-3 py-2 text-right tabular-nums">{{ $n($row['out_writeoff']) }}</td>
                             <td class="px-3 py-2 text-right tabular-nums font-semibold text-gray-900 dark:text-gray-100">{{ $n($row['ending']) }}</td>
                             <td class="px-3 py-2 text-right tabular-nums font-semibold text-gray-900 dark:text-gray-100">{{ $n($row['value']) }}</td>
                             @foreach($agingCols as $label)
@@ -167,7 +172,7 @@
             @if($tenantSubtotals->isNotEmpty())
                 <tfoot class="sticky bottom-0 z-10 border-t-2 border-indigo-100 bg-gray-50 dark:border-indigo-900/40 dark:bg-gray-900">
                     <tr class="text-xs font-bold uppercase tracking-wide text-gray-700 dark:text-gray-200">
-                        <td colspan="3" class="px-3 py-3 text-right">Grand Total</td>
+                        <td colspan="4" class="px-3 py-3 text-right">Grand Total</td>
                         <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ $n($tenantSubtotals->sum('nominal')) }}</td>
                         <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ $n($tenantSubtotals->sum('beginning')) }}</td>
                         <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ $n($tenantSubtotals->sum('in_total')) }}</td>
@@ -175,6 +180,7 @@
                         <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ $n($tenantSubtotals->sum('out_promotion')) }}</td>
                         <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ $n($tenantSubtotals->sum('out_entertain')) }}</td>
                         <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ $n($tenantSubtotals->sum('out_internal')) }}</td>
+                        <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ $n($tenantSubtotals->sum('out_writeoff')) }}</td>
                         <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ $n($tenantSubtotals->sum('ending')) }}</td>
                         <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ $n($tenantSubtotals->sum('value')) }}</td>
                         @foreach($agingCols as $label)
