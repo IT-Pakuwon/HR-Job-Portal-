@@ -11,7 +11,7 @@ class TrAgreement extends Model
     protected $table = 'tr_agreement';
 
     protected $fillable = [
-        'agreement_id', 'renewal_sequence', 'agreement_date', 'prev_agreement_id', 'cpny_id', 'site_id',
+        'agreement_id', 'renewal_sequence', 'agreement_date', 'prev_agreement_id', 'parent_agreement_id', 'agreement_type', 'cpny_id', 'site_id',
         'business_id', 'business_name', 'tenant_no', 'trade_name', 'property_cd', 'floor_id', 'unit_id',
         'business_address', 'pic_penyewa', 'pic_phonenumber_penyewa', 'pic_email_penyewa', 'pic_legal', 'pic_leasing',
         'no_psm_or_addendum', 'psm_or_addendum_date', 'psm_or_addendum_delivery_date',
@@ -27,6 +27,11 @@ class TrAgreement extends Model
     public function attachments()
     {
         return $this->hasMany(TrAgreementAttachment::class, 'agreement_id', 'agreement_id');
+    }
+
+    public function documents()
+    {
+        return $this->hasMany(TrAgreementDocument::class, 'agreement_id', 'agreement_id');
     }
 
     public function creator()
@@ -75,6 +80,16 @@ class TrAgreement extends Model
 
         return in_array($username, array_map('strtolower', $this->picLegalList()), true)
             || in_array($username, array_map('strtolower', $this->picLeasingList()), true);
+    }
+
+    // PSM/OLA: the creator and the PIC Legal(s) may change the agreement.
+    public function canBeUpdatedBy(string $username): bool
+    {
+        $username = strtolower(trim($username));
+
+        return $username !== ''
+            && ($username === strtolower((string) $this->created_user)
+                || in_array($username, array_map('strtolower', $this->picLegalList()), true));
     }
 
     public function scopeWherePicLegal($query, string $username)

@@ -226,13 +226,31 @@
 
     @stack('scripts')
 
-    {{-- Global session-expired handler: redirect to login on 401 for any AJAX call --}}
+    {{-- Global session-expired handler: redirect to login on 401/419 (CSRF) for any jQuery or fetch call --}}
     <script>
-        $(document).ajaxError(function (event, xhr) {
-            if (xhr.status === 401) {
-                window.location.href = '{{ route('login') }}';
+        (function () {
+            var loginUrl = '{{ route('login') }}';
+            var redirecting = false;
+            function toLogin() {
+                if (redirecting) return;
+                redirecting = true;
+                window.location.href = loginUrl;
             }
-        });
+
+            $(document).ajaxError(function (event, xhr) {
+                if (xhr.status === 401 || xhr.status === 419) toLogin();
+            });
+
+            var nativeFetch = window.fetch;
+            if (nativeFetch) {
+                window.fetch = function () {
+                    return nativeFetch.apply(this, arguments).then(function (res) {
+                        if (res.status === 401 || res.status === 419) toLogin();
+                        return res;
+                    });
+                };
+            }
+        })();
     </script>
 
 </body>

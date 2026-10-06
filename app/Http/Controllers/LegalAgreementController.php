@@ -284,7 +284,7 @@ class LegalAgreementController extends Controller
             ->make(true);
     }
 
-    protected function isManagerRole()
+    public function isManagerRole()
     {
         return SysUserRole::query()
             ->where('username', auth()->user()->username)
@@ -1583,7 +1583,7 @@ class LegalAgreementController extends Controller
         return response()->json($counts);
     }
 
-    protected function pendingJobsCount(): int
+    public function pendingJobsCount(): int
     {
         // Row-level count (one row per contract/lot), matching how the Jobs
         // table itself counts — not deduped by business — so this badge
@@ -1643,7 +1643,9 @@ class LegalAgreementController extends Controller
 
         $this->applyJobsFilters($query, $request);
 
-        return DataTables::of($query)->make(true);
+        return DataTables::of($query)
+            ->addColumn('eid', fn ($row) => Hashids::encode($row->id))
+            ->make(true);
     }
 
     public function jobsExport(Request $request)
@@ -1823,7 +1825,7 @@ class LegalAgreementController extends Controller
      * tr_agreement_attachment (not the shared tr_attachment table other
      * modules use — this document type keeps its own attachment history).
      */
-    protected function uploadAgreementAttachment(
+    public function uploadAgreementAttachment(
         TrAgreement $agreement,
         UploadedFile $file,
         string $username,
@@ -1882,7 +1884,7 @@ class LegalAgreementController extends Controller
     /**
      * Signed-URL listing for an agreement's own attachments (tr_agreement_attachment).
      */
-    protected function agreementAttachments(TrAgreement $agreement): array
+    public function agreementAttachments(TrAgreement $agreement): array
     {
         $config = config('filesystems.disks.gcs');
 

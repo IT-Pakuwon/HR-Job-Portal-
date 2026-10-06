@@ -69,12 +69,15 @@ function initJobsTable() {
         },
         order: [],
         columns: [
+            // New Agreement reuses this table but has its own create flow, so it
+            // sets window.jobsActionClass to get a differently-bound button.
             {
                 data: null,
                 orderable: false,
                 searchable: false,
                 render: (row) => `
-                    <button type="button" class="btn-create-from-job inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                    <button type="button" class="${window.jobsActionClass || 'btn-create-from-job'} inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                        data-eid="${row.eid ?? ''}"
                         data-cpny_id="${row.cpny_id ?? ''}"
                         data-business_id="${row.business_id ?? ''}"
                         data-tenant_no="${row.tenant_no ?? ''}"

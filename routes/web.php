@@ -2197,15 +2197,96 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('legal-new-agreement')->controller(LegalNewAgreementController::class)->group(function () {
             Route::middleware('access:PSMOLA,VIEW')->group(function () {
                 Route::get('/psm-ola', 'psmOla')->name('legal-new-agreement.psm-ola');
+                Route::get('/psm-ola/jobs/export', 'jobsExport')->name('legal-new-agreement.jobs.export');
+                Route::get('/psm-ola/active/export', 'activeExport')->name('legal-new-agreement.active.export');
+                Route::get('/psm-ola/completed/export', 'completedExport')->name('legal-new-agreement.completed.export');
+
+                Route::middleware('ajax')->group(function () {
+                    Route::get('/psm-ola/jobs/json', 'jobsJson')->name('legal-new-agreement.jobs.json');
+                    Route::get('/psm-ola/active/json', 'activeJson')->name('legal-new-agreement.active.json');
+                    Route::get('/psm-ola/completed/json', 'completedJson')->name('legal-new-agreement.completed.json');
+                    Route::get('/psm-ola/view/{eid}', 'viewPsmOla')->name('legal-new-agreement.psm-ola.view');
+                    Route::get('/psm-ola/pic-search', 'picSearch')->name('legal-new-agreement.psm-ola.pic-search');
+                });
             });
 
+            Route::middleware('access:PSMOLA,EDIT')->group(function () {
+                Route::get('/psm-ola/edit/{eid}', 'editPsmOla')->middleware('ajax')->name('legal-new-agreement.psm-ola.edit');
+                Route::post('/psm-ola/update/{eid}', 'updatePsmOla')->name('legal-new-agreement.psm-ola.update');
+                Route::post('/psm-ola/attachment/{eid}', 'uploadPsmOlaAttachment')->name('legal-new-agreement.psm-ola.attachment');
+            });
+
+            Route::middleware('access:PSMOLA,CREATE')->group(function () {
+                // Modal body (HTML fragment) — ajax only.
+                Route::get('/psm-ola/create/{eid}', 'createPsmOla')->middleware('ajax')->name('legal-new-agreement.psm-ola.create');
+                Route::post('/psm-ola/store/{eid}', 'storePsmOla')->name('legal-new-agreement.psm-ola.store');
+            });
+
+            // Addendum: same screens as PSM / OLA (the controller picks the type from the URL).
             Route::middleware('access:ADDENDUM,VIEW')->group(function () {
                 Route::get('/addendum', 'addendum')->name('legal-new-agreement.addendum');
+                Route::get('/addendum/jobs/export', 'jobsExport')->name('legal-new-agreement.addendum.jobs.export');
+                Route::get('/addendum/active/export', 'activeExport')->name('legal-new-agreement.addendum.active.export');
+                Route::get('/addendum/completed/export', 'completedExport')->name('legal-new-agreement.addendum.completed.export');
+
+                Route::middleware('ajax')->group(function () {
+                    Route::get('/addendum/jobs/json', 'jobsJson')->name('legal-new-agreement.addendum.jobs.json');
+                    Route::get('/addendum/psm-ola/json', 'addendumPsmOlaJson')->name('legal-new-agreement.addendum.psm-ola.json');
+                    Route::get('/addendum/active/json', 'activeJson')->name('legal-new-agreement.addendum.active.json');
+                    Route::get('/addendum/completed/json', 'completedJson')->name('legal-new-agreement.addendum.completed.json');
+                    Route::get('/addendum/view/{eid}', 'viewPsmOla')->name('legal-new-agreement.addendum.view');
+                    Route::get('/addendum/pic-search', 'picSearch')->name('legal-new-agreement.addendum.pic-search');
+                });
             });
+
+            Route::middleware('access:ADDENDUM,EDIT')->group(function () {
+                Route::get('/addendum/edit/{eid}', 'editPsmOla')->middleware('ajax')->name('legal-new-agreement.addendum.edit');
+                Route::post('/addendum/update/{eid}', 'updatePsmOla')->name('legal-new-agreement.addendum.update');
+                Route::post('/addendum/attachment/{eid}', 'uploadPsmOlaAttachment')->name('legal-new-agreement.addendum.attachment');
+            });
+
+            Route::middleware('access:ADDENDUM,CREATE')->group(function () {
+                Route::get('/addendum/create/{eid}', 'createPsmOla')->middleware('ajax')->name('legal-new-agreement.addendum.create');
+                Route::post('/addendum/store/{eid}', 'storePsmOla')->name('legal-new-agreement.addendum.store');
+            });
+
+            // Creator / PIC Legal only (checked in the controller), so VIEW is enough here.
+            Route::post('/addendum/process/{eid}', 'updatePsmOlaProcess')
+                ->middleware('access:ADDENDUM,VIEW')
+                ->name('legal-new-agreement.addendum.process');
+            Route::post('/addendum/complete/{eid}', 'completePsmOla')
+                ->middleware('access:ADDENDUM,VIEW')
+                ->name('legal-new-agreement.addendum.complete');
+            Route::get('/addendum/{eid}', 'psmOlaView')
+                ->where('eid', '[A-Za-z0-9]+')
+                ->middleware('access:ADDENDUM,VIEW')
+                ->name('legal-new-agreement.addendum.show');
 
             Route::middleware('access:OTHERS,VIEW')->group(function () {
                 Route::get('/others', 'others')->name('legal-new-agreement.others');
             });
+
+            // Creator-only (checked in the controller), so VIEW is enough here.
+            Route::post('/psm-ola/documents/{eid}', 'updatePsmOlaDocuments')
+                ->middleware('access:PSMOLA,VIEW')
+                ->name('legal-new-agreement.psm-ola.documents');
+            Route::post('/psm-ola/complete/{eid}', 'completePsmOla')
+                ->middleware('access:PSMOLA,VIEW')
+                ->name('legal-new-agreement.psm-ola.complete');
+            Route::post('/psm-ola/process/{eid}', 'updatePsmOlaProcess')
+                ->middleware('access:PSMOLA,VIEW')
+                ->name('legal-new-agreement.psm-ola.process');
+
+            // Deep link to the view modal: same PSM/OLA page, modal opened for
+            // {eid}. Last so the fixed paths above (psm-ola, addendum, others) win.
+            Route::middleware('access:PSMOLA,VIEW')->group(function () {
+                Route::get('/{eid}', 'psmOlaView')->where('eid', '[A-Za-z0-9]+')->name('legal-new-agreement.psm-ola.show');
+            });
+        });
+
+        // Deep link to the create modal: same PSM/OLA page, modal opened for {eid}.
+        Route::middleware('access:PSMOLA,CREATE')->group(function () {
+            Route::get('/create-agreement/{eid}', [LegalNewAgreementController::class, 'psmOla'])->name('create-agreement');
         });
 
         Route::prefix('luckydraw-setup')->controller(LuckydrawSetupController::class)->group(function () {

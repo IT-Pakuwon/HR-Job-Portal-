@@ -17,7 +17,7 @@ class TrAgreementActivity extends Model
     ];
 
     protected $fillable = [
-        'agreement_id', 'cpny_id', 'agreement_step_id', 'agreement_step_order',
+        'agreement_id', 'cpny_id', 'agreement_activity_type', 'agreement_step_id', 'agreement_step_order',
         'response_date', 'response_summary', 'response_descr',
         'working_start_date', 'working_end_date', 'status_pekerjaan',
         'status', 'created_by', 'created_at', 'updated_by', 'updated_at', 'deleted_by', 'deleted_at',

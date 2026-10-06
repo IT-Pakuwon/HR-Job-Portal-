@@ -150,7 +150,7 @@ class UsersController extends Controller
             'status'
         ])
             ->where('status', 'A')
-            ->when($this->isSbyContext(), fn ($q) => $q->where('group_cpny_id', 'SBY'))
+            ->where('group_cpny_id', $this->isSbyContext() ? 'SBY' : 'JKT')
             ->orderByDesc('id')
             ->get();
 
@@ -181,7 +181,7 @@ class UsersController extends Controller
             'status'
         ])
             ->where('status', '!=', 'A')
-            ->when($this->isSbyContext(), fn ($q) => $q->where('group_cpny_id', 'SBY'))
+            ->where('group_cpny_id', $this->isSbyContext() ? 'SBY' : 'JKT')
             ->orderByDesc('id')
             ->get();
 
@@ -244,7 +244,7 @@ class UsersController extends Controller
                     $q->orWhereIn('npk', $npkKeys);
                 }
             })
-            ->when($this->isSbyContext(), fn ($q) => $q->where('group_cpny_id', 'SBY'))
+            ->where('group_cpny_id', $this->isSbyContext() ? 'SBY' : 'JKT')
             ->orderByRaw('LOWER(TRIM(email)) ASC NULLS LAST, LOWER(TRIM(username)) ASC NULLS LAST')
             ->get();
 
