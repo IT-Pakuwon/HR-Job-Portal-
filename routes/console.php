@@ -23,3 +23,8 @@ Artisan::command('inspire', function () {
 //     ->everyFiveMinutes()
 //     ->withoutOverlapping()
 //     ->runInBackground();
+
+// Build the H-1 OM dashboard snapshot every 15 minutes.
+Schedule::command('om:snapshot-refresh')
+    ->everyFifteenMinutes()
+    ->withoutOverlapping();
