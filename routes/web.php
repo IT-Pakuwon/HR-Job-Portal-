@@ -2333,7 +2333,28 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{folder?}', 'index')->where('folder', '.*')->name('index');
         });
 
-        Route::view('/data-hub', 'pages.data_hub.index')->name('datahub.index')->middleware('access:DATAHUB,VIEW');
+        Route::get('/data-hub', [\App\Http\Controllers\OmDashboardController::class, 'menu'])
+            ->name('datahub.index')
+            ->middleware('access:DATAHUB,VIEW');
+
+        Route::prefix('data-hub/om')
+            ->middleware('access:DATAHUB,VIEW')
+            ->controller(\App\Http\Controllers\OmDashboardController::class)
+            ->name('datahub.om.')
+            ->group(function () {
+                Route::get('/{mall}', 'detail')->name('detail');
+                Route::get('/{mall}/overview-traffic', 'overviewTraffic')->name('overview-traffic');
+                Route::get('/{mall}/overview-chart', 'overviewChart')->name('overview-chart');
+                Route::get('/{mall}/overview-issue', 'overviewIssue')->name('overview-issue');
+                Route::get('/{mall}/overview-detail', 'overviewDetail')->name('overview-detail');
+                Route::get('/{mall}/overview-budget', 'overviewBudget')->name('overview-budget');
+                Route::get('/{mall}/overview-work-detail', 'overviewWorkDetail')->name('overview-work-detail');
+                Route::get('/{mall}/department-all', 'departmentAll')->name('department-all');
+                Route::get('/{mall}/department-main', 'departmentMain')->name('department-main');
+                Route::get('/{mall}/department-equipment', 'departmentEquipment')->name('department-equipment');
+                Route::get('/{mall}/department-inventory', 'departmentInventory')->name('department-inventory');
+                Route::get('/{mall}/kaizen-main', 'kaizenMain')->name('kaizen-main');
+            });
 
         Route::get('/global-search', [GlobalSearchController::class, 'search'])->name('global-search');
 
