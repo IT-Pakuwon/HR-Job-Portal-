@@ -219,7 +219,9 @@
             const KIND_LABEL = @json($kind['label']);
             const NO_LABEL = IS_ADDENDUM ? 'No. Addendum' : 'No. PSM / Addendum';
             const LIST_URL = "{{ route($kind['page'], [], false) }}";
-            const CREATE_URL = "{{ route('create-agreement', ['eid' => '__EID__'], false) }}".replace('__EID__', '');
+            const CREATE_URL = "{{ ($kind['key'] === 'addendum' ? route('legal-new-agreement.addendum.create-agreement', ['eid' => '__EID__'], false) : route('create-agreement', ['eid' => '__EID__'], false)) }}".replace('__EID__', '');
+            // An addendum started from a PSM / OLA carries ?src=psm in its URL too.
+            const urlSrc = () => new URLSearchParams(location.search).get('src');
             const FRAGMENT_URL = "{{ route($kind['r']['create'], ['eid' => '__EID__'], false) }}".replace('__EID__', '');
 
             const $newAgrModal = $('#newAgrModal');
@@ -276,7 +278,7 @@
             // pushUrl=false when the URL is already right (deep link / back button).
             // src='psm': an addendum started from a PSM / OLA instead of an IFCA job.
             function openNewAgrModal(eid, pushUrl = true, src = null) {
-                if (pushUrl && !IS_ADDENDUM) history.pushState({ eid }, '', CREATE_URL + eid);
+                if (pushUrl) history.pushState({ eid }, '', CREATE_URL + eid + (src ? '?src=' + src : ''));
 
                 loadModalBody(FRAGMENT_URL + eid + (src ? '?src=' + src : ''), initStepForm, 'This job is no longer pending or does not exist.');
             }
@@ -722,7 +724,7 @@
                     : location.pathname.match(/\/legal-new-agreement\/([A-Za-z0-9]+)$/);
 
                 if (m) {
-                    openNewAgrModal(m[1], false);
+                    openNewAgrModal(m[1], false, urlSrc());
                 } else if (v && (IS_ADDENDUM || !['psm-ola', 'addendum', 'others'].includes(v[1]))) {
                     openViewModal(v[1], false);
                 } else {
@@ -1018,7 +1020,7 @@
 
             @if ($openEid)
                 // Deep link: /create-agreement/{eid}
-                window.addEventListener('DOMContentLoaded', () => openNewAgrModal(@json($openEid), false));
+                window.addEventListener('DOMContentLoaded', () => openNewAgrModal(@json($openEid), false, urlSrc()));
             @endif
 
             @if ($openViewEid)
@@ -1098,9 +1100,19 @@
                 }
 
                 const esc = (s) => $('<div>').text(s ?? '').html();
-                const badge = (step) => step === 'COMPLETED'
-                    ? '<span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-[11px] font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">Completed</span>'
-                    : '<span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-1 text-[11px] font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-300">Active</span>';
+                // A PSM / OLA that moved on to a follow-up reads "Follow Up · <its step>".
+                const badge = (step, type, row) => {
+                    const fu = String((row || {}).agreement_type || '').startsWith('FU_');
+                    const word = step.charAt(0) + step.slice(1).toLowerCase();
+
+                    if (fu) {
+                        return `<span class="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-1 text-[11px] font-semibold text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">Follow Up · ${esc(word)}</span>`;
+                    }
+
+                    return step === 'COMPLETED'
+                        ? '<span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-[11px] font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">Completed</span>'
+                        : '<span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-1 text-[11px] font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-300">Active</span>';
+                };
 
                 psmOlaSourceTable = $('#psmOlaSourceTable').DataTable({
                     processing: true,
@@ -1122,7 +1134,7 @@
                         { data: 'tenant_no', render: (d) => esc(d) || '-' },
                         { data: 'trade_name', render: (d) => esc(d) || '-' },
                         { data: 'created_user', render: (d) => esc(d) || '-' },
-                        { data: 'agreement_step_id', render: (d) => badge(d) },
+                        { data: 'agreement_step_id', render: (d, type, row) => badge(d, type, row) },
                     ],
                 });
             }

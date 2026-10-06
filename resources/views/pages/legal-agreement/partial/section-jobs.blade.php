@@ -55,7 +55,7 @@
             <thead class="bg-slate-50 dark:bg-white/[0.03]">
                 <tr>
                     <th class="px-4 py-3 text-left" style="width:60px;">Action</th>
-                    <th class="px-4 py-3 text-left">Contract No</th>
+                    <th class="px-4 py-3 text-left">{{ isset($kind) ? 'Contract No' : 'No. PSM / OLA' }}</th>
                     <th class="px-4 py-3 text-left">Company</th>
                     <th class="px-4 py-3 text-left">Tenant No</th>
                     <th class="px-4 py-3 text-left">Trade Name</th>

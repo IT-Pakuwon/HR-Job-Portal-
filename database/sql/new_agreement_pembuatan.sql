@@ -74,3 +74,21 @@ SET working_start_date = date_trunc('day', response_date),
     working_end_date   = date_trunc('day', response_date)
 WHERE agreement_activity_type = 'CREATE_PEMBUATAN'
   AND working_start_date IS NULL AND working_end_date IS NULL;
+
+
+
+-- ── IFCA job status: A pending / P on progress / C completed ──────────
+-- Creating a PSM / OLA now sets its job to P (it used to set C); completing the
+-- PSM / OLA sets it to C. Jobs left at C by the old rule whose agreement is still
+-- being worked (Active / Hold / Escalated) are On Progress, so move them to P.
+-- Jobs whose only agreement is Completed stay C. Addendums never touch jobs.
+UPDATE staging_contract_agreement s
+SET status = 'P', updated_by = 'migration', updated_at = now()
+WHERE s.status = 'C' AND s.deleted_at IS NULL
+  AND EXISTS (
+        SELECT 1 FROM tr_agreement a
+        WHERE a.deleted_at IS NULL
+          AND a.cpny_id = s.cpny_id AND a.business_id = s.business_id
+          AND a.agreement_type IS DISTINCT FROM 'ADDENDUM'
+          AND a.agreement_step_id IN ('ACTIVE', 'HOLD', 'ESCALATED')
+  );

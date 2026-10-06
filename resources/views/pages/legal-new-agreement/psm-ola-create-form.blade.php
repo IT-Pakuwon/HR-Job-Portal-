@@ -71,13 +71,14 @@
             </div>
 
             <div>
-                <label class="agr-label" for="business_id">Business ID <span class="text-red-500">*</span></label>
-                <input type="number" id="business_id" name="business_id" class="agr-input" value="{{ $values['business_id'] }}">
+                <label class="agr-label" for="business_id">Business ID</label>
+                {{-- Business ID, Tenant Number and Unit identify the IFCA job, so they never change (the server ignores them too). --}}
+                <input type="number" id="business_id" name="business_id" class="agr-input agr-locked" data-always-locked readonly tabindex="-1" value="{{ $values['business_id'] }}">
             </div>
 
             <div>
                 <label class="agr-label" for="tenant_no">Tenant Number</label>
-                <input type="text" id="tenant_no" name="tenant_no" maxlength="20" class="agr-input" value="{{ $values['tenant_no'] }}">
+                <input type="text" id="tenant_no" name="tenant_no" maxlength="20" class="agr-input agr-locked" data-always-locked readonly tabindex="-1" value="{{ $values['tenant_no'] }}">
             </div>
 
             <div>
@@ -111,7 +112,7 @@
 
             <div>
                 <label class="agr-label" for="unit_id">Unit</label>
-                <input type="text" id="unit_id" name="unit_id" maxlength="20" class="agr-input" value="{{ $values['unit_id'] }}">
+                <input type="text" id="unit_id" name="unit_id" maxlength="20" class="agr-input agr-locked" data-always-locked readonly tabindex="-1" value="{{ $values['unit_id'] }}">
             </div>
 
             <div class="sm:col-span-2">

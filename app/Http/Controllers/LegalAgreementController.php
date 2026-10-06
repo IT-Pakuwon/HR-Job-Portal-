@@ -29,6 +29,11 @@ class LegalAgreementController extends Controller
 {
     use HasAutonbr;
 
+    // Activity types written when a PSM / OLA becomes a follow-up and when that is undone.
+    protected const ACTIVITY_FU_START = 'FU_START';
+
+    protected const ACTIVITY_FU_REVERT = 'FU_REVERT';
+
     protected $notificationService;
 
     public function __construct(
@@ -51,6 +56,12 @@ class LegalAgreementController extends Controller
 
         'complete' => [
             'ACTIVE',
+            'ESCALATED',
+        ],
+
+        'cancel' => [
+            'ACTIVE',
+            'HOLD',
             'ESCALATED',
         ],
     ];
@@ -92,27 +103,11 @@ class LegalAgreementController extends Controller
             ];
         })->values();
 
-        $userCompanies = $companies->pluck('cpny_id')->toArray();
-
-        $isManager = $this->isManagerRole();
-
-        $baseCount = function () use ($isManager, $userCompanies, $user) {
-            $q = TrAgreement::followUp();
-            if (!$isManager && !$user->hasFullDataScope()) {
-                $q->where(function ($q2) use ($userCompanies, $user) {
-                    $q2->whereIn('cpny_id', $userCompanies)
-                       ->orWhere('created_user', $user->username)
-                       ->orWhere(function ($q3) use ($user) {
-                           $q3->wherePicLegalOrLeasing($user->username);
-                       });
-                });
-            }
-
-            return $q;
-        };
+        $baseCount = fn () => $this->visibleFollowUps();
 
         $counts = [
-            'all' => $baseCount()->count(),
+            // Cancelled agreements have their own card; they are not part of All / My Agreement.
+            'all' => $baseCount()->where('agreement_step_id', '!=', 'CANCELLED')->count(),
 
             'active' => $baseCount()->where(
                 'agreement_step_id',
@@ -134,7 +129,11 @@ class LegalAgreementController extends Controller
                 'COMPLETED'
             )->count(),
 
+            'cancelled' => $baseCount()->where('agreement_step_id', 'CANCELLED')->count(),
+
             'my_agreement' => TrAgreement::followUp()
+                ->whereNull('deleted_at')
+                ->where('agreement_step_id', '!=', 'CANCELLED')
                 ->wherePicLegalOrLeasing($user->username)
                 ->count(),
 
@@ -147,16 +146,12 @@ class LegalAgreementController extends Controller
             ->orderBy('cpny_name')
             ->get(['cpny_id', 'cpny_name']);
 
-        $propertyTypes = StagingContractAgreement::query()
-            ->whereNull('deleted_at')
-            ->whereNotNull('property_cd')
-            ->select('property_cd')
-            ->distinct()
-            ->orderBy('property_cd')
-            ->pluck('property_cd');
+        // Follow-ups only come from PSM (Mall) and OLA (Office) agreements.
+        $propertyTypes = collect(['OFF', 'MALL']);
 
         return view('pages.legal-agreement.agreement', [
             'title' => 'Legal Agreement',
+            'isManager' => $this->isManagerRole(),
             'eid' => $eid,
             'companies' => $companies,
             'counts' => $counts,
@@ -171,24 +166,17 @@ class LegalAgreementController extends Controller
 
         $isManager = $this->isManagerRole();
 
-        $query = TrAgreement::followUp()
-            ->whereNull('deleted_at');
-
-        if (!$isManager && !$user->hasFullDataScope()) {
-            $query->where(function ($q) use ($user) {
-                $q->where('created_user', $user->username)
-                    ->orWhere(function ($q2) use ($user) {
-                        $q2->wherePicLegalOrLeasing($user->username);
-                    });
-            });
-        }
+        $query = $this->visibleFollowUps();
 
         if ($request->filled('status')) {
             if ($request->status === 'MY_AGREEMENT') {
-                $query->wherePicLegalOrLeasing($user->username);
+                $query->where('agreement_step_id', '!=', 'CANCELLED')->wherePicLegalOrLeasing($user->username);
             } else {
                 $query->where('agreement_step_id', $request->status);
             }
+        } else {
+            // All: cancelled ones are only under their own card.
+            $query->where('agreement_step_id', '!=', 'CANCELLED');
         }
 
         if ($request->filled('status_filter')) {
@@ -284,6 +272,29 @@ class LegalAgreementController extends Controller
             ->make(true);
     }
 
+    /**
+     * Follow-up agreements the current user may see: managers and full-data-scope
+     * users see all, everyone else what they created or are PIC on. The table and
+     * every status badge share this, so the badges can't count more than the table shows.
+     */
+    protected function visibleFollowUps()
+    {
+        $user = auth()->user();
+
+        $query = TrAgreement::followUp()->whereNull('deleted_at');
+
+        if (! $this->isManagerRole() && ! $user->hasFullDataScope()) {
+            $query->where(function ($q) use ($user) {
+                $q->where('created_user', $user->username)
+                    ->orWhere(function ($q2) use ($user) {
+                        $q2->wherePicLegalOrLeasing($user->username);
+                    });
+            });
+        }
+
+        return $query;
+    }
+
     public function isManagerRole()
     {
         return SysUserRole::query()
@@ -303,29 +314,24 @@ class LegalAgreementController extends Controller
             || $this->isManagerRole();
     }
 
+    /**
+     * Start the follow-up for a PSM / OLA from the Job tab. No new row is made:
+     * the PSM / OLA agreement is converted in place to FU_PSM / FU_OLA (so it
+     * leaves the New Agreement lists and joins this one) and starts Active.
+     * Company never changes.
+     */
     public function store(Request $request)
     {
-        $doctype = 'AFU';
-
         $user = $request->user();
 
         $username = $user->username ?? 'system';
 
-        $dt = Carbon::now();
-
-        $year = (int) $dt->year;
-
-        $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
-
         $request->validate([
-            'cpny_id' => 'required',
-            'business_id' => 'required',
+            'source_eid' => 'required|string',
+            // business_id / tenant_no / unit_id / property_cd follow the PSM / OLA and are not read.
             'business_name' => 'required|max:255',
-            'tenant_no' => 'nullable|max:100',
-            'property_cd' => 'nullable|max:20',
             'trade_name' => 'nullable|max:255',
             'floor_id' => 'nullable|max:50',
-            'unit_id' => 'nullable|max:50',
             'business_address' => 'nullable',
 
             'site_id' => 'nullable',
@@ -351,40 +357,47 @@ class LegalAgreementController extends Controller
             ],
         ]);
 
+        // Same list (and visibility) as the Job tab, so an eid can't reach a row the user can't see.
+        $id = Hashids::decode($request->source_eid)[0] ?? null;
+
+        abort_if(! $id, 404);
+
+        $source = $this->fuJobsQuery()->findOrFail($id);
+
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-            $auto = $this->nextAutonbr(
-                $doctype,
-                $year,
-                $month,
-                $username,
-                'AFU'
-            );
+            // Re-read under a row lock: a double submit must not convert it twice.
+            $agreement = TrAgreement::query()
+                ->whereKey($source->id)
+                ->whereIn('agreement_type', TrAgreement::FU_SOURCE_TYPES)
+                ->lockForUpdate()
+                ->first();
 
-            $urutan = (int) $auto['next'];
+            if (! $agreement) {
+                DB::connection('pgsql5')->rollBack();
 
-            $tglbln = substr((string) $year, 2).$month;
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This agreement already has a follow-up.',
+                ], 409);
+            }
 
-            $agreementId = $doctype.$tglbln.sprintf('%04d', $urutan);
+            $fromType = $agreement->agreement_type;
+            $fromStep = $agreement->agreement_step_id;
 
-            $isMall = strtoupper((string) $request->property_cd) === 'MALL';
+            // Property is fixed by the PSM / OLA (Mall = PSM, Office = OLA): it decides FU_PSM vs FU_OLA.
+            $isMall = strtoupper((string) $agreement->property_cd) === 'MALL';
 
-            $agreement = TrAgreement::create([
-                'agreement_id' => $agreementId,
-                'renewal_sequence' => 1,
-                'agreement_date' => now(),
+            $agreement->update([
+                'agreement_type' => TrAgreement::fuTypeFor($fromType),
 
-                'cpny_id' => $request->cpny_id,
-                'site_id' => $request->site_id,
-
-                'business_id' => $request->business_id,
+                // cpny_id, business_id, tenant_no, unit_id and property_cd follow the PSM / OLA and are
+                // deliberately not taken from the request (the form shows them locked).
                 'business_name' => $request->business_name,
-                'tenant_no' => $request->tenant_no,
-                'property_cd' => $request->property_cd,
-                'trade_name' => $isMall ? $request->trade_name : null,
+                // Only Mall has a trade name on the form; an Office one keeps what the OLA had.
+                'trade_name' => $isMall ? $request->trade_name : $agreement->trade_name,
                 'floor_id' => $request->floor_id,
-                'unit_id' => $request->unit_id,
                 'business_address' => $request->business_address,
 
                 'pic_penyewa' => $request->pic_penyewa,
@@ -398,28 +411,32 @@ class LegalAgreementController extends Controller
                 'psm_or_addendum_date' => $request->psm_or_addendum_date,
                 'psm_or_addendum_delivery_date' => $request->psm_or_addendum_delivery_date,
 
+                // The follow-up starts Active, even from a Completed PSM / OLA.
                 'agreement_step_id' => 'ACTIVE',
-                'agreement_step_order' => 1,
+                'agreement_step_order' => ((int) $agreement->agreement_step_order) + 1,
                 'agreement_step_created_user' => $username,
                 'agreement_step_created_at' => now(),
 
                 'status' => 'P',
 
-                'created_user' => $username,
+                'updated_user' => $username,
             ]);
 
-            $this->createActivity([
+            // This row is also how the follow-up knows who owns it (created_by) and which step the
+            // PSM / OLA was in (the part after the colon), so Revert can put it back exactly.
+            TrAgreementActivity::create([
                 'agreement_id' => $agreement->agreement_id,
                 'cpny_id' => $agreement->cpny_id,
+                'agreement_activity_type' => self::ACTIVITY_FU_START.':'.$fromStep,
 
                 'response_date' => now(),
 
-                'response_summary' => 'Agreement Created',
+                'response_summary' => 'Follow Up Started',
 
-                'response_descr' => $agreement->business_name,
+                'response_descr' => $agreement->business_name."\n".'Converted from '.$fromType.' to '.$agreement->agreement_type,
 
                 'agreement_step_id' => 'ACTIVE',
-                'agreement_step_order' => 1,
+                'agreement_step_order' => $agreement->agreement_step_order,
 
                 'status_pekerjaan' => 'ACTIVE',
 
@@ -454,19 +471,6 @@ class LegalAgreementController extends Controller
                 }
             }
 
-            // If this agreement was created off the back of a Jobs list entry,
-            // mark the matching staging contract(s) as Completed so it drops
-            // off the pending list.
-            StagingContractAgreement::query()
-                ->where('cpny_id', $agreement->cpny_id)
-                ->where('business_id', $agreement->business_id)
-                ->where('status', 'A')
-                ->update([
-                    'status' => 'C',
-                    'updated_by' => $username,
-                    'updated_at' => now(),
-                ]);
-
             DB::connection('pgsql5')->commit();
 
             $this->notificationService
@@ -474,7 +478,7 @@ class LegalAgreementController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Agreement created successfully.',
+                'message' => 'Follow-up started.',
             ]);
         } catch (\Throwable $th) {
             DB::connection('pgsql5')->rollBack();
@@ -495,7 +499,7 @@ class LegalAgreementController extends Controller
         $agreement = TrAgreement::followUp()->findOrFail($id);
 
         abort_if(
-            $agreement->created_user !== auth()->user()->username,
+            $this->fuCreator($agreement) !== auth()->user()->username,
             403
         );
 
@@ -532,16 +536,20 @@ class LegalAgreementController extends Controller
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-            $isMall = strtoupper((string) $request->property_cd) === 'MALL';
+            // A converted PSM / OLA keeps its property (it decides FU_PSM vs FU_OLA) and an Office trade name.
+            $converted = in_array($agreement->agreement_type, TrAgreement::FU_TYPES, true);
+            $propertyCd = $converted ? $agreement->property_cd : $request->property_cd;
+            $isMall = strtoupper((string) $propertyCd) === 'MALL';
 
             $agreement->update([
-                'business_id' => $request->business_id,
+                // A converted PSM / OLA keeps the identity it was given there.
+                'business_id' => $converted ? $agreement->business_id : $request->business_id,
                 'business_name' => $request->business_name,
-                'tenant_no' => $request->tenant_no,
-                'property_cd' => $request->property_cd,
-                'trade_name' => $isMall ? $request->trade_name : null,
+                'tenant_no' => $converted ? $agreement->tenant_no : $request->tenant_no,
+                'property_cd' => $propertyCd,
+                'trade_name' => $isMall ? $request->trade_name : ($converted ? $agreement->trade_name : null),
                 'floor_id' => $request->floor_id,
-                'unit_id' => $request->unit_id,
+                'unit_id' => $converted ? $agreement->unit_id : $request->unit_id,
                 'business_address' => $request->business_address,
 
                 'pic_penyewa' => $request->pic_penyewa,
@@ -616,7 +624,10 @@ class LegalAgreementController extends Controller
 
         $picLegalNames = $picNames($agreement->picLegalList());
         $picLeasingNames = $picNames($agreement->picLeasingList());
-        $createdByName = $userNames->get($agreement->created_user, $agreement->created_user);
+
+        // A follow-up made from a PSM / OLA reads as created by whoever started it, not by the PSM's creator.
+        $fuOwner = $this->fuCreator($agreement);
+        $createdByName = $userNames->get($fuOwner, $fuOwner);
 
         /*
         |--------------------------------------------------------------------------
@@ -662,6 +673,7 @@ class LegalAgreementController extends Controller
                 'agreement_id',
                 $agreement->agreement_id
             )
+                ->withoutProcessRows()
                 ->orderBy('id')
                 ->get(),
 
@@ -741,12 +753,13 @@ class LegalAgreementController extends Controller
 
                     'status' => $agreement->status,
 
-                    'created_user' => $agreement->created_user,
+                    'created_user' => $fuOwner,
 
                     'created_user_name' => $createdByName,
 
+                    // Likewise the follow-up's own start time for a converted PSM / OLA.
                     'created_at' => optional(
-                        $agreement->created_at
+                        $this->fuStartActivity($agreement)?->created_at ?? $agreement->created_at
                     )->format('Y-m-d H:i:s'),
 
                     'cycle_info' => $this->agreementCycleInfo($agreement),
@@ -775,6 +788,7 @@ class LegalAgreementController extends Controller
             'agreement_id',
             $agreement->agreement_id
         )
+            ->withoutProcessRows()
             ->whereNull('deleted_at')
             ->orderBy('response_date')
             ->get();
@@ -1547,34 +1561,19 @@ class LegalAgreementController extends Controller
     public function counts()
     {
         $user = auth()->user();
-        $isManager = $this->isManagerRole();
+        $base = fn () => $this->visibleFollowUps();
 
-        $userCompanies = collect(explode(',', $user->cpny_id))->filter()->map(fn ($v) => trim($v))->toArray();
+        $statuses = ['active', 'hold', 'escalated', 'completed', 'cancelled'];
 
-        $base = function () use ($isManager, $userCompanies, $user) {
-            $q = TrAgreement::followUp();
-            if (!$isManager && !$user->hasFullDataScope()) {
-                $q->where(function ($q2) use ($userCompanies, $user) {
-                    $q2->whereIn('cpny_id', $userCompanies)
-                       ->orWhere('created_user', $user->username)
-                       ->orWhere(function ($q3) use ($user) {
-                           $q3->wherePicLegalOrLeasing($user->username);
-                       });
-                });
-            }
-
-            return $q;
-        };
-
-        $statuses = ['active', 'hold', 'escalated', 'completed'];
-
-        $counts = ['all' => $base()->count()];
+        $counts = ['all' => $base()->where('agreement_step_id', '!=', 'CANCELLED')->count()];
 
         foreach ($statuses as $s) {
             $counts[$s] = $base()->where('agreement_step_id', strtoupper($s))->count();
         }
 
         $counts['my_agreement'] = TrAgreement::followUp()
+            ->whereNull('deleted_at')
+            ->where('agreement_step_id', '!=', 'CANCELLED')
             ->wherePicLegalOrLeasing($user->username)
             ->count();
 
@@ -1583,8 +1582,74 @@ class LegalAgreementController extends Controller
         return response()->json($counts);
     }
 
+    /**
+     * Agreement FU's Job tab: PSM / OLA agreements (Active or Completed) that
+     * have no follow-up yet. Visibility follows New Agreement: managers and
+     * full-data-scope users see all, everyone else what they created or are PIC on.
+     */
+    public function fuJobsQuery()
+    {
+        $user = auth()->user();
+
+        $query = TrAgreement::query()
+            ->whereNull('deleted_at')
+            ->whereIn('agreement_type', TrAgreement::FU_SOURCE_TYPES)
+            ->whereIn('agreement_step_id', ['ACTIVE', 'COMPLETED'])
+            // No second follow-up: skip a PSM / OLA whose tenant + unit already has a live one
+            // (a follow-up that is Active, on Hold or Escalated).
+            ->whereNotExists(function ($sub) {
+                $sub->selectRaw('1')
+                    ->from('tr_agreement as fu')
+                    ->whereNull('fu.deleted_at')
+                    ->whereIn('fu.agreement_step_id', ['ACTIVE', 'HOLD', 'ESCALATED'])
+                    ->where(fn ($q) => $q->whereNull('fu.agreement_type')->orWhereNotIn('fu.agreement_type', TrAgreement::NEW_AGREEMENT_TYPES))
+                    ->whereColumn('fu.cpny_id', 'tr_agreement.cpny_id')
+                    ->whereColumn('fu.tenant_no', 'tr_agreement.tenant_no')
+                    ->whereColumn('fu.unit_id', 'tr_agreement.unit_id');
+            });
+
+        if (! $this->isManagerRole() && ! $user->hasFullDataScope()) {
+            $query->where(function ($q) use ($user) {
+                $q->where('created_user', $user->username)
+                    ->orWhere(fn ($q2) => $q2->wherePicLegalOrLeasing($user->username));
+            });
+        }
+
+        return $query;
+    }
+
+    // Company / Property Type / search filters for the FU Job tab and its export.
+    protected function applyFuJobsFilters($query, Request $request): void
+    {
+        if ($request->filled('cpny_id')) {
+            $query->where('cpny_id', $request->cpny_id);
+        }
+
+        if (is_string($request->property_cd) && in_array($request->property_cd, ['OFF', 'MALL', 'APT', 'HOTEL'], true)) {
+            $query->where('property_cd', $request->property_cd);
+        }
+
+        if (is_string($request->search) && $request->filled('search')) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                $q->where('agreement_id', 'ilike', "%{$search}%")
+                    ->orWhere('no_psm_or_addendum', 'ilike', "%{$search}%")
+                    ->orWhere('tenant_no', 'ilike', "%{$search}%")
+                    ->orWhere('trade_name', 'ilike', "%{$search}%")
+                    ->orWhere('business_name', 'ilike', "%{$search}%");
+            });
+        }
+    }
+
+    // $excludeActiveTypes = null is Agreement FU (PSM / OLA agreements); New
+    // Agreement passes its types and still gets the IFCA staging jobs.
     public function pendingJobsCount(?array $excludeActiveTypes = null): int
     {
+        if ($excludeActiveTypes === null) {
+            return $this->fuJobsQuery()->count();
+        }
+
         // Row-level count (one row per contract/lot), matching how the Jobs
         // table itself counts — not deduped by business — so this badge
         // always agrees with what "Showing X of Y entries" shows there.
@@ -1630,8 +1695,53 @@ class LegalAgreementController extends Controller
         }
     }
 
+    // Agreement FU rows keep the staging row's field names (contract_no, name,
+    // level_no, lot_no ...) so the one Jobs table / create button in jobs.js
+    // serves both; the extras carry what the follow-up form prefills.
+    protected function fuJobsJson(Request $request)
+    {
+        $query = $this->fuJobsQuery()->select([
+            'id', 'agreement_id', 'agreement_type', 'cpny_id', 'business_id', 'tenant_no', 'trade_name', 'property_cd',
+            'pic_penyewa', 'pic_phonenumber_penyewa', 'pic_legal', 'pic_leasing',
+            'no_psm_or_addendum as contract_no',
+            'business_name as name',
+            'floor_id as level_no',
+            'unit_id as lot_no',
+            'business_address as mailing_addr',
+            'pic_email_penyewa as email_addr',
+            'agreement_step_id as status',
+        ]);
+
+        $this->applyFuJobsFilters($query, $request);
+
+        // Saved PICs as select options ("Name - Email", the same label the PIC picker uses).
+        $users = null;
+        $picOptions = function (?string $csv) use (&$users) {
+            $users ??= User::query()->get(['username', 'name', 'email'])->keyBy('username');
+
+            return collect(TrAgreement::splitPicList($csv))->map(function ($u) use ($users) {
+                $row = $users->get($u);
+
+                return ['id' => $u, 'text' => $row ? ($row->email ? "{$row->name} - {$row->email}" : $row->name) : $u];
+            })->values();
+        };
+
+        return DataTables::of($query)
+            ->filterColumn('contract_no', fn ($q, $kw) => $q->where('no_psm_or_addendum', 'ilike', "%{$kw}%"))
+            ->filterColumn('status', fn ($q, $kw) => $q->where('agreement_step_id', 'ilike', "%{$kw}%"))
+            ->addColumn('eid', fn ($row) => Hashids::encode($row->id))
+            ->addColumn('pic_legal_options', fn ($row) => $picOptions($row->pic_legal)->all())
+            ->addColumn('pic_leasing_options', fn ($row) => $picOptions($row->pic_leasing)->all())
+            ->rawColumns(['pic_legal_options', 'pic_leasing_options'])
+            ->make(true);
+    }
+
     public function jobsJson(Request $request, ?array $excludeActiveTypes = null)
     {
+        if ($excludeActiveTypes === null) {
+            return $this->fuJobsJson($request);
+        }
+
         $query = StagingContractAgreement::query()
             ->whereNull('deleted_at')
             ->where('status', 'A')
@@ -1652,6 +1762,29 @@ class LegalAgreementController extends Controller
 
     public function jobsExport(Request $request, ?array $excludeActiveTypes = null)
     {
+        if ($excludeActiveTypes === null) {
+            $companyNames = MsCompany::query()->pluck('cpny_name', 'cpny_id');
+
+            $query = $this->fuJobsQuery();
+            $this->applyFuJobsFilters($query, $request);
+
+            $rows = $query->orderBy('cpny_id')->orderBy('agreement_id')->get()->map(fn (TrAgreement $a) => [
+                $a->agreement_id,
+                $a->agreement_type,
+                $a->no_psm_or_addendum,
+                $companyNames->get($a->cpny_id, $a->cpny_id),
+                $a->tenant_no,
+                $a->trade_name,
+                $a->property_cd,
+                $a->agreement_step_id === 'COMPLETED' ? 'Completed' : 'Active',
+            ]);
+
+            return Excel::download(
+                new \App\Exports\FuJobsExport($rows),
+                'legal-agreement-jobs-export-'.now()->format('YmdHis').'.xlsx'
+            );
+        }
+
         return Excel::download(
             new JobsExport($request, $excludeActiveTypes),
             'legal-agreement-jobs-export-'.now()->format('YmdHis').'.xlsx'
@@ -2007,18 +2140,193 @@ class LegalAgreementController extends Controller
             ->values();
     }
 
+    /**
+     * Who owns (may edit) a follow-up: the user who created it. For a follow-up made from a
+     * PSM / OLA that is whoever started it (its 'Follow Up Started' activity), not the PSM / OLA's
+     * creator; older follow-ups have no such row and keep created_user.
+     */
+    protected function fuCreator(TrAgreement $agreement): ?string
+    {
+        if (! in_array($agreement->agreement_type, TrAgreement::FU_TYPES, true)) {
+            return $agreement->created_user;
+        }
+
+        return $this->fuStartActivity($agreement)?->created_by ?: $agreement->created_user;
+    }
+
+    // The latest 'Follow Up Started' row of a converted agreement.
+    protected function fuStartActivity(TrAgreement $agreement): ?TrAgreementActivity
+    {
+        return TrAgreementActivity::query()
+            ->where('agreement_id', $agreement->agreement_id)
+            ->where('agreement_activity_type', 'like', self::ACTIVITY_FU_START.':%')
+            ->whereNull('deleted_at')
+            ->orderByDesc('id')
+            ->first();
+    }
+
+    /**
+     * Revert is only offered while the follow-up has not really begun: still Active in its first
+     * cycle (no Surat 1 sent, never put on hold), so nothing already sent to the tenant is undone.
+     * Only the follow-up's creator or a legal manager may revert it.
+     */
+    protected function canRevert(TrAgreement $agreement, bool $isManager): bool
+    {
+        if (! in_array($agreement->agreement_type, TrAgreement::FU_TYPES, true)) {
+            return false;
+        }
+
+        if (! $isManager && $this->fuCreator($agreement) !== auth()->user()->username) {
+            return false;
+        }
+
+        return $agreement->agreement_step_id === 'ACTIVE'
+            && (int) $agreement->renewal_sequence === 1
+            && ($this->agreementCycleInfo($agreement)['cycle'] ?? null) === 'AWAL';
+    }
+
+    /**
+     * Cancel a follow-up (owner, PIC or legal manager, with a reason). It leaves All / My Agreement and
+     * stays under Cancelled. A follow-up made from a PSM / OLA also hands its IFCA job back to Pending,
+     * the same as cancelling that PSM / OLA does, so the job is not stuck On Progress.
+     */
+    public function cancelAgreement(Request $request, $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        abort_if(! $id, 404);
+
+        $agreement = TrAgreement::followUp()->whereNull('deleted_at')->findOrFail($id);
+
+        $username = auth()->user()->username;
+
+        abort_unless(
+            ($this->isManagerRole() || $agreement->hasPic($username) || $this->fuCreator($agreement) === $username)
+                && $this->canTransition($agreement->agreement_step_id, 'cancel'),
+            403
+        );
+
+        $request->validate(['response_descr' => 'required|string|max:2000']);
+
+        // Addendums made from this agreement must be cancelled (or finished) first.
+        if ($addendums = TrAgreement::activeAddendumIds($agreement->agreement_id)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cancel its Active addendum(s) first: '.implode(', ', $addendums).'.',
+            ], 422);
+        }
+
+        DB::connection('pgsql5')->beginTransaction();
+
+        try {
+            $this->transitionStep($agreement, 'CANCELLED', 'Agreement Cancelled', $request->response_descr, 'X', $username);
+
+            if (in_array($agreement->agreement_type, TrAgreement::FU_TYPES, true)) {
+                StagingContractAgreement::moveFor($agreement, ['P', 'C'], 'A', $username);
+            }
+
+            DB::connection('pgsql5')->commit();
+        } catch (\Throwable $th) {
+            DB::connection('pgsql5')->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => config('app.debug') ? $th->getMessage() : 'Failed to cancel the agreement.',
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Agreement {$agreement->agreement_id} cancelled.",
+        ]);
+    }
+
+    /**
+     * Undo the conversion: FU_PSM / FU_OLA goes back to PSM / OLA, in the step it was in before
+     * (Active or Completed, read from its 'Follow Up Started' row). The follow-up's own data
+     * (delivery date, proof of delivery) is kept, and the staging job is untouched.
+     */
+    public function revertAgreement(Request $request, $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        abort_if(! $id, 404);
+
+        $agreement = TrAgreement::followUp()->whereNull('deleted_at')->findOrFail($id);
+
+        abort_unless($this->canRevert($agreement, $this->isManagerRole()), 403, 'This follow-up can no longer be reverted.');
+
+        $request->validate(['response_descr' => 'required|string|max:2000']);
+
+        $username = auth()->user()->username;
+        $start = $this->fuStartActivity($agreement);
+        // 'FU_START:<step>' -> <step>; anything unexpected falls back to Active.
+        $cameFrom = $start ? substr((string) $start->agreement_activity_type, strlen(self::ACTIVITY_FU_START) + 1) : '';
+        $toStep = in_array($cameFrom, ['ACTIVE', 'COMPLETED'], true) ? $cameFrom : 'ACTIVE';
+        $toType = array_search($agreement->agreement_type, ['PSM' => 'FU_PSM', 'OLA' => 'FU_OLA'], true);
+
+        DB::connection('pgsql5')->beginTransaction();
+
+        try {
+            // The conversion row must not keep marking this agreement as a follow-up's owner.
+            if ($start) {
+                $start->update(['agreement_activity_type' => self::ACTIVITY_FU_START.'_UNDONE:'.$toStep, 'updated_by' => $username]);
+            }
+
+            $agreement->update([
+                'agreement_type' => $toType,
+                'agreement_step_id' => $toStep,
+                'agreement_step_order' => ((int) $agreement->agreement_step_order) + 1,
+                'agreement_step_created_user' => $username,
+                'agreement_step_created_at' => now(),
+                'status' => $toStep === 'COMPLETED' ? 'C' : 'P',
+                'updated_user' => $username,
+            ]);
+
+            TrAgreementActivity::create([
+                'agreement_id' => $agreement->agreement_id,
+                'cpny_id' => $agreement->cpny_id,
+                'agreement_activity_type' => self::ACTIVITY_FU_REVERT,
+                'agreement_step_id' => $toStep,
+                'agreement_step_order' => $agreement->agreement_step_order,
+                'response_date' => now(),
+                'response_summary' => 'Follow Up Reverted',
+                'response_descr' => 'Back to '.$toType.' ('.$toStep.')'."\n".$request->response_descr,
+                'status_pekerjaan' => $toStep,
+                'status' => 'A',
+                'created_by' => $username,
+            ]);
+
+            DB::connection('pgsql5')->commit();
+        } catch (\Throwable $th) {
+            DB::connection('pgsql5')->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => config('app.debug') ? $th->getMessage() : 'Failed to revert the follow-up.',
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Reverted to {$toType}.",
+        ]);
+    }
+
     protected function buildActions($agreement, $isManager)
     {
         $user = auth()->user();
 
         $isRequester =
-            $agreement->created_user === $user->username;
+            $this->fuCreator($agreement) === $user->username;
 
         $isPIC = $agreement->hasPic($user->username);
 
         $canAct = $isManager || $isPIC;
 
         return [
+            'can_revert' => $this->canRevert($agreement, $isManager),
+
             'can_edit' => $isRequester
                 && $agreement->status === 'P'
                 && $agreement->agreement_step_id === 'ACTIVE',
@@ -2031,6 +2339,10 @@ class LegalAgreementController extends Controller
 
             'can_complete' => $canAct
                 && $this->canTransition($agreement->agreement_step_id, 'complete'),
+
+            // The follow-up's owner may also cancel it, even when not a PIC.
+            'can_cancel' => ($canAct || $isRequester)
+                && $this->canTransition($agreement->agreement_step_id, 'cancel'),
         ];
     }
 
@@ -2056,9 +2368,10 @@ class LegalAgreementController extends Controller
 
         $picLegalNames = $picNames($agreement->picLegalList());
         $picLeasingNames = $picNames($agreement->picLeasingList());
-        $createdByName = $userNames->get($agreement->created_user, $agreement->created_user);
+        $fuOwner = $this->fuCreator($agreement);
+        $createdByName = $userNames->get($fuOwner, $fuOwner);
 
-        $pdf = \PDF::loadView('pages.legal-agreement.print', compact(
+        $pdf =\PDF::loadView('pages.legal-agreement.print', compact(
             'agreement', 'attachments', 'company', 'picLegalNames', 'picLeasingNames', 'createdByName'
         ))->setPaper('a4', 'portrait');
 

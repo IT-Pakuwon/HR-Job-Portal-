@@ -41,10 +41,8 @@ class PsmOlaAgreementMail extends Mailable
             'reopened' => ['REOPENED', 'reopened'],
         ][$this->event] ?? ['UPDATED', 'updated'];
 
-        // A cancelled agreement is off the lists, so its link would open nothing.
-        $docUrl = $this->event === 'cancelled'
-            ? null
-            : url('/legal-new-agreement/'.($addendum ? 'addendum/' : '').$eid);
+        // A cancelled agreement stays viewable (Cancelled tab), so it gets its link too.
+        $docUrl = url('/legal-new-agreement/'.($addendum ? 'addendum/' : '').$eid);
 
         return $this
             ->subject('[LEGAL AGREEMENT]['.$tag.'] '.$this->agreement->agreement_id.' - '.$label.' '.ucfirst($this->event))

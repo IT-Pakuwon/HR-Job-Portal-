@@ -23,6 +23,12 @@ class TrAgreementActivity extends Model
         'status', 'created_by', 'created_at', 'updated_by', 'updated_at', 'deleted_by', 'deleted_at',
     ];
 
+    // The PSM / OLA process sheet (Cetak, routing ...) belongs to that screen, not to a follow-up's timeline.
+    public function scopeWithoutProcessRows($query)
+    {
+        return $query->where(fn ($q) => $q->whereNull('agreement_activity_type')->orWhere('agreement_activity_type', 'not like', 'PROCESS%'));
+    }
+
     public function agreement()
     {
         return $this->belongsTo(TrAgreement::class, 'agreement_id', 'agreement_id');

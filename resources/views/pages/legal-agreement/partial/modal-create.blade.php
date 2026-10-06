@@ -9,8 +9,8 @@
                     <i class="fa-solid fa-file-signature text-lg"></i>
                 </span>
                 <div>
-                    <h3 class="text-lg font-bold text-slate-800 dark:text-white">New Legal Agreement</h3>
-                    <p class="text-xs text-slate-400">Fill in the tenant and document details below</p>
+                    <h3 class="text-lg font-bold text-slate-800 dark:text-white">Start Follow Up</h3>
+                    <p class="text-xs text-slate-400">Check the PSM / OLA details and add the delivery details below</p>
                 </div>
             </div>
             <button type="button" class="btn-close-form-modal flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/[0.08] dark:hover:text-white">
@@ -42,6 +42,7 @@
         </div>
 
         <form id="createAgreementForm">
+            <input type="hidden" name="source_eid" />
             <input type="hidden" name="business_id" />
             <input type="hidden" name="tenant_no" />
 
@@ -101,7 +102,7 @@
 
                             <div>
                                 <label class="agr-label">Unit</label>
-                                <input type="text" name="unit_id" class="agr-input" placeholder="Unit" />
+                                <input type="text" name="unit_id" id="create_unit_id" class="agr-input" placeholder="Unit" />
                             </div>
                         </div>
 

@@ -11,15 +11,21 @@ const Jobs = {
     },
 };
 
-// 'C' here only means an Agreement has already been created from this staging
-// job — not that the Agreement itself is finished, so it's labeled "On
-// Progress" rather than "Completed" to avoid implying the workflow is done.
-const JOB_STATUS_LABELS = { A: 'Pending', C: 'On Progress', X: 'Cancelled' };
+// Staging job status: A = Pending (no agreement yet), P = On Progress (its PSM / OLA is
+// Active), C = Completed (that PSM / OLA is completed), X = Cancelled.
+// Agreement FU's Jobs are PSM / OLA agreements, so their status is the agreement's own step.
+const JOB_STATUS_LABELS = { A: 'Pending', P: 'On Progress', C: 'Completed', X: 'Cancelled', ACTIVE: 'Active', COMPLETED: 'Completed' };
+
+// Rows of the table by eid, so the create button can prefill from the whole row.
+Jobs.rows = {};
 
 function jobStatusBadgeClass(status) {
     switch (status) {
+        case 'ACTIVE': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300';
+        case 'COMPLETED': return 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
         case 'A': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
-        case 'C': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
+        case 'P': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
+        case 'C': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300';
         case 'X': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300';
         default: return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
     }
@@ -75,7 +81,10 @@ function initJobsTable() {
                 data: null,
                 orderable: false,
                 searchable: false,
-                render: (row) => `
+                render: (row) => {
+                    if (row.eid) Jobs.rows[row.eid] = row;
+
+                    return `
                     <button type="button" class="${window.jobsActionClass || 'btn-create-from-job'} inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white hover:bg-blue-700"
                         data-eid="${row.eid ?? ''}"
                         data-cpny_id="${row.cpny_id ?? ''}"
@@ -91,7 +100,8 @@ function initJobsTable() {
                         title="Create Agreement">
                         <i class="fa-solid fa-plus text-xs"></i>
                     </button>
-                `,
+                `;
+                },
             },
             { data: 'contract_no', render: (d) => d || '-' },
             { data: 'cpny_id', render: (d) => d || '-' },
@@ -140,17 +150,42 @@ function initJobsFilters() {
     });
 }
 
+// Select the PSM / OLA's saved PICs. They may not be in the first page of
+// search results, so they are added as options before being selected.
+function presetPicOptions(selector, params, force, picked) {
+    return loadPicOptions(selector, params, force).always(function () {
+        const $select = $(selector);
+
+        (picked || []).forEach((p) => {
+            if (!$select.find('option').filter((_, el) => el.value === p.id).length) {
+                $select.append(new Option(p.text, p.id));
+            }
+        });
+
+        $select.val((picked || []).map((p) => p.id)).trigger('change');
+    });
+}
+
+// Start the follow-up for a PSM / OLA agreement: its data prefills the form and
+// saving converts that agreement (no new one is made).
 function initCreateFromJob() {
     $(document).on('click', '.btn-create-from-job', function () {
         const $btn = $(this);
+        const job = Jobs.rows[$btn.data('eid')] || {};
 
         resetCreateForm();
 
         const cpnyId = $btn.data('cpny_id');
         const propertyCd = $btn.data('property_cd');
 
-        $('#create_cpny_id').val(cpnyId ? String(cpnyId) : '').trigger('change');
+        // 'change.select2' refreshes the widget only; the delegated 'change'
+        // handler would re-fetch PIC Leasing, which is loaded below with the saved PICs.
+        $('#create_cpny_id').val(cpnyId ? String(cpnyId) : '').trigger('change.select2');
         lockCompanyField(true);
+        $('#createAgreementForm [name="source_eid"]').val($btn.data('eid') ?? '');
+        $('#createAgreementForm [name="pic_penyewa"]').val(job.pic_penyewa ?? '');
+        $('#createAgreementForm [name="pic_phonenumber_penyewa"]').val(job.pic_phonenumber_penyewa ?? '');
+        $('#createAgreementForm [name="no_psm_or_addendum"]').val(job.contract_no ?? '');
         $('#createAgreementForm [name="business_id"]').val($btn.data('business_id') ?? '');
         $('#createAgreementForm [name="tenant_no"]').val($btn.data('tenant_no') ?? '');
         $('#createAgreementForm [name="trade_name"]').val($btn.data('trade_name') ?? '');
@@ -160,12 +195,21 @@ function initCreateFromJob() {
         $('#createAgreementForm [name="business_address"]').val($btn.data('business_address') ?? '');
         $('#createAgreementForm [name="pic_email_penyewa"]').val($btn.data('pic_email_penyewa') ?? '');
 
-        $('#create_property_cd').val(propertyCd ? String(propertyCd) : '');
+        // Unit follows the PSM / OLA (Business ID and Tenant No are hidden inputs, already fixed): locked
+        // by CSS + readonly so it still posts; the server ignores it too.
+        $('#create_unit_id').prop('readonly', true).addClass('agr-locked').attr('tabindex', -1);
+
+        // Fixed by the PSM / OLA (Mall = PSM, Office = OLA); the server ignores it too.
+        $('#create_property_cd').val(propertyCd ? String(propertyCd) : '').prop('disabled', true);
         toggleCreateTradeName(propertyCd);
 
-        loadPicOptions('#create_pic_legal', { role_id: 'LEGALACCESS' });
-        // PIC Leasing is reloaded automatically by the change-event handler
-        // bound to #create_cpny_id, fired by .trigger('change') above.
+        presetPicOptions('#create_pic_legal', { role_id: 'LEGALACCESS' }, false, job.pic_legal_options);
+        presetPicOptions(
+            '#create_pic_leasing',
+            { role_id: 'LEASINGACCESS', ...(cpnyId ? { cpny_id: cpnyId } : {}) },
+            true,
+            job.pic_leasing_options
+        );
 
         openModal('#createAgreementModal');
     });

@@ -95,10 +95,33 @@ class TrAgreement extends Model
     // Types made by New Agreement (PSM / OLA / Addendum). Agreement FU never handles these.
     public const NEW_AGREEMENT_TYPES = ['PSM', 'OLA', 'PEMBUATAN', 'ADDENDUM'];
 
+    // Agreement FU's Job tab lists PSM / OLA agreements; creating the follow-up
+    // converts that row in place to the matching FU type (Mall PSM -> FU_PSM, Office OLA -> FU_OLA).
+    public const FU_SOURCE_TYPES = ['PSM', 'OLA'];
+
+    public const FU_TYPES = ['FU_PSM', 'FU_OLA'];
+
+    public static function fuTypeFor(?string $type): ?string
+    {
+        return ['PSM' => 'FU_PSM', 'OLA' => 'FU_OLA'][$type] ?? null;
+    }
+
     // Agreement FU's own agreements: everything except the New Agreement types.
     public function scopeFollowUp($query)
     {
         return $query->where(fn ($q) => $q->whereNull('agreement_type')->orWhereNotIn('agreement_type', self::NEW_AGREEMENT_TYPES));
+    }
+
+    // Addendums still Active that were made from this agreement (it can't be cancelled while they are).
+    public static function activeAddendumIds(string $agreementId): array
+    {
+        return static::query()
+            ->whereNull('deleted_at')
+            ->where('agreement_type', 'ADDENDUM')
+            ->where('agreement_step_id', 'ACTIVE')
+            ->where('prev_agreement_id', $agreementId)
+            ->pluck('agreement_id')
+            ->all();
     }
 
     public function scopeWherePicLegal($query, string $username)

@@ -106,6 +106,7 @@ function stepBadgeClass(step) {
         case 'HOLD': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300';
         case 'ESCALATED': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300';
         case 'COMPLETED': return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+        case 'CANCELLED': return 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-300';
         default: return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
     }
 }
@@ -162,6 +163,8 @@ const ROW_ACTION_LABELS = {
     hold: { label: 'Hold Agreement', icon: 'fa-solid fa-pause', class: 'text-amber-600 dark:text-amber-400' },
     activate: { label: 'Activate Agreement', icon: 'fa-solid fa-bolt', class: 'text-emerald-600 dark:text-emerald-400' },
     complete: { label: 'Complete Agreement', icon: 'fa-solid fa-flag-checkered', class: 'text-slate-600 dark:text-slate-300' },
+    revert: { label: 'Revert to PSM / OLA', icon: 'fa-solid fa-rotate-left', class: 'text-rose-600 dark:text-rose-400' },
+    cancel: { label: 'Cancel Agreement', icon: 'fa-solid fa-ban', class: 'text-red-600 dark:text-red-400' },
 };
 
 function renderAgreementRowActions(row) {
@@ -170,7 +173,7 @@ function renderAgreementRowActions(row) {
 
     const items = [{ action: 'view', label: 'View Detail', icon: 'fa-regular fa-eye', class: 'text-slate-700 dark:text-slate-200' }];
 
-    ['hold', 'activate', 'complete'].forEach((key) => {
+    ['hold', 'activate', 'complete', 'revert', 'cancel'].forEach((key) => {
         if (can[`can_${key}`]) items.push({ action: key, ...ROW_ACTION_LABELS[key] });
     });
 
@@ -842,6 +845,7 @@ function trackingBadgeClass(status) {
         case 'HOLD': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
         case 'ESCALATED': return 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300';
         case 'COMPLETED': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300';
+        case 'CANCELLED': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300';
         case 'COMMENT': return 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-300';
         case 'SURAT1_SENT':
         case 'SURAT2_SENT': return 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300';
@@ -988,6 +992,8 @@ const ACTION_LABELS = {
     can_hold: { label: 'Hold Agreement', action: 'hold', icon: 'fa-solid fa-pause', class: 'text-amber-600 dark:text-amber-400' },
     can_activate: { label: 'Activate Agreement', action: 'activate', icon: 'fa-solid fa-bolt', class: 'text-emerald-600 dark:text-emerald-400' },
     can_complete: { label: 'Complete Agreement', action: 'complete', icon: 'fa-solid fa-flag-checkered', class: 'text-slate-600 dark:text-slate-300' },
+    can_revert: { label: 'Revert to PSM / OLA', action: 'revert', icon: 'fa-solid fa-rotate-left', class: 'text-rose-600 dark:text-rose-400' },
+    can_cancel: { label: 'Cancel Agreement', action: 'cancel', icon: 'fa-solid fa-ban', class: 'text-red-600 dark:text-red-400' },
 };
 
 function renderActionButtons(actions, agreement) {
@@ -1027,6 +1033,18 @@ function renderActionButtons(actions, agreement) {
  * ---------------------------------------------------------------------- */
 
 const ACTION_CONFIG = {
+    cancel: {
+        title: 'Cancel Agreement', url: Agreement.routes.cancel, pic: false, descrRequired: true, attachments: false, psm: false,
+        subtitle: 'Cancel this follow-up. Give the reason below.',
+        icon: 'fa-solid fa-ban', iconClass: 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400',
+        submitLabel: 'Cancel Agreement', submitIcon: 'fa-solid fa-ban',
+    },
+    revert: {
+        title: 'Revert to PSM / OLA', url: Agreement.routes.revert, pic: false, descrRequired: true, attachments: false, psm: false,
+        subtitle: 'Undo the follow-up: this agreement goes back to its PSM / OLA.',
+        icon: 'fa-solid fa-rotate-left', iconClass: 'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400',
+        submitLabel: 'Revert', submitIcon: 'fa-solid fa-rotate-left',
+    },
     hold: {
         title: 'Put Agreement On Hold', url: Agreement.routes.hold, pic: false, descrRequired: true, attachments: false, psm: false,
         subtitle: 'Pause the follow-up cycle until this agreement is reactivated.',
@@ -1411,6 +1429,8 @@ function removeActionAttachment(index) {
 }
 
 const ACTION_CONFIRM_TEXT = {
+    cancel: 'Cancel this agreement? It leaves the active lists and stays under Cancelled. A PSM / OLA\'s IFCA job goes back to Pending.',
+    revert: 'Revert this follow-up? The agreement goes back to PSM / OLA and leaves this list. It can be started again from the Job tab.',
     hold: 'Put this agreement on hold? Follow-up timers pause until it\'s reactivated.',
     activate: 'Activate this agreement? This restarts the follow-up cycle from the delivery date entered above.',
     complete: 'Mark this agreement as complete? This stops all further follow-up and email reminders.',
@@ -1452,9 +1472,20 @@ function submitAction() {
                 $('#btnSubmitAction').prop('disabled', false);
                 closeModal('#actionAgreementModal');
                 showSuccess(res.message || 'Action completed successfully.');
-                loadAgreementDetail(eid);
+
+                // A reverted agreement is a PSM / OLA again, so it has no follow-up detail to reload.
+                if (action === 'revert') {
+                    closeModal('#detailAgreementModal');
+                } else {
+                    loadAgreementDetail(eid);
+                }
+
                 reloadTable();
                 refreshCounts();
+
+                if (window.jobsTable) {
+                    window.jobsTable.ajax.reload(null, false);
+                }
             },
             error(xhr) {
                 hideLoading();

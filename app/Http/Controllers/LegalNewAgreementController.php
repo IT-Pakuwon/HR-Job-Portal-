@@ -12,6 +12,7 @@ use App\Models\TrAgreementDocument;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
@@ -73,6 +74,9 @@ class LegalNewAgreementController extends Controller
     protected const PROPERTY_TYPES = ['OFF' => 'Office', 'MALL' => 'Mall', 'APT' => 'Apartment', 'HOTEL' => 'Hotel'];
 
     protected const TYPE_ADDENDUM = 'ADDENDUM';
+
+    // Fields that come from the IFCA job (or the PSM / OLA) and are fixed once an agreement exists.
+    protected const LOCKED_FIELDS = ['business_id', 'tenant_no', 'unit_id', 'property_cd'];
 
     /**
      * PSM / OLA and Addendum run on the same code. Which one a request is for
@@ -164,9 +168,13 @@ class LegalNewAgreementController extends Controller
     }
 
     // PSM / OLAs an addendum can still be started from: not cancelled, and no ACTIVE addendum made from them yet.
+    // One that has moved on to a follow-up (FU_PSM / FU_OLA, in any step) is still a valid parent.
     protected function psmOlaSourceQuery()
     {
-        return $this->activeQuery([self::STEP_ACTIVE, self::STEP_COMPLETED], self::PSM_OLA_TYPES)
+        return $this->activeQuery(
+            [self::STEP_ACTIVE, self::STEP_COMPLETED, 'HOLD', 'ESCALATED'],
+            [...self::PSM_OLA_TYPES, ...TrAgreement::FU_TYPES]
+        )
             ->whereNotExists(function ($sub) {
                 $sub->selectRaw('1')
                     ->from('tr_agreement as ad')
@@ -232,6 +240,13 @@ class LegalNewAgreementController extends Controller
     // /legal-new-agreement/{eid}: the list page with the view modal opened.
     public function psmOlaView(string $eid)
     {
+        // Old links (emails, bookmarks) to a PSM / OLA that has since become a follow-up.
+        $id = Hashids::decode($eid)[0] ?? null;
+
+        if ($id && TrAgreement::query()->whereKey($id)->whereIn('agreement_type', TrAgreement::FU_TYPES)->exists()) {
+            return redirect('/show-legal-agreement/'.$eid);
+        }
+
         $agreement = $this->viewableAgreementOrFail($eid);
 
         return $this->psmOla(null, $eid, ['COMPLETED' => 'completed', 'CANCELLED' => 'cancelled'][$agreement->agreement_step_id] ?? 'active');
@@ -284,7 +299,7 @@ class LegalNewAgreementController extends Controller
             $query->where('cpny_id', $request->cpny_id);
         }
 
-        if (is_string($request->property_cd) && in_array($request->property_cd, ['OFF', 'MALL'], true)) {
+        if (is_string($request->property_cd) && array_key_exists($request->property_cd, self::PROPERTY_TYPES)) {
             $query->where('property_cd', $request->property_cd);
         }
 
@@ -411,7 +426,9 @@ class LegalNewAgreementController extends Controller
                 return [];
             }
 
-            $rows = $this->activeQuery($steps, self::PSM_OLA_TYPES)->where('agreement_id', $agreement->prev_agreement_id)->get();
+            // The parent may have become a follow-up (any step); that one lives on the Agreement FU page.
+            $rows = $this->activeQuery([...$steps, 'HOLD', 'ESCALATED'], [...self::PSM_OLA_TYPES, ...TrAgreement::FU_TYPES])
+                ->where('agreement_id', $agreement->prev_agreement_id)->get();
             $type = 'PSM / OLA';
             $path = '/legal-new-agreement/';
         } else {
@@ -423,15 +440,19 @@ class LegalNewAgreementController extends Controller
             $path = '/legal-new-agreement/addendum/';
         }
 
-        return $rows->map(fn (TrAgreement $r) => [
-            'type' => $type,
-            'agreement_id' => $r->agreement_id,
-            'number' => $r->no_psm_or_addendum,
-            'date' => optional($r->agreement_date)->format('Y-m-d'),
-            'created_by' => $r->created_user,
-            'completed' => $r->agreement_step_id === self::STEP_COMPLETED,
-            'url' => $path.Hashids::encode($r->id),
-        ])->all();
+        return $rows->map(function (TrAgreement $r) use ($type, $path) {
+            $followUp = in_array($r->agreement_type, TrAgreement::FU_TYPES, true);
+
+            return [
+                'type' => $followUp ? 'Follow Up' : $type,
+                'agreement_id' => $r->agreement_id,
+                'number' => $r->no_psm_or_addendum,
+                'date' => optional($r->agreement_date)->format('Y-m-d'),
+                'created_by' => $r->created_user,
+                'completed' => $r->agreement_step_id === self::STEP_COMPLETED,
+                'url' => $followUp ? '/show-legal-agreement/'.Hashids::encode($r->id) : $path.Hashids::encode($r->id),
+            ];
+        })->all();
     }
 
     // An addendum made from a PSM / OLA shows that PSM / OLA's number.
@@ -443,7 +464,8 @@ class LegalNewAgreementController extends Controller
 
         return TrAgreement::query()
             ->where('agreement_id', $agreement->prev_agreement_id)
-            ->whereIn('agreement_type', self::PSM_OLA_TYPES)
+            // Still the parent's number once it has moved on to a follow-up (FU_PSM / FU_OLA).
+            ->whereIn('agreement_type', [...self::PSM_OLA_TYPES, ...TrAgreement::FU_TYPES])
             ->value('no_psm_or_addendum');
     }
 
@@ -565,6 +587,10 @@ class LegalNewAgreementController extends Controller
         $source = $this->sourceFor($request, $eid);
         $job = $source['job'];
 
+        // The job's identity (Business ID, Tenant No, Unit, Property) is never taken from the form:
+        // the fields are locked there, and a posted value can't override the source.
+        $request->merge(Arr::only($source['values'], self::LOCKED_FIELDS));
+
         $validDocIds = $this->checklistDocuments()->pluck('agreementdocument_id')->all();
 
         $request->validate([
@@ -597,10 +623,6 @@ class LegalNewAgreementController extends Controller
             return response()->json(['success' => false, 'message' => 'Unknown document in checklist.'], 422);
         }
 
-        if ($message = $this->duplicateMessage($request, null, (string) $source['cpny_id'])) {
-            return response()->json(['success' => false, 'message' => $message], 422);
-        }
-
         $username = $request->user()->username ?? 'system';
         $dt = Carbon::now();
         $year = (int) $dt->year;
@@ -609,6 +631,16 @@ class LegalNewAgreementController extends Controller
         DB::connection('pgsql5')->beginTransaction();
 
         try {
+            // Creates of one kind take turns, and the duplicate check runs inside that turn, so two
+            // simultaneous saves can't both pass it. (Released automatically at commit / rollback.)
+            DB::connection('pgsql5')->select('select pg_advisory_xact_lock(?)', [crc32('new-agreement-'.$kind['key'])]);
+
+            if ($message = $this->duplicateMessage($request, null, (string) $source['cpny_id'])) {
+                DB::connection('pgsql5')->rollBack();
+
+                return response()->json(['success' => false, 'message' => $message], 422);
+            }
+
             $next = $this->nextAutonbr($kind['doctype'], $year, $month, $username, 'New Agreement '.$kind['label']);
 
             // Same id shape as Item Request: DOCTYPE + yymm + 4-digit number.
@@ -660,7 +692,7 @@ class LegalNewAgreementController extends Controller
                 'agreement_step_id' => self::STEP_ACTIVE,
                 'agreement_step_order' => 1,
                 'response_date' => now(),
-                'response_summary' => $kind['docs'] ? 'Agreement Created (Pembuatan)' : 'Agreement Created ('.$kind['label'].')',
+                'response_summary' => 'Agreement Created ('.$kind['label'].')',
                 'response_descr' => $agreement->business_name,
                 'status_pekerjaan' => self::STEP_ACTIVE,
                 'status' => 'A',
@@ -689,17 +721,24 @@ class LegalNewAgreementController extends Controller
                     ]);
                 });
 
-            // A PSM / OLA job row is now being worked: drop it off the pending list.
+            // A PSM / OLA job row is now being worked (On Progress): drop it off the pending list.
             // Addendums leave the IFCA job alone (the contract can have both).
             if ($kind['docs'] && $job) {
-                StagingContractAgreement::query()
+                $taken = StagingContractAgreement::query()
                     ->where('id', $job->id)
                     ->where('status', 'A')
                     ->update([
-                        'status' => 'C',
+                        'status' => 'P',
                         'updated_by' => $username,
                         'updated_at' => now(),
                     ]);
+
+                // Someone else took this job after the form was opened.
+                if (! $taken) {
+                    DB::connection('pgsql5')->rollBack();
+
+                    return response()->json(['success' => false, 'message' => 'This job is no longer pending.'], 422);
+                }
             }
 
             DB::connection('pgsql5')->commit();
@@ -948,6 +987,12 @@ class LegalNewAgreementController extends Controller
                 $in = ! $main && $step['has_in'] && ! empty($input['date_in']) ? Carbon::parse($input['date_in'])->startOfDay() : null;
                 $out = ! $main && ! empty($input['date_out']) ? Carbon::parse($input['date_out'])->startOfDay() : null;
 
+                if ($in && $out && $in->lt($out)) {
+                    DB::connection('pgsql5')->rollBack();
+
+                    return response()->json(['success' => false, 'message' => "{$step['descr']}: the In date can't be before the Out date."], 422);
+                }
+
                 // A single-date step keeps a note only while it is done.
                 if ($main && $note && ! $done) {
                     DB::connection('pgsql5')->rollBack();
@@ -1072,6 +1117,11 @@ class LegalNewAgreementController extends Controller
                 'created_by' => $username,
             ]);
 
+            // The IFCA job is finished too (P On Progress -> C Completed). Addendums have none.
+            if ($this->kind()['docs']) {
+                $this->moveSourceJob($agreement, 'P', 'C', $username);
+            }
+
             DB::connection('pgsql5')->commit();
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
@@ -1107,6 +1157,14 @@ class LegalNewAgreementController extends Controller
 
         $request->validate(['reason' => 'required|string|max:500']);
 
+        // Addendums made from this agreement must be cancelled (or finished) first.
+        if ($addendums = TrAgreement::activeAddendumIds($agreement->agreement_id)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cancel its Active addendum(s) first: '.implode(', ', $addendums).'.',
+            ], 422);
+        }
+
         $kind = $this->kind();
 
         DB::connection('pgsql5')->beginTransaction();
@@ -1123,20 +1181,10 @@ class LegalNewAgreementController extends Controller
 
             $this->logActivity($agreement, self::ACTIVITY_CANCEL, self::STEP_CANCELLED, 'Agreement Cancelled', $request->reason, $username);
 
-            // The job this PSM / OLA was made from (matched on the tenant + unit it copied) is pending again.
+            // The job this PSM / OLA was made from is pending again (it is On Progress, or still
+            // 'C' on a row from before the P / C split).
             if ($kind['docs']) {
-                $jobs = StagingContractAgreement::query()
-                    ->whereNull('deleted_at')
-                    ->where('status', 'C')
-                    ->where('cpny_id', $agreement->cpny_id)
-                    ->where('business_id', $agreement->business_id)
-                    ->where('tenant_no', $agreement->tenant_no)
-                    ->where('lot_no', $agreement->unit_id)
-                    ->get();
-
-                if ($jobs->count() === 1) {
-                    $jobs->first()->update(['status' => 'A', 'updated_by' => $username, 'updated_at' => now()]);
-                }
+                $this->moveSourceJob($agreement, ['P', 'C'], 'A', $username);
             }
 
             DB::connection('pgsql5')->commit();
@@ -1156,6 +1204,16 @@ class LegalNewAgreementController extends Controller
             'message' => "Agreement {$agreement->agreement_id} cancelled.",
             'counts' => $this->tabCounts(),
         ]);
+    }
+
+    /**
+     * Keeps the IFCA job's status in step with its PSM / OLA:
+     *   A pending (no agreement) -> P on progress (agreement Active) -> C completed.
+     * (The match itself lives on StagingContractAgreement so Agreement FU can release the job too.)
+     */
+    protected function moveSourceJob(TrAgreement $agreement, string|array $from, string $to, string $username): void
+    {
+        StagingContractAgreement::moveFor($agreement, $from, $to, $username);
     }
 
     // Put a Completed agreement back to Active (creator / PIC Legal).
@@ -1197,16 +1255,10 @@ class LegalNewAgreementController extends Controller
 
             $this->logActivity($agreement, self::ACTIVITY_REOPEN, self::STEP_ACTIVE, 'Agreement Reopened', $agreement->business_name, $username);
 
-            // A cancelled PSM / OLA gave its staging job back: take it again.
-            if ($wasCancelled && $this->kind()['docs']) {
-                StagingContractAgreement::query()
-                    ->whereNull('deleted_at')
-                    ->where('status', 'A')
-                    ->where('cpny_id', $agreement->cpny_id)
-                    ->where('business_id', $agreement->business_id)
-                    ->where('tenant_no', $agreement->tenant_no)
-                    ->where('lot_no', $agreement->unit_id)
-                    ->update(['status' => 'C', 'updated_by' => $username, 'updated_at' => now()]);
+            // The job follows the agreement back to On Progress: a cancelled one gave it back
+            // (Pending), a completed one had finished it.
+            if ($this->kind()['docs']) {
+                $this->moveSourceJob($agreement, $wasCancelled ? 'A' : 'C', 'P', $username);
             }
             DB::connection('pgsql5')->commit();
         } catch (\Throwable $e) {
@@ -1478,13 +1530,11 @@ class LegalNewAgreementController extends Controller
         $agreement = $this->updatableAgreementOrFail($eid);
 
         // Company and Property Type are intentionally not accepted here.
+        // Business ID, Tenant No, Unit and Company/Property are fixed; they are not read from the request.
         $request->validate([
-            'business_id' => 'required|integer',
             'business_name' => 'required|max:255',
-            'tenant_no' => 'nullable|max:20',
             'trade_name' => 'nullable|max:255',
             'floor_id' => 'nullable|max:20',
-            'unit_id' => 'nullable|max:20',
             'business_address' => 'nullable|max:500',
             'pic_penyewa' => 'nullable|max:255',
             'pic_phonenumber_penyewa' => 'nullable|max:50',
@@ -1505,6 +1555,9 @@ class LegalNewAgreementController extends Controller
         $kind = $this->kind();
         $submittedDocs = $kind['docs'] ? (array) $request->input('documents', []) : [];
 
+        // The saved Tenant No / Unit stand, whatever was posted.
+        $request->merge($agreement->only(self::LOCKED_FIELDS));
+
         if ($message = $this->duplicateMessage($request, $agreement, (string) $agreement->cpny_id)) {
             return response()->json(['success' => false, 'message' => $message], 422);
         }
@@ -1514,13 +1567,11 @@ class LegalNewAgreementController extends Controller
         DB::connection('pgsql5')->beginTransaction();
 
         try {
+            // business_id / tenant_no / unit_id are fixed and deliberately not updated.
             $agreement->update([
-                'business_id' => $request->business_id,
                 'business_name' => $request->business_name,
-                'tenant_no' => $request->tenant_no,
                 'trade_name' => $request->trade_name,
                 'floor_id' => $request->floor_id,
-                'unit_id' => $request->unit_id,
                 'business_address' => $request->business_address,
                 'pic_penyewa' => $request->pic_penyewa,
                 'pic_phonenumber_penyewa' => $request->pic_phonenumber_penyewa,
@@ -1578,7 +1629,7 @@ class LegalNewAgreementController extends Controller
                 'agreement_step_id' => $agreement->agreement_step_id,
                 'agreement_step_order' => $agreement->agreement_step_order,
                 'response_date' => now(),
-                'response_summary' => $kind['docs'] ? 'Agreement Updated (Pembuatan)' : 'Agreement Updated ('.$kind['label'].')',
+                'response_summary' => 'Agreement Updated ('.$kind['label'].')',
                 'response_descr' => $this->changeSummary($before, $this->trackedValues($agreement)) ?: $agreement->business_name,
                 'status_pekerjaan' => $agreement->agreement_step_id,
                 'status' => 'A',
@@ -1726,6 +1777,12 @@ class LegalNewAgreementController extends Controller
     public function jobsExport(Request $request)
     {
         return app(LegalAgreementController::class)->jobsExport($request, (array) $this->kind()['type']);
+    }
+
+    // /legal-new-agreement/addendum/create-agreement/{eid}[?src=psm]: the Addendum page with the create modal opened.
+    public function addendumCreateLink(string $eid)
+    {
+        return $this->psmOla($eid);
     }
 
     // Addendum is the same page as PSM / OLA (see kind()); its Jobs tab has two sources.

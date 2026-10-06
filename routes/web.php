@@ -2176,8 +2176,9 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/hold/{hash}', 'holdAgreement')->name('legal-agreement.hold');
                 Route::post('/activate/{hash}', 'activateAgreement')->name('legal-agreement.activate');
                 Route::post('/complete/{hash}', 'completeAgreement')->name('legal-agreement.complete');
+                Route::post('/revert/{hash}', 'revertAgreement')->name('legal-agreement.revert');
+                Route::post('/cancel/{hash}', 'cancelAgreement')->name('legal-agreement.cancel');
                 Route::post('/comment/{hash}', 'comment')->name('legal-agreement.comment');
-                Route::post('/jobs/update-status', 'jobsUpdateStatus')->name('legal-agreement.jobs.updateStatus');
             });
         });
 
@@ -2251,6 +2252,8 @@ Route::middleware(['auth'])->group(function () {
 
             Route::middleware('access:ADDENDUM,CREATE')->group(function () {
                 Route::get('/addendum/create/{eid}', 'createPsmOla')->middleware('ajax')->name('legal-new-agreement.addendum.create');
+                // Deep link to the create modal (?src=psm when started from a PSM / OLA): the Addendum page with it opened.
+                Route::get('/addendum/create-agreement/{eid}', 'addendumCreateLink')->name('legal-new-agreement.addendum.create-agreement');
                 Route::post('/addendum/store/{eid}', 'storePsmOla')->name('legal-new-agreement.addendum.store');
             });
 
