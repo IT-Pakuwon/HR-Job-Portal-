@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 use Laravel\Sanctum\Sanctum;
 use App\Models\PersonalAccessTokenPgsql2;
@@ -53,6 +54,17 @@ class AppServiceProvider extends ServiceProvider
             static $cached = null;
 
             if ($cached !== null) {
+                $view->with('rootMenus', $cached['rootMenus']);
+                $view->with('allowedMenuIds', $cached['allowedMenuIds']);
+                $view->with('favouriteKeys', $cached['favouriteKeys']);
+                return;
+            }
+
+            $menuCacheKey = Auth::check()
+                ? 'sidebar-menu:' . Auth::user()->username
+                : null;
+
+            if ($menuCacheKey && ($cached = Cache::get($menuCacheKey)) !== null) {
                 $view->with('rootMenus', $cached['rootMenus']);
                 $view->with('allowedMenuIds', $cached['allowedMenuIds']);
                 $view->with('favouriteKeys', $cached['favouriteKeys']);
@@ -124,6 +136,10 @@ class AppServiceProvider extends ServiceProvider
                 'allowedMenuIds' => $allAllowedMenuIds,
                 'favouriteKeys' => $favouriteKeys,
             ];
+
+            if ($menuCacheKey) {
+                Cache::put($menuCacheKey, $cached, now()->addMinute());
+            }
 
             $view->with('rootMenus', $rootMenus);
             $view->with('allowedMenuIds', $allAllowedMenuIds);
