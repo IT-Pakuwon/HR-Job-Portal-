@@ -5,7 +5,7 @@
 
         {{-- Tabs — same card style as Agreement FU. Job is the landing tab; the
              agreement-status tabs get added here as New Agreement is built out. --}}
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-3">
+        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
             <button type="button" class="w-full text-left">
                 <a href="#" class="new-agr-tab group block h-full" data-tab="jobs">
@@ -50,6 +50,22 @@
                         </div>
                         <p class="shrink-0 text-base font-bold" data-count="completed">
                             {{ $counts['completed'] ?? 0 }}
+                        </p>
+                    </div>
+                </a>
+            </button>
+
+            <button type="button" class="w-full text-left">
+                <a href="#" class="new-agr-tab group block h-full" data-tab="cancelled">
+                    <div class="agreement-status-card flex h-full items-center gap-3 rounded-lg border border-rose-700 bg-rose-200/20 p-3 text-rose-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-rose-100 hover:shadow-md active:scale-95">
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
+                            🚫
+                        </div>
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="whitespace-normal break-words text-sm font-medium">Cancelled</p>
+                        </div>
+                        <p class="shrink-0 text-base font-bold" data-count="cancelled">
+                            {{ $counts['cancelled'] ?? 0 }}
                         </p>
                     </div>
                 </a>
@@ -142,7 +158,30 @@
                     <tbody></tbody>
                 </table>
             </div>
-        </div>    </div>
+        </div>
+
+        {{-- Cancelled tab: cancelled agreements. Read-only; Reopen is in the agreement's Actions. --}}
+        <div data-tab-panel="cancelled" class="mt-4 hidden">
+            @include('pages.legal-new-agreement.partial.list-filters', ['prefix' => 'cancelled'])
+            <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white dark:border-white/[0.06] dark:bg-white/[0.02]">
+                <table id="cancelledTable" class="w-full text-sm">
+                    <thead class="bg-slate-50 dark:bg-white/[0.03]">
+                        <tr>
+                            <th class="px-4 py-3 text-left">Agreement No</th>
+                            <th class="px-4 py-3 text-left">Date</th>
+                            <th class="px-4 py-3 text-left">Company</th>
+                            <th class="px-4 py-3 text-left">Business Name</th>
+                            <th class="px-4 py-3 text-left">Tenant No</th>
+                            <th class="px-4 py-3 text-left">Trade Name</th>
+                            <th class="px-4 py-3 text-left">Created By</th>
+                            <th class="px-4 py-3 text-left">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
     {{-- Create modal (body is loaded per job over ajax) --}}
     <div id="newAgrModal" class="agr-modal fixed inset-0 z-[9999] hidden items-center justify-center p-4">
@@ -514,6 +553,87 @@
                         icon: 'error', title: 'Error',
                         text: (Array.isArray(first) ? first[0] : null) || xhr.responseJSON?.message || 'Upload failed',
                     });
+                });
+            });
+
+            // Cancel / Reopen / delete attachment: POST, then refresh badges, lists and the open modal.
+            function postAgreementAction(url, data, onDone) {
+                Swal.fire({
+                    title: 'Saving...', allowOutsideClick: false, allowEscapeKey: false, showConfirmButton: false,
+                    didOpen: () => Swal.showLoading(),
+                });
+
+                $.ajax({
+                    url,
+                    method: 'POST',
+                    data,
+                    headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}", 'Accept': 'application/json' },
+                }).done(function (res) {
+                    Object.keys(res.counts || {}).forEach((key) => {
+                        $(`[data-count="${key}"]`).text(res.counts[key]);
+                    });
+
+                    if (window.jobsTable) window.jobsTable.ajax.reload(null, false);
+                    if (typeof activeTable !== 'undefined' && activeTable) activeTable.ajax.reload(null, false);
+                    if (typeof completedTable !== 'undefined' && completedTable) completedTable.ajax.reload(null, false);
+                    if (typeof cancelledTable !== 'undefined' && cancelledTable) cancelledTable.ajax.reload(null, false);
+
+                    Swal.close();
+                    onDone(res);
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: res.message, showConfirmButton: false, timer: 1800 });
+                }).fail(function (xhr) {
+                    const errors = xhr.responseJSON?.errors || {};
+                    const first = Object.values(errors)[0];
+
+                    Swal.fire({
+                        icon: 'error', title: 'Error',
+                        text: (Array.isArray(first) ? first[0] : null) || xhr.responseJSON?.message || 'Something went wrong',
+                    });
+                });
+            }
+
+            $(document).on('click', '.btn-cancel-agr', function () {
+                const url = $(this).data('url');
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Cancel this agreement?',
+                    text: 'It leaves every list. Please give a reason.',
+                    input: 'textarea',
+                    inputPlaceholder: 'Reason',
+                    inputAttributes: { maxlength: 500 },
+                    showCancelButton: true,
+                    confirmButtonText: 'Cancel agreement',
+                    cancelButtonText: 'Keep it',
+                    confirmButtonColor: '#e11d48',
+                    reverseButtons: true,
+                    inputValidator: (v) => (String(v || '').trim() ? null : 'A reason is required'),
+                }).then((r) => {
+                    if (r.isConfirmed) postAgreementAction(url, { reason: r.value }, () => closeViewAgrModal());
+                });
+            });
+
+            $(document).on('click', '.btn-reopen-agr', function () {
+                const url = $(this).data('url');
+                const eid = $viewAgrBody.find('.btn-view-fullscreen').first().data('eid');
+
+                Swal.fire({
+                    icon: 'question', title: 'Reopen this agreement?', text: 'It goes back to the Active list.',
+                    showCancelButton: true, confirmButtonText: 'Reopen', cancelButtonText: 'Back', reverseButtons: true,
+                }).then((r) => {
+                    if (r.isConfirmed) postAgreementAction(url, {}, () => openViewModal(eid, false));
+                });
+            });
+
+            $(document).on('click', '.btn-del-attachment', function () {
+                const $btn = $(this);
+                const eid = $viewAgrBody.find('.btn-edit-agr').first().data('eid');
+
+                Swal.fire({
+                    icon: 'warning', title: 'Delete attachment?', text: $btn.data('name'),
+                    showCancelButton: true, confirmButtonText: 'Delete', cancelButtonText: 'Keep', confirmButtonColor: '#e11d48', reverseButtons: true,
+                }).then((r) => {
+                    if (r.isConfirmed) postAgreementAction($btn.data('url'), { attachment_id: $btn.data('id') }, () => openViewModal(eid, false, 'attachments'));
                 });
             });
 
@@ -938,6 +1058,10 @@
                 if (tab === 'completed') {
                     initCompletedTable();
                 }
+
+                if (tab === 'cancelled') {
+                    initCancelledTable();
+                }
             });
 
             /* Addendum Jobs: two sources, IFCA staging jobs or an existing PSM / OLA. */
@@ -1010,6 +1134,8 @@
             // Active / Completed tables are built on first open, then just reloaded.
             let activeTable = null;
             let completedTable = null;
+            let cancelledTable = null;
+            const listTable = (tab) => ({ active: activeTable, completed: completedTable, cancelled: cancelledTable })[tab];
 
             function buildAgreementTable(selector, url, statusHtml, withAction) {
                 const esc = (s) => $('<div>').text(s ?? '').html();
@@ -1034,7 +1160,7 @@
                         orderable: false,
                         searchable: false,
                         className: 'text-center',
-                        render: (d) => `<button type="button" class="btn-edit-agr inline-flex h-8 items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 text-xs font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-800/60 dark:bg-blue-900/20 dark:text-blue-300" data-eid="${esc(d)}"><i class="fa-solid fa-pen-to-square"></i> Edit</button>`,
+                        render: (d, type, row) => !row.can_edit ? '' : `<button type="button" class="btn-edit-agr inline-flex h-8 items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 text-xs font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-800/60 dark:bg-blue-900/20 dark:text-blue-300" data-eid="${esc(d)}"><i class="fa-solid fa-pen-to-square"></i> Edit</button>`,
                     });
                 }
 
@@ -1058,7 +1184,7 @@
             // Export follows the filters and the table's search box as they are right now.
             $(document).on('click', '[data-list-export]', function () {
                 const tab = $(this).data('list-export');
-                const table = tab === 'active' ? activeTable : completedTable;
+                const table = listTable(tab);
                 const params = new URLSearchParams();
 
                 $(`[data-list-filter="${tab}"]`).each(function () {
@@ -1068,15 +1194,17 @@
                 const search = table ? table.search() : '';
                 if (search) params.set('search', search);
 
-                const base = tab === 'active'
-                    ? "{{ route($kind['r']['active_export'], [], false) }}"
-                    : "{{ route($kind['r']['completed_export'], [], false) }}";
+                const base = {
+                    active: "{{ route($kind['r']['active_export'], [], false) }}",
+                    completed: "{{ route($kind['r']['completed_export'], [], false) }}",
+                    cancelled: "{{ route($kind['r']['cancelled_export'], [], false) }}",
+                }[tab];
 
                 window.location.href = base + (params.toString() ? '?' + params : '');
             });
 
             $(document).on('change', '[data-list-filter]', function () {
-                const table = $(this).data('list-filter') === 'active' ? activeTable : completedTable;
+                const table = listTable($(this).data('list-filter'));
 
                 if (table) table.ajax.reload();
             });
@@ -1107,6 +1235,21 @@
                     '#completedTable',
                     "{{ route($kind['r']['completed_json'], [], false) }}",
                     '<span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-[11px] font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">Completed</span>',
+                    false
+                );
+            }
+
+            function initCancelledTable() {
+                if (cancelledTable) {
+                    cancelledTable.ajax.reload();
+                    cancelledTable.columns.adjust();
+                    return;
+                }
+
+                cancelledTable = buildAgreementTable(
+                    '#cancelledTable',
+                    "{{ route($kind['r']['cancelled_json'], [], false) }}",
+                    '<span class="inline-flex items-center rounded-full bg-rose-100 px-2.5 py-1 text-[11px] font-semibold text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">Cancelled</span>',
                     false
                 );
             }

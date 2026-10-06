@@ -1,13 +1,13 @@
 @extends('emails.layouts.master')
 
-@section('title', $label.($created ? ' Created' : ' Updated'))
+@section('title', $label.' '.ucfirst($event))
 
-@section('icon', $created ? '📝' : '✏️')
+@section('icon', ['created' => '📝', 'updated' => '✏️', 'completed' => '✅', 'cancelled' => '🚫', 'reopened' => '🔓'][$event] ?? '✏️')
 
-@section('header', $created ? 'New '.$label.' Created' : $label.' Updated')
+@section('header', $event === 'created' ? 'New '.$label.' Created' : $label.' '.ucfirst($event))
 
 @section('subtitle')
-{{ $actor }} {{ $created ? 'created' : 'saved changes to' }} this agreement. You are receiving this as the creator or PIC Legal.
+{{ $actor }} {{ $verb }} this agreement. You are receiving this as the creator or PIC Legal.
 @endsection
 
 @section('content')
@@ -43,6 +43,17 @@
     @endforeach
 </table>
 
+@if ($note)
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:20px;">
+    <tr>
+        <td style="background:#fef2f2;border:1.5px solid #fecaca;border-radius:12px;padding:14px 18px;font-size:13px;color:#7f1d1d;">
+            <strong>Reason:</strong> {{ $note }}
+        </td>
+    </tr>
+</table>
+@endif
+
+@if ($docUrl)
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px;">
     <tr>
         <td align="center">
@@ -50,5 +61,6 @@
         </td>
     </tr>
 </table>
+@endif
 
 @endsection

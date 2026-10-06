@@ -9,8 +9,8 @@ use Illuminate\Queue\SerializesModels;
 use Vinkla\Hashids\Facades\Hashids;
 
 /**
- * A PSM/OLA or Addendum agreement was created or saved: tells the creator and
- * the PIC Legal(s).
+ * A PSM/OLA or Addendum agreement was created, saved, completed, cancelled or
+ * reopened: tells the creator and the PIC Legal(s).
  */
 class PsmOlaAgreementMail extends Mailable
 {
@@ -22,24 +22,40 @@ class PsmOlaAgreementMail extends Mailable
         public string $event,
         public string $actor,
         public string $picLegalNames,
+        public ?string $note = null,
     ) {
     }
 
     public function build()
     {
-        $created = $this->event === 'created';
         $addendum = $this->agreement->agreement_type === 'ADDENDUM';
         $label = $addendum ? 'Addendum' : 'PSM / OLA';
         $eid = Hashids::encode($this->agreement->id);
 
+        // event => [subject tag, past-tense verb]
+        [$tag, $verb] = [
+            'created' => ['NEW', 'created'],
+            'updated' => ['UPDATED', 'saved changes to'],
+            'completed' => ['COMPLETED', 'completed'],
+            'cancelled' => ['CANCELLED', 'cancelled'],
+            'reopened' => ['REOPENED', 'reopened'],
+        ][$this->event] ?? ['UPDATED', 'updated'];
+
+        // A cancelled agreement is off the lists, so its link would open nothing.
+        $docUrl = $this->event === 'cancelled'
+            ? null
+            : url('/legal-new-agreement/'.($addendum ? 'addendum/' : '').$eid);
+
         return $this
-            ->subject('[LEGAL AGREEMENT]['.($created ? 'NEW' : 'UPDATED').'] '
-                .$this->agreement->agreement_id.' - '.$label.' '.($created ? 'Created' : 'Updated'))
+            ->subject('[LEGAL AGREEMENT]['.$tag.'] '.$this->agreement->agreement_id.' - '.$label.' '.ucfirst($this->event))
             ->view('emails.psm-ola-agreement')
             ->with([
-                'created' => $created,
+                'event' => $this->event,
+                'tag' => $tag,
+                'verb' => $verb,
                 'label' => $label,
-                'docUrl' => url('/legal-new-agreement/'.($addendum ? 'addendum/' : '').$eid),
+                'note' => $this->note,
+                'docUrl' => $docUrl,
             ]);
     }
 }

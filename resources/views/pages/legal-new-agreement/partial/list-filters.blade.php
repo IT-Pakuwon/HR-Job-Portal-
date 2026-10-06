@@ -15,8 +15,8 @@
     <div class="min-w-0 flex-1">
         <select id="{{ $prefix }}_property_filter" data-list-filter="{{ $prefix }}" data-key="property_cd" class="agr-input agr-select2">
             <option value="">All Types</option>
-            <option value="OFF">Office</option>
-            <option value="MALL">Mall</option>
+            <option value="OFF">Office (OLA)</option>
+            <option value="MALL">Mall (PSM)</option>
         </select>
     </div>
 

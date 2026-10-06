@@ -31,6 +31,24 @@ class StagingContractAgreement extends Model
 
     // The Jobs list is for contracts that still need a Legal Agreement raised —
     // once IFCA assigns a contract_no, it's no longer a pending job.
+    // Hides contracts that already have an ACTIVE agreement of these types for the same
+    // company + tenant + unit, so New Agreement can't raise the same one twice.
+    public function scopeWithoutActiveAgreement($query, array $types)
+    {
+        $table = $this->getTable();
+
+        return $query->whereNotExists(function ($sub) use ($types, $table) {
+            $sub->selectRaw('1')
+                ->from('tr_agreement as ta')
+                ->whereNull('ta.deleted_at')
+                ->where('ta.agreement_step_id', 'ACTIVE')
+                ->whereIn('ta.agreement_type', $types)
+                ->whereColumn('ta.cpny_id', "$table.cpny_id")
+                ->whereColumn('ta.tenant_no', "$table.tenant_no")
+                ->whereColumn('ta.unit_id', "$table.lot_no");
+        });
+    }
+
     public function scopeWithoutContractNo($query)
     {
         return $query->where(function ($q) {

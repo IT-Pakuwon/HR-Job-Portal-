@@ -11,14 +11,18 @@ class JobsExport implements FromCollection, WithHeadings
 {
     protected $request;
 
-    public function __construct(Request $request)
+    protected ?array $excludeActiveTypes;
+
+    public function __construct(Request $request, ?array $excludeActiveTypes = null)
     {
         $this->request = $request;
+        $this->excludeActiveTypes = $excludeActiveTypes;
     }
 
     public function collection()
     {
-        $query = StagingContractAgreement::query()->whereNull('deleted_at')->where('status', 'A')->withoutContractNo();
+        $query = StagingContractAgreement::query()->whereNull('deleted_at')->where('status', 'A')->withoutContractNo()
+            ->when($this->excludeActiveTypes, fn ($q) => $q->withoutActiveAgreement($this->excludeActiveTypes));
 
         if ($this->request->filled('cpny_id')) {
             $query->where('cpny_id', $this->request->cpny_id);

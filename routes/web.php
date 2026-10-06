@@ -2200,11 +2200,13 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/psm-ola/jobs/export', 'jobsExport')->name('legal-new-agreement.jobs.export');
                 Route::get('/psm-ola/active/export', 'activeExport')->name('legal-new-agreement.active.export');
                 Route::get('/psm-ola/completed/export', 'completedExport')->name('legal-new-agreement.completed.export');
+                Route::get('/psm-ola/cancelled/export', 'cancelledExport')->name('legal-new-agreement.cancelled.export');
 
                 Route::middleware('ajax')->group(function () {
                     Route::get('/psm-ola/jobs/json', 'jobsJson')->name('legal-new-agreement.jobs.json');
                     Route::get('/psm-ola/active/json', 'activeJson')->name('legal-new-agreement.active.json');
                     Route::get('/psm-ola/completed/json', 'completedJson')->name('legal-new-agreement.completed.json');
+                    Route::get('/psm-ola/cancelled/json', 'cancelledJson')->name('legal-new-agreement.cancelled.json');
                     Route::get('/psm-ola/view/{eid}', 'viewPsmOla')->name('legal-new-agreement.psm-ola.view');
                     Route::get('/psm-ola/pic-search', 'picSearch')->name('legal-new-agreement.psm-ola.pic-search');
                 });
@@ -2228,12 +2230,14 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/addendum/jobs/export', 'jobsExport')->name('legal-new-agreement.addendum.jobs.export');
                 Route::get('/addendum/active/export', 'activeExport')->name('legal-new-agreement.addendum.active.export');
                 Route::get('/addendum/completed/export', 'completedExport')->name('legal-new-agreement.addendum.completed.export');
+                Route::get('/addendum/cancelled/export', 'cancelledExport')->name('legal-new-agreement.addendum.cancelled.export');
 
                 Route::middleware('ajax')->group(function () {
                     Route::get('/addendum/jobs/json', 'jobsJson')->name('legal-new-agreement.addendum.jobs.json');
                     Route::get('/addendum/psm-ola/json', 'addendumPsmOlaJson')->name('legal-new-agreement.addendum.psm-ola.json');
                     Route::get('/addendum/active/json', 'activeJson')->name('legal-new-agreement.addendum.active.json');
                     Route::get('/addendum/completed/json', 'completedJson')->name('legal-new-agreement.addendum.completed.json');
+                    Route::get('/addendum/cancelled/json', 'cancelledJson')->name('legal-new-agreement.addendum.cancelled.json');
                     Route::get('/addendum/view/{eid}', 'viewPsmOla')->name('legal-new-agreement.addendum.view');
                     Route::get('/addendum/pic-search', 'picSearch')->name('legal-new-agreement.addendum.pic-search');
                 });
@@ -2257,6 +2261,15 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/addendum/complete/{eid}', 'completePsmOla')
                 ->middleware('access:ADDENDUM,VIEW')
                 ->name('legal-new-agreement.addendum.complete');
+            Route::post('/addendum/cancel/{eid}', 'cancelPsmOla')
+                ->middleware('access:ADDENDUM,VIEW')
+                ->name('legal-new-agreement.addendum.cancel');
+            Route::post('/addendum/reopen/{eid}', 'reopenPsmOla')
+                ->middleware('access:ADDENDUM,VIEW')
+                ->name('legal-new-agreement.addendum.reopen');
+            Route::post('/addendum/attachment/{eid}/delete', 'deletePsmOlaAttachment')
+                ->middleware('access:ADDENDUM,VIEW')
+                ->name('legal-new-agreement.addendum.attachment.delete');
             Route::get('/addendum/{eid}', 'psmOlaView')
                 ->where('eid', '[A-Za-z0-9]+')
                 ->middleware('access:ADDENDUM,VIEW')
@@ -2273,6 +2286,15 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/psm-ola/complete/{eid}', 'completePsmOla')
                 ->middleware('access:PSMOLA,VIEW')
                 ->name('legal-new-agreement.psm-ola.complete');
+            Route::post('/psm-ola/cancel/{eid}', 'cancelPsmOla')
+                ->middleware('access:PSMOLA,VIEW')
+                ->name('legal-new-agreement.psm-ola.cancel');
+            Route::post('/psm-ola/reopen/{eid}', 'reopenPsmOla')
+                ->middleware('access:PSMOLA,VIEW')
+                ->name('legal-new-agreement.psm-ola.reopen');
+            Route::post('/psm-ola/attachment/{eid}/delete', 'deletePsmOlaAttachment')
+                ->middleware('access:PSMOLA,VIEW')
+                ->name('legal-new-agreement.psm-ola.attachment.delete');
             Route::post('/psm-ola/process/{eid}', 'updatePsmOlaProcess')
                 ->middleware('access:PSMOLA,VIEW')
                 ->name('legal-new-agreement.psm-ola.process');
