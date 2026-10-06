@@ -64,6 +64,12 @@ class LegalNewAgreementController extends Controller
 
     protected const ACTIVITY_COMPLETE = 'COMPLETE_PEMBUATAN';
 
+    protected const ACTIVITY_CANCEL = 'CANCEL_PEMBUATAN';
+
+    protected const ACTIVITY_REOPEN = 'REOPEN_PEMBUATAN';
+
+    protected const STEP_CANCELLED = 'CANCELLED';
+
     protected const PROPERTY_TYPES = ['OFF' => 'Office', 'MALL' => 'Mall', 'APT' => 'Apartment', 'HOTEL' => 'Hotel'];
 
     protected const TYPE_ADDENDUM = 'ADDENDUM';
@@ -89,6 +95,8 @@ class LegalNewAgreementController extends Controller
                     'jobs_export' => 'legal-new-agreement.addendum.jobs.export',
                     'active_json' => 'legal-new-agreement.addendum.active.json',
                     'completed_json' => 'legal-new-agreement.addendum.completed.json',
+                    'cancelled_json' => 'legal-new-agreement.addendum.cancelled.json',
+                    'cancelled_export' => 'legal-new-agreement.addendum.cancelled.export',
                     'active_export' => 'legal-new-agreement.addendum.active.export',
                     'completed_export' => 'legal-new-agreement.addendum.completed.export',
                     'source_json' => 'legal-new-agreement.addendum.psm-ola.json',
@@ -101,6 +109,9 @@ class LegalNewAgreementController extends Controller
                     'attachment' => 'legal-new-agreement.addendum.attachment',
                     'process' => 'legal-new-agreement.addendum.process',
                     'complete' => 'legal-new-agreement.addendum.complete',
+                    'cancel' => 'legal-new-agreement.addendum.cancel',
+                    'reopen' => 'legal-new-agreement.addendum.reopen',
+                    'attachment_delete' => 'legal-new-agreement.addendum.attachment.delete',
                     'documents' => null,
                     'pic_search' => 'legal-new-agreement.addendum.pic-search',
                 ],
@@ -119,6 +130,8 @@ class LegalNewAgreementController extends Controller
                 'jobs_export' => 'legal-new-agreement.jobs.export',
                 'active_json' => 'legal-new-agreement.active.json',
                 'completed_json' => 'legal-new-agreement.completed.json',
+                'cancelled_json' => 'legal-new-agreement.cancelled.json',
+                'cancelled_export' => 'legal-new-agreement.cancelled.export',
                 'active_export' => 'legal-new-agreement.active.export',
                 'completed_export' => 'legal-new-agreement.completed.export',
                 'source_json' => null,
@@ -131,6 +144,9 @@ class LegalNewAgreementController extends Controller
                 'attachment' => 'legal-new-agreement.psm-ola.attachment',
                 'process' => 'legal-new-agreement.psm-ola.process',
                 'complete' => 'legal-new-agreement.psm-ola.complete',
+                'cancel' => 'legal-new-agreement.psm-ola.cancel',
+                'reopen' => 'legal-new-agreement.psm-ola.reopen',
+                'attachment_delete' => 'legal-new-agreement.psm-ola.attachment.delete',
                 'documents' => 'legal-new-agreement.psm-ola.documents',
                 'pic_search' => 'legal-new-agreement.psm-ola.pic-search',
             ],
@@ -147,21 +163,36 @@ class LegalNewAgreementController extends Controller
         };
     }
 
+    // PSM / OLAs an addendum can still be started from: not cancelled, and no ACTIVE addendum made from them yet.
+    protected function psmOlaSourceQuery()
+    {
+        return $this->activeQuery([self::STEP_ACTIVE, self::STEP_COMPLETED], self::PSM_OLA_TYPES)
+            ->whereNotExists(function ($sub) {
+                $sub->selectRaw('1')
+                    ->from('tr_agreement as ad')
+                    ->whereNull('ad.deleted_at')
+                    ->where('ad.agreement_step_id', self::STEP_ACTIVE)
+                    ->where('ad.agreement_type', self::TYPE_ADDENDUM)
+                    ->whereColumn('ad.prev_agreement_id', 'tr_agreement.agreement_id');
+            });
+    }
+
     // Counts for the tab cards; Addendum's Jobs card adds its second source.
     protected function tabCounts(): array
     {
         $kind = $this->kind();
-        $jobs = app(LegalAgreementController::class)->pendingJobsCount();
+        $jobs = app(LegalAgreementController::class)->pendingJobsCount((array) $kind['type']);
 
         $counts = [
             'jobs_pending' => $jobs,
             'active' => $this->activeQuery()->count(),
             'completed' => $this->activeQuery(self::STEP_COMPLETED)->count(),
+            'cancelled' => $this->activeQuery(self::STEP_CANCELLED)->count(),
         ];
 
         if ($kind['key'] === 'addendum') {
             $counts['ifca_jobs'] = $jobs;
-            $counts['psm_ola'] = $this->activeQuery([self::STEP_ACTIVE, self::STEP_COMPLETED], self::PSM_OLA_TYPES)->count();
+            $counts['psm_ola'] = $this->psmOlaSourceQuery()->count();
             $counts['jobs_pending'] = $jobs + $counts['psm_ola'];
         }
 
@@ -203,7 +234,7 @@ class LegalNewAgreementController extends Controller
     {
         $agreement = $this->viewableAgreementOrFail($eid);
 
-        return $this->psmOla(null, $eid, $agreement->agreement_step_id === self::STEP_COMPLETED ? 'completed' : 'active');
+        return $this->psmOla(null, $eid, ['COMPLETED' => 'completed', 'CANCELLED' => 'cancelled'][$agreement->agreement_step_id] ?? 'active');
     }
 
     /**
@@ -241,6 +272,11 @@ class LegalNewAgreementController extends Controller
         return $this->listJson($request, $this->activeQuery(self::STEP_COMPLETED));
     }
 
+    public function cancelledJson(Request $request)
+    {
+        return $this->listJson($request, $this->activeQuery(self::STEP_CANCELLED));
+    }
+
     // Company / Type / search filters shared by the list and its Excel export.
     protected function applyListFilters(Request $request, $query): void
     {
@@ -276,6 +312,7 @@ class LegalNewAgreementController extends Controller
         return DataTables::of($query)
             ->addColumn('eid', fn ($row) => Hashids::encode($row->id))
             ->addColumn('cpny_name', fn ($row) => $companyNames->get($row->cpny_id, $row->cpny_id))
+            ->addColumn('can_edit', fn ($row) => $row->canBeUpdatedBy((string) auth()->user()->username))
             ->make(true);
     }
 
@@ -289,6 +326,11 @@ class LegalNewAgreementController extends Controller
         return $this->listExport($request, self::STEP_COMPLETED, 'completed');
     }
 
+    public function cancelledExport(Request $request)
+    {
+        return $this->listExport($request, self::STEP_CANCELLED, 'cancelled');
+    }
+
     // Same visibility and filters as the list, downloaded as Excel.
     protected function listExport(Request $request, string $step, string $name)
     {
@@ -297,7 +339,7 @@ class LegalNewAgreementController extends Controller
         $this->applyListFilters($request, $query);
 
         $companyNames = MsCompany::query()->pluck('cpny_name', 'cpny_id');
-        $statusLabel = $step === self::STEP_COMPLETED ? 'Completed' : 'Active';
+        $statusLabel = ['COMPLETED' => 'Completed', 'CANCELLED' => 'Cancelled'][$step] ?? 'Active';
 
         $rows = $query->orderBy('agreement_date', 'desc')->orderBy('id', 'desc')->get()->map(fn (TrAgreement $a) => [
             $a->agreement_id,
@@ -430,7 +472,7 @@ class LegalNewAgreementController extends Controller
 
             abort_if(! $id, 404);
 
-            $a = $this->activeQuery([self::STEP_ACTIVE, self::STEP_COMPLETED], self::PSM_OLA_TYPES)->findOrFail($id);
+            $a = $this->psmOlaSourceQuery()->findOrFail($id);
 
             return [
                 'job' => null,
@@ -478,7 +520,7 @@ class LegalNewAgreementController extends Controller
      */
     public function editPsmOla(string $eid)
     {
-        $agreement = $this->activeAgreementOrFail($eid);
+        $agreement = $this->updatableAgreementOrFail($eid);
 
         $company = MsCompany::query()->where('cpny_id', $agreement->cpny_id)->first(['cpny_id', 'cpny_name']);
 
@@ -553,6 +595,10 @@ class LegalNewAgreementController extends Controller
 
         if (array_diff(array_keys($submittedDocs), $validDocIds)) {
             return response()->json(['success' => false, 'message' => 'Unknown document in checklist.'], 422);
+        }
+
+        if ($message = $this->duplicateMessage($request, null, (string) $source['cpny_id'])) {
+            return response()->json(['success' => false, 'message' => $message], 422);
         }
 
         $username = $request->user()->username ?? 'system';
@@ -685,8 +731,17 @@ class LegalNewAgreementController extends Controller
 
         abort_if(! $id, 404);
 
-        return $this->activeQuery(self::STEP_ACTIVE)->find($id)
-            ?? $this->activeQuery(self::STEP_COMPLETED)->findOrFail($id);
+        return $this->activeQuery([self::STEP_ACTIVE, self::STEP_COMPLETED, self::STEP_CANCELLED])->findOrFail($id);
+    }
+
+    // Active agreement the current user may change: its creator or a PIC Legal.
+    protected function updatableAgreementOrFail(string $eid): TrAgreement
+    {
+        $agreement = $this->activeAgreementOrFail($eid);
+
+        abort_unless($agreement->canBeUpdatedBy((string) auth()->user()->username), 403, 'Only the creator or PIC Legal can change this agreement.');
+
+        return $agreement;
     }
 
     protected function activeAgreementOrFail(string $eid): TrAgreement
@@ -703,6 +758,7 @@ class LegalNewAgreementController extends Controller
     {
         $agreement = $this->viewableAgreementOrFail($eid);
         $completed = $agreement->agreement_step_id === self::STEP_COMPLETED;
+        $cancelled = $agreement->agreement_step_id === self::STEP_CANCELLED;
 
         $company = MsCompany::query()->where('cpny_id', $agreement->cpny_id)->first(['cpny_id', 'cpny_name']);
 
@@ -725,7 +781,9 @@ class LegalNewAgreementController extends Controller
             // Only the creator can change an agreement, and only while it is Active;
             // a completed one is read-only.
             'completed' => $completed,
-            'canUpdateDocs' => ! $completed && $agreement->canBeUpdatedBy((string) auth()->user()->username),
+            'cancelled' => $cancelled,
+            'canUpdateDocs' => ! $completed && ! $cancelled && $agreement->canBeUpdatedBy((string) auth()->user()->username),
+            'canManage' => $agreement->canBeUpdatedBy((string) auth()->user()->username),
             'processes' => $this->processesFor($agreement),
             'picLegalNames' => array_values($this->picLabels($agreement->picLegalList())),
             'picLeasingNames' => array_values($this->picLabels($agreement->picLeasingList())),
@@ -1024,17 +1082,265 @@ class LegalNewAgreementController extends Controller
             ], 500);
         }
 
+        $this->notifyPsmOla($agreement, 'completed', $username);
+
         return response()->json([
             'success' => true,
             'message' => "Agreement {$agreement->agreement_id} completed.",
-            'counts' => [
-                'jobs_pending' => app(LegalAgreementController::class)->pendingJobsCount(),
-                'active' => $this->activeQuery()->count(),
-                'completed' => $this->activeQuery(self::STEP_COMPLETED)->count(),
-            ],
+            'counts' => $this->tabCounts(),
         ]);
     }
 
+    /**
+     * Cancel an Active agreement (creator / PIC Legal, with a reason). It leaves every
+     * list but stays in the database and its activity log. A PSM / OLA gives its
+     * staging job back, so the job can be picked up again.
+     */
+    public function cancelPsmOla(Request $request, string $eid)
+    {
+        $agreement = $this->activeAgreementOrFail($eid);
+        $username = $request->user()->username ?? 'system';
+
+        if (! $agreement->canBeUpdatedBy($username)) {
+            return response()->json(['success' => false, 'message' => 'Only the creator or PIC Legal can cancel the agreement.'], 403);
+        }
+
+        $request->validate(['reason' => 'required|string|max:500']);
+
+        $kind = $this->kind();
+
+        DB::connection('pgsql5')->beginTransaction();
+
+        try {
+            $agreement->update([
+                'agreement_step_id' => self::STEP_CANCELLED,
+                'agreement_step_order' => $agreement->agreement_step_order + 1,
+                'agreement_step_created_user' => $username,
+                'agreement_step_created_at' => now(),
+                'status' => 'X',
+                'updated_user' => $username,
+            ]);
+
+            $this->logActivity($agreement, self::ACTIVITY_CANCEL, self::STEP_CANCELLED, 'Agreement Cancelled', $request->reason, $username);
+
+            // The job this PSM / OLA was made from (matched on the tenant + unit it copied) is pending again.
+            if ($kind['docs']) {
+                $jobs = StagingContractAgreement::query()
+                    ->whereNull('deleted_at')
+                    ->where('status', 'C')
+                    ->where('cpny_id', $agreement->cpny_id)
+                    ->where('business_id', $agreement->business_id)
+                    ->where('tenant_no', $agreement->tenant_no)
+                    ->where('lot_no', $agreement->unit_id)
+                    ->get();
+
+                if ($jobs->count() === 1) {
+                    $jobs->first()->update(['status' => 'A', 'updated_by' => $username, 'updated_at' => now()]);
+                }
+            }
+
+            DB::connection('pgsql5')->commit();
+        } catch (\Throwable $e) {
+            DB::connection('pgsql5')->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => config('app.debug') ? $e->getMessage() : 'Failed to cancel agreement.',
+            ], 500);
+        }
+
+        $this->notifyPsmOla($agreement, 'cancelled', $username, $request->reason);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Agreement {$agreement->agreement_id} cancelled.",
+            'counts' => $this->tabCounts(),
+        ]);
+    }
+
+    // Put a Completed agreement back to Active (creator / PIC Legal).
+    public function reopenPsmOla(Request $request, string $eid)
+    {
+        $id = Hashids::decode($eid)[0] ?? null;
+
+        abort_if(! $id, 404);
+
+        $agreement = $this->activeQuery([self::STEP_COMPLETED, self::STEP_CANCELLED])->findOrFail($id);
+        $username = $request->user()->username ?? 'system';
+        $wasCancelled = $agreement->agreement_step_id === self::STEP_CANCELLED;
+
+        if (! $agreement->canBeUpdatedBy($username)) {
+            return response()->json(['success' => false, 'message' => 'Only the creator or PIC Legal can reopen the agreement.'], 403);
+        }
+
+        // Coming back to Active must not collide with what was raised meanwhile.
+        $dupe = Request::create('/', 'POST', [
+            'no_psm_or_addendum' => $agreement->no_psm_or_addendum,
+            'tenant_no' => $agreement->tenant_no,
+            'unit_id' => $agreement->unit_id,
+        ]);
+
+        if ($message = $this->duplicateMessage($dupe, $agreement, (string) $agreement->cpny_id)) {
+            return response()->json(['success' => false, 'message' => $message], 422);
+        }
+        DB::connection('pgsql5')->beginTransaction();
+
+        try {
+            $agreement->update([
+                'agreement_step_id' => self::STEP_ACTIVE,
+                'agreement_step_order' => $agreement->agreement_step_order + 1,
+                'agreement_step_created_user' => $username,
+                'agreement_step_created_at' => now(),
+                'status' => 'P',
+                'updated_user' => $username,
+            ]);
+
+            $this->logActivity($agreement, self::ACTIVITY_REOPEN, self::STEP_ACTIVE, 'Agreement Reopened', $agreement->business_name, $username);
+
+            // A cancelled PSM / OLA gave its staging job back: take it again.
+            if ($wasCancelled && $this->kind()['docs']) {
+                StagingContractAgreement::query()
+                    ->whereNull('deleted_at')
+                    ->where('status', 'A')
+                    ->where('cpny_id', $agreement->cpny_id)
+                    ->where('business_id', $agreement->business_id)
+                    ->where('tenant_no', $agreement->tenant_no)
+                    ->where('lot_no', $agreement->unit_id)
+                    ->update(['status' => 'C', 'updated_by' => $username, 'updated_at' => now()]);
+            }
+            DB::connection('pgsql5')->commit();
+        } catch (\Throwable $e) {
+            DB::connection('pgsql5')->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => config('app.debug') ? $e->getMessage() : 'Failed to reopen agreement.',
+            ], 500);
+        }
+
+        $this->notifyPsmOla($agreement, 'reopened', $username);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Agreement {$agreement->agreement_id} reopened.",
+            'counts' => $this->tabCounts(),
+        ]);
+    }
+
+    // Remove an attachment from the list (creator / PIC Legal). The file itself stays in storage.
+    public function deletePsmOlaAttachment(Request $request, string $eid)
+    {
+        $agreement = $this->updatableAgreementOrFail($eid);
+        $username = $request->user()->username ?? 'system';
+
+        $request->validate(['attachment_id' => 'required|integer']);
+
+        $row = \App\Models\TrAgreementAttachment::query()
+            ->where('agreement_id', $agreement->agreement_id)
+            ->where('status', 'A')
+            ->findOrFail($request->attachment_id);
+
+        $row->update(['status' => 'X', 'deleted_by' => $username, 'deleted_at' => now()]);
+
+        $this->logActivity($agreement, self::ACTIVITY_ATTACHMENT, $agreement->agreement_step_id, 'Attachment Deleted', $row->attachment_name, $username);
+
+        return response()->json(['success' => true, 'message' => 'Attachment deleted.']);
+    }
+
+    protected function logActivity(TrAgreement $agreement, string $type, string $step, string $summary, ?string $descr, string $username): void
+    {
+        TrAgreementActivity::create([
+            'agreement_id' => $agreement->agreement_id,
+            'cpny_id' => $agreement->cpny_id,
+            'agreement_activity_type' => $type,
+            'agreement_step_id' => $step,
+            'agreement_step_order' => $agreement->agreement_step_order,
+            'response_date' => now(),
+            'response_summary' => $summary,
+            'response_descr' => $descr,
+            'status_pekerjaan' => $step,
+            'status' => 'A',
+            'created_by' => $username,
+        ]);
+    }
+
+    // Fields whose edits are written to the activity log as "Label: old → new".
+    protected function trackedValues(TrAgreement $agreement): array
+    {
+        $no = $this->kind()['key'] === 'addendum' ? 'No. Addendum' : 'No. PSM / Addendum';
+
+        $labels = [
+            'business_id' => 'Business ID', 'business_name' => 'Business Name', 'tenant_no' => 'Tenant No',
+            'trade_name' => 'Trade Name', 'floor_id' => 'Floor', 'unit_id' => 'Unit', 'business_address' => 'Address',
+            'pic_penyewa' => 'PIC Name', 'pic_phonenumber_penyewa' => 'PIC Phone', 'pic_email_penyewa' => 'Email',
+            'no_psm_or_addendum' => $no,
+            'pic_legal' => 'PIC Legal', 'pic_leasing' => 'PIC Leasing',
+        ];
+
+        $out = [];
+
+        foreach ($labels as $field => $label) {
+            $value = $agreement->{$field};
+            $out[$label] = str_contains($field, '_date') ? substr((string) $value, 0, 10) : trim((string) $value);
+        }
+
+        return $out;
+    }
+
+    protected function changeSummary(array $before, array $after): string
+    {
+        $lines = [];
+
+        foreach ($after as $label => $new) {
+            if (($before[$label] ?? '') !== $new) {
+                $lines[] = $label.': '.(($before[$label] ?? '') !== '' ? $before[$label] : '-').' → '.($new !== '' ? $new : '-');
+            }
+        }
+
+        return implode("\n", $lines);
+    }
+
+    /**
+     * One live agreement per number, and one active PSM / OLA per tenant + unit.
+     * Cancelled agreements don't count.
+     */
+    protected function duplicateMessage(Request $request, ?TrAgreement $self, string $cpnyId): ?string
+    {
+        $kind = $this->kind();
+
+        $base = TrAgreement::query()
+            ->whereNull('deleted_at')
+            ->whereIn('agreement_type', (array) $kind['type'])
+            ->whereIn('agreement_step_id', [self::STEP_ACTIVE, self::STEP_COMPLETED]);
+
+        if ($self) {
+            $base->where('id', '!=', $self->id);
+        }
+
+        $no = trim((string) $request->no_psm_or_addendum);
+
+        if ($no !== '') {
+            $hit = (clone $base)->whereRaw('lower(no_psm_or_addendum) = ?', [mb_strtolower($no)])->first();
+
+            if ($hit) {
+                return "{$no} is already used by {$hit->agreement_id}.";
+            }
+        }
+
+        $tenant = trim((string) $request->tenant_no);
+        $unit = trim((string) $request->unit_id);
+
+        if ($tenant !== '' && $unit !== '') {
+            $hit = (clone $base)->where('agreement_step_id', self::STEP_ACTIVE)
+                ->where('cpny_id', $cpnyId)->where('tenant_no', $tenant)->where('unit_id', $unit)->first();
+
+            if ($hit) {
+                return "An active {$kind['label']} ({$hit->agreement_id}) already exists for this tenant and unit.";
+            }
+        }
+
+        return null;
+    }
     // When a document was received: stamped on the untick->tick change, kept
     // while it stays ticked (so a note edit doesn't move it), cleared on untick.
     protected function receivedAt(TrAgreementDocument $doc, bool $received)
@@ -1127,7 +1433,7 @@ class LegalNewAgreementController extends Controller
 
     public function uploadPsmOlaAttachment(Request $request, string $eid)
     {
-        $agreement = $this->activeAgreementOrFail($eid);
+        $agreement = $this->updatableAgreementOrFail($eid);
 
         $request->validate([
             'attachments' => 'required|array|min:1',
@@ -1169,7 +1475,7 @@ class LegalNewAgreementController extends Controller
 
     public function updatePsmOla(Request $request, string $eid)
     {
-        $agreement = $this->activeAgreementOrFail($eid);
+        $agreement = $this->updatableAgreementOrFail($eid);
 
         // Company and Property Type are intentionally not accepted here.
         $request->validate([
@@ -1198,6 +1504,12 @@ class LegalNewAgreementController extends Controller
         $username = $request->user()->username ?? 'system';
         $kind = $this->kind();
         $submittedDocs = $kind['docs'] ? (array) $request->input('documents', []) : [];
+
+        if ($message = $this->duplicateMessage($request, $agreement, (string) $agreement->cpny_id)) {
+            return response()->json(['success' => false, 'message' => $message], 422);
+        }
+
+        $before = $this->trackedValues($agreement);
 
         DB::connection('pgsql5')->beginTransaction();
 
@@ -1267,7 +1579,7 @@ class LegalNewAgreementController extends Controller
                 'agreement_step_order' => $agreement->agreement_step_order,
                 'response_date' => now(),
                 'response_summary' => $kind['docs'] ? 'Agreement Updated (Pembuatan)' : 'Agreement Updated ('.$kind['label'].')',
-                'response_descr' => $agreement->business_name,
+                'response_descr' => $this->changeSummary($before, $this->trackedValues($agreement)) ?: $agreement->business_name,
                 'status_pekerjaan' => $agreement->agreement_step_id,
                 'status' => 'A',
                 'created_by' => $username,
@@ -1295,7 +1607,7 @@ class LegalNewAgreementController extends Controller
      * Emails the creator and the PIC Legal(s) after a create / save. A mail
      * failure is logged and never fails the save, which is already committed.
      */
-    protected function notifyPsmOla(TrAgreement $agreement, string $event, string $actor): void
+    protected function notifyPsmOla(TrAgreement $agreement, string $event, string $actor, ?string $note = null): void
     {
         $agreement->refresh();
 
@@ -1320,7 +1632,7 @@ class LegalNewAgreementController extends Controller
             $sent[strtolower($email)] = true;
 
             try {
-                \Illuminate\Support\Facades\Mail::to($email)->send(new \App\Mail\PsmOlaAgreementMail($agreement, $event, $actor, $picNames));
+                \Illuminate\Support\Facades\Mail::to($email)->send(new \App\Mail\PsmOlaAgreementMail($agreement, $event, $actor, $picNames, $note));
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::warning('PSM/OLA mail failed', [
                     'agreement_id' => $agreement->agreement_id,
@@ -1359,11 +1671,12 @@ class LegalNewAgreementController extends Controller
         abort_if(! $id, 404);
 
         // Same pending rule as the Job List, so a job that has since been
-        // picked up (or got a contract_no) can't be created twice.
+        // picked up (or got a contract_no, or already has an active agreement) can't be created twice.
         return StagingContractAgreement::query()
             ->whereNull('deleted_at')
             ->where('status', 'A')
             ->withoutContractNo()
+            ->withoutActiveAgreement((array) $this->kind()['type'])
             ->findOrFail($id);
     }
 
@@ -1407,12 +1720,12 @@ class LegalNewAgreementController extends Controller
     // implementation in LegalAgreementController and can't drift apart.
     public function jobsJson(Request $request)
     {
-        return app(LegalAgreementController::class)->jobsJson($request);
+        return app(LegalAgreementController::class)->jobsJson($request, (array) $this->kind()['type']);
     }
 
     public function jobsExport(Request $request)
     {
-        return app(LegalAgreementController::class)->jobsExport($request);
+        return app(LegalAgreementController::class)->jobsExport($request, (array) $this->kind()['type']);
     }
 
     // Addendum is the same page as PSM / OLA (see kind()); its Jobs tab has two sources.
@@ -1424,7 +1737,7 @@ class LegalNewAgreementController extends Controller
     // PSM / OLA agreements (Active and Completed) an addendum can be started from.
     public function addendumPsmOlaJson(Request $request)
     {
-        return $this->listJson($request, $this->activeQuery([self::STEP_ACTIVE, self::STEP_COMPLETED], self::PSM_OLA_TYPES));
+        return $this->listJson($request, $this->psmOlaSourceQuery());
     }
     public function others()
     {

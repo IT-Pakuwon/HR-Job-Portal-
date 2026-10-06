@@ -25,7 +25,9 @@
     <div>
         <div class="flex flex-wrap items-center gap-3">
             <h2 class="text-xl font-bold text-slate-800 dark:text-white">{{ $agreement->agreement_id }}</h2>
-            @if ($completed)
+            @if ($cancelled)
+                <span class="inline-flex items-center rounded-full bg-rose-100 px-2.5 py-1 text-[11px] font-semibold text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">Cancelled</span>
+            @elseif ($completed)
                 <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-[11px] font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">Completed</span>
             @else
                 <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-1 text-[11px] font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-300">Active</span>
@@ -35,8 +37,8 @@
     </div>
 
     <div class="flex flex-wrap items-center justify-end gap-2">
-        {{-- A completed agreement is read-only: no Edit / Complete. --}}
-        @unless ($completed)
+        {{-- Actions: Active = Edit / Complete / Cancel; Completed or Cancelled = Reopen. Creator and PIC Legal only. --}}
+        @if ($canManage)
         <div class="relative">
             <button type="button" id="viewAgrActionBtn" class="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:-translate-y-[1px] hover:border-slate-300 hover:bg-slate-50 hover:shadow-lg dark:border-white/[0.06] dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
                 <i class="fa-solid fa-bolt text-[15px]"></i>
@@ -46,6 +48,7 @@
 
             <div id="viewAgrActionDropdown" class="absolute right-0 top-[calc(100%+10px)] z-50 hidden w-[220px] overflow-hidden rounded-lg border border-slate-200/80 bg-white/95 shadow-xl dark:border-white/[0.06] dark:bg-slate-800/95">
                 <div class="p-2">
+                    @if ($canUpdateDocs)
                     <button type="button" class="btn-edit-agr flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-blue-600 hover:bg-slate-100 dark:text-blue-400 dark:hover:bg-white/[0.06]" data-eid="{{ $eid }}">
                         <i class="fa-solid fa-pen-to-square w-4 text-center"></i> Edit Agreement
                     </button>
@@ -55,11 +58,21 @@
                             data-url="{{ route($kind['r']['complete'], $eid, false) }}" data-missing="{{ $missingRequired }}">
                             <i class="fa-solid fa-flag-checkered w-4 text-center"></i> Complete Agreement
                         </button>
+                        <button type="button" class="btn-cancel-agr flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-rose-600 hover:bg-slate-100 dark:text-rose-400 dark:hover:bg-white/[0.06]"
+                            data-url="{{ route($kind['r']['cancel'], $eid, false) }}">
+                            <i class="fa-solid fa-ban w-4 text-center"></i> Cancel Agreement
+                        </button>
+                    @endif
+                    @else
+                        <button type="button" class="btn-reopen-agr flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-amber-600 hover:bg-slate-100 dark:text-amber-400 dark:hover:bg-white/[0.06]"
+                            data-url="{{ route($kind['r']['reopen'], $eid, false) }}">
+                            <i class="fa-solid fa-lock-open w-4 text-center"></i> Reopen Agreement
+                        </button>
                     @endif
                 </div>
             </div>
         </div>
-        @endunless
+        @endif
 
         {{-- Only shown while full screen (the page script swaps it with the expand button). --}}
         <button type="button" class="btn-view-minimize hidden h-11 w-11 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition-all duration-200 hover:-translate-y-px hover:border-slate-300 hover:bg-slate-50 hover:shadow-lg dark:border-white/[0.06] dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700" data-eid="{{ $eid }}" title="Minimize" aria-label="Minimize">
@@ -425,7 +438,7 @@
         <div data-view-panel="attachments" class="modal-scroll hidden flex-1 overflow-y-auto p-6">
             <h3 class="mb-4 text-sm font-semibold text-slate-800 dark:text-slate-100">Attachments</h3>
 
-            @unless ($completed)
+            @if (! $completed && $canUpdateDocs)
             <form id="viewAgrUploadForm" data-url="{{ route($kind['r']['attachment'], $eid, false) }}" class="mb-4 flex flex-wrap items-center gap-2">
                 <input type="file" name="attachments[]" multiple accept=".jpg,.jpeg,.png,.pdf,.xlsx,.xls,.doc,.docx"
                     class="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white text-xs file:mr-3 file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-xs file:font-semibold dark:border-white/[0.08] dark:bg-slate-800">
@@ -434,11 +447,12 @@
                 </button>
                 <p class="w-full text-[11px] text-slate-400">JPG, PNG, PDF, Word or Excel · max 5 MB each.</p>
             </form>
-            @endunless
+            @endif
 
             <div class="space-y-2">
                 @forelse ($attachments as $file)
-                    <a href="{{ $file['url'] ?? '#' }}" target="_blank" class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 transition-all duration-200 hover:bg-slate-50 dark:border-white/[0.06] dark:bg-slate-800 dark:hover:bg-white/[0.04]">
+                    <div class="flex items-center gap-2">
+                    <a href="{{ $file['url'] ?? '#' }}" target="_blank" class="flex min-w-0 flex-1 items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 transition-all duration-200 hover:bg-slate-50 dark:border-white/[0.06] dark:bg-slate-800 dark:hover:bg-white/[0.04]">
                         <div class="flex min-w-0 items-center gap-3">
                             <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500 dark:bg-white/[0.06] dark:text-slate-300">
                                 <i class="fa-solid fa-file"></i>
@@ -451,6 +465,13 @@
                         </div>
                         <i class="fa-solid fa-arrow-up-right-from-square text-slate-400"></i>
                     </a>
+                    @if (! $completed && $canUpdateDocs)
+                        <button type="button" class="btn-del-attachment inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 dark:border-rose-900/50 dark:bg-rose-900/20"
+                            data-url="{{ route($kind['r']['attachment_delete'], $eid, false) }}" data-id="{{ $file['id'] }}" data-name="{{ $file['display_name'] }}" title="Delete" aria-label="Delete">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    @endif
+                    </div>
                 @empty
                     <div class="rounded-lg border border-dashed border-slate-300 px-4 py-5 text-center text-sm text-slate-400 dark:border-white/[0.08]">No attachment available</div>
                 @endforelse

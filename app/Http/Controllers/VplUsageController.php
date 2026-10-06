@@ -1011,7 +1011,11 @@ class VplUsageController extends Controller
         }
 
         DB::connection('pgsql5')->transaction(function () use ($usage, $user) {
-            $this->adjustReservation($usage->usage_id, -1);
+            // Only a Pending doc still holds stock. A Hold (D) doc already had its hold
+            // released by revise(), so releasing again would eat into other documents' holds.
+            if ($usage->status === 'P') {
+                $this->adjustReservation($usage->usage_id, -1);
+            }
 
             $usage->status = 'X';
             $usage->updated_user = $user->name;
@@ -1049,8 +1053,15 @@ class VplUsageController extends Controller
             return response()->json(['error' => 'Not found.'], 404);
         }
         $usage = TrxVplUsage::where('usage_id', $detail->usage_id)->first();
-        if ($usage) {
-            $this->reserveDetail($detail, $usage->usagetype, -1);
+        if (!$usage) {
+            return response()->json(['error' => 'Not found.'], 404);
+        }
+
+        // Lines can only be removed while the document is on Hold (being revised) and
+        // only by its creator. Hold already released the reservation in revise(), so no
+        // release here — doing it again would steal stock reserved by other documents.
+        if ($usage->status !== 'D' || $usage->created_user !== Auth::user()->name) {
+            return response()->json(['error' => 'You are not allowed to modify this document.'], 403);
         }
         $detail->delete();
 
@@ -1430,7 +1441,20 @@ class VplUsageController extends Controller
             return 0;
         }
 
-        return (float) $stock->qty_available - (float) ($stock->qty_reserved ?? 0);
+        // qty_reserved is a running counter and can drift below the real holds if any
+        // path ever releases twice. Never trust it lower than what pending Usage docs
+        // actually claim, otherwise the batch gets oversold.
+        $pendingUsage = (float) TrxVplUsageDetail::join('tr_vpl_usage', 'tr_vpl_usage_detail.usage_id', '=', 'tr_vpl_usage.usage_id')
+            ->where('tr_vpl_usage.status', 'P')
+            ->where('tr_vpl_usage.usagetype', 'Usage')
+            ->where('tr_vpl_usage_detail.product_id', $productId)
+            ->where('tr_vpl_usage_detail.expired_date', $expiredDate)
+            ->where('tr_vpl_usage_detail.whs_id', $whsId)
+            ->sum('tr_vpl_usage_detail.qty_usage');
+
+        $reserved = max((float) ($stock->qty_reserved ?? 0), $pendingUsage);
+
+        return (float) $stock->qty_available - $reserved;
     }
 
     /**

@@ -97,7 +97,7 @@ class LegalAgreementController extends Controller
         $isManager = $this->isManagerRole();
 
         $baseCount = function () use ($isManager, $userCompanies, $user) {
-            $q = TrAgreement::query();
+            $q = TrAgreement::followUp();
             if (!$isManager && !$user->hasFullDataScope()) {
                 $q->where(function ($q2) use ($userCompanies, $user) {
                     $q2->whereIn('cpny_id', $userCompanies)
@@ -134,7 +134,7 @@ class LegalAgreementController extends Controller
                 'COMPLETED'
             )->count(),
 
-            'my_agreement' => TrAgreement::query()
+            'my_agreement' => TrAgreement::followUp()
                 ->wherePicLegalOrLeasing($user->username)
                 ->count(),
 
@@ -171,7 +171,7 @@ class LegalAgreementController extends Controller
 
         $isManager = $this->isManagerRole();
 
-        $query = TrAgreement::query()
+        $query = TrAgreement::followUp()
             ->whereNull('deleted_at');
 
         if (!$isManager && !$user->hasFullDataScope()) {
@@ -492,7 +492,7 @@ class LegalAgreementController extends Controller
 
         abort_if(!$id, 404);
 
-        $agreement = TrAgreement::findOrFail($id);
+        $agreement = TrAgreement::followUp()->findOrFail($id);
 
         abort_if(
             $agreement->created_user !== auth()->user()->username,
@@ -593,7 +593,7 @@ class LegalAgreementController extends Controller
 
         abort_if(!$id, 404);
 
-        $agreement = TrAgreement::findOrFail($id);
+        $agreement = TrAgreement::followUp()->findOrFail($id);
 
         /*
         |--------------------------------------------------------------------------
@@ -769,7 +769,7 @@ class LegalAgreementController extends Controller
 
         abort_if(!$id, 404);
 
-        $agreement = TrAgreement::findOrFail($id);
+        $agreement = TrAgreement::followUp()->findOrFail($id);
 
         $activities = TrAgreementActivity::where(
             'agreement_id',
@@ -849,7 +849,7 @@ class LegalAgreementController extends Controller
 
         abort_if(!$id, 404);
 
-        $agreement = TrAgreement::findOrFail($id);
+        $agreement = TrAgreement::followUp()->findOrFail($id);
 
         $username = auth()->user()->username;
 
@@ -916,7 +916,7 @@ class LegalAgreementController extends Controller
 
         abort_if(!$id, 404);
 
-        $agreement = TrAgreement::findOrFail($id);
+        $agreement = TrAgreement::followUp()->findOrFail($id);
 
         $username = auth()->user()->username;
 
@@ -1230,7 +1230,7 @@ class LegalAgreementController extends Controller
 
         abort_if(!$id, 404);
 
-        $agreement = TrAgreement::findOrFail($id);
+        $agreement = TrAgreement::followUp()->findOrFail($id);
 
         abort_unless(
             $this->isManagerRole()
@@ -1353,7 +1353,7 @@ class LegalAgreementController extends Controller
 
         abort_if(!$id, 404);
 
-        $agreement = TrAgreement::findOrFail($id);
+        $agreement = TrAgreement::followUp()->findOrFail($id);
 
         $comments = TrMessage::query()
             ->where('refnbr', $agreement->agreement_id)
@@ -1373,7 +1373,7 @@ class LegalAgreementController extends Controller
 
         abort_if(!$id, 404);
 
-        $agreement = TrAgreement::findOrFail($id);
+        $agreement = TrAgreement::followUp()->findOrFail($id);
 
         $usernames = collect([$agreement->created_user])
             ->merge($agreement->picLegalList())
@@ -1397,7 +1397,7 @@ class LegalAgreementController extends Controller
 
         abort_if(!$id, 404);
 
-        $agreement = TrAgreement::findOrFail($id);
+        $agreement = TrAgreement::followUp()->findOrFail($id);
 
         abort_unless(
             $this->canAccessAgreement($agreement),
@@ -1552,7 +1552,7 @@ class LegalAgreementController extends Controller
         $userCompanies = collect(explode(',', $user->cpny_id))->filter()->map(fn ($v) => trim($v))->toArray();
 
         $base = function () use ($isManager, $userCompanies, $user) {
-            $q = TrAgreement::query();
+            $q = TrAgreement::followUp();
             if (!$isManager && !$user->hasFullDataScope()) {
                 $q->where(function ($q2) use ($userCompanies, $user) {
                     $q2->whereIn('cpny_id', $userCompanies)
@@ -1574,7 +1574,7 @@ class LegalAgreementController extends Controller
             $counts[$s] = $base()->where('agreement_step_id', strtoupper($s))->count();
         }
 
-        $counts['my_agreement'] = TrAgreement::query()
+        $counts['my_agreement'] = TrAgreement::followUp()
             ->wherePicLegalOrLeasing($user->username)
             ->count();
 
@@ -1583,7 +1583,7 @@ class LegalAgreementController extends Controller
         return response()->json($counts);
     }
 
-    public function pendingJobsCount(): int
+    public function pendingJobsCount(?array $excludeActiveTypes = null): int
     {
         // Row-level count (one row per contract/lot), matching how the Jobs
         // table itself counts — not deduped by business — so this badge
@@ -1592,6 +1592,7 @@ class LegalAgreementController extends Controller
             ->whereNull('deleted_at')
             ->where('status', 'A')
             ->withoutContractNo()
+            ->when($excludeActiveTypes, fn ($q) => $q->withoutActiveAgreement($excludeActiveTypes))
             ->count();
     }
 
@@ -1629,12 +1630,13 @@ class LegalAgreementController extends Controller
         }
     }
 
-    public function jobsJson(Request $request)
+    public function jobsJson(Request $request, ?array $excludeActiveTypes = null)
     {
         $query = StagingContractAgreement::query()
             ->whereNull('deleted_at')
             ->where('status', 'A')
             ->withoutContractNo()
+            ->when($excludeActiveTypes, fn ($q) => $q->withoutActiveAgreement($excludeActiveTypes))
             ->select([
                 'id', 'cpny_id', 'business_id', 'contract_no',
                 'tenant_no', 'trade_name', 'property_cd', 'status',
@@ -1648,10 +1650,10 @@ class LegalAgreementController extends Controller
             ->make(true);
     }
 
-    public function jobsExport(Request $request)
+    public function jobsExport(Request $request, ?array $excludeActiveTypes = null)
     {
         return Excel::download(
-            new JobsExport($request),
+            new JobsExport($request, $excludeActiveTypes),
             'legal-agreement-jobs-export-'.now()->format('YmdHis').'.xlsx'
         );
     }
@@ -2038,7 +2040,7 @@ class LegalAgreementController extends Controller
 
         abort_if(!$id, 404);
 
-        $agreement = TrAgreement::findOrFail($id);
+        $agreement = TrAgreement::followUp()->findOrFail($id);
 
         $attachments = $this->agreementAttachments($agreement);
 

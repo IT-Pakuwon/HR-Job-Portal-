@@ -92,6 +92,15 @@ class TrAgreement extends Model
                 || in_array($username, array_map('strtolower', $this->picLegalList()), true));
     }
 
+    // Types made by New Agreement (PSM / OLA / Addendum). Agreement FU never handles these.
+    public const NEW_AGREEMENT_TYPES = ['PSM', 'OLA', 'PEMBUATAN', 'ADDENDUM'];
+
+    // Agreement FU's own agreements: everything except the New Agreement types.
+    public function scopeFollowUp($query)
+    {
+        return $query->where(fn ($q) => $q->whereNull('agreement_type')->orWhereNotIn('agreement_type', self::NEW_AGREEMENT_TYPES));
+    }
+
     public function scopeWherePicLegal($query, string $username)
     {
         return $query->whereRaw("(',' || pic_legal || ',') ILIKE ?", ['%,'.$username.',%']);
