@@ -15,14 +15,17 @@ class CommentNotificationMail extends Mailable
     public string $commenterName;
     public string $commentMessage;
     public string $moduleLabel;
+    public ?string $docUrl;
 
     public function __construct(
         string $doctype,
         string $docNo,
         string $commenterName,
         string $commentMessage,
-        string $moduleLabel
+        string $moduleLabel,
+        ?string $docUrl = null
     ) {
+        $this->docUrl        = $docUrl;
         $this->doctype       = $doctype;
         $this->docNo         = $docNo;
         $this->commenterName = $commenterName;

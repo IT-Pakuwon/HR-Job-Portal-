@@ -26,7 +26,8 @@ Pengembalian dokumen PSM/Addendum yang telah ditandatangani.
 
 <p style="margin:0 0 24px;font-size:13.5px;line-height:1.7;color:#334155;">
     Mohon periksa surat resmi dan tanda terima pengiriman yang terlampir pada email ini untuk detail lebih
-    lanjut. Kami menantikan pengembalian dokumen dimaksud sesuai batas waktu yang tercantum pada surat terlampir.
+    lanjut. Kami menantikan pengembalian dokumen dimaksud paling lambat pada tanggal
+    <strong>{{ $deadline->translatedFormat('d F Y') }}</strong>, sebagaimana tercantum pada surat terlampir.
 </p>
 
 <p style="margin:24px 0 0;font-size:12px;line-height:1.7;color:#64748b;">

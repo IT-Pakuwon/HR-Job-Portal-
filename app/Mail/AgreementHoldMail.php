@@ -14,10 +14,14 @@ class AgreementHoldMail extends Mailable
 
     public $agreement;
 
+    public $reason;
+
     public function __construct(
-        TrAgreement $agreement
+        TrAgreement $agreement,
+        ?string $reason = null
     ) {
         $this->agreement = $agreement;
+        $this->reason = $reason;
     }
 
     public function build()
@@ -33,7 +37,7 @@ class AgreementHoldMail extends Mailable
                 'emails.agreement-hold'
             )
 
-            ->with('docUrl', $this->docUrl());
+            ->with(['docUrl' => $this->docUrl(), 'systemLabel' => 'Legal Agreement', 'reason' => $this->reason]);
     }
 
     protected function docUrl(): string

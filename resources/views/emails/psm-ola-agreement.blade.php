@@ -29,8 +29,8 @@
         'Unit' => $agreement->unit_id,
         $label === 'Addendum' ? 'No. Addendum' : 'No. PSM / Addendum' => $agreement->no_psm_or_addendum,
         'PIC Legal' => $picLegalNames,
-        'PIC Leasing' => $agreement->pic_leasing,
-        'Created By' => $agreement->created_user,
+        'PIC Leasing' => \App\Models\TrAgreement::picDisplayNames($agreement->picLeasingList()),
+        'Created By' => \App\Models\TrAgreement::picDisplayNames([$agreement->created_user]) ?: $agreement->created_user,
     ];
 @endphp
 

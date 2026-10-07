@@ -22,16 +22,23 @@ class AgreementSurat1Mail extends Mailable
 
     public function build()
     {
+        $sentAt = now();
+
         $mail = $this
             ->subject(
                 '[LEGAL AGREEMENT][SURAT 1] '
                 . $this->agreement->agreement_id
                 . ' - Pengingat Pengembalian Dokumen PSM/Addendum'
             )
-            ->view('emails.agreement-surat1');
+            ->view('emails.agreement-surat1')
+            ->with([
+                'systemLabel' => 'Legal Agreement',
+                // Same 14-day window the Surat 1 PDF prints as "Batas Pengembalian".
+                'deadline' => $sentAt->copy()->addDays(14),
+            ]);
 
         $mail->attachData(
-            $this->renderSurat1Pdf($this->agreement, now()),
+            $this->renderSurat1Pdf($this->agreement, $sentAt),
             'Surat-1-'.$this->agreement->agreement_id.'.pdf',
             ['mime' => 'application/pdf']
         );

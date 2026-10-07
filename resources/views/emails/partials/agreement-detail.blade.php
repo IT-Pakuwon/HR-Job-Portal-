@@ -1,12 +1,3 @@
-@php
-    $statusLabel = match ($agreement->status) {
-        'P' => 'Open',
-        'C' => 'Completed',
-        'X' => 'Cancelled',
-        default => $agreement->status,
-    };
-@endphp
-
 {{-- Agreement ID highlight box --}}
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;">
     <tr>
@@ -25,7 +16,7 @@
             Requested By
         </td>
         <td style="padding:11px 0;font-size:13px;font-weight:700;color:#1e293b;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
-            {{ $agreement->created_user }}
+            {{ \App\Models\TrAgreement::picDisplayNames([$agreement->created_user]) ?: $agreement->created_user }}
         </td>
     </tr>
 
@@ -91,7 +82,7 @@
             PIC Legal
         </td>
         <td style="padding:11px 0;font-size:13px;color:#334155;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
-            {{ $agreement->pic_legal ?: '-' }}
+            {{ \App\Models\TrAgreement::picDisplayNames($agreement->picLegalList()) ?: '-' }}
         </td>
     </tr>
 
@@ -100,29 +91,7 @@
             PIC Leasing
         </td>
         <td style="padding:11px 0;font-size:13px;color:#334155;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
-            {{ $agreement->pic_leasing ?: '-' }}
-        </td>
-    </tr>
-
-    <tr>
-        <td style="padding:11px 16px 11px 0;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
-            Step
-        </td>
-        <td style="padding:11px 0;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
-            <span style="display:inline-block;padding:3px 14px;border-radius:999px;background:#fef9c3;border:1.5px solid #fde047;color:#854d0e;font-size:11px;font-weight:700;letter-spacing:0.04em;">
-                {{ $agreement->agreement_step_id }}
-            </span>
-        </td>
-    </tr>
-
-    <tr>
-        <td style="padding:11px 16px 11px 0;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;vertical-align:middle;">
-            Status
-        </td>
-        <td style="padding:11px 0;vertical-align:middle;">
-            <span style="display:inline-block;padding:3px 14px;border-radius:999px;background:#dbeafe;border:1.5px solid #93c5fd;color:#1d4ed8;font-size:11px;font-weight:700;letter-spacing:0.04em;">
-                {{ $statusLabel }}
-            </span>
+            {{ \App\Models\TrAgreement::picDisplayNames($agreement->picLeasingList()) ?: '-' }}
         </td>
     </tr>
 

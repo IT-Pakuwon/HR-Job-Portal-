@@ -74,6 +74,26 @@ class TrAgreement extends Model
         return self::splitPicList($this->pic_leasing);
     }
 
+    /**
+     * Comma-joined display names for a PIC username list; a username with no
+     * matching user falls back to the raw username.
+     */
+    public static function picDisplayNames(array $usernames): string
+    {
+        if (! $usernames) {
+            return '';
+        }
+
+        $names = \App\Models\User::query()
+            ->whereIn('username', $usernames)
+            ->pluck('name', 'username')
+            ->mapWithKeys(fn ($name, $username) => [strtolower($username) => $name]);
+
+        return collect($usernames)
+            ->map(fn ($u) => $names->get(strtolower($u)) ?: $u)
+            ->implode(', ');
+    }
+
     public function hasPic(string $username): bool
     {
         $username = strtolower(trim($username));

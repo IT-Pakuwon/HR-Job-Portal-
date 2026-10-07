@@ -908,7 +908,7 @@ class LegalAgreementController extends Controller
             DB::connection('pgsql5')->commit();
 
             $this->notificationService
-                ->agreementHeld($agreement);
+                ->agreementHeld($agreement, $request->response_descr);
 
             return response()->json([
                 'success' => true,

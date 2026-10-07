@@ -54,6 +54,7 @@ class PsmOlaAgreementMail extends Mailable
                 'label' => $label,
                 'note' => $this->note,
                 'docUrl' => $docUrl,
+                'systemLabel' => 'Legal Agreement',
             ]);
     }
 }
