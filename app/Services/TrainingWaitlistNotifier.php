@@ -236,8 +236,8 @@ class TrainingWaitlistNotifier
         $scheduleDate = $registration->schedule_date ?? $registration->schedule?->schedule_date;
         $scheduleDateLabel = $scheduleDate?->format('d M Y');
 
-        $eid = Hashids::encode($registration->id);
-        $url = url('/training-list/my/'.$eid);
+        // Deep link straight to the certificate PDF (route takes the raw id)
+        $url = route('training-list.certificate', ['id' => $registration->id]);
 
         TrMessage::create([
             'refnbr' => $registration->training_regist_id,
