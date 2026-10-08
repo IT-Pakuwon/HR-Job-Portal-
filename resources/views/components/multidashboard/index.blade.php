@@ -20,6 +20,10 @@
             </div>
         @endif
 
+        @if(View::exists($viewPath))
+            @include('components.multidashboard.my-activity')
+        @endif
+
     </div>
 
     @include('partials.update-notification-panel')

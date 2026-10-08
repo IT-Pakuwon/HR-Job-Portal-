@@ -142,6 +142,14 @@
         <div class="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
 
             <div class="flex flex-wrap gap-3">
+                <button id="tab-approval">
+                    ✅ Waiting Approval
+                </button>
+
+                <button id="tab-approval-history">
+                    📋 Approval History
+                </button>
+
                 <button id="tab-ticket">
                     🎫 Ticket
                 </button>
@@ -152,14 +160,6 @@
 
                 <button id="tab-recommendation">
                     💡 IT Recommendation
-                </button>
-
-                <button id="tab-approval">
-                    ✅ Waiting Approval
-                </button>
-
-                <button id="tab-approval-history">
-                    📋 Approval History
                 </button>
 
             </div>

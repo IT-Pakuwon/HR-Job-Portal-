@@ -2702,6 +2702,11 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/global-search', [GlobalSearchController::class, 'search'])->name('global-search');
 
+        Route::prefix('my-activity')->controller(\App\Http\Controllers\MyActivityController::class)->name('my-activity.')->group(function () {
+            Route::get('/documents', 'documents')->name('documents');
+            Route::get('/messages', 'messages')->name('messages');
+        });
+
         Route::prefix('menu-favourites')->controller(SysMenuFavouriteController::class)->name('menu-favourites.')->group(function () {
             Route::get('/', 'index')->name('index');
             Route::post('/toggle', 'toggle')->name('toggle');
