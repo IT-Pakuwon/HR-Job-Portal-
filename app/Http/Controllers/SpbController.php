@@ -8,6 +8,7 @@ use App\Models\Budget;
 use App\Models\BudgetDetail;
 use App\Models\BusinessUnit;
 use App\Models\MsCompany;
+use App\Models\MsPurchSetting;
 use App\Models\SysUserRole;
 use App\Models\TrApproval;
 use App\Models\TrAttachment;
@@ -766,6 +767,11 @@ class SpbController extends Controller
             $header->status_sppb = 'Open';
             $header->save();
 
+            $needsIMBudget = $this->needsIMBudgetFromSpbDetail($docid);
+            if (!$isDraft && $needsIMBudget) {
+                $this->reserveBudget($doctype, $docid, $request->cpnyid, 'Submit', $username);
+            }
+
             // === Approval generate ===
             if (!$isDraft) {
                 $worktypeid = strtoupper(trim((string) ($request->input('worktypeid') ?? '')));
@@ -1249,6 +1255,11 @@ class SpbController extends Controller
                 'updated_by' => $username,
             ])->save();
 
+            $needsIMBudget = $this->needsIMBudgetFromSpbDetail($header->spbid);
+            if (!$isDraft && $needsIMBudget) {
+                $this->reserveBudget($doctype, $header->spbid, $request->cpnyid, 'Submit', $username);
+            }
+
             // === Approval generate ===
             if (!$isDraft) {
                 $worktypeid = strtoupper(trim((string) ($request->worktypeid ?? '')));
@@ -1427,6 +1438,8 @@ class SpbController extends Controller
                 'siteid',
                 'uom',
                 'qty',
+                'unitcost',
+                'totalcost',
                 'issue_qty',
                 'return_qty',
                 'sppb_qty',
@@ -1636,8 +1649,16 @@ class SpbController extends Controller
             }
         }
 
+        $imBudgetHash = null;
+        if (trim((string) ($spb->imbudgetid ?? '')) !== '') {
+            $imBudgetId = \App\Models\TrIMBudget::where('imbudgetid', $spb->imbudgetid)->value('id');
+            if ($imBudgetId) {
+                $imBudgetHash = Hashids::encode($imBudgetId);
+            }
+        }
+
         // untuk konsistensi link detail, kirim balik hash apa adanya
-        return view('pages.spbs.showspbs', compact('spb', 'attachmentRB', 'attachmentWO', 'spbdetail', 'hash', 'canUpload', 'isApprover', 'akses_cc', 'userCpny', 'userBu', 'userDeptFin', 'woData', 'woHash'));
+        return view('pages.spbs.showspbs', compact('spb', 'attachmentRB', 'attachmentWO', 'spbdetail', 'hash', 'canUpload', 'isApprover', 'akses_cc', 'userCpny', 'userBu', 'userDeptFin', 'woData', 'woHash', 'imBudgetHash'));
     }
 
     public function exportDetail($id)
@@ -1717,6 +1738,72 @@ class SpbController extends Controller
         $eid = Hashids::encode($spb->id);
         $docUrl = url('/showspbs/'.$eid);
         $fullname = data_get($spb, 'creator.name') ?: $spb->created_by;
+
+        $flagIMBudget = in_array(strtolower(trim((string) ($spb->flag_imbudget ?? ''))), ['1', 't', 'true', 'yes'], true);
+        $imGenerateLevel = (float) (MsPurchSetting::where('setting_id', 'IMGENSPB')
+            ->value('setting_value_int') ?? 0);
+
+        if ($flagIMBudget && $imGenerateLevel > 0) {
+            $currentApproval = TrApproval::where('refnbr', $spb->spbid)
+                ->where('aprv_doctype', $doctype)
+                ->where('status', 'P')
+                ->where(function ($query) use ($user) {
+                    $query->where('aprv_username', $user->username)
+                        ->orWhereRaw("? = ANY(string_to_array(REPLACE(aprv_username, ';', ','), ','))", [$user->username]);
+                })
+                ->orderBy('aprv_leveling')
+                ->first();
+
+            if ($currentApproval && (float) $currentApproval->aprv_leveling === $imGenerateLevel) {
+                $imbudgetId = trim((string) ($spb->imbudgetid ?? ''));
+                $statusIM = strtoupper(trim((string) ($spb->status_imbudget ?? '')));
+
+                if ($imbudgetId !== '' && !in_array($statusIM, ['C', 'COMPLETED'], true)) {
+                    return response()->json([
+                        'success' => false,
+                        'code' => 'IM_IN_PROGRESS',
+                        'message' => 'Masih On Progress IM Budget.',
+                    ]);
+                }
+
+                if ($imbudgetId === '' && !$request->boolean('confirm_generate_im')) {
+                    return response()->json([
+                        'success' => false,
+                        'need_confirm_generate_im' => true,
+                        'message' => 'SPB ini membutuhkan IM Budget. Generate IM Budget sekarang?',
+                    ]);
+                }
+
+                if ($imbudgetId === '' && $request->boolean('confirm_generate_im')) {
+                    try {
+                        $imbudget = DB::connection('pgsql')->transaction(function () use ($spb, $user) {
+                            $imbudget = app(IMBudgetController::class)->generateIMBudgetFromSpb($spb, $user, now());
+                            $spb->imbudgetid = $imbudget->imbudgetid;
+                            $spb->status_imbudget = 'H';
+                            $spb->updated_by = $user->username;
+                            $spb->save();
+
+                            return $imbudget;
+                        });
+
+                        return response()->json([
+                            'success' => true,
+                            'code' => 'IM_CREATED_HOLD',
+                            'message' => 'IM Budget berhasil dibuat dan approval SPB ditahan.',
+                            'imbudgetid' => $imbudget->imbudgetid,
+                            'imbudget_show_url' => url('/showimbudgets/'.Hashids::encode($imbudget->id)),
+                        ]);
+                    } catch (\Throwable $e) {
+                        report($e);
+
+                        return response()->json([
+                            'success' => false,
+                            'message' => config('app.debug') ? $e->getMessage() : 'Gagal generate IM Budget.',
+                        ], 500);
+                    }
+                }
+            }
+        }
 
         $result = app(ApprovalController::class)->approveStep(
             $spb->spbid,
@@ -1800,13 +1887,23 @@ class SpbController extends Controller
             $user->username,
             $user->name,
 
-            function (string $refnbr, \Carbon\Carbon $now) use ($spb, $fullname, $docUrl) {
+            function (string $refnbr, \Carbon\Carbon $now) use ($spb, $doctype, $fullname, $docUrl, $request, $user) {
                 $spb->status = 'R';
                 $spb->completed_by = auth()->user()->username;
                 $spb->completed_at = $now;
                 $spb->save();
 
                 // optional: tandai detail R
+                if ($this->needsIMBudgetFromSpbDetail($spb->spbid)) {
+                    $this->reserveBudget(
+                        $doctype,
+                        $spb->spbid,
+                        $request->cpnyid ?? $spb->cpny_id,
+                        'Reject',
+                        $user->username
+                    );
+                }
+
                 // \App\Models\TrSPBdetail::where('spbid', $spb->spbid)->update(['status' => 'R']);
 
                 app(ApprovalController::class)->notifyRequesterOnStatus(
@@ -1860,7 +1957,7 @@ class SpbController extends Controller
             $doctype,                 // PT
             $user->username,          // actor
             $user->name,              // actor
-            function (string $refnbr, \Carbon\Carbon $now) use ($spb, $fullname, $docUrl) {
+            function (string $refnbr, \Carbon\Carbon $now) use ($spb, $doctype, $fullname, $docUrl, $request, $user) {
                 // === HEADER SPB -> D ===
                 $spb->status = 'D';
                 $spb->completed_by = auth()->user()->username;
@@ -1868,6 +1965,16 @@ class SpbController extends Controller
                 $spb->save();
 
                 // (opsional) DETAIL -> D
+                if ($this->needsIMBudgetFromSpbDetail($spb->spbid)) {
+                    $this->reserveBudget(
+                        $doctype,
+                        $spb->spbid,
+                        $request->cpnyid ?? $spb->cpny_id,
+                        'Revise',
+                        $user->username
+                    );
+                }
+
                 // \App\Models\TrSPBdetail::where('spbid', $spb->spbid)->update(['status' => 'D']);
 
                 // === Email ke requester ===
@@ -2643,5 +2750,25 @@ class SpbController extends Controller
         $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
 
         return $pdf->stream("pdf_spbs_{$spb->spbid}.pdf");
+    }
+
+    private function needsIMBudgetFromSpbDetail(string $docid): bool
+    {
+        return TrSPBdetail::where('spbid', $docid)
+            ->whereRaw("TRIM(COALESCE(budget_business_unit_id, '')) <> ''")
+            ->whereRaw("TRIM(COALESCE(budget_department_fin_id, '')) <> ''")
+            ->whereRaw("TRIM(COALESCE(budget_account_id, '')) <> ''")
+            ->whereRaw("TRIM(COALESCE(budget_activity_id, '')) <> ''")
+            ->exists();
+    }
+
+    private function reserveBudget(string $doctype, string $docid, string $cpnyId, string $activity, string $username): void
+    {
+        // Panggil PostgreSQL Stored Procedure: sp_process_budget(doctype, docid, activity, user)
+        // Contoh: CALL sp_process_budget('CS','CS25120001','Submit','williemhalim');
+        DB::connection('pgsql')->statement(
+            'CALL public.sp_process_budget(?, ?, ?, ?,?)',
+            [strtoupper($doctype), $docid, $cpnyId, $activity, $username]
+        );
     }
 }
