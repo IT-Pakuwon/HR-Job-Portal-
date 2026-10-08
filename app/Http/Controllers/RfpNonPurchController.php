@@ -1202,7 +1202,10 @@ class RfpNonPurchController extends Controller
         // =========================
         // USER ACCESS
         // =========================
-        $canUpload = $rfpnonpurch->status === 'P';
+        $canUpload = $user->username !== null
+            && $rfpnonpurch->created_by === $user->username
+            && ($rfpnonpurch->status === 'P'
+                || ($rfpnonpurch->status === 'C' && $rfpnonpurch->statuspayment !== 'C'));
         $hasApFinAccess = $user->hasRole('APFINACCESS');
         $hasApTreAccess = $user->hasRole('APTREACCESS');
 
