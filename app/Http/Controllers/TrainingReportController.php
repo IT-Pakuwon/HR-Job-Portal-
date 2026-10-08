@@ -265,7 +265,6 @@ class TrainingReportController extends Controller
 
         $totalAttendance = $rows->count();
         $totalSessions = $rows->pluck('schedule_id')->filter()->unique()->count();
-        $totalHours = round($rows->sum('duration_hours'), 1);
         $avgStars = $totalAttendance ? round($rows->avg('stars'), 2) : 0;
 
         $withSatisfaction = $rows->filter(fn ($r) => $r['satisfaction'] !== null);
@@ -277,7 +276,6 @@ class TrainingReportController extends Controller
         return response()->json(['data' => [
             'total_attendance' => $totalAttendance,
             'total_sessions' => $totalSessions,
-            'total_training_hours' => $totalHours,
             'avg_satisfaction' => $avgSatisfaction,
             'avg_stars' => $avgStars,
             'completion_rate' => $completionRate,
@@ -485,7 +483,6 @@ class TrainingReportController extends Controller
                 'attendees' => $group->count(),
                 'avg_stars' => round($group->avg('stars'), 2),
                 'avg_satisfaction' => $withSat->count() ? round($withSat->avg('satisfaction'), 2) : null,
-                'total_hours' => round($group->sum('duration_hours'), 1),
             ];
         })->values()->sortByDesc('date')->values();
     }
@@ -514,7 +511,6 @@ class TrainingReportController extends Controller
             'summary' => [
                 'total_attendance' => $totalAttendance,
                 'total_sessions' => $rows->pluck('schedule_id')->filter()->unique()->count(),
-                'total_training_hours' => round($rows->sum('duration_hours'), 1),
                 'avg_satisfaction' => $withSatisfaction->count() ? round($withSatisfaction->avg('satisfaction'), 2) : null,
                 'avg_stars' => $totalAttendance ? round($rows->avg('stars'), 2) : 0,
             ],

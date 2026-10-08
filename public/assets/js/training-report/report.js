@@ -124,7 +124,6 @@
         fetchJson(routes.summary, params).then(function (res) {
             var d = res.data || {};
             utils.setText('trnrepStatAttendance', d.total_attendance || 0);
-            utils.setText('trnrepStatHours', d.total_training_hours || 0);
             utils.setText('trnrepStatSatisfaction', d.avg_satisfaction !== null && d.avg_satisfaction !== undefined ? d.avg_satisfaction + ' / 5' : '–');
             utils.setText('trnrepStatRate', (d.completion_rate || 0) + '%');
         }).catch(function () {});
@@ -372,7 +371,7 @@
 
         var body = document.getElementById('trnrepTableBody');
         if (!pageRows.length) {
-            body.innerHTML = '<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400 dark:text-slate-500">No data available</td></tr>';
+            body.innerHTML = '<tr><td colspan="6" class="px-5 py-8 text-center text-slate-400 dark:text-slate-500">No data available</td></tr>';
         } else {
             body.innerHTML = pageRows.map(function (r) {
                 return '<tr class="transition hover:bg-slate-50/50 dark:hover:bg-slate-800/30">'
@@ -380,7 +379,6 @@
                     + '<td class="px-4 py-2.5 text-slate-700 dark:text-slate-200">' + utils.escHtml(r.training_name || '-') + '</td>'
                     + '<td class="whitespace-nowrap px-4 py-2.5 text-slate-600 dark:text-slate-300">' + utils.escHtml(r.level_name || '-') + '</td>'
                     + '<td class="whitespace-nowrap px-4 py-2.5 text-right text-slate-700 dark:text-slate-200">' + fmtNum(r.attendees) + '</td>'
-                    + '<td class="whitespace-nowrap px-4 py-2.5 text-right text-slate-600 dark:text-slate-300">' + fmtNum(r.total_hours) + '</td>'
                     + '<td class="whitespace-nowrap px-4 py-2.5 text-right text-slate-600 dark:text-slate-300">' + fmtNum(r.avg_satisfaction) + '</td>'
                     + '<td class="whitespace-nowrap px-5 py-2.5 text-right text-slate-600 dark:text-slate-300">' + fmtNum(r.avg_stars) + '</td>'
                     + '</tr>';

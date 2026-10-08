@@ -9,7 +9,7 @@
                     TRAINING REPORT
                 </h1>
                 <p class="text-xs text-slate-500 dark:text-slate-400">
-                    Learning &amp; Development activity — attendance, hours delivered, satisfaction and participant mix
+                    Learning &amp; Development activity — attendance, satisfaction and participant mix
                 </p>
             </div>
 
@@ -94,9 +94,8 @@
         </div>
 
         {{-- ── Stat Cards ───────────────────────────────────────────────────────── --}}
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <x-card-chart.stat-card title="Total Attendance" subtitle="Period" value="0" color="blue" valueId="trnrepStatAttendance" />
-            <x-card-chart.stat-card title="Total Training Hours" subtitle="Man-hours delivered" value="0" color="cyan" valueId="trnrepStatHours" />
             <x-card-chart.stat-card title="Avg. Satisfaction" subtitle="Feedback rating" value="–" color="green" valueId="trnrepStatSatisfaction" />
             <x-card-chart.stat-card title="Completion Rate" subtitle="Attended / Registered" value="0%" color="violet" valueId="trnrepStatRate" />
         </div>
@@ -207,14 +206,13 @@
                             <th data-sort-key="training_name" class="select-none cursor-pointer whitespace-nowrap bg-slate-50 px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400 transition-colors hover:text-slate-600 dark:bg-slate-800/50 dark:text-slate-500 dark:hover:text-slate-300">Training <span class="sort-icon ml-0.5 opacity-30">↕</span></th>
                             <th data-sort-key="level_name" class="select-none cursor-pointer whitespace-nowrap bg-slate-50 px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400 transition-colors hover:text-slate-600 dark:bg-slate-800/50 dark:text-slate-500 dark:hover:text-slate-300">Level <span class="sort-icon ml-0.5 opacity-30">↕</span></th>
                             <th data-sort-key="attendees" data-sort-numeric="true" class="select-none cursor-pointer whitespace-nowrap bg-slate-50 px-4 py-2.5 text-right text-[11px] font-bold uppercase tracking-wider text-slate-400 transition-colors hover:text-slate-600 dark:bg-slate-800/50 dark:text-slate-500 dark:hover:text-slate-300">Attendees <span class="sort-icon ml-0.5 opacity-30">↕</span></th>
-                            <th data-sort-key="total_hours" data-sort-numeric="true" class="select-none cursor-pointer whitespace-nowrap bg-slate-50 px-4 py-2.5 text-right text-[11px] font-bold uppercase tracking-wider text-slate-400 transition-colors hover:text-slate-600 dark:bg-slate-800/50 dark:text-slate-500 dark:hover:text-slate-300">Hours <span class="sort-icon ml-0.5 opacity-30">↕</span></th>
                             <th data-sort-key="avg_satisfaction" data-sort-numeric="true" class="select-none cursor-pointer whitespace-nowrap bg-slate-50 px-4 py-2.5 text-right text-[11px] font-bold uppercase tracking-wider text-slate-400 transition-colors hover:text-slate-600 dark:bg-slate-800/50 dark:text-slate-500 dark:hover:text-slate-300">Satisfaction <span class="sort-icon ml-0.5 opacity-30">↕</span></th>
                             <th data-sort-key="avg_stars" data-sort-numeric="true" class="select-none cursor-pointer whitespace-nowrap bg-slate-50 px-5 py-2.5 text-right text-[11px] font-bold uppercase tracking-wider text-slate-400 transition-colors hover:text-slate-600 dark:bg-slate-800/50 dark:text-slate-500 dark:hover:text-slate-300">Stars <span class="sort-icon ml-0.5 opacity-30">↕</span></th>
                         </tr>
                     </thead>
                     <tbody id="trnrepTableBody" class="divide-y divide-slate-100 dark:divide-slate-700/60">
                         <tr>
-                            <td colspan="7" class="px-5 py-8 text-center text-slate-400 dark:text-slate-500">Loading…</td>
+                            <td colspan="6" class="px-5 py-8 text-center text-slate-400 dark:text-slate-500">Loading…</td>
                         </tr>
                     </tbody>
                 </table>
