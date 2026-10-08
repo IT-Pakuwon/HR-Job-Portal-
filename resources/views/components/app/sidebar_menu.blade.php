@@ -92,6 +92,7 @@
                         $addSearchItem('access_control_studio', 'Access Control Studio', 'Global Settings');
 
                         $addSearchItem('users', 'Users', 'Organization Setup');
+                        $addSearchItem('user-data-sync', 'Update Data User', 'Organization Setup');
                         $addSearchItem('autonbrs', 'Autonbrs', 'Organization Setup');
                         $addSearchItem('companies', 'Companies', 'Organization Setup');
                         $addSearchItem('locations', 'Locations', 'Organization Setup');
@@ -414,6 +415,7 @@
                             $settingsSegments = [
                                 'access_control_studio',
                                 'users',
+                                'user-data-sync',
                                 'roles',
                                 'access_rights',
                                 'role_menus',
@@ -504,7 +506,7 @@
                                 <!-- ================================================= -->
                                 <!-- ORGANIZATION SETUP (Organization + Master Data merged) -->
                                 <!-- ================================================= -->
-                                @php $orgSetup = ['users', 'autonbrs', 'companies', 'locations', 'categories', 'department', 'sys-calendar']; @endphp
+                                @php $orgSetup = ['users', 'user-data-sync', 'autonbrs', 'companies', 'locations', 'categories', 'department', 'sys-calendar']; @endphp
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $orgSetup) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
@@ -525,6 +527,10 @@
                                     <ul x-show="open" x-collapse class="space-y-0.5 pl-4">
                                         <li><a href="{{ route('users') }}"
                                                 class="{{ Request::segment(1) === 'users' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Users</a>
+                                        </li>
+                                        <li><a href="{{ route('user-data-sync') }}"
+                                                class="{{ Request::segment(1) === 'user-data-sync' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Update
+                                                Data User</a>
                                         </li>
                                         <li><a href="{{ route('autonbrs') }}"
                                                 class="{{ Request::segment(1) === 'autonbrs' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Autonbrs</a>

@@ -189,6 +189,7 @@ use App\Http\Controllers\UpdateNotificationController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\UsersEngController;
 use App\Http\Controllers\UserSyncController;
+use App\Http\Controllers\UserDataSyncController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\VoucherTaxiController;
 use App\Http\Controllers\VoucherTaxiSetupController;
@@ -2995,6 +2996,14 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/users', [UsersController::class, 'index'])->name('users');
         Route::get('/users/json', [UsersController::class, 'json'])->name('users.json');
+
+        // Update Data User: align ms_user NPK/Name/origin company+dept with Talenta
+        Route::get('/user-data-sync', [UserDataSyncController::class, 'index'])->name('user-data-sync');
+        Route::get('/user-data-sync/talenta', [UserDataSyncController::class, 'talentaJson'])->name('user-data-sync.talenta');
+        Route::get('/user-data-sync/users', [UserDataSyncController::class, 'usersJson'])->name('user-data-sync.users');
+        Route::get('/user-data-sync/options', [UserDataSyncController::class, 'options'])->name('user-data-sync.options');
+        Route::put('/user-data-sync/{id}', [UserDataSyncController::class, 'update'])->name('user-data-sync.update');
+
         Route::get('/users/duplicates/json', [UsersController::class, 'duplicatesJson'])->name('users.duplicates.json');
         Route::get('/users/inactive/json', [UsersController::class, 'inactiveJson'])->name('users.inactive.json');
         Route::post('/users', [UsersController::class, 'store'])->name('users.store');
