@@ -160,8 +160,8 @@ class MyActivityController extends Controller
             return [
                 'id'      => $m->id,
                 'docid'   => $m->refnbr,
-                'company' => $m->cpny_id,
-                'dept'    => $m->department_id,
+                'company' => $m->cpny_id ?: ($doc['company'] ?? null),
+                'dept'    => $m->department_id ?: ($doc['dept'] ?? null),
                 'type'    => $doc['type'] ?? $m->doctype,
                 'private' => $m->message_type === 'Private',
                 'text'    => Str::limit(TrMessage::plainText(strip_tags((string) $m->message)), 220),
@@ -201,12 +201,14 @@ class MyActivityController extends Controller
             try {
                 $found = DB::connection($view['connection'])->table($view['table'])
                     ->whereIn('docid', $docids->all())
-                    ->get(['id', 'docid', 'doctype', 'url']);
+                    ->get(['id', 'docid', 'doctype', 'url', 'cpnyid', 'departementid']);
 
                 foreach ($found as $r) {
                     $map[$r->docid] ??= [
                         'type' => self::URL_LABELS[$r->url] ?? $r->doctype,
                         'href' => rtrim($r->url, '/') . '/' . Hashids::encode($r->id),
+                        'company' => $r->cpnyid,
+                        'dept'    => $r->departementid,
                     ];
                 }
             } catch (\Throwable $e) {
