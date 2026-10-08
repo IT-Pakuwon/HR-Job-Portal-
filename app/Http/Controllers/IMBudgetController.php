@@ -40,6 +40,9 @@ use App\Models\TrSPPT;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\TrWO;
 use App\Models\TrSPB;
+use App\Models\TrSPBdetail;
+use App\Models\TrIssue;
+use App\Models\TrIssuedetail;
 use App\Models\TrRfpNonPurch;
 use App\Models\TrRfpNonPurchDetail;
 use App\Models\TrRfp;
@@ -50,6 +53,284 @@ use App\Models\TrCalrNonPurch;
 class IMBudgetController extends Controller
 {
     use HasAutonbr;
+
+    public function generateIMBudgetFromSpb(TrSPB $spb, $user = null, $dt = null): TrIMBudget
+    {
+        $dt = $dt ?: Carbon::now();
+        $username = $user->username ?? auth()->user()->username ?? 'system';
+        $sourceDocid = trim((string) $spb->spbid);
+        if ($sourceDocid === '') {
+            throw new \RuntimeException('SPB ID tidak ditemukan.');
+        }
+
+        return DB::connection('pgsql')->transaction(function () use ($spb, $dt, $username, $sourceDocid) {
+            $spb = TrSPB::where('spbid', $sourceDocid)->lockForUpdate()->firstOrFail();
+            $existing = TrIMBudget::where('spbid', $sourceDocid)
+                ->where('doctype', 'RB')
+                ->whereIn('status', ['H', 'P', 'C'])
+                ->orderByDesc('id')
+                ->first();
+            if ($existing) {
+                return $existing;
+            }
+
+            $rows = TrSPBdetail::where('spbid', $sourceDocid)->orderBy('id')->get();
+            if ($rows->isEmpty()) {
+                throw new \RuntimeException("Detail SPB {$sourceDocid} tidak ditemukan.");
+            }
+
+            $groups = [];
+            foreach ($rows as $row) {
+                $amount = round((float) ($row->totalcost ?? ((float) $row->qty * (float) $row->unitcost)), 2);
+                if ($amount <= 0) {
+                    continue;
+                }
+                $fields = [
+                    'budget_perpost' => $row->budget_perpost ?: $spb->budget_perpost,
+                    'budget_cpny_id' => $row->budget_cpny_id ?: $spb->cpny_id,
+                    'budget_business_unit_id' => $row->budget_business_unit_id,
+                    'budget_department_fin_id' => $row->budget_department_fin_id,
+                    'budget_account_id' => $row->budget_account_id,
+                    'budget_activity_id' => $row->budget_activity_id,
+                    'budget_activity_descr' => $row->budget_activity_descr,
+                ];
+                $key = json_encode(array_values($fields));
+                if (!isset($groups[$key])) {
+                    $groups[$key] = ['fields' => $fields, 'expense' => 0.0];
+                }
+                $groups[$key]['expense'] += $amount;
+            }
+
+            $details = [];
+            $totals = ['expense' => 0.0, 'remain' => 0.0, 'needed' => 0.0];
+            foreach ($groups as $group) {
+                $fields = $group['fields'];
+                $query = BudgetDetail::where('perpost', $fields['budget_perpost'])
+                    ->where('cpny_id', $fields['budget_cpny_id'])
+                    ->where('status', 'C');
+                foreach ([
+                    'budget_business_unit_id' => 'business_unit_id',
+                    'budget_department_fin_id' => 'department_fin_id',
+                    'budget_account_id' => 'account_id',
+                    'budget_activity_id' => 'activity_id',
+                    'budget_activity_descr' => 'activity_descr',
+                ] as $source => $column) {
+                    if ($fields[$source]) {
+                        $query->where($column, $fields[$source]);
+                    }
+                }
+                $budget = $query->first();
+                $expense = round($group['expense'], 2);
+                $available = $budget
+                    ? (float) $budget->totalbudget + (float) $budget->totalbudget_add
+                        - (float) $budget->total_reserve - (float) $budget->total_used
+                    : 0.0;
+                // Submit sudah mereservasi biaya SPB ini; kembalikan nilainya untuk
+                // menghitung sisa budget sebelum reservasi, sesuai generator RFP.
+                $remain = max(0.0, round($available + $expense, 2));
+                $needed = max(0.0, round($expense - $remain, 2));
+                if ($needed <= 0) {
+                    continue;
+                }
+                $details[] = compact('fields', 'expense', 'remain', 'needed');
+                $totals['expense'] += $expense;
+                $totals['remain'] += $remain;
+                $totals['needed'] += $needed;
+            }
+
+            if (!$details) {
+                throw new \RuntimeException("Tidak ada kekurangan budget untuk SPB {$sourceDocid}.");
+            }
+
+            $year = (int) $dt->year;
+            $month = str_pad((string) $dt->month, 2, '0', STR_PAD_LEFT);
+            $auto = $this->nextAutonbr('IM', $year, $month, $username, 'IMBudget');
+            $docid = 'IM'.substr((string) $year, 2).$month.sprintf('%04d', (int) $auto['next']);
+
+            $header = new TrIMBudget();
+            $header->imbudgetid = $docid;
+            $header->imbudgetdate = $dt->toDateString();
+            $header->doctype = 'RB';
+            $header->spbid = $sourceDocid;
+            $header->cpny_id = $spb->cpny_id;
+            $header->department_id = $spb->department_id;
+            $header->user_peminta = $spb->created_by;
+            $header->keperluan = $spb->keperluan;
+            $header->budget_perpost = $spb->budget_perpost;
+            $header->total_amount_expense = round($totals['expense'], 2);
+            $header->total_budget_remain = round($totals['remain'], 2);
+            $header->total_budget_needed = round($totals['needed'], 2);
+            $header->total_budget_requested = round($totals['needed'], 2);
+            $header->status = 'H';
+            $header->created_by = $username;
+            $header->created_at = $dt;
+            $header->save();
+
+            foreach ($details as $line) {
+                $detail = new TrIMBudgetdetail();
+                $detail->imbudgetid = $docid;
+                $detail->doctype = 'RB';
+                $detail->spbid = $sourceDocid;
+                foreach ($line['fields'] as $field => $value) {
+                    $detail->{$field} = $value;
+                }
+                $detail->amount_expense = $line['expense'];
+                $detail->budget_remain = $line['remain'];
+                $detail->budget_needed = $line['needed'];
+                $detail->budget_requested = $line['needed'];
+                $detail->status = 'P';
+                $detail->created_by = $username;
+                $detail->created_at = $dt;
+                $detail->save();
+            }
+
+            $spb->imbudgetid = $docid;
+            $spb->status_imbudget = 'H';
+            $spb->updated_by = $username;
+            $spb->save();
+
+            return $header;
+        });
+    }
+    public function generateIMBudgetFromIssue(TrIssue $issue, $user = null, $dt = null): TrIMBudget
+    {
+        $dt = $dt ?: Carbon::now();
+        $username = $user->username ?? auth()->user()->username ?? 'system';
+        $sourceDocid = trim((string) $issue->issueid);
+        if ($sourceDocid === '') {
+            throw new \RuntimeException('Issue ID tidak ditemukan.');
+        }
+
+        return DB::connection('pgsql')->transaction(function () use ($issue, $dt, $username, $sourceDocid) {
+            $issue = TrIssue::where('issueid', $sourceDocid)->lockForUpdate()->firstOrFail();
+            $existing = TrIMBudget::where('issueid', $sourceDocid)
+                ->where('doctype', 'IS')
+                ->whereIn('status', ['H', 'P', 'C'])
+                ->orderByDesc('id')
+                ->first();
+            if ($existing) {
+                return $existing;
+            }
+
+            $rows = TrIssuedetail::where('issueid', $sourceDocid)->orderBy('id')->get();
+            if ($rows->isEmpty()) {
+                throw new \RuntimeException("Detail Issue {$sourceDocid} tidak ditemukan.");
+            }
+
+            $groups = [];
+            foreach ($rows as $row) {
+                $amount = round((float) ($row->totalcost ?? ((float) $row->issue_qty * (float) $row->unitcost)), 2);
+                if ($amount <= 0) {
+                    continue;
+                }
+                $fields = [
+                    'budget_perpost' => $row->budget_perpost ?: $issue->budget_perpost,
+                    'budget_cpny_id' => $row->budget_cpny_id ?: $issue->cpny_id,
+                    'budget_business_unit_id' => $row->budget_business_unit_id,
+                    'budget_department_fin_id' => $row->budget_department_fin_id,
+                    'budget_account_id' => $row->budget_account_id,
+                    'budget_activity_id' => $row->budget_activity_id,
+                    'budget_activity_descr' => $row->budget_activity_descr,
+                ];
+                $key = json_encode(array_values($fields));
+                if (!isset($groups[$key])) {
+                    $groups[$key] = ['fields' => $fields, 'expense' => 0.0];
+                }
+                $groups[$key]['expense'] += $amount;
+            }
+
+            $details = [];
+            $totals = ['expense' => 0.0, 'remain' => 0.0, 'needed' => 0.0];
+            foreach ($groups as $group) {
+                $fields = $group['fields'];
+                $query = BudgetDetail::where('perpost', $fields['budget_perpost'])
+                    ->where('cpny_id', $fields['budget_cpny_id'])
+                    ->where('status', 'C');
+                foreach ([
+                    'budget_business_unit_id' => 'business_unit_id',
+                    'budget_department_fin_id' => 'department_fin_id',
+                    'budget_account_id' => 'account_id',
+                    'budget_activity_id' => 'activity_id',
+                    'budget_activity_descr' => 'activity_descr',
+                ] as $source => $column) {
+                    if ($fields[$source]) {
+                        $query->where($column, $fields[$source]);
+                    }
+                }
+                $budget = $query->first();
+                $expense = round($group['expense'], 2);
+                $available = $budget
+                    ? (float) $budget->totalbudget + (float) $budget->totalbudget_add
+                        - (float) $budget->total_reserve - (float) $budget->total_used
+                    : 0.0;
+                // Submit sudah mereservasi biaya Issue ini; kembalikan nilainya untuk
+                // menghitung sisa budget sebelum reservasi, sesuai generator RFP.
+                $remain = max(0.0, round($available + $expense, 2));
+                $needed = max(0.0, round($expense - $remain, 2));
+                if ($needed <= 0) {
+                    continue;
+                }
+                $details[] = compact('fields', 'expense', 'remain', 'needed');
+                $totals['expense'] += $expense;
+                $totals['remain'] += $remain;
+                $totals['needed'] += $needed;
+            }
+
+            if (!$details) {
+                throw new \RuntimeException("Tidak ada kekurangan budget untuk Issue {$sourceDocid}.");
+            }
+
+            $year = (int) $dt->year;
+            $month = str_pad((string) $dt->month, 2, '0', STR_PAD_LEFT);
+            $auto = $this->nextAutonbr('IM', $year, $month, $username, 'IMBudget');
+            $docid = 'IM'.substr((string) $year, 2).$month.sprintf('%04d', (int) $auto['next']);
+
+            $header = new TrIMBudget();
+            $header->imbudgetid = $docid;
+            $header->imbudgetdate = $dt->toDateString();
+            $header->doctype = 'IS';
+            $header->issueid = $sourceDocid;
+            $header->cpny_id = $issue->cpny_id;
+            $header->department_id = $issue->department_id;
+            $header->user_peminta = $issue->user_peminta ?: $issue->created_by;
+            $header->keperluan = $issue->issuenote ?: 'Issue '.$sourceDocid;
+            $header->budget_perpost = $issue->budget_perpost;
+            $header->total_amount_expense = round($totals['expense'], 2);
+            $header->total_budget_remain = round($totals['remain'], 2);
+            $header->total_budget_needed = round($totals['needed'], 2);
+            $header->total_budget_requested = round($totals['needed'], 2);
+            $header->status = 'H';
+            $header->created_by = $username;
+            $header->created_at = $dt;
+            $header->save();
+
+            foreach ($details as $line) {
+                $detail = new TrIMBudgetdetail();
+                $detail->imbudgetid = $docid;
+                $detail->doctype = 'IS';
+                $detail->issueid = $sourceDocid;
+                foreach ($line['fields'] as $field => $value) {
+                    $detail->{$field} = $value;
+                }
+                $detail->amount_expense = $line['expense'];
+                $detail->budget_remain = $line['remain'];
+                $detail->budget_needed = $line['needed'];
+                $detail->budget_requested = $line['needed'];
+                $detail->status = 'P';
+                $detail->created_by = $username;
+                $detail->created_at = $dt;
+                $detail->save();
+            }
+
+            $issue->imbudgetid = $docid;
+            $issue->status_imbudget = 'H';
+            $issue->updated_by = $username;
+            $issue->save();
+
+            return $header;
+        });
+    }
+
     public function index()
     {
         $user = Auth::user();
@@ -2220,7 +2501,23 @@ class IMBudgetController extends Controller
         $sourceUrl = null;
         $sourceHash = null;
 
-        if ($imDoctype === 'CS' || !empty($imbudget->csid)) {
+        if ($imDoctype === 'RB' && !empty($imbudget->spbid)) {
+            $sourceLabel = 'SPB';
+            $sourceDocid = $imbudget->spbid;
+            $spbId = TrSPB::where('spbid', $sourceDocid)->value('id');
+            if ($spbId) {
+                $sourceHash = Hashids::encode($spbId);
+                $sourceUrl = url('/showspbs/' . $sourceHash);
+            }
+        } elseif ($imDoctype === 'IS' && !empty($imbudget->issueid)) {
+            $sourceLabel = 'Issue';
+            $sourceDocid = $imbudget->issueid;
+            $issueId = TrIssue::where('issueid', $sourceDocid)->value('id');
+            if ($issueId) {
+                $sourceHash = Hashids::encode($issueId);
+                $sourceUrl = url('/showissue/' . $sourceHash);
+            }
+        } elseif ($imDoctype === 'CS' || !empty($imbudget->csid)) {
             $sourceLabel = 'CS';
             $sourceDocid = $imbudget->csid;
 
@@ -2286,81 +2583,7 @@ class IMBudgetController extends Controller
             'sourceHash'
         ));
     }
-
-
-    public function editIMBudget_xxx($hash)
-    {
-        $user = Auth::user();
-
-        if (!$user) {
-            return redirect()->route('login');
-        }
-
-        $id = Hashids::decode($hash)[0] ?? null;
-        abort_if(!$id, 404);
-
-        $imbudget = TrIMBudget::findOrFail($id);
-
-        // Ambil detail + eager load relasi lokasi & sublokasi
-        $imbudgetdetail = TrIMBudgetdetail::where('imbudgetid', $imbudget->imbudgetid)
-            ->get();
-
-        $user   = request()->user();
-        $usercpny  = Usercpny::where('username', $user->username)->get();
-        $usercpny2 = Usercpny::where('username', $user->username)->first();
-        $userdept  = Userdept::where('username', $user->username)->get();
-        $userdept2 = Userdept::where('username', $user->username)->first();
-
-        $rows = TrAttachment::where('refnbr', $imbudget->imbudgetid)
-            ->where('status', 'A')
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        $config      = config('filesystems.disks.gcs');
-        $keyFilePath = $config['key_file'];
-        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
-            $keyFilePath = base_path($keyFilePath);
-        }
-        $storage = new StorageClient([
-            'projectId'   => $config['project_id'],
-            'keyFilePath' => $keyFilePath,
-        ]);
-        $bucket = $storage->bucket($config['bucket']);
-
-        $attachments = $rows->map(function ($r) use ($bucket) {
-            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
-            $object     = $bucket->object($objectPath);
-            $signedUrl  = null;
-            try {
-                $signedUrl = $object->signedUrl(
-                    new \DateTimeImmutable('+10 minutes'),
-                    ['version' => 'v4']
-                );
-            } catch (\Throwable $e) {
-                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
-            }
-            return (object) [
-                'id'          => $r->id,
-                'display_name' => $r->attachment_name,
-                'created_by'   => $r->created_by,
-                'created_at'   => $r->created_at,
-                'url'          => $signedUrl,
-                'folder'       => $r->folder,
-                'filename'     => $r->filename,
-                'extention'    => $r->extention,
-                'size'         => $r->filesize,
-            ];
-        });
-
-        $cs = TrCS::where('csid', $imbudget->csid)
-            ->first();
-        $eidcs = Hashids::encode($cs->id);
-
-
-        return view('pages.imbudgets.editimbudgets', compact(
-            'imbudget','imbudgetdetail','usercpny','usercpny2','userdept','userdept2','hash','attachments','eidcs'
-        ));
-    }
+    
 
     public function updateIMBudget(Request $request, $hash)
     {
@@ -2533,8 +2756,7 @@ class IMBudgetController extends Controller
             |--------------------------------------------------------------------------
             | 6. Update Status IM ke Source Document
             |--------------------------------------------------------------------------
-            | CS  => updateCSImBudgetStatus
-            | RFP => update tr_rfp_nonpurchase.status_imbudget
+            | Sinkronkan status ke dokumen sumber IM Budget.
             |--------------------------------------------------------------------------
             */
             $statusIm = 'P';
@@ -2544,14 +2766,44 @@ class IMBudgetController extends Controller
                 $this->updateCSImBudgetStatus($header->csid, $statusIm);
             }
 
-            if (!empty($header->rfpnonpurchaseid)) {
-                TrRfpNonPurch::where('rfpnonpurchaseid', $header->rfpnonpurchaseid)
-                    ->update([
-                        'status_imbudget' => $statusIm,
-                        'imbudgetid' => $header->imbudgetid,
-                        'updated_by' => $username,
-                        'updated_at' => $dt,
-                    ]);
+            if (in_array($imDoctype, ['RFP', 'RCA'], true) && !empty($header->rfpnonpurchaseid)) {
+                $this->updateRfpNonPurchImBudgetStatus(
+                    $header->rfpnonpurchaseid,
+                    $header->imbudgetid,
+                    $statusIm,
+                    $username,
+                    $dt
+                );
+            }
+
+            if ($imDoctype === 'RB' && !empty($header->spbid)) {
+                $this->updateSPBImBudgetStatus(
+                    $header->spbid,
+                    $header->imbudgetid,
+                    $statusIm,
+                    $username,
+                    $dt
+                );
+            }
+
+            if ($imDoctype === 'IS' && !empty($header->issueid)) {
+                $this->updateIssueImBudgetStatus(
+                    $header->issueid,
+                    $header->imbudgetid,
+                    $statusIm,
+                    $username,
+                    $dt
+                );
+            }
+
+            if ($imDoctype === 'RP' && !empty($header->rfp_id)) {
+                $this->updateRfpImBudgetStatus(
+                    $header->rfp_id,
+                    $header->imbudgetid,
+                    $statusIm,
+                    $username,
+                    $dt
+                );
             }
 
             /*
@@ -2617,204 +2869,7 @@ class IMBudgetController extends Controller
         }
     }
 
-    public function updateIMBudget_xxx(Request $request, $hash)
-    {
-        $id = Hashids::decode($hash)[0] ?? null;
-        abort_if(!$id, 404, 'IM tidak ditemukan.');
-
-        $user      = $request->user();
-        $dt        = Carbon::now();
-        $doctype   = 'IM';
-        $username  = $user->username ?? 'system';
-
-        // helper angka "1.234,56" => 1234.56
-        $toFloat = function ($v): float {
-            if ($v === null || $v === '') return 0.0;
-            $s = preg_replace('/\s+/', '', (string)$v);
-            $hasComma = strpos($s, ',') !== false;
-            $hasDot   = strpos($s, '.') !== false;
-
-            if ($hasComma && $hasDot) {
-                // anggap format ID: titik = thousand, koma = decimal
-                $s = str_replace('.', '', $s);
-                $s = str_replace(',', '.', $s);
-            } elseif ($hasComma) {
-                $s = str_replace(',', '.', $s);
-            } elseif ($hasDot && substr_count($s, '.') > 1) {
-                $s = str_replace('.', '', $s);
-            }
-            return is_numeric($s) ? (float)$s : 0.0;
-        };
-
-        // Ambil header IM
-        $header = TrIMBudget::findOrFail($id);
-        $cpnyid = $header->cpny_id;
-
-        // Validasi minimal (kalau perlu)
-        // $request->validate([...]);
-
-        // Data header dari form
-        $cpnyId   = $request->input('cpnyid');
-        $deptId   = $request->input('departementid');
-        $perpost  = $request->input('perpost');
-        $imbudgetnote= $request->input('imbudgetnote');
-
-        // Arrays detail dari form (edit versi ringkas)
-        $detailIds          = array_values($request->input('detail_id', []));
-        $coaIds             = array_values($request->input('budget_account_id', []));
-        $actIds             = array_values($request->input('budget_activity_id', []));
-        $actDescrs          = array_values($request->input('budget_activity_descr', []));
-        $amountExpensesVis  = array_values($request->input('amount_expense', []));     // numeric hidden
-        $budgetRemainsVis   = array_values($request->input('budget_remain', []));      // numeric hidden
-        $budgetNeededsVis   = array_values($request->input('budget_needed', []));      // numeric hidden
-        $budgetRequesteds   = array_values($request->input('budget_requested', []));   // editable (ID format)
-        $notes              = array_values($request->input('note', []));               // editable
-
-        // Pastikan line approval tersedia untuk konteks IM
-        $approvalCtl = app(ApprovalController::class);
-        $approvalCtl->loadLines($doctype, $cpnyId, $deptId);
-
-        DB::beginTransaction();
-        try {
-            // 1) Update HEADER
-            $header->cpny_id        = $cpnyId;
-            $header->department_id  = $deptId;
-            $header->budget_perpost = $perpost;
-            $header->imbudgetnote      = $imbudgetnote;
-            $header->status         = 'P';               // submit approval dari mode edit
-            $header->updated_by     = $username;
-            $header->save();
-
-            // 2) Update DETAIL (hanya request & note, angka lain readonly)
-            $rowCount = max(count($detailIds), count($budgetRequesteds));
-            $totalRequested = 0.0;
-            $totalNeeded    = 0.0; // bila ingin ikut diakumulasi dari hidden
-
-            for ($i = 0; $i < $rowCount; $i++) {
-                $detailId     = $detailIds[$i]          ?? null;
-                $budgetReqVis = $budgetRequesteds[$i]   ?? null; // "1.234,56"
-                $note         = $notes[$i]              ?? null;
-
-                // Hidden numerik (pastikan numeric double di DB)
-                $amountExpense = (float) ($amountExpensesVis[$i] ?? 0);
-                $budgetRemain  = (float) ($budgetRemainsVis[$i]  ?? 0);
-                $budgetNeeded  = (float) ($budgetNeededsVis[$i]  ?? 0);
-
-                // Parse budget requested display -> float
-                $budgetRequested = $toFloat($budgetReqVis);
-
-                // Simpan hanya jika detail id valid
-                if ($detailId) {
-                    $detail = TrIMBudgetdetail::where('id', $detailId)
-                        ->where('imbudgetid', $header->imbudgetid)
-                        ->first();
-
-                    if ($detail) {
-                        $detail->budget_requested   = $budgetRequested;
-                        $detail->note               = $note;
-
-                        // Kalau ingin “sinkronisasi tampilan” (opsional): simpan readonly juga (aman)
-                        // $detail->amount_expense  = $amountExpense;
-                        // $detail->budget_remain   = $budgetRemain;
-                        // $detail->budget_needed   = $budgetNeeded;
-
-                        $detail->updated_by         = $username;
-                        $detail->save();
-
-                        $totalRequested += (float)$detail->budget_requested;
-                        $totalNeeded    += (float)($detail->budget_needed ?? 0);
-                    }
-                }
-            }
-
-            // 3) Update total header
-            $header->total_budget_requested = $totalRequested;
-            // Opsional: jika mau tampilan ringkas “needed” ikut terisi di header
-            if ($totalNeeded > 0) {
-                $header->total_budget_needed = $totalNeeded;
-            }
-            $header->save();
-
-            $activity = 'Submit';
-            $docid = $header->imbudgetid;
-
-            $this->reserveBudget($doctype, $docid,$cpnyid, $activity, $username);
-
-            // 4) Generate TrApproval utk dokumen IM
-            $ctx = [
-                'ignore_nominal' => false,
-                'grand_total'    => (float)$totalRequested, // kalau engine perlu total
-            ];
-
-            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                $header->imbudgetid,   // refnbr IM
-                $doctype,              // 'IM'
-                $cpnyId,
-                $deptId,
-                $username,
-                $ctx,
-                $dt
-            );
-
-            if ($firstApprovalUsernames) {
-                $header->completed_by = $firstApprovalUsernames;
-                $header->completed_at = $dt;
-                $header->save();
-            }
-
-            $csid = $header->csid;
-            $statusIm = 'P';
-            $this->updateCSImBudgetStatus($csid, $statusIm);
-
-            // 5) Attachment (opsional)
-            $uploadResult = null;
-            if ($request->hasFile('attachments')) {
-                $meta = [
-                    'refnbr'        => $header->imbudgetid,
-                    'doctype'       => $doctype,
-                    'cpnyid'        => $cpnyId,
-                    'departementid' => $deptId,
-                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
-                    'created_by'    => $username,
-                ];
-                $files = (array)$request->file('attachments');
-                $uploader = app(TrAttachmentController::class);
-                $uploadResult = $uploader->uploadInternal($meta, $files);
-            }
-
-            // 6) Notif approver pertama (kalau ada line)
-            if ($linesCount > 0) {
-                $eidIM = Hashids::encode($header->id); // hash id numerik TrIMBudget
-                $approvalCtl->notifyFirstApprover(
-                    $header->imbudgetid,
-                    $doctype,
-                    $header->status, // 'P'
-                    'IMBudget',
-                    url('/showimbudgets/' . $eidIM),
-                    [
-                        'info'      => $header->imbudgetnote ?? '',
-                        'createdby' => $header->created_by,
-                        'date'      => $dt->toDateTimeString(),
-                    ]
-                );
-            }
-
-            DB::commit();
-            return response()->json([
-                'message' => 'IMBudget updated & submitted successfully',
-                'total_budget_requested' => $totalRequested,
-            ]);
-
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            report($e);
-            return response()->json([
-                'message' => 'Update failed',
-                'error'   => $e->getMessage()
-            ], 500);
-        }
-    }
-
+   
 
     public function showIMBudget($hash)
     {
@@ -2928,6 +2983,7 @@ class IMBudgetController extends Controller
         $imDoctype = strtoupper(trim((string) ($imbudget->doctype ?? '')));
 
         $eid_cs = null;
+        $eid_spb = null;
         $eid_sppbjkt = null;
         $eid_rfp = null;
         $eid_rfpnonpurchase = null;
@@ -2938,6 +2994,11 @@ class IMBudgetController extends Controller
         $srcDetails = null;
         $docid = null;
         $sourceLabel = null;
+
+        if (trim((string) ($imbudget->spbid ?? '')) !== '') {
+            $spbId = TrSPB::where('spbid', $imbudget->spbid)->value('id');
+            $eid_spb = $spbId ? Hashids::encode($spbId) : null;
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -3083,6 +3144,7 @@ class IMBudgetController extends Controller
             'canUpload',
             'isApprover',
             'eid_cs',
+            'eid_spb',
             'eid_sppbjkt',
             'eid_rfp',
             'eid_rfpnonpurchase',
@@ -3096,218 +3158,8 @@ class IMBudgetController extends Controller
             'budgetClasses'
         ));
     }
-
-    public function showIMBudget_xxx($hash)
-    {
-        $user = Auth::user();
-
-        if (!$user) {
-            return redirect()->route('login');
-        }
-
-        $id = Hashids::decode($hash)[0] ?? null;
-        abort_if(!$id, 404);
-
-        // $imbudget = TrIMBudget::findOrFail($id);
-        $imbudget = TrIMBudget::with([
-            'creator:username,name'
-        ])
-        ->findOrFail($id);
-
-        // $imbudgetdetail = TrIMBudgetdetail::where('imbudgetid', $imbudget->imbudgetid)
-        //     ->get();
-
-        $imbudgetdetail = TrIMBudgetdetail::where('imbudgetid', $imbudget->imbudgetid)
-            ->get();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Budget Type Badge
-        |--------------------------------------------------------------------------
-        | Rule:
-        | jika ada detail budget_remain > 0  => Over Budget
-        | jika semua budget_remain <= 0      => Unbudget
-        */
-        $hasOverBudget = $imbudgetdetail->contains(function ($row) {
-            return (float) ($row->budget_remain ?? 0) > 0;
-        });
-
-        $budgetType = $hasOverBudget ? 'Over Budget' : 'Unbudget';
-
-        if ($budgetType === 'Over Budget') {
-            $budgetClasses = 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300';
-        } elseif ($budgetType === 'Unbudget') {
-            $budgetClasses = 'bg-amber-100 text-amber-700 dark:bg-amber-800/30 dark:text-amber-300';
-        } else {
-            $budgetClasses = '';
-        }
-
-        // ---------- ambil lampiran dari tr_attachment ----------
-        $rows = TrAttachment::where('refnbr', $imbudget->imbudgetid)
-            ->where('status', 'A')
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        // siapkan Signed URL dari GCS
-        $config = config('filesystems.disks.gcs');
-        $keyFilePath = $config['key_file'];
-        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
-            $keyFilePath = base_path($keyFilePath);
-        }
-
-        $storage = new StorageClient([
-            'projectId'   => $config['project_id'],
-            'keyFilePath' => $keyFilePath,
-        ]);
-        $bucket = $storage->bucket($config['bucket']);
-
-        // map jadi data siap pakai di view
-        $attachments = $rows->map(function ($r) use ($bucket) {
-            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;   // ex: att-purchasing-app/wo/2025/xxxx-file.pdf
-            $object     = $bucket->object($objectPath);
-
-            // Signed URL 10 menit
-            $signedUrl = null;
-            try {
-                $signedUrl = $object->signedUrl(
-                    new \DateTimeImmutable('+10 minutes'),
-                    ['version' => 'v4']
-                );
-            } catch (\Throwable $e) {
-                // kalau gagal signed URL, biarkan null; di UI tampilkan nama saja
-                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
-            }
-
-            return (object) [
-                'display_name' => $r->attachment_name,         // nama yang enak dibaca
-                'created_by'   => $r->created_by,
-                'created_at'   => $r->created_at,
-                'url'          => $signedUrl,                  // bisa null jika gagal
-                'folder'       => $r->folder,
-                'filename'     => $r->filename,
-                'extention'    => $r->extention,
-                'size'         => $r->filesize,
-            ];
-        });
-
-        // ---- Prev CS (AMAN null) ----
-        $eid_cs = null;
-        if (!empty($imbudget->csid)) {
-            $cs = TrCS::where('csid', $imbudget->csid)->first(); // <- pakai csid yg direferensikan
-            $eid_cs = $cs ? Hashids::encode($cs->id) : null;
-        }
-
-        $prefix = strtoupper(substr((string)$imbudget->sppbjktid, 0, 2));
-
-        $srcHeader  = null;
-        $srcDetails = null;
-        $docid      = null;
-
-        if ($prefix == 'PB') {
-            $srcHeader  = TrSPPB::with(['requestType', 'creator', 'purchaser'])->where('sppbid', $imbudget->sppbjktid)->first();
-            $docid      = $srcHeader->sppbid;
-        } elseif ($prefix == 'PJ') {
-            $srcHeader  = TrSPPJ::with(['requestType', 'creator', 'purchaser'])->where('sppjid', $imbudget->sppbjktid)->first();
-            $docid      = $srcHeader->sppjid;
-        } elseif ($prefix == 'PK') {
-            $srcHeader  = TrSPPK::with(['requestType', 'creator', 'purchaser'])->where('sppkid', $imbudget->sppbjktid)->first();
-            $docid      = $srcHeader->sppkid;
-        } elseif ($prefix == 'PT') {
-            $srcHeader  = TrSPPT::with(['requestType', 'creator', 'purchaser'])->where('spptid', $imbudget->sppbjktid)->first();
-            $docid      = $srcHeader->spptid;
-        } else {
-            abort(422, 'Invalid doc type');
-        }
-
-        // kalau srcHeader tidak ketemu, jangan fatal error di encode
-        $eid_sppbjkt = $srcHeader ? Hashids::encode($srcHeader->id) : null;
-
-        $loginUsername = $user->username ?? $user->name ?? null;
-        $canUpload     = $imbudget->user_peminta === $loginUsername;
-
-
-        return view('pages.imbudgets.showimbudgets', compact('imbudget','attachments','imbudgetdetail','hash','canUpload','eid_cs','eid_sppbjkt','prefix','docid', 'budgetType','budgetClasses'));
-    }
-
-
-
-    public function approveIMBudget_xxx(Request $request, $docid)
-    {
-        $user    = $request->user();
-        $doctype = 'IM';
-
-        $imbudget = TrIMBudget::with('creator')->where('imbudgetid', $docid)->first();
-        if (!$imbudget) return response()->json(['success'=>false,'message'=>'IMBudget not found'],404);
-
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($imbudget->id);
-        $docUrl   = url('/showimbudgets/' . $eid);
-        $fullname = data_get($imbudget, 'creator.name') ?: $imbudget->created_by;
-
-        $result = app(\App\Http\Controllers\ApprovalController::class)->approveStep(
-            $imbudget->imbudgetid,
-            $doctype,
-            $user->username,
-            $user->name,
-
-            // complete: update header/detail + email creator complete
-            function (string $refnbr, \Carbon\Carbon $now) use ($imbudget, $fullname, $docUrl) {
-                $imbudget->status       = 'C';
-                $imbudget->completed_by = $imbudget->completed_by ?: auth()->user()->username;
-                $imbudget->completed_at = $now;
-                $imbudget->save();
-
-                TrIMBudgetdetail::where('imbudgetid', $imbudget->imbudgetid)->update(['status' => 'C']);
-
-                $csid = $imbudget->csid;
-                $statusIm = 'C';
-                $this->updateCSImBudgetStatus($csid, $statusIm);
-
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
-                    $imbudget->imbudgetid,
-                    'IMBudget',
-                    'C',
-                    $imbudget->created_by,
-                    $docUrl,
-                    [
-                        'cpnyid'   => $imbudget->cpny_id ?? $imbudget->cpnyid ?? '',
-                        'deptname' => $imbudget->department_id ?? $imbudget->departementid ?? '',
-                        'date'     => $imbudget->imbudgetdate,
-                        'info'     => $imbudget->keperluan,
-                        'fullname' => $fullname,
-                        'name'     => $fullname,
-                        'createdby'=> $fullname,
-                    ]
-                );
-            },
-
-            // notify next approver
-            function ($next, \Carbon\Carbon $now) use ($imbudget, $docUrl) {
-                app(\App\Http\Controllers\ApprovalController::class)->notifyFirstApprover(
-                    $imbudget->imbudgetid,
-                    'IM',
-                    'P',
-                    'IMBudget',
-                    $docUrl,
-                    [
-                        'info'      => $imbudget->keperluan,
-                        'createdby' => $imbudget->created_by,
-                        'date'      => $now->toDateTimeString(),
-                    ]
-                );
-
-                // jejak terakhir diproses (optional)
-                $imbudget->completed_by = auth()->user()->username;
-                $imbudget->completed_at = $now;
-                $imbudget->save();
-            }
-        );
-
-        if (!$result['ok']) {
-            return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Approve failed'], 403);
-        }
-
-        return response()->json(['success'=>true,'message'=>'Task approved successfully']);
-    }
+ 
+  
 
     public function approveIMBudget(Request $request, $docid)
     {
@@ -3735,258 +3587,8 @@ class IMBudgetController extends Controller
             ], 500);
         }
     }
-
-    public function rejectIMBudget_xxx(Request $request, $docid)
-    {
-        $user    = $request->user();
-        $doctype = 'IM';
-
-        $imbudget = \App\Models\TrIMBudget::with('creator')->where('imbudgetid', $docid)->first();
-        if (!$imbudget) return response()->json(['success'=>false,'message'=>'IMBudget not found'],404);
-
-        $cpnyid = $imbudget->cpny_id;
-
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($imbudget->id);
-        $docUrl   = url('/showimbudgets/' . $eid);
-        $fullname = data_get($imbudget, 'creator.name') ?: $imbudget->created_by;
-
-        $result = app(\App\Http\Controllers\ApprovalController::class)->rejectStep(
-            $imbudget->imbudgetid,
-            $doctype,
-            $user->username,
-            $user->name,
-
-            function (string $refnbr, \Carbon\Carbon $now) use ($imbudget, $fullname, $docUrl) {
-                $imbudget->status       = 'R';
-                $imbudget->completed_by = auth()->user()->username;
-                $imbudget->completed_at = $now;
-                $imbudget->save();
-
-                $activity = 'Reject';
-                $docid = $imbudget->imbudgetid;
-                $username = auth()->user()->username;
-                $doctype = 'IM';
-
-                $this->reserveBudget($doctype, $docid,$cpnyid, $activity, $username);
-
-                $csid = $imbudget->csid;
-                $statusIm = 'R';
-                $this->updateCSImBudgetStatus($csid, $statusIm);
-
-                // optional: tandai detail R
-                // \App\Models\TrIMBudgetdetail::where('imbudgetid', $imbudget->imbudgetid)->update(['status' => 'R']);
-
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
-                    $imbudget->imbudgetid,
-                    'IMBudget',
-                    'R',
-                    $imbudget->created_by,
-                    $docUrl,
-                    [
-                        'cpnyid'   => $imbudget->cpny_id ?? $imbudget->cpnyid ?? '',
-                        'deptname' => $imbudget->department_id ?? $imbudget->departementid ?? '',
-                        'date'     => $now->toDateString(),
-                        'info'     => $imbudget->keperluan,
-                        'fullname' => $fullname,
-                        'name'     => $fullname,
-                        'createdby'=> $fullname,
-                    ]
-                );
-
-                // simpan komentar (jika ada)
-                try {
-                    app('App\Http\Controllers\SendCommentController')->sendmsg($imbudget->id, 'IM', request());
-                } catch (\Throwable $e) {}
-            }
-        );
-
-        if (!$result['ok']) {
-            return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Reject failed'], 403);
-        }
-
-        return response()->json(['success'=>true,'message'=>'IMBudget rejected successfully']);
-    }
-
-    public function reviseIMBudget_xxx(Request $request, $docid)
-    {
-        $user    = $request->user();
-        $doctype = 'IM';
-
-        $imbudget = \App\Models\TrIMBudget::with('creator')
-            ->where('imbudgetid', $docid)
-            ->first();
-
-        if (!$imbudget) {
-            return response()->json([
-                'success' => false,
-                'message' => 'IMBudget not found'
-            ], 404);
-        }
-
-        $cpnyid   = $imbudget->cpny_id;
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($imbudget->id);
-        $docUrl   = url('/showimbudgets/' . $eid);
-        $fullname = data_get($imbudget, 'creator.name') ?: $imbudget->created_by;
-
-        $result = app(\App\Http\Controllers\ApprovalController::class)->reviseStep(
-            $imbudget->imbudgetid,
-            $doctype,
-            $user->username,
-            $user->name,
-            function (string $refnbr, \Carbon\Carbon $now) use ($imbudget, $fullname, $docUrl, $cpnyid) {
-                // HEADER IMBudget -> D
-                $imbudget->status       = 'D';
-                $imbudget->completed_by = auth()->user()->username;
-                $imbudget->completed_at = $now;
-                $imbudget->save();
-
-                $activity = 'Revise';
-                $docid    = $imbudget->imbudgetid;
-                $username = auth()->user()->username;
-                $doctype  = 'IM';
-
-                $this->reserveBudget($doctype, $docid, $cpnyid, $activity, $username);
-
-                $csid = $imbudget->csid;
-                $statusIm = 'D';
-                $this->updateCSImBudgetStatus($csid, $statusIm);
-
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
-                    $imbudget->imbudgetid,
-                    'IMBudget',
-                    'D',
-                    $imbudget->created_by,
-                    $docUrl,
-                    [
-                        'cpnyid'    => $imbudget->cpny_id ?? $imbudget->cpnyid ?? '',
-                        'deptname'  => $imbudget->department_id ?? $imbudget->departementid ?? '',
-                        'date'      => $now->toDateString(),
-                        'info'      => $imbudget->keperluan,
-                        'fullname'  => $fullname,
-                        'name'      => $fullname,
-                        'createdby' => $fullname,
-                    ]
-                );
-
-                try {
-                    app('App\Http\Controllers\SendCommentController')->sendmsg($imbudget->id, 'IM', request());
-                } catch (\Throwable $e) {
-                }
-            }
-        );
-
-        return response()->json($result);
-    }
-
-    // public function tracking($hash)
-    // {
-    //     $id = Hashids::decode($hash)[0] ?? null;
-    //     abort_if(!$id, 404);
-
-    //     $imbudget = TrIMBudget::findOrFail($id);
-
-    //     $getName = function (?string $username) {
-    //         if (!$username) return null;
-    //         $u = \App\Models\User::where('username', $username)->first();
-    //         return $u->name ?? $username;
-    //     };
-
-    //     $createdByName = $getName($imbudget->created_by ?? null);
-    //     $createdAt     = $imbudget->created_at ? \Carbon\Carbon::parse($imbudget->created_at)->format('Y-m-d H:i') : null;
-
-    //     $completedByName = $getName($imbudget->completed_by ?? null);
-    //     $completedAt     = $imbudget->completed_at ? \Carbon\Carbon::parse($imbudget->completed_at)->format('Y-m-d H:i') : null;
-
-    //     // kolom opsional, kalau tidak ada biarkan null
-    //     $rejectedByName  = $getName($imbudget->rejected_by ?? null);
-    //     $rejectedAt      = isset($imbudget->rejected_at) ? \Carbon\Carbon::parse($imbudget->rejected_at)->format('Y-m-d H:i') : null;
-
-    //     $revisedByName   = $getName($imbudget->revised_by ?? null);
-    //     $revisedAt       = isset($imbudget->revised_at) ? \Carbon\Carbon::parse($imbudget->revised_at)->format('Y-m-d H:i') : null;
-
-    //     $status = (string) ($imbudget->status ?? '');
-    //     $labelMap = [
-    //         'P' => 'Waiting approval',
-    //         'R' => 'Rejected',
-    //         'D' => 'Revise',
-    //         'C' => 'Completed',
-    //     ];
-    //     $statusLabel = $labelMap[$status] ?? $status;
-
-    //     // selalu mulai dari Submitted
-    //     $steps = [[
-    //         'key'          => 'submitted',
-    //         'title'        => 'IMBudget',
-    //         'status'       => 'C',              // dibuat = completed
-    //         'status_label' => 'Submitted',
-    //         'by'           => $createdByName,
-    //         'at'           => $createdAt,
-    //     ]];
-
-    //     switch ($status) {
-    //         case 'P':
-    //             // masih menunggu/berjalan → tampilkan Approval saja
-    //             $steps[] = [
-    //                 'key'          => 'approval',
-    //                 'title'        => 'Approval',
-    //                 'status'       => 'P',
-    //                 'status_label' => 'Waiting approval',
-    //                 'by'           => $completedByName,
-    //                 'at'           => $completedAt,
-    //             ];
-    //             break;
-
-    //         case 'R':
-    //             // DITOLAK → langsung Submitted → Rejected (tanpa Approval)
-    //             $steps[] = [
-    //                 'key'          => 'rejected',
-    //                 'title'        => 'Rejected',
-    //                 'status'       => 'R',
-    //                 'status_label' => 'Rejected',
-    //                 'by'           => $completedByName,
-    //                 'at'           => $completedAt,
-    //             ];
-    //             break;
-
-    //         case 'D':
-    //             // REVISE → Submitted → Revise
-    //             $steps[] = [
-    //                 'key'          => 'revise',
-    //                 'title'        => 'Revise',
-    //                 'status'       => 'D',
-    //                 'status_label' => 'Revise',
-    //                 'by'           => $completedByName,
-    //                 'at'           => $completedAt,
-    //             ];
-    //             break;
-
-    //         case 'C':
-    //             // SELESAI → bisa langsung Submitted → Completed
-    //             // (kalau kamu ingin menampilkan Approval yang sudah dilalui,
-    //             // tambahkan step 'approval' sebelum 'completed')
-    //             $steps[] = [
-    //                 'key'          => 'completed',
-    //                 'title'        => 'Completed',
-    //                 'status'       => 'C',
-    //                 'status_label' => 'Completed',
-    //                 'by'           => $completedByName,
-    //                 'at'           => $completedAt,
-    //             ];
-    //             break;
-
-    //         default:
-    //             // status tidak dikenal → biarkan hanya Submitted
-    //             break;
-    //     }
-
-    //     return response()->json([
-    //         'doc'   => $imbudget->imbudgetid ?? (string)$imbudget->id,
-    //         'steps' => $steps,
-    //         'status'=> $status,
-    //         'status_label' => $statusLabel,
-    //     ]);
-    // }
-
+  
+  
     public function tracking($id)
     {
         // ======================
@@ -4391,7 +3993,12 @@ class IMBudgetController extends Controller
         string $username,
         \Carbon\Carbon $now
     ): void {
-        // TODO: isi nanti kalau model/table SPB sudah diberikan.
+        TrSPB::where('spbid', $spbid)->update([
+            'imbudgetid' => $imbudgetid,
+            'status_imbudget' => $statusIm,
+            'updated_by' => $username,
+            'updated_at' => $now,
+        ]);
     }
 
     private function updateIssueImBudgetStatus(
@@ -4401,7 +4008,12 @@ class IMBudgetController extends Controller
         string $username,
         \Carbon\Carbon $now
     ): void {
-        // TODO: isi nanti kalau model/table Issue sudah diberikan.
+        TrIssue::where('issueid', $issueid)->update([
+            'imbudgetid' => $imbudgetid,
+            'status_imbudget' => $statusIm,
+            'updated_by' => $username,
+            'updated_at' => $now,
+        ]);
     }
 
     private function updateRfpImBudgetStatus(
