@@ -7,7 +7,6 @@ use App\Models\MsDepartment;
 use App\Models\MsTrainingEvent;
 use App\Models\TrLndTrainingRegistration;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -37,12 +36,8 @@ class TrainingReportEmployeesExport implements
 
     public function collection()
     {
-        $user = Auth::user();
-
         $query = TrLndTrainingRegistration::where('status', TrLndTrainingRegistration::STATUS_APPROVED)
-            ->whereNotNull('completed_at')
-            ->whereIn('cpny_id', $user->scopedCompanyIds())
-            ->whereIn('department_id', $user->scopedDepartmentIds());
+            ->whereNotNull('completed_at');
 
         if (!empty($this->filters['date_from'])) {
             $query->whereDate('schedule_date', '>=', $this->filters['date_from']);

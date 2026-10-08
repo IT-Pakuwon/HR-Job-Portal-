@@ -451,17 +451,16 @@ class TrainingAttendanceController extends Controller
     }
 
     /**
-     * Dropdown data for the Training Report tab — trainings/companies/
-     * departments scoped to what the current user is allowed to see, same
-     * scoping helpers used by the GA reports.
+     * Dropdown data for the Training Report tab — every training/company/
+     * department. Deliberately NOT scoped to the viewer's own company/
+     * department: this report is for HCDEV, who review training across the
+     * whole group (access is already gated by TRAININGATTENDANCE).
      */
     public function reportFilters()
     {
-        $user = Auth::user();
-
         $trainings = MsTrainingEvent::orderBy('training_name')->pluck('training_name', 'training_id');
-        $companies = MsCompany::whereIn('cpny_id', $user->scopedCompanyIds())->orderBy('cpny_name')->pluck('cpny_name', 'cpny_id');
-        $departments = MsDepartment::whereIn('department_id', $user->scopedDepartmentIds())->orderBy('department_name')->pluck('department_name', 'department_id');
+        $companies = MsCompany::orderBy('cpny_name')->pluck('cpny_name', 'cpny_id');
+        $departments = MsDepartment::orderBy('department_name')->pluck('department_name', 'department_id');
 
         return response()->json([
             'trainings' => $trainings->map(fn ($name, $id) => ['id' => $id, 'name' => $name])->values(),
@@ -472,18 +471,13 @@ class TrainingAttendanceController extends Controller
 
     /**
      * Base "attended" query shared by the report summary and employee list —
-     * approved + actually checked in (completed_at set), scoped to the
-     * user's allowed companies/departments and narrowed by whatever report
-     * filters were submitted.
+     * approved + actually checked in (completed_at set), across all companies
+     * and departments, narrowed by whatever report filters were submitted.
      */
     private function reportAttendanceQuery(Request $request)
     {
-        $user = Auth::user();
-
         $query = TrLndTrainingRegistration::where('status', TrLndTrainingRegistration::STATUS_APPROVED)
-            ->whereNotNull('completed_at')
-            ->whereIn('cpny_id', $user->scopedCompanyIds())
-            ->whereIn('department_id', $user->scopedDepartmentIds());
+            ->whereNotNull('completed_at');
 
         if ($request->filled('date_from')) {
             $query->whereDate('schedule_date', '>=', $request->date_from);
