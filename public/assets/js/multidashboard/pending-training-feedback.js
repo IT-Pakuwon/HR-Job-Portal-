@@ -25,9 +25,12 @@
     function render(container) {
         if (!currentRows.length) {
             container.innerHTML = '';
+            // an empty grid item still takes a row (+ the grid's row gap), so keep it out of layout
+            container.classList.add('hidden');
             return;
         }
 
+        container.classList.remove('hidden');
         container.innerHTML = currentRows.map(function (row, idx) {
             var name = esc(row.training_name || '-');
             var bySuffix = row.speaker_name ? ' by ' + esc(row.speaker_name) : '';

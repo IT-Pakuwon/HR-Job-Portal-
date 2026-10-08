@@ -45,7 +45,16 @@ class MyActivityController extends Controller
         'U' => 'Unposted', 'I' => 'In Progress', 'A' => 'Active',
     ];
 
-    private const PAGE_SIZE = 10;
+    // Same letter, different meaning per module — these win over STATUS_LABELS.
+    private const STATUS_BY_URL = [
+        // GA closed it without assigning a car (Cancel by User / Handle by Taxi / Unserved Request)
+        '/showbookingcar'       => ['U' => 'Unserved'],
+        '/showitrecommendation' => ['W' => 'Pending Review'],
+    ];
+
+    private const PAGE_SIZES = [10, 25, 50, 100];
+
+    private int $perPage = 10;
 
     // Documents come from four separate databases, so they are merged in memory and
     // paged from that: newest N per view is plenty for one person's own documents.
@@ -56,6 +65,7 @@ class MyActivityController extends Controller
     {
         $username = $this->username($request);
         if (!$username) return response()->json(['data' => [], 'types' => []], 401);
+        $this->perPage = $this->perPage($request);
 
         $q    = trim((string) $request->query('q'));
         $type = trim((string) $request->query('type'));
@@ -86,8 +96,10 @@ class MyActivityController extends Controller
 
         $all = $rows->unique('docid')->map(fn ($r) => [
             'docid'  => $r->docid,
+            'company' => $r->cpnyid,
+            'dept'   => $r->departementid,
             'type'   => self::URL_LABELS[$r->url] ?? $r->doctype,
-            'status' => $this->statusLabel($r->status),
+            'status' => $this->statusLabel($r->status, $r->url),
             'code'   => strtoupper(trim((string) $r->status)),
             'info'   => $this->plain($r->infohd, 100),
             'date'   => $r->docdate,
@@ -96,7 +108,7 @@ class MyActivityController extends Controller
 
         $types = $all->pluck('type')->unique()->sort()->values();
 
-        $statuses = $all->unique('code')->sortBy('status')
+        $statuses = $all->unique(fn ($r) => $r['code'] . '|' . $r['status'])->sortBy('status')
             ->map(fn ($r) => ['code' => $r['code'], 'label' => $r['status']])->values();
 
         if ($type !== '') $all = $all->where('type', $type);
@@ -107,7 +119,7 @@ class MyActivityController extends Controller
         $page  = $this->page($request, $total);
 
         return response()->json([
-            'data'  => $all->slice(($page - 1) * self::PAGE_SIZE, self::PAGE_SIZE)->values(),
+            'data'  => $all->slice(($page - 1) * $this->perPage, $this->perPage)->values(),
             'types' => $types,
             'statuses' => $statuses,
         ] + $this->pageMeta($page, $total));
@@ -118,6 +130,7 @@ class MyActivityController extends Controller
     {
         $username = $this->username($request);
         if (!$username) return response()->json(['data' => []], 401);
+        $this->perPage = $this->perPage($request);
 
         $q = trim((string) $request->query('q'));
 
@@ -135,8 +148,8 @@ class MyActivityController extends Controller
         $page  = $this->page($request, $total);
 
         $messages = $query->orderByDesc('message_date')->orderByDesc('id')
-            ->forPage($page, self::PAGE_SIZE)
-            ->get(['id', 'refnbr', 'doctype', 'message_date', 'message_type', 'message']);
+            ->forPage($page, $this->perPage)
+            ->get(['id', 'refnbr', 'doctype', 'cpny_id', 'department_id', 'message_date', 'message_type', 'message']);
 
         // Resolve each commented document's link/type/status in one pass per view.
         $docs = $this->resolveDocuments($messages->pluck('refnbr')->filter()->unique()->values());
@@ -147,6 +160,8 @@ class MyActivityController extends Controller
             return [
                 'id'      => $m->id,
                 'docid'   => $m->refnbr,
+                'company' => $m->cpny_id,
+                'dept'    => $m->department_id,
                 'type'    => $doc['type'] ?? $m->doctype,
                 'private' => $m->message_type === 'Private',
                 'text'    => Str::limit(TrMessage::plainText(strip_tags((string) $m->message)), 220),
@@ -161,7 +176,7 @@ class MyActivityController extends Controller
     // Requested page, clamped to 1..last so a stale page number after a new filter still lands on data.
     private function page(Request $request, int $total): int
     {
-        $last = max(1, (int) ceil($total / self::PAGE_SIZE));
+        $last = max(1, (int) ceil($total / $this->perPage));
 
         return min(max(1, (int) $request->query('page', 1)), $last);
     }
@@ -170,10 +185,10 @@ class MyActivityController extends Controller
     {
         return [
             'page'      => $page,
-            'last_page' => max(1, (int) ceil($total / self::PAGE_SIZE)),
+            'last_page' => max(1, (int) ceil($total / $this->perPage)),
             'total'     => $total,
-            'from'      => $total ? ($page - 1) * self::PAGE_SIZE + 1 : 0,
-            'to'        => min($page * self::PAGE_SIZE, $total),
+            'from'      => $total ? ($page - 1) * $this->perPage + 1 : 0,
+            'to'        => min($page * $this->perPage, $total),
         ];
     }
 
@@ -204,6 +219,13 @@ class MyActivityController extends Controller
         return $map;
     }
 
+    private function perPage(Request $request): int
+    {
+        $n = (int) $request->query('per_page', 10);
+
+        return in_array($n, self::PAGE_SIZES, true) ? $n : 10;
+    }
+
     private function username(Request $request): ?string
     {
         $u = $request->user()?->username;
@@ -211,11 +233,11 @@ class MyActivityController extends Controller
         return $u ? strtolower(trim($u)) : null;
     }
 
-    private function statusLabel(?string $code): string
+    private function statusLabel(?string $code, ?string $url = null): string
     {
         $code = strtoupper(trim((string) $code));
 
-        return self::STATUS_LABELS[$code] ?? ($code ?: '-');
+        return self::STATUS_BY_URL[$url][$code] ?? self::STATUS_LABELS[$code] ?? ($code ?: '-');
     }
 
     // Some columns hold rich text with inline base64 images — strip and cap.
