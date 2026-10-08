@@ -98,6 +98,15 @@
                                 ],
                             ];
 
+                            if (trim((string) ($spb->imbudgetid ?? '')) !== '') {
+                                $fields[] = [
+                                    'icon' => 'document-text',
+                                    'label' => 'IM Budget',
+                                    'value' => $spb->imbudgetid,
+                                    'link' => $imBudgetHash ? url('/showimbudgets/' . $imBudgetHash) : null,
+                                ];
+                            }
+
                             $worktypeText = optional($spb->worktype)->worktype_name ?? '-';
                             $subText = optional($spb->subworktype)->subworktype_name;
 
@@ -120,7 +129,7 @@
 
                                     <span class="{{ $value }}">
                                         @if (!empty($f['link']))
-                                            <a href="{{ $f['link'] }}" target="_blank"
+                                            <a href="{{ $f['link'] }}" target="_blank" rel="noopener noreferrer"
                                                 class="font-semibold text-indigo-600 hover:underline">
                                                 {{ $f['value'] }}
                                             </a>
@@ -373,6 +382,7 @@
                                 <th class="px-4 py-2">Description / Note</th>
                                 <th class="px-4 py-2">Stock</th>
                                 <th class="px-4 py-2">Qty / UoM</th>
+                                <th class="px-4 py-2 text-right">Cost / Total Cost</th>
                                 <th class="px-4 py-2">Location</th>
                                 <th class="px-4 py-2">Budget Department</th>
                                 <th class="px-4 py-2">Issue Qty</th>
@@ -426,6 +436,14 @@
 
                                         <div class="text-xs text-gray-500 dark:text-gray-400">
                                             {{ $item->uom }}
+                                        </div>
+                                    </td>
+
+                                    <!-- Cost -->
+                                    <td class="px-4 py-3 text-right whitespace-nowrap">
+                                        <div>{{ $item->unitcost !== null ? number_format($item->unitcost, 2, ',', '.') : '-' }}</div>
+                                        <div class="font-bold text-gray-900 dark:text-white">
+                                            {{ $item->totalcost !== null ? number_format($item->totalcost, 2, ',', '.') : '-' }}
                                         </div>
                                     </td>
 
@@ -991,7 +1009,7 @@
             approveSPB(spbid);
         });
 
-        function approveSPB(spbid) {
+        function approveSPB(spbid, confirmGenerateIM = false) {
             let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
 
             // Tampilkan spinner di kanan bawah
@@ -1002,9 +1020,36 @@
                 type: "POST",
                 data: {
                     _token: "{{ csrf_token() }}",
-                    spbid: spbid
+                    spbid: spbid,
+                    confirm_generate_im: confirmGenerateIM ? 1 : 0
                 },
                 success: function(response) {
+                    if (response.need_confirm_generate_im) {
+                        Swal.fire({
+                            title: 'Generate IM Budget?',
+                            text: response.message,
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonText: 'Ya, generate',
+                            cancelButtonText: 'Batal'
+                        }).then((result) => {
+                            if (result.isConfirmed) approveSPB(spbid, true);
+                        });
+                        return;
+                    }
+                    if (response.code === 'IM_IN_PROGRESS') {
+                        Swal.fire({icon: 'warning', title: 'Tidak bisa approve', text: response.message});
+                        return;
+                    }
+                    if (response.code === 'IM_CREATED_HOLD') {
+                        toastr.success(response.message);
+                        if (response.imbudget_show_url) {
+                            window.location.href = response.imbudget_show_url;
+                        } else {
+                            window.location.reload();
+                        }
+                        return;
+                    }
                     if (response.success) {
                         // Update status di UI
                         $("#xstatus").text("Approved")

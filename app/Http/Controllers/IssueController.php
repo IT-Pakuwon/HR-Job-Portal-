@@ -286,6 +286,22 @@ class IssueController extends Controller
             $header->totalreturnissueqty = 0;
             $header->save();
 
+            $needsIMBudget = $this->needsIMBudgetFromIssueDetail($issueid);
+
+            if ($needsIMBudget) {
+                $this->reserveBudget($doctype, $issueid, $cpnyid, 'Submit', $username);
+
+                $header->refresh();
+                $flagIMBudget = in_array(
+                    strtolower(trim((string) ($header->flag_imbudget ?? ''))),
+                    ['1', 't', 'true', 'yes'],
+                    true
+                );
+                if ($flagIMBudget) {
+                    app(IMBudgetController::class)->generateIMBudgetFromIssue($header, $user, $now);
+                }
+            }
+
             // ====== POSTING KE SPB LANGSUNG DI SINI ======
             // Akan mengupdate:
             // - TrSPBdetail: issue_qty, base_issue_qty, return_qty, dsb
@@ -1033,8 +1049,8 @@ class IssueController extends Controller
             $user->username,
             $user->name,
 
-            function (string $refnbr, \Carbon\Carbon $now) use ($issue, $fullname, $docUrl, $user) {
-                DB::transaction(function () use ($issue, $fullname, $docUrl, $now, $user) {
+            function (string $refnbr, \Carbon\Carbon $now) use ($issue, $doctype, $fullname, $docUrl, $request, $user) {
+                DB::transaction(function () use ($issue, $doctype, $fullname, $docUrl, $now, $request, $user) {
                     // 1) Rollback qty ke SPB
                     $this->rollbackIssuePostingToSpb($issue, $user, $now);
 
@@ -1043,6 +1059,16 @@ class IssueController extends Controller
                     $issue->completed_by = $user->username ?? auth()->user()->username;
                     $issue->completed_at = $now;
                     $issue->save();
+
+                    if ($this->needsIMBudgetFromIssueDetail($issue->issueid)) {
+                        $this->reserveBudget(
+                            $doctype,
+                            $issue->issueid,
+                            $request->cpnyid ?? $issue->cpny_id,
+                            'Reject',
+                            $user->username
+                        );
+                    }
 
                     // (opsional) detail jadi R
                     // TrIssuedetail::where('issueid', $issue->issueid)->update(['status' => 'R']);
@@ -1099,8 +1125,8 @@ class IssueController extends Controller
             $user->username,
             $user->name,
 
-            function (string $refnbr, \Carbon\Carbon $now) use ($issue, $fullname, $docUrl, $user) {
-                DB::transaction(function () use ($issue, $fullname, $docUrl, $now, $user) {
+            function (string $refnbr, \Carbon\Carbon $now) use ($issue, $doctype, $fullname, $docUrl, $request, $user) {
+                DB::transaction(function () use ($issue, $doctype, $fullname, $docUrl, $now, $request, $user) {
                     // 1) Rollback qty ke SPB
                     $this->rollbackIssuePostingToSpb($issue, $user, $now);
 
@@ -1109,6 +1135,16 @@ class IssueController extends Controller
                     $issue->completed_by = $user->username ?? auth()->user()->username;
                     $issue->completed_at = $now;
                     $issue->save();
+
+                    if ($this->needsIMBudgetFromIssueDetail($issue->issueid)) {
+                        $this->reserveBudget(
+                            $doctype,
+                            $issue->issueid,
+                            $request->cpnyid ?? $issue->cpny_id,
+                            'Revise',
+                            $user->username
+                        );
+                    }
 
                     // (opsional) DETAIL -> D
                     // TrIssuedetail::where('issueid', $issue->issueid)->update(['status' => 'D']);
@@ -1922,6 +1958,8 @@ class IssueController extends Controller
             $hdr->updated_at = $now;
             $hdr->save();
 
+            $this->reserveBudget($doctype, $issueid, $cpnyid, 'Submit', $username);
+
             // posting ke SPB / stock (kalau memang diperlukan)
             // pastikan function ini aman untuk RI
             if (method_exists($this, 'applyIssuePostingToSpb')) {
@@ -1971,6 +2009,26 @@ class IssueController extends Controller
                 ->withErrors([config('app.debug') ? $e->getMessage() : 'Failed to create Return'])
                 ->withInput();
         }
+    }
+
+    private function needsIMBudgetFromIssueDetail(string $issueid): bool
+    {
+        return TrIssuedetail::where('issueid', $issueid)
+            ->whereRaw("TRIM(COALESCE(budget_business_unit_id, '')) <> ''")
+            ->whereRaw("TRIM(COALESCE(budget_department_fin_id, '')) <> ''")
+            ->whereRaw("TRIM(COALESCE(budget_account_id, '')) <> ''")
+            ->whereRaw("TRIM(COALESCE(budget_activity_id, '')) <> ''")
+            ->exists();
+    }
+
+    private function reserveBudget(string $doctype, string $docid, string $cpnyId, string $activity, string $username): void
+    {
+        // Panggil PostgreSQL Stored Procedure: sp_process_budget(doctype, docid, activity, user)
+        // Contoh: CALL sp_process_budget('CS','CS25120001','Submit','williemhalim');
+        DB::connection('pgsql')->statement(
+            'CALL public.sp_process_budget(?, ?, ?, ?,?)',
+            [strtoupper($doctype), $docid, $cpnyId, $activity, $username]
+        );
     }
 
 
