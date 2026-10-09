@@ -684,6 +684,18 @@
                 width: '100%',
                 allowClear: true
             });
+            $('#budget_entity_id').select2({
+                placeholder: 'Select Budget Company',
+                width: '100%'
+            });
+            $('#siteid').select2({
+                placeholder: 'Select Site',
+                width: '100%'
+            });
+            $('#job_type').select2({
+                width: '100%',
+                minimumResultsForSearch: Infinity
+            });
             $('#subgrade_id').select2({
                 placeholder: 'Select Job Level',
                 width: '100%',
@@ -787,7 +799,7 @@
 
                 matchingBudgets.forEach(item => {
                         const label = item.budget_entity_name
-                            ? `${item.budget_entity_id} (${item.budget_entity_name})`
+                            ? `${item.budget_entity_id} - ${item.budget_entity_name}`
                             : item.budget_entity_id;
                         const option = new Option(label, item.budget_entity_id);
                         $budget.append(option);
