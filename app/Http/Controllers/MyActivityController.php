@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\TrAttachment;
 use App\Models\TrMessage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -171,6 +172,60 @@ class MyActivityController extends Controller
         });
 
         return response()->json(['data' => $data] + $this->pageMeta($page, $total));
+    }
+
+    // GET /my-activity/files?q=&ext=
+    // Every file the user attached anywhere (tr_attachment is the shared upload table).
+    public function files(Request $request)
+    {
+        $username = $this->username($request);
+        if (!$username) return response()->json(['data' => [], 'exts' => []], 401);
+        $this->perPage = $this->perPage($request);
+
+        $q   = trim((string) $request->query('q'));
+        $ext = strtolower(trim((string) $request->query('ext')));
+
+        $base = TrAttachment::whereRaw("lower(trim(coalesce(created_by,''))) = ?", [$username])
+            ->where('status', 'A')
+            ->where(fn ($w) => $w->whereNull('doctype')->orWhere('doctype', '!=', 'AVATAR'));  // profile photo isn't a "file"
+
+        $exts = (clone $base)->whereNotNull('extention')->where('extention', '!=', '')
+            ->distinct()->pluck('extention')->map(fn ($e) => strtolower($e))->unique()->sort()->values();
+
+        $query = clone $base;
+        if ($ext !== '') $query->whereRaw('lower(extention) = ?', [$ext]);
+        if ($q !== '') {
+            $query->where(fn ($w) => $w->where('attachment_name', 'ilike', "%{$q}%")
+                ->orWhere('refnbr', 'ilike', "%{$q}%"));
+        }
+
+        $total = (clone $query)->count();
+        $page  = $this->page($request, $total);
+
+        $files = $query->orderByDesc('id')->forPage($page, $this->perPage)
+            ->get(['id', 'refnbr', 'doctype', 'cpny_id', 'department_id', 'attachment_name', 'extention', 'filesize', 'created_at']);
+
+        $docs = $this->resolveDocuments($files->pluck('refnbr')->filter()->unique()->values());
+
+        $data = $files->map(function ($f) use ($docs) {
+            $doc = $docs->get($f->refnbr);
+
+            return [
+                'id'      => $f->id,
+                'name'    => $f->attachment_name . ($f->extention ? '.' . $f->extention : ''),
+                'ext'     => strtolower((string) $f->extention),
+                'size'    => $f->filesize,
+                'docid'   => $f->refnbr,
+                'company' => $f->cpny_id ?: ($doc['company'] ?? null),
+                'dept'    => $f->department_id ?: ($doc['dept'] ?? null),
+                'type'    => $doc['type'] ?? $f->doctype,
+                'date'    => optional($f->created_at)->toDateTimeString(),
+                'href'    => $doc['href'] ?? null,
+                'file'    => route('attachments.stream', $f->id),
+            ];
+        });
+
+        return response()->json(['data' => $data, 'exts' => $exts] + $this->pageMeta($page, $total));
     }
 
     // Requested page, clamped to 1..last so a stale page number after a new filter still lands on data.

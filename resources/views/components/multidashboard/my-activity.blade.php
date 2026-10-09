@@ -1,6 +1,6 @@
 {{--
-    My Message / My Document.
-    Injected as two extra tabs into each dashboard's tab bar (see the script at the bottom);
+    My Message / My Document / My Files.
+    Injected as three extra tabs into each dashboard's tab bar (see the script at the bottom);
     on a dashboard without a tab bar the panels simply stay visible under the dashboard.
     Table, filter bar and pager mirror the dashboards' "Waiting Approval" tab.
 --}}
@@ -15,7 +15,7 @@
 @endphp
 
 <div id="myActivityRoot" :class="embedded ? '' : 'mt-4'"
-    x-data="myActivity({ documentsUrl: '{{ route('my-activity.documents') }}', messagesUrl: '{{ route('my-activity.messages') }}' })"
+    x-data="myActivity({ documentsUrl: '{{ route('my-activity.documents') }}', messagesUrl: '{{ route('my-activity.messages') }}', filesUrl: '{{ route('my-activity.files') }}' })"
     x-init="init()"
     x-show="mode !== ''"
     @my-activity-open.window="open($event.detail)">
@@ -45,7 +45,7 @@
                     <div class="lg:col-span-4">
                         <div class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                             <span class="hidden shrink-0 sm:inline">Show</span>
-                            <select x-model.number="perPage" @change="loadDocs(1); loadMsgs(1)" class="w-24 {{ $selectCls }}">
+                            <select x-model.number="perPage" @change="loadDocs(1); loadMsgs(1); loadFiles(1)" class="w-24 {{ $selectCls }}">
                                 <option value="10">10</option><option value="25">25</option>
                                 <option value="50">50</option><option value="100">100</option>
                             </select>
@@ -114,7 +114,7 @@
                     <div class="lg:col-span-4">
                         <div class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                             <span class="hidden shrink-0 sm:inline">Show</span>
-                            <select x-model.number="perPage" @change="loadDocs(1); loadMsgs(1)" class="w-24 {{ $selectCls }}">
+                            <select x-model.number="perPage" @change="loadDocs(1); loadMsgs(1); loadFiles(1)" class="w-24 {{ $selectCls }}">
                                 <option value="10">10</option><option value="25">25</option>
                                 <option value="50">50</option><option value="100">100</option>
                             </select>
@@ -169,6 +169,83 @@
                 </div>
             </div>
         </div>
+
+        {{-- My Files --}}
+        <div x-show="mode === 'file' || mode === 'both'"
+            :class="embedded ? '' : 'rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800'">
+
+            <div class="border-b border-slate-200 p-4 dark:border-slate-700">
+                <div class="grid gap-3 lg:grid-cols-12">
+                    <div class="lg:col-span-4">
+                        <select x-model="fileExt" @change="loadFiles(1)" class="{{ $selectCls }}">
+                            <option value="">All File Types</option>
+                            <template x-for="e in fileExts" :key="e"><option :value="e" x-text="e.toUpperCase()"></option></template>
+                        </select>
+                    </div>
+                    <div class="lg:col-span-4">
+                        <input type="text" x-model="fileQ" @input.debounce.400ms="loadFiles(1)" placeholder="Search..."
+                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                    </div>
+                    <div class="lg:col-span-4">
+                        <div class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                            <span class="hidden shrink-0 sm:inline">Show</span>
+                            <select x-model.number="perPage" @change="loadDocs(1); loadMsgs(1); loadFiles(1)" class="w-24 {{ $selectCls }}">
+                                <option value="10">10</option><option value="25">25</option>
+                                <option value="50">50</option><option value="100">100</option>
+                            </select>
+                            <span class="hidden shrink-0 sm:inline">Entries</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4">
+                <div class="overflow-x-auto" x-show="files.length">
+                    <table class="w-full text-left text-sm">
+                        <thead class="{{ $theadCls }}">
+                            <tr>
+                                <th class="{{ $thCls }}">File</th>
+                                <th class="{{ $thCls }}">Size</th>
+                                <th class="{{ $thCls }}">Doc ID</th>
+                                <th class="{{ $thCls }}">Type</th>
+                                <th class="{{ $thCls }}">Company</th>
+                                <th class="{{ $thCls }}">Dept</th>
+                                <th class="{{ $thCls }}">Uploaded</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                            <template x-for="f in files" :key="f.id">
+                                <tr class="{{ $rowCls }}">
+                                    <td class="px-3 py-2 align-top">
+                                        <a :href="f.file" target="_blank" rel="noopener noreferrer"
+                                            class="break-all font-medium text-blue-600 hover:underline dark:text-cyan-400" x-text="f.name"></a>
+                                    </td>
+                                    <td class="{{ $tdCls }}" x-text="size(f.size)"></td>
+                                    <td class="whitespace-nowrap px-3 py-2 align-top">
+                                        <a x-show="f.href" :href="f.href" target="_blank" rel="noopener noreferrer" class="{{ $pillCls }}" x-text="f.docid"></a>
+                                        <span x-show="!f.href" class="text-slate-600 dark:text-slate-300" x-text="f.docid || '-'"></span>
+                                    </td>
+                                    <td class="{{ $tdCls }}" x-text="f.type || '-'"></td>
+                                    <td class="{{ $tdCls }}" x-text="f.company || '-'"></td>
+                                    <td class="{{ $tdCls }}" x-text="f.dept || '-'"></td>
+                                    <td class="{{ $tdCls }}" x-text="fmt(f.date)"></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+                <div x-show="filesLoading" class="py-10 text-center text-sm text-slate-400 dark:text-slate-500">Loading…</div>
+                <div x-show="!filesLoading && !files.length" class="py-10 text-center text-sm text-slate-400 dark:text-slate-500">No data available</div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 px-4 py-3 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                <span x-text="'Showing ' + filePg.from + ' to ' + filePg.to + ' of ' + filePg.total + ' entries'"></span>
+                <div class="flex gap-2">
+                    <button type="button" @click="loadFiles(filePg.page - 1)" :disabled="filePg.page <= 1" class="{{ $pagerBtn }}">Previous</button>
+                    <button type="button" @click="loadFiles(filePg.page + 1)" :disabled="filePg.page >= filePg.last_page" class="{{ $pagerBtn }}">Next</button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -177,23 +254,26 @@
         return {
             // '' = hidden (a dashboard tab is showing), 'doc' | 'msg' = tab selected,
             // 'both' = no tab bar on this dashboard, so show both panels below it
-            mode: 'both', embedded: false, loaded: { doc: false, msg: false }, perPage: 10,
+            mode: 'both', embedded: false, loaded: { doc: false, msg: false, file: false }, perPage: 10,
             docs: [], docTypes: [], docStatuses: [], docQ: '', docType: '', docStatus: '', docsLoading: false,
             msgs: [], msgQ: '', msgsLoading: false,
+            files: [], fileExts: [], fileQ: '', fileExt: '', filesLoading: false,
             docPg: { page: 1, last_page: 1, total: 0, from: 0, to: 0 },
             msgPg: { page: 1, last_page: 1, total: 0, from: 0, to: 0 },
+            filePg: { page: 1, last_page: 1, total: 0, from: 0, to: 0 },
 
             init() {
                 // The tab injector below runs first and sets these before Alpine starts
                 const root = document.getElementById('myActivityRoot');
                 if (root && root.dataset.embedded === '1') { this.embedded = true; this.mode = ''; }
-                else { this.loadDocs(); this.loadMsgs(); }
+                else { this.loadDocs(); this.loadMsgs(); this.loadFiles(); }
             },
 
             open(mode) {
                 this.mode = mode;
                 if (mode === 'doc' && !this.loaded.doc) this.loadDocs();
                 if (mode === 'msg' && !this.loaded.msg) this.loadMsgs();
+                if (mode === 'file' && !this.loaded.file) this.loadFiles();
             },
 
             async get(url, params) {
@@ -227,6 +307,26 @@
                 }
                 catch (e) { this.msgs = []; }
                 this.msgsLoading = false;
+            },
+
+            async loadFiles(page = 1) {
+                this.filesLoading = true;
+                try {
+                    const r = await this.get(cfg.filesUrl, { q: this.fileQ, ext: this.fileExt, page, per_page: this.perPage });
+                    this.files = r.data; this.filePg = r; this.loaded.file = true;
+                    // keep the full type list stable while a type filter is active
+                    if (!this.fileExt) this.fileExts = r.exts;
+                }
+                catch (e) { this.files = []; }
+                this.filesLoading = false;
+            },
+
+            size(b) {
+                b = Number(b);
+                if (!b) return '-';
+                if (b < 1024) return b + ' B';
+                if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+                return (b / 1048576).toFixed(1) + ' MB';
             },
 
             fmt(v) {
@@ -274,6 +374,7 @@
             const mine = [
                 { id: 'my-tab-message', mode: 'msg', label: '💬 My Message' },
                 { id: 'my-tab-document', mode: 'doc', label: '📄 My Document' },
+                { id: 'my-tab-files', mode: 'file', label: '📎 My Files' },
             ].map(t => {
                 const b = document.createElement('button');
                 b.type = 'button'; b.id = t.id; b.textContent = t.label; b.className = IDLE;
