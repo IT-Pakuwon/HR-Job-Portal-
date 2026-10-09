@@ -33,6 +33,7 @@ use setasign\Fpdi\Fpdi;
 use setasign\Fpdf\Fpdf;
 use App\Models\TrSPB;
 use App\Models\TrSPBdetail;
+use App\Models\TrSPPBdetail;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ReceiptDetailExport;
@@ -2419,15 +2420,16 @@ class ReceiptController extends Controller
             return;
         }
 
-        // Ambil semua inventory yang ada di receipt detail
+        // Nomor baris SPPB diperlukan untuk membedakan inventory yang sama.
         $receiptDetails = TrReceiptdetail::query()
             ->where('receiptnbr', $receipt->receiptnbr)
             ->select(
                 'inventoryid',
+                'sppbjktid_no',
                 DB::raw('SUM(COALESCE(qty_received, 0)) as qty_received'),
                 DB::raw('SUM(COALESCE(base_qty_received, 0)) as base_qty_received')
             )
-            ->groupBy('inventoryid')
+            ->groupBy('inventoryid', 'sppbjktid_no')
             ->get();
 
         if ($receiptDetails->isEmpty()) {
@@ -2439,7 +2441,25 @@ class ReceiptController extends Controller
         }
 
         foreach ($receiptDetails as $rd) {
+            $sppbDetail = TrSPPBdetail::query()
+                ->where('sppbid', $sppbId)
+                ->where('sppb_no', $rd->sppbjktid_no)
+                ->where('inventoryid', $rd->inventoryid)
+                ->first();
+
+            if (!$sppbDetail || !$sppbDetail->spbid || $sppbDetail->spb_no === null) {
+                Log::warning('updateSPPBQtyReceipt: referensi baris SPB tidak ditemukan', [
+                    'receiptnbr' => $receipt->receiptnbr,
+                    'sppbid' => $sppbId,
+                    'sppb_no' => $rd->sppbjktid_no,
+                    'inventoryid' => $rd->inventoryid,
+                ]);
+                continue;
+            }
+
             $spbDetail = TrSPBdetail::query()
+                ->where('spbid', $sppbDetail->spbid)
+                ->where('spb_no', $sppbDetail->spb_no)
                 ->where('sppbid', $sppbId)
                 ->where('inventoryid', $rd->inventoryid)
                 ->first();
@@ -2448,6 +2468,8 @@ class ReceiptController extends Controller
                 Log::warning('updateSPPBQtyReceipt: detail SPB tidak ditemukan', [
                     'receiptnbr'  => $receipt->receiptnbr,
                     'sppbid'       => $sppbId,
+                    'spbid'       => $sppbDetail->spbid,
+                    'spb_no'      => $sppbDetail->spb_no,
                     'inventoryid' => $rd->inventoryid,
                 ]);
                 continue;
