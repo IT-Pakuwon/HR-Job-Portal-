@@ -75,6 +75,7 @@ class CsJobController extends Controller
             //     ->count();
             $revision = TrPOReuse::query()
                 ->where('created_by', $u)
+                ->where('cpny_id', $user->cpny_id)
                 ->whereRaw("UPPER(COALESCE(inventory_category,'')) = 'KONTRAK'")
                 ->selectRaw('COUNT(DISTINCT ponbr) as total')
                 ->value('total');
@@ -82,6 +83,7 @@ class CsJobController extends Controller
             // $revision = vCsRevision::where('created_by', $u)->count();
             $revision = vCsRevision::query()
                 ->where('created_by', $u)
+                ->where('cpny_id', $user->cpny_id)
                 ->selectRaw('COUNT(DISTINCT ponbr) as total')
                 ->value('total');
         }
@@ -110,12 +112,14 @@ class CsJobController extends Controller
                 'revision' => ($this->revisionSourceForUser($u) === 'reusekontrak')
                     ? TrPOReuse::query()
                         ->where('created_by', $u)
+                        ->where('cpny_id', $user->cpny_id ?? '')
                         ->whereRaw("UPPER(COALESCE(inventory_category,'')) = 'KONTRAK'")
                         ->selectRaw('COUNT(DISTINCT ponbr) as total')
                         ->value('total')
                     // : vCsRevision::where('created_by', $u)->count(),
                     : vCsRevision::query()
                         ->where('created_by', $u)
+                        ->where('cpny_id', $user->cpny_id ?? '')
                         ->selectRaw('COUNT(DISTINCT ponbr) as total')
                         ->value('total'),
             'all'       => vCsJobs::count(),
@@ -344,15 +348,18 @@ class CsJobController extends Controller
 
         $u = $user->username ?? '';
 
-        if ($this->revisionSourceForUser($u) === 'reuse') {
+        if ($this->revisionSourceForUser($u) === 'reusekontrak') {
             $base = TrPOReuse::query()
-                ->where('created_by', $u);
+                ->where('created_by', $u)
+                ->where('cpny_id', $user->cpny_id ?? '')
+                ->whereRaw("UPPER(COALESCE(inventory_category,'')) = 'KONTRAK'");
 
             return $this->buildReuseRevisionJson($request, $base);
         }
 
         $base = vCsRevision::query()
-            ->where('created_by', $u);
+            ->where('created_by', $u)
+            ->where('cpny_id', $user->cpny_id ?? '');
 
         return $this->buildVcsRevisionJson($request, $base);
     }
@@ -374,16 +381,7 @@ class CsJobController extends Controller
 
         return $this->buildRevisionJson($request, $base);
     }
-    public function CsJobsRevisionJson_xxx(Request $request)
-    {
-        $username = Auth::user()->username ?? '';
-
-        $base = vCsRevision::query()
-            ->where('created_by', $username);
-
-        return $this->buildRevisionJson($request, $base);
-    }
-
+    
 
     /**
      * TAB 4: SPPBJKT IN Progress -> vSppbjktOnProgress
@@ -1222,132 +1220,7 @@ class CsJobController extends Controller
         ]);
     }
 
-    private function buildReuseRevisionJson_xxx(Request $request, $base)
-    {
-        $draw   = (int) $request->input('draw', 1);
-        $start  = (int) $request->input('start', 0);
-        $length = (int) $request->input('length', 25);
-        $search = trim((string) $request->input('search.value', ''));
-
-        // kolom yang kita expose untuk DataTables (disamakan dengan revision)
-        $columns = [
-            0 => 'ponbr',
-            1 => 'created_at',
-            2 => 'cpny_id',
-            3 => 'created_by',
-            4 => 'csid',
-            5 => 'sppbjktid',
-            6 => 'inventory_descr',
-        ];
-
-        $orderIdx = (int) $request->input('order.0.column', 1);
-        $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
-        $orderCol = $columns[$orderIdx] ?? 'created_at';
-
-        // $recordsTotal = (clone $base)->count();
-        $recordsTotal = (clone $base)
-            ->select('ponbr')
-            ->distinct()
-            ->count('ponbr');
-
-        if ($search !== '') {
-            $base->where(function ($q) use ($search) {
-                $q->where('ponbr', 'ilike', "%{$search}%")
-                ->orWhere('cpny_id', 'ilike', "%{$search}%")
-                ->orWhere('created_by', 'ilike', "%{$search}%")
-                ->orWhere('csid', 'ilike', "%{$search}%")
-                ->orWhere('sppbjktid', 'ilike', "%{$search}%")
-                ->orWhere('inventoryid', 'ilike', "%{$search}%")
-                ->orWhere('inventory_descr', 'ilike', "%{$search}%")
-                ->orWhereRaw("TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') ILIKE ?", ["%{$search}%"]);
-            });
-        }
-
-        // $recordsFiltered = (clone $base)->count();
-        $recordsFiltered = (clone $base)
-            ->select('ponbr')
-            ->distinct()
-            ->count('ponbr');
-
-        // $data = $base->select(
-        //         'id',
-        //         'ponbr',
-        //         'created_at',
-        //         'cpny_id',
-        //         'created_by',
-        //         'csid',
-        //         'sppbjktid',
-        //         'inventory_category',
-        //         'inventoryid',
-        //         'inventory_descr'
-        //     )
-        //     ->orderBy($orderCol, $orderDir)
-        //     ->skip($start)
-        //     ->take($length)
-        //     ->get();
-        $data = $base
-            ->selectRaw("
-                MIN(id) as id,
-                ponbr,
-                MAX(created_at) as created_at,
-                MAX(cpny_id) as cpny_id,
-                MAX(created_by) as created_by,
-                MAX(csid) as csid,
-                MAX(sppbjktid) as sppbjktid,
-                MAX(inventory_category) as inventory_category,
-                STRING_AGG(DISTINCT inventoryid::text, ', ') as inventoryid,
-                STRING_AGG(DISTINCT inventory_descr::text, ', ') as inventory_descr
-            ")
-            ->groupBy('ponbr')
-            ->orderByRaw($orderCol === 'ponbr'
-                ? "ponbr {$orderDir}"
-                : "{$orderCol} {$orderDir}"
-            )
-            ->skip($start)
-            ->take($length)
-            ->get();
-
-        // enrichment: samakan field agar cocok dengan DataTables existing
-        $data->transform(function ($r) {
-            $r->doc_type = 'PO';
-            $r->eid      = Hashids::encode($r->id);   // hash tr_po_reusekontrak (createcs)
-            $r->doc_no   = $r->ponbr;
-
-            $r->kontrak_eid = null;
-            $kontrak = null; // ✅ penting
-
-            if (strtoupper(trim((string)$r->inventory_category)) === 'KONTRAK') {
-                $kontrak = TrKontrak::query()
-                    ->select('id', 'kontrakid', 'department_id', 'vendorname') // ✅ ambil fieldnya sekalian
-                    ->where('kontrakid', $r->ponbr)
-                    ->first();
-
-                if ($kontrak) {
-                    $r->kontrak_eid = Hashids::encode($kontrak->id); // hash id kontrak
-                }
-            }
-
-            $r->podate         = $r->created_at;
-            $r->department_id  = optional($kontrak)->department_id; // ✅ aman
-            $r->vendorname     = optional($kontrak)->vendorname;    // ✅ aman
-
-            $r->keperluan = "REUSE KONTRAK | {$r->inventoryid} - {$r->inventory_descr}";
-
-            $r->assigndate = null;
-            $r->assignpurchasing = null;
-            $r->assignby = null;
-
-            $r->created_by_name = $r->created_by;
-
-            return $r;
-        });
-        return response()->json([
-            'draw'            => $draw,
-            'recordsTotal'    => $recordsTotal,
-            'recordsFiltered' => $recordsFiltered,
-            'data'            => $data,
-        ]);
-    }
+    
 
   
 
