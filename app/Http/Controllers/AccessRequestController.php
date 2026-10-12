@@ -157,6 +157,7 @@ class AccessRequestController extends Controller
         $length = (int) $request->input('length', 25);
         $search = trim((string) $request->input('search.value', ''));
         $status = (string) $request->query('status', '');
+        $groupCategory = strtoupper(trim((string) $request->query('group_category', '')));
 
         $baseTable = (new TrAccess())->getTable();
 
@@ -200,6 +201,16 @@ class AccessRequestController extends Controller
         $recordsTotal = (clone $base)
             ->distinct('ta.docid')
             ->count('ta.docid');
+
+        if ($status === 'C' && in_array($groupCategory, ['SOFTWARE', 'HARDWARE'], true)) {
+            $detailTable = (new TrAccessDetail())->getTable();
+            $base->whereExists(function ($query) use ($detailTable, $groupCategory) {
+                $query->selectRaw('1')
+                    ->from($detailTable.' as filter_detail')
+                    ->whereColumn('filter_detail.docid', 'ta.docid')
+                    ->whereRaw('UPPER(TRIM(filter_detail.group_category)) = ?', [$groupCategory]);
+            });
+        }
 
         if ($search !== '') {
             $statusMap = [
