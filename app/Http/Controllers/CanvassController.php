@@ -7900,7 +7900,7 @@ class CanvassController extends Controller
         } // bukan dari SPPB/J/K/T → skip
 
         // Ambil header + detail sumber
-        [$srcHeader, $srcDetails, $srcLineKey, $srcIndex] = $this->buildSourceForDoc($docType, $cs->sppbjktid);
+        [$srcHeader, $srcDetails, $srcLineKey] = $this->buildSourceForDoc($docType, $cs->sppbjktid);
 
         // Ambil detail CS dari DB
         $csDetails = TrCSdetail::on('pgsql')
@@ -7910,7 +7910,7 @@ class CanvassController extends Controller
 
         $rolledBackTotal = 0.0;
 
-        foreach ($csDetails as $i => $cd) {
+        foreach ($csDetails as $cd) {
             // hanya yang vendor selected
             $hasPick = false;
             for ($slot = 1; $slot <= 6; ++$slot) {
@@ -7928,14 +7928,25 @@ class CanvassController extends Controller
                 continue;
             }
 
-            $key = strtoupper(trim((string) ($cd->inventoryid ?? ''))).'|'.
-                strtoupper(trim((string) ($cd->uom ?? ''))).'|'.
-                strtoupper(trim((string) ($cd->inventory_descr ?? '')));
+            // CS line numbers may differ from the original source line numbers.
+            $sourceLineNo = $cd->sppbjkt_no ?? $cd->cs_no;
+            $matches = $srcDetails->where($srcLineKey, $sourceLineNo)
+                ->filter(function ($row) use ($cd) {
+                    foreach (['inventoryid', 'uom', 'inventory_descr'] as $field) {
+                        if (strtoupper(trim((string) $row->{$field})) !== strtoupper(trim((string) $cd->{$field}))) {
+                            return false;
+                        }
+                    }
 
-            $srcDet = $srcIndex[$key] ?? ($srcDetails[$i] ?? null);
-            if (!$srcDet) {
-                continue;
+                    return true;
+                });
+
+            if ($sourceLineNo === null || $matches->count() !== 1) {
+                throw new \RuntimeException(
+                    "Detail CS {$cs->csid} baris {$cd->cs_no} tidak cocok dengan satu baris sumber {$sourceLineNo}."
+                );
             }
+            $srcDet = $matches->first();
 
             $detTable = $srcDet->getTable();
 
