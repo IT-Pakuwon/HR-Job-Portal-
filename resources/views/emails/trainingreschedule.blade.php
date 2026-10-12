@@ -62,15 +62,6 @@ Your seat/waiting list slot is kept for the new date.
         </td>
     </tr>
 
-    <tr>
-        <td style="padding:13px 16px 13px 0;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;vertical-align:top;">
-            Reason
-        </td>
-        <td style="padding:13px 0;font-size:13px;color:#475569;line-height:1.6;vertical-align:top;">
-            {{ $reason }}
-        </td>
-    </tr>
-
 </table>
 
 {{-- Cancel notice --}}
