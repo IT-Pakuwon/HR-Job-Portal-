@@ -396,7 +396,7 @@
             const statusHtml = cfg.status(row);
 
             const titleCell = href
-                ? `<a href="${href}" target="_blank" rel="noopener noreferrer" class="dsh-id">${title}</a>`
+                ? `<a href="${href}" target="_blank" rel="noopener noreferrer" class="dsh-id dsh-id-btn">${title}</a>`
                 : `<span class="dsh-id">${title}</span>`;
 
             return `

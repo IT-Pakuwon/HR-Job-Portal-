@@ -123,6 +123,27 @@
         text-decoration: underline;
     }
 
+    .dsh-id-btn {
+        display: inline-block;
+        padding: .25rem .625rem;
+        border-radius: .5rem;
+        border: 1px solid #0891b2;
+        background: #0891b2;
+        color: #fff;
+        transition: filter .15s;
+    }
+
+    .dsh-id-btn:hover {
+        text-decoration: none;
+        filter: brightness(.9);
+    }
+
+    .dark .dsh-id-btn {
+        border-color: #22d3ee;
+        background: #22d3ee;
+        color: #0f172a;
+    }
+
     .dsh-sub {
         display: flex;
         flex-wrap: wrap;
