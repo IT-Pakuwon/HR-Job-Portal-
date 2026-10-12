@@ -75,7 +75,7 @@
             </button>
 
             {{-- Approved Status (management approved, IT processing) --}}
-            <button type="button" class="text-left">
+            <div class="text-left">
                 <a href="#" class="status-filter group block h-full" data-status="C">
                     <div
                         class="status-card flex h-full items-center gap-3 rounded-lg border border-emerald-700 bg-emerald-200/20 p-3 text-emerald-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-emerald-100 hover:shadow-md active:scale-95">
@@ -89,7 +89,7 @@
                         <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
                     </div>
                 </a>
-            </button>
+            </div>
 
             {{-- Finished Status (IT completed all access items) --}}
             <button type="button" class="text-left">
@@ -116,11 +116,18 @@
             <div
                 class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
 
-                <div>
+                <div class="flex flex-wrap items-center gap-3">
 
                     <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
                         Access Request
                     </h2>
+
+                    <select id="approvedGroupFilter" aria-label="Filter Approved request category"
+                        class="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                        <option value="">All Software / Hardware</option>
+                        <option value="SOFTWARE">Software</option>
+                        <option value="HARDWARE">Hardware</option>
+                    </select>
 
                 </div>
 

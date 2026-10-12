@@ -191,16 +191,17 @@ class PersonnelController extends Controller
         $q = Personnel::query()
             ->where('group_cpny_id', $groupCompanyId);
 
-        // RECACCALLDEPT / RECDIRACCESS / HCBPACCESS / DIRECTORACCESS -> bisa lihat semua PRF
+        // RECACCALLDEPT / RECDIRACCESS / DIRECTORACCESS -> bisa lihat semua PRF
+        // (HCBPACCESS sengaja tidak termasuk: kartu All/On Progress/dst tetap dibatasi company & dept/division;
+        //  tampilan company-wide HCBP hanya lewat kartu "HCBP All")
         if ($user->hasFullDataScope()
             || $this->hasRoleAllDept($user)
             || $this->hasRecDirAccess($user)
-            || $this->hasHcbpAccess($user)
         ) {
             return $q;
         }
 
-        // SBY + RECACCESS saja (tanpa role di atas) -> hanya PRF di company & department yang sama dengan user
+        // SBY + RECACCESS/HCBPACCESS (tanpa role di atas) -> hanya PRF di company & department yang sama dengan user
         if ($groupCompanyId === 'SBY') {
             $cpnyIds = $this->userCpnyIds($user);
 

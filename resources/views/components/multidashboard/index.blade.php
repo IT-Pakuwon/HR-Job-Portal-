@@ -1,4 +1,5 @@
 <x-app-layout>
+    @include('components.multidashboard._dsh-theme')
     <div class="max-w-9xl mx-auto w-full p-2">
         @php
             $viewPath = 'components.multidashboard.' . $dashboardComponent;
@@ -21,7 +22,8 @@
         @endif
 
         @if(View::exists($viewPath))
-            @include('components.multidashboard.my-activity')
+            {{-- One merged "My Activity" tab on every dashboard. --}}
+            @include('components.multidashboard.my-activity', ['combined' => true])
         @endif
 
     </div>

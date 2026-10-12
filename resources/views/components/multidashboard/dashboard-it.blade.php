@@ -1,8 +1,8 @@
 <div class="space-y-4">
-    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
 
         <div>
-            <h1 class="text-xl font-bold text-slate-900 dark:text-white">
+            <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
                 IT Dashboard
             </h1>
 
@@ -11,31 +11,25 @@
             </p>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex items-center gap-2">
 
-            <div
-                class="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-sm dark:border-slate-700 dark:bg-slate-800">
+            <div class="flex items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-3 pr-1 text-xs shadow-sm dark:border-slate-700 dark:bg-slate-800">
                 <span class="h-2 w-2 rounded-full bg-green-500"></span>
-                <span class="text-slate-500 dark:text-slate-400">
-                    Next Refresh
-                </span>
-                <span id="dashboardRefreshTime" class="font-semibold text-slate-900 dark:text-white">
-                    --
-                </span>
+                <span class="text-slate-500 dark:text-slate-400">Next refresh</span>
+                <span id="dashboardRefreshTime" class="font-semibold tabular-nums text-slate-900 dark:text-white">--</span>
+                <button id="refreshDashboard" type="button" title="Refresh now"
+                    class="flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 font-semibold text-slate-600 transition hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600">
+                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Refresh
+                </button>
             </div>
 
-            <button id="refreshDashboard" type="button"
-                class="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
-                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                Refresh
-            </button>
-
             <button id="updateNotificationBtn" type="button" title="Update Notification"
-                class="relative flex items-center justify-center rounded-lg border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
-                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                class="relative flex items-center justify-center rounded-full border border-slate-200 bg-white p-2 text-slate-600 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
@@ -49,119 +43,36 @@
 
     </div>
 
-    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-
-        <div
-            class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
-            <div class="flex items-center justify-between">
-                <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                        Open Ticket
-                    </div>
-                    <div id="openTicketCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">
-                        0
-                    </div>
-                </div>
-                <div class="rounded-lg bg-blue-500/10 p-2 text-base">
-                    🎫
-                </div>
-            </div>
-            <div class="mt-2 h-1 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
-                <div id="openTicketBar" class="h-full rounded-full bg-blue-500 transition-all duration-500" style="width:0%"></div>
-            </div>
-        </div>
-
-        <div
-            class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
-            <div class="flex items-center justify-between">
-                <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                        Access Request
-                    </div>
-                    <div id="accessCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">
-                        0
-                    </div>
-                </div>
-                <div class="rounded-lg bg-orange-500/10 p-2 text-base">
-                    🔐
-                </div>
-            </div>
-            <div class="mt-2 h-1 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
-                <div id="accessBar" class="h-full rounded-full bg-orange-500 transition-all duration-500" style="width:0%"></div>
-            </div>
-        </div>
-
-        <div
-            class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
-            <div class="flex items-center justify-between">
-                <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                        IT Recommendation
-                    </div>
-                    <div id="recommendationCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">
-                        0
-                    </div>
-                </div>
-                <div class="rounded-lg bg-violet-500/10 p-2 text-base">
-                    💡
-                </div>
-            </div>
-            <div class="mt-2 h-1 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
-                <div id="recommendationBar" class="h-full rounded-full bg-violet-500 transition-all duration-500" style="width:0%"></div>
-            </div>
-        </div>
-
-        <div
-            class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
-            <div class="flex items-center justify-between">
-                <div class="min-w-0">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                        Waiting Approval
-                    </div>
-                    <div id="waitingApprovalCount" class="mt-0.5 text-xl font-bold text-slate-900 dark:text-white">
-                        0
-                    </div>
-                </div>
-                <div class="rounded-lg bg-emerald-500/10 p-2 text-base">
-                    ✅
-                </div>
-            </div>
-            <div class="mt-2 h-1 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
-                <div id="waitingApprovalBar" class="h-full rounded-full bg-emerald-500 transition-all duration-500" style="width:0%"></div>
-            </div>
-        </div>
-
+    {{-- KPI cards: each one opens its matching tab below (the bars stay hidden because dashit.js still writes to them) --}}
+    <div class="dsh-kpis">
+        @foreach ([
+            ['tab' => 'approval', 'count' => 'waitingApprovalCount', 'bar' => 'waitingApprovalBar', 'label' => 'Waiting for your approval', 'hot' => true],
+            ['tab' => 'access', 'count' => 'accessCount', 'bar' => 'accessBar', 'label' => 'Access requests', 'hot' => true],
+            ['tab' => 'ticket', 'count' => 'openTicketCount', 'bar' => 'openTicketBar', 'label' => 'Open tickets', 'hot' => false],
+            ['tab' => 'recommendation', 'count' => 'recommendationCount', 'bar' => 'recommendationBar', 'label' => 'IT recommendations', 'hot' => false],
+        ] as $k)
+            <button type="button" class="dsh-kpi {{ $k['hot'] ? 'dsh-kpi-hot' : '' }}" data-open-tab="{{ $k['tab'] }}">
+                <span class="dsh-kpi-l">{{ $k['label'] }}</span>
+                <span id="{{ $k['count'] }}" class="dsh-kpi-n">0</span>
+                <span id="{{ $k['bar'] }}" class="hidden" style="width:0%"></span>
+            </button>
+        @endforeach
     </div>
 
     <div class="grid grid-cols-12 gap-6">
         <x-multidashboard.dashboard-favourite />
     </div>
 
-    <div class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+    <div class="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
 
-        <div class="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+        <div class="border-b border-slate-200 px-4 pt-2 dark:border-slate-700">
 
-            <div class="flex flex-wrap gap-3">
-                <button id="tab-approval">
-                    ✅ Waiting Approval
-                </button>
-
-                <button id="tab-approval-history">
-                    📋 Approval History
-                </button>
-
-                <button id="tab-ticket">
-                    🎫 Ticket
-                </button>
-
-                <button id="tab-access">
-                    🔐 Access Request
-                </button>
-
-                <button id="tab-recommendation">
-                    💡 IT Recommendation
-                </button>
-
+            <div class="dsh-tabbar">
+                <button id="tab-approval" type="button" class="dsh-tab">Waiting Approval</button>
+                <button id="tab-approval-history" type="button" class="dsh-tab">Approval History</button>
+                <button id="tab-ticket" type="button" class="dsh-tab">Ticket</button>
+                <button id="tab-access" type="button" class="dsh-tab">Access Request</button>
+                <button id="tab-recommendation" type="button" class="dsh-tab">IT Recommendation</button>
             </div>
         </div>
 
@@ -390,5 +301,19 @@
         color: #fff;
     }
 </style>
+
+<script>
+    // KPI cards jump to their tab; a non-zero count on an action card gets the accent colour.
+    document.querySelectorAll('.dsh-kpi').forEach(function (card) {
+        card.addEventListener('click', function () {
+            var tab = document.getElementById('tab-' + card.dataset.openTab);
+            if (tab) tab.click();
+        });
+        var n = card.querySelector('.dsh-kpi-n');
+        if (n) new MutationObserver(function () {
+            n.classList.toggle('dsh-has', (parseInt(n.textContent, 10) || 0) > 0);
+        }).observe(n, { childList: true, characterData: true, subtree: true });
+    });
+</script>
 
 <script src="{{ asset('assets/js/multidashboard/dashit.js') }}?v={{ file_exists(public_path('assets/js/multidashboard/dashit.js')) ? filemtime(public_path('assets/js/multidashboard/dashit.js')) : time() }}"></script>

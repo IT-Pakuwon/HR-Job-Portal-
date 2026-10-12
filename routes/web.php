@@ -2706,6 +2706,7 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('my-activity')->controller(\App\Http\Controllers\MyActivityController::class)->name('my-activity.')->group(function () {
             Route::get('/documents', 'documents')->name('documents');
             Route::get('/messages', 'messages')->name('messages');
+            Route::get('/files', 'files')->name('files');
         });
 
         Route::prefix('menu-favourites')->controller(SysMenuFavouriteController::class)->name('menu-favourites.')->group(function () {

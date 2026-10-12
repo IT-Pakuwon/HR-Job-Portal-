@@ -396,8 +396,8 @@
             const statusHtml = cfg.status(row);
 
             const titleCell = href
-                ? `<a href="${href}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center rounded-md bg-gray-700 px-2 py-1 text-[11px] font-bold text-white transition-colors hover:bg-gray-800 dark:bg-cyan-700 dark:hover:bg-cyan-600">${title}</a>`
-                : `<span class="inline-flex items-center rounded-md bg-gray-700 px-2 py-1 text-[11px] font-bold text-white dark:bg-cyan-700">${title}</span>`;
+                ? `<a href="${href}" target="_blank" rel="noopener noreferrer" class="dsh-id dsh-id-btn">${title}</a>`
+                : `<span class="dsh-id">${title}</span>`;
 
             return `
                 <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-700/30">
@@ -688,13 +688,11 @@
                 name === tab
             ) {
 
-                btn.className =
-                    "rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 bg-black text-white shadow-sm dark:bg-zinc-700";
+                btn.className = "dsh-tab dsh-tab-on";
 
             } else {
 
-                btn.className =
-                    "rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-all duration-200 hover:bg-slate-50 hover:border-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700";
+                btn.className = "dsh-tab";
 
             }
 
