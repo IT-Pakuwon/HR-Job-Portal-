@@ -132,23 +132,6 @@
                             | Jika value null/kosong, tidak ditampilkan.
                             */
 
-                            // SPB
-                            if (trim((string) ($imbudget->spbid ?? '')) !== '') {
-                                $spbUrl = !empty($eid_spb) ? url('/showspbs/' . $eid_spb) : null;
-                                $spbLink = $spbUrl
-                                    ? '<a href="' . e($spbUrl) . '" target="_blank" rel="noopener noreferrer"'
-                                        . ' class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">'
-                                        . e($imbudget->spbid) . '</a>'
-                                    : e($imbudget->spbid);
-
-                                $fields[] = [
-                                    'icon' => 'document-text',
-                                    'label' => 'SPB ID',
-                                    'value' => $spbLink,
-                                    'is_raw' => true,
-                                ];
-                            }
-
                             // CS
                             if ($imDoctype === 'CS' && !empty($imbudget->csid)) {
                                 $csUrl = !empty($eid_cs) ? url("/showcs/{$eid_cs}") : null;

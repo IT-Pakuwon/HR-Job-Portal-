@@ -168,11 +168,9 @@
                                                     <th class="req w-[25%] border p-3">Product Name</th>
                                                     <th class="req w-28 w-[6%] border p-3 text-center">Qty</th>
                                                     <th class="req w-28 w-[8%] border p-3">UoM</th>
-                                                    <th class="border p-3 text-right">Cost</th>
-                                                    <th class="border p-3 text-right whitespace-nowrap">Total Cost</th>
                                                     <th class="req siteid-header w-28 w-[8%] border p-3">SiteID</th>
                                                     <th class="w-[15%] border p-3">Note</th>
-                                                    <th class="req min-w-[200px] border p-3">Location</th>
+                                                    <th class="req border p-3">Location</th>
                                                     {{-- <th class="req border p-3">Sub Location</th> --}}
                                                     <th class="req w-[10%] border p-3">Budget</th>
                                                     <th class="w-16 border p-3 text-center"></th>
@@ -236,13 +234,6 @@
                                                                 class="openUomModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                                                                 title="Lookup">🔎</button>
                                                         </div>
-                                                    </td>
-
-                                                    <td class="border p-3">
-                                                        <input type="text" class="costDisplayField w-24 min-w-0 border-none bg-gray-100 p-2 text-right dark:bg-gray-700" placeholder="-" readonly aria-label="Cost">
-                                                    </td>
-                                                    <td class="border p-3">
-                                                        <input type="text" class="totalCostDisplayField w-24 min-w-0 border-none bg-gray-100 p-2 text-right dark:bg-gray-700" placeholder="-" readonly aria-label="Total Cost">
                                                     </td>
 
                                                     {{-- SiteID --}}
@@ -380,7 +371,7 @@
                                             <th class="border p-2">UoM</th>
                                             <th class="border p-2">SiteID</th>
                                             <th class="border p-2">Stock</th>
-                                            <th class="border p-2 text-right">Cost</th>
+                                            {{-- <th class="border p-2">Cost</th>    --}}
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
@@ -987,18 +978,6 @@
                 maximumFractionDigits: isCost ? 2 : 0
             }).format(num);
         }
-
-        function updateSpbRowCosts($row) {
-            const rawCost = $row.find('.prodItemCostField').val();
-            const cost = Number(rawCost);
-            if (rawCost === '' || !Number.isFinite(cost)) {
-                $row.find('.costDisplayField, .totalCostDisplayField').val('');
-                return;
-            }
-            const qty = Number(($row.find('.qtyField').val() || '0').replace(',', '.'));
-            $row.find('.costDisplayField').val(formatNumber(cost, true));
-            $row.find('.totalCostDisplayField').val(formatNumber(cost * (Number.isFinite(qty) ? qty : 0), true));
-        }
     </script>
     <script>
         // ===== SPB Detail =====
@@ -1059,12 +1038,6 @@
                                 class="openUomModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                                 title="Lookup">🔎</button>
                     </div>
-                </td>
-                <td class="border p-3">
-                    <input type="text" class="costDisplayField w-24 min-w-0 border-none bg-gray-100 p-2 text-right dark:bg-gray-700" placeholder="-" readonly aria-label="Cost">
-                </td>
-                <td class="border p-3">
-                    <input type="text" class="totalCostDisplayField w-24 min-w-0 border-none bg-gray-100 p-2 text-right dark:bg-gray-700" placeholder="-" readonly aria-label="Total Cost">
                 </td>
                 <td class="border p-3 siteid-column">
                     <div class="siteid-wrapper">
@@ -1229,7 +1202,6 @@
                             <td class="border p-2">${item.stock_unit || ''}</td>
                             <td class="border p-2">${item.siteid || ''}</td>
                             <td class="border p-2">${formatNumber(item.stock)}</td>
-                            <td class="border p-2 text-right whitespace-nowrap">${item.cost == null ? '-' : formatNumber(item.cost, true)}</td>
                             <td class="border p-2 text-center">
                             <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                                 data-id="${item.inventoryid}"
@@ -1286,7 +1258,7 @@
                 const item_category = $btn.data('item_category') || '';
                 const purchase_unit = $btn.data('purchase_unit') || '';
                 const stock = $btn.data('stock') || '';
-                const cost = $btn.data('cost') ?? '';
+                const cost = $btn.data('cost') || '';
                 const siteid = $btn.data('siteid') || '';
 
                 // DEBUG: lihat apa yang sebenarnya kebaca dari tombol
@@ -1317,7 +1289,6 @@
 
                 currentRow.find('.prodItemStockField').val(stock);
                 currentRow.find('.prodItemCostField').val(cost);
-                updateSpbRowCosts(currentRow);
 
                 // BERSIHKAN COA
                 currentRow.find('.coaIdField').val('');
@@ -1447,11 +1418,6 @@
         // Normalisasi: kalau user paste titik → ubah jadi koma
         $(document).on('input', '.qtyField', function() {
             this.value = this.value.replace('.', ',').replace(/[^0-9,]/g, '');
-            updateSpbRowCosts($(this).closest('.spb-row'));
-        });
-
-        $(document).on('change', '.qtyField', function() {
-            updateSpbRowCosts($(this).closest('.spb-row'));
         });
     </script>
 
@@ -2553,7 +2519,6 @@
                     // Inventory
                     $tr.find('.inventoryIdField').val('');
                     $tr.find('.productNameField').val('');
-                    $tr.find('.prodItemCostField, .invCostField, .costDisplayField, .totalCostDisplayField').val('');
 
                     // item meta
                     $tr.find('.prodItemTypeField').val('');
