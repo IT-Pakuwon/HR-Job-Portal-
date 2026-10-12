@@ -1545,17 +1545,20 @@ class SpbController extends Controller
             return response()->json(['success' => false, 'message' => 'SPB not found'], 404);
         }
 
-        $requiresIMBudget = in_array(
-            strtolower(trim((string) ($spb->flag_imbudget ?? ''))),
-            ['1', 't', 'true', 'yes'],
-            true
-        );
         $hasIMBudget = trim((string) ($spb->imbudgetid ?? '')) !== '';
         $statusIMBudget = strtoupper(trim((string) ($spb->status_imbudget ?? '')));
-        if (($requiresIMBudget || $hasIMBudget) && $statusIMBudget !== 'C') {
+        if ($hasIMBudget && $statusIMBudget !== 'C') {
+            $imStatusMessages = [
+                'H' => 'IM Budget masih Hold.',
+                'P' => 'IM Budget masih On Progress.',
+                'X' => 'IM Budget sudah dibatalkan.',
+                'R' => 'IM Budget sudah ditolak.',
+            ];
+
             return response()->json([
                 'success' => false,
-                'message' => 'SPB hanya bisa di-approve setelah IM Budget berstatus Completed.',
+                'message' => $imStatusMessages[$statusIMBudget]
+                    ?? 'SPB hanya bisa di-approve setelah IM Budget berstatus Completed.',
             ], 409);
         }
 
