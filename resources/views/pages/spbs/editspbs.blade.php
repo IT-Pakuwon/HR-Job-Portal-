@@ -195,6 +195,8 @@
                                                     <th class="req w-[25%] border p-3">Product Name</th>
                                                     <th class="req w-28 w-[6%] border p-3 text-center">Qty</th>
                                                     <th class="req w-28 w-[8%] border p-3">UoM</th>
+                                                    <th class="w-24 border p-2 text-right">Estimate Cost</th>
+                                                    <th class="w-28 border p-2 text-right whitespace-nowrap">Total</th>
                                                     <th class="req siteid-header w-28 w-[8%] border p-3">SiteID</th>
                                                     <th class="w-[15%] border p-3">Note</th>
                                                     <th class="req border p-3">Location</th>
@@ -276,6 +278,8 @@
                                                             </div>
                                                         </td>
 
+<td class="border p-2"><input type="hidden" class="prodItemCostField" value="{{ $d->unitcost ?? '' }}"><input type="text" class="costDisplayField w-24 min-w-0 border-none bg-gray-100 p-2 text-right dark:bg-gray-700" placeholder="-" readonly aria-label="Estimate Cost"></td>
+<td class="border p-2"><input type="text" class="totalCostDisplayField w-24 min-w-0 border-none bg-gray-100 p-2 text-right dark:bg-gray-700" placeholder="-" readonly aria-label="Total"></td>
                                                         {{-- SiteID --}}
 
                                                         <td class="siteid-column border p-3">
@@ -525,6 +529,7 @@
                                             <th class="border p-2">Category</th>
                                             <th class="border p-2">SiteID</th>
                                             <th class="border p-2">Stock</th>
+                                            <th class="border p-2 text-right">Estimate Cost</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
@@ -1037,6 +1042,8 @@
                                     title="Lookup">🔎</button>
                         </div>
                     </td>
+<td class="border p-2"><input type="hidden" class="prodItemCostField" value=""><input type="text" class="costDisplayField w-24 min-w-0 border-none bg-gray-100 p-2 text-right dark:bg-gray-700" placeholder="-" readonly aria-label="Estimate Cost"></td>
+<td class="border p-2"><input type="text" class="totalCostDisplayField w-24 min-w-0 border-none bg-gray-100 p-2 text-right dark:bg-gray-700" placeholder="-" readonly aria-label="Total"></td>
                     {{-- SiteID --}}
                     <td class="border p-3 siteid-column">
                         <div class="siteid-wrapper">
@@ -1363,6 +1370,25 @@
     </script>
 
     <script>
+        function updateSpbRowCosts($row) {
+            if (!$row.find('.prodItemCostField').length) {
+                $row.find('.stock_unitField').closest('td').after(`<td class="border p-2"><input type="hidden" class="prodItemCostField" value=""><input type="text" class="costDisplayField w-24 min-w-0 border-none bg-gray-100 p-2 text-right dark:bg-gray-700" placeholder="-" readonly aria-label="Cost"></td><td class="border p-2"><input type="text" class="totalCostDisplayField w-24 min-w-0 border-none bg-gray-100 p-2 text-right dark:bg-gray-700" placeholder="-" readonly aria-label="Total"></td>`);
+            }
+            const rawCost = $row.find('.prodItemCostField').val();
+            const cost = Number(rawCost);
+            if (rawCost === '' || !Number.isFinite(cost)) {
+                $row.find('.costDisplayField, .totalCostDisplayField').val('');
+                return;
+            }
+            const qty = Number(($row.find('.qtyField').val() || '0').replace(',', '.'));
+            $row.find('.costDisplayField').val(formatNumber(cost, true));
+            $row.find('.totalCostDisplayField').val(formatNumber(cost * (Number.isFinite(qty) ? qty : 0), true));
+        }
+
+        $(function() {
+            $('#spbTable .spb-row').each(function() { updateSpbRowCosts($(this)); });
+        });
+        $(document).on('change', '.qtyField', function() { updateSpbRowCosts($(this).closest('.spb-row')); });
         function formatNumber(num, isCost = false) {
             if (num === null || num === undefined || num === '') return '';
 

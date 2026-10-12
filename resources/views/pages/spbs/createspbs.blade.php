@@ -168,6 +168,8 @@
                                                     <th class="req w-[25%] border p-3">Product Name</th>
                                                     <th class="req w-28 w-[6%] border p-3 text-center">Qty</th>
                                                     <th class="req w-28 w-[8%] border p-3">UoM</th>
+                                                    <th class="border p-3 text-right">Estimate Cost</th>
+                                                    <th class="border p-3 text-right whitespace-nowrap">Total</th>
                                                     <th class="req siteid-header w-28 w-[8%] border p-3">SiteID</th>
                                                     <th class="w-[15%] border p-3">Note</th>
                                                     <th class="req border p-3">Location</th>
@@ -234,6 +236,13 @@
                                                                 class="openUomModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                                                                 title="Lookup">🔎</button>
                                                         </div>
+                                                    </td>
+
+                                                    <td class="border p-3">
+                                                        <input type="text" class="costDisplayField w-24 min-w-0 border-none bg-gray-100 p-2 text-right dark:bg-gray-700" placeholder="-" readonly aria-label="Estimate Cost">
+                                                    </td>
+                                                    <td class="border p-3">
+                                                        <input type="text" class="totalCostDisplayField w-24 min-w-0 border-none bg-gray-100 p-2 text-right dark:bg-gray-700" placeholder="-" readonly aria-label="Total">
                                                     </td>
 
                                                     {{-- SiteID --}}
@@ -371,7 +380,7 @@
                                             <th class="border p-2">UoM</th>
                                             <th class="border p-2">SiteID</th>
                                             <th class="border p-2">Stock</th>
-                                            {{-- <th class="border p-2">Cost</th>    --}}
+                                            <th class="border p-2 text-right">Estimate Cost</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
@@ -1038,6 +1047,12 @@
                                 class="openUomModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                                 title="Lookup">🔎</button>
                     </div>
+                </td>
+                <td class="border p-3">
+                    <input type="text" class="costDisplayField w-24 min-w-0 border-none bg-gray-100 p-2 text-right dark:bg-gray-700" placeholder="-" readonly aria-label="Estimate Cost">
+                </td>
+                <td class="border p-3">
+                    <input type="text" class="totalCostDisplayField w-24 min-w-0 border-none bg-gray-100 p-2 text-right dark:bg-gray-700" placeholder="-" readonly aria-label="Total">
                 </td>
                 <td class="border p-3 siteid-column">
                     <div class="siteid-wrapper">

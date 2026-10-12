@@ -373,6 +373,7 @@
                                 <th class="px-4 py-2">Description / Note</th>
                                 <th class="px-4 py-2">Stock</th>
                                 <th class="px-4 py-2">Qty / UoM</th>
+                                <th class="px-4 py-2 text-right">Estimate Cost / Total</th>
                                 <th class="px-4 py-2">Location</th>
                                 <th class="px-4 py-2">Budget Department</th>
                                 <th class="px-4 py-2">Issue Qty</th>
@@ -1024,7 +1025,13 @@
                 error: function(xhr) {
                     console.error(xhr.responseText);
 
-                    if (xhr.status === 403) {
+                    if (xhr.status === 409) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Tidak bisa approve',
+                            text: xhr.responseJSON?.message || 'IM Budget belum Completed.'
+                        });
+                    } else if (xhr.status === 403) {
                         toastr.error("You are not authorized to approve this spb.");
                     } else {
                         toastr.error("Error: Unable to approve spb.");
@@ -1040,9 +1047,23 @@
 
 
     <script>
+        function checkSpbImBudgetAction(action) {
+            const status = @json(strtoupper(trim((string) ($spb->status_imbudget ?? ''))));
+            if (['H', 'P'].includes(status)) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tidak bisa ' + action,
+                    text: 'IM Budget masih On Hold atau On Progress. Tunggu sampai status IM Budget menjadi Revise atau Rejected.'
+                });
+                return false;
+            }
+            return true;
+        }
+
         $(document).ready(function() {
             // Saat tombol "Reject" ditekan, tampilkan modal Reject di depan
             $(document).on("click", "#rejectBtn", function() {
+                if (!checkSpbImBudgetAction('reject')) return;
                 $("#rejectReason").val(""); // Reset alasan reject
                 // $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
                 let spbid = "{{ $spb->spbid }}";
@@ -1057,6 +1078,7 @@
 
             // Saat tombol "Reject" ditekan, proses perubahan status
             $(document).on("click", "#confirmRejectBtn", function() {
+                if (!checkSpbImBudgetAction('reject')) return;
                 let spbid = "{{ $spb->spbid }}"; // Ambil ID tugas dari modal detail
                 let rejectReason = $("#rejectReason").val().trim();
 
@@ -1098,6 +1120,12 @@
                     error: function(xhr) {
                         console.error(xhr.responseText);
 
+                        if (xhr.status === 409) {
+                            $spinner.fadeOut();
+                            Swal.fire({icon: 'warning', title: 'Tidak bisa reject', text: xhr.responseJSON?.message});
+                            return;
+                        }
+
                         if (xhr.status === 403) {
                             alert("You Can't Rejected!"); // Popup jika user tidak berhak
                         } else {
@@ -1112,6 +1140,7 @@
         $(document).ready(function() {
             // Saat tombol "Revise" ditekan, tampilkan modal Revise di depan
             $(document).on("click", "#reviseBtn", function() {
+                if (!checkSpbImBudgetAction('revise')) return;
                 $("#reviseReason").val(""); // Reset alasan revise
                 // $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
                 let spbid = "{{ $spb->spbid }}";
@@ -1126,6 +1155,7 @@
 
             // Saat tombol "Revise" ditekan, proses perubahan status
             $(document).on("click", "#confirmReviseBtn", function() {
+                if (!checkSpbImBudgetAction('revise')) return;
                 let spbid = "{{ $spb->spbid }}"; // Ambil ID tugas dari modal detail
                 let reviseReason = $("#reviseReason").val().trim();
 
@@ -1164,6 +1194,12 @@
                     },
                     error: function(xhr) {
                         console.error(xhr.responseText);
+
+                        if (xhr.status === 409) {
+                            $spinner.fadeOut();
+                            Swal.fire({icon: 'warning', title: 'Tidak bisa revise', text: xhr.responseJSON?.message});
+                            return;
+                        }
 
                         if (xhr.status === 403) {
                             alert("You Can't Revised!"); // Popup jika user tidak berhak
