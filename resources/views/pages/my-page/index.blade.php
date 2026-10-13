@@ -125,7 +125,9 @@
             .dark .mp-wrap #approvalCardList > a { background: #1e293b; border-color: #334155; }
 
             /* filters: search + doctype only; hide the desktop-only controls */
-            .mp-wrap .border-b.p-4, #myActivityRoot .border-b.p-4 { padding: .75rem 0 !important; border: 0 !important; }
+            .mp-wrap .border-b.p-4, #myActivityRoot .border-b.p-4 { padding: .75rem 0 1.125rem !important; border: 0 !important; }
+            /* a little room between the filter buttons and the first card */
+            .mp-wrap #approvalCardList { padding-top: .25rem; }
             .mp-wrap .lg\:col-span-2:has(#approvalPageSize) { display: none; }
             #myActivityRoot .lg\:col-span-4:has(select[class*="w-24"]) { display: none; }
             .mp-wrap input[type="text"], .mp-wrap select { border-radius: .875rem !important; padding: .625rem .875rem !important; font-size: .8125rem !important; background: #fff; }
