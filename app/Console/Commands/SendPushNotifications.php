@@ -2,7 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Http\Controllers\ApprovalDashboardController;
 use App\Models\SysPushSubscription;
+use App\Models\User;
 use App\Services\DocumentNotificationService;
 use App\Services\WebPushService;
 use Illuminate\Console\Command;
@@ -39,9 +41,39 @@ class SendPushNotifications extends Command
         return self::SUCCESS;
     }
 
+    // Waiting Approval rows, shaped like bell items (key / docid / label / message / href).
+    private function waitingApprovalItems(string $username): \Illuminate\Support\Collection
+    {
+        try {
+            $user = User::whereRaw('lower(username) = ?', [$username])->where('status', 'A')->first();
+            if (!$user) return collect();
+
+            return app(ApprovalDashboardController::class)->waitingForUser($user)->map(function ($r) {
+                $desc = trim(preg_replace('/\s+/', ' ', strip_tags((string) ($r['infohd'] ?? ''))));
+
+                return [
+                    'key'     => 'WAITAPPR_' . $r['docid'],
+                    'docid'   => $r['docid'],
+                    'label'   => 'Waiting Approval',
+                    'message' => $desc !== '' ? $desc : 'This document is waiting for your approval.',
+                    'href'    => rtrim((string) $r['url'], '/') . '/' . $r['hid'] . ($r['query'] ?? ''),
+                ];
+            });
+        } catch (\Throwable $e) {
+            report($e);
+
+            return collect();
+        }
+    }
+
     private function pushForUser(string $username, $subs): void
     {
-        $items = collect(DocumentNotificationService::buildForUser($username))->filter(fn ($i) => !empty($i['key']));
+        // Everything the bell shows, plus documents newly waiting for this user's approval
+        // (the bell leaves those out because the Approval dashboard already lists them).
+        $items = collect(DocumentNotificationService::buildForUser($username))
+            ->filter(fn ($i) => !empty($i['key']))
+            ->concat($this->waitingApprovalItems($username))
+            ->values();
         $keys  = $items->pluck('key')->all();
 
         $cacheKey = 'push_sent_' . $username;
