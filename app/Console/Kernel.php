@@ -26,6 +26,12 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->runInBackground();
 
+        // Push new bell notifications to devices that enabled them in the My Page app
+        $schedule->command('notifications:push')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->runInBackground();
+
         // Retry Microsoft Teams link creation for bookings that failed to get one
         $schedule->command('meeting:retry-teams-links')
             ->everyFiveMinutes()

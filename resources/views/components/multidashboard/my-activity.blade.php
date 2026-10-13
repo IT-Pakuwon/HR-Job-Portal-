@@ -8,7 +8,7 @@
     $combined = $combined ?? false;
     $selectCls = 'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs dark:border-slate-600 dark:bg-slate-700 dark:text-white';
     $thCls = 'px-3 py-2 font-semibold';
-    $tdCls = 'whitespace-nowrap px-3 py-2 align-top text-slate-600 dark:text-slate-300';
+    $tdCls = 'ma-chip whitespace-nowrap px-3 py-2 align-top text-slate-600 dark:text-slate-300';
     $pillCls = $combined ? 'dsh-id' : 'inline-flex items-center rounded-md bg-gray-700 px-2 py-1 text-[11px] font-bold text-white transition-colors hover:bg-gray-800 dark:bg-cyan-700 dark:hover:bg-cyan-600';
     $rowCls = 'border-b border-slate-100 last:border-0 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-700/30';
     $theadCls = 'border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:text-slate-400';
@@ -123,7 +123,7 @@
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
                             <template x-for="d in docs" :key="d.docid">
-                                <tr class="{{ $rowCls }}">
+                                <tr class="{{ $rowCls }} ma-r ma-r-doc" :data-s="d.code">
                                     <td class="px-3 py-2.5 align-top">
                                         <div class="font-semibold text-slate-800 dark:text-slate-100" x-text="d.info || d.type"></div>
                                         <div class="dsh-sub">
@@ -156,7 +156,7 @@
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
                             <template x-for="d in docs" :key="d.docid">
-                                <tr class="{{ $rowCls }}">
+                                <tr class="{{ $rowCls }} ma-r ma-r-doc" :data-s="d.code">
                                     <td class="whitespace-nowrap px-3 py-2 align-top">
                                         <a :href="d.href" target="_blank" rel="noopener noreferrer" class="{{ $pillCls }}" x-text="d.docid"></a>
                                     </td>
@@ -225,7 +225,7 @@
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
                             <template x-for="m in msgs" :key="m.id">
-                                <tr class="{{ $rowCls }}">
+                                <tr class="{{ $rowCls }} ma-r ma-r-msg">
                                     <td class="whitespace-nowrap px-3 py-2 align-top">
                                         <a x-show="m.href" :href="m.href" target="_blank" rel="noopener noreferrer" class="{{ $pillCls }}" x-text="m.docid"></a>
                                         <span x-show="!m.href" class="{{ $combined ? 'dsh-id' : 'inline-flex items-center rounded-md bg-gray-700 px-2 py-1 text-[11px] font-bold text-white dark:bg-cyan-700' }}" x-text="m.docid"></span>
@@ -301,7 +301,7 @@
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
                             <template x-for="f in files" :key="f.id">
-                                <tr class="{{ $rowCls }}">
+                                <tr class="{{ $rowCls }} ma-r ma-r-file">
                                     <td class="px-3 py-2 align-top">
                                         <div class="ma-fcell">
                                             <span class="ma-ftile" :class="'ma-ft-' + fileKind(f.ext)" x-text="(f.ext || 'file').toUpperCase().slice(0, 4)"></span>
@@ -514,8 +514,8 @@
             const defs = combined
                 ? [{ id: 'my-tab-activity', mode: 'activity', label: MA_ICONS.user + '<span>My Activity</span>' }]
                 : [
-                    { id: 'my-tab-message', mode: 'msg', label: '💬 My Message' },
                     { id: 'my-tab-document', mode: 'doc', label: '📄 My Document' },
+                    { id: 'my-tab-message', mode: 'msg', label: '💬 My Message' },
                     { id: 'my-tab-files', mode: 'file', label: '📎 My Files' },
                 ];
             const mine = defs.map(t => {
