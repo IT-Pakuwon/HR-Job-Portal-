@@ -22,6 +22,17 @@ class Handler extends ExceptionHandler
         'password_confirmation',
     ];
 
+    // Requests from the My Page app (its own pages, or XHR sent from them) must land on the in-app login,
+    // because the normal /login is outside the installed app's scope and would open the phone's browser.
+    private function loginUrl(Request $request): string
+    {
+        $refererPath = (string) parse_url((string) $request->headers->get('referer'), PHP_URL_PATH);
+
+        return ($request->is('my-page*') || str_starts_with($refererPath, '/my-page'))
+            ? route('my-page.login')
+            : route('login');
+    }
+
     /**
      * Register the exception handling callbacks for the application.
      */
@@ -44,11 +55,11 @@ class Handler extends ExceptionHandler
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => 'Your session has expired. Please log in again.',
-                    'redirect' => route('login'),
+                    'redirect' => $this->loginUrl($request),
                 ], 419);
             }
 
-            return redirect()->route('login')
+            return redirect()->to($this->loginUrl($request))
                 ->with('error', 'Your session has expired. Please log in again.');
         };
 
@@ -58,11 +69,11 @@ class Handler extends ExceptionHandler
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => 'Your session has expired. Please log in again.',
-                    'redirect' => route('login'),
+                    'redirect' => $this->loginUrl($request),
                 ], 401);
             }
 
-            return redirect()->route('login')
+            return redirect()->to($this->loginUrl($request))
                 ->with('error', 'Your session has expired. Please log in again.');
         });
     }

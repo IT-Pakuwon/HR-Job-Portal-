@@ -229,6 +229,10 @@ Route::redirect('/', 'login');
 // reachable without a session; the page itself requires login.
 Route::get('/my-page.webmanifest', [\App\Http\Controllers\MyPageController::class, 'manifest'])->name('my-page.manifest');
 Route::get('/my-page-sw.js', [\App\Http\Controllers\MyPageController::class, 'serviceWorker'])->name('my-page.sw');
+Route::get('/my-page', [\App\Http\Controllers\MyPageController::class, 'index'])->name('my-page');
+Route::get('/my-page/login', [\App\Http\Controllers\MyPageController::class, 'loginForm'])->name('my-page.login');
+Route::post('/my-page/login', [\App\Http\Controllers\MyPageController::class, 'login'])->middleware('throttle:10,1')->name('my-page.login.submit');
+Route::post('/my-page/logout', [\App\Http\Controllers\MyPageController::class, 'logout'])->name('my-page.logout');
 
 Route::get('/login', function () {
     return view('auth.login');
@@ -272,7 +276,6 @@ Route::get('/modules', function () {
 
 // Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 Route::middleware(['auth'])->group(function () {
-    Route::get('/my-page', [\App\Http\Controllers\MyPageController::class, 'index'])->name('my-page');
     Route::prefix('push')->controller(\App\Http\Controllers\PushSubscriptionController::class)->name('push.')->group(function () {
         Route::get('/key', 'key')->name('key');
         Route::get('/status', 'status')->name('status');

@@ -45,6 +45,37 @@
         /* breathing room between the feedback reminder and the list below it */
         #pendingFeedbackReminders:not(.hidden) { margin-top: .875rem; margin-bottom: 1.25rem; }
         #pendingFeedbackReminders > a:last-child { margin-bottom: 0 !important; }
+        /* Approval / History cards */
+        .ap-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr)); gap: .625rem; }
+        .ap-card { --acc: #3b82f6; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: .5rem; padding: .8125rem .875rem .8125rem 1.0625rem;
+            border: 1px solid #e8edf3; border-radius: 1.125rem; background: #fff; box-shadow: 0 1px 2px #0f172a0a, 0 10px 22px -16px #0f172a40;
+            animation: mpIn .45s cubic-bezier(.22, 1, .36, 1) both; }
+        .ap-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--acc); }
+        .ap-card:nth-child(2) { animation-delay: .04s; } .ap-card:nth-child(3) { animation-delay: .08s; }
+        .ap-card:nth-child(4) { animation-delay: .12s; } .ap-card:nth-child(5) { animation-delay: .16s; } .ap-card:nth-child(n+6) { animation-delay: .2s; }
+        .ap-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+        .ap-head-r { display: inline-flex; align-items: center; gap: .375rem; flex: none; }
+        .ap-id { display: inline-flex; align-items: center; padding: .25rem .625rem; border-radius: .625rem; background: #334155; color: #fff; font-size: .75rem; font-weight: 700;
+            letter-spacing: .01em; text-decoration: none; }
+        .ap-id:active { transform: scale(.97); }
+        .ap-desc { font-size: .8125rem; line-height: 1.4; color: #334155; overflow-wrap: anywhere; }
+        .ap-desc .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .ap-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .375rem; }
+        .ap-chip { padding: .1875rem .5625rem; border-radius: 9999px; background: #f1f5f9; color: #475569; font-size: .6875rem; font-weight: 600; line-height: 1.2; }
+        .ap-date { margin-left: auto; font-size: .6875rem; color: #94a3b8; }
+        .dark .ap-card { background: #1e293b; border-color: #334155; }
+        .dark .ap-id { background: #0e7490; }
+        .dark .ap-desc { color: #cbd5e1; }
+        .dark .ap-chip { background: #334155; color: #cbd5e1; }
+        @media (prefers-reduced-motion: reduce) { .ap-card { animation: none; } }
+        /* Fixed header + tiles; only the list area scrolls */
+        main:has(.mp-wrap) { overflow: hidden !important; }
+        .mp-wrap { display: flex; flex-direction: column; height: calc(100vh - 1rem); height: calc(100dvh - 1rem); }
+        .mp-wrap > .mp-hero, .mp-wrap > .mp-tiles { flex: none; }
+        .mp-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: .25rem .125rem 1rem; margin: 0 -.125rem; }
+        .mp-scroll::-webkit-scrollbar { width: 4px; } .mp-scroll::-webkit-scrollbar-thumb { background: #94a3b855; border-radius: 9999px; }
+        /* wide screens: keep the tab bar in view while the list scrolls */
+        .mp-tabhead { position: sticky; top: -.25rem; z-index: 5; background: inherit; }
         .mp-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .625rem; margin-bottom: .875rem; }
         .mp-tile { display: flex; flex-direction: column; align-items: center; gap: .5rem; padding: .875rem .5rem; text-align: center; cursor: pointer;
             border-radius: 1rem; border: 1px solid #e2e8f0; background: #fff; color: #0f172a; font-size: .75rem; font-weight: 600;
@@ -71,7 +102,8 @@
         .mp-seg { display: none; }
         .mp-wrap .dsh-kpis.mp-kpi-off { display: none !important; }
         @media (max-width: 768px) {
-            .mp-wrap { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)) !important; }
+            .mp-wrap { padding-bottom: 0 !important; }
+            .mp-scroll { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)) !important; }
             .mp-hero { border-radius: 0 0 1.5rem 1.5rem; margin: calc(-0.5rem - env(safe-area-inset-top)) -0.5rem .875rem; padding: calc(1rem + env(safe-area-inset-top)) 1.125rem 1.25rem; }
 
             /* the five tabs move to the bottom bar */
@@ -231,14 +263,36 @@
             </button>
         </div>
 
+        <div class="mp-scroll" id="mpScroll">
         {{-- Training feedback reminders: the script lists the user's pending feedback and opens the form
              as an in-page pop-up, so it is filled in right here without leaving the installed app. --}}
         <div id="pendingFeedbackReminders" class="hidden"></div>
         <script src="{{ asset('assets/js/multidashboard/pending-training-feedback.js') }}?v={{ filemtime(public_path('assets/js/multidashboard/pending-training-feedback.js')) }}"></script>
 
 
+        <script>
+            // Session ended while the app was open: any 401/419 (or a redirect to /login) sends the user to the in-app sign-in.
+            (function () {
+                const loginUrl = @json(route('my-page.login', [], false));
+                let leaving = false;
+                const leave = () => { if (leaving) return; leaving = true; window.location.replace(loginUrl); };
+                const origFetch = window.fetch.bind(window);
+                window.fetch = async (...args) => {
+                    const res = await origFetch(...args);
+                    try {
+                        if (res.status === 401 || res.status === 419 || (res.redirected && /\/login(\/|$|\?)/.test(new URL(res.url).pathname))) leave();
+                    } catch (e) {}
+                    return res;
+                };
+                document.addEventListener('DOMContentLoaded', () => {
+                    if (window.jQuery) window.jQuery(document).ajaxError((e, xhr) => { if (xhr.status === 401 || xhr.status === 419) leave(); });
+                });
+            })();
+        </script>
+        <script>window.approvalCardMode = true; // Approval / History as cards instead of a table</script>
         @include('components.multidashboard.dashboard-approval', ['myPage' => true])
         @include('components.multidashboard.my-activity', ['combined' => false])
+        </div>
     </div>
 
     <nav class="mp-nav" id="mpNav" aria-label="My Page sections">
@@ -264,7 +318,7 @@
                 <button id="installMyPage" type="button" class="mp-obtn" title="Add to Home Screen" aria-label="Add to Home Screen" hidden>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
                 </button>
-                <form action="{{ route('logout') }}" method="POST">
+                <form action="{{ route('my-page.logout') }}" method="POST">
                     @csrf
                     <button type="submit" class="mp-obtn" title="Logout" aria-label="Logout">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
@@ -381,7 +435,7 @@
                 if (b.dataset.target) {
                     current = b.dataset.target;
                     sync();
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    document.getElementById('mpScroll').scrollTo({ top: 0, behavior: 'smooth' });
                 }
             }));
             window.addEventListener('resize', place);
