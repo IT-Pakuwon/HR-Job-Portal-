@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\SysPushSubscription;
+use App\Services\PushNotificationFeed;
 use App\Services\WebPushService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -39,6 +40,13 @@ class PushSubscriptionController extends Controller
             ? true
             : 'FAILED: ' . (function_exists('openssl_error_string') ? (openssl_error_string() ?: 'unknown') : 'no openssl')
                 . ' — on Windows/XAMPP set OPENSSL_CONF to the openssl.cnf file and restart the web server';
+        $last = Cache::get('push_last_run');
+        $age = $last ? now()->diffInSeconds(\Illuminate\Support\Carbon::parse($last)) : null;
+        $checks['scheduler_running (notifications:push ran in the last 3 min)'] = ($age !== null && $age <= 180)
+            ? true
+            : 'NO — notifications:push has ' . ($last ? 'not run since ' . $last . ' (' . round($age / 60, 1) . ' min ago)' : 'never run')
+                . '. Check the cron / Task Scheduler entry for "php artisan schedule:run" (every minute).';
+        $checks['last_push_run'] = Cache::get('push_last_run_info') ?: 'none yet';
         $checks['curl_extension'] = extension_loaded('curl');
         $checks['bcmath_or_gmp'] = extension_loaded('bcmath') || extension_loaded('gmp');
         $checks['https'] = $request->isSecure() ?: 'NO — push only works over HTTPS (localhost excepted)';
@@ -94,8 +102,14 @@ class PushSubscriptionController extends Controller
             return response()->json(['success' => false, 'message' => 'Could not save this device (is the sys_push_subscription table created on the server?)'], 500);
         }
 
-        // Start from "everything currently in the bell is already known" so enabling doesn't blast the backlog.
-        Cache::forget('push_sent_' . $username);
+        // Record everything that exists right now as "already known" so enabling doesn't blast the backlog, and so a
+        // document submitted a moment later is still pushed (seeding here, not on the scheduler's next tick, avoids a race).
+        try {
+            Cache::put('push_sent_' . $username, PushNotificationFeed::itemsFor($username)->pluck('key')->all(), now()->addDays(60));
+        } catch (\Throwable $e) {
+            Log::warning('Push subscribe: could not seed known notifications', ['err' => $e->getMessage()]);
+            Cache::forget('push_sent_' . $username);
+        }
 
         // Confirmation push. If it can't be sent (e.g. OpenSSL not set up on the server) the device is still registered.
         $welcomeSent = false;
