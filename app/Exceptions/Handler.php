@@ -6,6 +6,7 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\Request;
 use Illuminate\Session\TokenMismatchException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -30,7 +31,16 @@ class Handler extends ExceptionHandler
             //
         });
 
-        $this->renderable(function (TokenMismatchException $e, Request $request) {
+        // Laravel 11 converts TokenMismatchException into an HttpException(419)
+        // before renderable callbacks run, so match on the converted form too.
+        $expired = function (Throwable $e, Request $request) {
+            $isExpired = $e instanceof TokenMismatchException
+                || ($e instanceof HttpExceptionInterface && $e->getStatusCode() === 419);
+
+            if (! $isExpired) {
+                return null;
+            }
+
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => 'Your session has expired. Please log in again.',
@@ -40,7 +50,9 @@ class Handler extends ExceptionHandler
 
             return redirect()->route('login')
                 ->with('error', 'Your session has expired. Please log in again.');
-        });
+        };
+
+        $this->renderable($expired);
 
         $this->renderable(function (AuthenticationException $e, Request $request) {
             if ($request->expectsJson()) {

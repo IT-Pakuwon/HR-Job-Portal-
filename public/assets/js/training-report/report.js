@@ -64,9 +64,9 @@
 
     function initSelect2() {
         if (!hasSelect2) return;
-        $('#trnrepTrainingFilter').select2({ width: '160px' });
-        $('#trnrepScheduleFilter').select2({ width: '220px' });
-        $('#trnrepLevelFilter').select2({ width: '150px' });
+        $('#trnrepTrainingFilter').select2({ width: '160px', dropdownCssClass: 'trnrep-select2-dd' });
+        $('#trnrepScheduleFilter').select2({ width: '220px', dropdownCssClass: 'trnrep-select2-dd' });
+        $('#trnrepLevelFilter').select2({ width: '150px', dropdownCssClass: 'trnrep-select2-dd' });
     }
 
     // trainingId narrows the schedule list to just that training's sessions;
