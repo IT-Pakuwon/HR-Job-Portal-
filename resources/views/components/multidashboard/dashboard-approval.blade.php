@@ -4,11 +4,11 @@
 
         <div>
             <h1 class="text-xl font-bold text-slate-900 dark:text-white">
-                Approval Dashboard
+                {{ ($myPage ?? false) ? 'My Page' : 'Approval Dashboard' }}
             </h1>
 
             <p class="text-xs text-slate-500 dark:text-slate-400">
-                Waiting Approval • Approval History
+                {{ ($myPage ?? false) ? 'Waiting Approval • Approval History • My Document • My Message • My Files' : 'Waiting Approval • Approval History' }}
             </p>
         </div>
 
@@ -28,6 +28,7 @@
                 </button>
             </div>
 
+            @unless ($myPage ?? false)
             <button id="updateNotificationBtn" type="button" title="Update Notification"
                 class="relative flex items-center justify-center rounded-full border border-slate-200 bg-white p-2 text-slate-600 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -39,6 +40,7 @@
                     0
                 </span>
             </button>
+            @endunless
 
         </div>
 
@@ -66,9 +68,11 @@
 
     </div>
 
+    @unless ($myPage ?? false)
     <div class="grid grid-cols-12 gap-6">
         <x-multidashboard.dashboard-favourite />
     </div>
+    @endunless
 
     <div
         class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">

@@ -29,6 +29,7 @@ class UserDataSyncController extends Controller
             ->whereNotNull('employee_id')
             ->where('employee_id', '!=', '')
             ->orderBy('employee_id')
+            ->toBase()
             ->get(['employee_id', 'first_name', 'last_name', 'organization_name', 'job_position', 'status_talenta'])
             ->map(function ($t) {
                 $org = trim((string) $t->organization_name);
@@ -54,6 +55,7 @@ class UserDataSyncController extends Controller
         $users = User::query()
             ->where('status', 'A')
             ->orderBy('name')
+            ->toBase()
             ->get(['id', 'username', 'name', 'npk', 'origin_cpny_id', 'origin_department_id', 'status']);
 
         return response()->json(['data' => $users]);
@@ -62,9 +64,9 @@ class UserDataSyncController extends Controller
     public function options()
     {
         return response()->json([
-            'companies' => MsCompany::query()->orderBy('cpny_id')->get(['cpny_id', 'cpny_name'])
+            'companies' => MsCompany::query()->orderBy('cpny_id')->toBase()->get(['cpny_id', 'cpny_name'])
                 ->unique('cpny_id')->values(),
-            'departments' => MsDepartment::query()->orderBy('department_id')->get(['department_id', 'department_name'])
+            'departments' => MsDepartment::query()->orderBy('department_id')->toBase()->get(['department_id', 'department_name'])
                 ->unique('department_id')->values(),
         ]);
     }

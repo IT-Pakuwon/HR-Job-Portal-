@@ -28,8 +28,8 @@ class PsmOlaAgreementMail extends Mailable
 
     public function build()
     {
-        $addendum = $this->agreement->agreement_type === 'ADDENDUM';
-        $label = $addendum ? 'Addendum' : 'PSM / OLA';
+        $type = $this->agreement->agreement_type;
+        $label = ['ADDENDUM' => 'Addendum', 'OTHERS' => 'Others'][$type] ?? 'PSM / OLA';
         $eid = Hashids::encode($this->agreement->id);
 
         // event => [subject tag, past-tense verb]
@@ -42,7 +42,7 @@ class PsmOlaAgreementMail extends Mailable
         ][$this->event] ?? ['UPDATED', 'updated'];
 
         // A cancelled agreement stays viewable (Cancelled tab), so it gets its link too.
-        $docUrl = url('/legal-new-agreement/'.($addendum ? 'addendum/' : '').$eid);
+        $docUrl = url('/legal-new-agreement/'.(['ADDENDUM' => 'addendum/', 'OTHERS' => 'others/'][$type] ?? '').$eid);
 
         return $this
             ->subject('[LEGAL AGREEMENT]['.$tag.'] '.$this->agreement->agreement_id.' - '.$label.' '.ucfirst($this->event))
