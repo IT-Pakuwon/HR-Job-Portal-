@@ -14,6 +14,7 @@ use App\Models\TrIssue;
 use App\Models\TrIssuedetail;
 use App\Models\TrSPB;
 use App\Models\TrSPBdetail;
+use App\Models\BusinessUnit;
 use Vinkla\Hashids\Facades\Hashids;
 use Mail;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -198,6 +199,10 @@ class IssueController extends Controller
             $totalIssueQty   = 0.0;
             $grandTotalCost  = 0.0;
             $createdDetails  = collect();   // <--- ini yg dikirim ke applyIssuePostingToSpb
+            $businessUnits = BusinessUnit::where('cpny_id', $cpnyid)
+                ->whereIn('business_unit_id', $spbDetails->pluck('budget_business_unit_id')->filter()->unique())
+                ->get()->keyBy('business_unit_id');
+            $inventoryCostCache = [];
 
             /** @var TrSPBdetail $src */
             foreach ($spbDetails as $detailId => $src) {
@@ -208,8 +213,35 @@ class IssueController extends Controller
                 $siteFromForm = isset($siteInput[$detailId]) ? trim((string)$siteInput[$detailId]) : null;
                 $lineNo++;
 
-                // Ambil harga dari SPB detail (kalau ada)
-                $unitCost = (float) ($src->unitcost ?? 0);
+                $bu = $businessUnits->get($src->budget_business_unit_id);
+                $isIfca = strtoupper(trim((string) ($bu->integration_type ?? ''))) === 'IFCA';
+                $inventoryModels = [
+                    'AW' => $isIfca ? \App\Models\ViewInventoryAWIfca::class : \App\Models\ViewInventoryAW::class,
+                    'EP' => $isIfca ? \App\Models\ViewInventoryEPHIfca::class : \App\Models\ViewInventoryEPH::class,
+                    'O8' => $isIfca ? \App\Models\ViewInventoryO8Ifca::class : \App\Models\ViewInventoryO8::class,
+                    'PSA' => $isIfca ? \App\Models\ViewInventoryPSAIfca::class : \App\Models\ViewInventoryPSA::class,
+                    'GPS' => \App\Models\ViewInventoryGPSIfca::class,
+                ];
+                $model = $inventoryModels[strtoupper(trim((string) $cpnyid))] ?? null;
+                $siteId = $siteFromForm !== '' ? $siteFromForm : ($src->siteid ?? null);
+                $siteFilter = $bu
+                    ? (trim((string) ($isIfca ? $bu->ifca_entity_cd : $bu->solomon_cpny_id)) ?: $siteId)
+                    : $siteId;
+                $costKey = implode('|', [$model ?? '', (string) $cpnyid, (string) $siteFilter, (string) $src->inventoryid]);
+
+                if (!array_key_exists($costKey, $inventoryCostCache)) {
+                    $inventoryCostCache[$costKey] = $model
+                        ? $model::query()
+                            ->where('cpnyid', $cpnyid)
+                            ->where('invtid', $src->inventoryid)
+                            ->when($siteFilter, fn ($query) => $query->where('siteid', $siteFilter))
+                            ->value('cost')
+                        : null;
+                }
+
+                $unitCost = $inventoryCostCache[$costKey] !== null
+                    ? (float) $inventoryCostCache[$costKey]
+                    : (float) ($src->unitcost ?? 0);
                 $lineCost = $unitCost * $qtyIssue;
 
                 $det = new TrIssuedetail();
@@ -224,7 +256,7 @@ class IssueController extends Controller
                 $det->issuetype       = 'IS';
                 $det->inventoryid     = $src->inventoryid;
                 $det->inventory_descr = $src->inventory_descr;
-                $det->siteid          = $siteFromForm !== '' ? $siteFromForm : ($src->siteid ?? null);
+                $det->siteid          = $siteId;
 
                 // Kuantitas Issue
                 $det->qty             = $qtyIssue;
