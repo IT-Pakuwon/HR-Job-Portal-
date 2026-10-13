@@ -431,6 +431,32 @@
         `;
     }
 
+    // Card layout for the My Page app (window.approvalCardMode): same data and links as the table, no columns.
+    function renderApprovalCards(rows, tab) {
+        const dateLabel = tab === "history" ? "Date" : "Since";
+        const showNote = tab === "waiting";
+
+        return `<div class="ap-cards">` + rows.map(row => {
+            const href = rowHref(row);
+            const acc = row.status === "A" ? "#10b981" : "#3b82f6";
+            const note = showNote ? privateNoteButton(row) : "";
+
+            return `
+                <div class="ap-card" style="--acc:${acc}">
+                    <div class="ap-head">
+                        <a href="${href}" target="_blank" rel="noopener noreferrer" class="ap-id">${row.docid}</a>
+                        <span class="ap-head-r">${note}${approvalStatusBadge(row)}</span>
+                    </div>
+                    ${row.infohd ? `<div class="ap-desc">${renderDescCell(row.infohd)}</div>` : ""}
+                    <div class="ap-meta">
+                        ${row.cpnyid ? `<span class="ap-chip">${row.cpnyid}</span>` : ""}
+                        ${row.departementid ? `<span class="ap-chip">${row.departementid}</span>` : ""}
+                        <span class="ap-date">${dateLabel} · ${row.docdate || "-"}</span>
+                    </div>
+                </div>`;
+        }).join("") + `</div>`;
+    }
+
     function applySearchFilter(rows) {
 
         const term = ($("#approvalSearch").val() || "").trim().toLowerCase();
@@ -466,7 +492,7 @@
         } else {
             $("#approvalEmptyState").addClass("hidden");
             if (activeTab === "waiting" || activeTab === "history") {
-                list.html(renderApprovalTable(pageRows, activeTab));
+                list.html(window.approvalCardMode ? renderApprovalCards(pageRows, activeTab) : renderApprovalTable(pageRows, activeTab));
                 adjustDescToggles(list);
             } else {
                 pageRows.forEach(row => list.append(renderCard(row, activeTab)));

@@ -4,7 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Autonbr;
 use App\Models\SysUserRole;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 // "My Page": a stand-alone, installable (Add to Home Screen) page holding only the
 // signed-in user's own work — Waiting Approval, Approval History, My Document,
@@ -13,8 +17,55 @@ use Illuminate\Support\Facades\Auth;
 // and so open in the device browser instead.
 class MyPageController extends Controller
 {
+    // Sign-in / sign-out live under /my-page so the installed app never leaves its scope
+    // (the normal /login is outside it, which makes the phone open the browser).
+    public function loginForm()
+    {
+        return Auth::check() ? redirect()->route('my-page') : view('pages.my-page.login');
+    }
+
+    // Same credential rules as the main POST /login (email, username or NPK; active users only).
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'login'    => ['required'],
+            'password' => ['required'],
+        ]);
+
+        $user = User::where('status', 'A')
+            ->where(function ($query) use ($credentials) {
+                $query->where('email', $credentials['login'])
+                    ->orWhere('username', $credentials['login'])
+                    ->orWhere('npk', $credentials['login']);
+            })
+            ->first();
+
+        if (!$user || !Hash::check($credentials['password'], $user->password)) {
+            throw ValidationException::withMessages(['login' => ['These credentials do not match our records.']]);
+        }
+
+        Auth::login($user, $request->boolean('remember'));
+        $request->session()->regenerate();
+
+        return redirect()->route('my-page');
+    }
+
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('my-page.login');
+    }
+
     public function index()
     {
+        // Not behind the global 'auth' middleware: that would send guests to /login (outside the app's scope).
+        if (!Auth::check()) {
+            return redirect()->route('my-page.login');
+        }
+
         $user = Auth::user();
 
         return view('pages.my-page.index', [
