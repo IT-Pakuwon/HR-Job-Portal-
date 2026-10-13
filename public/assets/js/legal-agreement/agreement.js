@@ -802,6 +802,8 @@ function populateAgreementDetail(a) {
     $('#detail_pic_legal').text(a.pic_legal_names || a.pic_legal || '-');
     $('#detail_pic_leasing').text(a.pic_leasing_names || a.pic_leasing || '-');
     $('#detail_pic_penyewa').text(a.pic_penyewa || '-');
+    $('#detail_pic_phone_penyewa').text(a.pic_phonenumber_penyewa || '-');
+    $('#detail_pic_email_penyewa').text(a.pic_email_penyewa || '-');
     $('#detail_no_psm').text(a.no_psm_or_addendum || '-');
     $('#detail_created_user').text(a.created_user_name || a.created_user || '-');
     $('#detail_business_address').text(a.business_address || '-');
