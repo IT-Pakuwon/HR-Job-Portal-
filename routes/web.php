@@ -278,6 +278,7 @@ Route::get('/modules', function () {
 Route::middleware(['auth'])->group(function () {
     Route::prefix('push')->controller(\App\Http\Controllers\PushSubscriptionController::class)->name('push.')->group(function () {
         Route::get('/key', 'key')->name('key');
+        Route::get('/diagnose', 'diagnose')->name('diagnose');
         Route::get('/status', 'status')->name('status');
         Route::post('/subscribe', 'subscribe')->name('subscribe');
         Route::post('/unsubscribe', 'unsubscribe')->name('unsubscribe');
