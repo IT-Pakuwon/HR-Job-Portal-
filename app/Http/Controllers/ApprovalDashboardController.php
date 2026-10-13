@@ -75,6 +75,18 @@ class ApprovalDashboardController extends Controller
         ]);
     }
 
+    /**
+     * The same Waiting Approval list the dashboard shows, for a given user outside an HTTP request
+     * (used by the push-notification sender).
+     */
+    public function waitingForUser(\App\Models\User $user): Collection
+    {
+        $request = Request::create('/', 'GET');
+        $request->setUserResolver(fn () => $user);
+
+        return $this->getApprovalCollection($request, 'P');
+    }
+
     private function getApprovalCollection(Request $request, string $status): Collection
     {
         $user = $request->user();
