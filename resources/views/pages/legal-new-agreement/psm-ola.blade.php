@@ -5,7 +5,7 @@
 
         {{-- Tabs — same card style as Agreement FU. Job is the landing tab; the
              agreement-status tabs get added here as New Agreement is built out. --}}
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 {{ $kind['follow_up_types'] ? 'xl:grid-cols-6' : 'xl:grid-cols-5' }}">
 
             <button type="button" class="w-full text-left">
                 <a href="#" class="new-agr-tab group block h-full" data-tab="jobs">
@@ -18,6 +18,22 @@
                         </div>
                         <p class="shrink-0 text-base font-bold" data-count="jobs_pending">
                             {{ $counts['jobs_pending'] ?? 0 }}
+                        </p>
+                    </div>
+                </a>
+            </button>
+
+            <button type="button" class="w-full text-left">
+                <a href="#" class="new-agr-tab group block h-full" data-tab="draft">
+                    <div class="agreement-status-card flex h-full items-center gap-3 rounded-lg border border-amber-700 bg-amber-200/20 p-3 text-amber-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-100 hover:shadow-md active:scale-95">
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
+                            📝
+                        </div>
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="whitespace-normal break-words text-sm font-medium">Draft</p>
+                        </div>
+                        <p class="shrink-0 text-base font-bold" data-count="draft">
+                            {{ $counts['draft'] ?? 0 }}
                         </p>
                     </div>
                 </a>
@@ -55,6 +71,25 @@
                 </a>
             </button>
 
+            {{-- Follow Up: PSM / OLAs and Addendums that moved on to Agreement FU (not Others). --}}
+            @if ($kind['follow_up_types'])
+            <button type="button" class="w-full text-left">
+                <a href="#" class="new-agr-tab group block h-full" data-tab="followup">
+                    <div class="agreement-status-card flex h-full items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-200/30 hover:shadow-lg">
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
+                            🔁
+                        </div>
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="whitespace-normal break-words text-sm font-medium">Follow Up</p>
+                        </div>
+                        <p class="shrink-0 text-base font-bold" data-count="follow_up">
+                            {{ $counts['follow_up'] ?? 0 }}
+                        </p>
+                    </div>
+                </a>
+            </button>
+            @endif
+
             <button type="button" class="w-full text-left">
                 <a href="#" class="new-agr-tab group block h-full" data-tab="cancelled">
                     <div class="agreement-status-card flex h-full items-center gap-3 rounded-lg border border-rose-700 bg-rose-200/20 p-3 text-rose-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-rose-100 hover:shadow-md active:scale-95">
@@ -74,7 +109,7 @@
 
         {{-- Jobs tab: IFCA contracts with no Contract No yet. Addendum can also start from a PSM / OLA. --}}
         <div data-tab-panel="jobs">
-            @if ($kind['key'] === 'addendum')
+            @if ($kind['from_psm'])
                 <div class="mt-4 flex w-full gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm dark:border-white/[0.06] dark:bg-white/[0.02]">
                     <button type="button" class="adn-source-tab inline-flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200" data-source="ifca">
                         <i class="fa-solid fa-database text-[12px]"></i> IFCA Jobs
@@ -99,9 +134,9 @@
                                     <th class="px-4 py-3 text-left">Agreement No</th>
                                     <th class="px-4 py-3 text-left">Date</th>
                                     <th class="px-4 py-3 text-left">Company</th>
-                                    <th class="px-4 py-3 text-left">Business Name</th>
-                                    <th class="px-4 py-3 text-left">Tenant No</th>
-                                    <th class="px-4 py-3 text-left">Trade Name</th>
+                                    <th class="px-4 py-3 text-left">Tenant Company Name</th>
+                                    <th class="px-4 py-3 text-left">Floor - Unit LOI</th>
+                                    <th class="px-4 py-3 text-left">Tenant Name</th>
                                     <th class="px-4 py-3 text-left">Created By</th>
                                     <th class="px-4 py-3 text-left">Status</th>
                                 </tr>
@@ -115,6 +150,30 @@
             @endif
         </div>
 
+        {{-- Draft tab: saved from Review with "Save as Draft". Edit, then Process to make it Active. --}}
+        <div data-tab-panel="draft" class="mt-4 hidden">
+            @include('pages.legal-new-agreement.partial.list-filters', ['prefix' => 'draft', 'noExport' => true])
+            <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white dark:border-white/[0.06] dark:bg-white/[0.02]">
+                <table id="draftTable" class="w-full text-sm">
+                    <thead class="bg-slate-50 dark:bg-white/[0.03]">
+                        <tr>
+                            <th class="px-4 py-3 text-left">Agreement No</th>
+                            <th class="px-4 py-3 text-left">{{ $kind['no_label'] }}</th>
+                            <th class="px-4 py-3 text-left">Date</th>
+                            <th class="px-4 py-3 text-left">Company</th>
+                            <th class="px-4 py-3 text-left">Tenant Company Name</th>
+                            <th class="px-4 py-3 text-left">Floor - Unit LOI</th>
+                            <th class="px-4 py-3 text-left">Tenant Name</th>
+                            <th class="px-4 py-3 text-left">Created By</th>
+                            <th class="px-4 py-3 text-left">Status</th>
+                            <th class="px-4 py-3 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
         {{-- Active tab: saved PSM/OLA Pembuatan agreements at step ACTIVE --}}
         <div data-tab-panel="active" class="mt-4 hidden">
             @include('pages.legal-new-agreement.partial.list-filters', ['prefix' => 'active'])
@@ -123,11 +182,12 @@
                     <thead class="bg-slate-50 dark:bg-white/[0.03]">
                         <tr>
                             <th class="px-4 py-3 text-left">Agreement No</th>
+                            <th class="px-4 py-3 text-left">{{ $kind['no_label'] }}</th>
                             <th class="px-4 py-3 text-left">Date</th>
                             <th class="px-4 py-3 text-left">Company</th>
-                            <th class="px-4 py-3 text-left">Business Name</th>
-                            <th class="px-4 py-3 text-left">Tenant No</th>
-                            <th class="px-4 py-3 text-left">Trade Name</th>
+                            <th class="px-4 py-3 text-left">Tenant Company Name</th>
+                            <th class="px-4 py-3 text-left">Floor - Unit LOI</th>
+                            <th class="px-4 py-3 text-left">Tenant Name</th>
                             <th class="px-4 py-3 text-left">Created By</th>
                             <th class="px-4 py-3 text-left">Status</th>
                             <th class="px-4 py-3 text-center">Action</th>
@@ -146,11 +206,12 @@
                     <thead class="bg-slate-50 dark:bg-white/[0.03]">
                         <tr>
                             <th class="px-4 py-3 text-left">Agreement No</th>
+                            <th class="px-4 py-3 text-left">{{ $kind['no_label'] }}</th>
                             <th class="px-4 py-3 text-left">Date</th>
                             <th class="px-4 py-3 text-left">Company</th>
-                            <th class="px-4 py-3 text-left">Business Name</th>
-                            <th class="px-4 py-3 text-left">Tenant No</th>
-                            <th class="px-4 py-3 text-left">Trade Name</th>
+                            <th class="px-4 py-3 text-left">Tenant Company Name</th>
+                            <th class="px-4 py-3 text-left">Floor - Unit LOI</th>
+                            <th class="px-4 py-3 text-left">Tenant Name</th>
                             <th class="px-4 py-3 text-left">Created By</th>
                             <th class="px-4 py-3 text-left">Status</th>
                         </tr>
@@ -160,6 +221,31 @@
             </div>
         </div>
 
+        {{-- Follow Up tab: PSM / OLAs and Addendums that moved on to Agreement FU. Read-only here; each opens its Agreement FU page. --}}
+        @if ($kind['follow_up_types'])
+        <div data-tab-panel="followup" class="mt-4 hidden">
+            @include('pages.legal-new-agreement.partial.list-filters', ['prefix' => 'followup', 'noExport' => true])
+            <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white dark:border-white/[0.06] dark:bg-white/[0.02]">
+                <table id="followupTable" class="w-full text-sm">
+                    <thead class="bg-slate-50 dark:bg-white/[0.03]">
+                        <tr>
+                            <th class="px-4 py-3 text-left">Agreement No</th>
+                            <th class="px-4 py-3 text-left">{{ $kind['no_label'] }}</th>
+                            <th class="px-4 py-3 text-left">Date</th>
+                            <th class="px-4 py-3 text-left">Company</th>
+                            <th class="px-4 py-3 text-left">Tenant Company Name</th>
+                            <th class="px-4 py-3 text-left">Floor - Unit LOI</th>
+                            <th class="px-4 py-3 text-left">Tenant Name</th>
+                            <th class="px-4 py-3 text-left">Created By</th>
+                            <th class="px-4 py-3 text-left">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        @endif
+
         {{-- Cancelled tab: cancelled agreements. Read-only; Reopen is in the agreement's Actions. --}}
         <div data-tab-panel="cancelled" class="mt-4 hidden">
             @include('pages.legal-new-agreement.partial.list-filters', ['prefix' => 'cancelled'])
@@ -168,11 +254,12 @@
                     <thead class="bg-slate-50 dark:bg-white/[0.03]">
                         <tr>
                             <th class="px-4 py-3 text-left">Agreement No</th>
+                            <th class="px-4 py-3 text-left">{{ $kind['no_label'] }}</th>
                             <th class="px-4 py-3 text-left">Date</th>
                             <th class="px-4 py-3 text-left">Company</th>
-                            <th class="px-4 py-3 text-left">Business Name</th>
-                            <th class="px-4 py-3 text-left">Tenant No</th>
-                            <th class="px-4 py-3 text-left">Trade Name</th>
+                            <th class="px-4 py-3 text-left">Tenant Company Name</th>
+                            <th class="px-4 py-3 text-left">Floor - Unit LOI</th>
+                            <th class="px-4 py-3 text-left">Tenant Name</th>
                             <th class="px-4 py-3 text-left">Created By</th>
                             <th class="px-4 py-3 text-left">Status</th>
                         </tr>
@@ -183,12 +270,35 @@
         </div>
     </div>
 
+    {{-- Scroll smoothness for the create modal: the shared .agr-modal blur re-renders the whole page behind it on every
+         scroll frame, and the open state's translate/scale keeps the panel on a blurry composited layer. Drop both. --}}
+    <style>
+        #newAgrModal.agr-modal { backdrop-filter: none; }
+        #newAgrModal .modal-panel.opacity-100 { transform: none !important; }
+        #newAgrModal .modal-panel { box-shadow: 0 10px 30px rgba(15, 23, 42, .25); }
+        /* Layout: header and button row are fixed; ONLY .step-body scrolls (so the scrollbar sits beside the body, not the whole modal).
+           panel > #newAgrScroll > #newAgrModalBody > .step-head + form > visible step panel > .step-body + .step-foot */
+        #newAgrScroll, #newAgrModalBody, #newAgrModal .step-form, #newAgrModal [data-step-panel]:not(.hidden) { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+        #newAgrModal .step-head { flex: none; padding: 1.5rem 1.5rem 0; }
+        #newAgrModal .step-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 0 1.5rem 1rem; }
+        #newAgrModal .step-foot { flex: none; margin: 0; padding: 1rem 1.5rem 1.5rem; }
+        /* Review step: collapsible sections */
+        #newAgrReview details.rv-sec > summary { list-style: none; }
+        #newAgrReview details.rv-sec > summary::-webkit-details-marker { display: none; }
+        #newAgrReview details.rv-sec[open] > summary .rv-chev { transform: rotate(180deg); }
+    </style>
+
     {{-- Create modal (body is loaded per job over ajax) --}}
     <div id="newAgrModal" class="agr-modal fixed inset-0 z-[9999] hidden items-center justify-center p-4">
         <div class="modal-backdrop absolute inset-0 bg-slate-900/50 opacity-0 transition-opacity duration-200"></div>
 
-        <div class="modal-panel modal-scroll relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 opacity-0 translate-y-4 scale-[0.98] shadow-2xl transition-all duration-200 dark:bg-slate-900">
-            <div id="newAgrModalBody"></div>
+        {{-- The panel only clips and animates; the inner #newAgrScroll is the one scroll container (no transform, no
+             transition on it), so wheel / scrollbar scrolling stays smooth and never fights the open animation. --}}
+        <div class="modal-panel relative w-full max-w-3xl rounded-2xl bg-white opacity-0 translate-y-4 scale-[0.98] shadow-2xl transition duration-200 dark:bg-slate-900"
+            style="display:flex;flex-direction:column;max-height:100%;overflow:hidden;">
+            <div id="newAgrScroll" style="overflow:hidden;">
+                <div id="newAgrModalBody"></div>
+            </div>
         </div>
     </div>
 
@@ -214,17 +324,21 @@
              | the modal body is an HTML fragment fetched for that job.
              * ---------------------------------------------------------------- */
             // Relative paths (route(..., false)) so pushState/ajax stay same-origin even if APP_URL differs from the host being browsed.
-            const IS_ADDENDUM = @json($kind['key'] === 'addendum');
-            const HAS_DOCS = @json($kind['docs']);
+            const IS_ADDENDUM = @json($kind['from_psm']); // Addendum / Others: second Jobs source (a PSM / OLA)
+            const KIND_KEY = @json($kind['key']);
+            const HAS_DOCS = @json($kind['checklist']);
             const KIND_LABEL = @json($kind['label']);
-            const NO_LABEL = IS_ADDENDUM ? 'No. Addendum' : 'No. PSM / Addendum';
+            const NO_LABEL = @json($kind['no_label']);
+            const DATE_LABEL = @json($kind['date_label']);
             const LIST_URL = "{{ route($kind['page'], [], false) }}";
-            const CREATE_URL = "{{ ($kind['key'] === 'addendum' ? route('legal-new-agreement.addendum.create-agreement', ['eid' => '__EID__'], false) : route('create-agreement', ['eid' => '__EID__'], false)) }}".replace('__EID__', '');
+            const CREATE_URL = "{{ route($kind['r']['create_link'], ['eid' => '__EID__'], false) }}".replace('__EID__', '');
             // An addendum started from a PSM / OLA carries ?src=psm in its URL too.
             const urlSrc = () => new URLSearchParams(location.search).get('src');
             const FRAGMENT_URL = "{{ route($kind['r']['create'], ['eid' => '__EID__'], false) }}".replace('__EID__', '');
 
-            const $newAgrModal = $('#newAgrModal');
+            // Re-parent to <body> so `fixed inset-0` always means the browser window, whatever transformed /
+            // scrolling wrapper the layout puts around the page (otherwise the panel can overflow the screen).
+            const $newAgrModal = $('#newAgrModal').appendTo('body');
             const $newAgrBody = $('#newAgrModalBody');
 
             function showNewAgrModal() {
@@ -273,7 +387,16 @@
             }
 
             // The create/edit form always opens on step 1 with its fields locked.
-            function initStepForm() { setStep1Editing(false); initPicSelects(); goToStep(1); }
+            function initStepForm() { setStep1Editing(false); initPicSelects(); initAgreementDate(); goToStep(1); }
+
+            // The hidden Y-m-d input is what posts; the visible box shows dd-mm-yyyy.
+            function initAgreementDate() {
+                const el = $newAgrBody.find('#psm_or_addendum_date')[0];
+
+                if (el && window.flatpickr) {
+                    flatpickr(el, { dateFormat: 'Y-m-d', altInput: true, altFormat: 'd-m-Y', allowInput: true, altInputClass: 'agr-input agr-date' });
+                }
+            }
 
             // pushUrl=false when the URL is already right (deep link / back button).
             // src='psm': an addendum started from a PSM / OLA instead of an IFCA job.
@@ -363,6 +486,14 @@
             }
 
             $(document).on('click', '.btn-view-fullscreen', function () { viewIsFull = true; applyViewFullscreen(); });
+
+            $(document).on('click', '.btn-toggle-info-panel', function () {
+                const collapsed = $viewAgrBody.find('.agr-view-body').toggleClass('info-collapsed').hasClass('info-collapsed');
+                const label = collapsed ? 'Show information panel' : 'Hide information panel';
+
+                $(this).attr({ title: label, 'aria-label': label })
+                    .toggleClass('bg-blue-50 text-blue-600', collapsed);
+            });
             $(document).on('click', '.btn-view-minimize', function () { viewIsFull = false; applyViewFullscreen(); });
 
             function showViewTab(tab) {
@@ -423,41 +554,68 @@
             // Enter in a field must not submit the whole form: saving is per row.
             $(document).on('submit', '#viewAgrProcessForm', (e) => e.preventDefault());
 
+            // Posts process[...] data (a saved row, a new "Add Process" row, or a removal), then reloads the view.
+            function postProcess(data) {
+                const eid = $viewAgrBody.find('.btn-edit-agr').first().data('eid');
+
+                Swal.fire({
+                    title: 'Saving...', allowOutsideClick: false, allowEscapeKey: false, showConfirmButton: false,
+                    didOpen: () => Swal.showLoading(),
+                });
+
+                $.ajax({
+                    url: $('#viewAgrProcessForm').data('url'),
+                    method: 'POST',
+                    data: data,
+                    headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}", 'Accept': 'application/json' },
+                }).done(function (res) {
+                    Swal.close();
+                    openViewModal(eid, false, 'timeline');
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: res.message, showConfirmButton: false, timer: 1800 });
+                }).fail(function (xhr) {
+                    const errors = xhr.responseJSON?.errors || {};
+                    const first = Object.values(errors)[0];
+
+                    Swal.fire({
+                        icon: 'error', title: 'Error',
+                        text: (Array.isArray(first) ? first[0] : null) || xhr.responseJSON?.message || 'Something went wrong',
+                    });
+                });
+            }
+
             $(document).on('click', '.btn-proc-save', function () {
                 const $tr = $(this).closest('[data-proc-row]');
-                const eid = $viewAgrBody.find('.btn-edit-agr').first().data('eid');
 
                 Swal.fire({
                     icon: 'question', title: 'Save changes?', text: 'This row will be updated.',
                     showCancelButton: true, confirmButtonText: 'Yes, save', cancelButtonText: 'Back',
                     confirmButtonColor: '#16a34a', reverseButtons: true,
-                }).then((r) => {
-                    if (!r.isConfirmed) return;
+                }).then((r) => { if (r.isConfirmed) postProcess($tr.find('input').serialize()); });
+            });
 
-                    Swal.fire({
-                        title: 'Saving...', allowOutsideClick: false, allowEscapeKey: false, showConfirmButton: false,
-                        didOpen: () => Swal.showLoading(),
-                    });
+            // Add Process: the picked process becomes its own row (same endpoint, a process with no row yet).
+            $(document).on('click', '.btn-proc-add', function () {
+                const $row = $(this).closest('[data-add-row]');
+                const id = $row.find('.add-proc-id').val();
 
-                    $.ajax({
-                        url: $('#viewAgrProcessForm').data('url'),
-                        method: 'POST',
-                        data: $tr.find('input').serialize(),
-                        headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}", 'Accept': 'application/json' },
-                    }).done(function (res) {
-                        Swal.close();
-                        openViewModal(eid, false, 'timeline');
-                        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: res.message, showConfirmButton: false, timer: 1800 });
-                    }).fail(function (xhr) {
-                        const errors = xhr.responseJSON?.errors || {};
-                        const first = Object.values(errors)[0];
+                if (!id) { Swal.fire({ icon: 'warning', title: 'Pick a process first' }); return; }
+                if (!$row.find('.add-proc-start').val()) { Swal.fire({ icon: 'warning', title: 'Pick a Start date' }); return; }
 
-                        Swal.fire({
-                            icon: 'error', title: 'Error',
-                            text: (Array.isArray(first) ? first[0] : null) || xhr.responseJSON?.message || 'Something went wrong',
-                        });
-                    });
+                postProcess({
+                    [`process[${id}][date_start]`]: $row.find('.add-proc-start').val(),
+                    [`process[${id}][date_end]`]: $row.find('.add-proc-end').val(),
+                    [`process[${id}][note]`]: $row.find('.add-proc-note').val(),
                 });
+            });
+
+            $(document).on('click', '.btn-proc-remove', function () {
+                const id = $(this).data('process-id');
+
+                Swal.fire({
+                    icon: 'warning', title: 'Remove this process?', text: 'It will be taken off the process list.',
+                    showCancelButton: true, confirmButtonText: 'Yes, remove', cancelButtonText: 'Back',
+                    confirmButtonColor: '#dc2626', reverseButtons: true,
+                }).then((r) => { if (r.isConfirmed) postProcess({ [`process[${id}][remove]`]: 1 }); });
             });
 
             /* Documents tab (creator only): Update unlocks the rows, Save writes them. */
@@ -466,11 +624,36 @@
 
                 $panel.find('.doc-static').toggleClass('hidden', editing);
                 $panel.find('.doc-edit').toggleClass('hidden', !editing).toggleClass('flex', editing && $panel.find('.doc-edit').is('span'));
-                $('#btnViewDocsUpdate').toggleClass('hidden', editing);
+                // The button carries inline-flex, which beats `hidden` in the stylesheet, so swap both.
+                $('#btnViewDocsUpdate').toggleClass('hidden', editing).toggleClass('inline-flex', !editing);
                 $('#btnViewDocsCancel, #btnViewDocsSave').toggleClass('hidden', !editing).toggleClass('inline-flex', editing);
             }
 
             $(document).on('click', '#btnViewDocsUpdate', () => setDocsEditing(true));
+
+            // Update mode: add free-text documents for this agreement only (posted as new_documents[...]).
+            let viewNewDocSeq = 0;
+
+            $(document).on('click', '#btnViewAddDoc', function () {
+                const k = `n${Date.now()}${viewNewDocSeq++}`;
+                const $row = $(`
+                    <div class="view-new-doc flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50/40 px-4 py-3 dark:border-blue-900/50 dark:bg-blue-900/10">
+                        <span class="mt-2 flex h-5 w-5 shrink-0 items-center justify-center">
+                            <input type="hidden" name="new_documents[${k}][received]" value="0">
+                            <input type="checkbox" class="h-4 w-4 rounded border-slate-300" name="new_documents[${k}][received]" value="1">
+                        </span>
+                        <div class="min-w-0 flex-1 space-y-2">
+                            <input type="text" maxlength="255" placeholder="Document name" name="new_documents[${k}][name]" class="new-doc-name agr-input" style="height:36px;">
+                            <input type="text" maxlength="2000" placeholder="Notes" name="new_documents[${k}][note]" class="agr-input" style="height:36px;">
+                        </div>
+                        <button type="button" class="btn-remove-view-doc mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-red-50 hover:text-red-500" title="Remove"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>`).appendTo('#viewNewDocs');
+
+                $row.find('.new-doc-name').trigger('focus');
+            });
+
+            $(document).on('click', '.btn-remove-view-doc', function () { $(this).closest('.view-new-doc').remove(); });
+            $(document).on('input', '.new-doc-name', function () { $(this).removeClass('agr-input-error'); });
 
             // Cancel = reload so the ticks go back to what's saved.
             $(document).on('click', '#btnViewDocsCancel', function () {
@@ -490,6 +673,22 @@
 
                 const $form = $(this);
                 const eid = $viewAgrBody.find('.btn-edit-agr').first().data('eid');
+
+                // Every added document needs a name.
+                let namesOk = true;
+
+                $form.find('.new-doc-name').each(function () {
+                    const empty = !String(this.value || '').trim();
+
+                    $(this).toggleClass('agr-input-error', empty);
+
+                    if (empty) namesOk = false;
+                });
+
+                if (!namesOk) {
+                    Swal.fire({ icon: 'error', title: 'Document name required', text: 'Give every added document a name, or remove the row.' });
+                    return;
+                }
 
                 Swal.fire({
                     icon: 'question', title: 'Save changes?', text: 'Document completeness will be updated.',
@@ -577,6 +776,7 @@
 
                     if (window.jobsTable) window.jobsTable.ajax.reload(null, false);
                     if (typeof activeTable !== 'undefined' && activeTable) activeTable.ajax.reload(null, false);
+                    if (typeof draftTable !== 'undefined' && draftTable) draftTable.ajax.reload(null, false);
                     if (typeof completedTable !== 'undefined' && completedTable) completedTable.ajax.reload(null, false);
                     if (typeof cancelledTable !== 'undefined' && cancelledTable) cancelledTable.ajax.reload(null, false);
 
@@ -636,6 +836,46 @@
                     showCancelButton: true, confirmButtonText: 'Delete', cancelButtonText: 'Keep', confirmButtonColor: '#e11d48', reverseButtons: true,
                 }).then((r) => {
                     if (r.isConfirmed) postAgreementAction($btn.data('url'), { attachment_id: $btn.data('id') }, () => openViewModal(eid, false, 'attachments'));
+                });
+            });
+
+            // Draft -> Active. Asks first; the draft then moves from the Draft tab to the Active tab.
+            $(document).on('click', '.btn-process-draft', function () {
+                const url = $(this).data('url');
+
+                Swal.fire({
+                    icon: 'question',
+                    title: 'Process this agreement?',
+                    text: 'It will be set to Active and the creator and PIC Legal will be notified.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, Process',
+                    confirmButtonColor: '#16a34a',
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    Swal.fire({
+                        title: 'Saving...', allowOutsideClick: false, allowEscapeKey: false, showConfirmButton: false,
+                        didOpen: () => Swal.showLoading(),
+                    });
+
+                    $.ajax({
+                        url,
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}", 'Accept': 'application/json' },
+                    }).done(function (res) {
+                        closeViewAgrModal();
+
+                        Object.keys(res.counts || {}).forEach((key) => {
+                            $(`[data-count="${key}"]`).text(res.counts[key]);
+                        });
+
+                        if (draftTable) draftTable.ajax.reload(null, false);
+                        if (activeTable) activeTable.ajax.reload(null, false);
+
+                        Swal.fire({ icon: 'success', title: 'Success', text: res.message, timer: 1800, showConfirmButton: false });
+                    }).fail(function (xhr) {
+                        Swal.fire({ icon: 'error', title: 'Error', text: xhr.responseJSON?.message || 'Something went wrong' });
+                    });
                 });
             });
 
@@ -720,7 +960,7 @@
             window.addEventListener('popstate', function () {
                 const m = location.pathname.match(/\/create-agreement\/([^/]+)$/);
                 const v = IS_ADDENDUM
-                    ? location.pathname.match(/\/legal-new-agreement\/addendum\/([A-Za-z0-9]+)$/)
+                    ? location.pathname.match(new RegExp('/legal-new-agreement/' + KIND_KEY + '/([A-Za-z0-9]+)$'))
                     : location.pathname.match(/\/legal-new-agreement\/([A-Za-z0-9]+)$/);
 
                 if (m) {
@@ -769,11 +1009,13 @@
                 };
 
                 mark($newAgrBody.find('#no_psm_or_addendum'), !String($newAgrBody.find('#no_psm_or_addendum').val() || '').trim());
+                // flatpickr's altInput is the visible box that follows the real (hidden) input.
+                mark($newAgrBody.find('#psm_or_addendum_date').next('input'), !String($newAgrBody.find('#psm_or_addendum_date').val() || '').trim());
                 mark($newAgrBody.find('#pic_legal'), !($newAgrBody.find('#pic_legal').val() || []).length);
                 mark($newAgrBody.find('#pic_leasing'), !($newAgrBody.find('#pic_leasing').val() || []).length);
 
                 if (!ok) {
-                    Swal.fire({ icon: 'error', title: 'Error', text: `${NO_LABEL}, PIC Legal and PIC Leasing are required.` });
+                    Swal.fire({ icon: 'error', title: 'Error', text: `${NO_LABEL}, ${DATE_LABEL}, PIC Legal and PIC Leasing are required.` });
                 }
 
                 return ok;
@@ -792,7 +1034,7 @@
                         .toggleClass('bg-slate-200 text-slate-600', !active);
                 });
 
-                $newAgrModal.find('.modal-panel').scrollTop(0);
+                $newAgrBody.find('.step-body').scrollTop(0);
             }
 
             function validateStep1() {
@@ -807,12 +1049,40 @@
                     if (empty) ok = false;
                 });
 
+                const emailOk = validatePicEmail();
+
                 if (!ok) {
-                    Swal.fire({ icon: 'error', title: 'Error', text: 'Business ID and Business Name are required.' });
+                    Swal.fire({ icon: 'error', title: 'Error', text: 'Tenant Company Name is required.' });
+                } else if (!emailOk) {
+                    Swal.fire({ icon: 'error', title: 'Invalid email', text: 'Please enter a valid email address, e.g. name@company.com.' });
+                    $newAgrBody.find('#pic_email_penyewa').trigger('focus');
                 }
 
-                return ok;
+                return ok && emailOk;
             }
+
+            // Optional field: empty is fine, anything typed must look like name@domain.tld.
+            const EMAIL_RE = /^[A-Za-z0-9._%+'-]+@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\.[A-Za-z]{2,}$/;
+
+            function validatePicEmail() {
+                const $el = $newAgrBody.find('#pic_email_penyewa');
+                const v = String($el.val() || '').trim();
+                const bad = v !== '' && !EMAIL_RE.test(v);
+
+                $el.toggleClass('agr-input-error', bad);
+                $newAgrBody.find('#pic_email_error').toggleClass('hidden', !bad);
+
+                return !bad;
+            }
+
+            $newAgrBody.on('blur', '#pic_email_penyewa', validatePicEmail);
+            $newAgrBody.on('input', '#pic_email_penyewa', function () {
+                if ($(this).hasClass('agr-input-error')) validatePicEmail();
+            });
+            // Phone: digits and the usual separators only.
+            $newAgrBody.on('input', '#pic_phonenumber_penyewa', function () {
+                this.value = this.value.replace(/[^0-9+\-()\s]/g, '');
+            });
 
             // Read-only summary of the form for the Review step. Values are read
             // from the live form (so edits made on steps 1-2 are what's shown) and
@@ -823,79 +1093,116 @@
                 const val = (name) => String($f.find(`[name="${name}"]`).val() ?? '').trim();
                 const dash = (s) => esc(s) || '<span class="text-slate-400">-</span>';
 
-                const tenantRows = [
-                    ['Company', $f.find('[data-fixed]').val()],
-                    ['Business ID', val('business_id')],
-                    ['Tenant Number', val('tenant_no')],
-                    ['Trade Name', val('trade_name')],
-                    ['Business Name', val('business_name')],
-                    ['Property Type', $f.find('[name="property_cd"] option:selected').text().replace(/^-$/, '')],
-                    ['Floor', val('floor_id')],
-                    ['Unit', val('unit_id')],
-                    ['Address', val('business_address')],
-                    ['PIC Name', val('pic_penyewa')],
-                    ['PIC Phone Number', val('pic_phonenumber_penyewa')],
-                    ['Email', val('pic_email_penyewa')],
-                ].map(([label, value]) => `
-                    <div class="flex flex-col gap-0.5 ${label === 'Address' || label === 'Email' ? 'sm:col-span-2' : ''}">
-                        <dt class="text-xs font-medium text-slate-500">${esc(label)}</dt>
-                        <dd class="whitespace-pre-line break-words text-sm text-slate-800 dark:text-slate-100">${dash(value)}</dd>
-                    </div>`).join('');
+                const company = $f.find('[data-fixed]').val();
+                const tenantName = val('trade_name');
+                const propText = $f.find('[name="property_cd"] option:selected').text().replace(/^-$/, '');
+                const floorUnit = [val('floor_id'), val('unit_id')].filter(Boolean).join(' - ');
+                const agrNo = val('no_psm_or_addendum');
+                const agrDate = $f.find('#psm_or_addendum_date').next('input').val() || val('psm_or_addendum_date');
+                const picText = (sel) => $f.find(`${sel} option:selected`).map(function () { return this.text; }).get().join('\n');
 
-                const picText = (sel) => $f.find(`${sel} option:selected`).map(function () { return this.text; }).get().join(', ');
+                // One label / value cell. Empty values read as a muted dash.
+                const row = (label, value, wide = false) => `
+                    <div class="min-w-0 ${wide ? 'sm:col-span-2' : ''}">
+                        <dt class="text-[11px] font-medium uppercase tracking-wide text-slate-400">${esc(label)}</dt>
+                        <dd class="mt-0.5 whitespace-pre-line break-words text-sm font-medium text-slate-800 dark:text-slate-100">${dash(value)}</dd>
+                    </div>`;
 
-                const agreementRows = [
-                    ...($f.find('#psm_ola_no').length ? [['No. PSM / OLA', $f.find('#psm_ola_no').val()]] : []),
-                    [NO_LABEL, val('no_psm_or_addendum')],
-                    ['PIC Legal', picText('#pic_legal')],
-                    ['PIC Leasing', picText('#pic_leasing')],
-                ].map(([label, value]) => `
-                    <div class="flex flex-col gap-0.5 ${label === NO_LABEL ? 'sm:col-span-2' : ''}">
-                        <dt class="text-xs font-medium text-slate-500">${esc(label)}</dt>
-                        <dd class="whitespace-pre-line break-words text-sm text-slate-800 dark:text-slate-100">${dash(value)}</dd>
-                    </div>`).join('');
-                const docRows = $f.find('[data-step-panel="2"] tbody tr').map(function () {
+                // A collapsible card (native <details>, open by default) with a per-card "Edit" link back to its step.
+                const card = (icon, title, step, body, badge = '') => `
+                    <details class="rv-sec rounded-xl border border-slate-200 bg-white dark:border-white/[0.06] dark:bg-white/[0.02]" open>
+                        <summary class="flex cursor-pointer select-none items-center gap-3 px-4 py-3">
+                            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400"><i class="fa-solid ${icon} text-sm"></i></span>
+                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">${title}</span>
+                            ${badge}
+                            <span class="ml-auto flex items-center gap-4">
+                                <button type="button" class="rv-goto text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400" data-step="${step}"><i class="fa-regular fa-pen-to-square"></i> Edit</button>
+                                <i class="fa-solid fa-chevron-down rv-chev text-[11px] text-slate-400 transition-transform duration-200"></i>
+                            </span>
+                        </summary>
+                        <div class="border-t border-slate-100 px-4 py-4 dark:border-white/[0.06]">${body}</div>
+                    </details>`;
+
+                const pill = (text, cls) => `<span class="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${cls}">${esc(text)}</span>`;
+
+                const hero = `
+                    <div class="flex flex-wrap items-center gap-4 rounded-xl bg-slate-50 p-4 dark:bg-white/[0.03]">
+                        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-lg text-white"><i class="fa-regular fa-building"></i></span>
+                        <div class="min-w-0 flex-1">
+                            <p class="truncate text-base font-bold text-slate-800 dark:text-white">${esc(tenantName || val('business_name')) || '-'}</p>
+                            <p class="truncate text-xs text-slate-500 dark:text-slate-400">${esc([company, floorUnit].filter(Boolean).join(' · '))}</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            ${propText ? pill(propText, 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300') : ''}
+                            ${agrNo ? pill(agrNo, 'bg-slate-200 text-slate-700 dark:bg-white/10 dark:text-slate-200') : ''}
+                        </div>
+                    </div>`;
+
+                const tenantBody = `<dl class="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
+                    ${row('Company', company)}
+                    ${row('Tenant Name', tenantName)}
+                    ${row('Tenant Company Name', val('business_name'))}
+                    ${row('Property Type', propText)}
+                    ${row('Floor - Unit', floorUnit)}
+                    ${row('Floor LOI / Unit LOI', [val('floor_loi'), val('unit_loi')].filter(Boolean).join(' / '))}
+                    ${row('Address', val('business_address'), true)}
+                </dl>`;
+
+                const contactBody = `<dl class="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-3">
+                    ${row('PIC Name', val('pic_penyewa'))}
+                    ${row('PIC Phone Number', val('pic_phonenumber_penyewa'))}
+                    ${row('Email', val('pic_email_penyewa'))}
+                </dl>`;
+
+                const agreementBody = `<dl class="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
+                    ${$f.find('#psm_ola_no').length ? row('No. PSM / OLA', $f.find('#psm_ola_no').val()) : ''}
+                    ${row(NO_LABEL, agrNo)}
+                    ${row(DATE_LABEL, agrDate)}
+                    ${row('PIC Legal', picText('#pic_legal'))}
+                    ${row('PIC Leasing', picText('#pic_leasing'))}
+                </dl>`;
+
+                let receivedCount = 0;
+                const docItems = $f.find('[data-step-panel="2"] tbody tr').map(function () {
                     const $tr = $(this);
                     const received = $tr.find('input[type="checkbox"]').is(':checked');
-                    const note = String($tr.find('input[type="text"]').val() ?? '').trim();
+                    const note = String($tr.find('.doc-note').val() ?? '').trim();
+                    const $name = $tr.find('.custom-doc-name');
+                    const docName = $name.length ? String($name.val() ?? '').trim() : $tr.find('td').eq(1).text().trim();
+
+                    if (received) receivedCount++;
 
                     return `
-                        <tr class="border-t border-slate-100 dark:border-white/[0.06]">
-                            <td class="px-4 py-2">${esc($tr.find('td').eq(1).text().trim())}</td>
-                            <td class="px-4 py-2 whitespace-nowrap">${received
-                                ? '<span class="rounded-full bg-green-100 px-2.5 py-1 text-[11px] font-semibold text-green-700">Received</span>'
-                                : '<span class="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600">Not received</span>'}</td>
-                            <td class="px-4 py-2">${dash(note)}</td>
-                        </tr>`;
-                }).get().join('');
+                        <li class="flex items-start gap-3 py-2.5">
+                            <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] ${received ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-400 dark:bg-white/10'}"><i class="fa-solid ${received ? 'fa-check' : 'fa-minus'}"></i></span>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-sm text-slate-800 dark:text-slate-100">${esc(docName)}</p>
+                                ${note ? `<p class="mt-0.5 whitespace-pre-line break-words text-xs text-slate-500 dark:text-slate-400">${esc(note)}</p>` : ''}
+                            </div>
+                            <span class="shrink-0 text-[11px] font-semibold ${received ? 'text-green-600' : 'text-slate-400'}">${received ? 'Received' : 'Not received'}</span>
+                        </li>`;
+                }).get();
 
-                $('#newAgrReview').html(`
-                    <div>
-                        <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Tenant Information</p>
-                        <dl class="grid grid-cols-1 gap-3 rounded-lg border border-slate-200 p-4 sm:grid-cols-2 dark:border-white/[0.06]">${tenantRows}</dl>
-                    </div>
-                    <div>
-                        <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">${esc(KIND_LABEL)} &amp; PIC</p>
-                        <dl class="grid grid-cols-1 gap-3 rounded-lg border border-slate-200 p-4 sm:grid-cols-2 dark:border-white/[0.06]">
-                            ${agreementRows}
-                        </dl>
-                    </div>
-                    ${!HAS_DOCS ? '' : `<div>
-                        <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Documents</p>
-                        <div class="overflow-x-auto rounded-lg border border-slate-200 dark:border-white/[0.06]">
-                            <table class="w-full text-sm">
-                                <thead class="bg-slate-50 dark:bg-white/[0.03]">
-                                    <tr>
-                                        <th class="px-4 py-2 text-left">Document</th>
-                                        <th class="px-4 py-2 text-left" style="width:130px;">Status</th>
-                                        <th class="px-4 py-2 text-left" style="width:32%;">Notes</th>
-                                    </tr>
-                                </thead>
-                                <tbody>${docRows}</tbody>
-                            </table>
-                        </div>
-                    </div>`}`);
+                const docsBadge = pill(`${receivedCount} of ${docItems.length} received`, receivedCount === docItems.length && docItems.length
+                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                    : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300');
+
+                $('#newAgrReview').html(
+                    hero
+                    + card('fa-building', 'Tenant Information', 1, tenantBody)
+                    + card('fa-users', 'Tenant Contact', 1, contactBody)
+                    + card('fa-file-signature', `${esc(KIND_LABEL)} &amp; PIC`, 3, agreementBody)
+                    + (!HAS_DOCS ? '' : card('fa-list-check', 'Documents', 2,
+                        `<ul class="divide-y divide-slate-100 dark:divide-white/[0.06]">${docItems.join('')}</ul>`, docsBadge))
+                );
             }
+
+            // "Edit" on a Review card jumps back to that step (it must not also toggle the card).
+            $(document).on('click', '.rv-goto', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                goToStep(Number($(this).data('step')));
+            });
 
             /* Step 1 edit mode. Fields are locked until Edit; Save keeps the new
                values in the form (they're written to the agreement on the final
@@ -960,7 +1267,43 @@
                 if (validateStep1()) goToStep(HAS_DOCS ? 2 : 3);
             });
 
-            $(document).on('click', '#btnNewAgrNext2', () => goToStep(3));
+            // Extra checklist rows (this agreement only): free-text name, never written to the master.
+            let customDocSeq = 0;
+
+            $(document).on('click', '#btnAddCustomDoc', function () {
+                const html = $('#customDocTemplate').html().replaceAll('__KEY__', `n${Date.now()}${customDocSeq++}`);
+                const $row = $(html).appendTo('#docChecklistBody');
+
+                $row.find('.custom-doc-name').trigger('focus');
+            });
+
+            $(document).on('click', '.btn-remove-custom-doc', function () {
+                $(this).closest('tr').remove();
+            });
+
+            $(document).on('input', '.custom-doc-name', function () {
+                $(this).removeClass('agr-input-error');
+            });
+
+            function validateCustomDocs() {
+                let ok = true;
+
+                $('#docChecklistBody .custom-doc-name').each(function () {
+                    const empty = !String(this.value || '').trim();
+
+                    $(this).toggleClass('agr-input-error', empty);
+
+                    if (empty) ok = false;
+                });
+
+                if (!ok) {
+                    Swal.fire({ icon: 'error', title: 'Document name required', text: 'Give every added document a name, or remove the row.' });
+                }
+
+                return ok;
+            }
+
+            $(document).on('click', '#btnNewAgrNext2', () => { if (validateCustomDocs()) goToStep(3); });
 
             $(document).on('click', '#btnNewAgrNext3', function () {
                 if (!validateStep3()) return;
@@ -972,6 +1315,29 @@
             $(document).on('click', '#btnNewAgrBack', () => goToStep(1));
             $(document).on('click', '#btnNewAgrBack3', () => goToStep(HAS_DOCS ? 2 : 1));
             $(document).on('click', '#btnNewAgrBack2', () => goToStep(3));
+
+            // Review step on a new agreement (or an edited Draft): Save as Draft -> status Draft, Process -> status Active.
+            // Both ask first; a plain Save (editing an Active agreement) submits straight away.
+            $(document).on('click', '.btn-submit-draft, .btn-submit-process', function () {
+                const draft = $(this).hasClass('btn-submit-draft');
+
+                Swal.fire({
+                    icon: 'question',
+                    title: draft ? 'Save as Draft?' : 'Process this agreement?',
+                    text: draft
+                        ? 'It will be saved with status Draft. Nobody is notified until you Process it, and you can keep editing it from the Draft tab.'
+                        : 'It will be saved with status Active and the creator and PIC Legal will be notified.',
+                    showCancelButton: true,
+                    confirmButtonText: draft ? 'Yes, save as Draft' : 'Yes, Process',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: draft ? '#d97706' : '#16a34a',
+                }).then((r) => {
+                    if (!r.isConfirmed) return;
+
+                    $('#agrAction').val(draft ? 'draft' : 'process');
+                    $('#psmOlaForm').trigger('submit');
+                });
+            });
 
             $(document).on('submit', '#psmOlaForm', function (e) {
                 e.preventDefault();
@@ -1005,6 +1371,7 @@
 
                     if (window.jobsTable) window.jobsTable.ajax.reload(null, false);
                     if (typeof activeTable !== 'undefined' && activeTable) activeTable.ajax.reload(null, false);
+                    if (typeof draftTable !== 'undefined' && draftTable) draftTable.ajax.reload(null, false);
 
                     Swal.fire({ icon: 'success', title: 'Success', text: res.message, timer: 1800, showConfirmButton: false });
                 }).fail(function (xhr) {
@@ -1053,6 +1420,10 @@
                     showAdnSource(currentAdnSource);
                 }
 
+                if (tab === 'draft') {
+                    initDraftTable();
+                }
+
                 if (tab === 'active') {
                     initActiveTable();
                 }
@@ -1063,6 +1434,10 @@
 
                 if (tab === 'cancelled') {
                     initCancelledTable();
+                }
+
+                if (tab === 'followup') {
+                    initFollowUpTable();
                 }
             });
 
@@ -1131,7 +1506,7 @@
                         { data: 'agreement_date', render: (d) => d ? String(d).substring(0, 10) : '-' },
                         { data: 'cpny_name', render: (d) => esc(d) || '-' },
                         { data: 'business_name', render: (d) => esc(d) || '-' },
-                        { data: 'tenant_no', render: (d) => esc(d) || '-' },
+                        { data: 'floor_loi', render: (d, type, row) => esc([row.floor_loi, row.unit_loi].filter(Boolean).join(' - ')) || '-' },
                         { data: 'trade_name', render: (d) => esc(d) || '-' },
                         { data: 'created_user', render: (d) => esc(d) || '-' },
                         { data: 'agreement_step_id', render: (d, type, row) => badge(d, type, row) },
@@ -1147,9 +1522,12 @@
             let activeTable = null;
             let completedTable = null;
             let cancelledTable = null;
-            const listTable = (tab) => ({ active: activeTable, completed: completedTable, cancelled: cancelledTable })[tab];
+            let draftTable = null;
+            let followupTable = null;
+            const listTable = (tab) => ({ active: activeTable, completed: completedTable, cancelled: cancelledTable, draft: draftTable, followup: followupTable })[tab];
 
-            function buildAgreementTable(selector, url, statusHtml, withAction) {
+            // statusHtml is a string, or a function of (step, row). followUp: rows are Agreement FU agreements and link to their FU page.
+            function buildAgreementTable(selector, url, statusHtml, withAction, followUp = false) {
                 const esc = (s) => $('<div>').text(s ?? '').html();
 
                 const columns = [
@@ -1157,14 +1535,19 @@
                         data: 'agreement_id',
                         render: (d, type, row) => `<button type="button" class="btn-view-agr inline-flex w-[150px] items-center justify-center rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white" data-eid="${esc(row.eid)}">${esc(d)}</button>`,
                     },
+                    { data: 'no_psm_or_addendum', render: (d) => esc(d) || '-' },
                     { data: 'agreement_date', render: (d) => d ? String(d).substring(0, 10) : '-' },
                     { data: 'cpny_name', render: (d) => esc(d) || '-' },
                     { data: 'business_name', render: (d) => esc(d) || '-' },
-                    { data: 'tenant_no', render: (d) => esc(d) || '-' },
+                    { data: 'floor_loi', render: (d, type, row) => esc([row.floor_loi, row.unit_loi].filter(Boolean).join(' - ')) || '-' },
                     { data: 'trade_name', render: (d) => esc(d) || '-' },
                     { data: 'created_user', render: (d) => esc(d) || '-' },
-                    { data: 'agreement_step_id', render: () => statusHtml },
+                    { data: 'agreement_step_id', render: (d, type, row) => typeof statusHtml === 'function' ? statusHtml(d, row) : statusHtml },
                 ];
+
+                if (followUp) {
+                    columns[0].render = (d, type, row) => `<a href="/show-legal-agreement/${esc(row.eid)}" class="inline-flex w-[150px] items-center justify-center rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-700">${esc(d)}</a>`;
+                }
 
                 if (withAction) {
                     columns.push({
@@ -1236,6 +1619,21 @@
                 );
             }
 
+            function initDraftTable() {
+                if (draftTable) {
+                    draftTable.ajax.reload();
+                    draftTable.columns.adjust();
+                    return;
+                }
+
+                draftTable = buildAgreementTable(
+                    '#draftTable',
+                    "{{ route($kind['r']['draft_json'], [], false) }}",
+                    '<span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">Draft</span>',
+                    true
+                );
+            }
+
             function initCompletedTable() {
                 if (completedTable) {
                     completedTable.ajax.reload();
@@ -1248,6 +1646,25 @@
                     "{{ route($kind['r']['completed_json'], [], false) }}",
                     '<span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-[11px] font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">Completed</span>',
                     false
+                );
+            }
+
+            // Follow Up: the row is an Agreement FU now, so it links to that page instead of opening this page's modal.
+            function initFollowUpTable() {
+                if (followupTable) {
+                    followupTable.ajax.reload();
+                    followupTable.columns.adjust();
+                    return;
+                }
+
+                const stepWord = (s) => { s = String(s || ''); return s.charAt(0) + s.slice(1).toLowerCase(); };
+
+                followupTable = buildAgreementTable(
+                    '#followupTable',
+                    "{{ ($kind['r']['follow_up_json'] ?? null) ? route($kind['r']['follow_up_json'], [], false) : '' }}",
+                    (d) => `<span class="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-1 text-[11px] font-semibold text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">Follow Up · ${$('<div>').text(stepWord(d)).html()}</span>`,
+                    false,
+                    true
                 );
             }
 

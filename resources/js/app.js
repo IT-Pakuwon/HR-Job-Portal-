@@ -129,13 +129,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         lightSwitches.forEach((lightSwitch, i) => {
 
-            if (localStorage.getItem('dark-mode') === 'true') {
+            if (document.documentElement.classList.contains('dark')) {
                 lightSwitch.checked = true;
             }
 
             lightSwitch.addEventListener('change', () => {
 
                 const { checked } = lightSwitch;
+                localStorage.setItem('dark-follow-system', 'false'); // a manual choice replaces "follow device"
 
                 lightSwitches.forEach((el, n) => {
                     if (n !== i) {

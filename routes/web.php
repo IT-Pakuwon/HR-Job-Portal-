@@ -225,6 +225,11 @@ Route::get('/avatar/{filename}', function ($filename) {
 
 Route::redirect('/', 'login');
 
+// "My Page" installable app (Add to Home Screen). Manifest + service worker must be
+// reachable without a session; the page itself requires login.
+Route::get('/my-page.webmanifest', [\App\Http\Controllers\MyPageController::class, 'manifest'])->name('my-page.manifest');
+Route::get('/my-page-sw.js', [\App\Http\Controllers\MyPageController::class, 'serviceWorker'])->name('my-page.sw');
+
 Route::get('/login', function () {
     return view('auth.login');
 })->name('login');
@@ -267,6 +272,14 @@ Route::get('/modules', function () {
 
 // Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 Route::middleware(['auth'])->group(function () {
+    Route::get('/my-page', [\App\Http\Controllers\MyPageController::class, 'index'])->name('my-page');
+    Route::prefix('push')->controller(\App\Http\Controllers\PushSubscriptionController::class)->name('push.')->group(function () {
+        Route::get('/key', 'key')->name('key');
+        Route::get('/status', 'status')->name('status');
+        Route::post('/subscribe', 'subscribe')->name('subscribe');
+        Route::post('/unsubscribe', 'unsubscribe')->name('unsubscribe');
+    });
+
     // Dashboard Approval JSON endpoints
 
     Route::get('/news', [NewsController::class, 'index'])->name('news');
@@ -2209,6 +2222,8 @@ Route::middleware(['auth'])->group(function () {
                     Route::get('/psm-ola/active/json', 'activeJson')->name('legal-new-agreement.active.json');
                     Route::get('/psm-ola/completed/json', 'completedJson')->name('legal-new-agreement.completed.json');
                     Route::get('/psm-ola/cancelled/json', 'cancelledJson')->name('legal-new-agreement.cancelled.json');
+                    Route::get('/psm-ola/draft/json', 'draftJson')->name('legal-new-agreement.draft.json');
+                    Route::get('/psm-ola/follow-up/json', 'followUpJson')->name('legal-new-agreement.follow-up.json');
                     Route::get('/psm-ola/view/{eid}', 'viewPsmOla')->name('legal-new-agreement.psm-ola.view');
                     Route::get('/psm-ola/pic-search', 'picSearch')->name('legal-new-agreement.psm-ola.pic-search');
                 });
@@ -2240,6 +2255,8 @@ Route::middleware(['auth'])->group(function () {
                     Route::get('/addendum/active/json', 'activeJson')->name('legal-new-agreement.addendum.active.json');
                     Route::get('/addendum/completed/json', 'completedJson')->name('legal-new-agreement.addendum.completed.json');
                     Route::get('/addendum/cancelled/json', 'cancelledJson')->name('legal-new-agreement.addendum.cancelled.json');
+                    Route::get('/addendum/draft/json', 'draftJson')->name('legal-new-agreement.addendum.draft.json');
+                    Route::get('/addendum/follow-up/json', 'followUpJson')->name('legal-new-agreement.addendum.follow-up.json');
                     Route::get('/addendum/view/{eid}', 'viewPsmOla')->name('legal-new-agreement.addendum.view');
                     Route::get('/addendum/pic-search', 'picSearch')->name('legal-new-agreement.addendum.pic-search');
                 });
@@ -2259,9 +2276,15 @@ Route::middleware(['auth'])->group(function () {
             });
 
             // Creator / PIC Legal only (checked in the controller), so VIEW is enough here.
+            Route::post('/addendum/documents/{eid}', 'updatePsmOlaDocuments')
+                ->middleware('access:ADDENDUM,VIEW')
+                ->name('legal-new-agreement.addendum.documents');
             Route::post('/addendum/process/{eid}', 'updatePsmOlaProcess')
                 ->middleware('access:ADDENDUM,VIEW')
                 ->name('legal-new-agreement.addendum.process');
+            Route::post('/addendum/activate/{eid}', 'activatePsmOla')
+                ->middleware('access:ADDENDUM,VIEW')
+                ->name('legal-new-agreement.addendum.activate');
             Route::post('/addendum/complete/{eid}', 'completePsmOla')
                 ->middleware('access:ADDENDUM,VIEW')
                 ->name('legal-new-agreement.addendum.complete');
@@ -2279,14 +2302,74 @@ Route::middleware(['auth'])->group(function () {
                 ->middleware('access:ADDENDUM,VIEW')
                 ->name('legal-new-agreement.addendum.show');
 
+            // Others: same screens as Addendum (the controller picks the type from the URL), without Routing.
             Route::middleware('access:OTHERS,VIEW')->group(function () {
                 Route::get('/others', 'others')->name('legal-new-agreement.others');
+                Route::get('/others/jobs/export', 'jobsExport')->name('legal-new-agreement.others.jobs.export');
+                Route::get('/others/active/export', 'activeExport')->name('legal-new-agreement.others.active.export');
+                Route::get('/others/completed/export', 'completedExport')->name('legal-new-agreement.others.completed.export');
+                Route::get('/others/cancelled/export', 'cancelledExport')->name('legal-new-agreement.others.cancelled.export');
+
+                Route::middleware('ajax')->group(function () {
+                    Route::get('/others/jobs/json', 'jobsJson')->name('legal-new-agreement.others.jobs.json');
+                    Route::get('/others/psm-ola/json', 'addendumPsmOlaJson')->name('legal-new-agreement.others.psm-ola.json');
+                    Route::get('/others/active/json', 'activeJson')->name('legal-new-agreement.others.active.json');
+                    Route::get('/others/completed/json', 'completedJson')->name('legal-new-agreement.others.completed.json');
+                    Route::get('/others/cancelled/json', 'cancelledJson')->name('legal-new-agreement.others.cancelled.json');
+                    Route::get('/others/draft/json', 'draftJson')->name('legal-new-agreement.others.draft.json');
+                    Route::get('/others/view/{eid}', 'viewPsmOla')->name('legal-new-agreement.others.view');
+                    Route::get('/others/pic-search', 'picSearch')->name('legal-new-agreement.others.pic-search');
+                });
             });
+
+            Route::middleware('access:OTHERS,EDIT')->group(function () {
+                Route::get('/others/edit/{eid}', 'editPsmOla')->middleware('ajax')->name('legal-new-agreement.others.edit');
+                Route::post('/others/update/{eid}', 'updatePsmOla')->name('legal-new-agreement.others.update');
+                Route::post('/others/attachment/{eid}', 'uploadPsmOlaAttachment')->name('legal-new-agreement.others.attachment');
+            });
+
+            Route::middleware('access:OTHERS,CREATE')->group(function () {
+                Route::get('/others/create/{eid}', 'createPsmOla')->middleware('ajax')->name('legal-new-agreement.others.create');
+                // Deep link to the create modal (?src=psm when started from a PSM / OLA): the Others page with it opened.
+                Route::get('/others/create-agreement/{eid}', 'addendumCreateLink')->name('legal-new-agreement.others.create-agreement');
+                Route::post('/others/store/{eid}', 'storePsmOla')->name('legal-new-agreement.others.store');
+            });
+
+            // Creator / PIC Legal only (checked in the controller), so VIEW is enough here.
+            Route::post('/others/documents/{eid}', 'updatePsmOlaDocuments')
+                ->middleware('access:OTHERS,VIEW')
+                ->name('legal-new-agreement.others.documents');
+            Route::post('/others/process/{eid}', 'updatePsmOlaProcess')
+                ->middleware('access:OTHERS,VIEW')
+                ->name('legal-new-agreement.others.process');
+            Route::post('/others/activate/{eid}', 'activatePsmOla')
+                ->middleware('access:OTHERS,VIEW')
+                ->name('legal-new-agreement.others.activate');
+            Route::post('/others/complete/{eid}', 'completePsmOla')
+                ->middleware('access:OTHERS,VIEW')
+                ->name('legal-new-agreement.others.complete');
+            Route::post('/others/cancel/{eid}', 'cancelPsmOla')
+                ->middleware('access:OTHERS,VIEW')
+                ->name('legal-new-agreement.others.cancel');
+            Route::post('/others/reopen/{eid}', 'reopenPsmOla')
+                ->middleware('access:OTHERS,VIEW')
+                ->name('legal-new-agreement.others.reopen');
+            Route::post('/others/attachment/{eid}/delete', 'deletePsmOlaAttachment')
+                ->middleware('access:OTHERS,VIEW')
+                ->name('legal-new-agreement.others.attachment.delete');
+            Route::get('/others/{eid}', 'psmOlaView')
+                ->where('eid', '[A-Za-z0-9]+')
+                ->middleware('access:OTHERS,VIEW')
+                ->name('legal-new-agreement.others.show');
+
 
             // Creator-only (checked in the controller), so VIEW is enough here.
             Route::post('/psm-ola/documents/{eid}', 'updatePsmOlaDocuments')
                 ->middleware('access:PSMOLA,VIEW')
                 ->name('legal-new-agreement.psm-ola.documents');
+            Route::post('/psm-ola/activate/{eid}', 'activatePsmOla')
+                ->middleware('access:PSMOLA,VIEW')
+                ->name('legal-new-agreement.psm-ola.activate');
             Route::post('/psm-ola/complete/{eid}', 'completePsmOla')
                 ->middleware('access:PSMOLA,VIEW')
                 ->name('legal-new-agreement.psm-ola.complete');

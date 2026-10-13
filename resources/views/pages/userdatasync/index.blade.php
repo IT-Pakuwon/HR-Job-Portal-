@@ -10,6 +10,8 @@
             </p>
         </div>
 
+        <p x-show="loading" class="mb-2 text-xs text-gray-500">Loading Talenta and user data…</p>
+
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {{-- LEFT: Talenta --}}
             <div class="rounded-xl bg-white p-3 shadow-sm dark:bg-gray-800">
@@ -178,6 +180,11 @@
 
             return {
                 talenta: [], users: [], companies: [], departments: [],
+                loading: true,
+                talentaMap: new Map(), talentaSearch: [], userSearch: [],
+                filteredTalenta: [], filteredUsers: [],
+                talentaCompanies: [], talentaDepartments: [], talentaStatuses: [],
+                userCompanies: [], userDepartments: [],
                 qTalenta: '', qUsers: '', onlyMismatch: false,
                 fT: { company: '', department: '', status: '' },
                 fU: { company: '', department: '', status: '' },
@@ -197,10 +204,30 @@
                     this.users = u.data;
                     this.companies = o.companies;
                     this.departments = o.departments;
+                    this.buildIndex();
+                    this.loading = false;
+
+                    // Alpine getters re-run on every access; cache the results and only recompute on change.
+                    this.$watch('qTalenta', () => this.refilterTalenta());
+                    this.$watch('fT', () => this.refilterTalenta());
+                    ['qUsers', 'onlyMismatch', 'fU'].forEach(k => this.$watch(k, () => this.refilterUsers()));
+                },
+
+                buildIndex() {
+                    this.talentaMap = new Map(this.talenta.map(t => [t.npk, t]));
+                    this.talentaSearch = this.talenta.map(t => norm(t.npk + ' ' + t.name + ' ' + t.organization));
+                    this.userSearch = this.users.map(u => norm(u.username + ' ' + u.name + ' ' + u.npk));
+                    this.talentaCompanies = this.uniq(this.talenta.map(t => t.company));
+                    this.talentaDepartments = this.uniq(this.talenta.map(t => t.department));
+                    this.talentaStatuses = this.uniq(this.talenta.map(t => t.status));
+                    this.userCompanies = this.uniq(this.users.map(u => u.origin_cpny_id));
+                    this.userDepartments = this.uniq(this.users.map(u => u.origin_department_id));
+                    this.refilterTalenta();
+                    this.refilterUsers();
                 },
 
                 talentaByNpk(npk) {
-                    return this.talenta.find(t => t.npk === String(npk || '').trim());
+                    return this.talentaMap.get(String(npk || '').trim());
                 },
                 isMismatch(u) {
                     const t = this.talentaByNpk(u.npk);
@@ -209,25 +236,20 @@
                 },
 
                 uniq(arr) { return [...new Set(arr.filter(Boolean))].sort(); },
-                get talentaCompanies() { return this.uniq(this.talenta.map(t => t.company)); },
-                get talentaDepartments() { return this.uniq(this.talenta.map(t => t.department)); },
-                get talentaStatuses() { return this.uniq(this.talenta.map(t => t.status)); },
-                get userCompanies() { return this.uniq(this.users.map(u => u.origin_cpny_id)); },
-                get userDepartments() { return this.uniq(this.users.map(u => u.origin_department_id)); },
 
-                get filteredTalenta() {
+                refilterTalenta() {
                     const q = norm(this.qTalenta), f = this.fT;
-                    return this.talenta.filter(t =>
-                        (!q || norm(t.npk + ' ' + t.name + ' ' + t.organization).includes(q)) &&
+                    this.filteredTalenta = this.talenta.filter((t, i) =>
+                        (!q || this.talentaSearch[i].includes(q)) &&
                         (!f.company || t.company === f.company) &&
                         (!f.department || t.department === f.department) &&
                         (!f.status || t.status === f.status));
                 },
-                get filteredUsers() {
+                refilterUsers() {
                     const q = norm(this.qUsers), f = this.fU;
-                    return this.users.filter(u => {
+                    this.filteredUsers = this.users.filter((u, i) => {
                         const t = this.talentaByNpk(u.npk);
-                        return (!q || norm(u.username + ' ' + u.name + ' ' + u.npk).includes(q)) &&
+                        return (!q || this.userSearch[i].includes(q)) &&
                             (!this.onlyMismatch || this.isMismatch(u)) &&
                             (!f.company || u.origin_cpny_id === f.company) &&
                             (!f.department || u.origin_department_id === f.department) &&

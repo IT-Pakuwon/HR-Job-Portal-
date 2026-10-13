@@ -1596,17 +1596,19 @@ class LegalAgreementController extends Controller
             ->whereIn('agreement_type', TrAgreement::FU_SOURCE_TYPES)
             ->whereIn('agreement_step_id', ['ACTIVE', 'COMPLETED'])
             // No second follow-up: skip a PSM / OLA whose tenant + unit already has a live one
-            // (a follow-up that is Active, on Hold or Escalated).
-            ->whereNotExists(function ($sub) {
+            // (a follow-up that is Active, on Hold or Escalated). An Addendum is its own document with its
+            // own single follow-up, so it neither blocks nor is blocked by its PSM / OLA's (FU_ADDENDUM is left
+            // out here, and an Addendum row is not held back by this rule at all).
+            ->where(fn ($q) => $q->where('agreement_type', 'ADDENDUM')->orWhereNotExists(function ($sub) {
                 $sub->selectRaw('1')
                     ->from('tr_agreement as fu')
                     ->whereNull('fu.deleted_at')
                     ->whereIn('fu.agreement_step_id', ['ACTIVE', 'HOLD', 'ESCALATED'])
-                    ->where(fn ($q) => $q->whereNull('fu.agreement_type')->orWhereNotIn('fu.agreement_type', TrAgreement::NEW_AGREEMENT_TYPES))
+                    ->where(fn ($q) => $q->whereNull('fu.agreement_type')->orWhereNotIn('fu.agreement_type', [...TrAgreement::NEW_AGREEMENT_TYPES, 'FU_ADDENDUM']))
                     ->whereColumn('fu.cpny_id', 'tr_agreement.cpny_id')
                     ->whereColumn('fu.tenant_no', 'tr_agreement.tenant_no')
                     ->whereColumn('fu.unit_id', 'tr_agreement.unit_id');
-            });
+            }));
 
         if (! $this->isManagerRole() && ! $user->hasFullDataScope()) {
             $query->where(function ($q) use ($user) {
@@ -2221,7 +2223,9 @@ class LegalAgreementController extends Controller
         try {
             $this->transitionStep($agreement, 'CANCELLED', 'Agreement Cancelled', $request->response_descr, 'X', $username);
 
-            if (in_array($agreement->agreement_type, TrAgreement::FU_TYPES, true)) {
+            // The PSM / OLA's follow-up hands its IFCA job back; an Addendum's follow-up never held one
+            // (it shares the PSM / OLA's tenant + unit, so the match would hit the PSM / OLA's job).
+            if (in_array($agreement->agreement_type, TrAgreement::FU_PARENT_TYPES, true)) {
                 StagingContractAgreement::moveFor($agreement, ['P', 'C'], 'A', $username);
             }
 
@@ -2263,7 +2267,7 @@ class LegalAgreementController extends Controller
         // 'FU_START:<step>' -> <step>; anything unexpected falls back to Active.
         $cameFrom = $start ? substr((string) $start->agreement_activity_type, strlen(self::ACTIVITY_FU_START) + 1) : '';
         $toStep = in_array($cameFrom, ['ACTIVE', 'COMPLETED'], true) ? $cameFrom : 'ACTIVE';
-        $toType = array_search($agreement->agreement_type, ['PSM' => 'FU_PSM', 'OLA' => 'FU_OLA'], true);
+        $toType = TrAgreement::FU_SOURCE_BY_TYPE[$agreement->agreement_type] ?? null;
 
         DB::connection('pgsql5')->beginTransaction();
 
