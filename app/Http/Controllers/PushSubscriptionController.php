@@ -6,6 +6,8 @@ use App\Models\SysPushSubscription;
 use App\Services\WebPushService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 // Device registration for My Page push notifications (the app's Profile > bell button).
 class PushSubscriptionController extends Controller
@@ -13,6 +15,45 @@ class PushSubscriptionController extends Controller
     public function key()
     {
         return response()->json(['key' => config('webpush.public_key'), 'enabled' => WebPushService::configured()]);
+    }
+
+    // GET /push/diagnose — open it in the browser (while logged in) to see exactly which server requirement is missing.
+    public function diagnose(Request $request)
+    {
+        $checks = [];
+
+        $checks['vapid_keys_configured'] = WebPushService::configured();
+        $checks['package_installed (minishlink/web-push)'] = class_exists(\Minishlink\WebPush\WebPush::class);
+
+        try {
+            $checks['table_exists (sys_push_subscription)'] = Schema::connection('pgsql2')->hasTable('sys_push_subscription');
+        } catch (\Throwable $e) {
+            $checks['table_exists (sys_push_subscription)'] = 'ERROR: ' . $e->getMessage();
+        }
+
+        $checks['openssl_extension'] = extension_loaded('openssl');
+        $ec = function_exists('openssl_pkey_new')
+            ? @openssl_pkey_new(['curve_name' => 'prime256v1', 'private_key_type' => OPENSSL_KEYTYPE_EC])
+            : false;
+        $checks['openssl_can_create_ec_key (needed to send)'] = $ec !== false
+            ? true
+            : 'FAILED: ' . (function_exists('openssl_error_string') ? (openssl_error_string() ?: 'unknown') : 'no openssl')
+                . ' — on Windows/XAMPP set OPENSSL_CONF to the openssl.cnf file and restart the web server';
+        $checks['curl_extension'] = extension_loaded('curl');
+        $checks['bcmath_or_gmp'] = extension_loaded('bcmath') || extension_loaded('gmp');
+        $checks['https'] = $request->isSecure() ?: 'NO — push only works over HTTPS (localhost excepted)';
+        $checks['php'] = PHP_VERSION . ' / ' . PHP_OS_FAMILY;
+        $checks['app_url'] = config('app.url');
+
+        try {
+            $checks['my_devices_registered'] = SysPushSubscription::where('username', $this->username($request))->where('status', 'A')->count();
+        } catch (\Throwable $e) {
+            $checks['my_devices_registered'] = 'ERROR: ' . $e->getMessage();
+        }
+
+        $problems = collect($checks)->filter(fn ($v, $k) => $v === false || (is_string($v) && (str_starts_with($v, 'ERROR') || str_starts_with($v, 'FAILED') || str_starts_with($v, 'NO'))))->keys()->values();
+
+        return response()->json(['ok' => $problems->isEmpty(), 'problems' => $problems, 'checks' => $checks], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     }
 
     // Whether *this* browser is already subscribed (so the bell shows the right state).
@@ -35,29 +76,41 @@ class PushSubscriptionController extends Controller
         ]);
         $username = $this->username($request);
 
-        $sub = SysPushSubscription::updateOrCreate(
-            ['endpoint' => $data['endpoint']],
-            [
-                'username'   => $username,
-                'p256dh'     => $data['keys']['p256dh'],
-                'auth'       => $data['keys']['auth'],
-                'origin'     => $request->getSchemeAndHttpHost(),
-                'user_agent' => substr((string) $request->userAgent(), 0, 255),
-                'status'     => 'A',
-            ]
-        );
+        try {
+            $sub = SysPushSubscription::updateOrCreate(
+                ['endpoint' => $data['endpoint']],
+                [
+                    'username'   => $username,
+                    'p256dh'     => $data['keys']['p256dh'],
+                    'auth'       => $data['keys']['auth'],
+                    'origin'     => $request->getSchemeAndHttpHost(),
+                    'user_agent' => substr((string) $request->userAgent(), 0, 255),
+                    'status'     => 'A',
+                ]
+            );
+        } catch (\Throwable $e) {
+            Log::error('Push subscribe: could not save subscription', ['err' => $e->getMessage()]);
+
+            return response()->json(['success' => false, 'message' => 'Could not save this device (is the sys_push_subscription table created on the server?)'], 500);
+        }
 
         // Start from "everything currently in the bell is already known" so enabling doesn't blast the backlog.
         Cache::forget('push_sent_' . $username);
 
-        WebPushService::send(collect([$sub]), [
-            'title' => 'Notifications enabled',
-            'body'  => 'You will now get My Page notifications on this device.',
-            'url'   => $sub->origin . '/my-page',
-            'tag'   => 'push-enabled',
-        ]);
+        // Confirmation push. If it can't be sent (e.g. OpenSSL not set up on the server) the device is still registered.
+        $welcomeSent = false;
+        try {
+            $welcomeSent = WebPushService::send(collect([$sub]), [
+                'title' => 'Notifications enabled',
+                'body'  => 'You will now get My Page notifications on this device.',
+                'url'   => $sub->origin . '/my-page',
+                'tag'   => 'push-enabled',
+            ]) > 0;
+        } catch (\Throwable $e) {
+            Log::error('Push subscribe: welcome push failed', ['err' => $e->getMessage()]);
+        }
 
-        return response()->json(['success' => true]);
+        return response()->json(['success' => true, 'welcome_sent' => $welcomeSent]);
     }
 
     public function unsubscribe(Request $request)

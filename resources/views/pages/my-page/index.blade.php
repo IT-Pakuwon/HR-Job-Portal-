@@ -506,7 +506,7 @@
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' },
                 body: JSON.stringify(body),
             });
-            const toast = (icon, title) => window.Swal && window.Swal.fire({ toast: true, position: 'top', icon, title, showConfirmButton: false, timer: 2600, customClass: { container: 'mp-swal-top' } });
+            const toast = (icon, title) => window.Swal && window.Swal.fire({ toast: true, position: 'top', icon, title, showConfirmButton: false, timer: icon === 'error' || icon === 'warning' ? 7000 : 2600, customClass: { container: 'mp-swal-top' } });
             const b64 = s => { const p = '='.repeat((4 - s.length % 4) % 4); const r = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...r].map(c => c.charCodeAt(0))); };
             const regP = navigator.serviceWorker.ready;
             const render = on => { btn.classList.toggle('on', on); btn.title = on ? 'Notifications are on (tap to turn off)' : 'Turn on notifications'; };
@@ -532,10 +532,17 @@
                     if (!k.enabled) { toast('error', 'Push is not configured on the server'); return; }
                     const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64(k.key) });
                     const res = await post(@json(route('push.subscribe')), sub.toJSON());
-                    if (!res.ok) { await sub.unsubscribe(); throw new Error('subscribe failed'); }
+                    if (!res.ok) {
+                        await sub.unsubscribe();
+                        let msg = '';
+                        try { msg = (await res.json()).message || ''; } catch (e) {}
+                        throw new Error('Server said HTTP ' + res.status + (msg ? ': ' + msg : ''));
+                    }
                     render(true); toast('success', 'Notifications turned on');
                 } catch (e) {
-                    toast('error', 'Could not change notification setting');
+                    console.error('Push enable failed', e);
+                    // name the real cause (e.g. "Registration failed - push service error") instead of a generic message
+                    toast('error', (e && e.name ? e.name + ': ' : '') + ((e && e.message) || 'Could not change notification setting'));
                 } finally { btn.disabled = false; }
             });
         })();
